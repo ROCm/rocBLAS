@@ -81,6 +81,11 @@ Short precisions: &int8_half_single_precisions
   - *half_precision
   - *single_precision
 
+Hpa half and half: &hpa_half_half_precisions
+  - *hpa_half_precision
+  - *half_precision
+  - *hpa_half_float_alpha
+
 ML precisions: &hpa_half_single_precisions
   - *hpa_half_precision
   - *hpa_half_in_single_out_precision
@@ -111,27 +116,30 @@ Simple precisions: &half_single_double_precisions
   - *double_precision
 
 Complex precisions: &complex_precisions
-  - &half_precision_complex
-    { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f16_c }
-  - &hpa_half_precision_complex
-    { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f32_c }
+  # don't define until required
+  #- &half_precision_complex
+  #  { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f16_c }
+  #- &hpa_half_precision_complex
+  #  { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f32_c }
   - &single_precision_complex
     { a_type: f32_c, b_type: f32_c, c_type: f32_c, d_type: f32_c, compute_type: f32_c }
   - &double_precision_complex
     { a_type: f64_c, b_type: f64_c, c_type: f64_c, d_type: f64_c, compute_type: f64_c }
-  - &int8_precision_complex
-    { a_type:  i8_c, b_type:  i8_c, c_type: i32_c, d_type: i32_c, compute_type: i32_c }
+  #- &int8_precision_complex
+  #  { a_type:  i8_c, b_type:  i8_c, c_type: i32_c, d_type: i32_c, compute_type: i32_c }
   - &hpa_bf16_precision_complex
     { a_type:  bf16_c, b_type:  bf16_c, c_type: bf16_c, d_type: bf16_c, compute_type: f32_c }
 
-Half Precision complex and real: &half_precision_complex_real
-  - *half_precision
-  - *half_precision_complex
+# no half or less complex required yet
 
-Hpa Half Precision complex and real: &hpa_half_precision_complex_real
-  - *hpa_half_precision
-  - *hpa_half_in_single_out_precision
-  - *hpa_half_precision_complex
+#Half Precision complex and real: &half_precision_complex_real
+#  - *half_precision
+#  - *half_precision_complex
+
+#Hpa Half Precision complex and real: &hpa_half_precision_complex_real
+#  - *hpa_half_precision
+#  - *hpa_half_in_single_out_precision
+#  - *hpa_half_precision_complex
 
 Single Precision complex and real: &single_precision_complex_real
   - *single_precision
@@ -141,9 +149,9 @@ Double Precision complex and real: &double_precision_complex_real
   - *double_precision
   - *double_precision_complex
 
-int8 Precision complex and real: &int8_precision_complex_real
-  - *int8_precision
-  - *int8_precision_complex
+# int8 Precision complex and real: &int8_precision_complex_real
+#   - *int8_precision
+#   - *int8_precision_complex
 
 hpabf16 Precision complex and real: &hpa_bf16_precision_complex_real
   - *hpa_bf16_precision
@@ -163,15 +171,15 @@ C precisions complex and real: &single_double_precisions_complex_real
 Short simple precisions complex and real: &half_single_precisions_complex_real
   - *half_precision
   - *single_precision
-  - *half_precision_complex
+#  - *half_precision_complex
   - *single_precision_complex
 
 Short precisions complex and real: &int8_half_single_precisions_complex_real
   - *int8_precision
   - *half_precision
   - *single_precision
-  - *int8_precision_complex
-  - *half_precision_complex
+#  - *int8_precision_complex
+#  - *half_precision_complex
   - *single_precision_complex
 
 ML precisions complex and real: &hpa_half_single_precisions_complex_real
@@ -179,8 +187,8 @@ ML precisions complex and real: &hpa_half_single_precisions_complex_real
   - *hpa_half_in_single_out_precision
   - *half_precision
   - *single_precision
-  - *hpa_half_precision_complex
-  - *half_precision_complex
+#  - *hpa_half_precision_complex
+#  - *half_precision_complex
   - *single_precision_complex
 
 Non-int precisions complex and real: &hpa_half_single_double_precisions_complex_real
@@ -189,8 +197,8 @@ Non-int precisions complex and real: &hpa_half_single_double_precisions_complex_
   - *half_precision
   - *single_precision
   - *double_precision
-  - *hpa_half_precision_complex
-  - *half_precision_complex
+#  - *hpa_half_precision_complex
+#  - *half_precision_complex
   - *single_precision_complex
   - *double_precision_complex
 
@@ -198,7 +206,7 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
   - *half_precision
   - *single_precision
   - *double_precision
-  - *half_precision_complex
+#  - *half_precision_complex
   - *single_precision_complex
   - *double_precision_complex
 
@@ -207,26 +215,35 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
 #############################################
 #               Used for Scal               #
 #############################################
-Joined precisions: &complex_real_in_complex_out
-  - &single_precision_complex_real_in_complex_out
-    { a_type: f32_r, b_type: f32_c, c_type: f32_r, d_type: f32_c, compute_type: f32_c }
-  - &double_precision_complex_real_in_complex_out
-    { a_type: f64_r, b_type: f64_c, c_type: f64_r, d_type: f64_c, compute_type: f64_c }
 
-Single double joined: &single_double_complex_real_in_complex_out
-  - *single_precision_complex_real_in_complex_out
-  - *double_precision_complex_real_in_complex_out
+# scal order mapping is x, alpha
+scal Joined precisions: &scal_complex_real_alpha_complex_out
+  - &scal_single_precision_complex_real_alpha_complex_out
+    { a_type: f32_c, b_type: f32_r, c_type: f32_c, d_type: f32_c, compute_type: f32_c }
+  - &scal_double_precision_complex_real_alpha_complex_out
+    { a_type: f64_c, b_type: f64_r, c_type: f64_c, d_type: f64_c, compute_type: f64_c }
+
+scal Single double joined: &scal_single_double_complex_real_alpha_complex_out
+  - *scal_single_precision_complex_real_alpha_complex_out
+  - *scal_double_precision_complex_real_alpha_complex_out
 
 #############################################
 #             Used for Scal_ex              #
 #############################################
-Hpa half and half: &hpa_half_half_precisions
-  - *hpa_half_precision
-  - *half_precision
-  - *hpa_half_float_alpha
+
+# scal_ex order mapping is alpha, x, y, o, compute
+scal_ex precisions: &scal_ex_complex_real_alpha_complex_out
+  - &scal_ex_single_precision_complex_real_alpha_complex_out
+    { a_type: f32_r, b_type: f32_c, c_type: f32_c, d_type: f32_c, compute_type: f32_c }
+  - &scal_ex_double_precision_complex_real_alpha_complex_out
+    { a_type: f64_r, b_type: f64_c, c_type: f64_c, d_type: f64_c, compute_type: f64_c }
+
+scal_ex Single double joined: &scal_ex_single_double_complex_real_alpha_complex_out
+  - *scal_ex_single_precision_complex_real_alpha_complex_out
+  - *scal_ex_double_precision_complex_real_alpha_complex_out
 
 #############################################
-#               Used for rot*               #
+#           Used for rot* and nrm2_ex       #
 #############################################
 Complex real mixed: &complex_real_mixed
   - &single_precision_complex_real_in_complex_compute
@@ -241,8 +258,6 @@ Complex real mixed: &complex_real_mixed
     { a_type: f32_c, b_type: f32_c, c_type: f32_r, d_type: f32_c, compute_type: f32_c }
   - &double_precision_complex_real_c
     { a_type: f64_c, b_type: f64_c, c_type: f64_r, d_type: f64_c, compute_type: f64_c }
-
-
 
 rot precisions: &rot_precisions
   - *single_precision
@@ -277,7 +292,7 @@ Half bfloat single double complex real: &half_bfloat_single_double_complex_real_
   - *hpa_bf16_in_single_out_precision
   - *single_precision
   - *double_precision
-  - *half_precision_complex
+#  - *half_precision_complex
   - *single_precision_complex
   - *double_precision_complex
 

@@ -57,8 +57,8 @@ auto rocblas_simple_dispatch(const Arguments& arg)
         return TEST<float>{}(arg);
     case rocblas_datatype_f64_r:
         return TEST<double>{}(arg);
-    //  case rocblas_datatype_f16_c:
-    //      return TEST<rocblas_half_complex>{}(arg);
+    // case rocblas_datatype_f16_c:
+    //     return TEST<rocblas_half_complex>{}(arg);
     case rocblas_datatype_f32_c:
         return TEST<rocblas_float_complex>{}(arg);
     case rocblas_datatype_f64_c:
@@ -83,17 +83,28 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
             if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
                && Tc == rocblas_datatype_f32_r)
                 return TEST<rocblas_float_complex, float>{}(arg);
-            else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
-                    && Tc == rocblas_datatype_f32_c)
-                return TEST<rocblas_float_complex, float, rocblas_float_complex>{}(arg);
             else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
                     && Tc == rocblas_datatype_f64_r)
                 return TEST<rocblas_double_complex, double>{}(arg);
+            else if(strstr(arg.function, "scal"))
+            {
+                // for csscal and zdscal
+                if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+                   && Tc == rocblas_datatype_f32_c)
+                    return TEST<rocblas_float_complex, float>{}(arg);
+                else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                        && Tc == rocblas_datatype_f64_c)
+                    return TEST<rocblas_double_complex, double>{}(arg);
+            }
+            else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+                    && Tc == rocblas_datatype_f32_c)
+                return TEST<rocblas_float_complex, float, rocblas_float_complex>{}(arg);
             else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
                     && Tc == rocblas_datatype_f64_c)
                 return TEST<rocblas_double_complex, double, rocblas_double_complex>{}(arg);
         }
     }
+    //
     else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
         return TEST<rocblas_float_complex, float>{}(arg);
     else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
@@ -131,77 +142,91 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     {
         return rocblas_simple_dispatch<TEST>(arg); // Ta == Tx == Ty == Tex
     }
-    else if(Ta == Tx && Tx == Tex && is_scal)
+    else if(is_scal && Ta == Tx && Tx == Tex)
     {
         // hscal with f16_r compute (scal doesn't care about Ty)
         return rocblas_simple_dispatch<TEST>(arg);
     }
-    else if(Ta == Tx && Tx == Ty && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r
-            && (is_rot || is_dot || is_axpy))
+    else if((is_rot || is_dot || is_axpy) && Ta == Tx && Tx == Ty && Ta == rocblas_datatype_f16_r
+            && Tex == rocblas_datatype_f32_r)
     {
         return TEST<rocblas_half, rocblas_half, rocblas_half, float>{}(arg);
     }
-    else if(Ta == Tx && Tx == Ty && Ta == rocblas_datatype_bf16_r && Tex == rocblas_datatype_f32_r
-            && (is_rot || is_dot))
+    else if((is_rot || is_dot) && Ta == Tx && Tx == Ty && Ta == rocblas_datatype_bf16_r
+            && Tex == rocblas_datatype_f32_r)
     {
         return TEST<rocblas_bfloat16, rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
     }
-    else if(Ta == Tex && Tx == Ty && Tx == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r
-            && is_axpy)
+    else if(is_axpy && Ta == Tex && Tx == Ty && Tx == rocblas_datatype_f16_r
+            && Tex == rocblas_datatype_f32_r)
     {
         return TEST<float, rocblas_half, rocblas_half, float>{}(arg);
     }
-    else if(Ta == Tx && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r
-            && (is_scal || is_nrm2))
+    else if((is_scal || is_nrm2 || is_axpy) && Ta == Tx && Ta == rocblas_datatype_f16_r
+            && Tex == rocblas_datatype_f32_r)
     {
-        // scal half, nrm2 half
+        // half scal, nrm2, axpy
         return TEST<rocblas_half, rocblas_half, float>{}(arg);
     }
-    else if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f16_r
-            && Tex == rocblas_datatype_f32_r && is_scal)
+    // exclusive functions cases
+    else if(is_scal)
     {
-        // scal half with float alpha
-        return TEST<float, rocblas_half, float>{}(arg);
+        // scal_ex ordering: <alphaType, dataType, exType> opposite order of scal test
+
+        if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f16_r
+           && Tex == rocblas_datatype_f32_r)
+        {
+            // scal half with float alpha
+            return TEST<float, rocblas_half, float>{}(arg);
+        }
+        else if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f32_c
+                && Tex == rocblas_datatype_f32_c)
+        {
+            // csscal-like
+            return TEST<float, rocblas_float_complex, rocblas_float_complex>{}(arg);
+        }
+        else if(Ta == rocblas_datatype_f64_r && Tx == rocblas_datatype_f64_c
+                && Tex == rocblas_datatype_f64_c)
+        {
+            // zdscal-like
+            return TEST<double, rocblas_double_complex, rocblas_double_complex>{}(arg);
+        }
     }
-    else if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f32_c
-            && Tex == rocblas_datatype_f32_c && is_scal)
+    else if(is_nrm2)
     {
-        // csscal
-        return TEST<float, rocblas_float_complex, rocblas_float_complex>{}(arg);
+        if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_r
+           && Tex == rocblas_datatype_f32_r)
+        {
+            // scnrm2
+            return TEST<rocblas_float_complex, float, float>{}(arg);
+        }
+        else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_r
+                && Tex == rocblas_datatype_f64_r)
+        {
+            // dznrm2
+            return TEST<rocblas_double_complex, double, double>{}(arg);
+        }
     }
-    else if(Ta == rocblas_datatype_f64_r && Tx == rocblas_datatype_f64_c
-            && Tex == rocblas_datatype_f64_c && is_scal)
+    else if(is_rot)
     {
-        // zdscal
-        return TEST<double, rocblas_double_complex, rocblas_double_complex>{}(arg);
-    }
-    else if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_r
-            && Tex == rocblas_datatype_f32_r && is_nrm2)
-    {
-        // scnrm2
-        return TEST<rocblas_float_complex, float, float>{}(arg);
-    }
-    else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_r
-            && Tex == rocblas_datatype_f64_r && is_nrm2)
-    {
-        // dznrm2
-        return TEST<rocblas_double_complex, double, double>{}(arg);
-    }
-    else if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_c
-            && Ty == rocblas_datatype_f32_r && Tex == rocblas_datatype_f32_c && is_rot)
-    {
-        // rot with complex x/y/compute and real cs
-        return TEST<rocblas_float_complex, rocblas_float_complex, float, rocblas_float_complex>{}(
-            arg);
-    }
-    else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_c
-            && Ty == rocblas_datatype_f64_r && Tex == rocblas_datatype_f64_c && is_rot)
-    {
-        // rot with complex x/y/compute and real cs
-        return TEST<rocblas_double_complex,
-                    rocblas_double_complex,
-                    double,
-                    rocblas_double_complex>{}(arg);
+        if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_c
+           && Ty == rocblas_datatype_f32_r && Tex == rocblas_datatype_f32_c)
+        {
+            // rot with complex x/y/compute and real cs
+            return TEST<rocblas_float_complex,
+                        rocblas_float_complex,
+                        float,
+                        rocblas_float_complex>{}(arg);
+        }
+        else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_c
+                && Ty == rocblas_datatype_f64_r && Tex == rocblas_datatype_f64_c)
+        {
+            // rot with complex x/y/compute and real cs
+            return TEST<rocblas_double_complex,
+                        rocblas_double_complex,
+                        double,
+                        rocblas_double_complex>{}(arg);
+        }
     }
 
     return TEST<void>{}(arg);

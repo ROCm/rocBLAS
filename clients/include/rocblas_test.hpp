@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -378,7 +378,7 @@ struct rocblas_test_invalid
     }
 
     // If this specialization is actually called, print fatal error message
-    virtual void operator()(const Arguments&) final
+    virtual void operator()(const Arguments& arg) final
     {
         static constexpr char msg[] = "Internal error: Test called with invalid types";
 
@@ -386,6 +386,12 @@ struct rocblas_test_invalid
         FAIL() << msg;
 #else
         rocblas_cerr << msg << std::endl;
+        rocblas_cerr << "function: " << arg.function << " types: "
+                     << " a: " << rocblas_datatype2string(arg.a_type)
+                     << " b: " << rocblas_datatype2string(arg.b_type)
+                     << " c: " << rocblas_datatype2string(arg.c_type)
+                     << " d: " << rocblas_datatype2string(arg.d_type)
+                     << " compute:" << rocblas_datatype2string(arg.compute_type) << std::endl;
         rocblas_abort();
 #endif
     }

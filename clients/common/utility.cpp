@@ -60,13 +60,13 @@ std::string rocblas_exepath()
 
     std::vector<TCHAR> result(MAX_PATH + 1);
     // Ensure result is large enough to accomodate the path
+    DWORD length = 0;
     for(;;)
     {
-        auto length = GetModuleFileNameA(nullptr, result.data(), result.size());
+        length = GetModuleFileNameA(nullptr, result.data(), result.size());
         if(length < result.size() - 1)
         {
-            result.resize(length);
-            result.shrink_to_fit();
+            result.resize(length + 1);
             break;
         }
         result.resize(result.size() * 2);

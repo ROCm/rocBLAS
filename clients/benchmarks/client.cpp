@@ -627,6 +627,8 @@ struct perf_blas_axpy_ex<
                          && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tex>{})
                      || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
                          && std::is_same<Tx, Ty>{} && std::is_same<Tex, float>{})
+                     || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
+                         && std::is_same<Ty, Tex>{} && std::is_same<Tex, float>{})
                      || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_half>{}
                          && std::is_same<Ta, Tex>{} && std::is_same<Tx, Ty>{})>>
     : rocblas_test_valid
@@ -787,29 +789,30 @@ struct perf_blas_rot_ex<
     }
 };
 
-template <typename Ta, typename Tb = Ta, typename = void>
+template <typename Tx, typename Ta = Tx, typename = void>
 struct perf_blas_scal : rocblas_test_invalid
 {
 };
 
-template <typename Ta, typename Tb>
+template <typename Tx, typename Ta>
 struct perf_blas_scal<
+    Tx,
     Ta,
-    Tb,
-    std::enable_if_t<(std::is_same<Ta, double>{} && std::is_same<Tb, rocblas_double_complex>{})
-                     || (std::is_same<Ta, float>{} && std::is_same<Tb, rocblas_float_complex>{})
-                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
-                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})
-                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{})
-                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{})>>
+    std::enable_if_t<(std::is_same<Ta, double>{} && std::is_same<Tx, rocblas_double_complex>{})
+                     || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_float_complex>{})
+                     || (std::is_same<Tx, Ta>{} && std::is_same<Tx, float>{})
+                     || (std::is_same<Tx, Ta>{} && std::is_same<Tx, double>{})
+                     || (std::is_same<Tx, Ta>{} && std::is_same<Tx, rocblas_float_complex>{})
+                     || (std::is_same<Tx, Ta>{} && std::is_same<Tx, rocblas_double_complex>{})>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
-            {"scal", testing_scal<Ta, Tb>},
-            {"scal_batched", testing_scal_batched<Ta, Tb>},
-            {"scal_strided_batched", testing_scal_strided_batched<Ta, Tb>},
+            // Tx, Ta is reversed compared to scal_ex order as alpha is second argument
+            {"scal", testing_scal<Tx, Ta>},
+            {"scal_batched", testing_scal_batched<Tx, Ta>},
+            {"scal_strided_batched", testing_scal_strided_batched<Tx, Ta>},
         };
         run_function(map, arg);
     }
@@ -853,19 +856,23 @@ struct perf_blas_scal_ex<
     }
 };
 
-template <typename Ta, typename Tb = Ta, typename = void>
+template <typename Ta, typename Tb = Ta, typename Tc = Tb, typename = void>
 struct perf_blas_rotg : rocblas_test_invalid
 {
 };
 
-template <typename Ta, typename Tb>
+template <typename Ta, typename Tb, typename Tc>
 struct perf_blas_rotg<
     Ta,
     Tb,
-    std::enable_if_t<(std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Tb, double>{})
-                     || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Tb, float>{})
-                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
-                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})>>
+    Tc,
+    std::enable_if_t<
+        (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Tb, double>{}
+         && std::is_same<Ta, Tc>{})
+        || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Tb, float>{}
+            && std::is_same<Ta, Tc>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{} && std::is_same<Ta, Tc>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{} && std::is_same<Ta, Tc>{})>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
@@ -879,9 +886,9 @@ struct perf_blas_rotg<
     }
 };
 
-int run_bench_test(Arguments& arg)
+int run_bench_test(Arguments& arg, const std::string& filter, bool yaml = false)
 {
-    rocblas_initialize(); // Initialize rocBLAS
+    static int runOnce = (rocblas_initialize(), 0); // Initialize rocBLAS
 
     rocblas_cout << std::setiosflags(std::ios::fixed)
                  << std::setprecision(7); // Set precision to 7 digits
@@ -901,6 +908,14 @@ int run_bench_test(Arguments& arg)
     const char*           function = arg.function;
     if(!strncmp(function, prefix, sizeof(prefix) - 1))
         function += sizeof(prefix) - 1;
+
+    if(yaml && strstr(function, "_bad_arg"))
+        return 0;
+    if(!filter.empty())
+    {
+        if(!strstr(function, filter.c_str()))
+            return 0;
+    }
 
 #if BUILD_WITH_TENSILE
     if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched"))
@@ -1091,11 +1106,11 @@ int run_bench_test(Arguments& arg)
     return 0;
 }
 
-int rocblas_bench_datafile()
+int rocblas_bench_datafile(const std::string& filter)
 {
     int ret = 0;
     for(Arguments arg : RocBLAS_TestData())
-        ret |= run_bench_test(arg);
+        ret |= run_bench_test(arg, filter, true);
     test_cleanup::cleanup();
     return ret;
 }
@@ -1129,6 +1144,7 @@ try
     std::string d_type;
     std::string compute_type;
     std::string initialization;
+    std::string filter;
     rocblas_int device_id;
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
@@ -1341,6 +1357,10 @@ try
          bool_switch(&log_function_name)->default_value(false),
          "Function name precedes other itmes.")
 
+        ("function_filter",
+         value<std::string>(&filter),
+         "Simple strstr filter on function name only without wildcards")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
@@ -1377,8 +1397,9 @@ try
     set_device(device_id);
 
     if(datafile)
-        return rocblas_bench_datafile();
+        return rocblas_bench_datafile(filter);
 
+    // single bench run
     std::transform(precision.begin(), precision.end(), precision.begin(), ::tolower);
     auto prec = string2rocblas_datatype(precision);
     if(prec == static_cast<rocblas_datatype>(-1))
@@ -1419,7 +1440,7 @@ try
     if(copied <= 0 || copied >= sizeof(arg.function))
         throw std::invalid_argument("Invalid value for --function");
 
-    return run_bench_test(arg);
+    return run_bench_test(arg, filter);
 }
 catch(const std::invalid_argument& exp)
 {
