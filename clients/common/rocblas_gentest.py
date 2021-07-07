@@ -22,7 +22,7 @@ INT_RANGE_RE = re.compile(
     r'\s*(-?\d+)\s*\.\.\s*(-?\d+)\s*(?:\.\.\s*(-?\d+)\s*)?$')
 
 # Regex for include: YAML extension
-INCLUDE_RE = re.compile(r'include\s*:\s*([-.\w]+)')
+INCLUDE_RE = re.compile(r'include\s*:\s*([-.\w/]+)')
 
 args = {}
 testcases = set()
