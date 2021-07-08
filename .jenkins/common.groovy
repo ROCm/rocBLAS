@@ -45,13 +45,21 @@ def runTestCommand (platform, project, gfilter)
     {
         installPackage = 'sudo dpkg -i rocblas*.deb'
     }
+    def hmmTestCommand= ''
+    if (platform.jenkinsLabel.contains('gfx90a'))
+    {
+        hmmTestCommand = """
+                            HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
+                         """
+    }
     def command = """#!/usr/bin/env bash
                     set -x
                     pushd ${project.paths.project_build_prefix}/build/release/package
                     ${installPackage}
                     popd
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                    ${sudo} GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    ${hmmTestCommand}
                 """
 
     platform.runCommand(this, command)
