@@ -190,9 +190,9 @@ void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_
     do                                                                                       \
     {                                                                                        \
         const auto& arg          = GetParam();                                               \
-        auto        threads      = arg.threads;                                              \
-        auto        streams      = arg.streams;                                              \
-        auto        devices      = arg.devices;                                              \
+        size_t      threads      = arg.threads;                                              \
+        size_t      streams      = arg.streams;                                              \
+        size_t      devices      = arg.devices;                                              \
         int         availDevices = 0;                                                        \
         bool        HMM          = arg.HMM;                                                  \
         hipGetDeviceCount(&availDevices);                                                    \

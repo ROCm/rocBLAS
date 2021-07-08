@@ -500,13 +500,14 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     auto                 transB = char2rocblas_operation(arg.transB);
     auto                 M = arg.M, N = arg.N, K = arg.K;
     auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
-    auto                 stride_a = arg.stride_a, stride_b = arg.stride_b;
-    auto                 stride_c = arg.stride_c, stride_d = arg.stride_d;
-    auto                 A_row       = transA == rocblas_operation_none ? M : K;
-    auto                 A_col       = transA == rocblas_operation_none ? K : M;
-    auto                 B_row       = transB == rocblas_operation_none ? K : N;
-    auto                 B_col       = transB == rocblas_operation_none ? N : K;
-    auto                 batch_count = arg.batch_count;
+    // dropping sign bit as test strides are positive, and no int64 host_vector operator[]
+    size_t stride_a = arg.stride_a, stride_b = arg.stride_b;
+    size_t stride_c = arg.stride_c, stride_d = arg.stride_d;
+    auto   A_row       = transA == rocblas_operation_none ? M : K;
+    auto   A_col       = transA == rocblas_operation_none ? K : M;
+    auto   B_row       = transB == rocblas_operation_none ? K : N;
+    auto   B_col       = transB == rocblas_operation_none ? N : K;
+    auto   batch_count = arg.batch_count;
 
     // check for invalid sizes
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
@@ -641,8 +642,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
     size_t size_one_b
         = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
-    size_t size_one_c = N * ldc;
-    size_t size_one_d = N * ldd;
+    size_t size_one_c = size_t(N) * ldc;
+    size_t size_one_d = size_t(N) * ldd;
     size_t size_a     = size_one_a;
     size_t size_b     = size_one_b;
     size_t size_c     = size_one_c;
@@ -650,10 +651,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     if(batch_count > 1)
     {
-        size_a += size_t(stride_a) * size_t(batch_count - 1);
-        size_b += size_t(stride_b) * size_t(batch_count - 1);
-        size_c += size_t(stride_c) * size_t(batch_count - 1);
-        size_d += size_t(stride_d) * size_t(batch_count - 1);
+        size_a += stride_a * size_t(batch_count - 1);
+        size_b += stride_b * size_t(batch_count - 1);
+        size_c += stride_c * size_t(batch_count - 1);
+        size_d += stride_d * size_t(batch_count - 1);
     }
 
     // allocate memory on device
@@ -917,7 +918,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         // copy C matrix into D matrix
         if(batch_count > 0 && N > 0 && M > 0)
             for(int i3 = 0; i3 < batch_count; i3++)
-                for(int i2 = 0; i2 < N; i2++)
+                for(size_t i2 = 0; i2 < N; i2++)
                     for(int i1 = 0; i1 < M; i1++)
                     {
                         hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
@@ -956,7 +957,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         rocblas_cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
         for(int i3 = 0; i3 < batch_count; i3++)
         {
-            for(int i2 = 0; i2 < N; i2++)
+            for(size_t i2 = 0; i2 < N; i2++)
             {
                 for(int i1 = 0; i1 < M; i1++)
                 {

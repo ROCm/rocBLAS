@@ -1146,6 +1146,7 @@ try
     std::string initialization;
     std::string filter;
     rocblas_int device_id;
+    int         flags               = 0;
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
     bool        log_function_name   = false;
@@ -1195,32 +1196,32 @@ try
          "Leading dimension of matrix D, is only applicable to BLAS-EX ")
 
         ("stride_a",
-         value<rocblas_int>(&arg.stride_a)->default_value(128*128),
+         value<rocblas_stride>(&arg.stride_a)->default_value(128*128),
          "Specific stride of strided_batched matrix A, is only applicable to strided batched"
          "BLAS-2 and BLAS-3: second dimension * leading dimension.")
 
         ("stride_b",
-         value<rocblas_int>(&arg.stride_b)->default_value(128*128),
+         value<rocblas_stride>(&arg.stride_b)->default_value(128*128),
          "Specific stride of strided_batched matrix B, is only applicable to strided batched"
          "BLAS-2 and BLAS-3: second dimension * leading dimension.")
 
         ("stride_c",
-         value<rocblas_int>(&arg.stride_c)->default_value(128*128),
+         value<rocblas_stride>(&arg.stride_c)->default_value(128*128),
          "Specific stride of strided_batched matrix C, is only applicable to strided batched"
          "BLAS-2 and BLAS-3: second dimension * leading dimension.")
 
         ("stride_d",
-         value<rocblas_int>(&arg.stride_d)->default_value(128*128),
+         value<rocblas_stride>(&arg.stride_d)->default_value(128*128),
          "Specific stride of strided_batched matrix D, is only applicable to strided batched"
          "BLAS_EX: second dimension * leading dimension.")
 
         ("stride_x",
-         value<rocblas_int>(&arg.stride_x)->default_value(128*128),
+         value<rocblas_stride>(&arg.stride_x)->default_value(128*128),
          "Specific stride of strided_batched vector x, is only applicable to strided batched"
          "BLAS_2: second dimension.")
 
         ("stride_y",
-         value<rocblas_int>(&arg.stride_y)->default_value(128*128),
+         value<rocblas_stride>(&arg.stride_y)->default_value(128*128),
          "Specific stride of strided_batched vector y, is only applicable to strided batched"
          "BLAS_2: leading dimension.")
 
@@ -1310,7 +1311,7 @@ try
          "Parameter requesting the use of HipManagedMemory")
 
         ("verify,v",
-         value<rocblas_int>(&arg.norm_check)->default_value(0),
+         value<int8_t>(&arg.norm_check)->default_value(0),
          "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
 
         ("iters,i",
@@ -1330,7 +1331,7 @@ try
          "extended precision gemm solution index")
 
         ("flags",
-         value<uint32_t>(&arg.flags)->default_value(rocblas_gemm_flags_none),
+         value<int>(&flags)->default_value(rocblas_gemm_flags_none),
          "gemm_ex flags, 1: Use packed-i8, 0: (default) uses unpacked-i8, available on matrix-inst-supported device")
 
         ("atomics_not_allowed",
@@ -1366,8 +1367,7 @@ try
         ("version", "Prints the version number");
     // clang-format on
 
-    arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
-
+    // parse command line into arg structure and stack variables using desc
     variables_map vm;
     store(parse_command_line(argc, argv, desc), vm);
     notify(vm);
@@ -1386,6 +1386,10 @@ try
         return 0;
     }
 
+    // transfer local variable state
+
+    arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
+    arg.flags        = rocblas_gemm_flags(flags);
     ArgumentModel_set_log_function_name(log_function_name);
 
     // Device Query
@@ -1400,6 +1404,9 @@ try
         return rocblas_bench_datafile(filter);
 
     // single bench run
+
+    // validate arguments
+
     std::transform(precision.begin(), precision.end(), precision.begin(), ::tolower);
     auto prec = string2rocblas_datatype(precision);
     if(prec == static_cast<rocblas_datatype>(-1))

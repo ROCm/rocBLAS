@@ -27,6 +27,30 @@ struct Arguments
     /*************************************************************************
      *                    Beginning Of Arguments                             *
      *************************************************************************/
+
+    char function[64];
+    char name[64];
+    char category[64];
+    char known_bug_platforms[64];
+
+    // 64bit
+
+    double alpha;
+    double alphai;
+    double beta;
+    double betai;
+
+    rocblas_stride stride_a; //  stride_a > transA == 'N' ? lda * K : lda * M
+    rocblas_stride stride_b; //  stride_b > transB == 'N' ? ldb * N : ldb * K
+    rocblas_stride stride_c; //  stride_c > ldc * N
+    rocblas_stride stride_d; //  stride_d > ldd * N
+    rocblas_stride stride_x;
+    rocblas_stride stride_y;
+
+    size_t user_allocated_workspace;
+
+    // 32bit
+
     rocblas_int M;
     rocblas_int N;
     rocblas_int K;
@@ -39,21 +63,42 @@ struct Arguments
     rocblas_int ldc;
     rocblas_int ldd;
 
+    rocblas_int incx;
+    rocblas_int incy;
+    rocblas_int incd;
+    rocblas_int incb;
+
+    rocblas_int batch_count;
+
+    rocblas_int iters;
+    rocblas_int cold_iters;
+
+    uint32_t algo;
+    int32_t  solution_index;
+
+    rocblas_gemm_flags flags;
+
     rocblas_datatype a_type;
     rocblas_datatype b_type;
     rocblas_datatype c_type;
     rocblas_datatype d_type;
     rocblas_datatype compute_type;
 
-    rocblas_int incx;
-    rocblas_int incy;
-    rocblas_int incd;
-    rocblas_int incb;
+    rocblas_initialization initialization;
 
-    double alpha;
-    double alphai;
-    double beta;
-    double betai;
+    rocblas_atomics_mode atomics_mode;
+
+    // 16 bit
+
+    uint16_t threads;
+    uint16_t streams;
+
+    // bytes
+    uint8_t devices;
+
+    int8_t norm_check;
+    int8_t unit_check;
+    int8_t timing;
 
     char transA;
     char transB;
@@ -61,40 +106,9 @@ struct Arguments
     char uplo;
     char diag;
 
-    rocblas_int batch_count;
-    bool        HMM;
-    size_t      threads;
-    size_t      streams;
-    size_t      devices;
-
-    rocblas_int stride_a; //  stride_a > transA == 'N' ? lda * K : lda * M
-    rocblas_int stride_b; //  stride_b > transB == 'N' ? ldb * N : ldb * K
-    rocblas_int stride_c; //  stride_c > ldc * N
-    rocblas_int stride_d; //  stride_d > ldd * N
-    rocblas_int stride_x;
-    rocblas_int stride_y;
-
+    bool c_noalias_d;
+    bool HMM;
     bool fortran;
-
-    rocblas_int norm_check;
-    rocblas_int unit_check;
-    rocblas_int timing;
-    rocblas_int iters;
-    rocblas_int cold_iters;
-
-    uint32_t algo;
-    int32_t  solution_index;
-    uint32_t flags;
-
-    char function[64];
-    char name[64];
-    char category[64];
-
-    rocblas_initialization initialization;
-    char                   known_bug_platforms[64];
-    bool                   c_noalias_d;
-    rocblas_atomics_mode   atomics_mode;
-    size_t                 user_allocated_workspace;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -104,6 +118,21 @@ struct Arguments
 
 // Generic macro which operates over the list of arguments in order of declaration
 #define FOR_EACH_ARGUMENT(OPER, SEP) \
+    OPER(function) SEP               \
+    OPER(name) SEP                   \
+    OPER(category) SEP               \
+    OPER(known_bug_platforms) SEP    \
+    OPER(alpha) SEP                  \
+    OPER(alphai) SEP                 \
+    OPER(beta) SEP                   \
+    OPER(betai) SEP                  \
+    OPER(stride_a) SEP               \
+    OPER(stride_b) SEP               \
+    OPER(stride_c) SEP               \
+    OPER(stride_d) SEP               \
+    OPER(stride_x) SEP               \
+    OPER(stride_y) SEP               \
+    OPER(user_allocated_workspace) SEP \
     OPER(M) SEP                      \
     OPER(N) SEP                      \
     OPER(K) SEP                      \
@@ -113,52 +142,37 @@ struct Arguments
     OPER(ldb) SEP                    \
     OPER(ldc) SEP                    \
     OPER(ldd) SEP                    \
-    OPER(a_type) SEP                 \
-    OPER(b_type) SEP                 \
-    OPER(c_type) SEP                 \
-    OPER(d_type) SEP                 \
-    OPER(compute_type) SEP           \
     OPER(incx) SEP                   \
     OPER(incy) SEP                   \
     OPER(incd) SEP                   \
     OPER(incb) SEP                   \
-    OPER(alpha) SEP                  \
-    OPER(alphai) SEP                 \
-    OPER(beta) SEP                   \
-    OPER(betai) SEP                  \
-    OPER(transA) SEP                 \
-    OPER(transB) SEP                 \
-    OPER(side) SEP                   \
-    OPER(uplo) SEP                   \
-    OPER(diag) SEP                   \
     OPER(batch_count) SEP            \
-    OPER(HMM) SEP            \
-    OPER(threads) SEP                \
-    OPER(streams) SEP                \
-    OPER(devices) SEP                \
-    OPER(stride_a) SEP               \
-    OPER(stride_b) SEP               \
-    OPER(stride_c) SEP               \
-    OPER(stride_d) SEP               \
-    OPER(stride_x) SEP               \
-    OPER(stride_y) SEP               \
-    OPER(fortran) SEP                \
-    OPER(norm_check) SEP             \
-    OPER(unit_check) SEP             \
-    OPER(timing) SEP                 \
     OPER(iters) SEP                  \
     OPER(cold_iters) SEP             \
     OPER(algo) SEP                   \
     OPER(solution_index) SEP         \
     OPER(flags) SEP                  \
-    OPER(function) SEP               \
-    OPER(name) SEP                   \
-    OPER(category) SEP               \
+    OPER(a_type) SEP                 \
+    OPER(b_type) SEP                 \
+    OPER(c_type) SEP                 \
+    OPER(d_type) SEP                 \
+    OPER(compute_type) SEP           \
     OPER(initialization) SEP         \
-    OPER(known_bug_platforms) SEP    \
-    OPER(c_noalias_d) SEP            \
     OPER(atomics_mode) SEP           \
-    OPER(user_allocated_workspace)
+    OPER(threads) SEP                \
+    OPER(streams) SEP                \
+    OPER(devices) SEP                \
+    OPER(norm_check) SEP             \
+    OPER(unit_check) SEP             \
+    OPER(timing) SEP                 \
+    OPER(transA) SEP                 \
+    OPER(transB) SEP                 \
+    OPER(side) SEP                   \
+    OPER(uplo) SEP                   \
+    OPER(diag) SEP                   \
+    OPER(c_noalias_d) SEP            \
+    OPER(HMM) SEP                    \
+    OPER(fortran)
 
     // clang-format on
 
