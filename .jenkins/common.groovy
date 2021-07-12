@@ -45,25 +45,57 @@ def runTestCommand (platform, project, gfilter)
     {
         installPackage = 'sudo dpkg -i rocblas*.deb'
     }
+
+    String runTests = ""
+    String testXMLPath = "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+
+    String gtestArgs = ""
+    String xnackVar = ""
+
     def hmmTestCommand= ''
     if (platform.jenkinsLabel.contains('gfx90a'))
     {
         hmmTestCommand = """
-                            HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
+                            HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
                          """
     }
+
+    if (platform.jenkinsLabel.contains('ubuntu'))
+    {
+        runTests = """
+                    pushd ${project.paths.project_build_prefix}
+                    mv build build_BAK
+                    ROCBLAS_TEST=/opt/rocm/rocblas/bin/rocblas-test
+                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    ${hmmTestCommand}
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
+                    mv build_BAK build
+                    popd
+                   """
+        testXMLPath = "${project.paths.project_build_prefix}/test_detail*.xml"
+    } else
+    {
+        runTests = """
+                    cd ${project.paths.project_build_prefix}/build/release/clients/staging
+                    ROCBLAS_TEST=./rocblas-test
+                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    ${hmmTestCommand}
+                   """
+    }
+
+
     def command = """#!/usr/bin/env bash
                     set -x
                     pushd ${project.paths.project_build_prefix}/build/release/package
                     ${installPackage}
                     popd
-                    cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
-                    ${hmmTestCommand}
-                """
+                    ${runTests}
+                  """
 
     platform.runCommand(this, command)
-    junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+    junit testXMLPath
 }
 
 def runPackageCommand(platform, project)
