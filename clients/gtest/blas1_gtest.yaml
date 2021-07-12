@@ -294,7 +294,7 @@ Tests:
       - scal_ex: *single_double_precisions_complex_real
       - scal_ex: *scal_ex_single_double_complex_real_alpha_complex_out
       - scal_ex: *hpa_half_half_precisions
-#      
+#
 
   - name: blas1_batched_with_alpha
     category: quick
