@@ -11151,8 +11151,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyrk(rocblas_handle               handle,
 
     @param[in]
     transA  [rocblas_operation]
-            rocblas_operation_transpose:      op(A) = A^T
-            rocblas_operation_none:           op(A) = A
+            rocblas_operation_transpose:           op(A) = A^T
+            rocblas_operation_none:                op(A) = A
+            rocblas_operation_conjugate_transpose: op(A) = A^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types, see cherk
+            and zherk.
 
     @param[in]
     n       [rocblas_int]
@@ -11256,7 +11260,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyrk_batched(rocblas_handle              
     C_i is a symmetric n x n matrix stored as either upper or lower.
 
         op( A_i ) = A_i, and A_i is n by k if transA == rocblas_operation_none
-        op( A_i ) = A^T and A_i is k by n if transA == rocblas_operation_transpose
+        op( A_i ) = A_i^T and A_i is k by n if transA == rocblas_operation_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -11269,8 +11273,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyrk_batched(rocblas_handle              
 
     @param[in]
     transA  [rocblas_operation]
-            rocblas_operation_transpose:      op(A) = A^T
-            rocblas_operation_none:           op(A) = A
+            rocblas_operation_transpose:           op(A) = A^T
+            rocblas_operation_none:                op(A) = A
+            rocblas_operation_conjugate_transpose: op(A) = A^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types, see cherk
+            and zherk.
 
     @param[in]
     n       [rocblas_int]
@@ -11382,7 +11390,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyrk_strided_batched(rocblas_handle      
     C_i is a symmetric n x n matrix stored as either upper or lower.
 
         op( A_i ) = A_i, and A_i is n by k if transA == rocblas_operation_none
-        op( A_i ) = A^T and A_i is k by n if transA == rocblas_operation_transpose
+        op( A_i ) = A_i^T and A_i is k by n if transA == rocblas_operation_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -11395,8 +11403,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyrk_strided_batched(rocblas_handle      
 
     @param[in]
     transA  [rocblas_operation]
-            rocblas_operation_transpose:      op(A) = A^T
-            rocblas_operation_none:           op(A) = A
+            rocblas_operation_transpose:           op(A) = A^T
+            rocblas_operation_none:                op(A) = A
+            rocblas_operation_conjugate_transpose: op(A) = A^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types, see cherk
+            and zherk.
 
     @param[in]
     n       [rocblas_int]
