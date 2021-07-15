@@ -1530,7 +1530,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_right_device(rocblas_fill      uplo,
     // Solve for B in shared memory
     if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             // Subtract previously solved parts
             for(int j = 0; j < i; j++)
@@ -1559,7 +1559,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_right_device(rocblas_fill      uplo,
     }
     else // lower (conjugate-)transpose
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             for(int j = 0; j < i; j++)
                 sB[i * NB + tx] -= sB[j * NB + tx] * sA[j * NB + i];
@@ -1627,7 +1627,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
     // Solve for B in shared memory
     if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             // Subtract previously solved parts
             for(int j = 0; j < i; j++)
@@ -1668,7 +1668,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
     }
     else // lower (conjugate-)transpose
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             for(int j = 0; j < i; j++)
             {
@@ -1752,7 +1752,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_left_device(rocblas_fill      uplo,
     // Solve for B in shared memory
     if(LOWER && transA == rocblas_operation_none)
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             // Subtract previously solved parts
             for(int j = 0; j < i; j++)
@@ -1780,7 +1780,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_left_device(rocblas_fill      uplo,
     }
     else if(!LOWER)
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             for(int j = 0; j < i; j++)
                 sB[tx * NB + i] -= sB[tx * NB + j] * sA[i * NB + j];
@@ -1851,7 +1851,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
     // Solve for B in shared memory
     if(LOWER && transA == rocblas_operation_none)
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             // Subtract previously solved parts
             for(int j = 0; j < i; j++)
@@ -1891,7 +1891,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
     }
     else if(!LOWER)
     {
-        for(int i = 0; i < NB; i++)
+        for(int i = 0; i <= maxColA; i++)
         {
             for(int j = 0; j < i; j++)
             {
