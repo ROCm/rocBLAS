@@ -131,13 +131,17 @@ namespace
         if(!y)
             return rocblas_status_invalid_pointer;
 
-        size_t dev_bytes = rocblas_internal_hemv_kernel_workspace_size<T>(n, batch_count);
+        size_t dev_bytes = rocblas_internal_hemv_symv_kernel_workspace_size<T>(n, batch_count);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 
         auto w_mem = handle->device_malloc(dev_bytes);
         if(!w_mem)
             return rocblas_status_memory_error;
+
+        // flag to check whether the kernel function being called is for hemv or symv
+        // For hemv IS_HEMV = true and for SYMV IS_HEMV = false
+        static constexpr bool IS_HEMV = true;
 
         if(check_numerics)
         {
@@ -165,27 +169,27 @@ namespace
                 return hemv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_hemv_template(handle,
-                                                               uplo,
-                                                               n,
-                                                               alpha,
-                                                               0,
-                                                               A,
-                                                               0,
-                                                               lda,
-                                                               stride_A,
-                                                               x,
-                                                               0,
-                                                               incx,
-                                                               stride_x,
-                                                               beta,
-                                                               0,
-                                                               y,
-                                                               0,
-                                                               incy,
-                                                               stride_y,
-                                                               batch_count,
-                                                               (T*)w_mem);
+        rocblas_status status = rocblas_internal_hemv_symv_template<IS_HEMV>(handle,
+                                                                             uplo,
+                                                                             n,
+                                                                             alpha,
+                                                                             0,
+                                                                             A,
+                                                                             0,
+                                                                             lda,
+                                                                             stride_A,
+                                                                             x,
+                                                                             0,
+                                                                             incx,
+                                                                             stride_x,
+                                                                             beta,
+                                                                             0,
+                                                                             y,
+                                                                             0,
+                                                                             incy,
+                                                                             stride_y,
+                                                                             batch_count,
+                                                                             (T*)w_mem);
         if(status != rocblas_status_success)
             return status;
 
