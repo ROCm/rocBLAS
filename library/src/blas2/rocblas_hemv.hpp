@@ -57,10 +57,22 @@ constexpr int rocblas_hemv_DIM_X()
     ********************************************************************/
 template <typename To>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t
-    rocblas_internal_hemv_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
+    rocblas_internal_hemv_symv_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
 {
     auto blocks = (n - 1) / rocblas_hemv_DIM_X() + 1;
     return sizeof(To) * blocks * n * batch_count;
+}
+
+/** helper for complex support */
+template <typename T>
+ROCBLAS_KERNEL_ILF void hemv_zero_imaginary(T&)
+{
+}
+
+template <typename T>
+ROCBLAS_KERNEL_ILF void hemv_zero_imaginary(rocblas_complex_num<T>& a)
+{
+    a.imag(0);
 }
 
 // treats sA as 16x64 block
@@ -92,15 +104,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t
     x values past the bottom are set to zero, thus, extra columns are zeroed
     when multiplying.
 *******************************************************************************/
-template <rocblas_int NB_X,
+template <bool        IS_HEMV,
+          rocblas_int NB_X,
           rocblas_int bank_shift,
           rocblas_int half_NB_X,
           rocblas_int quarter_NB_X,
+          typename T_lda,
           typename T>
 __device__ void hemvn_kernel_upper_calc(rocblas_int n,
                                         T           alpha,
                                         const T* __restrict__ A,
-                                        ptrdiff_t lda,
+                                        T_lda lda,
                                         const T* __restrict__ x,
                                         ptrdiff_t incx,
                                         T* __restrict__ workspace)
@@ -212,11 +226,13 @@ __device__ void hemvn_kernel_upper_calc(rocblas_int n,
     {
         if(j > tx2)
         {
-            sA32(j, tx2) = conj(sA32(tx2, j));
+            sA32(j, tx2) = IS_HEMV ? conj(sA32(tx2, j)) : sA32(tx2, j);
         }
         //The main diagonal of matrix A should be real
-        else if(j == tx2)
-            sA32(j, tx2) = T(std::real(sA32(tx2, j)), 0.0);
+        else if(j == tx2 && IS_HEMV)
+        {
+            hemv_zero_imaginary(sA32(tx2, j));
+        }
     }
     __syncthreads();
 
@@ -286,11 +302,13 @@ __device__ void hemvn_kernel_upper_calc(rocblas_int n,
     {
         if(j > tx2)
         {
-            sA32(j, tx2) = conj(sA32(tx2, j));
+            sA32(j, tx2) = IS_HEMV ? conj(sA32(tx2, j)) : sA32(tx2, j);
         }
         //The main diagonal of matrix A should be real
-        else if(j == tx2)
-            sA32(j, tx2) = T(std::real(sA32(tx2, j)), 0.0);
+        else if(j == tx2 && IS_HEMV)
+        {
+            hemv_zero_imaginary(sA32(tx2, j));
+        }
     }
     __syncthreads();
 
@@ -360,7 +378,8 @@ __device__ void hemvn_kernel_upper_calc(rocblas_int n,
 #pragma unroll
     for(int j = 0; j < 4; j++)
     {
-        psum += conj(sA32(ty2 + j * 8, tx2)) * sx_blk[j * 8 + ty2];
+        psum += (IS_HEMV ? conj(sA32(ty2 + j * 8, tx2)) : sA32(ty2 + j * 8, tx2))
+                * sx_blk[j * 8 + ty2];
     }
     //__syncthreads();  // no sync needed here
 
@@ -471,7 +490,8 @@ __device__ void hemvn_kernel_upper_calc(rocblas_int n,
             {
                 total
                     += rA[j] * sx_jj[quarter_NB_X * k + ty * 4 + j]; // y_blk = A_{blk,jj}   * x_jj
-                sA16(ty * 4 + j, tx) = conj(rA[j]) * sx_blk[tx]; // y_jj  = A_{blk,jj}^H * x_blk
+                sA16(ty * 4 + j, tx)
+                    = (IS_HEMV ? conj(rA[j]) : rA[j]) * sx_blk[tx]; // y_jj  = A_{blk,jj}^H * x_blk
             }
             __syncthreads();
 
@@ -627,15 +647,17 @@ __launch_bounds__(NB_X) ROCBLAS_KERNEL
     lda*blocks space. This is why it used to need lwork = lda*(blocks + 1).
 *******************************************************************************/
 
-template <rocblas_int NB_X,
+template <bool        IS_HEMV,
+          rocblas_int NB_X,
           rocblas_int bank_shift,
           rocblas_int half_NB_X,
           rocblas_int quarter_NB_X,
+          typename T_lda,
           typename T>
 __device__ void hemvn_kernel_lower_calc(rocblas_int n,
                                         T           alpha,
                                         const T* __restrict__ A,
-                                        ptrdiff_t lda,
+                                        T_lda lda,
                                         const T* __restrict__ x,
                                         ptrdiff_t incx,
                                         T* __restrict__ workspace)
@@ -747,11 +769,13 @@ __device__ void hemvn_kernel_lower_calc(rocblas_int n,
     {
         if(j < tx2)
         {
-            sA32(j, tx2) = conj(sA32(tx2, j));
+            sA32(j, tx2) = IS_HEMV ? conj(sA32(tx2, j)) : sA32(tx2, j);
         }
         //The main diagonal of matrix A should be real
-        else if(j == tx2)
-            sA32(j, tx2) = T(std::real(sA32(tx2, j)), 0.0);
+        else if(j == tx2 && IS_HEMV)
+        {
+            hemv_zero_imaginary(sA32(tx2, j));
+        }
     }
     __syncthreads();
 
@@ -821,11 +845,13 @@ __device__ void hemvn_kernel_lower_calc(rocblas_int n,
     {
         if(j < tx2)
         {
-            sA32(j, tx2) = conj(sA32(tx2, j));
+            sA32(j, tx2) = IS_HEMV ? conj(sA32(tx2, j)) : sA32(tx2, j);
         }
         //The main diagonal of matrix A should be real
-        else if(j == tx2)
-            sA32(j, tx2) = T(std::real(sA32(tx2, j)), 0.0);
+        else if(j == tx2 && IS_HEMV)
+        {
+            hemv_zero_imaginary(sA32(tx2, j));
+        }
     }
     __syncthreads();
 
@@ -904,7 +930,8 @@ __device__ void hemvn_kernel_lower_calc(rocblas_int n,
 #pragma unroll
     for(int j = 0; j < 4; j++)
     {
-        psum_t += conj(sA32(ty2 * 4 + j, tx2)) * sx_blk[half_NB_X + ty2 * 4 + j];
+        psum_t += (IS_HEMV ? conj(sA32(ty2 * 4 + j, tx2)) : sA32(ty2 * 4 + j, tx2))
+                  * sx_blk[half_NB_X + ty2 * 4 + j];
     }
     __syncthreads();
 
@@ -984,7 +1011,8 @@ __device__ void hemvn_kernel_lower_calc(rocblas_int n,
             {
                 total
                     += rA[j] * sx_jj[quarter_NB_X * k + ty * 4 + j]; // y_blk = A_{blk,jj}   * x_jj
-                sA16(ty * 4 + j, tx) = conj(rA[j]) * sx_blk[tx]; // y_jj  = A_{blk,jj}^H * x_blk
+                sA16(ty * 4 + j, tx)
+                    = (IS_HEMV ? conj(rA[j]) : rA[j]) * sx_blk[tx]; // y_jj  = A_{blk,jj}^H * x_blk
             }
             __syncthreads();
 
@@ -1115,11 +1143,13 @@ __launch_bounds__(NB_X) ROCBLAS_KERNEL
 }
 // end hemvn_kernel_lower_block_sum_calc
 
-template <rocblas_int NB_X,
+template <bool        IS_HEMV,
+          rocblas_int NB_X,
           rocblas_int NB_Y,
           rocblas_int bank_shift,
           rocblas_int half_NB_X,
           rocblas_int quarter_NB_X,
+          typename T_lda,
           typename U,
           typename V,
           typename W>
@@ -1128,7 +1158,7 @@ __launch_bounds__(NB_X* NB_Y) ROCBLAS_KERNEL void hemvn_kernel_upper(rocblas_int
                                                                      rocblas_stride stride_alpha,
                                                                      V              Aa,
                                                                      ptrdiff_t      shifta,
-                                                                     rocblas_int    lda,
+                                                                     T_lda          lda,
                                                                      rocblas_stride strideA,
                                                                      V              xa,
                                                                      ptrdiff_t      shiftx,
@@ -1152,15 +1182,17 @@ __launch_bounds__(NB_X* NB_Y) ROCBLAS_KERNEL void hemvn_kernel_upper(rocblas_int
     const auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
     const auto* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
 
-    hemvn_kernel_upper_calc<NB_X, bank_shift, half_NB_X, quarter_NB_X>(
+    hemvn_kernel_upper_calc<IS_HEMV, NB_X, bank_shift, half_NB_X, quarter_NB_X, T_lda>(
         n, alpha, A, lda, x, incx, workspace);
 }
 
-template <rocblas_int NB_X,
+template <bool        IS_HEMV,
+          rocblas_int NB_X,
           rocblas_int NB_Y,
           rocblas_int bank_shift,
           rocblas_int half_NB_X,
           rocblas_int quarter_NB_X,
+          typename T_lda,
           typename U,
           typename V,
           typename W>
@@ -1169,7 +1201,7 @@ __launch_bounds__(NB_X* NB_Y) ROCBLAS_KERNEL void hemvn_kernel_lower(rocblas_int
                                                                      rocblas_stride stride_alpha,
                                                                      V              Aa,
                                                                      ptrdiff_t      shifta,
-                                                                     rocblas_int    lda,
+                                                                     T_lda          lda,
                                                                      rocblas_stride strideA,
                                                                      V              xa,
                                                                      ptrdiff_t      shiftx,
@@ -1193,7 +1225,7 @@ __launch_bounds__(NB_X* NB_Y) ROCBLAS_KERNEL void hemvn_kernel_lower(rocblas_int
     const auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
     const auto* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
 
-    hemvn_kernel_lower_calc<NB_X, bank_shift, half_NB_X, quarter_NB_X>(
+    hemvn_kernel_lower_calc<IS_HEMV, NB_X, bank_shift, half_NB_X, quarter_NB_X, T_lda>(
         n, alpha, A, lda, x, incx, workspace);
 }
 
@@ -1203,29 +1235,29 @@ __launch_bounds__(NB_X* NB_Y) ROCBLAS_KERNEL void hemvn_kernel_lower(rocblas_int
   *  Note stride_alpha and stride_beta are only used AND only tested by rocSOLVER
   *  These strided scalar fetches are only supported for device_ptr mode
   */
-template <typename U, typename V, typename TPtr, typename W>
+template <bool IS_HEMV, typename U, typename V, typename TPtr, typename W>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_hemv_template(rocblas_handle handle,
-                                   rocblas_fill   uplo,
-                                   rocblas_int    n,
-                                   const U*       alpha,
-                                   rocblas_stride stride_alpha,
-                                   V              A,
-                                   rocblas_int    offseta,
-                                   rocblas_int    lda,
-                                   rocblas_stride strideA,
-                                   V              x,
-                                   rocblas_int    offsetx,
-                                   rocblas_int    incx,
-                                   rocblas_stride stridex,
-                                   const U*       beta,
-                                   rocblas_stride stride_beta,
-                                   TPtr           y,
-                                   rocblas_int    offsety,
-                                   rocblas_int    incy,
-                                   rocblas_stride stridey,
-                                   rocblas_int    batch_count,
-                                   W              workspace)
+    rocblas_internal_hemv_symv_template(rocblas_handle handle,
+                                        rocblas_fill   uplo,
+                                        rocblas_int    n,
+                                        const U*       alpha,
+                                        rocblas_stride stride_alpha,
+                                        V              A,
+                                        rocblas_int    offseta,
+                                        rocblas_int    lda,
+                                        rocblas_stride strideA,
+                                        V              x,
+                                        rocblas_int    offsetx,
+                                        rocblas_int    incx,
+                                        rocblas_stride stridex,
+                                        const U*       beta,
+                                        rocblas_stride stride_beta,
+                                        TPtr           y,
+                                        rocblas_int    offsety,
+                                        rocblas_int    incy,
+                                        rocblas_stride stridey,
+                                        rocblas_int    batch_count,
+                                        W              workspace)
 {
     //quick return
     if(!n || !batch_count)
@@ -1236,6 +1268,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+
+    bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
 
     static constexpr int HEMV_DIM_X         = rocblas_hemv_DIM_X();
     static constexpr int HEMV_DIM_Y         = 4;
@@ -1248,184 +1282,146 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     dim3 hemv_threads(HEMV_DIM_X, HEMV_DIM_Y);
     dim3 hemv_threads_sum(HEMV_DIM_X);
 
+#define hemv_kernel_KARGS(alpha_, beta_)                                                           \
+    hemv_grid, hemv_threads, 0, rocblas_stream, n, alpha_, stride_alpha, A, offseta, lda, strideA, \
+        x, shiftx, incx, stridex, beta_, stride_beta, workspace
+
+#define hemv_kernel_sum_KARGS(alpha_, beta_)                                                     \
+    hemv_grid, hemv_threads_sum, 0, rocblas_stream, n, alpha_, stride_alpha, beta_, stride_beta, \
+        y, shifty, incy, stridey, workspace
+
     if(uplo == rocblas_fill_upper)
     {
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((hemvn_kernel_upper<HEMV_DIM_X,
-                                                   HEMV_DIM_Y,
-                                                   bank_shift,
-                                                   half_HEMV_DIM_X,
-                                                   quarter_HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads,
-                               0,
-                               rocblas_stream,
-                               n,
-                               alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               beta,
-                               stride_beta,
-                               workspace);
+            if(i64_indices)
+            {
+                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       size_t>),
+                                   hemv_kernel_KARGS(alpha, beta));
 
-            hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads_sum,
-                               0,
-                               rocblas_stream,
-                               n,
-                               alpha,
-                               stride_alpha,
-                               beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey,
-                               workspace);
+                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(alpha, beta));
+            }
+            else
+            {
+                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       rocblas_int>),
+                                   hemv_kernel_KARGS(alpha, beta));
+
+                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(alpha, beta));
+            }
         }
         else
         {
             if(!*alpha && *beta == 1)
                 return rocblas_status_success;
+            if(i64_indices)
+            {
+                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       size_t>),
+                                   hemv_kernel_KARGS(*alpha, *beta));
 
-            hipLaunchKernelGGL((hemvn_kernel_upper<HEMV_DIM_X,
-                                                   HEMV_DIM_Y,
-                                                   bank_shift,
-                                                   half_HEMV_DIM_X,
-                                                   quarter_HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads,
-                               0,
-                               rocblas_stream,
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               *beta,
-                               stride_beta,
-                               workspace);
+                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(*alpha, *beta));
+            }
+            else
+            {
+                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       rocblas_int>),
+                                   hemv_kernel_KARGS(*alpha, *beta));
 
-            hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads_sum,
-                               0,
-                               rocblas_stream,
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               *beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey,
-                               workspace);
+                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(*alpha, *beta));
+            }
         }
     }
     else
     {
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((hemvn_kernel_lower<HEMV_DIM_X,
-                                                   HEMV_DIM_Y,
-                                                   bank_shift,
-                                                   half_HEMV_DIM_X,
-                                                   quarter_HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads,
-                               0,
-                               rocblas_stream,
-                               n,
-                               alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               beta,
-                               stride_beta,
-                               workspace);
+            if(i64_indices)
+            {
+                hipLaunchKernelGGL((hemvn_kernel_lower<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       size_t>),
+                                   hemv_kernel_KARGS(alpha, beta));
 
-            hipLaunchKernelGGL((hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads_sum,
-                               0,
-                               rocblas_stream,
-                               n,
-                               alpha,
-                               stride_alpha,
-                               beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey,
-                               workspace);
+                hipLaunchKernelGGL((hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(alpha, beta));
+            }
+            else
+            {
+                hipLaunchKernelGGL((hemvn_kernel_lower<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       rocblas_int>),
+                                   hemv_kernel_KARGS(alpha, beta));
+
+                hipLaunchKernelGGL((hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(alpha, beta));
+            }
         }
         else
         {
             if(!*alpha && *beta == 1)
                 return rocblas_status_success;
+            if(i64_indices)
+            {
+                hipLaunchKernelGGL((hemvn_kernel_lower<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       size_t>),
+                                   hemv_kernel_KARGS(*alpha, *beta));
 
-            hipLaunchKernelGGL((hemvn_kernel_lower<HEMV_DIM_X,
-                                                   HEMV_DIM_Y,
-                                                   bank_shift,
-                                                   half_HEMV_DIM_X,
-                                                   quarter_HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads,
-                               0,
-                               rocblas_stream,
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               *beta,
-                               stride_beta,
-                               workspace);
+                hipLaunchKernelGGL((hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(*alpha, *beta));
+            }
+            else
+            {
+                hipLaunchKernelGGL((hemvn_kernel_lower<IS_HEMV,
+                                                       HEMV_DIM_X,
+                                                       HEMV_DIM_Y,
+                                                       bank_shift,
+                                                       half_HEMV_DIM_X,
+                                                       quarter_HEMV_DIM_X,
+                                                       rocblas_int>),
+                                   hemv_kernel_KARGS(*alpha, *beta));
 
-            hipLaunchKernelGGL((hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
-                               hemv_grid,
-                               hemv_threads_sum,
-                               0,
-                               rocblas_stream,
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               *beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey,
-                               workspace);
+                hipLaunchKernelGGL((hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
+                                   hemv_kernel_sum_KARGS(*alpha, *beta));
+            }
         }
     }
     return rocblas_status_success;
