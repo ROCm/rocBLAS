@@ -1309,6 +1309,132 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
+/*! \brief rocblas_internal_trsm_workspace_size
+    Calculates needed memory allocation for trsm, does not allocate any memory.
+    Note that for the batched version of trsm, we are also allocating memory to store the
+    arrays of pointers for invA and w_x_temp.
+
+    @param[in]
+    side rocblas_side
+        Whether matrix A is located on the left or right of X
+    @param[in]
+    m rocblas_int
+        Number of rows of matrix B
+    @param[in]
+    n rocblas_int
+        Number of columns of matrix B
+    @param[in]
+    batch_count rocblas_int
+        Number of batches
+    @param[in]
+    supplied_invA_size rocblas_int
+        If the user supplies an invA matrix, this may reduce the needed memory. supplied_invA_size
+        specifies the number of elements in device memory of the supplied invA matrix.
+    @param[out]
+    w_x_tmp_size size_t
+        The bytes of workspace memory needed for x_tmp in the trsm calculations
+    @param[out]
+    w_x_tmp_arr_size size_t
+        The bytes of workspace memory needed for the array of pointers for x_tmp
+    @param[out]
+    w_invA_size size_t
+        The bytes of workspace memory needed for invA in the trsm calculations
+    @param[out]
+    w_invA_arr_size size_t
+        The bytes of workspace memory needed for the array of pointers for invA
+    @param[out]
+    w_x_tmp_size_backup size_t
+        If the user is unable to allocate w_x_tmp_arr_size bytes, w_x_tmp_size_backup
+        bytes may be used in trsm with degraded performance.
+    ********************************************************************/
+template <rocblas_int BLOCK, bool BATCHED, typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsm_workspace_size(rocblas_side side,
+                                         rocblas_int  m,
+                                         rocblas_int  n,
+                                         rocblas_int  batch_count,
+                                         rocblas_int  supplied_invA_size,
+                                         size_t*      w_x_tmp_size,
+                                         size_t*      w_x_tmp_arr_size,
+                                         size_t*      w_invA_size,
+                                         size_t*      w_invA_arr_size,
+                                         size_t*      w_x_tmp_size_backup)
+{
+    if(!w_x_tmp_size || !w_x_tmp_arr_size || !w_invA_size || !w_invA_arr_size
+       || !w_x_tmp_size_backup)
+    {
+        return rocblas_status_invalid_pointer;
+    }
+
+    // no memory needed if using small kernels
+    bool is_small = (m <= 64 && n <= 64);
+    if(is_small)
+    {
+        // return rocblas_status_continue indicating no memory needed
+        *w_x_tmp_size        = 0;
+        *w_x_tmp_arr_size    = 0;
+        *w_invA_size         = 0;
+        *w_invA_arr_size     = 0;
+        *w_x_tmp_size_backup = 0;
+        return rocblas_status_continue;
+    }
+
+    rocblas_int k = side == rocblas_side_left ? m : n;
+
+    // Whether size is an exact multiple of blocksize
+    const bool exact_blocks = (k % BLOCK) == 0;
+
+    size_t invA_temp_bytes     = 0;
+    size_t c_temp_bytes        = 0;
+    size_t x_temp_bytes        = 0;
+    size_t x_temp_bytes_backup = 0;
+
+    // Only allocate bytes for invA if invA is not supplied or supplied_invA_size is too small
+    if(supplied_invA_size / BLOCK < k)
+    {
+        invA_temp_bytes = BLOCK * k * sizeof(T) * batch_count;
+
+        // When k < BLOCK, C is unnecessary for trtri
+        c_temp_bytes = ((k / BLOCK) * ((BLOCK / 2) * (BLOCK / 2))) * sizeof(T);
+
+        // For the TRTRI last diagonal block we need remainder space if k % BLOCK != 0
+        if(!exact_blocks)
+        {
+            // TODO: Make this more accurate -- right now it's much larger than necessary
+            size_t remainder_bytes = ROCBLAS_TRTRI_NB * BLOCK * 2 * sizeof(T);
+
+            // C is the maximum of the temporary space needed for TRTRI
+            c_temp_bytes = std::max(c_temp_bytes, remainder_bytes);
+        }
+    }
+
+    if(exact_blocks)
+    {
+        // Optimal B_chunk_size is the orthogonal dimension to k
+        size_t B_chunk_size = size_t(m) + size_t(n) - size_t(k);
+
+        // When k % BLOCK == 0, we only need BLOCK * B_chunk_size space
+        x_temp_bytes = BLOCK * B_chunk_size * sizeof(T) * batch_count;
+
+        // backup memory allocation if initial allocation fails, only for exact blocks
+        x_temp_bytes_backup = BLOCK * sizeof(T) * batch_count;
+    }
+    else
+    {
+        // When k % BLOCK != 0, we need m * n space
+        x_temp_bytes_backup = x_temp_bytes = size_t(m) * n * sizeof(T) * batch_count;
+    }
+
+    // X and C temporaries can share space, so the maximum size is allocated
+    *w_x_tmp_size        = std::max(x_temp_bytes, c_temp_bytes);
+    *w_x_tmp_arr_size    = BATCHED ? sizeof(T*) * batch_count : 0;
+    *w_invA_size         = invA_temp_bytes;
+    *w_invA_arr_size     = BATCHED ? sizeof(T*) * batch_count : 0;
+    *w_x_tmp_size_backup = x_temp_bytes_backup;
+
+    return rocblas_status_success;
+}
+
 /**
  *  The purpose of this function is to allocate memory for trsm. It is added to remove
  *  memory allocation from the rocblas_internal_trsm_template function, but also allow code reuse
@@ -1318,149 +1444,94 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
  *  arrays of pointers for invA and w_x_temp (mem_x_temp_arr, mem_invA_arr).
  */
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsm_template_mem(rocblas_handle              handle,
-                                       rocblas_side                side,
-                                       rocblas_int                 m,
-                                       rocblas_int                 n,
-                                       rocblas_int                 batch_count,
-                                       rocblas_device_malloc_base& w_base,
-                                       void*&                      w_x_temp,
-                                       void*&                      w_x_temp_arr,
-                                       void*&                      w_invA,
-                                       void*&                      w_invA_arr,
-                                       const U*                    supplied_invA      = nullptr,
-                                       rocblas_int                 supplied_invA_size = 0)
+rocblas_status rocblas_internal_trsm_template_mem(rocblas_handle              handle,
+                                                  rocblas_side                side,
+                                                  rocblas_int                 m,
+                                                  rocblas_int                 n,
+                                                  rocblas_int                 batch_count,
+                                                  rocblas_device_malloc_base& w_mem,
+                                                  void*&                      w_mem_x_temp,
+                                                  void*&                      w_mem_x_temp_arr,
+                                                  void*&                      w_mem_invA,
+                                                  void*&                      w_mem_invA_arr,
+                                                  const U*    supplied_invA      = nullptr,
+                                                  rocblas_int supplied_invA_size = 0)
 {
-    auto& workspace            = static_cast<decltype(handle->device_malloc(0))&>(w_base);
-    bool  SUBSTITUTION_ENABLED = true;
+    auto& workspace = static_cast<decltype(handle->device_malloc(0))&>(w_mem);
 
-    rocblas_status perf_status = rocblas_status_success;
-    rocblas_int    k           = side == rocblas_side_left ? m : n;
+    // calculate needed memory
+    size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size, w_x_tmp_size_backup;
+    rocblas_status memory_status
+        = rocblas_internal_trsm_workspace_size<BLOCK, BATCHED, T>(side,
+                                                                  m,
+                                                                  n,
+                                                                  batch_count,
+                                                                  supplied_invA_size,
+                                                                  &w_x_tmp_size,
+                                                                  &w_x_tmp_arr_size,
+                                                                  &w_invA_size,
+                                                                  &w_invA_arr_size,
+                                                                  &w_x_tmp_size_backup);
 
-    // bool is_small = k <= 64;
-    bool is_small = (m <= 64 && n <= 64);
-    if(SUBSTITUTION_ENABLED && is_small)
+    if(memory_status != rocblas_status_success && memory_status != rocblas_status_continue)
     {
-        if(handle->is_device_memory_size_query())
-            return rocblas_status_size_unchanged;
-        return rocblas_status_success;
+        return memory_status;
     }
 
-    // Whether size is an exact multiple of blocksize
-    const bool exact_blocks = (k % BLOCK) == 0;
+    if(handle->is_device_memory_size_query())
+    {
+        // indicates no memory needed
+        if(memory_status == rocblas_status_continue)
+        {
+            return rocblas_status_size_unchanged;
+        }
+        else
+        {
+            return handle->set_optimal_device_memory_size(
+                w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size);
+        }
+    }
 
-    size_t invA_bytes   = 0;
-    size_t invA_els     = 0;
-    size_t c_temp_bytes = 0;
-    size_t c_temp_els   = 0;
-
-    // For user-supplied invA, check to make sure size is large enough
-    // If not large enough, ignore supplied invA
+    rocblas_int k = side == rocblas_side_left ? m : n;
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
-        supplied_invA = nullptr;
-        if(!handle->is_device_memory_size_query())
-        {
-            // One-time warning message
-            static auto& once = rocblas_cerr
-                                << "WARNING: TRSM invA_size argument is too small; invA "
-                                   "argument is being ignored; TRSM performance is degraded"
-                                << std::endl;
-
-            // We only set perf_status if this is not a query
-            perf_status = rocblas_status_perf_degraded;
-        }
-    }
-
-    if(!supplied_invA)
-    {
-        // Only allocate bytes for invA if supplied_invA == nullptr or supplied_invA_size is too small
-        invA_els   = BLOCK * k;
-        invA_bytes = invA_els * sizeof(T) * batch_count;
-
-        // When k < BLOCK, C is unnecessary for trtri
-        c_temp_els   = (k / BLOCK) * ((BLOCK / 2) * (BLOCK / 2));
-        c_temp_bytes = c_temp_els * sizeof(T);
-
-        // For the TRTRI last diagonal block we need remainder space if k % BLOCK != 0
-        if(!exact_blocks)
-        {
-            // TODO: Make this more accurate -- right now it's much larger than necessary
-            size_t remainder_els   = ROCBLAS_TRTRI_NB * BLOCK * 2;
-            size_t remainder_bytes = sizeof(T) * remainder_els;
-
-            // C is the maximum of the temporary space needed for TRTRI
-            c_temp_els   = std::max(c_temp_els, remainder_els);
-            c_temp_bytes = c_temp_els * sizeof(T);
-        }
-    }
-
-    // Chunk size for special algorithm
-    size_t B_chunk_size = 0;
-
-    // Temporary solution matrix
-    size_t x_temp_els;
-    size_t x_temp_bytes;
-
-    if(exact_blocks)
-    {
-        // Optimal B_chunk_size is the orthogonal dimension to k
-        B_chunk_size = size_t(m) + size_t(n) - size_t(k);
-
-        // When k % BLOCK == 0, we only need BLOCK * B_chunk_size space
-        x_temp_els   = BLOCK * B_chunk_size;
-        x_temp_bytes = x_temp_els * sizeof(T) * batch_count;
-    }
-    else
-    {
-        // When k % BLOCK != 0, we need m * n space
-        x_temp_els   = size_t(m) * n;
-        x_temp_bytes = x_temp_els * sizeof(T) * batch_count;
-    }
-
-    // X and C temporaries can share space, so the maximum size is allocated
-    size_t x_c_temp_bytes = std::max(x_temp_bytes, c_temp_bytes);
-    size_t arrBytes       = BATCHED ? sizeof(T*) * batch_count : 0;
-    size_t xarrBytes      = BATCHED ? sizeof(T*) * batch_count : 0;
-
-    // If this is a device memory size query, set optimal size and return changed status
-    if(handle->is_device_memory_size_query())
-        return handle->set_optimal_device_memory_size(
-            x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
-
-    // Attempt to allocate optimal memory size
-    workspace = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
-
-    if(!workspace)
-    {
-        if(exact_blocks)
-        {
-            B_chunk_size   = 1; // Fall back on chunk size of 1 (like TRSV)
-            x_temp_els     = BLOCK;
-            x_temp_bytes   = x_temp_els * sizeof(T) * batch_count;
-            x_c_temp_bytes = std::max(x_temp_bytes, c_temp_bytes);
-
-            workspace = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
-        }
-
-        if(!workspace)
-            return rocblas_status_memory_error;
-
-        // Mark performance as degraded
-        perf_status = rocblas_status_perf_degraded;
-
-        // One-time warning about degraded performance
+        // One-time warning message
         static auto& once = rocblas_cerr
-                            << "WARNING: Device memory allocation size is too small for "
-                               "TRSM; TRSM performance is degraded"
+                            << "WARNING: TRSM invA_size argument is too small; invA "
+                               "argument is being ignored; TRSM performance is degraded"
                             << std::endl;
     }
 
-    w_x_temp     = workspace[0];
-    w_x_temp_arr = workspace[1];
-    w_invA       = workspace[2];
-    w_invA_arr   = workspace[3];
+    rocblas_status perf_status = rocblas_status_success;
+    if(memory_status == rocblas_status_success)
+    {
+        // allocate memory
+        workspace
+            = handle->device_malloc(w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size);
+
+        if(!workspace)
+        {
+            // if memory allocation fails, try backup. If that fails, return error.
+            workspace = handle->device_malloc(
+                w_x_tmp_size_backup, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size);
+
+            if(!workspace)
+                return rocblas_status_memory_error;
+
+            static auto& once = rocblas_cerr
+                                << "WARNING: Device memory allocation size is too small for "
+                                   "TRSM; TRSM performance is degraded"
+                                << std::endl;
+
+            perf_status = rocblas_status_perf_degraded;
+        }
+
+        w_mem_x_temp     = workspace[0];
+        w_mem_x_temp_arr = workspace[1];
+        w_mem_invA       = workspace[2];
+        w_mem_invA_arr   = workspace[3];
+    }
+
     return perf_status;
 }
 
