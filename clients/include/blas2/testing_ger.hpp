@@ -217,7 +217,7 @@ void testing_ger(const Arguments& arg)
             rocblas_cout,
             arg,
             gpu_time_used,
-            ger_gflop_count<T, CONJ>(M, N),
+            ger_gflop_count<T>(M, N),
             ger_gbyte_count<T>(M, N),
             cpu_time_used,
             rocblas_error_1,
