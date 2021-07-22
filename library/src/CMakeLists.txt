@@ -380,9 +380,7 @@ target_include_directories( rocblas
           $<INSTALL_INTERFACE:include>
           )
 
-if( NOT BUILD_SHARED_LIBS )
-  target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
-endif()
+target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
 
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
