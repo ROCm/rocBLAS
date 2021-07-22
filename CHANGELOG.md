@@ -5,6 +5,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## (Unreleased) rocBLAS 2.41.0
 ### Optimizations
 - Improved performance of non-batched and batched syr for all sizes and data types
+- Improved memory utilization in rocblas-bench, rocblas-test gemm functions, increasing possible runtime sizes.
 
 ### Changed
 - Update from C++14 to C++17.
