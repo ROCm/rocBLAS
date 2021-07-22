@@ -7,7 +7,7 @@
 //
 // Local declaration of the device strided batch vector.
 //
-template <typename T, size_t PAD, typename U>
+template <typename T>
 class device_strided_batch_vector;
 
 //!
@@ -223,8 +223,7 @@ public:
     //! @param that That strided batched vector on device.
     //! @return The hip error.
     //!
-    template <size_t PAD, typename U>
-    hipError_t transfer_from(const device_strided_batch_vector<T, PAD, U>& that)
+    hipError_t transfer_from(const device_strided_batch_vector<T>& that)
     {
         hipError_t hip_err;
 

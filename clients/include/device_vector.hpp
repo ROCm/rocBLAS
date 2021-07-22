@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -15,8 +15,8 @@ class host_vector;
 //!
 //! @brief pseudo-vector subclass which uses device memory
 //!
-template <typename T, size_t PAD = 4096, typename U = T>
-class device_vector : public d_vector<T, PAD, U>
+template <typename T>
+class device_vector : public d_vector<T>
 {
 
 public:
@@ -37,7 +37,7 @@ public:
     //! @param HMM         HipManagedMemory Flag.
     //!
     explicit device_vector(size_t n, rocblas_int inc = 1, bool HMM = false)
-        : d_vector<T, PAD, U>{n * std::abs(inc), HMM}
+        : d_vector<T>{n * std::abs(inc), HMM}
         , m_n{n}
         , m_inc{inc}
         , m_data{this->device_vector_setup()}

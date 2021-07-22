@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -17,8 +17,8 @@ class host_batch_vector;
 //!  - an array of pointers in host memory
 //!  - an array of pointers in device memory
 //!
-template <typename T, size_t PAD = 4096, typename U = T>
-class device_batch_vector : public d_vector<T, PAD, U>
+template <typename T>
+class device_batch_vector : public d_vector<T>
 {
 public:
     //!
@@ -45,7 +45,7 @@ public:
         : m_n(n)
         , m_inc(inc)
         , m_batch_count(batch_count)
-        , d_vector<T, PAD, U>(size_t(n) * std::abs(inc), HMM)
+        , d_vector<T>(size_t(n) * std::abs(inc), HMM)
     {
         if(false == this->try_initialize_memory())
         {

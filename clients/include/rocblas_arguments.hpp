@@ -88,8 +88,10 @@ struct Arguments
 
     rocblas_atomics_mode atomics_mode;
 
-    // 16 bit
+    // memory padding for testing write out of bounds
+    uint32_t pad;
 
+    // 16 bit
     uint16_t threads;
     uint16_t streams;
 
@@ -113,6 +115,10 @@ struct Arguments
     /*************************************************************************
      *                     End Of Arguments                                  *
      *************************************************************************/
+
+    // we don't have a constructor as the python generated data is used for memory initializer for testing
+    // thus this is for other use where we want defaults to match those specified in rocblas_common.yaml
+    void init();
 
     // clang-format off
 
@@ -159,6 +165,7 @@ struct Arguments
     OPER(compute_type) SEP           \
     OPER(initialization) SEP         \
     OPER(atomics_mode) SEP           \
+    OPER(pad) SEP                    \
     OPER(threads) SEP                \
     OPER(streams) SEP                \
     OPER(devices) SEP                \

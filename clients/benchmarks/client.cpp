@@ -1151,6 +1151,8 @@ try
     bool        atomics_not_allowed = false;
     bool        log_function_name   = false;
 
+    arg.init(); // set all defaults
+
     options_description desc("rocblas-bench command line options");
     desc.add_options()
         // clang-format off
