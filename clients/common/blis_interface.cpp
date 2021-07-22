@@ -7,7 +7,9 @@
 
 void setup_blis()
 {
+#ifndef WIN32
     bli_init();
+#endif
 }
 
 static int initialize_blis = (setup_blis(), 0);
