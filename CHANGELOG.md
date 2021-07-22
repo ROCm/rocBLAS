@@ -2,6 +2,13 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+## (Unreleased) rocBLAS 2.41.0
+### Changed
+- Update from C++14 to C++17.
+### Fixed
+- For function geam avoid overflow in offset calculation.
+
+
 ## [rocBLAS 2.40.0 for ROCm 4.4.0]
 ### Optimizations
 - Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000.
