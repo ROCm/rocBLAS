@@ -5,6 +5,8 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## (Unreleased) rocBLAS 2.41.0
 ### Optimizations
 - Improved performance of non-batched and batched syr for all sizes and data types
+- Improved performance of non-batched and batched hemv for all sizes and data types
+- Improved performance of non-batched and batched symv for all sizes and data types
 
 ### Changed
 - Update from C++14 to C++17.
@@ -12,6 +14,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Fixed
 - For function geam avoid overflow in offset calculation.
 - For function syr avoid overflow in offset calculation.
+- For function gemv (Transpose-case) avoid overflow in offset calculation.
 - For functions ssyrk and dsyrk, allow conjugate-transpose case to match legacy BLAS. Behavior is the same as the transpose case.
 
 ## [rocBLAS 2.40.0 for ROCm 4.4.0]
