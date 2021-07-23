@@ -111,13 +111,13 @@ template <bool        IS_HEMV,
           rocblas_int quarter_NB_X,
           typename T_lda,
           typename T>
-__device__ void hemvn_kernel_upper_calc(rocblas_int n,
-                                        T           alpha,
-                                        const T* __restrict__ A,
-                                        T_lda lda,
-                                        const T* __restrict__ x,
-                                        ptrdiff_t incx,
-                                        T* __restrict__ workspace)
+ROCBLAS_KERNEL_ILF void hemvn_kernel_upper_calc(rocblas_int n,
+                                                T           alpha,
+                                                const T* __restrict__ A,
+                                                T_lda lda,
+                                                const T* __restrict__ x,
+                                                ptrdiff_t incx,
+                                                T* __restrict__ workspace)
 {
     if(!alpha)
         return;
@@ -654,13 +654,13 @@ template <bool        IS_HEMV,
           rocblas_int quarter_NB_X,
           typename T_lda,
           typename T>
-__device__ void hemvn_kernel_lower_calc(rocblas_int n,
-                                        T           alpha,
-                                        const T* __restrict__ A,
-                                        T_lda lda,
-                                        const T* __restrict__ x,
-                                        ptrdiff_t incx,
-                                        T* __restrict__ workspace)
+ROCBLAS_KERNEL_ILF void hemvn_kernel_lower_calc(rocblas_int n,
+                                                T           alpha,
+                                                const T* __restrict__ A,
+                                                T_lda lda,
+                                                const T* __restrict__ x,
+                                                ptrdiff_t incx,
+                                                T* __restrict__ workspace)
 {
     if(!alpha)
         return;

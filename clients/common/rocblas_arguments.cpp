@@ -11,6 +11,95 @@
 #include <ostream>
 #include <utility>
 
+void Arguments::init()
+{
+    // match python in rocblas_common.py
+
+    function[0] = 0;
+    strcpy(name, "rocblas-bench");
+    category[0]            = 0;
+    known_bug_platforms[0] = 0;
+
+    // 64bit
+
+    alpha  = 1.0;
+    alphai = 0.0;
+    beta   = 0.0;
+    betai  = 0.0;
+
+    stride_a = 0;
+    stride_b = 0;
+    stride_c = 0;
+    stride_d = 0;
+    stride_x = 0;
+    stride_y = 0;
+
+    user_allocated_workspace = 0;
+
+    // 32bit
+
+    M = 128;
+    N = 128;
+    K = 128;
+
+    KL = 128;
+    KU = 128;
+
+    lda = 0;
+    ldb = 0;
+    ldc = 0;
+    ldd = 0;
+
+    incx = 0;
+    incy = 0;
+    incd = 0;
+    incb = 0;
+
+    batch_count = 1;
+
+    iters      = 10;
+    cold_iters = 2;
+
+    algo           = 0;
+    solution_index = 0;
+
+    flags = rocblas_gemm_flags_none;
+
+    a_type       = rocblas_datatype_f32_r;
+    b_type       = rocblas_datatype_f32_r;
+    c_type       = rocblas_datatype_f32_r;
+    d_type       = rocblas_datatype_f32_r;
+    compute_type = rocblas_datatype_f32_r;
+
+    initialization = rocblas_initialization::rand_int;
+
+    atomics_mode = rocblas_atomics_allowed;
+
+    // memory padding for testing write out of bounds
+    pad = 4096;
+
+    // 16 bit
+    threads = 0;
+    streams = 0;
+
+    // bytes
+    devices = 0;
+
+    norm_check = 0;
+    unit_check = 1;
+    timing     = 0;
+
+    transA = '*';
+    transB = '*';
+    side   = '*';
+    uplo   = '*';
+    diag   = '*';
+
+    c_noalias_d = false;
+    HMM         = false;
+    fortran     = false;
+}
+
 #ifdef WIN32
 // Clang specific code
 template <typename T>
