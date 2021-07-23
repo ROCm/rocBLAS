@@ -12,7 +12,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Fixed
 - For function geam avoid overflow in offset calculation.
 - For function syr avoid overflow in offset calculation.
-
+- For functions ssyrk and dsyrk, allow conjugate-transpose case to match legacy BLAS. Behavior is the same as the transpose case.
 
 ## [rocBLAS 2.40.0 for ROCm 4.4.0]
 ### Optimizations
