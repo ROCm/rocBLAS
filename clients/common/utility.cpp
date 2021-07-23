@@ -6,6 +6,7 @@
 #include <windows.h>
 #endif
 #include "../../library/src/include/handle.hpp"
+#include "d_vector.hpp"
 #include "rocblas_random.hpp"
 #include "utility.hpp"
 #include <chrono>
@@ -274,6 +275,9 @@ rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
             status = rocblas_set_workspace(m_handle, m_memory, arg.user_allocated_workspace);
         }
     }
+
+    // memory guard control, with multi-threading should not change values across threads
+    d_vector_set_pad_length(arg.pad);
 
     if(status != rocblas_status_success)
         throw std::runtime_error(rocblas_status_to_string(status));

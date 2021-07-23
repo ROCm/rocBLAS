@@ -44,7 +44,7 @@ endif()
 if (DEFINED ENV{BLIS_DIR})
   file(TO_CMAKE_PATH "$ENV{BLIS_DIR}" BLIS_DIR)
 else()
-  set(BLIS_DIR "C:/blis/blis-dll-pthread/blis")
+  set(BLIS_DIR "C:/blis/blis-0.8.1-h8d14728_1/Library")
 endif()
 
 if (DEFINED ENV{VCPKG_PATH})
