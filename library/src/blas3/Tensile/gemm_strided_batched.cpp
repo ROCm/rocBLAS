@@ -1,8 +1,14 @@
 /* ************************************************************************
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#ifdef BUILD_WITH_TENSILE
+#include "gemm_tensile.hpp"
+#else
+#include "gemm_source.hpp"
+#endif
+
 #include "gemm.hpp"
-#include "gemm_batched.hpp"
 #include "logging.hpp"
 
 namespace
@@ -192,56 +198,31 @@ namespace
             if(gemm_check_numerics_status != rocblas_status_success)
                 return gemm_check_numerics_status;
         }
-
         rocblas_status status = rocblas_status_success;
-        //      if(size_t(m) * size_t(n) * size_t(k) < 1024 * 1024 * 1024)
-        {
-            hipStream_t rocblas_stream = handle->get_stream();
-            gemm_batched_solution(trans_a,
-                                  trans_b,
-                                  m,
-                                  n,
-                                  k,
-                                  *alpha,
-                                  A,
-                                  ld_a,
-                                  stride_a,
-                                  B,
-                                  ld_b,
-                                  stride_b,
-                                  *beta,
-                                  C,
-                                  ld_c,
-                                  stride_c,
-                                  batch_count,
-                                  rocblas_stream);
-        }
-        //      else
-        //      {
-        //          status = rocblas_internal_gemm_template<false>(handle,
-        //                                                                    trans_a,
-        //                                                                    trans_b,
-        //                                                                    m,
-        //                                                                    n,
-        //                                                                    k,
-        //                                                                    alpha,
-        //                                                                    A,
-        //                                                                    0,
-        //                                                                    ld_a,
-        //                                                                    stride_a,
-        //                                                                    B,
-        //                                                                    0,
-        //                                                                    ld_b,
-        //                                                                    stride_b,
-        //                                                                    beta,
-        //                                                                    C,
-        //                                                                    0,
-        //                                                                    ld_c,
-        //                                                                    stride_c,
-        //                                                                    batch_count);
-        //          if(status != rocblas_status_success)
-        //              return status;
-        //      }
+
+        status = rocblas_internal_gemm_template<false>(handle,
+                                                       trans_a,
+                                                       trans_b,
+                                                       m,
+                                                       n,
+                                                       k,
+                                                       alpha,
+                                                       A,
+                                                       0,
+                                                       ld_a,
+                                                       stride_a,
+                                                       B,
+                                                       0,
+                                                       ld_b,
+                                                       stride_b,
+                                                       beta,
+                                                       C,
+                                                       0,
+                                                       ld_c,
+                                                       stride_c,
+                                                       batch_count);
+        if(status != rocblas_status_success)
+            return status;
 
         if(check_numerics)
         {
