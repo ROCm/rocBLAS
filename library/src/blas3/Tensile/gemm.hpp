@@ -163,24 +163,24 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                         batch_count);
 #else // BUILD_WITH_TENSILE
     hipStream_t rocblas_stream = handle->get_stream();
-    gemm_batched_solution(trans_a,
-                          trans_b,
-                          m,
-                          n,
-                          k,
-                          *alpha,
-                          A,
-                          ld_a,
-                          stride_a,
-                          B,
-                          ld_b,
-                          stride_b,
-                          *beta,
-                          C,
-                          ld_c,
-                          stride_c,
-                          batch_count,
-                          rocblas_stream);
+    gemm_source_solution(trans_a,
+                         trans_b,
+                         m,
+                         n,
+                         k,
+                         *alpha,
+                         A,
+                         ld_a,
+                         stride_a,
+                         B,
+                         ld_b,
+                         stride_b,
+                         *beta,
+                         C,
+                         ld_c,
+                         stride_c,
+                         batch_count,
+                         rocblas_stream);
     return rocblas_status_success;
 #endif // BUILD_WITH_TENSILE
 }
