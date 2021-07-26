@@ -10,6 +10,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ### Changed
 - Update from C++14 to C++17.
+- Packaging split into runtime and development packages.
 
 ### Fixed
 - For function geam avoid overflow in offset calculation.
