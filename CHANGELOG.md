@@ -10,7 +10,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ### Changed
 - Update from C++14 to C++17.
-- Packaging split into runtime and development packages.
+- Packaging split into runtime package called rocblas and development packages called rocblas-devel. The development package depends on runtime. The runtime package suggests the development package for all supported OSes except Centos 7 to aid in the transition. The suggests feaure in packaging is introduced as a deprecated feature and will be removed in a future rocm release. 
 
 ### Fixed
 - For function geam avoid overflow in offset calculation.
