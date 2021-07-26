@@ -5,6 +5,12 @@
 
 #pragma once
 
+#ifdef BUILD_WITH_TENSILE
+#include "gemm_tensile.hpp"
+#else
+#include "gemm_source.hpp"
+#endif
+
 #include "gemm.hpp"
 #include "rocblas_trtri.hpp"
 
