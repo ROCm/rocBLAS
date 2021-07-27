@@ -508,7 +508,7 @@ endif( )
 # Installation
 
 # Force installation of .f90 module file
-install(FILES "../include/rocblas_module.f90"
+rocm_install(FILES "../include/rocblas_module.f90"
         DESTINATION "rocblas/include"
 )
 
@@ -532,7 +532,10 @@ if( BUILD_WITH_TENSILE )
     else()
       set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
     endif()
-    install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR})
+    rocm_install(
+      DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
+      DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
+      COMPONENT Unspecified)
   endif()
 endif()
 
