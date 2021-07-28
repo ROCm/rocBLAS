@@ -6,11 +6,11 @@
 # - after running this script and merging staging into master, run bump_staging_version.sh in master and
 #   merge master into staging
 
-OLD_TENSILE_VERSION="Tensile 4.28.0"
-NEW_TENSILE_VERSION="Tensile 4.29.0"
+OLD_TENSILE_VERSION="Tensile 4.29.0"
+NEW_TENSILE_VERSION="Tensile 4.30.0"
 
-OLD_TENSILE_HASH="f3cd89ee2e2c9db53ba09e0067a6a3a3c0cc7a09"
-NEW_TENSILE_HASH="17aabd14cb7ede34307c40fc87a5074832acf16b"
+OLD_TENSILE_HASH="a4d75392228b3828e0802b5cacdb811ed198458f"
+NEW_TENSILE_HASH="0f6a6d1557868d6d563cb1edf167c32c2e34fda0"
 
 OLD_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.6.0"
 NEW_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.7.1"
