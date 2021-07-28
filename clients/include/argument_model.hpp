@@ -11,6 +11,9 @@ namespace ArgumentLogging
     const double NA_value = -1.0; // invalid for time, GFlop, GB
 }
 
+void ArgumentModel_set_log_function_name(bool f);
+bool ArgumentModel_get_log_function_name();
+
 // ArgumentModel template has a variadic list of argument enums
 template <rocblas_argument... Args>
 class ArgumentModel
@@ -121,6 +124,13 @@ public:
     {
         rocblas_internal_ostream name_list;
         rocblas_internal_ostream value_list;
+
+        if(ArgumentModel_get_log_function_name())
+        {
+            auto delim = ",";
+            name_list << "function" << delim;
+            value_list << arg.function << delim;
+        }
 
         // Output (name, value) pairs to name_list and value_list
         auto print = [&, delim = ""](const char* name, auto&& value) mutable {

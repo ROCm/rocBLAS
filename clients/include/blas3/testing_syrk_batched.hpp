@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -53,20 +53,6 @@ void testing_syrk_batched_bad_arg(const Arguments& arg)
             handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
-                                                  uplo,
-                                                  rocblas_operation_conjugate_transpose,
-                                                  N,
-                                                  K,
-                                                  &alpha,
-                                                  dA,
-                                                  lda,
-                                                  &beta,
-                                                  dC,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_invalid_value);
-
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrk_batched_fn(
             handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc, batch_count),
@@ -92,6 +78,23 @@ void testing_syrk_batched_bad_arg(const Arguments& arg)
         rocblas_syrk_batched_fn(
             handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, nullptr, ldc, batch_count),
         rocblas_status_success);
+
+    if(is_complex<T>)
+    {
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
+                                                      uplo,
+                                                      rocblas_operation_conjugate_transpose,
+                                                      N,
+                                                      K,
+                                                      &alpha,
+                                                      dA,
+                                                      lda,
+                                                      &beta,
+                                                      dC,
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_invalid_value);
+    }
 }
 
 template <typename T>

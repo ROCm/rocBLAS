@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2020 Advanced Micro Devices, Inc.
+# Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
 message( STATUS "Configuring lapack external dependency" )
@@ -10,8 +10,8 @@ set( PREFIX_LAPACK ${CMAKE_INSTALL_PREFIX} CACHE PATH "Location where lapack sho
 set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=${PREFIX_LAPACK} )
 append_cmake_cli_arguments( lapack_cmake_args lapack_cmake_args )
 
-set( lapack_git_repository "https://github.com/Reference-LAPACK/lapack-release" CACHE STRING "URL to download lapack from" )
-set( lapack_git_tag "lapack-3.7.1" CACHE STRING "git branch" )
+set( lapack_git_repository "https://github.com/Reference-LAPACK/lapack.git" CACHE STRING "URL to download lapack from" )
+set( lapack_git_tag "v3.9.1" CACHE STRING "git branch" )
 
 # message( STATUS "lapack_make ( " ${lapack_make} " ) " )
 # message( STATUS "lapack_cmake_args ( " ${lapack_cmake_args} " ) " )

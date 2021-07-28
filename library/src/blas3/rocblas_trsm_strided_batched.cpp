@@ -68,76 +68,52 @@ namespace
                 auto transA_letter = rocblas_transpose_letter(transA);
                 auto diag_letter   = rocblas_diag_letter(diag);
 
-                if(handle->pointer_mode == rocblas_pointer_mode_host)
-                {
-                    if(layer_mode & rocblas_layer_mode_log_trace)
-                        log_trace(handle,
-                                  rocblas_trsm_name<T>,
-                                  side,
-                                  uplo,
-                                  transA,
-                                  diag,
-                                  m,
-                                  n,
-                                  *alpha,
-                                  A,
-                                  lda,
-                                  stride_A,
-                                  B,
-                                  ldb,
-                                  stride_B,
-                                  batch_count);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_trsm_name<T>,
+                              side,
+                              uplo,
+                              transA,
+                              diag,
+                              m,
+                              n,
+                              LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                              A,
+                              lda,
+                              stride_A,
+                              B,
+                              ldb,
+                              stride_B,
+                              batch_count);
 
-                    if(layer_mode & rocblas_layer_mode_log_bench)
-                    {
-                        log_bench(handle,
-                                  "./rocblas-bench -f trsm_strided_batched -r",
-                                  rocblas_precision_string<T>,
-                                  "--side",
-                                  side_letter,
-                                  "--uplo",
-                                  uplo_letter,
-                                  "--transposeA",
-                                  transA_letter,
-                                  "--diag",
-                                  diag_letter,
-                                  "-m",
-                                  m,
-                                  "-n",
-                                  n,
-                                  "--alpha",
-                                  *alpha,
-                                  "--lda",
-                                  lda,
-                                  "--stride_A",
-                                  stride_A,
-                                  "--ldb",
-                                  ldb,
-                                  "--stride_B",
-                                  stride_B,
-                                  "--batch_count",
-                                  batch_count);
-                    }
-                }
-                else
+                if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    if(layer_mode & rocblas_layer_mode_log_trace)
-                        log_trace(handle,
-                                  rocblas_trsm_name<T>,
-                                  side,
-                                  uplo,
-                                  transA,
-                                  diag,
-                                  m,
-                                  n,
-                                  alpha,
-                                  A,
-                                  lda,
-                                  stride_A,
-                                  B,
-                                  ldb,
-                                  stride_B,
-                                  batch_count);
+                    log_bench(handle,
+                              "./rocblas-bench -f trsm_strided_batched -r",
+                              rocblas_precision_string<T>,
+                              "--side",
+                              side_letter,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                              "--lda",
+                              lda,
+                              "--stride_A",
+                              stride_A,
+                              "--ldb",
+                              ldb,
+                              "--stride_B",
+                              stride_B,
+                              "--batch_count",
+                              batch_count);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_profile)

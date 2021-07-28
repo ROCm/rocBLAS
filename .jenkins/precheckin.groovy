@@ -15,7 +15,7 @@ def runCI =
 
     def prj = new rocProject('rocBLAS', 'PreCheckin')
     // customize for project
-    prj.paths.build_command = './install.sh -c --cleanup'
+    prj.paths.build_command = './install.sh -c'
 
     prj.defaults.ccache = true
     prj.timeout.compile = 480

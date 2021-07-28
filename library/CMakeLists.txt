@@ -13,9 +13,9 @@
 # ########################################################################
 function( target_compile_features target_name )
   # With Cmake v3.5, hipcc (with nvcc backend) does not work with target_compile_features
-  # Turn on -std=c++14 manually
+  # Turn on -std=c++17 manually
   if( CUDA_FOUND AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER MATCHES ".*/nvcc$" ) )
-    set_target_properties( ${target_name} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
+    set_target_properties( ${target_name} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON )
   else( )
     _target_compile_features( ${target_name} ${ARGN} )
   endif( )

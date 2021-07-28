@@ -3,10 +3,7 @@
 # ########################################################################
 
 # Linking lapack library requires fortran flags
-find_package( cblas CONFIG REQUIRED PATHS ${LAPACK_DIR} )
-if( NOT cblas_FOUND )
-  message( FATAL_ERROR "cblas is a required dependency and is not found;  try adding cblas path to CMAKE_PREFIX_PATH" )
-endif( )
+find_package( cblas REQUIRED CONFIG PATHS ${LAPACK_DIR} )
 
 if(LINK_BLIS)
   set( BLIS_CPP ../common/blis_interface.cpp )
@@ -16,6 +13,7 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/rocblas_arguments.cpp
+      ../common/argument_model.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
@@ -54,7 +52,6 @@ endif()
 target_include_directories( rocblas-bench
   SYSTEM PRIVATE
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
 )
 
@@ -65,6 +62,8 @@ target_link_libraries( rocblas-bench PRIVATE roc::rocblas lapack cblas )
 
 if(LINK_BLIS)
   target_link_libraries( rocblas-bench PRIVATE ${BLIS_LIBRARY} )
+else()
+  target_link_libraries( rocblas-bench PRIVATE blas )
 endif()
 
 if( CUDA_FOUND )
@@ -96,9 +95,6 @@ endif()
 target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
 
 set_target_properties( rocblas-bench PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED ON
-  CXX_EXTENSIONS OFF
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
 add_dependencies( rocblas-bench rocblas-common )

@@ -33,66 +33,77 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter = rocblas_fill_letter(uplo);
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
+            {
+                auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_symv_name<T>,
-                          uplo,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          x,
-                          incx,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          y,
-                          incy);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_symv_name<T>,
+                              uplo,
+                              n,
+                              LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                              A,
+                              lda,
+                              x,
+                              incx,
+                              LOG_TRACE_SCALAR_VALUE(handle, beta),
+                              y,
+                              incy);
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f symv -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--incx",
-                          incx,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--incy",
-                          incy);
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                    log_bench(handle,
+                              "./rocblas-bench -f symv -r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                              "--lda",
+                              lda,
+                              "--incx",
+                              incx,
+                              LOG_BENCH_SCALAR_VALUE(handle, beta),
+                              "--incy",
+                              incy);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_symv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "incx",
-                            incx,
-                            "incy",
-                            incy);
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                    log_profile(handle,
+                                rocblas_symv_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "N",
+                                n,
+                                "lda",
+                                lda,
+                                "incx",
+                                incx,
+                                "incy",
+                                incy);
+            }
         }
 
         rocblas_status arg_status = rocblas_symv_arg_check<T>(
             handle, uplo, n, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
         if(arg_status != rocblas_status_continue)
             return arg_status;
+
+        //allocating the workspace identical to hemv
+        size_t dev_bytes = rocblas_internal_hemv_symv_kernel_workspace_size<T>(n);
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(dev_bytes);
+
+        auto workspace = handle->device_malloc(dev_bytes);
+        if(!workspace)
+            return rocblas_status_memory_error;
 
         if(check_numerics)
         {
@@ -120,8 +131,27 @@ namespace
                 return symv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_symv_template<T>(
-            handle, uplo, n, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
+        rocblas_status status = rocblas_internal_symv_template<T>(handle,
+                                                                  uplo,
+                                                                  n,
+                                                                  alpha,
+                                                                  0,
+                                                                  A,
+                                                                  0,
+                                                                  lda,
+                                                                  0,
+                                                                  x,
+                                                                  0,
+                                                                  incx,
+                                                                  0,
+                                                                  beta,
+                                                                  0,
+                                                                  y,
+                                                                  0,
+                                                                  incy,
+                                                                  0,
+                                                                  1,
+                                                                  (V*)workspace);
         if(status != rocblas_status_success)
             return status;
 

@@ -374,6 +374,10 @@ void testing_gemm(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
 
+        //releasing already used host memory
+        hA = host_vector<T>();
+        hB = host_vector<T>();
+
         // check host error and norm
         if(arg.unit_check)
         {
@@ -381,7 +385,7 @@ void testing_gemm(const Arguments& arg)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = K * sum_error_tolerance<T>;
+                const double tol = sqrt(K) * sum_error_tolerance<T>;
                 near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
             }
             else

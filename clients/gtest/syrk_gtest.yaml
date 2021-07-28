@@ -31,16 +31,16 @@ Definitions:
 
   - &alpha_beta
     - { alpha: -1.0, alphai:  0.3, beta: -0.5, betai: 0.6 }
-    # These larger values below on large_matrices require a tolerance rather than equality 
-    # due to least significant digit difference CPU to GPU on windows 
+    # These larger values below on large_matrices require a tolerance rather than equality
+    # due to least significant digit difference CPU to GPU on windows
     # I expect only accumulation difference from scheduling variation on windows
     # - { alpha: -2.1, alphai:  1.3, beta: -0.5, betai: 0.6 }
-    
+
 Tests:
 - name: syrk_bad
   category: pre_checkin
   function: syrk_bad_arg
-  precision: *single_precision
+  precision: *single_precision_complex_real
   fortran: [ false, true ]
 
 - name: syrk_quick
@@ -52,6 +52,16 @@ Tests:
   matrix_size: *quick_matrix_size_range
   alpha: [ 0 ]
   beta: [ 1 ]
+
+- name: syrk_conj
+  category: quick
+  function: syrk
+  precision: *single_double_precisions # only supported for real types
+  uplo: [ U ]
+  transA: [ C ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0 ]
+  beta: [ 2.0 ]
 
 - name: syrk_NaN
   category: pre_checkin
@@ -86,7 +96,7 @@ Tests:
 - name: syrk_batched_bad
   category: pre_checkin
   function: syrk_batched_bad_arg
-  precision: *single_precision
+  precision: *single_precision_complex_real
   fortran: [ false, true ]
 
 - name: syrk_batched_quick
@@ -125,7 +135,7 @@ Tests:
 - name: syrk_strided_batched_bad
   category: pre_checkin
   function: syrk_strided_batched_bad_arg
-  precision: *single_precision
+  precision: *single_precision_complex_real
   fortran: [ false, true ]
 
 - name: syrk_strided_batched_quick
