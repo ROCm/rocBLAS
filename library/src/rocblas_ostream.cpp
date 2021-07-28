@@ -222,8 +222,12 @@ void rocblas_internal_ostream::worker::send(std::string str)
 // Wait for the task to be completed, to ensure flushed IO
 #ifdef WIN32
     if(worker_task.size())
-#endif
         future.get();
+    else
+        future.wait_for(std::chrono::seconds(1));
+#else
+    future.get();
+#endif
 }
 
 // Worker thread which serializes data to be written to a device/inode

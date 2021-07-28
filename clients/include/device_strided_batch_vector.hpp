@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -13,8 +13,8 @@ class host_strided_batch_vector;
 //!
 //! @brief Implementation of a strided batched vector on device.
 //!
-template <typename T, size_t PAD = 4096, typename U = T>
-class device_strided_batch_vector : public d_vector<T, PAD, U>
+template <typename T>
+class device_strided_batch_vector : public d_vector<T>
 {
 public:
     //!
@@ -51,7 +51,7 @@ public:
                                          rocblas_int    batch_count,
                                          storage        stg = storage::block,
                                          bool           HMM = false)
-        : d_vector<T, PAD, U>(calculate_nmemb(n, inc, stride, batch_count, stg), HMM)
+        : d_vector<T>(calculate_nmemb(n, inc, stride, batch_count, stg), HMM)
         , m_storage(stg)
         , m_n(n)
         , m_inc(inc)

@@ -39,80 +39,83 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter = rocblas_fill_letter(uplo);
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
+            {
+                auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_symv_strided_batched_name<T>,
-                          uplo,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          strideA,
-                          x,
-                          incx,
-                          stridex,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          y,
-                          incy,
-                          stridey,
-                          batch_count);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_symv_strided_batched_name<T>,
+                              uplo,
+                              n,
+                              LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                              A,
+                              lda,
+                              strideA,
+                              x,
+                              incx,
+                              stridex,
+                              LOG_TRACE_SCALAR_VALUE(handle, beta),
+                              y,
+                              incy,
+                              stridey,
+                              batch_count);
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f symv_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          strideA,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stridex,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--incy",
-                          incy,
-                          "--stride_y",
-                          stridey,
-                          "--batch_count",
-                          batch_count);
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                    log_bench(handle,
+                              "./rocblas-bench -f symv_strided_batched -r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                              "--lda",
+                              lda,
+                              "--stride_a",
+                              strideA,
+                              "--incx",
+                              incx,
+                              "--stride_x",
+                              stridex,
+                              LOG_BENCH_SCALAR_VALUE(handle, beta),
+                              "--incy",
+                              incy,
+                              "--stride_y",
+                              stridey,
+                              "--batch_count",
+                              batch_count);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_symv_strided_batched_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "stride_a",
-                            strideA,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stridex,
-                            "incy",
-                            incy,
-                            "stride_y",
-                            stridey,
-                            "batch_count",
-                            batch_count);
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                    log_profile(handle,
+                                rocblas_symv_strided_batched_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "N",
+                                n,
+                                "lda",
+                                lda,
+                                "stride_a",
+                                strideA,
+                                "incx",
+                                incx,
+                                "stride_x",
+                                stridex,
+                                "incy",
+                                incy,
+                                "stride_y",
+                                stridey,
+                                "batch_count",
+                                batch_count);
+            }
         }
 
         rocblas_status arg_status = rocblas_symv_arg_check<T>(handle,
@@ -137,6 +140,15 @@ namespace
                                                               batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
+
+        //allocating the workspace identical to hemv
+        size_t dev_bytes = rocblas_internal_hemv_symv_kernel_workspace_size<T>(n, batch_count);
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(dev_bytes);
+
+        auto workspace = handle->device_malloc(dev_bytes);
+        if(!workspace)
+            return rocblas_status_memory_error;
 
         if(check_numerics)
         {
@@ -182,7 +194,8 @@ namespace
                                                                   0,
                                                                   incy,
                                                                   stridey,
-                                                                  batch_count);
+                                                                  batch_count,
+                                                                  (V*)workspace);
         if(status != rocblas_status_success)
             return status;
 

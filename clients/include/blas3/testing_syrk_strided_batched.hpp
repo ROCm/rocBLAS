@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -64,22 +64,6 @@ void testing_syrk_strided_batched_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
                                                           rocblas_fill_full,
                                                           transA,
-                                                          N,
-                                                          K,
-                                                          &alpha,
-                                                          dA,
-                                                          lda,
-                                                          strideA,
-                                                          &beta,
-                                                          dC,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          uplo,
-                                                          rocblas_operation_conjugate_transpose,
                                                           N,
                                                           K,
                                                           &alpha,
@@ -173,6 +157,25 @@ void testing_syrk_strided_batched_bad_arg(const Arguments& arg)
                                                           strideC,
                                                           batch_count),
                           rocblas_status_success);
+
+    if(is_complex<T>)
+    {
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              rocblas_operation_conjugate_transpose,
+                                                              N,
+                                                              K,
+                                                              &alpha,
+                                                              dA,
+                                                              lda,
+                                                              strideA,
+                                                              &beta,
+                                                              dC,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_value);
+    }
 }
 
 template <typename T>

@@ -6,6 +6,7 @@
 #include <windows.h>
 #endif
 #include "../../library/src/include/handle.hpp"
+#include "d_vector.hpp"
 #include "rocblas_random.hpp"
 #include "utility.hpp"
 #include <chrono>
@@ -13,9 +14,12 @@
 #include <cstring>
 #include <new>
 #include <stdexcept>
+#include <stdlib.h>
 
 #ifdef WIN32
 #define strcasecmp(A, B) _stricmp(A, B)
+#else
+#include <fcntl.h>
 #endif
 
 //
@@ -57,13 +61,13 @@ std::string rocblas_exepath()
 
     std::vector<TCHAR> result(MAX_PATH + 1);
     // Ensure result is large enough to accomodate the path
+    DWORD length = 0;
     for(;;)
     {
-        auto length = GetModuleFileNameA(nullptr, result.data(), result.size());
+        length = GetModuleFileNameA(nullptr, result.data(), result.size());
         if(length < result.size() - 1)
         {
-            result.resize(length);
-            result.shrink_to_fit();
+            result.resize(length + 1);
             break;
         }
         result.resize(result.size() * 2);
@@ -91,6 +95,35 @@ std::string rocblas_exepath()
         free(path);
     }
     return pathstr;
+#endif
+}
+
+/* ============================================================================================ */
+// Temp directory rooted random path
+std::string rocblas_tempname()
+{
+#ifdef WIN32
+    // Generate "/tmp/rocblas-XXXXXX" like file name
+    const std::string alphanum     = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
+    int               stringlength = alphanum.length() - 1;
+    std::string       uniquestr    = "rocblas-";
+
+    for(auto n : {0, 1, 2, 3, 4, 5})
+        uniquestr += alphanum.at(rand() % stringlength);
+
+    std::filesystem::path tmpname = std::filesystem::temp_directory_path() / uniquestr;
+
+    return tmpname.string();
+#else
+    char tmp[] = "/tmp/rocblas-XXXXXX";
+    int  fd    = mkostemp(tmp, O_CLOEXEC);
+    if(fd == -1)
+    {
+        dprintf(STDERR_FILENO, "Cannot open temporary file: %m\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return std::string(tmp);
 #endif
 }
 
@@ -242,6 +275,9 @@ rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
             status = rocblas_set_workspace(m_handle, m_memory, arg.user_allocated_workspace);
         }
     }
+
+    // memory guard control, with multi-threading should not change values across threads
+    d_vector_set_pad_length(arg.pad);
 
     if(status != rocblas_status_success)
         throw std::runtime_error(rocblas_status_to_string(status));

@@ -32,82 +32,83 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
-        auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter = rocblas_fill_letter(uplo);
-
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_hemv_name<T>,
-                          uplo,
-                          n,
-                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
-                          A,
-                          lda,
-                          stride_A,
-                          x,
-                          incx,
-                          stride_x,
-                          LOG_TRACE_SCALAR_VALUE(handle, beta),
-                          y,
-                          incy,
-                          stride_y,
-                          batch_count);
-
-            if(layer_mode & rocblas_layer_mode_log_bench)
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
             {
-                log_bench(handle,
-                          "./rocblas-bench -f hemv_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          stride_A,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stride_x,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--incy",
-                          incy,
-                          "--stride_y",
-                          stride_y,
-                          "--batch_count",
-                          batch_count);
-            }
+                auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_hemv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "N",
-                            n,
-                            "lda",
-                            lda,
-                            "stride_a",
-                            stride_A,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stride_x,
-                            "incy",
-                            incy,
-                            "stride_y",
-                            stride_y,
-                            "batch_count",
-                            batch_count);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_hemv_name<T>,
+                              uplo,
+                              n,
+                              LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                              A,
+                              lda,
+                              stride_A,
+                              x,
+                              incx,
+                              stride_x,
+                              LOG_TRACE_SCALAR_VALUE(handle, beta),
+                              y,
+                              incy,
+                              stride_y,
+                              batch_count);
+
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    log_bench(handle,
+                              "./rocblas-bench -f hemv_strided_batched -r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                              "--lda",
+                              lda,
+                              "--stride_a",
+                              stride_A,
+                              "--incx",
+                              incx,
+                              "--stride_x",
+                              stride_x,
+                              LOG_BENCH_SCALAR_VALUE(handle, beta),
+                              "--incy",
+                              incy,
+                              "--stride_y",
+                              stride_y,
+                              "--batch_count",
+                              batch_count);
+                }
+
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                    log_profile(handle,
+                                rocblas_hemv_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "N",
+                                n,
+                                "lda",
+                                lda,
+                                "stride_a",
+                                stride_A,
+                                "incx",
+                                incx,
+                                "stride_x",
+                                stride_x,
+                                "incy",
+                                incy,
+                                "stride_y",
+                                stride_y,
+                                "batch_count",
+                                batch_count);
+            }
         }
 
         if(n < 0 || lda < n || lda < 1 || !incx || !incy || batch_count < 0)
@@ -129,6 +130,18 @@ namespace
 
         if(!y)
             return rocblas_status_invalid_pointer;
+
+        size_t dev_bytes = rocblas_internal_hemv_symv_kernel_workspace_size<T>(n, batch_count);
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(dev_bytes);
+
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
+            return rocblas_status_memory_error;
+
+        // flag to check whether the kernel function being called is for hemv or symv
+        // For hemv IS_HEMV = true and for SYMV IS_HEMV = false
+        static constexpr bool IS_HEMV = true;
 
         if(check_numerics)
         {
@@ -156,26 +169,27 @@ namespace
                 return hemv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_hemv_template(handle,
-                                                               uplo,
-                                                               n,
-                                                               alpha,
-                                                               0,
-                                                               A,
-                                                               0,
-                                                               lda,
-                                                               stride_A,
-                                                               x,
-                                                               0,
-                                                               incx,
-                                                               stride_x,
-                                                               beta,
-                                                               0,
-                                                               y,
-                                                               0,
-                                                               incy,
-                                                               stride_y,
-                                                               batch_count);
+        rocblas_status status = rocblas_internal_hemv_symv_template<IS_HEMV>(handle,
+                                                                             uplo,
+                                                                             n,
+                                                                             alpha,
+                                                                             0,
+                                                                             A,
+                                                                             0,
+                                                                             lda,
+                                                                             stride_A,
+                                                                             x,
+                                                                             0,
+                                                                             incx,
+                                                                             stride_x,
+                                                                             beta,
+                                                                             0,
+                                                                             y,
+                                                                             0,
+                                                                             incy,
+                                                                             stride_y,
+                                                                             batch_count,
+                                                                             (T*)w_mem);
         if(status != rocblas_status_success)
             return status;
 

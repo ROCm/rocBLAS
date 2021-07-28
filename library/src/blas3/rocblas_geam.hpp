@@ -581,6 +581,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
         static constexpr int GEAM_DIM = 256;
         size_t               size     = size_t(m) * n;
         int                  blocks   = (size - 1) / GEAM_DIM + 1;
+        // GEAM_DIM needs to be large to prevent blocks overflowing int datatype.
 
         dim3 geam_grid(blocks, batch_count);
         dim3 geam_threads(GEAM_DIM);

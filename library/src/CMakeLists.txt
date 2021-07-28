@@ -361,8 +361,6 @@ else()
   target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc -ldl )
 endif()
 
-set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
-
 #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
 # GCC or hip-clang needs specific flags to turn on f16c intrinsics
@@ -510,7 +508,7 @@ endif( )
 # Installation
 
 # Force installation of .f90 module file
-install(FILES "../include/rocblas_module.f90"
+rocm_install(FILES "../include/rocblas_module.f90"
         DESTINATION "rocblas/include"
 )
 
@@ -534,7 +532,10 @@ if( BUILD_WITH_TENSILE )
     else()
       set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
     endif()
-    install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR})
+    rocm_install(
+      DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
+      DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
+      COMPONENT Unspecified)
   endif()
 endif()
 

@@ -2,6 +2,23 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+## (Unreleased) rocBLAS 2.41.0
+### Optimizations
+- Improved performance of non-batched and batched syr for all sizes and data types
+- Improved performance of non-batched and batched hemv for all sizes and data types
+- Improved performance of non-batched and batched symv for all sizes and data types
+- Improved memory utilization in rocblas-bench, rocblas-test gemm functions, increasing possible runtime sizes.
+
+### Changed
+- Update from C++14 to C++17.
+- Packaging split into a runtime package called rocblas and a development package called rocblas-devel. The development package depends on runtime. The runtime package suggests the development package for all supported OSes except CentOS 7 to aid in the transition. The suggests feature in packaging is introduced as a deprecated feature and will be removed in a future rocm release.
+
+### Fixed
+- For function geam avoid overflow in offset calculation.
+- For function syr avoid overflow in offset calculation.
+- For function gemv (Transpose-case) avoid overflow in offset calculation.
+- For functions ssyrk and dsyrk, allow conjugate-transpose case to match legacy BLAS. Behavior is the same as the transpose case.
+
 ## [rocBLAS 2.40.0 for ROCm 4.4.0]
 ### Optimizations
 - Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000.

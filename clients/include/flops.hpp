@@ -472,35 +472,22 @@ constexpr double spr2_gflop_count(rocblas_int n)
 }
 
 /* \brief floating point counts of GER */
-template <typename T, bool CONJ>
+template <typename T>
 constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
 {
-    return (2.0 * m * n) / 1e9;
+    return (6 * (double(m) * n + std::min(m, n)) + 2 * double(m) * n) / 1e9;
 }
 
 template <>
-constexpr double ger_gflop_count<rocblas_float_complex, false>(rocblas_int m, rocblas_int n)
+constexpr double ger_gflop_count<float>(rocblas_int m, rocblas_int n)
 {
-    return 4.0 * ger_gflop_count<float, false>(m, n);
+    return ((2.0 * double(m) * n) + std::min(m, n)) / 1e9;
 }
 
 template <>
-constexpr double ger_gflop_count<rocblas_float_complex, true>(rocblas_int m, rocblas_int n)
+constexpr double ger_gflop_count<double>(rocblas_int m, rocblas_int n)
 {
-
-    return 4.0 * ger_gflop_count<float, false>(m, n) + n / 1e9; // +n for conjugate
-}
-
-template <>
-constexpr double ger_gflop_count<rocblas_double_complex, false>(rocblas_int m, rocblas_int n)
-{
-    return ger_gflop_count<rocblas_float_complex, false>(m, n);
-}
-
-template <>
-constexpr double ger_gflop_count<rocblas_double_complex, true>(rocblas_int m, rocblas_int n)
-{
-    return ger_gflop_count<rocblas_float_complex, true>(m, n);
+    return ger_gflop_count<float>(m, n);
 }
 
 /* \brief floating point counts of SYR */

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -50,19 +50,6 @@ void testing_syrk_bad_arg(const Arguments& arg)
         rocblas_syrk_fn(handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
-                                          uplo,
-                                          rocblas_operation_conjugate_transpose,
-                                          N,
-                                          K,
-                                          &alpha,
-                                          dA,
-                                          lda,
-                                          &beta,
-                                          dC,
-                                          ldc),
-                          rocblas_status_invalid_value);
-
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrk_fn(handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
@@ -83,6 +70,23 @@ void testing_syrk_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrk_fn(handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, nullptr, ldc),
         rocblas_status_success);
+
+    // conjugate transpose supported in ssyrk and dsyrk
+    if(is_complex<T>)
+    {
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
+                                              uplo,
+                                              rocblas_operation_conjugate_transpose,
+                                              N,
+                                              K,
+                                              &alpha,
+                                              dA,
+                                              lda,
+                                              &beta,
+                                              dC,
+                                              ldc),
+                              rocblas_status_invalid_value);
+    }
 }
 
 template <typename T>

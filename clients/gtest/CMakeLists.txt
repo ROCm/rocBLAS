@@ -4,10 +4,7 @@
 
 
 # Linking lapack library requires fortran flags
-find_package( cblas CONFIG REQUIRED PATHS ${LAPACK_DIR} )
-if( NOT cblas_FOUND )
-  message( FATAL_ERROR "cblas is a required dependency and is not found;  try adding cblas path to CMAKE_PREFIX_PATH" )
-endif( )
+find_package( cblas REQUIRED CONFIG PATHS ${LAPACK_DIR} )
 
 enable_testing()
 find_package( GTest REQUIRED )
@@ -86,6 +83,7 @@ set( rocblas_benchmark_common
       ../common/rocblas_arguments.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
+      ../common/argument_model.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
@@ -129,18 +127,20 @@ target_include_directories( rocblas-test
   SYSTEM PRIVATE
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
 )
 
 if( NOT WIN32 )
   target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client )
 endif( )
-target_link_libraries( rocblas-test PRIVATE roc::rocblas ${GTEST_BOTH_LIBRARIES} lapack cblas )
-
 if(LINK_BLIS)
   target_link_libraries( rocblas-test PRIVATE ${BLIS_LIBRARY} )
+else()
+  target_link_libraries( rocblas-test PRIVATE blas )
 endif()
+target_link_libraries( rocblas-test PRIVATE roc::rocblas ${GTEST_BOTH_LIBRARIES} lapack cblas )
+
+
 
 
 if( CUDA_FOUND )
@@ -199,9 +199,6 @@ if (WIN32)
 endif()
 
 set_target_properties( rocblas-test PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED ON
-  CXX_EXTENSIONS OFF
   IMPORT_PREFIX ""
   IMPORT_SUFFIX ".lib"
   LINKER_LANGUAGE CXX

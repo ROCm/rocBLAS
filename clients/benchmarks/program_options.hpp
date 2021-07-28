@@ -253,6 +253,12 @@ namespace roc
                     match = argc && sscanf(*argv, " %c", &val) == 1;
                     ptr->actual_value(val);
                 }
+                else if(auto* ptr = dynamic_cast<value<int8_t>*>(m_val.get()))
+                {
+                    int8_t val;
+                    match = argc && sscanf(*argv, " %c", &val) == 1;
+                    ptr->actual_value(val);
+                }
                 else if(auto* ptr = dynamic_cast<value<bool>*>(m_val.get()))
                 {
                     // We handle bool specially, setting the value to true without argument
@@ -269,7 +275,7 @@ namespace roc
                 }
                 else
                 {
-                    throw std::logic_error("Internal error: Unsupported data type");
+                    throw std::logic_error("Internal error: Unsupported data type (setting value)");
                 }
 
                 if(!match)
@@ -446,10 +452,13 @@ namespace roc
                             left << dynamic_cast<const value<double>*>(val)->get_value();
                         else if(dynamic_cast<const value<char>*>(val))
                             left << dynamic_cast<const value<char>*>(val)->get_value();
+                        else if(dynamic_cast<const value<int8_t>*>(val))
+                            left << dynamic_cast<const value<int8_t>*>(val)->get_value();
                         else if(dynamic_cast<const value<std::string>*>(val))
                             left << dynamic_cast<const value<std::string>*>(val)->get_value();
                         else
-                            throw std::logic_error("Internal error: Unsupported data type");
+                            throw std::logic_error(
+                                "Internal error: Unsupported data type (printing value)");
                         left << ")";
                     }
                 }

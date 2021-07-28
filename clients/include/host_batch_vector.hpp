@@ -10,7 +10,7 @@
 //
 // Local declaration of the device batch vector.
 //
-template <typename T, size_t PAD, typename U>
+template <typename T>
 class device_batch_vector;
 
 //!

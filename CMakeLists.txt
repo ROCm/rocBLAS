@@ -4,9 +4,9 @@
 
 cmake_minimum_required( VERSION 3.16.8 )
 
-# We use C++14 features, this will add compile option: -std=c++14
-set( CMAKE_CXX_STANDARD 14 )
-# Without this line, it will add -std=gnu++14 instead, which has some issues.
+# This will add compile option: -std=c++17
+set( CMAKE_CXX_STANDARD 17 )
+# Without this line, it will add -std=gnu++17 instead, which may have issues.
 set( CMAKE_CXX_EXTENSIONS OFF )
 
 if (NOT python)
@@ -21,6 +21,9 @@ endif()
 
 # disable this next option and test build whenever compiler changes to verify unused arguments are safe to ignore
 add_compile_options( -Wno-unused-command-line-argument )
+
+# TODO: address [[nodiscard]] warnings
+add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
 
 unset(ENV{ROCM_BUILD_ID})
 project( rocblas LANGUAGES CXX )
@@ -99,7 +102,7 @@ endif( )
 # This finds the rocm-cmake project, and installs it if not found
 # rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM CONFIG QUIET PATHS ${ROCM_PATH} /opt/rocm )
+find_package( ROCM 0.6 CONFIG QUIET PATHS ${ROCM_PATH} /opt/rocm )
 if( NOT ROCM_FOUND )
   set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
   file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
@@ -121,8 +124,12 @@ if( NOT ROCM_FOUND )
 
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzvf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
     WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
+  execute_process( COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${PROJECT_EXTERN_DIR}/rocm-cmake .
+    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag} )
+  execute_process( COMMAND ${CMAKE_COMMAND} --build rocm-cmake-${rocm_cmake_tag} --target install
+    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR})
 
-  find_package( ROCM REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag} )
+  find_package( ROCM 0.6 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
 endif( )
 
 include( ROCMSetupVersion )
@@ -138,7 +145,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.40.0" )
+set ( VERSION_STRING "2.41.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -273,7 +280,7 @@ if(NOT SKIP_LIBRARY)
     if (TENSILE_VERSION)
       find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     else()
-      find_package(Tensile 4.29.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+      find_package(Tensile 4.30.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     endif()
   endif()
 endif()
