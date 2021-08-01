@@ -1382,8 +1382,10 @@ try
 
     if(vm.find("version") != vm.end())
     {
-        char blas_version[100];
-        rocblas_get_version_string(blas_version, sizeof(blas_version));
+        size_t size;
+        rocblas_get_version_string_size(&size);
+        std::string blas_version(size, '\0');
+        rocblas_get_version_string(blas_version.data(), size);
         rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }

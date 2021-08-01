@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#include <string>
 
 #include "rocblas_data.hpp"
 #include "rocblas_parse_data.hpp"
@@ -150,11 +152,19 @@ static void rocblas_set_listener()
     listeners.Append(listener);
 }
 
+static std::string rocblas_version_string()
+{
+    size_t size;
+    rocblas_get_version_string_size(&size);
+    std::string str(size, '\0');
+    rocblas_get_version_string(str.data(), size);
+    return str;
+}
+
 // Print Version
 static void rocblas_print_version()
 {
-    static char blas_version[100];
-    static int  once = (rocblas_get_version_string(blas_version, sizeof(blas_version)), 0);
+    static std::string blas_version = rocblas_version_string();
 
 #ifdef USE_TENSILE_HOST
     rocblas_cout << "rocBLAS version: " << blas_version << " (new Tensile client)\n" << std::endl;
