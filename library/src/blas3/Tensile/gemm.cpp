@@ -38,12 +38,12 @@ namespace
                            rocblas_int       k,
                            const T*          alpha,
                            const T*          A,
-                           rocblas_int       ld_a,
+                           rocblas_int       lda,
                            const T*          B,
-                           rocblas_int       ld_b,
+                           rocblas_int       ldb,
                            const T*          beta,
                            T*                C,
-                           rocblas_int       ld_c)
+                           rocblas_int       ldc)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -76,12 +76,12 @@ namespace
                           k,
                           LOG_TRACE_SCALAR_VALUE(handle, alpha),
                           A,
-                          ld_a,
+                          lda,
                           B,
-                          ld_b,
+                          ldb,
                           LOG_TRACE_SCALAR_VALUE(handle, beta),
                           C,
-                          ld_c);
+                          ldc);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
@@ -100,12 +100,12 @@ namespace
                           k,
                           LOG_BENCH_SCALAR_VALUE(handle, alpha),
                           "--lda",
-                          ld_a,
+                          lda,
                           "--ldb",
-                          ld_b,
+                          ldb,
                           LOG_BENCH_SCALAR_VALUE(handle, beta),
                           "--ldc",
-                          ld_c);
+                          ldc);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -124,17 +124,17 @@ namespace
                             "alpha",
                             value_category(*alpha),
                             "lda",
-                            ld_a,
+                            lda,
                             "ldb",
-                            ld_b,
+                            ldb,
                             "beta",
                             value_category(*beta),
                             "ldc",
-                            ld_c);
+                            ldc);
         }
 
-        auto validArgs = validateArgs(
-            handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+        auto validArgs
+            = validateArgs(handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 
         if(validArgs != rocblas_status_continue)
             return validArgs;
@@ -151,13 +151,13 @@ namespace
                                               n,
                                               k,
                                               A,
-                                              ld_a,
+                                              lda,
                                               0,
                                               B,
-                                              ld_b,
+                                              ldb,
                                               0,
                                               C,
-                                              ld_c,
+                                              ldc,
                                               0,
                                               1,
                                               check_numerics,
@@ -168,27 +168,61 @@ namespace
 
         rocblas_status status = rocblas_status_success;
 
-        status = rocblas_internal_gemm_template<false>(handle,
-                                                       trans_a,
-                                                       trans_b,
-                                                       m,
-                                                       n,
-                                                       k,
-                                                       alpha,
-                                                       A,
-                                                       0,
-                                                       ld_a,
-                                                       0,
-                                                       B,
-                                                       0,
-                                                       ld_b,
-                                                       0,
-                                                       beta,
-                                                       C,
-                                                       0,
-                                                       ld_c,
-                                                       0,
-                                                       1);
+        rocblas_int a_n2        = rocblas_operation_none == trans_a ? k : m;
+        rocblas_int b_n2        = rocblas_operation_none == trans_b ? n : k;
+        bool        i64_indices = (a_n2 * size_t(lda) > std::numeric_limits<rocblas_int>::max())
+                           || (b_n2 * size_t(ldb) > std::numeric_limits<rocblas_int>::max())
+                           || (n * size_t(ldc) > std::numeric_limits<rocblas_int>::max());
+
+        if(i64_indices)
+        {
+            status = rocblas_internal_gemm_template<false>(handle,
+                                                           trans_a,
+                                                           trans_b,
+                                                           m,
+                                                           n,
+                                                           k,
+                                                           alpha,
+                                                           A,
+                                                           size_t(0),
+                                                           size_t(lda),
+                                                           0,
+                                                           B,
+                                                           size_t(0),
+                                                           size_t(ldb),
+                                                           0,
+                                                           beta,
+                                                           C,
+                                                           size_t(0),
+                                                           size_t(ldc),
+                                                           0,
+                                                           1);
+        }
+        else
+        {
+            status = rocblas_internal_gemm_template<false>(handle,
+                                                           trans_a,
+                                                           trans_b,
+                                                           m,
+                                                           n,
+                                                           k,
+                                                           alpha,
+                                                           A,
+                                                           rocblas_int(0),
+                                                           rocblas_int(lda),
+                                                           0,
+                                                           B,
+                                                           rocblas_int(0),
+                                                           rocblas_int(ldb),
+                                                           0,
+                                                           beta,
+                                                           C,
+                                                           rocblas_int(0),
+                                                           rocblas_int(ldc),
+                                                           0,
+                                                           1);
+        }
+
         if(status != rocblas_status_success)
             return status;
 
@@ -204,13 +238,13 @@ namespace
                                               n,
                                               k,
                                               A,
-                                              ld_a,
+                                              lda,
                                               0,
                                               B,
-                                              ld_b,
+                                              ldb,
                                               0,
                                               C,
-                                              ld_c,
+                                              ldc,
                                               0,
                                               1,
                                               check_numerics,
@@ -235,16 +269,16 @@ rocblas_status rocblas_hgemm(rocblas_handle      handle,
                              rocblas_int         k,
                              const rocblas_half* alpha,
                              const rocblas_half* A,
-                             rocblas_int         ld_a,
+                             rocblas_int         lda,
                              const rocblas_half* B,
-                             rocblas_int         ld_b,
+                             rocblas_int         ldb,
                              const rocblas_half* beta,
                              rocblas_half*       C,
-                             rocblas_int         ld_c)
+                             rocblas_int         ldc)
 try
 {
     return rocblas_gemm_impl(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+        handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 catch(...)
 {
@@ -259,16 +293,16 @@ rocblas_status rocblas_sgemm(rocblas_handle    handle,
                              rocblas_int       k,
                              const float*      alpha,
                              const float*      A,
-                             rocblas_int       ld_a,
+                             rocblas_int       lda,
                              const float*      B,
-                             rocblas_int       ld_b,
+                             rocblas_int       ldb,
                              const float*      beta,
                              float*            C,
-                             rocblas_int       ld_c)
+                             rocblas_int       ldc)
 try
 {
     return rocblas_gemm_impl(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+        handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 catch(...)
 {
@@ -283,16 +317,16 @@ rocblas_status rocblas_dgemm(rocblas_handle    handle,
                              rocblas_int       k,
                              const double*     alpha,
                              const double*     A,
-                             rocblas_int       ld_a,
+                             rocblas_int       lda,
                              const double*     B,
-                             rocblas_int       ld_b,
+                             rocblas_int       ldb,
                              const double*     beta,
                              double*           C,
-                             rocblas_int       ld_c)
+                             rocblas_int       ldc)
 try
 {
     return rocblas_gemm_impl(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+        handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 catch(...)
 {
@@ -307,16 +341,16 @@ rocblas_status rocblas_cgemm(rocblas_handle               handle,
                              rocblas_int                  k,
                              const rocblas_float_complex* alpha,
                              const rocblas_float_complex* A,
-                             rocblas_int                  ld_a,
+                             rocblas_int                  lda,
                              const rocblas_float_complex* B,
-                             rocblas_int                  ld_b,
+                             rocblas_int                  ldb,
                              const rocblas_float_complex* beta,
                              rocblas_float_complex*       C,
-                             rocblas_int                  ld_c)
+                             rocblas_int                  ldc)
 try
 {
     return rocblas_gemm_impl(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+        handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 catch(...)
 {
@@ -331,16 +365,16 @@ rocblas_status rocblas_zgemm(rocblas_handle                handle,
                              rocblas_int                   k,
                              const rocblas_double_complex* alpha,
                              const rocblas_double_complex* A,
-                             rocblas_int                   ld_a,
+                             rocblas_int                   lda,
                              const rocblas_double_complex* B,
-                             rocblas_int                   ld_b,
+                             rocblas_int                   ldb,
                              const rocblas_double_complex* beta,
                              rocblas_double_complex*       C,
-                             rocblas_int                   ld_c)
+                             rocblas_int                   ldc)
 try
 {
     return rocblas_gemm_impl(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+        handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 catch(...)
 {
@@ -358,14 +392,14 @@ rocblas_status rocblas_hgemm_kernel_name(rocblas_handle      handle,
                                          rocblas_int         k,
                                          const rocblas_half* alpha,
                                          const rocblas_half* A,
-                                         rocblas_int         ld_a,
+                                         rocblas_int         lda,
                                          rocblas_stride      stride_a,
                                          const rocblas_half* B,
-                                         rocblas_int         ld_b,
+                                         rocblas_int         ldb,
                                          rocblas_stride      stride_b,
                                          const rocblas_half* beta,
                                          rocblas_half*       C,
-                                         rocblas_int         ld_c,
+                                         rocblas_int         ldc,
                                          rocblas_stride      stride_c,
                                          rocblas_int         b_c)
 {
@@ -380,14 +414,14 @@ rocblas_status rocblas_sgemm_kernel_name(rocblas_handle    handle,
                                          rocblas_int       k,
                                          const float*      alpha,
                                          const float*      A,
-                                         rocblas_int       ld_a,
+                                         rocblas_int       lda,
                                          rocblas_stride    stride_a,
                                          const float*      B,
-                                         rocblas_int       ld_b,
+                                         rocblas_int       ldb,
                                          rocblas_stride    stride_b,
                                          const float*      beta,
                                          float*            C,
-                                         rocblas_int       ld_c,
+                                         rocblas_int       ldc,
                                          rocblas_stride    stride_c,
                                          rocblas_int       b_c)
 {
@@ -402,14 +436,14 @@ rocblas_status rocblas_dgemm_kernel_name(rocblas_handle    handle,
                                          rocblas_int       k,
                                          const double*     alpha,
                                          const double*     A,
-                                         rocblas_int       ld_a,
+                                         rocblas_int       lda,
                                          rocblas_stride    stride_a,
                                          const double*     B,
-                                         rocblas_int       ld_b,
+                                         rocblas_int       ldb,
                                          rocblas_stride    stride_b,
                                          const double*     beta,
                                          double*           C,
-                                         rocblas_int       ld_c,
+                                         rocblas_int       ldc,
                                          rocblas_stride    stride_c,
                                          rocblas_int       b_c)
 {

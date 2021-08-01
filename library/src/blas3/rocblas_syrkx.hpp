@@ -808,9 +808,9 @@ void syrkx_dispatch(rocblas_fill      uplo,
     // clang-format on
 }
 
-#define OFFSET_A(i1) offset_a + i1* a_s1
-#define OFFSET_B(i1) offset_b + i1* b_s1
-#define OFFSET_C(i1, i2) offset_c + i1* c_s1 + i2* c_s2
+#define OFFSET_A(i1) TLd(offset_a + i1 * a_s1)
+#define OFFSET_B(i1) TLd(offset_b + i1 * b_s1)
+#define OFFSET_C(i1, i2) TLd(offset_c + i1 * c_s1 + i2 * c_s2)
 
 template <int  MIN_NB,
           bool BATCHED,
