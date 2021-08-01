@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -21,8 +21,12 @@
 template <typename T>
 void testing_trmm_batched_bad_arg(const Arguments& arg)
 {
+#if BUILD_WITH_TENSILE
     auto rocblas_trmm_batched_fn
         = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+#else
+    auto rocblas_trmm_batched_fn = rocblas_trmm_batched<T, false>;
+#endif
 
     rocblas_local_handle handle{arg};
     const rocblas_int    M           = 100;
@@ -107,8 +111,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_batched(const Arguments& arg)
 {
+#if BUILD_WITH_TENSILE
     auto rocblas_trmm_batched_fn
         = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+#else
+    auto rocblas_trmm_batched_fn = rocblas_trmm_batched<T, false>;
+#endif
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}

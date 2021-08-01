@@ -21,8 +21,12 @@
 template <typename T>
 void testing_gemm_batched(const Arguments& arg)
 {
+#if BUILD_WITH_TENSILE
     auto rocblas_gemm_batched_fn
         = arg.fortran ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+#else
+    auto rocblas_gemm_batched_fn = rocblas_gemm_batched<T, false>;
+#endif
 
     rocblas_local_handle handle{arg};
     rocblas_int          M           = arg.M;
@@ -314,8 +318,12 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
+#if BUILD_WITH_TENSILE
         auto rocblas_gemm_batched_fn
             = arg.fortran ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+#else
+        auto rocblas_gemm_batched_fn = rocblas_gemm_batched<T, false>;
+#endif
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;

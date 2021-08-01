@@ -22,11 +22,13 @@ if (NOT WIN32)
   set( sample_list_fortran example-fortran-axpy example-fortran-scal example-fortran-gemv )
 endif( )
 
+add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
+add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
+set( sample_list_tensile example-sgemm example-sgemm-strided-batched )
+
 if( BUILD_WITH_TENSILE )
-  add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
-  add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
   add_executable( example-gemm-ext2 example_gemm_ext2.cpp ${rocblas_samples_common} )
-  set( sample_list_tensile example-sgemm example-sgemm-strided-batched example-gemm-ext2 )
+  set( sample_list_tensile example-gemm-ext2 )
 endif( )
 
 set( sample_list_c example-c-dgeam )

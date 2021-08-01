@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -22,8 +22,13 @@
 template <typename T, bool TWOK = true>
 void testing_syr2k_bad_arg(const Arguments& arg)
 {
+
+#if BUILD_WITH_TENSILE
     auto rocblas_syrXX_fn = TWOK ? (arg.fortran ? rocblas_syr2k<T, true> : rocblas_syr2k<T, false>)
                                  : (arg.fortran ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
+#else
+    auto rocblas_syrXX_fn = TWOK ? rocblas_syr2k<T, false> : rocblas_syrkx<T, false>;
+#endif
     rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
@@ -99,8 +104,12 @@ void testing_syr2k_bad_arg(const Arguments& arg)
 template <typename T, bool TWOK = true>
 void testing_syr2k(const Arguments& arg)
 {
+#if BUILD_WITH_TENSILE
     auto rocblas_syrXX_fn = TWOK ? (arg.fortran ? rocblas_syr2k<T, true> : rocblas_syr2k<T, false>)
                                  : (arg.fortran ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
+#else
+    auto rocblas_syrXX_fn = TWOK ? rocblas_syr2k<T, false> : rocblas_syrkx<T, false>;
+#endif
     auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 
     rocblas_local_handle handle{arg};
