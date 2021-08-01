@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -63,19 +63,20 @@ namespace
             case GEMM:
                 return !strcmp(arg.function, "gemm") || !strcmp(arg.function, "gemm_bad_arg");
 
-            case GEMM_EX:
-                return !strcmp(arg.function, "gemm_ex") || !strcmp(arg.function, "gemm_ex_bad_arg");
-
             case GEMM_BATCHED:
                 return !strcmp(arg.function, "gemm_batched")
                        || !strcmp(arg.function, "gemm_batched_bad_arg");
 
+            case GEMM_STRIDED_BATCHED:
+                return !strcmp(arg.function, "gemm_strided_batched");
+
+#if(BUILD_WITH_TENSILE)
+            case GEMM_EX:
+                return !strcmp(arg.function, "gemm_ex") || !strcmp(arg.function, "gemm_ex_bad_arg");
+
             case GEMM_BATCHED_EX:
                 return !strcmp(arg.function, "gemm_batched_ex")
                        || !strcmp(arg.function, "gemm_batched_ex_bad_arg");
-
-            case GEMM_STRIDED_BATCHED:
-                return !strcmp(arg.function, "gemm_strided_batched");
 
             case GEMM_STRIDED_BATCHED_EX:
                 return !strcmp(arg.function, "gemm_strided_batched_ex")
@@ -84,6 +85,7 @@ namespace
             case GEMM_EXT2:
                 return !strcmp(arg.function, "gemm_ext2")
                        || !strcmp(arg.function, "gemm_ext2_bad_arg");
+#endif
             }
 
             return false;
@@ -119,8 +121,10 @@ namespace
             if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
                 name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
 
+#if(BUILD_WITH_TENSILE)
             if(arg.fortran)
                 name << "_F";
+#endif
 
             return std::move(name);
         }
@@ -188,6 +192,7 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched);
 
+#if(BUILD_WITH_TENSILE)
     // ----------------------------------------------------------------------------
     // gemm_ex
     // gemm_batched_ex
@@ -267,5 +272,6 @@ namespace
             rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_ext2);
+#endif //  BUILD_WITH_TENSILE
 
 } // namespace

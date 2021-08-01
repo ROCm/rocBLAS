@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -88,10 +88,12 @@ namespace
                     name << '_' << arg.batch_count;
             }
 
+#if(BUILD_WITH_TENSILE)
             if(arg.fortran)
             {
                 name << "_F";
             }
+#endif //  BUILD_WITH_TENSILE
 
             return std::move(name);
         }

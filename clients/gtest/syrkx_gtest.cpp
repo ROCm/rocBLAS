@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -96,10 +96,12 @@ namespace
                     name << '_' << arg.batch_count;
             }
 
+#if(BUILD_WITH_TENSILE)
             if(arg.fortran)
             {
                 name << "_F";
             }
+#endif //   BUILD_WITH_TENSILE
 
             return std::move(name);
         }
