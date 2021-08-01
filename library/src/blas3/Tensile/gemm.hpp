@@ -47,12 +47,12 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
                                    rocblas_int       k,
                                    const T*          alpha,
                                    const void*       a,
-                                   rocblas_int       ld_a,
+                                   rocblas_int       lda,
                                    const void*       b,
-                                   rocblas_int       ld_b,
+                                   rocblas_int       ldb,
                                    const T*          beta,
                                    const void*       c,
-                                   rocblas_int       ld_c,
+                                   rocblas_int       ldc,
                                    rocblas_int       batch_count = 1)
 {
     // handle must be valid
@@ -68,7 +68,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     rocblas_int num_rows_c = m;
 
     // leading dimensions must be valid
-    if(num_rows_a > ld_a || num_rows_b > ld_b || num_rows_c > ld_c)
+    if(num_rows_a > lda || num_rows_b > ldb || num_rows_c > ldc)
         return rocblas_status_invalid_size;
 
     // quick return 0 is valid in BLAS
@@ -103,7 +103,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
  *    template interface
  * ===========================================================================
  */
-template <bool BATCHED, typename T, typename U, typename V>
+template <bool BATCHED, typename TScal, typename TConstPtr, typename TPtr, typename TLd>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_gemm_template(rocblas_handle    handle,
                                    rocblas_operation trans_a,
@@ -111,19 +111,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int       m,
                                    rocblas_int       n,
                                    rocblas_int       k,
-                                   const T*          alpha,
-                                   const U*          A,
-                                   rocblas_int       offset_a,
-                                   rocblas_int       ld_a,
+                                   const TScal*      alpha,
+                                   const TConstPtr*  A,
+                                   TLd               offset_a,
+                                   TLd               lda,
                                    rocblas_stride    stride_a,
-                                   const U*          B,
-                                   rocblas_int       offset_b,
-                                   rocblas_int       ld_b,
+                                   const TConstPtr*  B,
+                                   TLd               offset_b,
+                                   TLd               ldb,
                                    rocblas_stride    stride_b,
-                                   const T*          beta,
-                                   V*                C,
-                                   rocblas_int       offset_c,
-                                   rocblas_int       ld_c,
+                                   const TScal*      beta,
+                                   TPtr*             C,
+                                   TLd               offset_c,
+                                   TLd               ldc,
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count)
 {
@@ -131,7 +131,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(m == 0 || n == 0 || batch_count == 0)
         return rocblas_status_success;
 
-    T alpha_h, beta_h;
+    TScal alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
         copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
@@ -148,15 +148,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                         C,
                         trans_a,
                         trans_b,
-                        ld_c,
+                        rocblas_int(ldc),
                         stride_c,
-                        offset_c,
-                        ld_a,
+                        rocblas_int(offset_c),
+                        rocblas_int(lda),
                         stride_a,
-                        offset_a,
-                        ld_b,
+                        rocblas_int(offset_a),
+                        rocblas_int(ldb),
                         stride_b,
-                        offset_b,
+                        rocblas_int(offset_b),
                         m,
                         n,
                         k,
@@ -170,22 +170,25 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                          k,
                          *alpha,
                          A,
-                         ld_a,
+                         rocblas_int(lda),
                          stride_a,
+                         rocblas_int(offset_a),
                          B,
-                         ld_b,
+                         rocblas_int(ldb),
                          stride_b,
+                         rocblas_int(offset_b),
                          *beta,
                          C,
-                         ld_c,
+                         rocblas_int(ldc),
                          stride_c,
+                         rocblas_int(offset_c),
                          batch_count,
                          rocblas_stream);
     return rocblas_status_success;
 #endif // BUILD_WITH_TENSILE
 }
 
-template <typename T, typename U>
+template <typename TConstPtr, typename TPtr>
 rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
@@ -193,13 +196,13 @@ rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
                                            rocblas_int       m,
                                            rocblas_int       n,
                                            rocblas_int       k,
-                                           T                 A,
+                                           TConstPtr         A,
                                            rocblas_int       lda,
                                            rocblas_stride    stride_a,
-                                           T                 B,
+                                           TConstPtr         B,
                                            rocblas_int       ldb,
                                            rocblas_stride    stride_b,
-                                           U                 C,
+                                           TPtr              C,
                                            rocblas_int       ldc,
                                            rocblas_stride    stride_c,
                                            rocblas_int       batch_count,
