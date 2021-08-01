@@ -17091,6 +17091,16 @@ ROCBLAS_EXPORT void rocblas_initialize(void);
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
 
+/*! \brief   Queries the minimum buffer size for a successful call to
+    \ref rocblas_get_version_string
+    \details
+
+    @param[out]
+    len             pointer to size_t for storing the length
+
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_get_version_string_size(size_t* len);
+
 /*
  * ===========================================================================
  *    device memory allocation

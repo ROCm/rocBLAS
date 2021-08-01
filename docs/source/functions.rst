@@ -1057,3 +1057,7 @@ Build Information
 rocblas_get_version_string
 ----------------------------
 .. doxygenfunction:: rocblas_get_version_string
+
+rocblas_get_version_string_size
+-------------------------------
+.. doxygenfunction:: rocblas_get_version_string_size

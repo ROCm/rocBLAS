@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 #include "rocblas-version.h"
@@ -24,5 +24,16 @@ extern "C" rocblas_status rocblas_get_version_string(char* buf, size_t len)
     if(len < sizeof(v))
         return rocblas_status_invalid_size;
     memcpy(buf, v, sizeof(v));
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ *! \brief   Returns size of buffer required for rocblas_get_version_string
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_get_version_string_size(size_t* len)
+{
+    if(!len)
+        return rocblas_status_invalid_pointer;
+    *len = std::strlen(VERSION_STRING) + 1;
     return rocblas_status_success;
 }
