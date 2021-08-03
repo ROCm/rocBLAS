@@ -311,7 +311,7 @@ constexpr double hemv_gflop_count(rocblas_int n)
 template <typename T>
 constexpr double her_gflop_count(rocblas_int n)
 {
-    return (4.0 * n * n + 6.0 * n) / 1e9;
+    return (4.0 * double(n) * n) / 1e9;
 }
 
 /* \brief floating point counts of HER2 */
