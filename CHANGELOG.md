@@ -2,6 +2,10 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+## (Unreleased) rocBLAS 2.42.0
+### Added
+- Added rocblas_get_version_string_size convenience function
+
 ## (Unreleased) rocBLAS 2.41.0
 ### Optimizations
 - Improved performance of non-batched and batched syr for all sizes and data types
