@@ -1384,7 +1384,7 @@ try
     {
         size_t size;
         rocblas_get_version_string_size(&size);
-        std::string blas_version(size, '\0');
+        std::string blas_version(size - 1, '\0');
         rocblas_get_version_string(blas_version.data(), size);
         rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
