@@ -170,28 +170,6 @@ namespace
         }
         rocblas_status status = rocblas_status_success;
 
-        status = rocblas_internal_gemm_template<true>(handle,
-                                                      trans_a,
-                                                      trans_b,
-                                                      m,
-                                                      n,
-                                                      k,
-                                                      alpha,
-                                                      A,
-                                                      ptrdiff_t(0),
-                                                      lda,
-                                                      0,
-                                                      B,
-                                                      ptrdiff_t(0),
-                                                      ldb,
-                                                      0,
-                                                      beta,
-                                                      C,
-                                                      ptrdiff_t(0),
-                                                      ldc,
-                                                      0,
-                                                      batch_count);
-
         rocblas_int a_n2        = rocblas_operation_none == trans_a ? k : m;
         rocblas_int b_n2        = rocblas_operation_none == trans_b ? n : k;
         bool        i64_indices = (a_n2 * size_t(lda) > std::numeric_limits<rocblas_int>::max())
