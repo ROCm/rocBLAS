@@ -2,17 +2,10 @@
  * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifdef BUILD_WITH_TENSILE
-#include "gemm_tensile.hpp"
-#else
-#include "gemm_source.hpp"
-#endif
-
-#include "gemm.hpp"
+#include "rocblas_trsm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_trsm.hpp"
 #include "trtri_trsm.hpp"
 #include "utility.hpp"
 

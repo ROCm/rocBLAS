@@ -4,12 +4,6 @@
 
 #pragma once
 
-#ifdef BUILD_WITH_TENSILE
-#include "Tensile/gemm_tensile.hpp"
-#else
-#include "Tensile/gemm_source.hpp"
-#endif
-
 #include "Tensile/gemm.hpp"
 #include "definitions.hpp"
 
