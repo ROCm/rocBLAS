@@ -2,12 +2,6 @@
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifdef BUILD_WITH_TENSILE
-#include "gemm_tensile.hpp"
-#else
-#include "gemm_source.hpp"
-#endif
-
 #include "gemm.hpp"
 #include "logging.hpp"
 

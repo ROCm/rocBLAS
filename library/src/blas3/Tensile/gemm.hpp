@@ -4,6 +4,12 @@
 
 #pragma once
 
+#ifdef BUILD_WITH_TENSILE
+#include "gemm_tensile.hpp"
+#else
+#include "gemm_source.hpp"
+#endif
+
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 
