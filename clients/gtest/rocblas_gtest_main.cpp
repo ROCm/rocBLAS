@@ -156,7 +156,7 @@ static std::string rocblas_version_string()
 {
     size_t size;
     rocblas_get_version_string_size(&size);
-    std::string str(size, '\0');
+    std::string str(size - 1, '\0');
     rocblas_get_version_string(str.data(), size);
     return str;
 }
