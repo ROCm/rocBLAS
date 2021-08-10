@@ -88,12 +88,8 @@ namespace
                     name << '_' << arg.batch_count;
             }
 
-#if(BUILD_WITH_TENSILE)
             if(arg.fortran)
-            {
                 name << "_F";
-            }
-#endif //  BUILD_WITH_TENSILE
 
             return std::move(name);
         }

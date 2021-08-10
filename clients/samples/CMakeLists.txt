@@ -22,7 +22,6 @@ if (NOT WIN32)
   set( sample_list_fortran example-fortran-axpy example-fortran-scal example-fortran-gemv )
 endif( )
 
-
 if( BUILD_WITH_TENSILE )
   add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
   add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )

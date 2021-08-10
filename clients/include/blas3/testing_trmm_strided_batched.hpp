@@ -21,12 +21,8 @@
 template <typename T>
 void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 {
-#if BUILD_WITH_TENSILE
     auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
                                                        : rocblas_trmm_strided_batched<T, false>;
-#else
-    auto rocblas_trmm_strided_batched_fn = rocblas_trmm_strided_batched<T, false>;
-#endif
 
     const rocblas_int M           = 100;
     const rocblas_int N           = 100;
@@ -199,12 +195,8 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_strided_batched(const Arguments& arg)
 {
-#if BUILD_WITH_TENSILE
     auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
                                                        : rocblas_trmm_strided_batched<T, false>;
-#else
-    auto rocblas_trmm_strided_batched_fn = rocblas_trmm_strided_batched<T, false>;
-#endif
 
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;
