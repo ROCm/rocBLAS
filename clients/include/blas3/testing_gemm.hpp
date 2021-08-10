@@ -23,11 +23,7 @@ void testing_gemm_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-#if BUILD_WITH_TENSILE
         auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
-#else
-        auto rocblas_gemm_fn = rocblas_gemm<T, false>;
-#endif
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
@@ -182,11 +178,7 @@ void testing_gemm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gemm(const Arguments& arg)
 {
-#if BUILD_WITH_TENSILE
     auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
-#else
-    auto rocblas_gemm_fn = rocblas_gemm<T, false>;
-#endif
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);

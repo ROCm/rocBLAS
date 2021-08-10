@@ -21,11 +21,7 @@
 template <typename T>
 void testing_trmm_bad_arg(const Arguments& arg)
 {
-#if BUILD_WITH_TENSILE
     auto rocblas_trmm_fn = arg.fortran ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
-#else
-    auto rocblas_trmm_fn = rocblas_trmm<T, false>;
-#endif
 
     const rocblas_int M   = 100;
     const rocblas_int N   = 100;
@@ -89,11 +85,7 @@ void testing_trmm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm(const Arguments& arg)
 {
-#if BUILD_WITH_TENSILE
     auto rocblas_trmm_fn = arg.fortran ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
-#else
-    auto rocblas_trmm_fn = rocblas_trmm<T, false>;
-#endif
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
