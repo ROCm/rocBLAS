@@ -6,6 +6,8 @@
 
 #include "rocblas.h"
 
+extern "C" void rocblas_shutdown();
+
 #ifndef USE_TENSILE_HOST
 
 // In the old Tensile client, rocblas_initialize() is a no-op
@@ -494,11 +496,12 @@ namespace
 
                 // Find the location of librocblas.so
                 // Fall back on hard-coded path if static library or not found
-                // [Use a C API (rocblas_sccal) *not* defined in this file to
+                // [Use a void C API (rocblas_shutdown) *not* defined in this file to
                 // avoid compile-time resolution of the function pointer; cf.
                 // https://man7.org/linux/man-pages/man3/dladdr.3.html "BUGS"]
+                // rocblas_sscal stopped working even though is not defined in this unit
 
-                if(dladdr((void*)rocblas_sscal, &info))
+                if(dladdr((void*)rocblas_shutdown, &info))
                 {
                     path = info.dli_fname;
                     path = std::string{dirname(&path[0])};

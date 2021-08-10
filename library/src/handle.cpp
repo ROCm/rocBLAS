@@ -15,6 +15,12 @@
 extern "C" void rocblas_initialize() {}
 #endif
 
+// forcing early cleanup
+extern "C" void rocblas_shutdown()
+{
+    //    rocblas_internal_ostream::clear_workers();
+}
+
 // This variable can be set in hipBLAS or other libraries to change the default
 // device memory size
 static thread_local size_t t_rocblas_device_malloc_default_memory_size;
