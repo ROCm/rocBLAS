@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -89,9 +89,7 @@ namespace
             }
 
             if(arg.fortran)
-            {
                 name << "_F";
-            }
 
             return std::move(name);
         }

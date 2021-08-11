@@ -8,6 +8,11 @@
 #include "Tensile.h"
 #include "TensileTypes.h"
 #endif
+
+#ifdef BUILD_WITH_TENSILE
+#include "../blas3/Tensile/gemm_tensile.hpp"
+#endif
+
 #include "gemm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../blas3/Tensile/gemm.hpp"
+#include "Tensile/gemm.hpp"
 #include "definitions.hpp"
 
 //-- Innovative Computing Laboratory

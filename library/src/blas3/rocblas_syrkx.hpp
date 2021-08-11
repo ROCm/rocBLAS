@@ -827,12 +827,13 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                                       TPtr*             dc,
                                       TLd               ldc)
 {
-    static constexpr rocblas_int    offset_c = 0, offset_a = 0, offset_b = 0, batch_count = 1;
+    static constexpr TLd            offset_c = 0, offset_a = 0, offset_b = 0;
+    static constexpr rocblas_int    batch_count = 1;
     static constexpr rocblas_stride stride_c = 0, stride_a = 0, stride_b = 0;
 
-    rocblas_int a_s1 = rocblas_operation_none == trans ? 1 : lda;
-    rocblas_int b_s1 = rocblas_operation_none == trans ? 1 : ldb;
-    rocblas_int c_s1 = 1, c_s2 = ldc;
+    TLd a_s1 = rocblas_operation_none == trans ? 1 : lda;
+    TLd b_s1 = rocblas_operation_none == trans ? 1 : ldb;
+    TLd c_s1 = 1, c_s2 = ldc;
 
     rocblas_int nb = MIN_NB;
     rocblas_int i_diag, n_diag;
@@ -988,9 +989,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                           ldc);
     }
 
-    rocblas_int a_s1 = rocblas_operation_none == trans ? 1 : lda;
-    rocblas_int b_s1 = rocblas_operation_none == trans ? 1 : ldb;
-    rocblas_int c_s1 = 1, c_s2 = ldc;
+    TLd a_s1 = rocblas_operation_none == trans ? 1 : lda;
+    TLd b_s1 = rocblas_operation_none == trans ? 1 : ldb;
+    TLd c_s1 = 1, c_s2 = ldc;
 
     rocblas_int nb = MIN_NB;
     rocblas_int i_diag, n_diag;
