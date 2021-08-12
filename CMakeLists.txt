@@ -25,6 +25,11 @@ add_compile_options( -Wno-unused-command-line-argument )
 # TODO: address [[nodiscard]] warnings
 add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
 
+
+# CMake v3.21.0 can identify ROCMClang, but there are some issues with feature detection.
+# For now, disable ROCMClang detection to make it work the same as CMake v3.20 and earlier.
+set(__skip_rocmclang ON)
+
 unset(ENV{ROCM_BUILD_ID})
 project( rocblas LANGUAGES CXX )
 
