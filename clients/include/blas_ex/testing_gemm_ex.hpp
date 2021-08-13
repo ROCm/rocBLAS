@@ -554,87 +554,56 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_seedrand();
 
     // Initial Data on CPU
-    if(arg.initialization == rocblas_initialization::rand_int)
+    if(alpha_isnan)
     {
-        if(alpha_isnan)
-        {
-            rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
-        }
-        else
+        rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
+        rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
+    }
+    else
+    {
+        if(arg.initialization == rocblas_initialization::rand_int)
         {
             rocblas_init<Ti>(hA, A_row, A_col, lda);
             rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb);
         }
-
-        if(beta_isnan)
-            rocblas_init_nan<To>(hC, M, N, ldc);
-        else
-            rocblas_init<To>(hC, M, N, ldc);
-
-        if(size_D_copy)
-        {
-            rocblas_init_nan<To>(hD_1, M, N, ldd);
-            hD_gold = hD_1;
-        }
-    }
-    else if(arg.initialization == rocblas_initialization::trig_float)
-    {
-        if(alpha_isnan)
-        {
-            rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
-        }
-        else
+        else if(arg.initialization == rocblas_initialization::trig_float)
         {
             rocblas_init_sin<Ti>(hA, A_row, A_col, lda);
             rocblas_init_cos<Ti>(hB, B_row, B_col, ldb);
         }
-
-        if(beta_isnan)
-            rocblas_init_nan<To>(hC, M, N, ldc);
-        else
-            rocblas_init_sin<To>(hC, M, N, ldc);
-
-        if(size_D_copy)
-        {
-            rocblas_init_nan<To>(hD_1, M, N, ldd);
-            hD_gold = hD_1;
-        }
-    }
-    else if(arg.initialization == rocblas_initialization::hpl)
-    {
-        if(alpha_isnan)
-        {
-            rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
-        }
-        else
+        else if(arg.initialization == rocblas_initialization::hpl)
         {
             rocblas_init_hpl<Ti>(hA, A_row, A_col, lda);
             rocblas_init_hpl<Ti>(hB, B_row, B_col, ldb);
         }
-
-        if(beta_isnan)
-            rocblas_init_nan<To>(hC, M, N, ldc);
         else
-            rocblas_init_hpl<To>(hC, M, N, ldc);
-
-        if(size_D_copy)
         {
-            rocblas_init_nan<To>(hD_1, M, N, ldd);
-            hD_gold = hD_1;
+#ifdef GOOGLE_TEST
+            FAIL() << "unknown initialization type";
+            return;
+#else
+            rocblas_cerr << "unknown initialization type" << std::endl;
+            rocblas_abort();
+#endif
         }
+    }
+    if(beta_isnan)
+    {
+        rocblas_init_nan<To>(hC, M, N, ldc);
     }
     else
     {
-#ifdef GOOGLE_TEST
-        FAIL() << "unknown initialization type";
-        return;
-#else
-        rocblas_cerr << "unknown initialization type" << std::endl;
-        rocblas_abort();
-#endif
+        if(arg.initialization == rocblas_initialization::rand_int)
+            rocblas_init<To>(hC, M, N, ldc);
+        else if(arg.initialization == rocblas_initialization::trig_float)
+            rocblas_init_sin<To>(hC, M, N, ldc);
+        else if(arg.initialization == rocblas_initialization::hpl)
+            rocblas_init_hpl<To>(hC, M, N, ldc);
+    }
+    if(size_D_copy)
+    {
+        rocblas_init_nan<To>(hD_1, M, N, ldd);
+        hD_gold = hD_1;
     }
 
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})

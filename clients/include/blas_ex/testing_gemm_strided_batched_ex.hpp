@@ -690,16 +690,50 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     }
     else
     {
-        rocblas_init<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
-        rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        if(arg.initialization == rocblas_initialization::rand_int)
+        {
+            rocblas_init<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
+            rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        }
+        else if(arg.initialization == rocblas_initialization::trig_float)
+        {
+            rocblas_init_sin<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
+            rocblas_init_cos<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        }
+        else if(arg.initialization == rocblas_initialization::hpl)
+        {
+            rocblas_init_hpl<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
+            rocblas_init_hpl<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        }
+        else
+        {
+#ifdef GOOGLE_TEST
+            FAIL() << "unknown initialization type";
+            return;
+#else
+            rocblas_cerr << "unknown initialization type" << std::endl;
+            rocblas_abort();
+#endif
+        }
     }
 
     if(beta_isnan)
+    {
         rocblas_init_nan<To>(hC, M, N, ldc, stride_c, batch_count);
+    }
     else
-        rocblas_init<To>(hC, M, N, ldc, stride_c, batch_count);
-
+    {
+        if(arg.initialization == rocblas_initialization::rand_int)
+            rocblas_init<To>(hC, M, N, ldc, stride_c, batch_count);
+        else if(arg.initialization == rocblas_initialization::trig_float)
+            rocblas_init_sin<To>(hC, M, N, ldc, stride_c, batch_count);
+        else if(arg.initialization == rocblas_initialization::hpl)
+            rocblas_init_hpl<To>(hC, M, N, ldc, stride_c, batch_count);
+    }
     rocblas_init_nan<To>(hD_1, M, N, ldd, stride_d, batch_count);
+
+    hD_2    = hD_1;
+    hD_gold = hD_1;
 
 #if DEBUG_PRINT
     if(std::is_same<To, rocblas_half>{})
@@ -782,9 +816,6 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         }
     }
 #endif
-
-    hD_2    = hD_1;
-    hD_gold = hD_1;
 
     // copy data from CPU to device
     if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none && pack_to_int8x4)
