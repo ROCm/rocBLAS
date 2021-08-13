@@ -7,7 +7,6 @@ def runCompileCommand(platform, project, jobName)
 
     String compiler = jobName.contains('hipclang') ? 'hipcc' : 'hcc'
     String hipClang = jobName.contains('hipclang') ? '--hip-clang' : '--no-hip-clang'
-    String sles = platform.jenkinsLabel.contains('sles') ? '/usr/bin/sudo --preserve-env' : ''
     String centos7 = platform.jenkinsLabel.contains('centos7') ? 'source scl_source enable devtoolset-7' : ':'
     String hipccCompileFlags = ""
     if (jobName.contains('hipclang'))
@@ -32,14 +31,13 @@ def runCompileCommand(platform, project, jobName)
                 ${centos7}
                 echo Original HIPCC_COMPILE_FLAGS_APPEND: \$HIPCC_COMPILE_FLAGS_APPEND
                 ${hipccCompileFlags}
-                ${sles} CXX=/opt/rocm/bin/${compiler} ${project.paths.build_command} ${hipClang}
+                CXX=/opt/rocm/bin/${compiler} ${project.paths.build_command} ${hipClang}
                 """
     platform.runCommand(this, command)
 }
 
 def runTestCommand (platform, project, gfilter)
 {
-    String sudo = auxiliary.sudo(platform.jenkinsLabel)
     String installPackage = ""
     if (platform.jenkinsLabel.contains('centos') || platform.jenkinsLabel.contains('sles'))
     {
@@ -54,7 +52,7 @@ def runTestCommand (platform, project, gfilter)
                     ${installPackage}
                     popd
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                    ${sudo} GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                 """
 
     platform.runCommand(this, command)
