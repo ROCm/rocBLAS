@@ -267,66 +267,51 @@ void testing_gemm(const Arguments& arg)
     rocblas_seedrand();
 
     // Initial Data on CPU
-    if(arg.initialization == rocblas_initialization::rand_int)
+    if(arg.alpha_isnan<T>())
     {
-        if(arg.alpha_isnan<T>())
-        {
-            rocblas_init_nan<T>(hA, A_row, A_col, lda);
-            rocblas_init_nan<T>(hB, B_row, B_col, ldb);
-        }
-        else
+        rocblas_init_nan<T>(hA, A_row, A_col, lda);
+        rocblas_init_nan<T>(hB, B_row, B_col, ldb);
+    }
+    else
+    {
+        if(arg.initialization == rocblas_initialization::rand_int)
         {
             rocblas_init<T>(hA, A_row, A_col, lda);
             rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
         }
-        if(arg.beta_isnan<T>())
-            rocblas_init_nan<T>(hC_1, M, N, ldc);
-        else
-            rocblas_init<T>(hC_1, M, N, ldc);
-    }
-    else if(arg.initialization == rocblas_initialization::trig_float)
-    {
-        if(arg.alpha_isnan<T>())
-        {
-            rocblas_init_nan<T>(hA, A_row, A_col, lda);
-            rocblas_init_nan<T>(hB, B_row, B_col, ldb);
-        }
-        else
+        else if(arg.initialization == rocblas_initialization::trig_float)
         {
             rocblas_init_sin<T>(hA, A_row, A_col, lda);
             rocblas_init_cos<T>(hB, B_row, B_col, ldb);
         }
-        if(arg.beta_isnan<T>())
-            rocblas_init_nan<T>(hC_1, M, N, ldc);
-        else
-            rocblas_init_sin<T>(hC_1, M, N, ldc);
-    }
-    else if(arg.initialization == rocblas_initialization::hpl)
-    {
-        if(arg.alpha_isnan<T>())
-        {
-            rocblas_init_nan<T>(hA, A_row, A_col, lda);
-            rocblas_init_nan<T>(hB, B_row, B_col, ldb);
-        }
-        else
+        else if(arg.initialization == rocblas_initialization::hpl)
         {
             rocblas_init_hpl<T>(hA, A_row, A_col, lda);
             rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
         }
-        if(arg.beta_isnan<T>())
-            rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
-            rocblas_init_hpl<T>(hC_1, M, N, ldc);
+        {
+#ifdef GOOGLE_TEST
+            FAIL() << "unknown initialization type";
+            return;
+#else
+            rocblas_cerr << "unknown initialization type" << std::endl;
+            rocblas_abort();
+#endif
+        }
+    }
+    if(arg.beta_isnan<T>())
+    {
+        rocblas_init_nan<T>(hC_1, M, N, ldc);
     }
     else
     {
-#ifdef GOOGLE_TEST
-        FAIL() << "unknown initialization type";
-        return;
-#else
-        rocblas_cerr << "unknown initialization type" << std::endl;
-        rocblas_abort();
-#endif
+        if(arg.initialization == rocblas_initialization::rand_int)
+            rocblas_init<T>(hC_1, M, N, ldc);
+        else if(arg.initialization == rocblas_initialization::trig_float)
+            rocblas_init_sin<T>(hC_1, M, N, ldc);
+        else if(arg.initialization == rocblas_initialization::hpl)
+            rocblas_init_hpl<T>(hC_1, M, N, ldc);
     }
 
     if(size_C_copy)
