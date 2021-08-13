@@ -578,31 +578,30 @@ void testing_gemm_ex(const Arguments& arg)
             hD_gold = hD_1;
         }
     }
-    //TODO: get trig initialization working
-    //  else if(arg.initialization == rocblas_initialization::trig_float)
-    //  {
-    //      if(alpha_isnan)
-    //      {
-    //          rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
-    //          rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
-    //      }
-    //      else
-    //      {
-    //          rocblas_init_sin<Ti>(hA, A_row, A_col, lda);
-    //          rocblas_init_cos<Ti>(hB, B_row, B_col, ldb);
-    //      }
-    //
-    //      if(beta_isnan)
-    //          rocblas_init_nan<To>(hC, M, N, ldc);
-    //      else
-    //          rocblas_init_sin<To>(hC, M, N, ldc);
-    //
-    //      if(size_D_copy)
-    //      {
-    //          rocblas_init_nan<To>(hD_1, M, N, ldd);
-    //          hD_gold = hD_1;
-    //      }
-    //  }
+    else if(arg.initialization == rocblas_initialization::trig_float)
+    {
+        if(alpha_isnan)
+        {
+            rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
+            rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
+        }
+        else
+        {
+            rocblas_init_sin<Ti>(hA, A_row, A_col, lda);
+            rocblas_init_cos<Ti>(hB, B_row, B_col, ldb);
+        }
+
+        if(beta_isnan)
+            rocblas_init_nan<To>(hC, M, N, ldc);
+        else
+            rocblas_init_sin<To>(hC, M, N, ldc);
+
+        if(size_D_copy)
+        {
+            rocblas_init_nan<To>(hD_1, M, N, ldd);
+            hD_gold = hD_1;
+        }
+    }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
         if(alpha_isnan)
