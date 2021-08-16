@@ -608,14 +608,46 @@ void testing_gemm_batched_ex(const Arguments& arg)
         }
         else
         {
-            rocblas_init<Ti>(hA[b], A_row, A_col, lda);
-            rocblas_init_alternating_sign<Ti>(hB[b], B_row, B_col, ldb);
+            if(arg.initialization == rocblas_initialization::rand_int)
+            {
+                rocblas_init<Ti>(hA[b], A_row, A_col, lda);
+                rocblas_init_alternating_sign<Ti>(hB[b], B_row, B_col, ldb);
+            }
+            else if(arg.initialization == rocblas_initialization::trig_float)
+            {
+                rocblas_init_sin<Ti>(hA[b], A_row, A_col, lda);
+                rocblas_init_cos<Ti>(hB[b], B_row, B_col, ldb);
+            }
+            else if(arg.initialization == rocblas_initialization::hpl)
+            {
+                rocblas_init_hpl<Ti>(hA[b], A_row, A_col, lda);
+                rocblas_init_hpl<Ti>(hB[b], B_row, B_col, ldb);
+            }
+            else
+            {
+#ifdef GOOGLE_TEST
+                FAIL() << "unknown initialization type";
+                return;
+#else
+                rocblas_cerr << "unknown initialization type" << std::endl;
+                rocblas_abort();
+#endif
+            }
         }
 
         if(arg.beta_isnan<Tc>())
+        {
             rocblas_init_nan<To>(hC[b], M, N, ldc);
+        }
         else
-            rocblas_init<To>(hC[b], M, N, ldc);
+        {
+            if(arg.initialization == rocblas_initialization::rand_int)
+                rocblas_init<To>(hC[b], M, N, ldc);
+            else if(arg.initialization == rocblas_initialization::trig_float)
+                rocblas_init_sin<To>(hC[b], M, N, ldc);
+            else if(arg.initialization == rocblas_initialization::hpl)
+                rocblas_init_hpl<To>(hC[b], M, N, ldc);
+        }
 
         rocblas_init_nan<To>(hD_1[b], M, N, ldd);
     }
