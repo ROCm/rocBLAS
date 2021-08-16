@@ -229,6 +229,14 @@ inline T random_hpl_generator()
     return std::uniform_real_distribution<double>(-0.5, 0.5)(t_rocblas_rng);
 }
 
+// for rocblas_bfloat16, generate float, and convert to rocblas_bfloat16
+/*! \brief  generate a random number in HPL-like [-0.5,0.5] doubles  */
+template <>
+inline rocblas_bfloat16 random_hpl_generator()
+{
+    return rocblas_bfloat16(std::uniform_real_distribution<float>(-0.5, 0.5)(t_rocblas_rng));
+}
+
 /*! \brief  generate a random ASCII string of up to length n */
 inline std::string random_string(size_t n)
 {

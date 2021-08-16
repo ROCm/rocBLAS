@@ -151,14 +151,46 @@ void testing_gemm_strided_batched(const Arguments& arg)
     }
     else
     {
-        rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-        rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        if(arg.initialization == rocblas_initialization::rand_int)
+        {
+            rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+            rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        }
+        else if(arg.initialization == rocblas_initialization::trig_float)
+        {
+            rocblas_init_sin<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+            rocblas_init_cos<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        }
+        else if(arg.initialization == rocblas_initialization::hpl)
+        {
+            rocblas_init_hpl<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+            rocblas_init_hpl<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+        }
+        else
+        {
+#ifdef GOOGLE_TEST
+            FAIL() << "unknown initialization type";
+            return;
+#else
+            rocblas_cerr << "unknown initialization type" << std::endl;
+            rocblas_abort();
+#endif
+        }
     }
 
     if(arg.beta_isnan<T>())
+    {
         rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
+    }
     else
-        rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
+    {
+        if(arg.initialization == rocblas_initialization::rand_int)
+            rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
+        else if(arg.initialization == rocblas_initialization::trig_float)
+            rocblas_init_sin<T>(hC_1, M, N, ldc, stride_c, batch_count);
+        else if(arg.initialization == rocblas_initialization::hpl)
+            rocblas_init_hpl<T>(hC_1, M, N, ldc, stride_c, batch_count);
+    }
 
     if(size_c_copy)
     {
