@@ -825,13 +825,13 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     {
         rocblas_internal_ostream msg;
         print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
-                       << "Tensile solution found, but exception thown for " << prob << e.what());
+                       << "Tensile solution found, but exception thrown for " << prob << e.what());
     }
     catch(...)
     {
         rocblas_internal_ostream msg;
         print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
-                       << "Tensile solution found, but unknown exception thown for " << prob);
+                       << "Tensile solution found, but unknown exception thrown for " << prob);
     }
 
     return status;
