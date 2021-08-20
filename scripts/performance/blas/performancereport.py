@@ -5,7 +5,9 @@ import os
 import re
 import sys
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 from matplotlib.ticker import (AutoMinorLocator)
 
@@ -274,7 +276,6 @@ class RocBlasYamlComparison(cr.Comparison):
         cr.Comparison.__init__(self,
             description=get_function_prefix(test_yaml[0]['compute_type']) + test_yaml[0]['function'].split('_')[0] + ' Performance',
             **kwargs)
-
         for test in test_yaml:
             argument_set = RocBlasArgumentSet()
             all_inputs = {key:test[key] for key in test if not key in IGNORE_YAML_KEYS} # deep copy and cast to dict
@@ -292,16 +293,37 @@ class RocBlasYamlComparison(cr.Comparison):
             if step_size == 1 and step_mult:
                 raise ValueError('Cannot increment by multiplying by one.')
             sweep_lists = {}
+
             for key in SWEEP_YAML_KEYS:
                 key_min = int(all_inputs.pop(key))
                 key_max = int(all_inputs.pop(key.upper()))
-                key_values = []
-                while key_min <= key_max:
-                    key_values.append(key_min)
-                    if(key_min == -1):
-                        break
-                    key_min = key_min*step_size if step_mult else key_min+step_size
-                sweep_lists[key] = key_values
+                if user_args.surface_plot:
+                    num_comparisons = 0
+                    key_minimum = key_min
+                    while key_minimum <= key_max:
+                        num_comparisons = num_comparisons+1
+                        key_minimum = key_minimum*step_size if step_mult else key_minimum+step_size
+                    key_values = [None]*num_comparisons*num_comparisons
+                    for row in range (0, num_comparisons):
+                        for col in range (0, num_comparisons):
+                            if(key_min == -1):
+                                break
+                            elif key == 'm' or key == 'lda':
+                                key_values[row*num_comparisons+col]= key_min
+                            elif key == 'n':
+                                key_values[col*num_comparisons+row]= key_min
+                                if(key_min == -1):
+                                    break
+                        key_min = key_min*step_size if step_mult else key_min+step_size
+                    sweep_lists[key] = key_values
+                else:
+                    key_values = []
+                    while key_min <= key_max:
+                        key_values.append(key_min)
+                        if(key_min == -1):
+                            break
+                        key_min = key_min*step_size if step_mult else key_min+step_size
+                    sweep_lists[key] = key_values
             sweep_lengths = {key:len(sweep_lists[key]) for key in sweep_lists}
             max_sweep_length = max(sweep_lengths.values())
 
@@ -314,7 +336,6 @@ class RocBlasYamlComparison(cr.Comparison):
                 for key in sweep_lists:
                     if sweep_lengths[key] == max_sweep_length:
                         sweep_argument_set.set(key, sweep_lists[key][sweep_idx])
-
                 self.add(sweep_argument_set)
             if len(all_inputs) > 0:
                 print('WARNING - The following values were unused: {}'.format(all_inputs))
@@ -397,7 +418,7 @@ class FlopsComparison(RocBlasYamlComparison):
     def __init__(self, **kwargs):
         RocBlasYamlComparison.__init__(self, data_type='gflops', **kwargs)
 
-    def plot(self, run_configurations, axes, cuda, compare):
+    def plot(self, run_configurations, figure, axes, cuda, compare):
         def get_function_prefix(compute_type):
             if '32_r' in compute_type:
                 return 's'
@@ -422,6 +443,8 @@ class FlopsComparison(RocBlasYamlComparison):
         argument_diff = cr.ArgumentSetDifference(self.argument_sets, ignore_keys=self._get_sweep_keys())
         differences = argument_diff.get_differences()
         test = []
+        test_x = []
+        test_y = []
         xLabel = []
         for key in differences:
             xLabel.append(key)
@@ -430,9 +453,16 @@ class FlopsComparison(RocBlasYamlComparison):
             precision = argument_set.get("compute_type").get_value()
             function = argument_set.get("function").get_value()
             for key in differences:
-                argument = argument_set.get(key)
-                test.append(argument.get_value() if argument.is_set() else 'DEFAULT')
-                break;
+                if user_args.surface_plot:
+                    argument = argument_set.get(key)
+                    if key == 'm':
+                        test_x.append(argument.get_value() if argument.is_set() else 'DEFAULT')
+                    elif key == 'n':
+                        test_y.append(argument.get_value() if argument.is_set() else 'DEFAULT')
+                else:
+                    argument = argument_set.get(key)
+                    test.append(argument.get_value() if argument.is_set() else 'DEFAULT')
+                    break;
 
         grouped_run_configurations = run_configurations.group_by_label()
 
@@ -486,38 +516,68 @@ class FlopsComparison(RocBlasYamlComparison):
                         theoMax = float(mclk) / float(eval(self.mem)) * eval(self.flops) * 32 / precisionBits / 4
                     except:
                         print("flops and mem equations produce errors")
-                if theoMax:
+
+        if user_args.surface_plot:
+            #===============
+            #  First subplot
+            #===============
+            # set up the axes for the first plot
+            #ax = fig.add_subplot(1, 2, 1, projection='3d')
+
+            # plot a 3D surface like in the example mplot3d/surface3d_demo
+            X = np.array(test_x)
+            X = np.reshape(X,(int(math.sqrt(X.size)), int(math.sqrt(X.size))))
+            Y = np.array(test_y)
+            Y = np.reshape(Y,(int(math.sqrt(Y.size)), int(math.sqrt(Y.size))))
+            Z = np.array(y_scatter_by_group[group_label])
+            Z = np.reshape(Z,(int(math.sqrt(Z.size)), int(math.sqrt(Z.size))))
+            axes.legend()
+            figure.suptitle(get_function_prefix(precision) + function + 'Performance', fontsize=14, fontweight='bold')
+            axes.set_xlabel('m == lda', fontsize='large', fontweight='bold', labelpad=9)
+            axes.set_ylabel('n', fontsize='large', fontweight='bold', labelpad=9)
+            axes.zaxis.set_rotate_label(False)
+            axes.set_zlabel(metric_labels[0] if len(metric_labels) == 1 else 'Time (s)', fontsize='large', fontweight='bold', rotation = 0, labelpad=36)
+            surf = axes.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm,
+                                   linewidth=0, antialiased=False)
+            figure.colorbar(surf, shrink=0.5, aspect=10)
+            plt.savefig(os.path.join(self.user_args.documentation_directory,
+                                                    get_function_prefix(precision) + function + ' Performance' + '_auto_plot.pdf'))
+            plt.show()
+
+        else:# Normal 2d plot
+
+            if theoMax:
                     theoMax = round(theoMax)
                     x_co = (test[0], test[len(test)-1])
                     y_co = (theoMax, theoMax)
                     axes.plot(x_co, y_co, label = "Theoretical Peak Performance: "+str(theoMax)+" GFLOP/s")
 
-        color=iter(cm.rainbow(np.linspace(0,1,len(y_scatter_by_group))))
-        for group_label in y_scatter_by_group:
-            c = next(color)
-            axes.scatter(
-                    # x_bar_by_group[group_label],
-                    test,
-                    y_scatter_by_group[group_label],
-                    # gap_scalar * width,
-                    color='#000000',#c,
-                    # label = group_label,
-                    )
-            axes.plot(
-                    # x_scatter_by_group[group_label],
-                    test,
-                    y_scatter_by_group[group_label],
-                    # 'k*',
-                    '-ok',
-                    color='#000000',#c,
-                    label = get_function_prefix(precision) + function + ' Performance',#group_label,
-                    )
+            color=iter(cm.rainbow(np.linspace(0,1,len(y_scatter_by_group))))
+            for group_label in y_scatter_by_group:
+                c = next(color)
+                axes.scatter(
+                        # x_bar_by_group[group_label],
+                        test,
+                        y_scatter_by_group[group_label],
+                        # gap_scalar * width,
+                        color='#000000',#c,
+                        # label = group_label,
+                        )
+                axes.plot(
+                        # x_scatter_by_group[group_label],
+                        test,
+                        y_scatter_by_group[group_label],
+                        # 'k*',
+                        '-ok',
+                        color='#000000',#c,
+                        label = get_function_prefix(precision) + function + ' Performance',#group_label,
+                        )
 
-        axes.xaxis.set_minor_locator(AutoMinorLocator())
-        axes.yaxis.set_minor_locator(AutoMinorLocator())
+                axes.xaxis.set_minor_locator(AutoMinorLocator())
+                axes.yaxis.set_minor_locator(AutoMinorLocator())
 
-        axes.set_ylabel(metric_labels[0] if len(metric_labels) == 1 else 'Time (s)' )
-        axes.set_xlabel('='.join(xLabel))
+                axes.set_ylabel(metric_labels[0] if len(metric_labels) == 1 else 'Time (s)' )
+                axes.set_xlabel('='.join(xLabel))
         return True
 
 
