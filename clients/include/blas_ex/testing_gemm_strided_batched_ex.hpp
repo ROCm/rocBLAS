@@ -638,24 +638,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     }
 #endif
 
-    size_t size_one_a
-        = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
-    size_t size_one_b
-        = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
-    size_t size_one_c = size_t(N) * ldc;
-    size_t size_one_d = size_t(N) * ldd;
-    size_t size_a     = size_one_a;
-    size_t size_b     = size_one_b;
-    size_t size_c     = size_one_c;
-    size_t size_d     = size_one_d;
-
-    if(batch_count > 1)
-    {
-        size_a += stride_a * size_t(batch_count - 1);
-        size_b += stride_b * size_t(batch_count - 1);
-        size_c += stride_c * size_t(batch_count - 1);
-        size_d += stride_d * size_t(batch_count - 1);
-    }
+    size_t size_a = strided_batched_matrix_size(A_row, A_col, lda, stride_a, batch_count);
+    size_t size_b = strided_batched_matrix_size(B_row, B_col, ldb, stride_b, batch_count);
+    size_t size_c = strided_batched_matrix_size(M, N, ldc, stride_c, batch_count);
+    size_t size_d = strided_batched_matrix_size(M, N, ldd, stride_d, batch_count);
 
     // allocate memory on device
     device_vector<Ti> dA(size_a);

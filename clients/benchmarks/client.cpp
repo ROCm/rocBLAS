@@ -886,7 +886,7 @@ struct perf_blas_rotg<
     }
 };
 
-int run_bench_test(Arguments& arg, const std::string& filter, bool yaml = false)
+int run_bench_test(Arguments& arg, const std::string& filter, bool any_stride, bool yaml = false)
 {
     static int runOnce = (rocblas_initialize(), 0); // Initialize rocBLAS
 
@@ -990,7 +990,7 @@ int run_bench_test(Arguments& arg, const std::string& filter, bool yaml = false)
         //          min_stride_b << std::endl;
         //          arg.stride_b = min_stride_b;
         //      }
-        if(arg.stride_c < min_stride_c)
+        if(!any_stride && arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
                          << min_stride_c << std::endl;
@@ -1062,7 +1062,7 @@ int run_bench_test(Arguments& arg, const std::string& filter, bool yaml = false)
             arg.ldd = min_ldd;
         }
         rocblas_int min_stride_c = arg.ldc * arg.N;
-        if(arg.stride_c < min_stride_c)
+        if(!any_stride && arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
                          << min_stride_c << std::endl;
@@ -1106,11 +1106,11 @@ int run_bench_test(Arguments& arg, const std::string& filter, bool yaml = false)
     return 0;
 }
 
-int rocblas_bench_datafile(const std::string& filter)
+int rocblas_bench_datafile(const std::string& filter, bool any_stride)
 {
     int ret = 0;
     for(Arguments arg : RocBLAS_TestData())
-        ret |= run_bench_test(arg, filter, true);
+        ret |= run_bench_test(arg, filter, any_stride, true);
     test_cleanup::cleanup();
     return ret;
 }
@@ -1150,6 +1150,7 @@ try
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
     bool        log_function_name   = false;
+    bool        any_stride          = false;
 
     arg.init(); // set all defaults
 
@@ -1196,6 +1197,10 @@ try
         ("ldd",
          value<rocblas_int>(&arg.ldd)->default_value(128),
          "Leading dimension of matrix D, is only applicable to BLAS-EX ")
+
+        ("any_stride",
+         value<bool>(&any_stride)->default_value(false),
+         "Do not modify input strides based on leading dimensions")
 
         ("stride_a",
          value<rocblas_stride>(&arg.stride_a)->default_value(128*128),
@@ -1405,7 +1410,7 @@ try
     set_device(device_id);
 
     if(datafile)
-        return rocblas_bench_datafile(filter);
+        return rocblas_bench_datafile(filter, any_stride);
 
     // single bench run
 
@@ -1451,7 +1456,7 @@ try
     if(copied <= 0 || copied >= sizeof(arg.function))
         throw std::invalid_argument("Invalid value for --function");
 
-    return run_bench_test(arg, filter);
+    return run_bench_test(arg, filter, any_stride);
 }
 catch(const std::invalid_argument& exp)
 {
