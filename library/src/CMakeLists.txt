@@ -359,7 +359,7 @@ target_link_libraries( rocblas INTERFACE hip::host )
 if (WIN32)
   target_link_libraries( rocblas PRIVATE hip::device )
 else()
-  target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc -ldl )
+  target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc )
 endif()
 
 #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point

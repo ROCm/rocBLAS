@@ -49,9 +49,9 @@ extern "C" void rocblas_initialize() {}
 #include <libloaderapi.h>
 #define ROCBLAS_LIB_PATH "C:/hipSDK/rocblas/bin"
 #else
-#include <dlfcn.h>
 #include <glob.h>
 #include <libgen.h>
+#include <link.h>
 #include <unistd.h>
 #define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib"
 #endif
@@ -75,6 +75,21 @@ namespace std
 
 namespace
 {
+#ifndef WIN32
+    std::string rocblas_so_path;
+
+    int rocblas_dl_iterate_phdr_callback(struct dl_phdr_info* hdr_info, size_t size, void* data)
+    {
+        // uncomment to see all dependent .so files
+        //fprintf(stderr, "rocblas so file: %s\n", hdr_info->dlpi_name);
+        if(hdr_info->dlpi_name && strstr(hdr_info->dlpi_name, "rocblas."))
+        {
+            rocblas_so_path = hdr_info->dlpi_name;
+        }
+        return 0;
+    }
+#endif
+
     /******************************************************
      * Map a rocBLAS type to a corresponding Tensile type *
      ******************************************************/
@@ -541,10 +556,11 @@ namespace
             {
                 path = ROCBLAS_LIB_PATH;
 
+                // Find the location of librocblas.dll/.so
+                // Fall back on hard-coded path if static library or not found
+
 #ifndef ROCBLAS_STATIC_LIB
 #ifdef WIN32
-                // Find the location of librocblas.dll
-                // Fall back on hard-coded path if static library or not found
                 // wchar_t wpath[MAX_PATH + 1] = {0};
                 // if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
                 // {
@@ -563,19 +579,9 @@ namespace
                     }
                 }
 #else
-                // Find the location of librocblas.so
-                // Fall back on hard-coded path if static library or not found
-                // [Use a void C API (rocblas_shutdown) *not* defined in this file to
-                // avoid compile-time resolution of the function pointer; cf.
-                // https://man7.org/linux/man-pages/man3/dladdr.3.html "BUGS"]
-                // rocblas_sscal stopped working even though is not defined in this unit
-
-                Dl_info info;
-                if(dladdr((void*)rocblas_shutdown, &info))
-                {
-                    path = info.dli_fname; // may be NULL if symbol not found
-                    path = std::string{dirname(&path[0])};
-                }
+                dl_iterate_phdr(rocblas_dl_iterate_phdr_callback, NULL);
+                if(rocblas_so_path.size())
+                    path = std::string{dirname(&rocblas_so_path[0])};
 #endif
 #endif // ifndef ROCBLAS_STATIC_LIB
 
