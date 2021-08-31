@@ -7,7 +7,10 @@
 #include "rocblas_test.hpp"
 #include "testing_trmm.hpp"
 #include "testing_trmm_batched.hpp"
+#include "testing_trmm_batched_ex.hpp"
+#include "testing_trmm_ex.hpp"
 #include "testing_trmm_strided_batched.hpp"
+#include "testing_trmm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -21,6 +24,9 @@ namespace
         TRMM,
         TRMM_BATCHED,
         TRMM_STRIDED_BATCHED,
+        TRMM_EX,
+        TRMM_BATCHED_EX,
+        TRMM_STRIDED_BATCHED_EX
     };
 
     //trmm test template
@@ -46,6 +52,14 @@ namespace
             case TRMM_STRIDED_BATCHED:
                 return !strcmp(arg.function, "trmm_strided_batched")
                        || !strcmp(arg.function, "trmm_strided_batched_bad_arg");
+            case TRMM_EX:
+                return !strcmp(arg.function, "trmm_ex") || !strcmp(arg.function, "trmm_ex_bad_arg");
+            case TRMM_BATCHED_EX:
+                return !strcmp(arg.function, "trmm_batched_ex")
+                       || !strcmp(arg.function, "trmm_batched_ex_bad_arg");
+            case TRMM_STRIDED_BATCHED_EX:
+                return !strcmp(arg.function, "trmm_strided_batched_ex")
+                       || !strcmp(arg.function, "trmm_strided_batched_ex_bad_arg");
             }
             return false;
         }
@@ -63,6 +77,10 @@ namespace
             }
             else
             {
+                bool is_ex = TRMM_TYPE == TRMM_EX || TRMM_TYPE == TRMM_BATCHED_EX
+                             || TRMM_TYPE == TRMM_STRIDED_BATCHED_EX;
+                bool is_strided
+                    = TRMM_TYPE == TRMM_STRIDED_BATCHED_EX || TRMM_TYPE == TRMM_STRIDED_BATCHED;
 
                 name << '_' << (char)std::toupper(arg.side) << (char)std::toupper(arg.uplo)
                      << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_'
@@ -76,15 +94,22 @@ namespace
 
                 name << '_' << arg.lda;
 
-                if(TRMM_TYPE == TRMM_STRIDED_BATCHED)
+                if(is_strided)
                     name << '_' << arg.stride_a;
 
                 name << '_' << arg.ldb;
 
-                if(TRMM_TYPE == TRMM_STRIDED_BATCHED)
+                if(is_strided)
                     name << '_' << arg.stride_b;
 
-                if(TRMM_TYPE == TRMM_STRIDED_BATCHED || TRMM_TYPE == TRMM_BATCHED)
+                if(is_ex)
+                    name << '_' << arg.ldc;
+
+                if(TRMM_TYPE == TRMM_STRIDED_BATCHED_EX)
+                    name << '_' << arg.stride_c;
+
+                if(TRMM_TYPE == TRMM_STRIDED_BATCHED || TRMM_TYPE == TRMM_BATCHED
+                   || TRMM_TYPE == TRMM_STRIDED_BATCHED_EX || TRMM_TYPE == TRMM_BATCHED_EX)
                     name << '_' << arg.batch_count;
             }
 
@@ -125,6 +150,18 @@ namespace
                 testing_trmm_strided_batched<T>(arg);
             else if(!strcmp(arg.function, "trmm_strided_batched_bad_arg"))
                 testing_trmm_strided_batched_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "trmm_ex"))
+                testing_trmm_ex<T>(arg);
+            else if(!strcmp(arg.function, "trmm_ex_bad_arg"))
+                testing_trmm_ex_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "trmm_batched_ex"))
+                testing_trmm_batched_ex<T>(arg);
+            else if(!strcmp(arg.function, "trmm_batched_ex_bad_arg"))
+                testing_trmm_batched_ex_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "trmm_strided_batched_ex"))
+                testing_trmm_strided_batched_ex<T>(arg);
+            else if(!strcmp(arg.function, "trmm_strided_batched_ex_bad_arg"))
+                testing_trmm_strided_batched_ex_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -150,5 +187,26 @@ namespace
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmm_strided_batched);
+
+    using trmm_ex = trmm_template<trmm_testing, TRMM_EX>;
+    TEST_P(trmm_ex, blas3_tensile)
+    {
+        RUN_TEST_ON_THREADS_STREAMS(rocblas_simple_dispatch<trmm_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(trmm_ex);
+
+    using trmm_batched_ex = trmm_template<trmm_testing, TRMM_BATCHED_EX>;
+    TEST_P(trmm_batched_ex, blas3_tensile)
+    {
+        RUN_TEST_ON_THREADS_STREAMS(rocblas_simple_dispatch<trmm_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(trmm_batched_ex);
+
+    using trmm_strided_batched_ex = trmm_template<trmm_testing, TRMM_STRIDED_BATCHED_EX>;
+    TEST_P(trmm_strided_batched_ex, blas3_tensile)
+    {
+        RUN_TEST_ON_THREADS_STREAMS(rocblas_simple_dispatch<trmm_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(trmm_strided_batched_ex);
 
 } // namespace

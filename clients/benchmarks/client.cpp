@@ -169,6 +169,9 @@
 #include "testing_syrk.hpp"
 #include "testing_syrk_batched.hpp"
 #include "testing_syrk_strided_batched.hpp"
+#include "testing_trmm_batched_ex.hpp"
+#include "testing_trmm_ex.hpp"
+#include "testing_trmm_strided_batched_ex.hpp"
 //
 #include "type_dispatch.hpp"
 #include "utility.hpp"
@@ -385,6 +388,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"trsv", testing_trsv<T>},
                 {"trsv_batched", testing_trsv_batched<T>},
                 {"trsv_strided_batched", testing_trsv_strided_batched<T>},
+                {"trmm_ex", testing_trmm_ex<T>},
+                {"trmm_batched_ex", testing_trmm_batched_ex<T>},
+                {"trmm_strided_batched_ex", testing_trmm_strided_batched_ex<T>},
 #if BUILD_WITH_TENSILE
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
@@ -548,6 +554,9 @@ struct perf_blas<T,
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
+                {"trsv", testing_trsv<T>},
+                {"trsv_batched", testing_trsv_batched<T>},
+                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
                 // L3
                 {"dgmm", testing_dgmm<T>},
                 {"dgmm_batched", testing_dgmm_batched<T>},
@@ -576,9 +585,9 @@ struct perf_blas<T,
                 {"herkx", testing_her2k<T, false>},
                 {"herkx_batched", testing_her2k_batched<T, false>},
                 {"herkx_strided_batched", testing_her2k_strided_batched<T, false>},
-                {"trsv", testing_trsv<T>},
-                {"trsv_batched", testing_trsv_batched<T>},
-                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
+                {"trmm_ex", testing_trmm_ex<T>},
+                {"trmm_batched_ex", testing_trmm_batched_ex<T>},
+                {"trmm_strided_batched_ex", testing_trmm_strided_batched_ex<T>},
 #if BUILD_WITH_TENSILE
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
