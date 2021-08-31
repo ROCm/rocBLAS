@@ -114,13 +114,13 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void sger_kernel(rocblas_int    m,
     if(tx < m)
         A += tx;
 
-    //Each hipBlockIdx_x takes care of the computation of each column of matrix A
+    //Each hipBlockIdx_x takes care of the computation of each column of matrix 'A'
     A += col * lda;
 
     const T res_y = y[col * incy] * alpha;
 
-    //Each column of Matrix A is multiplied with vector x and the resultant value is stored in res.
-    //If m > DIM_X, then the threads are reused and the multiplied values will be accumalated to matrix A.
+    //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
+    //If m > DIM_X, then the threads are reused and the multiplied values will be accumalated to Hermitian matrix 'A'.
 
     for(rocblas_int i = 0; tx + i < m; i += DIM_X)
     {
@@ -200,7 +200,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         stridex, y, shifty, incy, stridey, A, offsetA, lda, strideA
 
     //optimized sger kernel
-    if(is_float)
+    if(is_float && m > 1024)
     {
         static constexpr int DIM_X = 1024;
         dim3                 ger_grid(n, batch_count);
@@ -251,6 +251,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    ger_KARGS(*alpha));
         }
     }
+#undef ger_KARGS
     return rocblas_status_success;
 }
 
