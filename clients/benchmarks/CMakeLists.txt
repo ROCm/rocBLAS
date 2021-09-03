@@ -10,6 +10,7 @@ if(LINK_BLIS)
 endif()
 
 set( rocblas_benchmark_common
+      ../common/singletons.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/rocblas_arguments.cpp

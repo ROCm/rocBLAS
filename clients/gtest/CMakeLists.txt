@@ -81,6 +81,7 @@ endif()
 
 set( rocblas_benchmark_common
       ../common/rocblas_arguments.cpp
+      ../common/singletons.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/argument_model.cpp
