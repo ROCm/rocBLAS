@@ -2,7 +2,10 @@
 # Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
-set( rocblas_samples_common ../common/utility.cpp )
+set( rocblas_samples_common
+      ../common/singletons.cpp
+      ../common/utility.cpp
+    )
 
 # C example
 add_executable( example-c-dgeam example_c_dgeam.c )

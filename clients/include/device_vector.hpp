@@ -116,7 +116,7 @@ public:
 
     hipError_t memcheck() const
     {
-        return m_data ? hipSuccess : hipErrorOutOfMemory;
+        return !this->nmemb() || m_data ? hipSuccess : hipErrorOutOfMemory;
     }
 
 private:
