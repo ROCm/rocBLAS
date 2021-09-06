@@ -202,6 +202,7 @@ set( rocblas_blas3_source_no_tensile
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
     blas3/rocblas_syrkx.cpp
+    blas3/rocblas_syrkx_kernels.cpp
     blas3/rocblas_syrkx_batched.cpp
     blas3/rocblas_syrkx_strided_batched.cpp
     blas3/rocblas_trmm.cpp
