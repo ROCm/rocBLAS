@@ -190,6 +190,7 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_herkx_batched.cpp
     blas3/rocblas_herkx_strided_batched.cpp
     blas3/rocblas_symm.cpp
+    blas3/rocblas_symm_kernels.cpp
     blas3/rocblas_symm_batched.cpp
     blas3/rocblas_symm_strided_batched.cpp
     blas3/rocblas_syrk.cpp
