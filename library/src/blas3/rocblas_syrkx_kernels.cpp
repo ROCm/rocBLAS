@@ -1108,6 +1108,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #undef OFFSET_B
 #undef OFFSET_C
 
+// Instantiations below will need to be manually updated to match any change in
+// template parameters in the files syrkx*.cpp
+
 // clang-format off
 #ifdef INSTANTIATE_SYRKX_TEMPLATE
 #error INSTANTIATE_SYRKX_TEMPLATE already defined

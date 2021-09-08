@@ -435,6 +435,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+// Instantiations below will need to be manually updated to match any change in
+// template parameters in the files symm*.cpp
+
 // clang-format off
 #ifdef INSTANTIATE_SYMM_ARG_CHECK
 #error INSTANTIATE_SYMM_ARG_CHECK already defined
