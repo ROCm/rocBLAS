@@ -22,7 +22,11 @@ def translateToProto(templateCode):
     n = 1
     while n:
         proto, n = re.subn(gPattern, '', proto)
-    print(proto.rstrip() + ";\n")
+
+    if (proto.rstrip()).endswith(';'):
+        print(proto.rstrip() + "\n")
+    else:
+        print(proto.rstrip() + ";\n")
 
 
 def parseForExportedTemplates(inputFileName):
