@@ -1142,29 +1142,29 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syrkx_
 
 // instantiate for rocblas_Xsyrkx and rocblas_Xsyrkx_strided_batched
 INSTANTIATE_SYRKX_TEMPLATE(16, false,  float,  float const,  float,  float const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16, false,  float,  float const,  float,  float const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE(16, false,  float,  float const,  float,  float const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE(32, false, double, double const, double, double const, int)
-INSTANTIATE_SYRKX_TEMPLATE(32, false, double, double const, double, double const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE(32, false, double, double const, double, double const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE(16, false, double, double const, double, double const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16, false, double, double const, double, double const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE(16, false, double, double const, double, double const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE( 8, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE( 8, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE(32, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE(32, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE(32, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE( 8, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE( 8, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, size_t)
 
 // instantiate for rocblas_Xsyrkx_batched
 INSTANTIATE_SYRKX_TEMPLATE(16,  true,  float,  float const,  float* const,  float const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16,  true,  float,  float const,  float* const,  float const* const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE(16,  true,  float,  float const,  float* const,  float const* const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE(16,  true, double, double const, double* const, double const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16,  true, double, double const, double* const, double const* const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE(16,  true, double, double const, double* const, double const* const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE( 8,  true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8,  true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE( 8,  true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const, size_t)
 INSTANTIATE_SYRKX_TEMPLATE( 8,  true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8,  true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const, unsigned long)
+INSTANTIATE_SYRKX_TEMPLATE( 8,  true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const, size_t)
 
 #undef INSTANTIATE_SYRKX_TEMPLATE
 // clang-format on
