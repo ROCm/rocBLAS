@@ -288,6 +288,8 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
   add_subdirectory( clients )
 endif( )
 
+if(BUILD_CODE_COVERAGE)
+
 #
 # ADDITIONAL TARGETS FOR CODE COVERAGE
 #
@@ -340,3 +342,6 @@ add_custom_target(coverage_cleanup
     COMMAND rm -f `find ${CMAKE_BINARY_DIR} -name *.gcda`
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
+
+endif()
+
