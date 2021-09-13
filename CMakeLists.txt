@@ -164,7 +164,7 @@ include( clients/cmake/build-options.cmake )
 # force library install path to lib (CentOS 7 defaults to lib64)
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
-if(NOT SKIP_LIBRARY)
+#if(NOT SKIP_LIBRARY)
   set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
   set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1011 gfx1012 gfx1030 )
 
@@ -210,6 +210,7 @@ if(NOT SKIP_LIBRARY)
     set( AMDGPU_TARGETS "${gpus}" CACHE STRING "AMD GPU targets to compile for" FORCE )
   endif()
 
+if(NOT SKIP_LIBRARY)
   option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
 
   if( BUILD_WITH_TENSILE )
