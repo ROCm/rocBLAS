@@ -172,9 +172,11 @@ set (rocblas_ex_source_no_tensile
 
 set( rocblas_blas3_source_no_tensile
     blas3/rocblas_dgmm.cpp
+    blas3/rocblas_dgmm_kernels.cpp
     blas3/rocblas_dgmm_batched.cpp
     blas3/rocblas_dgmm_strided_batched.cpp
     blas3/rocblas_geam.cpp
+    blas3/rocblas_geam_kernels.cpp
     blas3/rocblas_geam_batched.cpp
     blas3/rocblas_geam_strided_batched.cpp
     blas3/rocblas_hemm.cpp
@@ -207,6 +209,7 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_syrkx_batched.cpp
     blas3/rocblas_syrkx_strided_batched.cpp
     blas3/rocblas_trmm.cpp
+    blas3/rocblas_trmm_kernels.cpp
     blas3/rocblas_trmm_batched.cpp
     blas3/rocblas_trmm_strided_batched.cpp
 )
