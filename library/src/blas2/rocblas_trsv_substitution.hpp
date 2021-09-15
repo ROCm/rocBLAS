@@ -741,7 +741,7 @@ ROCBLAS_KERNEL
     // next column is ready
     // don't need an atomic op here since there should only
     // be one block for each batch here at once
-    __syncthreads(); // for windows instability 
+    __syncthreads(); // for windows instability
     if(tid == 0)
         w_completed_sec[batchid]++;
 
