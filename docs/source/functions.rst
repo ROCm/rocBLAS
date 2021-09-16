@@ -1047,7 +1047,7 @@ rocblas_is_managing_device_memory
 .. doxygenfunction:: rocblas_is_managing_device_memory
 
 rocblas_is_user_managing_device_memory
----------------------------------
+--------------------------------------
 .. doxygenfunction:: rocblas_is_user_managing_device_memory
 
 
