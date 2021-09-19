@@ -59,10 +59,10 @@ supported_distro( )
   fi
 
   case "${ID}" in
-    ubuntu|centos|rhel|fedora|sles|opensuse-leap)
+    ubuntu|centos|rhel|fedora|sles|opensuse-leap|openEuler)
         true
         ;;
-    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora\n"
+    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, openEuler and Fedora\n"
         exit 2
         ;;
   esac
@@ -184,6 +184,10 @@ install_packages( )
                                       "gcc-c++" "libcxx-devel" )
   local library_dependencies_sles=(   "make" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" )
+  local library_dependencies_openEuler=( "openssl-devel"
+                                      "make" "rpm-build"
+                                      "python3" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
     library_dependencies_ubuntu+=("libmsgpack-dev")
@@ -205,6 +209,7 @@ install_packages( )
       library_dependencies_centos_rhel_8+=("wget")
       library_dependencies_fedora+=("wget")
       library_dependencies_sles+=("wget")
+      library_dependencies_openEuler+=("wget")
     fi
   fi
 
@@ -214,6 +219,7 @@ install_packages( )
   local client_dependencies_centos_rhel_8=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
+  local client_dependencies_openEuler=( "gcc-gfortran" "libgomp" "boost-devel" )
 
   # wget is needed for blis
   if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.so" ]]; then
@@ -222,6 +228,7 @@ install_packages( )
     client_dependencies_centos_rhel_8+=("wget")
     client_dependencies_fedora+=("wget")
     client_dependencies_sles+=("wget")
+    client_dependencies_openEuler+=("wget")
   fi
 
   case "${ID}" in
@@ -267,6 +274,14 @@ install_packages( )
 
         if [[ "${build_clients}" == true ]]; then
             install_zypper_packages "${client_dependencies_sles[@]}"
+        fi
+        ;;
+
+    openEuler)
+       install_yum_packages "${library_dependencies_openEuler[@]}"
+
+        if [[ "${build_clients}" == true ]]; then
+            install_yum_packages "${client_dependencies_openEuler[@]}"
         fi
         ;;
     *)
@@ -519,7 +534,7 @@ install_blis()
     #Download prebuilt AMD multithreaded blis
     if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.so" ]]; then
       case "${ID}" in
-          centos|rhel|sles|opensuse-leap)
+          centos|rhel|sles|opensuse-leap|openEuler)
               wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
               ;;
           ubuntu)
@@ -597,7 +612,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
   # cmake is needed to install msgpack
   case "${ID}" in
-    centos|rhel|sles|opensuse-leap)
+    centos|rhel|sles|opensuse-leap|openEuler)
       if [[ "${tensile_msgpack_backend}" == true ]]; then
         install_msgpack_from_source
       fi
