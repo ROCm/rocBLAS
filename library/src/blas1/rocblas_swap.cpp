@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_swap.hpp"
 #include "logging.hpp"
@@ -74,7 +74,8 @@ namespace
                 return swap_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_swap_template<NB>(handle, n, x, 0, incx, 0, y, 0, incy, 0);
+        rocblas_status status
+            = rocblas_swap_template<NB>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1);
         if(status != rocblas_status_success)
             return status;
 
