@@ -306,9 +306,11 @@ set( rocblas_blas1_source
   blas1/rocblas_asum_batched.cpp
   blas1/rocblas_asum_strided_batched.cpp
   blas1/rocblas_axpy.cpp
+  blas1/rocblas_axpy_kernels.cpp
   blas1/rocblas_axpy_batched.cpp
   blas1/rocblas_axpy_strided_batched.cpp
   blas1/rocblas_copy.cpp
+  blas1/rocblas_copy_kernels.cpp
   blas1/rocblas_copy_batched.cpp
   blas1/rocblas_copy_strided_batched.cpp
   blas1/rocblas_dot.cpp
@@ -317,22 +319,28 @@ set( rocblas_blas1_source
   blas1/rocblas_nrm2.cpp
   blas1/rocblas_nrm2_batched.cpp
   blas1/rocblas_nrm2_strided_batched.cpp
-  blas1/rocblas_scal.cpp
-  blas1/rocblas_scal_batched.cpp
-  blas1/rocblas_scal_strided_batched.cpp
-  blas1/rocblas_swap.cpp
   blas1/rocblas_rot.cpp
+  blas1/rocblas_rot_kernels.cpp
   blas1/rocblas_rot_batched.cpp
   blas1/rocblas_rot_strided_batched.cpp
   blas1/rocblas_rotg.cpp
+  blas1/rocblas_rotg_kernels.cpp
   blas1/rocblas_rotg_batched.cpp
   blas1/rocblas_rotg_strided_batched.cpp
   blas1/rocblas_rotm.cpp
+  blas1/rocblas_rotm_kernels.cpp
   blas1/rocblas_rotm_batched.cpp
   blas1/rocblas_rotm_strided_batched.cpp
   blas1/rocblas_rotmg.cpp
+  blas1/rocblas_rotmg_kernels.cpp
   blas1/rocblas_rotmg_batched.cpp
   blas1/rocblas_rotmg_strided_batched.cpp
+  blas1/rocblas_scal.cpp
+  blas1/rocblas_scal_kernels.cpp
+  blas1/rocblas_scal_batched.cpp
+  blas1/rocblas_scal_strided_batched.cpp
+  blas1/rocblas_swap.cpp
+  blas1/rocblas_swap_kernels.cpp
   blas1/rocblas_swap_batched.cpp
   blas1/rocblas_swap_strided_batched.cpp
 )
