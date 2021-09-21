@@ -58,6 +58,7 @@ import getspecs
 # Optional modules
 try:
     import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
     from matplotlib.ticker import FuncFormatter
 except ImportError:
     plt = None
@@ -569,7 +570,7 @@ class ArgumentSetSort(OrderedDict):
         OrderedDict.__init__(self)
         alphabet = [x for x in string.ascii_lowercase]
         if len(alphabet) < len(argument_sets):
-            alphabet.extend([x1 + x2 for x1,x2 in itertools.product(string.ascii_lowercase, string.ascii_lowercase)])
+            alphabet.extend([x1 + x2 + x3 for x1,x2, x3 in itertools.product(string.ascii_lowercase, string.ascii_lowercase, string.ascii_lowercase)])
         hash_to_label = {}
         alphabet_idx = 0
         for argument_set in argument_sets:
@@ -1023,6 +1024,8 @@ class CommandRunner(object):
         cuda = user_args.cuda
         compare_hip_cuda = user_args.compare_hip_cuda
         output_directory_compare = user_args.output_directory_compare_cuda
+        surface_plot = user_args.surface_plot
+
         if len(output_directory_compare) == 1:
             output_directory_compare = output_directory_compare[0]
 
@@ -1051,6 +1054,7 @@ class CommandRunner(object):
         self.cuda = cuda
         self.compare_hip_cuda = compare_hip_cuda
         self.output_directory_compare = output_directory_compare
+        self.surface_plot = surface_plot
 
         if self.cuda:
             print('Running for a CUDA system')
@@ -1247,40 +1251,46 @@ class CommandRunner(object):
 
             # Add any Matplotlib plots using Comparison.plot()
             if self.is_use_matplotlib():
-                figure, axes = plt.subplots(figsize = (7, 7))
-                plot_success = comparison.plot(self.run_configurations, axes, cuda, compare)
-                print(comparison.get_caption(self.run_configurations))
+                if self.surface_plot:
+                    figure, axes = plt.subplots(subplot_kw={"projection": "3d"})
+                else:
+                    figure, axes = plt.subplots(figsize = (7, 7))
+                plot_success = comparison.plot(self.run_configurations, figure, axes, cuda, compare)
                 if plot_success:
-                    axes.legend(fontsize = 10, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
-                                 mode='expand', borderaxespad=0.)
-                    figure.tight_layout(rect=(0,0.05,1.0,1.0))
+                    if self.surface_plot:
+                        #Saved the 3d plot PDF file in performancerepoprt.py
+                        continue;
+                    else:
+                        axes.legend(fontsize = 10, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
+                                     mode='expand', borderaxespad=0.)
+                        figure.tight_layout(rect=(0,0.05,1.0,1.0))
 
-                    if self.is_use_pylatex():
-                        with self.doc.create(pylatex.Figure(position='htbp')) as plot:
-                            plot.add_plot(width=pylatex.NoEscape(r'0.8\textwidth'), dpi=300, transparent=True)
-                            plot.add_caption(comparison.get_caption(self.run_configurations))
-                            plot.append(pylatex.NoEscape(r'\vspace{0.3cm}'))
-                            comparison.write_latex_table(plot)
-                        self.doc.append(pylatex.NoEscape(r'\clearpage'))
+                        if self.is_use_pylatex():
+                            with self.doc.create(pylatex.Figure(position='htbp')) as plot:
+                                plot.add_plot(width=pylatex.NoEscape(r'0.8\textwidth'), dpi=300, transparent=True)
+                                plot.add_caption(comparison.get_caption(self.run_configurations))
+                                plot.append(pylatex.NoEscape(r'\vspace{0.3cm}'))
+                                comparison.write_latex_table(plot)
+                            self.doc.append(pylatex.NoEscape(r'\clearpage'))
 
-                    if self.is_use_docx():
-                        memfile = BytesIO()
+                        if self.is_use_docx():
+                            memfile = BytesIO()
+                            figure.tight_layout()
+                            # figure.savefig(memfile, format='png', dpi=300, transparent=True)
+                            figure.savefig(memfile, format='png', dpi=300, transparent=True, bbox_inches="tight")
+                            self.docx_doc.add_picture(memfile, width=docx.shared.Inches(6.0))
+                            caption_style = 'Quote' if self.user_args.docx_template is None else None
+                            self.docx_doc.add_paragraph('Figure {}: '.format(docx_fig_count) + comparison.get_caption(self.run_configurations), style=caption_style)
+                            comparison.write_docx_table(self.docx_doc)
+                            self.docx_doc.add_page_break()
+                            docx_fig_count += 1
+                            memfile.close()
+
+                        # figure.suptitle(comparison.get_caption(self.run_configurations),
+                        #                 fontsize='medium', y=0.02, va='bottom')
                         figure.tight_layout()
-                        # figure.savefig(memfile, format='png', dpi=300, transparent=True)
-                        figure.savefig(memfile, format='png', dpi=300, transparent=True, bbox_inches="tight")
-                        self.docx_doc.add_picture(memfile, width=docx.shared.Inches(6.0))
-                        caption_style = 'Quote' if self.user_args.docx_template is None else None
-                        self.docx_doc.add_paragraph('Figure {}: '.format(docx_fig_count) + comparison.get_caption(self.run_configurations), style=caption_style)
-                        comparison.write_docx_table(self.docx_doc)
-                        self.docx_doc.add_page_break()
-                        docx_fig_count += 1
-                        memfile.close()
-
-                    # figure.suptitle(comparison.get_caption(self.run_configurations),
-                    #                 fontsize='medium', y=0.02, va='bottom')
-                    figure.tight_layout()
-                    figure.savefig(os.path.join(self.user_args.documentation_directory,
-                                                comparison.get_name() + '_auto_plot.pdf'), bbox_inches="tight")
+                        figure.savefig(os.path.join(self.user_args.documentation_directory,
+                                                    comparison.get_name() + '_auto_plot.pdf'), bbox_inches="tight")
 
                 if not self.is_interactive():
                     plt.close(figure)
@@ -1390,6 +1400,9 @@ def parse_input_arguments(parser):
     parser.add_argument('-d', '--device-num', default=0, type=int,
                         help='Device number to run on.')
     parser.add_argument('--install-path', default='/opt/rocm', help='Top directory of driver installation.')
+
+    parser.add_argument('--surface-plot', default=False, action='store_true', help='Adds a surface plot instead of a normal plot.')
+
     return parser.parse_args()
 
 

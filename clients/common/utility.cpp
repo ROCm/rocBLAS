@@ -128,6 +128,24 @@ std::string rocblas_tempname()
 }
 
 /* ============================================================================================ */
+/*  memory allocation requirements :*/
+
+/*! \brief Compute strided batched matrix allocation size allowing for strides smaller than full matrix */
+size_t
+    strided_batched_matrix_size(int rows, int cols, int lda, rocblas_stride stride, int batch_count)
+{
+    size_t size = size_t(lda) * cols;
+    if(batch_count > 1)
+    {
+        // for cases where batch_count strides may not exceed full matrix size use full matrix size
+        // e.g. row walking a larger matrix we just use full matrix size
+        size_t size_strides = (batch_count - 1) * stride;
+        size += size < size_strides + (cols - 1) * size_t(lda) + rows ? size_strides : 0;
+    }
+    return size;
+}
+
+/* ============================================================================================ */
 /*  timing:*/
 
 /*! \brief  CPU Timer(in microsecond): synchronize with the default device and return wall time */
