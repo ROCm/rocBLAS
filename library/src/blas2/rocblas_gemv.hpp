@@ -396,10 +396,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #define gemvt_KARGS(alpha_, beta_)                                                             \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
-        //Having 256 threads per block for single precision GEMV (transpose) for better performance
-        else if(is_float)
+        //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000.
+        else if(is_float || m < 6000 || n < 6000)
         {
-            // number of columns on the y-dim of the grid
+            //Number of threads per block
             static constexpr int NB = 256;
             dim3                 gemvt_grid(n, batch_count);
             dim3                 gemvt_threads(NB);
@@ -426,10 +426,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                        gemvt_KARGS(*alpha, *beta));
             }
         }
-        //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance
+
+        //Using kernel code with warp reduction.
+        //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance.
         else
         {
-            // number of columns on the y-dim of the grid
+            //Number of threads per block
             static constexpr int NB = 1024;
             dim3                 gemvt_grid(n, batch_count);
             dim3                 gemvt_threads(NB);
@@ -437,10 +439,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
                                        gemvt_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
                                        gemvt_KARGS(alpha, beta));
             }
             else
@@ -449,13 +451,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                     return rocblas_status_success;
 
                 if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
                                        gemvt_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
                                        gemvt_KARGS(*alpha, *beta));
             }
         }
+#undef gemvt_KARGS
     }
     else // conjugate transpose
     {
@@ -591,9 +594,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #define gemvt_KARGS(alpha_, beta_)                                                             \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
-        //Having 256 threads per block for single precision GEMV (transpose) for better performance
-        else if(is_float)
+        //Using kernel code with shared memory reduction for single precision and all other precision when m or n is less than 6000.
+        else if(is_float || m < 6000 || n < 6000)
         {
+            //Number of threads per block
             static constexpr int NB = 256;
             dim3                 gemvt_grid(n, batch_count);
             dim3                 gemvt_threads(NB);
@@ -619,19 +623,21 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                        gemvt_KARGS(*alpha, *beta));
             }
         }
-        //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance
+        //Using kernel code with warp reduction.
+        //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance.
         else
         {
+            //Number of threads per block
             static constexpr int NB = 1024;
             dim3                 gemvt_grid(n, batch_count);
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
                                        gemvt_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
                                        gemvt_KARGS(alpha, beta));
             }
             else
@@ -640,13 +646,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                     return rocblas_status_success;
 
                 if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
                                        gemvt_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
                                        gemvt_KARGS(*alpha, *beta));
             }
         }
+#undef gemvt_KARGS
     }
     return rocblas_status_success;
 }
