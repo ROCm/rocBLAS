@@ -18,7 +18,7 @@ set(python "python")
 
 # TODO remove, just to speed up slow cmake
 #set(CMAKE_C_COMPILER_WORKS 1)
-#set(CMAKE_CXX_COMPILER_WORKS 1) 
+#set(CMAKE_CXX_COMPILER_WORKS 1)
 #set(CMAKE_Fortran_COMPILER_WORKS 1)
 
 
@@ -32,7 +32,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ignored-attributes")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHIP_CLANG_HCC_COMPAT_MODE=1")
 
-# args also in hipcc.bat 
+# args also in hipcc.bat
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -fms-compatibility -D__HIP_ROCclr__=1 -D__HIP_PLATFORM_AMD__=1 ")
 
 if (DEFINED ENV{LAPACK_DIR})

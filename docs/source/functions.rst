@@ -1047,7 +1047,7 @@ rocblas_is_managing_device_memory
 .. doxygenfunction:: rocblas_is_managing_device_memory
 
 rocblas_is_user_managing_device_memory
----------------------------------
+--------------------------------------
 .. doxygenfunction:: rocblas_is_user_managing_device_memory
 
 
@@ -1057,3 +1057,7 @@ Build Information
 rocblas_get_version_string
 ----------------------------
 .. doxygenfunction:: rocblas_get_version_string
+
+rocblas_get_version_string_size
+-------------------------------
+.. doxygenfunction:: rocblas_get_version_string_size

@@ -7,49 +7,79 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
-template <typename T, typename U>
-ROCBLAS_KERNEL_ILF void her_kernel_calc(
-    bool upper, rocblas_int n, U alpha, const T* x, rocblas_int incx, T* A, rocblas_int lda)
+template <rocblas_int DIM_X, typename T_lda, typename T, typename U>
+ROCBLAS_KERNEL_ILF void her_kernel_calc(bool        upper,
+                                        rocblas_int n,
+                                        U           alpha,
+                                        const T* __restrict__ x,
+                                        rocblas_int incx,
+                                        T* __restrict__ A,
+                                        T_lda lda)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx  = hipThreadIdx_x;
+    rocblas_int col = hipBlockIdx_x;
 
-    if(upper ? ty < n && tx < ty : tx < n && ty < tx)
-        A[tx + size_t(lda) * ty] += alpha * x[tx * incx] * conj(x[ty * incx]);
-    else if(tx == ty && tx < n)
+    if(tx < n)
+        A += tx;
+
+    //Each BlockIdx.x takes care of each column of matrix A
+    A += col * lda;
+
+    const T res_x = conj(x[col * incx]) * alpha;
+
+    if(upper)
     {
-        U      x_real = std::real(x[tx * incx]);
-        U      x_imag = std::imag(x[tx * incx]);
-        size_t offset = tx + size_t(lda) * ty;
-        A[offset]     = std::real(A[offset]) + alpha * ((x_real * x_real) + (x_imag * x_imag));
+        //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
+        //If n > DIM_X, then the threads are reused and the multiplied values will be accumalated with matrix A.
+        rocblas_int i = 0;
+        for(; tx + i < col; i += DIM_X)
+        {
+            A[i] += res_x * x[(tx + i) * incx];
+        }
+        //Diagonal elements must be real
+        if(tx + i == col)
+        {
+            A[i] = std::real(A[i]) + std::real(x[col * incx] * res_x);
+        }
+    }
+    else
+    {
+        rocblas_int i = col + 1;
+        //Diagonal elements must be real
+        if(tx == 0)
+        {
+            A[i - 1] = std::real(A[i - 1]) + std::real(x[col * incx] * res_x);
+        }
+        //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
+        //If n > DIM_X, then the threads are reused and the multiplied values will be accumalated with matrix A.
+        for(; tx + i < n; i += DIM_X)
+        {
+            A[i] += res_x * x[(tx + i) * incx];
+        }
     }
 }
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void rocblas_her_kernel(bool           upper,
-                                                                       rocblas_int    n,
-                                                                       TScal          alphaa,
-                                                                       TConstPtr      xa,
-                                                                       ptrdiff_t      shift_x,
-                                                                       rocblas_int    incx,
-                                                                       rocblas_stride stride_x,
-                                                                       TPtr           Aa,
-                                                                       rocblas_int    lda,
-                                                                       ptrdiff_t      shift_A,
-                                                                       rocblas_stride stride_A)
+template <rocblas_int DIM_X, typename T_lda, typename TScal, typename TConstPtr, typename TPtr>
+ROCBLAS_KERNEL __launch_bounds__(DIM_X) void rocblas_her_kernel(bool           upper,
+                                                                rocblas_int    n,
+                                                                TScal          alpha_device_host,
+                                                                TConstPtr      xa,
+                                                                ptrdiff_t      shift_x,
+                                                                rocblas_int    incx,
+                                                                rocblas_stride stride_x,
+                                                                TPtr           Aa,
+                                                                rocblas_int    lda,
+                                                                ptrdiff_t      shift_A,
+                                                                rocblas_stride stride_A)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
-    if(DIM_X * DIM_Y != num_threads)
-        return; // need to launch exactly the number of threads as template parameters indicate.
-
-    auto alpha = load_scalar(alphaa);
+    auto alpha = load_scalar(alpha_device_host);
     if(!alpha)
         return;
 
-    auto*       A = load_ptr_batch(Aa, hipBlockIdx_z, shift_A, stride_A);
-    const auto* x = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
+    auto*       A = load_ptr_batch(Aa, hipBlockIdx_y, shift_A, stride_A);
+    const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shift_x, stride_x);
 
-    her_kernel_calc(upper, n, alpha, x, incx, A, lda);
+    her_kernel_calc<DIM_X, T_lda>(upper, n, alpha, x, incx, A, lda);
 }
 
 /**
@@ -78,54 +108,37 @@ rocblas_status rocblas_her_template(rocblas_handle handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
+    hipStream_t rocblas_stream = handle->get_stream();
+
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
 
-    static constexpr int HER_DIM_X = 128;
-    static constexpr int HER_DIM_Y = 8;
-    rocblas_int          blocksX   = (n - 1) / HER_DIM_X + 1;
-    rocblas_int          blocksY   = (n - 1) / HER_DIM_Y + 1;
+    bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
 
-    dim3 her_grid(blocksX, blocksY, batch_count);
-    dim3 her_threads(HER_DIM_X, HER_DIM_Y);
+#define her_KARGS(alpha_)                                                                        \
+    her_grid, her_threads, 0, rocblas_stream, uplo == rocblas_fill_upper, n, alpha_, x, shift_x, \
+        incx, stride_x, A, lda, offset_A, stride_A
+
+    static constexpr int HER_DIM_X = 1024;
+
+    dim3 her_grid(n, batch_count);
+    dim3 her_threads(HER_DIM_X);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, HER_DIM_Y>),
-                           her_grid,
-                           her_threads,
-                           0,
-                           handle->get_stream(),
-                           uplo == rocblas_fill_upper,
-                           n,
-                           alpha,
-                           x,
-                           shift_x,
-                           incx,
-                           stride_x,
-                           A,
-                           lda,
-                           offset_A,
-                           stride_A);
+        if(i64_indices)
+            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, size_t>), her_KARGS(alpha));
+        else
+            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, rocblas_int>), her_KARGS(alpha));
     }
     else
-        hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, HER_DIM_Y>),
-                           her_grid,
-                           her_threads,
-                           0,
-                           handle->get_stream(),
-                           uplo == rocblas_fill_upper,
-                           n,
-                           *alpha,
-                           x,
-                           shift_x,
-                           incx,
-                           stride_x,
-                           A,
-                           lda,
-                           offset_A,
-                           stride_A);
-
+    {
+        if(i64_indices)
+            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, size_t>), her_KARGS(*alpha));
+        else
+            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, rocblas_int>), her_KARGS(*alpha));
+    }
+#undef her_KARGS
     return rocblas_status_success;
 }
 

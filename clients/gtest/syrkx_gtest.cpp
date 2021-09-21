@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -97,9 +97,7 @@ namespace
             }
 
             if(arg.fortran)
-            {
                 name << "_F";
-            }
 
             return std::move(name);
         }

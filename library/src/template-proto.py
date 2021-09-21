@@ -22,7 +22,11 @@ def translateToProto(templateCode):
     n = 1
     while n:
         proto, n = re.subn(gPattern, '', proto)
-    print(proto.rstrip() + ";\n")
+
+    if (proto.rstrip()).endswith(';'):
+        print(proto.rstrip() + "\n")
+    else:
+        print(proto.rstrip() + ";\n")
 
 
 def parseForExportedTemplates(inputFileName):
@@ -32,9 +36,12 @@ def parseForExportedTemplates(inputFileName):
         for line in lines:
             filter = re.match(r'^template', line)
             if (filter):
+                if (haveTemplate):
+                    translateToProto(body)
                 haveTemplate = True
                 body = []
-            if (haveTemplate):
+                body.append(line)
+            elif (haveTemplate):
                 body.append(line)
                 if re.match(r'^\}', line) is not None:
                     translateToProto(body)

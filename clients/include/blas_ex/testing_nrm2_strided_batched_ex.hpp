@@ -100,20 +100,41 @@ void testing_nrm2_strided_batched_ex(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<Tr> res(std::max(1, std::abs(batch_count)));
-        CHECK_HIP_ERROR(res.memcheck());
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_nrm2_strided_batched_ex_fn(handle,
-                                                                 N,
-                                                                 nullptr,
-                                                                 x_type,
-                                                                 incx,
-                                                                 stridex,
-                                                                 batch_count,
-                                                                 res,
-                                                                 result_type,
-                                                                 execution_type),
-                              rocblas_status_success);
+        device_vector<Tr> d_rocblas_result_0(std::max(1, batch_count));
+        host_vector<Tr>   h_rocblas_result_0(std::max(1, batch_count));
+        CHECK_HIP_ERROR(d_rocblas_result_0.memcheck());
+        CHECK_HIP_ERROR(h_rocblas_result_0.memcheck());
+
+        rocblas_init_nan(h_rocblas_result_0, 1, std::max(1, batch_count), 1);
+        CHECK_HIP_ERROR(hipMemcpy(d_rocblas_result_0,
+                                  h_rocblas_result_0,
+                                  sizeof(Tr) * std::max(1, batch_count),
+                                  hipMemcpyHostToDevice));
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_strided_batched_ex_fn(handle,
+                                                               N,
+                                                               nullptr,
+                                                               x_type,
+                                                               incx,
+                                                               stridex,
+                                                               batch_count,
+                                                               d_rocblas_result_0,
+                                                               result_type,
+                                                               execution_type));
+
+        if(batch_count > 0)
+        {
+            host_vector<Tr> cpu_0(batch_count);
+            host_vector<Tr> gpu_0(batch_count);
+            CHECK_HIP_ERROR(cpu_0.memcheck());
+            CHECK_HIP_ERROR(gpu_0.memcheck());
+
+            CHECK_HIP_ERROR(hipMemcpy(
+                gpu_0, d_rocblas_result_0, sizeof(Tr) * batch_count, hipMemcpyDeviceToHost));
+            unit_check_general<Tr>(1, batch_count, 1, cpu_0, gpu_0);
+        }
+
         return;
     }
 

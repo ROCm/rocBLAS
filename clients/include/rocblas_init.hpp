@@ -46,7 +46,17 @@ void rocblas_init_sin(
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
             for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = sin(i + j * lda + i_batch * stride);
+                A[i + j * lda + i_batch * stride] = T(sin(i + j * lda + i_batch * stride));
+}
+
+template <typename T>
+void rocblas_init_sin(
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = T(sin(i + j * lda + i_batch * stride));
 }
 
 // Initialize matrix so adjacent entries have alternating sign.
@@ -89,7 +99,17 @@ void rocblas_init_cos(
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
             for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = cos(i + j * lda + i_batch * stride);
+                A[i + j * lda + i_batch * stride] = T(cos(i + j * lda + i_batch * stride));
+}
+
+template <typename T>
+void rocblas_init_cos(
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = T(cos(i + j * lda + i_batch * stride));
 }
 
 /*! \brief  symmetric matrix initialization: */
@@ -164,6 +184,16 @@ void rocblas_init_hermitian(std::vector<T>& A, size_t N, size_t lda)
 template <typename T>
 void rocblas_init_hpl(
     std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = random_hpl_generator<T>();
+}
+
+template <typename T>
+void rocblas_init_hpl(
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
