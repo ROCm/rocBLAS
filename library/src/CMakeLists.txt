@@ -216,6 +216,7 @@ set( rocblas_blas3_source_no_tensile
 
 set( rocblas_blas2_source
   blas2/rocblas_gemv.cpp
+  blas2/rocblas_gemv_kernels.cpp
   blas2/rocblas_gemv_batched.cpp
   blas2/rocblas_gemv_strided_batched.cpp
   blas2/rocblas_tpmv.cpp
@@ -228,9 +229,11 @@ set( rocblas_blas2_source
   blas2/rocblas_tbsv_batched.cpp
   blas2/rocblas_tbsv_strided_batched.cpp
   blas2/rocblas_trmv.cpp
+  blas2/rocblas_trmv_kernels.cpp
   blas2/rocblas_trmv_batched.cpp
   blas2/rocblas_trmv_strided_batched.cpp
   blas2/rocblas_ger.cpp
+  blas2/rocblas_ger_kernels.cpp
   blas2/rocblas_ger_batched.cpp
   blas2/rocblas_ger_strided_batched.cpp
   blas2/rocblas_hbmv.cpp
