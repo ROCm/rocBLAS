@@ -2,7 +2,10 @@
 # Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
-set( rocblas_samples_common ../common/utility.cpp )
+set( rocblas_samples_common
+      ../common/singletons.cpp
+      ../common/utility.cpp
+    )
 
 # C example
 add_executable( example-c-dgeam example_c_dgeam.c )
@@ -27,6 +30,10 @@ if( BUILD_WITH_TENSILE )
   add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
   add_executable( example-gemm-ext2 example_gemm_ext2.cpp ${rocblas_samples_common} )
   set( sample_list_tensile example-sgemm example-sgemm-strided-batched example-gemm-ext2 )
+else( )
+  add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
+  add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
+  set( sample_list_tensile example-sgemm example-sgemm-strided-batched )
 endif( )
 
 set( sample_list_c example-c-dgeam )

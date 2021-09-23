@@ -134,6 +134,11 @@ std::string rocblas_tempname();
 const char* read_env_var(const char* env_var);
 
 /* ============================================================================================ */
+/* Compute strided batched matrix allocation size allowing for strides smaller than full matrix */
+size_t strided_batched_matrix_size(
+    int rows, int cols, int lda, rocblas_stride stride, int batch_count);
+
+/* ============================================================================================ */
 /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
 template <typename T>
 inline void rocblas_print_matrix(

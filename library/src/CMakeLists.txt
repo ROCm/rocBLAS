@@ -117,27 +117,15 @@ if( BUILD_WITH_TENSILE )
     endif()
   endif()
 
-  #rocblas gemm, syrkx, trsm, and trmm require tensile
   set( Tensile_SRC
     tensile_host.cpp
-    blas3/Tensile/gemm.cpp
-    blas3/Tensile/gemm_batched.cpp
-    blas3/Tensile/gemm_strided_batched.cpp
-    blas3/rocblas_syrkx.cpp
-    blas3/rocblas_syrkx_batched.cpp
-    blas3/rocblas_syrkx_strided_batched.cpp
-    blas3/rocblas_trsm.cpp
-    blas3/rocblas_trsm_batched.cpp
-    blas3/rocblas_trsm_strided_batched.cpp
-    blas3/rocblas_trmm.cpp
-    blas3/rocblas_trmm_batched.cpp
-    blas3/rocblas_trmm_strided_batched.cpp
   )
 
   set( Tensile_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
   )
 
+  #rocblas gemm_ex, gemm_ext2 and trsv require tensile
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex.cpp
     blas_ex/rocblas_gemm_batched_ex.cpp
@@ -148,7 +136,11 @@ if( BUILD_WITH_TENSILE )
     blas_ex/rocblas_trsv_batched_ex.cpp
   )
 
+  #rocblas trsm and trtri require tensile
   set( rocblas_blas3_source
+    blas3/rocblas_trsm.cpp
+    blas3/rocblas_trsm_batched.cpp
+    blas3/rocblas_trsm_strided_batched.cpp
     blas3/rocblas_trtri.cpp
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp
@@ -173,13 +165,18 @@ set (rocblas_ex_source_no_tensile
     blas_ex/rocblas_nrm2_ex.cpp
     blas_ex/rocblas_nrm2_batched_ex.cpp
     blas_ex/rocblas_nrm2_strided_batched_ex.cpp
+    blas_ex/rocblas_trmm_ex.cpp
+    blas_ex/rocblas_trmm_batched_ex.cpp
+    blas_ex/rocblas_trmm_strided_batched_ex.cpp
 )
 
 set( rocblas_blas3_source_no_tensile
     blas3/rocblas_dgmm.cpp
+    blas3/rocblas_dgmm_kernels.cpp
     blas3/rocblas_dgmm_batched.cpp
     blas3/rocblas_dgmm_strided_batched.cpp
     blas3/rocblas_geam.cpp
+    blas3/rocblas_geam_kernels.cpp
     blas3/rocblas_geam_batched.cpp
     blas3/rocblas_geam_strided_batched.cpp
     blas3/rocblas_hemm.cpp
@@ -195,6 +192,7 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_herkx_batched.cpp
     blas3/rocblas_herkx_strided_batched.cpp
     blas3/rocblas_symm.cpp
+    blas3/rocblas_symm_kernels.cpp
     blas3/rocblas_symm_batched.cpp
     blas3/rocblas_symm_strided_batched.cpp
     blas3/rocblas_syrk.cpp
@@ -203,6 +201,17 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_syr2k.cpp
     blas3/rocblas_syr2k_batched.cpp
     blas3/rocblas_syr2k_strided_batched.cpp
+    blas3/Tensile/gemm.cpp
+    blas3/Tensile/gemm_batched.cpp
+    blas3/Tensile/gemm_strided_batched.cpp
+    blas3/rocblas_syrkx.cpp
+    blas3/rocblas_syrkx_kernels.cpp
+    blas3/rocblas_syrkx_batched.cpp
+    blas3/rocblas_syrkx_strided_batched.cpp
+    blas3/rocblas_trmm.cpp
+    blas3/rocblas_trmm_kernels.cpp
+    blas3/rocblas_trmm_batched.cpp
+    blas3/rocblas_trmm_strided_batched.cpp
 )
 
 set( rocblas_blas2_source
@@ -358,7 +367,7 @@ target_link_libraries( rocblas INTERFACE hip::host )
 if (WIN32)
   target_link_libraries( rocblas PRIVATE hip::device )
 else()
-  target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc -ldl )
+  target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc )
 endif()
 
 #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point

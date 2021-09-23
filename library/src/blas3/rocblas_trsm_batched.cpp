@@ -2,7 +2,6 @@
  * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "gemm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"

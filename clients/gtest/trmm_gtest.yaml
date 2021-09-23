@@ -4,22 +4,23 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size
-    - { M:    20, N:    30, lda:    40, ldb:   100 }
+    - { M:    20, N:    30, lda:    40, ldb:   100, ldc: 60 }
 
   - &small_matrix_size_range
-    - { M:    -1, N:    -1, lda:     1, ldb:     1 }
-    - { M:    10, N:    10, lda:    20, ldb:   100 }
+    - { M:    -1, N:    -1, lda:     1, ldb:     1, ldc: 1   }
+    - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 200 }
+    - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 50  }
 
   - &medium_matrix_size_range
-    - { M:   192, N:   192, lda:   192, ldb:   192 }
-    - { M:   600, N:   500, lda:   600, ldb:   600 }
-    - { M:   800, N:   700, lda:   801, ldb:   701 }
+    - { M:   192, N:   192, lda:   192, ldb:   192, ldc: 192 }
+    - { M:   600, N:   500, lda:   600, ldb:   600, ldc: 700 }
+    - { M:   800, N:   700, lda:   801, ldb:   701, ldc: 701 }
 
   - &large_matrix_size_range
-    - { M:   641, N:   640, lda:   961, ldb:   960 }
-    - { M:  1000, N:  1001, lda:  1002, ldb:  1003 }
-#   - { M:  1024, N:  1024, lda:  1024, ldb:  1024 }
-#   - { M:  2000, N:  2000, lda:  2000, ldb:  2000 }
+    - { M:   641, N:   640, lda:   961, ldb:   960, ldc: 960  }
+    - { M:  1000, N:  1001, lda:  1002, ldb:  1003, ldc: 1004 }
+#   - { M:  1024, N:  1024, lda:  1024, ldb:  1024, ldc: 1024 }
+#   - { M:  2000, N:  2000, lda:  2000, ldb:  2000, ldc: 2000 }
 
   - &alpha_range [ 1.0, -3.0 ]
 
@@ -32,81 +33,83 @@ Definitions:
     - { alpha:  1, alphai:  2 }
 
   - &testset1_small_matrix_size_range
-    - { M:      256,  N:        256,    lda:    256,    ldb:    256     }
-    - { M:      512,  N:        256,    lda:    256,    ldb:    512     }
-    - { M:      768,  N:        256,    lda:    256,    ldb:    768     }
-    - { M:      1024,   N:      256,    lda:    256,    ldb:    1024    }
-    - { M:      1280,   N:      256,    lda:    256,    ldb:    1280    }
-    - { M:      1536,   N:      256,    lda:    256,    ldb:    1536    }
-    - { M:      1792,   N:      256,    lda:    256,    ldb:    1792    }
-    - { M:      2048,   N:      256,    lda:    256,    ldb:    2048    }
-    - { M:      384,    N:      384,    lda:    384,    ldb:    384     }
-    - { M:      768,    N:      384,    lda:    384,    ldb:    768     }
-    - { M:      1152,   N:      384,    lda:    384,    ldb:    1152    }
-    - { M:      1536,   N:      384,    lda:    384,    ldb:    1536    }
-    - { M:      1920,   N:      384,    lda:    384,    ldb:    1920    }
-    - { M:      2304,   N:      384,    lda:    384,    ldb:    2304    }
-    - { M:      2688,   N:      384,    lda:    384,    ldb:    2688    }
-    - { M:      3072,   N:      384,    lda:    384,    ldb:    3072    }
+    - { M:      256,  N:        256,    lda:    256,    ldb:    256,  ldc: 256  }
+    - { M:      512,  N:        256,    lda:    256,    ldb:    512,  ldc: 512  }
+    - { M:      768,  N:        256,    lda:    256,    ldb:    768,  ldc: 768  }
+    - { M:      1024,   N:      256,    lda:    256,    ldb:    1024, ldc: 1024 }
+    - { M:      1280,   N:      256,    lda:    256,    ldb:    1280, ldc: 1280 }
+    - { M:      1536,   N:      256,    lda:    256,    ldb:    1536, ldc: 1536 }
+    - { M:      1792,   N:      256,    lda:    256,    ldb:    1792, ldc: 1792 }
+    - { M:      2048,   N:      256,    lda:    256,    ldb:    2048, ldc: 2048 }
+    - { M:      384,    N:      384,    lda:    384,    ldb:    384,  ldc: 384  }
+    - { M:      768,    N:      384,    lda:    384,    ldb:    768,  ldc: 768  }
+    - { M:      1152,   N:      384,    lda:    384,    ldb:    1152, ldc: 1152 }
+    - { M:      1536,   N:      384,    lda:    384,    ldb:    1536, ldc: 1536 }
+    - { M:      1920,   N:      384,    lda:    384,    ldb:    1920, ldc: 1920 }
+    - { M:      2304,   N:      384,    lda:    384,    ldb:    2304, ldc: 2304 }
+    - { M:      2688,   N:      384,    lda:    384,    ldb:    2688, ldc: 2688 }
+    - { M:      3072,   N:      384,    lda:    384,    ldb:    3072, ldc: 3072 }
 
 
   - &testset2_small_matrix_size_range
-    - { M:      256,    N:      256,    lda:    256,  ldb:      256     }
-    - { M:      256,    N:      512,    lda:    512,  ldb:      256     }
-    - { M:      256,    N:      768,  lda:      768,    ldb:    256     }
-    - { M:      256,    N:      1024,   lda:    1024,   ldb:    256     }
-    - { M:      256,    N:      1280,   lda:    1280,   ldb:    256     }
-    - { M:      256,    N:      1536,   lda:    1536,   ldb:    256     }
-    - { M:      256,    N:      1792,   lda:    1792,   ldb:    256     }
-    - { M:      256,    N:      2048,   lda:    2048,   ldb:    256     }
-    - { M:      384,    N:      384,    lda:    384,    ldb:    384     }
-    - { M:      384,    N:      768,  lda:      768,  ldb:      384     }
-    - { M:      384,    N:      1152,   lda:    1152,   ldb:    384     }
-    - { M:      384,    N:      1536,   lda:    1536,   ldb:    384     }
-    - { M:      384,    N:      1920,   lda:    1920,   ldb:    384     }
-    - { M:      384,    N:      2304,   lda:    2304,   ldb:    384     }
-    - { M:      384,    N:      2688,   lda:    2688,   ldb:    384     }
-    - { M:      384,    N:      3072,   lda:    3072,   ldb:    384     }
+    - { M:      256,    N:      256,    lda:    256,    ldb:    256, ldc: 256 }
+    - { M:      256,    N:      512,    lda:    512,    ldb:    256, ldc: 256 }
+    - { M:      256,    N:      768,    lda:    768,    ldb:    256, ldc: 256 }
+    - { M:      256,    N:      1024,   lda:    1024,   ldb:    256, ldc: 256 }
+    - { M:      256,    N:      1280,   lda:    1280,   ldb:    256, ldc: 256 }
+    - { M:      256,    N:      1536,   lda:    1536,   ldb:    256, ldc: 256 }
+    - { M:      256,    N:      1792,   lda:    1792,   ldb:    256, ldc: 256 }
+    - { M:      256,    N:      2048,   lda:    2048,   ldb:    256, ldc: 256 }
+    - { M:      384,    N:      384,    lda:    384,    ldb:    384, ldc: 384 }
+    - { M:      384,    N:      768,    lda:    768,    ldb:    384, ldc: 384 }
+    - { M:      384,    N:      1152,   lda:    1152,   ldb:    384, ldc: 384 }
+    - { M:      384,    N:      1536,   lda:    1536,   ldb:    384, ldc: 384 }
+    - { M:      384,    N:      1920,   lda:    1920,   ldb:    384, ldc: 384 }
+    - { M:      384,    N:      2304,   lda:    2304,   ldb:    384, ldc: 384 }
+    - { M:      384,    N:      2688,   lda:    2688,   ldb:    384, ldc: 384 }
+    - { M:      384,    N:      3072,   lda:    3072,   ldb:    384, ldc: 384 }
 
 
   - &testset1_matrix_size_range
-    - { M:   128, N:    2048, lda:   128, ldb:   128 }
-    - { M:   128, N:   16848, lda:   128, ldb:   128 }
-    - { M:   128, N:   29696, lda:   128, ldb:   128 }
-#   - { M:   128, N:   44544, lda:   128, ldb:   128 }
-#   - { M:   128, N:   53632, lda:   128, ldb:   128 }
-    - { M:   256, N:    2048, lda:   256, ldb:   256 }
-    - { M:   256, N:   14848, lda:   256, ldb:   256 }
-    - { M:   256, N:   29696, lda:   256, ldb:   256 }
-#   - { M:   256, N:   44544, lda:   256, ldb:   256 }
-#   - { M:   256, N:   53504, lda:   256, ldb:   256 }
-    - { M:   384, N:    2048, lda:   384, ldb:   384 }
-    - { M:   384, N:   14976, lda:   384, ldb:   384 }
-    - { M:   384, N:   29952, lda:   384, ldb:   384 }
-#   - { M:   384, N:   44928, lda:   384, ldb:   384 }
-#   - { M:   384, N:   53376, lda:   384, ldb:   384 }
+    - { M:   128, N:    2048, lda:   128, ldb:   128, ldc: 128 }
+    - { M:   128, N:   16848, lda:   128, ldb:   128, ldc: 128 }
+    - { M:   128, N:   29696, lda:   128, ldb:   128, ldc: 128 }
+#   - { M:   128, N:   44544, lda:   128, ldb:   128, ldc: 128 }
+#   - { M:   128, N:   53632, lda:   128, ldb:   128, ldc: 128 }
+    - { M:   256, N:    2048, lda:   256, ldb:   256, ldc: 256 }
+    - { M:   256, N:   14848, lda:   256, ldb:   256, ldc: 256 }
+    - { M:   256, N:   29696, lda:   256, ldb:   256, ldc: 256 }
+#   - { M:   256, N:   44544, lda:   256, ldb:   256, ldc: 256 }
+#   - { M:   256, N:   53504, lda:   256, ldb:   256, ldc: 256 }
+    - { M:   384, N:    2048, lda:   384, ldb:   384, ldc: 384 }
+    - { M:   384, N:   14976, lda:   384, ldb:   384, ldc: 384 }
+    - { M:   384, N:   29952, lda:   384, ldb:   384, ldc: 384 }
+#   - { M:   384, N:   44928, lda:   384, ldb:   384, ldc: 384 }
+#   - { M:   384, N:   53376, lda:   384, ldb:   384, ldc: 384 }
 
   - &testset2_matrix_size_range
-    - { M:   2048,  N: 128,  lda:  2048, ldb:    2048 }
-    - { M:  16848,  N: 128,  lda: 16848, ldb:   16848 }
-    - { M:  29696,  N: 128,  lda: 29696, ldb:   29696 }
-#   - { M:  44544,  N: 128,  lda: 44544, ldb:   44544 }
-#   - { M:  53632,  N: 128,  lda: 53632, ldb:   53632 }
-    - { M:   2048,  N: 256,  lda:  2048, ldb:    2048 }
-    - { M:  14848,  N: 256,  lda: 14848, ldb:   14848 }
-    - { M:  29696,  N: 256,  lda: 29696, ldb:   29696 }
-#   - { M:  44544,  N: 256,  lda: 44544, ldb:   44544 }
-#   - { M:  53504,  N: 256,  lda: 53504, ldb:   53504 }
-    - { M:   2048,  N: 384,  lda:  2048, ldb:    2048 }
-    - { M:  14976,  N: 384,  lda: 14976, ldb:   14976 }
-    - { M:  29952,  N: 384,  lda: 29952, ldb:   29952 }
-#   - { M:  44928,  N: 384,  lda: 44928, ldb:   44928 }
-#   - { M:  53376,  N: 384,  lda: 53376, ldb:   53376 }
+    - { M:   2048,  N: 128,  lda:  2048, ldb:    2048, ldc: 2048  }
+    - { M:  16848,  N: 128,  lda: 16848, ldb:   16848, ldc: 16848 }
+    - { M:  29696,  N: 128,  lda: 29696, ldb:   29696, ldc: 29696 }
+#   - { M:  44544,  N: 128,  lda: 44544, ldb:   44544, ldc: 44544 }
+#   - { M:  53632,  N: 128,  lda: 53632, ldb:   53632, ldc: 53632 }
+    - { M:   2048,  N: 256,  lda:  2048, ldb:    2048, ldc: 2048  }
+    - { M:  14848,  N: 256,  lda: 14848, ldb:   14848, ldc: 14848 }
+    - { M:  29696,  N: 256,  lda: 29696, ldb:   29696, ldc: 29696 }
+#   - { M:  44544,  N: 256,  lda: 44544, ldb:   44544, ldc: 44544 }
+#   - { M:  53504,  N: 256,  lda: 53504, ldb:   53504, ldc: 53504 }
+    - { M:   2048,  N: 384,  lda:  2048, ldb:    2048, ldc: 2048  }
+    - { M:  14976,  N: 384,  lda: 14976, ldb:   14976, ldc: 14976 }
+    - { M:  29952,  N: 384,  lda: 29952, ldb:   29952, ldc: 29952 }
+#   - { M:  44928,  N: 384,  lda: 44928, ldb:   44928, ldc: 44928 }
+#   - { M:  53376,  N: 384,  lda: 53376, ldb:   53376, ldc: 53376 }
 
 Tests:
 - name: trmm_bad_arg
   category: quick
-  function: trmm_bad_arg
+  function:
+    - trmm_bad_arg
+    - trmm_ex_bad_arg
   precision: *single_precision
   side: [L]
   uplo: [L]
@@ -116,7 +119,9 @@ Tests:
 
 - name: trmm_batched_bad_arg
   category: quick
-  function: trmm_batched_bad_arg
+  function:
+    - trmm_batched_bad_arg
+    - trmm_batched_ex_bad_arg
   precision: *single_precision
   side: [L]
   uplo: [U]
@@ -126,7 +131,9 @@ Tests:
 
 - name: trmm_strided_batched_bad_arg
   category: quick
-  function: trmm_strided_batched_bad_arg
+  function:
+    - trmm_strided_batched_bad_arg
+    - trmm_strided_batched_ex_bad_arg
   precision: *single_precision
   side: [L]
   uplo: [L]
@@ -136,7 +143,9 @@ Tests:
 
 - name: trmm_batched_small
   category: quick
-  function: trmm_batched
+  function:
+    - trmm_batched
+    - trmm_batched_ex
   precision: *single_double_precisions_complex
   side: [L   ]
   uplo: [   U]
@@ -149,7 +158,9 @@ Tests:
 
 - name: trmm_fortran
   category: quick
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions
   side: [L   ]
   uplo: [   U]
@@ -161,7 +172,9 @@ Tests:
 
 - name: trmm_batched_fortran
   category: quick
-  function: trmm_batched
+  function:
+    - trmm_batched
+    - trmm_batched_ex
   precision: *single_double_precisions_complex
   side: [   R]
   uplo: [   U]
@@ -175,7 +188,9 @@ Tests:
 
 - name: trmm_strided_batched_fortran
   category: quick
-  function: trmm_strided_batched
+  function:
+    - trmm_strided_batched
+    - trmm_strided_batched_ex
   precision: *single_double_precisions_complex
   side: [L]
   uplo: [L]
@@ -189,7 +204,9 @@ Tests:
 
 - name: trmm_strided_batched_small
   category: quick
-  function: trmm_strided_batched
+  function:
+    - trmm_strided_batched
+    - trmm_strided_batched_ex
   precision: *single_double_precisions_complex
   side: [L   ]
   uplo: [L   ]
@@ -202,12 +219,14 @@ Tests:
 
 - name: trmm_batched_medium
   category: pre_checkin
-  function: trmm_batched
+  function:
+    - trmm_batched
+    - trmm_batched_ex
   precision: *single_double_precisions_complex
-  side: [L   ]
-  uplo: [L   ]
-  transA: [   T   ]
-  diag: [N   ]
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha
   stride_scale: [ 2         ]
@@ -215,12 +234,14 @@ Tests:
 
 - name: trmm_strided_batched_medium
   category: pre_checkin
-  function: trmm_strided_batched
+  function:
+    - trmm_strided_batched
+    - trmm_strided_batched_ex
   precision: *single_double_precisions_complex
-  side: [   R]
-  uplo: [   U]
-  transA: [N      ]
-  diag: [   U]
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha
   stride_scale: [ 1         ]
@@ -228,7 +249,9 @@ Tests:
 
 - name: trmm_small
   category: quick
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -239,7 +262,9 @@ Tests:
 
 - name: trmm_small
   category: quick
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -250,7 +275,9 @@ Tests:
 
 - name: trmm_medium
   category: pre_checkin
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -261,7 +288,9 @@ Tests:
 
 - name: trmm_medium
   category: pre_checkin
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -272,7 +301,9 @@ Tests:
 
 - name: trmm_NaN
   category: pre_checkin
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -283,7 +314,9 @@ Tests:
 
 - name: trmm_strided_batched_NaN
   category: pre_checkin
-  function: trmm_strided_batched
+  function:
+    - trmm_strided_batched
+    - trmm_strided_batched_ex
   precision: *single_double_precisions
   side: [L,  ]
   uplo: [L,  ]
@@ -296,7 +329,9 @@ Tests:
 
 - name: trmm_testset1
   category: nightly
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -307,7 +342,9 @@ Tests:
 
 - name: trmm_testset2
   category: nightly
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions
   side: [R]
   uplo: [L]
@@ -318,7 +355,9 @@ Tests:
 
 - name: trmm_large
   category: nightly
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
@@ -329,7 +368,9 @@ Tests:
 
 - name: trmm_large
   category: nightly
-  function: trmm
+  function:
+    - trmm
+    - trmm_ex
   precision: *single_double_precisions_complex
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }

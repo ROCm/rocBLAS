@@ -17,9 +17,6 @@ if( BUILD_WITH_TENSILE )
       multiheaded_gtest.cpp
       # use of tensile based functions (gemm)
       atomics_mode_gtest.cpp
-      gemm_gtest.cpp
-      syrkx_gtest.cpp
-      trmm_gtest.cpp
       trsm_gtest.cpp
       trtri_gtest.cpp
       )
@@ -73,6 +70,9 @@ set(rocblas_no_tensile_test_source
     syr2k_gtest.cpp
     geam_gtest.cpp
     dgmm_gtest.cpp
+    gemm_gtest.cpp
+    syrkx_gtest.cpp
+    trmm_gtest.cpp
     )
 
 if(LINK_BLIS)
@@ -81,6 +81,7 @@ endif()
 
 set( rocblas_benchmark_common
       ../common/rocblas_arguments.cpp
+      ../common/singletons.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/argument_model.cpp

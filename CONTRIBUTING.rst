@@ -757,6 +757,7 @@ Coding Guidelines
     The ``rocblas_internal_ostream::yaml_on`` and ``rocblas_internal_ostream::yaml_off`` IO modifiers enable or disable YAML formatting, for when outputting abitrary types as YAML source code. For example, to output a ``key: value`` pair as YAML source code, you would use:
 
     .. code:: cpp
+
         os << key << ": " << rocblas_internal_ostream::yaml_on << value << rocblas_internal_ostream::yaml_off;
 
     The ``key`` is outputted normally as a bare string, but the ``value`` uses YAML metacharacters and lexical syntax to output the value, so that when it's read in as YAML, it has the type and value of ``value``.

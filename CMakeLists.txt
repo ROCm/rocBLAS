@@ -25,6 +25,11 @@ add_compile_options( -Wno-unused-command-line-argument )
 # TODO: address [[nodiscard]] warnings
 add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
 
+
+# CMake v3.21.0 can identify ROCMClang, but there are some issues with feature detection.
+# For now, disable ROCMClang detection to make it work the same as CMake v3.20 and earlier.
+set(__skip_rocmclang ON)
+
 unset(ENV{ROCM_BUILD_ID})
 project( rocblas LANGUAGES CXX )
 
@@ -76,7 +81,7 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 # set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fallow-half-arguments-and-returns" )
   set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
   if ( CMAKE_BUILD_TYPE MATCHES "Debug" AND NOT WIN32)
-    set ( CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG} -ggdb" )
+    set ( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG} -gsplit-dwarf -ggdb" )
   endif()
 elseif( CXX_VERSION_STRING MATCHES "nvcc" )
   message( STATUS "HIPCC nvcc compiler detected; CUDA backend selected" )
@@ -145,7 +150,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.41.0" )
+set ( VERSION_STRING "2.42.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)

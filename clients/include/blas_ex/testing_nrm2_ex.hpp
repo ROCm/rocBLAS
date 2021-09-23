@@ -76,11 +76,26 @@ void testing_nrm2_ex(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        host_vector<Tr> res(1);
-        CHECK_HIP_ERROR(res.memcheck());
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(
-            rocblas_nrm2_ex_fn(handle, N, nullptr, x_type, incx, res, result_type, execution_type));
+        device_vector<Tr> d_rocblas_result_0(1);
+        host_vector<Tr>   h_rocblas_result_0(1);
+        CHECK_HIP_ERROR(d_rocblas_result_0.memcheck());
+        CHECK_HIP_ERROR(h_rocblas_result_0.memcheck());
+
+        rocblas_init_nan(h_rocblas_result_0, 1, 1, 1);
+        CHECK_HIP_ERROR(
+            hipMemcpy(d_rocblas_result_0, h_rocblas_result_0, sizeof(Tr), hipMemcpyHostToDevice));
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_ex_fn(
+            handle, N, nullptr, x_type, incx, d_rocblas_result_0, result_type, execution_type));
+
+        host_vector<Tr> cpu_0(1);
+        host_vector<Tr> gpu_0(1);
+        CHECK_HIP_ERROR(cpu_0.memcheck());
+        CHECK_HIP_ERROR(gpu_0.memcheck());
+
+        CHECK_HIP_ERROR(hipMemcpy(gpu_0, d_rocblas_result_0, sizeof(Tr), hipMemcpyDeviceToHost));
+        unit_check_general<Tr>(1, 1, 1, cpu_0, gpu_0);
         return;
     }
 

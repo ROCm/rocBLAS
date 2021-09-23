@@ -315,8 +315,9 @@ def setdefaults(test):
         else:
             setkey_product(test, 'stride_b', ['M', 'ldb', 'stride_scale'])
 
-    elif test['function'] in ('trmm_strided_batched'):
+    elif test['function'] in ('trmm_strided_batched', 'trmm_strided_batched_ex'):
         setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
+        setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
 
         if test['side'].upper() == 'L':
             setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])

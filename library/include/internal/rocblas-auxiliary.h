@@ -71,6 +71,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_query_int8_layout_flag(rocblas_handle     
 ROCBLAS_EXPORT rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr);
 
 /*! \brief copy vector from host to device
+    @param[in]
+    n           [rocblas_int]
+                number of elements in the vector
+    @param[in]
+    x           pointer to vector on the host
+    @param[in]
+    incx        [rocblas_int]
+                specifies the increment for the elements of the vector
+    @param[out]
+    y           pointer to vector on the device
+    @param[in]
+    incy        [rocblas_int]
+                specifies the increment for the elements of the vector
  */
 ROCBLAS_EXPORT rocblas_status rocblas_set_vector(rocblas_int n,
                                                  rocblas_int elem_size,
@@ -80,6 +93,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_vector(rocblas_int n,
                                                  rocblas_int incy);
 
 /*! \brief copy vector from device to host
+    @param[in]
+    n           [rocblas_int]
+                number of elements in the vector
+    @param[in]
+    x           pointer to vector on the device
+    @param[in]
+    incx        [rocblas_int]
+                specifies the increment for the elements of the vector
+    @param[out]
+    y           pointer to vector on the host
+    @param[in]
+    incy        [rocblas_int]
+                specifies the increment for the elements of the vector
  */
 ROCBLAS_EXPORT rocblas_status rocblas_get_vector(rocblas_int n,
                                                  rocblas_int elem_size,
@@ -89,6 +115,25 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_vector(rocblas_int n,
                                                  rocblas_int incy);
 
 /*! \brief copy matrix from host to device
+    @param[in]
+    rows        [rocblas_int]
+                number of rows in matrices
+    @param[in]
+    cols        [rocblas_int]
+                number of columns in matrices
+    @param[in]
+    elem_size   [rocblas_int]
+                number of bytes per element in the matrix
+    @param[in]
+    a           pointer to matrix on the host
+    @param[in]
+    lda         [rocblas_int]
+                specifies the leading dimension of A, lda >= rows
+    @param[out]
+    b           pointer to matrix on the GPU
+    @param[in]
+    ldb         [rocblas_int]
+                specifies the leading dimension of B, ldb >= rows
  */
 ROCBLAS_EXPORT rocblas_status rocblas_set_matrix(rocblas_int rows,
                                                  rocblas_int cols,
@@ -99,6 +144,25 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_matrix(rocblas_int rows,
                                                  rocblas_int ldb);
 
 /*! \brief copy matrix from device to host
+    @param[in]
+    rows        [rocblas_int]
+                number of rows in matrices
+    @param[in]
+    cols        [rocblas_int]
+                number of columns in matrices
+    @param[in]
+    elem_size   [rocblas_int]
+                number of bytes per element in the matrix
+    @param[in]
+    a           pointer to matrix on the GPU
+    @param[in]
+    lda         [rocblas_int]
+                specifies the leading dimension of A, lda >= rows
+    @param[out]
+    b           pointer to matrix on the host
+    @param[in]
+    ldb         [rocblas_int]
+                specifies the leading dimension of B, ldb >= rows
  */
 ROCBLAS_EXPORT rocblas_status rocblas_get_matrix(rocblas_int rows,
                                                  rocblas_int cols,
@@ -181,12 +245,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_vector_async(rocblas_int n,
     a           pointer to matrix on the host
     @param[in]
     lda         [rocblas_int]
-                specifies the leading dimension of A
+                specifies the leading dimension of A, lda >= rows
     @param[out]
     b           pointer to matrix on the GPU
     @param[in]
     ldb         [rocblas_int]
-                specifies the leading dimension of B
+                specifies the leading dimension of B, ldb >= rows
     @param[in]
     stream      specifies the stream into which this transfer request is queued
      ********************************************************************/
@@ -216,12 +280,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_matrix_async(rocblas_int rows,
     a           pointer to matrix on the GPU
     @param[in]
     lda         [rocblas_int]
-                specifies the leading dimension of A
+                specifies the leading dimension of A, lda >= rows
     @param[out]
     b           pointer to matrix on the host
     @param[in]
     ldb         [rocblas_int]
-                specifies the leading dimension of B
+                specifies the leading dimension of B, ldb >= rows
     @param[in]
     stream      specifies the stream into which this transfer request is queued
      ********************************************************************/

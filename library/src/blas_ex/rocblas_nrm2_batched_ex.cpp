@@ -100,13 +100,16 @@ namespace
             if(rocblas_pointer_mode_device == handle->pointer_mode)
             {
                 if(batch_count > 0)
-                    RETURN_IF_HIP_ERROR(hipMemsetAsync(
-                        results, 0, rocblas_sizeof_datatype(result_type), handle->get_stream()));
+                    RETURN_IF_HIP_ERROR(
+                        hipMemsetAsync(results,
+                                       0,
+                                       rocblas_sizeof_datatype(result_type) * batch_count,
+                                       handle->get_stream()));
             }
             else
             {
                 if(batch_count > 0)
-                    memset(results, 0, rocblas_sizeof_datatype(result_type));
+                    memset(results, 0, rocblas_sizeof_datatype(result_type) * batch_count);
             }
             return rocblas_status_success;
         }

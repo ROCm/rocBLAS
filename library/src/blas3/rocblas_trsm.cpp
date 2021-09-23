@@ -3,7 +3,6 @@
  * ************************************************************************ */
 
 #include "rocblas_trsm.hpp"
-#include "gemm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
