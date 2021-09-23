@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "gemm_batched.hpp"
+
 #include "gemm.hpp"
 #include "logging.hpp"
 
@@ -32,13 +32,13 @@ namespace
                                              rocblas_int       k,
                                              const T*          alpha,
                                              const T* const    A[],
-                                             ptrdiff_t         ld_a,
+                                             ptrdiff_t         lda,
                                              const T* const    B[],
-                                             ptrdiff_t         ld_b,
+                                             ptrdiff_t         ldb,
                                              const T*          beta,
                                              T* const          C[],
-                                             ptrdiff_t         ld_c,
-                                             rocblas_int       b_c)
+                                             ptrdiff_t         ldc,
+                                             rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -70,13 +70,13 @@ namespace
                           k,
                           LOG_TRACE_SCALAR_VALUE(handle, alpha),
                           A,
-                          ld_a,
+                          lda,
                           B,
-                          ld_b,
+                          ldb,
                           LOG_TRACE_SCALAR_VALUE(handle, beta),
                           C,
-                          ld_c,
-                          b_c);
+                          ldc,
+                          batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
@@ -94,14 +94,14 @@ namespace
                           k,
                           LOG_BENCH_SCALAR_VALUE(handle, alpha),
                           "--lda",
-                          ld_a,
+                          lda,
                           "--ldb",
-                          ld_b,
+                          ldb,
                           LOG_BENCH_SCALAR_VALUE(handle, beta),
                           "--ldc",
-                          ld_c,
+                          ldc,
                           "--batch_count",
-                          b_c);
+                          batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
@@ -119,19 +119,19 @@ namespace
                             "alpha",
                             value_category(*alpha),
                             "lda",
-                            ld_a,
+                            lda,
                             "ldb",
-                            ld_b,
+                            ldb,
                             "beta",
                             value_category(*beta),
                             "ldc",
-                            ld_c,
+                            ldc,
                             "batch_count",
-                            b_c);
+                            batch_count);
         }
 
         auto validArgs = validateArgs(
-            handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+            handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, batch_count);
 
         if(validArgs != rocblas_status_continue)
             return validArgs;
@@ -148,43 +148,77 @@ namespace
                                               n,
                                               k,
                                               A,
-                                              ld_a,
+                                              lda,
                                               0,
                                               B,
-                                              ld_b,
+                                              ldb,
                                               0,
                                               C,
-                                              ld_c,
+                                              ldc,
                                               0,
-                                              b_c,
+                                              batch_count,
                                               check_numerics,
                                               is_input);
             if(gemm_check_numerics_status != rocblas_status_success)
                 return gemm_check_numerics_status;
         }
-
         rocblas_status status = rocblas_status_success;
-        status                = rocblas_internal_gemm_template<true>(handle,
-                                                      trans_a,
-                                                      trans_b,
-                                                      m,
-                                                      n,
-                                                      k,
-                                                      alpha,
-                                                      A,
-                                                      0,
-                                                      ld_a,
-                                                      0,
-                                                      B,
-                                                      0,
-                                                      ld_b,
-                                                      0,
-                                                      beta,
-                                                      C,
-                                                      0,
-                                                      ld_c,
-                                                      0,
-                                                      b_c);
+
+        rocblas_int a_n2        = rocblas_operation_none == trans_a ? k : m;
+        rocblas_int b_n2        = rocblas_operation_none == trans_b ? n : k;
+        bool        i64_indices = (a_n2 * size_t(lda) > std::numeric_limits<rocblas_int>::max())
+                           || (b_n2 * size_t(ldb) > std::numeric_limits<rocblas_int>::max())
+                           || (n * size_t(ldc) > std::numeric_limits<rocblas_int>::max());
+
+        if(i64_indices)
+        {
+            status = rocblas_internal_gemm_template<true>(handle,
+                                                          trans_a,
+                                                          trans_b,
+                                                          m,
+                                                          n,
+                                                          k,
+                                                          alpha,
+                                                          A,
+                                                          size_t(0),
+                                                          size_t(lda),
+                                                          0,
+                                                          B,
+                                                          size_t(0),
+                                                          size_t(ldb),
+                                                          0,
+                                                          beta,
+                                                          C,
+                                                          size_t(0),
+                                                          size_t(ldc),
+                                                          0,
+                                                          batch_count);
+        }
+        else
+        {
+            status = rocblas_internal_gemm_template<true>(handle,
+                                                          trans_a,
+                                                          trans_b,
+                                                          m,
+                                                          n,
+                                                          k,
+                                                          alpha,
+                                                          A,
+                                                          rocblas_int(0),
+                                                          rocblas_int(lda),
+                                                          0,
+                                                          B,
+                                                          rocblas_int(0),
+                                                          rocblas_int(ldb),
+                                                          0,
+                                                          beta,
+                                                          C,
+                                                          rocblas_int(0),
+                                                          rocblas_int(ldc),
+                                                          0,
+                                                          batch_count);
+        }
+
         if(status != rocblas_status_success)
             return status;
 
@@ -200,15 +234,15 @@ namespace
                                               n,
                                               k,
                                               A,
-                                              ld_a,
+                                              lda,
                                               0,
                                               B,
-                                              ld_b,
+                                              ldb,
                                               0,
                                               C,
-                                              ld_c,
+                                              ldc,
                                               0,
-                                              b_c,
+                                              batch_count,
                                               check_numerics,
                                               is_input);
             if(gemm_check_numerics_status != rocblas_status_success)
@@ -231,13 +265,13 @@ rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
                                      rocblas_int               k,
                                      const rocblas_half*       alpha,
                                      const rocblas_half* const A[],
-                                     rocblas_int               ld_a,
+                                     rocblas_int               lda,
                                      const rocblas_half* const B[],
-                                     rocblas_int               ld_b,
+                                     rocblas_int               ldb,
                                      const rocblas_half*       beta,
                                      rocblas_half* const       C[],
-                                     rocblas_int               ld_c,
-                                     rocblas_int               b_c)
+                                     rocblas_int               ldc,
+                                     rocblas_int               batch_count)
 try
 {
     return rocblas_gemm_batched_impl<rocblas_half>(handle,
@@ -248,13 +282,13 @@ try
                                                    k,
                                                    alpha,
                                                    A,
-                                                   ptrdiff_t(ld_a),
+                                                   ptrdiff_t(lda),
                                                    B,
-                                                   ptrdiff_t(ld_b),
+                                                   ptrdiff_t(ldb),
                                                    beta,
                                                    C,
-                                                   ptrdiff_t(ld_c),
-                                                   b_c);
+                                                   ptrdiff_t(ldc),
+                                                   batch_count);
 }
 catch(...)
 {
@@ -269,13 +303,13 @@ rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
                                      rocblas_int        k,
                                      const float*       alpha,
                                      const float* const A[],
-                                     rocblas_int        ld_a,
+                                     rocblas_int        lda,
                                      const float* const B[],
-                                     rocblas_int        ld_b,
+                                     rocblas_int        ldb,
                                      const float*       beta,
                                      float* const       C[],
-                                     rocblas_int        ld_c,
-                                     rocblas_int        b_c)
+                                     rocblas_int        ldc,
+                                     rocblas_int        batch_count)
 try
 {
     return rocblas_gemm_batched_impl<float>(handle,
@@ -286,13 +320,13 @@ try
                                             k,
                                             alpha,
                                             A,
-                                            ptrdiff_t(ld_a),
+                                            ptrdiff_t(lda),
                                             B,
-                                            ptrdiff_t(ld_b),
+                                            ptrdiff_t(ldb),
                                             beta,
                                             C,
-                                            ptrdiff_t(ld_c),
-                                            b_c);
+                                            ptrdiff_t(ldc),
+                                            batch_count);
 }
 catch(...)
 {
@@ -307,13 +341,13 @@ rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
                                      rocblas_int         k,
                                      const double*       alpha,
                                      const double* const A[],
-                                     rocblas_int         ld_a,
+                                     rocblas_int         lda,
                                      const double* const B[],
-                                     rocblas_int         ld_b,
+                                     rocblas_int         ldb,
                                      const double*       beta,
                                      double* const       C[],
-                                     rocblas_int         ld_c,
-                                     rocblas_int         b_c)
+                                     rocblas_int         ldc,
+                                     rocblas_int         batch_count)
 try
 {
     return rocblas_gemm_batched_impl<double>(handle,
@@ -324,13 +358,13 @@ try
                                              k,
                                              alpha,
                                              A,
-                                             ptrdiff_t(ld_a),
+                                             ptrdiff_t(lda),
                                              B,
-                                             ptrdiff_t(ld_b),
+                                             ptrdiff_t(ldb),
                                              beta,
                                              C,
-                                             ptrdiff_t(ld_c),
-                                             b_c);
+                                             ptrdiff_t(ldc),
+                                             batch_count);
 }
 catch(...)
 {
@@ -345,13 +379,13 @@ rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
                                      rocblas_int                        k,
                                      const rocblas_float_complex*       alpha,
                                      const rocblas_float_complex* const A[],
-                                     rocblas_int                        ld_a,
+                                     rocblas_int                        lda,
                                      const rocblas_float_complex* const B[],
-                                     rocblas_int                        ld_b,
+                                     rocblas_int                        ldb,
                                      const rocblas_float_complex*       beta,
                                      rocblas_float_complex* const       C[],
-                                     rocblas_int                        ld_c,
-                                     rocblas_int                        b_c)
+                                     rocblas_int                        ldc,
+                                     rocblas_int                        batch_count)
 try
 {
     return rocblas_gemm_batched_impl<rocblas_float_complex>(handle,
@@ -362,13 +396,13 @@ try
                                                             k,
                                                             alpha,
                                                             A,
-                                                            ptrdiff_t(ld_a),
+                                                            ptrdiff_t(lda),
                                                             B,
-                                                            ptrdiff_t(ld_b),
+                                                            ptrdiff_t(ldb),
                                                             beta,
                                                             C,
-                                                            ptrdiff_t(ld_c),
-                                                            b_c);
+                                                            ptrdiff_t(ldc),
+                                                            batch_count);
 }
 catch(...)
 {
@@ -383,13 +417,13 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
                                      rocblas_int                         k,
                                      const rocblas_double_complex*       alpha,
                                      const rocblas_double_complex* const A[],
-                                     rocblas_int                         ld_a,
+                                     rocblas_int                         lda,
                                      const rocblas_double_complex* const B[],
-                                     rocblas_int                         ld_b,
+                                     rocblas_int                         ldb,
                                      const rocblas_double_complex*       beta,
                                      rocblas_double_complex* const       C[],
-                                     rocblas_int                         ld_c,
-                                     rocblas_int                         b_c)
+                                     rocblas_int                         ldc,
+                                     rocblas_int                         batch_count)
 try
 {
     return rocblas_gemm_batched_impl<rocblas_double_complex>(handle,
@@ -400,13 +434,13 @@ try
                                                              k,
                                                              alpha,
                                                              A,
-                                                             ptrdiff_t(ld_a),
+                                                             ptrdiff_t(lda),
                                                              B,
-                                                             ptrdiff_t(ld_b),
+                                                             ptrdiff_t(ldb),
                                                              beta,
                                                              C,
-                                                             ptrdiff_t(ld_c),
-                                                             b_c);
+                                                             ptrdiff_t(ldc),
+                                                             batch_count);
 }
 catch(...)
 {
@@ -424,13 +458,13 @@ rocblas_status rocblas_hgemm_batched_kernel_name(rocblas_handle      handle,
                                                  rocblas_int         k,
                                                  const rocblas_half* alpha,
                                                  const rocblas_half* A[],
-                                                 rocblas_int         ld_a,
+                                                 rocblas_int         lda,
                                                  const rocblas_half* B[],
-                                                 rocblas_int         ld_b,
+                                                 rocblas_int         ldb,
                                                  const rocblas_half* beta,
                                                  rocblas_half*       C[],
-                                                 rocblas_int         ld_c,
-                                                 rocblas_int         b_c)
+                                                 rocblas_int         ldc,
+                                                 rocblas_int         batch_count)
 {
     return rocblas_status_not_implemented;
 }
@@ -443,13 +477,13 @@ rocblas_status rocblas_sgemm_batched_kernel_name(rocblas_handle    handle,
                                                  rocblas_int       k,
                                                  const float*      alpha,
                                                  const float*      A[],
-                                                 rocblas_int       ld_a,
+                                                 rocblas_int       lda,
                                                  const float*      B[],
-                                                 rocblas_int       ld_b,
+                                                 rocblas_int       ldb,
                                                  const float*      beta,
                                                  float*            C[],
-                                                 rocblas_int       ld_c,
-                                                 rocblas_int       b_c)
+                                                 rocblas_int       ldc,
+                                                 rocblas_int       batch_count)
 {
     return rocblas_status_not_implemented;
 }
@@ -462,13 +496,13 @@ rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
                                                  rocblas_int       k,
                                                  const double*     alpha,
                                                  const double*     A[],
-                                                 rocblas_int       ld_a,
+                                                 rocblas_int       lda,
                                                  const double*     B[],
-                                                 rocblas_int       ld_b,
+                                                 rocblas_int       ldb,
                                                  const double*     beta,
                                                  double*           C[],
-                                                 rocblas_int       ld_c,
-                                                 rocblas_int       b_c)
+                                                 rocblas_int       ldc,
+                                                 rocblas_int       batch_count)
 {
     return rocblas_status_not_implemented;
 }

@@ -12,13 +12,14 @@ template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
           rocblas_int WIN,
           bool        CONJ,
+          typename T_lda,
           typename T,
-          typename U,
           typename V,
+          typename U,
           typename W>
 ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
                                                                rocblas_int    n,
-                                                               W              alpha_device_host,
+                                                               V              alpha_device_host,
                                                                rocblas_stride stride_alpha,
                                                                const U __restrict__ xa,
                                                                ptrdiff_t      shiftx,
@@ -28,9 +29,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
                                                                ptrdiff_t      shifty,
                                                                rocblas_int    incy,
                                                                rocblas_stride stridey,
-                                                               V              Aa,
+                                                               W __restrict__ Aa,
                                                                ptrdiff_t      shifta,
-                                                               rocblas_int    lda,
+                                                               T_lda          lda,
                                                                rocblas_stride strideA)
 {
     __shared__ T xdata[DIM_X];
@@ -43,7 +44,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
     const T* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_z, shiftx, stridex);
     const T* __restrict__ y = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
 
-    T* A = load_ptr_batch(Aa, hipBlockIdx_z, shifta, strideA);
+    T* __restrict__ A = load_ptr_batch(Aa, hipBlockIdx_z, shifta, strideA);
 
     int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -73,16 +74,64 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
         {
             int yi = ty + i;
             if(yi < n)
-                A[tx + size_t(lda) * yi]
-                    += x_value * (CONJ ? conj(ydata[tyi + i]) : ydata[tyi + i]);
+                A[tx + lda * yi] += x_value * (CONJ ? conj(ydata[tyi + i]) : ydata[tyi + i]);
         }
+    }
+}
+
+//optimized kernel for SGER
+template <rocblas_int DIM_X, typename T_lda, typename T, typename V, typename U, typename W>
+ROCBLAS_KERNEL __launch_bounds__(DIM_X) void sger_kernel(rocblas_int    m,
+                                                         rocblas_int    n,
+                                                         V              alpha_device_host,
+                                                         rocblas_stride stride_alpha,
+                                                         const U __restrict__ xa,
+                                                         ptrdiff_t      shiftx,
+                                                         rocblas_int    incx,
+                                                         rocblas_stride stridex,
+                                                         const U __restrict__ ya,
+                                                         ptrdiff_t      shifty,
+                                                         rocblas_int    incy,
+                                                         rocblas_stride stridey,
+                                                         W __restrict__ Aa,
+                                                         ptrdiff_t      shifta,
+                                                         T_lda          lda,
+                                                         rocblas_stride strideA)
+{
+    rocblas_int tx  = hipThreadIdx_x;
+    rocblas_int col = hipBlockIdx_x;
+
+    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+
+    if(!alpha)
+        return;
+
+    const T* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const T* __restrict__ y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+
+    T* __restrict__ A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+
+    if(tx < m)
+        A += tx;
+
+    //Each hipBlockIdx_x takes care of the computation of each column of matrix 'A'
+    A += col * lda;
+
+    const T res_y = y[col * incy] * alpha;
+
+    //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
+    //If m > DIM_X, then the threads are reused and the multiplied values will be accumalated to Hermitian matrix 'A'.
+
+    for(rocblas_int i = 0; tx + i < m; i += DIM_X)
+    {
+        A[i] += res_y * x[(tx + i) * incx];
     }
 }
 
 template <bool CONJ, typename T, typename U, typename V, typename W>
 inline rocblas_status rocblas_ger_arg_check(rocblas_int    m,
                                             rocblas_int    n,
-                                            const W*       alpha,
+                                            const V*       alpha,
                                             rocblas_stride stride_alpha,
                                             const U*       x,
                                             rocblas_int    offsetx,
@@ -92,7 +141,7 @@ inline rocblas_status rocblas_ger_arg_check(rocblas_int    m,
                                             rocblas_int    offsety,
                                             rocblas_int    incy,
                                             rocblas_int    stridey,
-                                            V*             A,
+                                            W*             A,
                                             rocblas_int    offsetA,
                                             rocblas_int    lda,
                                             rocblas_int    strideA,
@@ -115,7 +164,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_ger_template(rocblas_handle handle,
                                   rocblas_int    m,
                                   rocblas_int    n,
-                                  const W*       alpha,
+                                  const V*       alpha,
                                   rocblas_stride stride_alpha,
                                   const U*       x,
                                   rocblas_int    offsetx,
@@ -125,7 +174,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                   rocblas_int    offsety,
                                   rocblas_int    incy,
                                   rocblas_int    stridey,
-                                  V*             A,
+                                  W*             A,
                                   rocblas_int    offsetA,
                                   rocblas_int    lda,
                                   rocblas_int    strideA,
@@ -141,60 +190,68 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
-    static constexpr int DIM_X = 32;
-    static constexpr int DIM_Y = 32;
-    static constexpr int WIN
-        = std::is_same<T, float>{} ? 4 : 2; // work item number of elements to process
-    rocblas_int blocksX = (m - 1) / DIM_X + 1;
-    rocblas_int blocksY = (n - 1) / (DIM_Y * WIN) + 1; // WIN columns/work item
+    bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
 
-    dim3 grid(blocksX, blocksY, batch_count);
-    dim3 threads(DIM_X, DIM_Y);
+    //Identifying the precision to have an appropriate optimization
+    bool is_float = std::is_same<T, float>{};
 
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>),
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           m,
-                           n,
-                           alpha,
-                           stride_alpha,
-                           x,
-                           shiftx,
-                           incx,
-                           stridex,
-                           y,
-                           shifty,
-                           incy,
-                           stridey,
-                           A,
-                           offsetA,
-                           lda,
-                           strideA);
+#define ger_KARGS(alpha_)                                                                  \
+    ger_grid, ger_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, x, shiftx, incx, \
+        stridex, y, shifty, incy, stridey, A, offsetA, lda, strideA
+
+    //optimized sger kernel
+    if(is_float && m > 1024)
+    {
+        static constexpr int DIM_X = 1024;
+        dim3                 ger_grid(n, batch_count);
+        dim3                 ger_threads(DIM_X);
+
+        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        {
+            if(i64_indices)
+                hipLaunchKernelGGL((sger_kernel<DIM_X, size_t, T>), ger_KARGS(alpha));
+            else
+                hipLaunchKernelGGL((sger_kernel<DIM_X, rocblas_int, T>), ger_KARGS(alpha));
+        }
+        else
+        {
+            if(i64_indices)
+                hipLaunchKernelGGL((sger_kernel<DIM_X, size_t, T>), ger_KARGS(*alpha));
+            else
+                hipLaunchKernelGGL((sger_kernel<DIM_X, rocblas_int, T>), ger_KARGS(*alpha));
+        }
+    }
     else
-        hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>),
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           m,
-                           n,
-                           *alpha,
-                           stride_alpha,
-                           x,
-                           shiftx,
-                           incx,
-                           stridex,
-                           y,
-                           shifty,
-                           incy,
-                           stridey,
-                           A,
-                           offsetA,
-                           lda,
-                           strideA);
+    {
+        static constexpr int DIM_X   = 32;
+        static constexpr int DIM_Y   = 32;
+        static constexpr int WIN     = 2; // work item number of elements to process
+        rocblas_int          blocksX = (m - 1) / DIM_X + 1;
+        rocblas_int          blocksY = (n - 1) / (DIM_Y * WIN) + 1; // WIN columns/work item
+
+        dim3 ger_grid(blocksX, blocksY, batch_count);
+        dim3 ger_threads(DIM_X, DIM_Y);
+
+        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        {
+            if(i64_indices)
+                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, size_t, T>),
+                                   ger_KARGS(alpha));
+            else
+                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, rocblas_int, T>),
+                                   ger_KARGS(alpha));
+        }
+        else
+        {
+            if(i64_indices)
+                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, size_t, T>),
+                                   ger_KARGS(*alpha));
+            else
+                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, rocblas_int, T>),
+                                   ger_KARGS(*alpha));
+        }
+    }
+#undef ger_KARGS
     return rocblas_status_success;
 }
 

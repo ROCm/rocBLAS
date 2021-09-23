@@ -7,16 +7,10 @@
 #include "rocblas.h"
 #include "rocblas_init.hpp"
 #include "rocblas_test.hpp"
+#include "singletons.hpp"
 #include <cinttypes>
 
-#define MAX_GUARD_PAD 8192
-
-static size_t g_DVEC_PAD = 0;
-static void   d_vector_set_pad_length(size_t pad)
-{
-    if(pad <= MAX_GUARD_PAD)
-        g_DVEC_PAD = pad;
-}
+#define MEM_MAX_GUARD_PAD 8192
 
 /* ============================================================================================ */
 /*! \brief  base-class to allocate/deallocate device memory */
@@ -24,8 +18,9 @@ template <typename T>
 class d_vector
 {
 private:
-    size_t m_size, m_bytes;
+    size_t m_size;
     size_t m_pad, m_guard_len;
+    size_t m_bytes;
 
     static bool m_init_guard;
 
@@ -39,20 +34,20 @@ public:
     bool use_HMM = false;
 
 public:
-    static T m_guard[MAX_GUARD_PAD];
+    static T m_guard[MEM_MAX_GUARD_PAD];
 
 #ifdef GOOGLE_TEST
     d_vector(size_t s, bool HMM = false)
         : m_size(s)
-        , m_pad(g_DVEC_PAD)
-        , m_guard_len(g_DVEC_PAD * sizeof(T))
-        , m_bytes((s + g_DVEC_PAD * 2) * sizeof(T))
+        , m_pad(std::min(g_DVEC_PAD, size_t(MEM_MAX_GUARD_PAD)))
+        , m_guard_len(m_pad * sizeof(T))
+        , m_bytes((s + m_pad * 2) * sizeof(T))
         , use_HMM(HMM)
     {
         // Initialize m_guard with random data
         if(!m_init_guard)
         {
-            rocblas_init_nan(m_guard, MAX_GUARD_PAD);
+            rocblas_init_nan(m_guard, MEM_MAX_GUARD_PAD);
             m_init_guard = true;
         }
     }
@@ -153,9 +148,9 @@ public:
 };
 
 template <typename T>
-T d_vector<T>::m_guard[MAX_GUARD_PAD] = {};
+T d_vector<T>::m_guard[MEM_MAX_GUARD_PAD] = {};
 
 template <typename T>
 bool d_vector<T>::m_init_guard = false;
 
-#undef MAX_GUARD_PAD
+#undef MEM_MAX_GUARD_PAD
