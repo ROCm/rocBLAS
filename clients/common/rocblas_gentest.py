@@ -353,13 +353,13 @@ def setdefaults(test):
         test.setdefault('ldb', 0)
         test.setdefault('ldc', 0)
         test.setdefault('ldd', 0)
-    else:
-        test.setdefault('lda', test['M'] if test['transA'].upper() == 'N'
+    else: #catered to gemm default behaviour
+        test.setdefault('lda', (test['M'] if test['M'] != 0 else 1) if test['transA'].upper() == 'N'
                         else test['K'] if test['K'] != 0 else 1)
-        test.setdefault('ldb', test['K'] if test['K'] != 0 else 1
-                        if test['transB'].upper() == 'N' else test['N'])
-        test.setdefault('ldc', test['M'])
-        test.setdefault('ldd', test['M'])
+        test.setdefault('ldb', (test['K'] if test['K'] != 0 else 1) if test['transB'].upper() == 'N'
+                        else test['N'] if test['N'] != 0 else 1)
+        test.setdefault('ldc', test['M'] if test['M'] != 0 else 1)
+        test.setdefault('ldd', test['M'] if test['M'] != 0 else 1)
         if test['batch_count'] > 0:
             test.setdefault('stride_a', test['lda'] *
                             (test['K'] if test['transA'].upper() == 'N' else
