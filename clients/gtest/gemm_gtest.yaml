@@ -2456,6 +2456,24 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_invalid_sizes
+  category: quick
+  function:
+    gemm: *half_single_double_precisions
+    gemm_ex: *nonint8_real_precisions
+  matrix_size:
+    - { M:    -5, N:     5, K:     5, lda:     5, ldb:     5, ldc:     5, ldd:     5, transA: N, transB: N, alpha:  1, beta:  1 } #bad M
+    - { M:     5, N:    -5, K:     5, lda:     5, ldb:     5, ldc:     5, ldd:     5, transA: N, transB: N, alpha:  1, beta:  1 } #bad N
+    - { M:     5, N:     5, K:    -5, lda:     5, ldb:     5, ldc:     5, ldd:     5, transA: N, transB: N, alpha:  1, beta:  1 } #bad K
+    - { M:     5, N:     5, K:     5, lda:     4, ldb:     5, ldc:     5, ldd:     5, transA: N, transB: N, alpha:  1, beta:  1 } #bad lda
+    - { M:     5, N:     5, K:     5, lda:     5, ldb:     4, ldc:     5, ldd:     5, transA: N, transB: N, alpha:  1, beta:  1 } #bad ldb
+    - { M:     5, N:     5, K:     5, lda:     5, ldb:     5, ldc:     4, ldd:     5, transA: N, transB: N, alpha:  1, beta:  1 } #bad ldc
+    - { M:     5, N:     5, K:     5, lda:     5, ldb:     5, ldc:     5, ldd:     4, transA: N, transB: N, alpha:  1, beta:  1 } #bad ldd
+    - { M:     5, N:     5, K:     5, lda:     5, ldb:     4, ldc:     5, ldd:     5, transA: N, transB: T, alpha:  1, beta:  1 } #bad ldb
+    - { M:     5, N:     5, K:     5, lda:     4, ldb:     5, ldc:     5, ldd:     5, transA: T, transB: T, alpha:  1, beta:  1 } #bad lda
+    - { M:     5, N:     5, K:     5, lda:     5, ldb:     4, ldc:     5, ldd:     5, transA: T, transB: T, alpha:  1, beta:  1 } #bad ldb
+    - { M:     5, N:     5, K:     5, lda:     4, ldb:     5, ldc:     5, ldd:     5, transA: T, transB: N, alpha:  1, beta:  1 } #bad lda
+
 - name: gemm_small_int8
   category: quick
   function:
