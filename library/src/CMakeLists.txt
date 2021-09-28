@@ -530,17 +530,13 @@ if( BUILD_SHARED_LIBS )
     NAMESPACE roc::
     )
 else()
-  if (Tensile_LIBRARY_FORMAT)
-    if (${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
-      set(USING_MSGPACK ON)
-    endif()
-  endif()
-  if (USING_MSGPACK)
+  # static
+  if (DEFINED Tensile_LIBRARY_FORMAT AND ${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
+    # header only tensile usage of msgpack
     rocm_export_targets(
       TARGETS roc::rocblas
       PREFIX rocblas
       DEPENDS PACKAGE hip
-      STATIC_DEPENDS PACKAGE msgpack
       NAMESPACE roc::
       )
   else()
