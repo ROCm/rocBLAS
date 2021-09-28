@@ -145,9 +145,9 @@ bool match_test_category(const Arguments& arg, const char* category);
     INSTANTIATE_TEST_SUITE_P(category,                                                            \
                              testclass,                                                           \
                              testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
-                                                   return testclass::type_filter(arg)             \
+                                                   return match_test_category(arg, #category)     \
                                                           && testclass::function_filter(arg)      \
-                                                          && match_test_category(arg, #category); \
+                                                          && testclass::type_filter(arg);         \
                                                }),                                                \
                                                RocBLAS_TestData::end()),                          \
                              testclass::PrintToStringParamName());
@@ -160,14 +160,19 @@ bool match_test_category(const Arguments& arg, const char* category);
 #endif
 
 // Instantiate all test categories
-#define INSTANTIATE_TEST_CATEGORIES(testclass)        \
-    ROCBLAS_ALLOW_UNINSTANTIATED_GTEST(testclass)     \
-    INSTANTIATE_TEST_CATEGORY(testclass, quick)       \
-    INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
-    INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
-    INSTANTIATE_TEST_CATEGORY(testclass, multi_gpu)   \
-    INSTANTIATE_TEST_CATEGORY(testclass, HMM)         \
-    INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
+#define INSTANTIATE_TEST_CATEGORIES(testclass)    \
+    ROCBLAS_ALLOW_UNINSTANTIATED_GTEST(testclass) \
+    INSTANTIATE_TEST_CATEGORY(testclass, _)
+
+// Category based intantiation requires pass of large yaml data for each category
+// Using single '_' named category and category name is moved to test name prefix
+// gtest_filter should be able to select same test subsets
+// INSTANTIATE_TEST_CATEGORY(testclass, quick)       \
+// INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
+// INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
+// INSTANTIATE_TEST_CATEGORY(testclass, multi_gpu)   \
+// INSTANTIATE_TEST_CATEGORY(testclass, HMM)         \
+// INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
 
 // Function to catch signals and exceptions as failures
 void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm = false);
@@ -345,7 +350,10 @@ public:
     {
         std::string operator()(const testing::TestParamInfo<Arguments>& info) const
         {
-            return TEST::name_suffix(info.param);
+            std::string name(info.param.category);
+            name += "_";
+            name += TEST::name_suffix(info.param);
+            return name;
         }
     };
 };
