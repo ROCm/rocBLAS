@@ -128,37 +128,6 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void sger_kernel(rocblas_int    m,
 }
 
 template <bool CONJ, typename T, typename U, typename V, typename W>
-rocblas_status rocblas_ger_arg_check(rocblas_int    m,
-                                     rocblas_int    n,
-                                     const V*       alpha,
-                                     rocblas_stride stride_alpha,
-                                     const U*       x,
-                                     rocblas_int    offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_int    stridex,
-                                     const U*       y,
-                                     rocblas_int    offsety,
-                                     rocblas_int    incy,
-                                     rocblas_int    stridey,
-                                     W*             A,
-                                     rocblas_int    offsetA,
-                                     rocblas_int    lda,
-                                     rocblas_int    strideA,
-                                     rocblas_int    batch_count)
-{
-    if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || batch_count < 0)
-        return rocblas_status_invalid_size;
-
-    if(!m || !n || !batch_count)
-        return rocblas_status_success;
-
-    if(!alpha || !x || !y || !A)
-        return rocblas_status_invalid_pointer;
-
-    return rocblas_status_continue;
-}
-
-template <bool CONJ, typename T, typename U, typename V, typename W>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_ger_template(rocblas_handle handle,
                                   rocblas_int    m,
@@ -319,48 +288,9 @@ rocblas_status rocblas_ger_check_numerics(const char*    function_name,
 }
 
 // Instantiations below will need to be manually updated to match any change in
-// template parameters in the files *gemv*.cpp
+// template parameters in the files *ger*.cpp
 
 // clang-format off
-
-#ifdef INSTANTIATE_GER_ARGCHECK
-#error INSTANTIATE_GER_ARGCHECK already defined
-#endif
-
-#define INSTANTIATE_GER_ARGCHECK(CONJ, T_, U_, V_, W_)                          \
-template rocblas_status rocblas_ger_arg_check<CONJ, T_, U_, V_, W_>             \
-                                           (rocblas_int    m,                   \
-                                            rocblas_int    n,                   \
-                                            V_ const *      alpha,              \
-                                            rocblas_stride stride_alpha,        \
-                                            U_ const *      x,                  \
-                                            rocblas_int    offsetx,             \
-                                            rocblas_int    incx,                \
-                                            rocblas_int    stridex,             \
-                                            U_ const *      y,                  \
-                                            rocblas_int    offsety,             \
-                                            rocblas_int    incy,                \
-                                            rocblas_int    stridey,             \
-                                            W_*            A,                   \
-                                            rocblas_int    offsetA,             \
-                                            rocblas_int    lda,                 \
-                                            rocblas_int    strideA,             \
-                                            rocblas_int    batch_count);
-
-INSTANTIATE_GER_ARGCHECK(false, float, float, float, float)
-INSTANTIATE_GER_ARGCHECK(false, double, double, double, double)
-INSTANTIATE_GER_ARGCHECK(false, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex)
-INSTANTIATE_GER_ARGCHECK(false, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex)
-INSTANTIATE_GER_ARGCHECK(true, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex)
-INSTANTIATE_GER_ARGCHECK(true, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex)
-INSTANTIATE_GER_ARGCHECK(false, float, float const*, float, float* const)
-INSTANTIATE_GER_ARGCHECK(false, double, double const*, double, double* const)
-INSTANTIATE_GER_ARGCHECK(false, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex, rocblas_float_complex* const)
-INSTANTIATE_GER_ARGCHECK(false, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex, rocblas_double_complex* const)
-INSTANTIATE_GER_ARGCHECK(true, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex, rocblas_float_complex* const)
-INSTANTIATE_GER_ARGCHECK(true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex, rocblas_double_complex* const)
-
-#undef INSTANTIATE_GER_ARGCHECK
 
 #ifdef INSTANTIATE_GER_TEMPLATE
 #error INSTANTIATE_GER_TEMPLATE already defined
