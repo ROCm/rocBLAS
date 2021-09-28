@@ -49,8 +49,9 @@ class RocBLAS_TestData
         // Skip entries for which filter is false
         void skip_filter()
         {
+            static auto endIter = std::istream_iterator<Arguments>{};
             if(filter)
-                while(*this != std::istream_iterator<Arguments>{} && !filter(**this))
+                while(*this != endIter && !filter(**this))
                     ++*static_cast<std::istream_iterator<Arguments>*>(this);
         }
 
