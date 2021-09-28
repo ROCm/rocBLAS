@@ -17,7 +17,6 @@ endif()
 # The superbuild does not build anything itself; all compiling is done in external projects
 project( rocblas-dependencies NONE )
 
-option( BUILD_BOOST "Download and build boost library" ON )
 option( BUILD_GTEST "Download and build googletest library" ON )
 option( BUILD_LAPACK "Download and build lapack library" ON )
 # option( BUILD_VERBOSE "Print helpful build debug information" OFF )
@@ -50,15 +49,7 @@ if( BUILD_LAPACK )
   set( lapack_custom_target COMMAND cd ${LAPACK_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . --target install )
 endif( )
 
-if( BUILD_BOOST )
-  include( external-boost )
-
-  list( APPEND rocblas_dependencies boost )
-  set( boost_custom_target COMMAND cd ${BOOST_BINARY_ROOT}$<SEMICOLON> ${Boost.Command} install )
-endif( )
-
 add_custom_target( install_deps
-  ${boost_custom_target}
   ${gtest_custom_target}
   ${lapack_custom_target}
   DEPENDS ${rocblas_dependencies}
