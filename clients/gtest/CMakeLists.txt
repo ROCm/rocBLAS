@@ -85,6 +85,7 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/argument_model.cpp
+      ../common/rocblas_random.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
