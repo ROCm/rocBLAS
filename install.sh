@@ -207,11 +207,11 @@ install_packages( )
   fi
 
   # dependencies to build the client
-  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev" )
-  local client_dependencies_centos_rhel=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
-  local client_dependencies_centos_rhel_8=( "gcc-gfortran" "libgomp" "boost-devel" )
-  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
-  local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
+  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" )
+  local client_dependencies_centos_rhel=( "devtoolset-7-gcc-gfortran" "libgomp" )
+  local client_dependencies_centos_rhel_8=( "gcc-gfortran" "libgomp" )
+  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" )
+  local client_dependencies_sles=( "gcc-fortran" "libgomp1" )
 
   # wget is needed for blis
   if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.so" ]]; then
@@ -601,7 +601,7 @@ if [[ "${install_dependencies}" == true ]]; then
     pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -DBUILD_BOOST=OFF ${ROCBLAS_SRC_PATH}/deps
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
     make -j$(nproc)
     elevate_if_not_root make install_deps
     install_blis
