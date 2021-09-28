@@ -235,7 +235,6 @@ endif()
 
 if(NOT SKIP_LIBRARY)
   option( BUILD_WITH_TENSILE "Build full functionality which requires tensile?" ON )
-  option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
 
   if( BUILD_WITH_TENSILE )
     # we will have expanded "all" for tensile to ensure consistency as we have local rules
@@ -301,9 +300,6 @@ message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
 # setup rocblas defines used for both the library and clients
 if( BUILD_WITH_TENSILE )
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=1)
-    if ( BUILD_WITH_TENSILE_HOST )
-        list(APPEND TENSILE_DEFINES USE_TENSILE_HOST)
-    endif()
 else()
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=0)
 endif()

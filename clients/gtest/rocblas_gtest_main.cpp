@@ -166,11 +166,7 @@ static void rocblas_print_version()
 {
     static std::string blas_version = rocblas_version_string();
 
-#ifdef USE_TENSILE_HOST
-    rocblas_cout << "rocBLAS version: " << blas_version << " (new Tensile client)\n" << std::endl;
-#else
     rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
-#endif
 }
 
 // Device Query

@@ -4,9 +4,6 @@
 
 #pragma once
 
-// This functionality is only availble when using the new Tensile client
-#ifdef USE_TENSILE_HOST
-
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
@@ -293,5 +290,3 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
 }
 
 #undef EX_TYPECASTING_PARM
-
-#endif // USE_TENSILE_HOST

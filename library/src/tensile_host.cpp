@@ -8,13 +8,6 @@
 
 extern "C" void rocblas_shutdown();
 
-#ifndef USE_TENSILE_HOST
-
-// In the old Tensile client, rocblas_initialize() is a no-op
-extern "C" void rocblas_initialize() {}
-
-#else
-
 /*****************************************************************************
  * This is the only file in rocBLAS which should #include Tensile headers    *
  * or reference Tensile identifiers. tensile_host.hpp defines the interface. *
@@ -71,7 +64,7 @@ namespace std
 }
 #endif
 
-#endif
+#endif // WIN32
 
 namespace
 {
@@ -898,4 +891,3 @@ ROCBLAS_INTERNAL_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialize
     static std::atomic_bool init;
     return init;
 }
-#endif
