@@ -158,9 +158,11 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_symm_batched.cpp
     blas3/rocblas_symm_strided_batched.cpp
     blas3/rocblas_syrk.cpp
+    blas3/rocblas_syrk_herk_kernels.cpp
     blas3/rocblas_syrk_batched.cpp
     blas3/rocblas_syrk_strided_batched.cpp
     blas3/rocblas_syr2k.cpp
+    blas3/rocblas_syr2k_her2k_kernels.cpp
     blas3/rocblas_syr2k_batched.cpp
     blas3/rocblas_syr2k_strided_batched.cpp
     blas3/Tensile/gemm.cpp
