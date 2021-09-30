@@ -1,13 +1,18 @@
-# Change Log for rocBLAS
+# Change Log for rocBLAS 
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 2.41.0
+## rocBLAS 2.41.0 for ROCm 4.5.0
 ### Optimizations
 - Improved performance of non-batched and batched syr for all sizes and data types
 - Improved performance of non-batched and batched hemv for all sizes and data types
 - Improved performance of non-batched and batched symv for all sizes and data types
 - Improved memory utilization in rocblas-bench, rocblas-test gemm functions, increasing possible runtime sizes.
+- Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000.
+- Improved performance of non-batched and batched trmv for all sizes and matrix types.
+- Improved performance of non-batched and batched gemv transpose case for all sizes and datatypes.
+- Improved performance of sger and dger for all sizes, in particular the larger dger sizes.
+- Improved performance of syrkx for for large size including those in rocBLAS Issue #1184.
 
 ### Changed
 - Update from C++14 to C++17.
@@ -19,15 +24,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - For function gemv (Transpose-case) avoid overflow in offset calculation.
 - For functions ssyrk and dsyrk, allow conjugate-transpose case to match legacy BLAS. Behavior is the same as the transpose case.
 
-## [rocBLAS 2.40.0 for ROCm 4.4.0]
-### Optimizations
-- Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000.
-- Improved performance of non-batched and batched trmv for all sizes and matrix types.
-- Improved performance of non-batched and batched gemv transpose case for all sizes and datatypes.
-- Improved performance of sger and dger for all sizes, in particular the larger dger sizes.
-- Improved performance of syrkx for for large size including those in rocBLAS Issue #1184.
-
-## [rocBLAS 2.39.0 for ROCm 4.3.0]
+## rocBLAS 2.39.0 for ROCm 4.3.0
 ### Optimizations
 - Improved performance of non-batched and batched rocblas_Xgemv for gfx908 when m <= 15000 and n <= 15000
 - Improved performance of non-batched and batched rocblas_sgemv and rocblas_dgemv for gfx906 when m <= 6000 and n <= 6000
@@ -37,7 +34,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Changed
 - Internal use only APIs prefixed with rocblas_internal_ and deprecated to discourage use
 
-## [rocBLAS 2.38.0 for ROCm 4.2.0]
+## rocBLAS 2.38.0 for ROCm 4.2.0
 ### Added
 - Added option to install script to build only rocBLAS clients with a pre-built rocBLAS library
 - Supported gemm ext for unpacked int8 input layout on gfx908 GPUs
@@ -55,7 +52,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Changed
 - Change cmake_minimum_required to VERSION 3.16.8
 
-## [rocBLAS 2.36.0 for ROCm 4.1.0]
+## rocBLAS 2.36.0 for ROCm 4.1.0
 ### Added
 - Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output vectors of rocBLAS level 1 and 2 functions.
 - Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output general matrices of rocBLAS level 2 and 3 functions.
@@ -66,7 +63,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Improved performance of single precision axpy_batched and axpy_strided_batched: batch_count >= 8192.
 - Improved performance of trmm.
 
-## [rocBLAS 2.34.0 for ROCm 4.0.0]
+## rocBLAS 2.34.0 for ROCm 4.0.0
 ### Added
 - Add changelog.
 - Improved performance of gemm_batched for small m, n, k and NT, NC, TN, TT, TC, CN, CT, CC.
@@ -79,12 +76,12 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
   is a rocblas internal variable, and does not need to be defined in user code.
 
 
-## [rocBLAS 2.32.0 for ROCm 3.10.0]
+## rocBLAS 2.32.0 for ROCm 3.10.0
 ### Added
 - Improved performance of gemm_batched for NN, general m, n, k, small m, n, k.
 
 
-## [rocBLAS 2.30.0 for ROCm 3.9.0]
+## rocBLAS 2.30.0 for ROCm 3.9.0
 ### Added
 - Slight improvements to FP16 Megatron BERT performance on MI50.
 - Improvements to FP16 Transformer performance on MI50.
@@ -92,7 +89,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Improvements to FP32 DLRM Terabyte performance on gfx908.
 
 
-## [rocBLAS 2.28.0 for ROCm 3.8.0]
+## rocBLAS 2.28.0 for ROCm 3.8.0
 ### Added
 - added two functions:
   - rocblas_status rocblas_set_atomics_mode(rocblas_atomics_mode mode)
@@ -115,7 +112,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
   These files should NOT be included directly as this may lead to errors. Instead, /opt/rocm/include/rocblas.h should be included directly. /opt/rocm/include/rocblas_module.f90 can also be direcly used.
 
 
-## [rocBLAS 2.26.0 for ROCm 3.7.0]
+## rocBLAS 2.26.0 for ROCm 3.7.0
 ### Added
 - Improvements to rocblas_Xgemm_batched performance for small m, n, k.
 - Improvements to rocblas_Xgemv_batched  and rocblas_Xgemv_strided_batched performance for small m (QMCPACK use).
@@ -128,7 +125,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Added substitution method for small trsm sizes with m <= 64 && n <= 64. Increases performance drastically for small batched trsm.
 
 
-## [rocBLAS 2.24.0 for ROCm 3.6.0]
+## rocBLAS 2.24.0 for ROCm 3.6.0
 ### Added
 - Improvements to User Guide and Design Document.
 - L1 dot function optimized to utilize shuffle instructions ( improvements on bf16, f16, f32 data types ).
@@ -138,7 +135,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Added Fortran interface for all rocBLAS functions.
 
 
-## [rocBLAS 2.22.0 for ROCm 3.5.0]
+## rocBLAS 2.22.0 for ROCm 3.5.0
 ### Added
 - add geam complex, geam_batched, and geam_strided_batched.
 - add dgmm, dgmm_batched, and dgmm_strided_batched.
