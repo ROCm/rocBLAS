@@ -218,15 +218,19 @@ set( rocblas_blas2_source
   blas2/rocblas_hpmv_batched.cpp
   blas2/rocblas_hpmv_strided_batched.cpp
   blas2/rocblas_hpr.cpp
+  blas2/rocblas_hpr_kernels.cpp
   blas2/rocblas_hpr_batched.cpp
   blas2/rocblas_hpr_strided_batched.cpp
   blas2/rocblas_hpr2.cpp
+  blas2/rocblas_hpr2_kernels.cpp
   blas2/rocblas_hpr2_batched.cpp
   blas2/rocblas_hpr2_strided_batched.cpp
   blas2/rocblas_spr.cpp
+  blas2/rocblas_spr_kernels.cpp
   blas2/rocblas_spr_batched.cpp
   blas2/rocblas_spr_strided_batched.cpp
   blas2/rocblas_spr2.cpp
+  blas2/rocblas_spr2_kernels.cpp
   blas2/rocblas_spr2_batched.cpp
   blas2/rocblas_spr2_strided_batched.cpp
   blas2/rocblas_syr.cpp
@@ -244,9 +248,11 @@ set( rocblas_blas2_source
   blas2/rocblas_tpsv_batched.cpp
   blas2/rocblas_tpsv_strided_batched.cpp
   blas2/rocblas_sbmv.cpp
+  blas2/rocblas_sbmv_kernels.cpp
   blas2/rocblas_sbmv_batched.cpp
   blas2/rocblas_sbmv_strided_batched.cpp
   blas2/rocblas_spmv.cpp
+  blas2/rocblas_spmv_kernels.cpp
   blas2/rocblas_spmv_batched.cpp
   blas2/rocblas_spmv_strided_batched.cpp
   blas2/rocblas_symv.cpp
