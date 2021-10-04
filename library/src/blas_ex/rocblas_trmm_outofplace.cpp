@@ -7,39 +7,39 @@
 #include "rocblas.h"
 #include "utility.hpp"
 
-#define STRMM_EX_NB 32
-#define DTRMM_EX_NB 32
-#define CTRMM_EX_NB 32
-#define ZTRMM_EX_NB 32
+#define Strmm_outofplace_NB 32
+#define Dtrmm_outofplace_NB 32
+#define Ctrmm_outofplace_NB 32
+#define Ztrmm_outofplace_NB 32
 
 namespace
 {
     template <typename>
     constexpr char rocblas_trmm_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm_ex";
+    constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm_outofplace";
     template <>
-    constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm_ex";
+    constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm_outofplace";
     template <>
-    constexpr char rocblas_trmm_name<rocblas_float_complex>[] = "rocblas_ctrmm_ex";
+    constexpr char rocblas_trmm_name<rocblas_float_complex>[] = "rocblas_ctrmm_outofplace";
     template <>
-    constexpr char rocblas_trmm_name<rocblas_double_complex>[] = "rocblas_ztrmm_ex";
+    constexpr char rocblas_trmm_name<rocblas_double_complex>[] = "rocblas_ztrmm_outofplace";
 
     template <int NB, typename T>
-    rocblas_status rocblas_trmm_ex_impl(rocblas_handle    handle,
-                                        rocblas_side      side,
-                                        rocblas_fill      uplo,
-                                        rocblas_operation transa,
-                                        rocblas_diagonal  diag,
-                                        rocblas_int       m,
-                                        rocblas_int       n,
-                                        const T*          alpha,
-                                        const T*          a,
-                                        rocblas_int       lda,
-                                        const T*          b,
-                                        rocblas_int       ldb,
-                                        T*                c,
-                                        rocblas_int       ldc)
+    rocblas_status rocblas_trmm_outofplace_impl(rocblas_handle    handle,
+                                                rocblas_side      side,
+                                                rocblas_fill      uplo,
+                                                rocblas_operation transa,
+                                                rocblas_diagonal  diag,
+                                                rocblas_int       m,
+                                                rocblas_int       n,
+                                                const T*          alpha,
+                                                const T*          a,
+                                                rocblas_int       lda,
+                                                const T*          b,
+                                                rocblas_int       ldb,
+                                                T*                c,
+                                                rocblas_int       ldc)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -251,7 +251,7 @@ extern "C" {
                                  rocblas_int       ldc)                             \
     try                                                                             \
     {                                                                               \
-        return rocblas_trmm_ex_impl<NB_>(                                           \
+        return rocblas_trmm_outofplace_impl<NB_>(                                   \
             handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, c, ldc); \
     }                                                                               \
     catch(...)                                                                      \
@@ -259,10 +259,10 @@ extern "C" {
         return exception_to_rocblas_status();                                       \
     }
 
-IMPL(rocblas_strmm_ex, float, STRMM_EX_NB);
-IMPL(rocblas_dtrmm_ex, double, DTRMM_EX_NB);
-IMPL(rocblas_ctrmm_ex, rocblas_float_complex, CTRMM_EX_NB);
-IMPL(rocblas_ztrmm_ex, rocblas_double_complex, ZTRMM_EX_NB);
+IMPL(rocblas_strmm_outofplace, float, Strmm_outofplace_NB);
+IMPL(rocblas_dtrmm_outofplace, double, Dtrmm_outofplace_NB);
+IMPL(rocblas_ctrmm_outofplace, rocblas_float_complex, Ctrmm_outofplace_NB);
+IMPL(rocblas_ztrmm_outofplace, rocblas_double_complex, Ztrmm_outofplace_NB);
 
 #undef IMPL
 

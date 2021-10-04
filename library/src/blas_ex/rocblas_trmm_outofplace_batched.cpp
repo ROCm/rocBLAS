@@ -7,42 +7,44 @@
 #include "rocblas.h"
 #include "utility.hpp"
 
-#define STRMM_BATCHED_EX_NB 32
-#define DTRMM_BATCHED_EX_NB 32
-#define CTRMM_BATCHED_EX_NB 32
-#define ZTRMM_BATCHED_EX_NB 32
+#define Strmm_outofplace_batched_NB 32
+#define Dtrmm_outofplace_batched_NB 32
+#define Ctrmm_outofplace_batched_NB 32
+#define Ztrmm_outofplace_batched_NB 32
 
 namespace
 {
     template <typename>
-    constexpr char rocblas_trmm_batched_ex_name[] = "unknown";
+    constexpr char rocblas_trmm_outofplace_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmm_batched_ex_name<float>[] = "rocblas_strmm_batched_ex";
+    constexpr char rocblas_trmm_outofplace_batched_name<float>[]
+        = "rocblas_strmm_outofplace_batched";
     template <>
-    constexpr char rocblas_trmm_batched_ex_name<double>[] = "rocblas_dtrmm_batched_ex";
+    constexpr char rocblas_trmm_outofplace_batched_name<double>[]
+        = "rocblas_dtrmm_outofplace_batched";
     template <>
-    constexpr char rocblas_trmm_batched_ex_name<rocblas_float_complex>[]
-        = "rocblas_ctrmm_batched_ex";
+    constexpr char rocblas_trmm_outofplace_batched_name<rocblas_float_complex>[]
+        = "rocblas_ctrmm_outofplace_batched";
     template <>
-    constexpr char rocblas_trmm_batched_ex_name<rocblas_double_complex>[]
-        = "rocblas_ztrmm_batched_ex";
+    constexpr char rocblas_trmm_outofplace_batched_name<rocblas_double_complex>[]
+        = "rocblas_ztrmm_outofplace_batched";
 
     template <int NB, typename T>
-    rocblas_status rocblas_trmm_batched_ex_impl(rocblas_handle    handle,
-                                                rocblas_side      side,
-                                                rocblas_fill      uplo,
-                                                rocblas_operation transa,
-                                                rocblas_diagonal  diag,
-                                                rocblas_int       m,
-                                                rocblas_int       n,
-                                                const T*          alpha,
-                                                const T* const    a[],
-                                                rocblas_int       lda,
-                                                const T* const    b[],
-                                                rocblas_int       ldb,
-                                                T* const          c[],
-                                                rocblas_int       ldc,
-                                                rocblas_int       batch_count)
+    rocblas_status rocblas_trmm_outofplace_batched_impl(rocblas_handle    handle,
+                                                        rocblas_side      side,
+                                                        rocblas_fill      uplo,
+                                                        rocblas_operation transa,
+                                                        rocblas_diagonal  diag,
+                                                        rocblas_int       m,
+                                                        rocblas_int       n,
+                                                        const T*          alpha,
+                                                        const T* const    a[],
+                                                        rocblas_int       lda,
+                                                        const T* const    b[],
+                                                        rocblas_int       ldb,
+                                                        T* const          c[],
+                                                        rocblas_int       ldc,
+                                                        rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -62,7 +64,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle,
-                          rocblas_trmm_batched_ex_name<T>,
+                          rocblas_trmm_outofplace_batched_name<T>,
                           side,
                           uplo,
                           transa,
@@ -80,7 +82,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f trmm_batched_ex -r",
+                          "./rocblas-bench -f trmm_outofplace_batched -r",
                           rocblas_precision_string<T>,
                           "--side",
                           side_letter,
@@ -106,7 +108,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
-                            rocblas_trmm_batched_ex_name<T>,
+                            rocblas_trmm_outofplace_batched_name<T>,
                             "side",
                             side_letter,
                             "uplo",
@@ -257,7 +259,7 @@ extern "C" {
                                  rocblas_int       batch_count)                                  \
     try                                                                                          \
     {                                                                                            \
-        return rocblas_trmm_batched_ex_impl<BATCHED_NB_>(                                        \
+        return rocblas_trmm_outofplace_batched_impl<BATCHED_NB_>(                                \
             handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, c, ldc, batch_count); \
     }                                                                                            \
     catch(...)                                                                                   \
@@ -265,10 +267,10 @@ extern "C" {
         return exception_to_rocblas_status();                                                    \
     }
 
-IMPL(rocblas_strmm_batched_ex, float, STRMM_BATCHED_EX_NB);
-IMPL(rocblas_dtrmm_batched_ex, double, DTRMM_BATCHED_EX_NB);
-IMPL(rocblas_ctrmm_batched_ex, rocblas_float_complex, CTRMM_BATCHED_EX_NB);
-IMPL(rocblas_ztrmm_batched_ex, rocblas_double_complex, ZTRMM_BATCHED_EX_NB);
+IMPL(rocblas_strmm_outofplace_batched, float, Strmm_outofplace_batched_NB);
+IMPL(rocblas_dtrmm_outofplace_batched, double, Dtrmm_outofplace_batched_NB);
+IMPL(rocblas_ctrmm_outofplace_batched, rocblas_float_complex, Ctrmm_outofplace_batched_NB);
+IMPL(rocblas_ztrmm_outofplace_batched, rocblas_double_complex, Ztrmm_outofplace_batched_NB);
 
 #undef IMPL
 
