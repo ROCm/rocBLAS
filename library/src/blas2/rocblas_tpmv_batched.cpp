@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_tpmv_batched.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_tpmv.hpp"
 #include "utility.hpp"
 
 namespace
@@ -148,8 +148,28 @@ namespace
 
         rocblas_stride stridew = m;
 
-        rocblas_status status = rocblas_tpmv_batched_template(
-            handle, uplo, transa, diag, m, a, x, incx, (T*)w_mem, stridew, batch_count);
+        static constexpr rocblas_int    NB      = 512;
+        static constexpr rocblas_stride stridex = 0;
+        static constexpr rocblas_stride stridea = 0;
+        static constexpr ptrdiff_t      offseta = 0;
+        static constexpr ptrdiff_t      offsetx = 0;
+
+        rocblas_status status = rocblas_tpmv_template<NB>(handle,
+                                                          uplo,
+                                                          transa,
+                                                          diag,
+                                                          m,
+                                                          a,
+                                                          offseta,
+                                                          stridea,
+                                                          x,
+                                                          offsetx,
+                                                          incx,
+                                                          stridex,
+                                                          (T*)w_mem,
+                                                          stridew,
+                                                          batch_count);
+
         if(status != rocblas_status_success)
             return status;
 
