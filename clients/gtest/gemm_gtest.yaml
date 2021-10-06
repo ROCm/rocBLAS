@@ -3404,7 +3404,7 @@ Tests:
 # This is disabled until the sizes are supported by Tensile,
 # since they take too long with a naive host-side algorithm.
 - name: gemm_ext2_large
-  category: disabled
+  category: known_bug
   transA: N
   transB: N
   function:
