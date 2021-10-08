@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "check_numerics_vector.hpp"
+#include "handle.hpp"
+
 template <typename T, typename U>
 rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_name,
                                                     rocblas_handle    handle,
