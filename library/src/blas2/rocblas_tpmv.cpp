@@ -134,8 +134,30 @@ namespace
                 return tpmv_check_numerics_status;
         }
 
-        rocblas_status status
-            = rocblas_tpmv_template(handle, uplo, transA, diag, m, A, x, incx, (T*)w_mem);
+        static constexpr rocblas_int    NB          = 512;
+        static constexpr rocblas_int    batch_count = 1;
+        static constexpr ptrdiff_t      offset_a    = 0;
+        static constexpr ptrdiff_t      offset_x    = 0;
+        static constexpr rocblas_stride stride_x    = 0;
+        static constexpr rocblas_stride stride_a    = 0;
+        static constexpr rocblas_stride stride_w    = 0;
+
+        rocblas_status status = rocblas_tpmv_template<NB>(handle,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          m,
+                                                          A,
+                                                          offset_a,
+                                                          stride_a,
+                                                          x,
+                                                          offset_x,
+                                                          incx,
+                                                          stride_x,
+                                                          (T*)w_mem,
+                                                          stride_w,
+                                                          batch_count);
+
         if(status != rocblas_status_success)
             return status;
 
