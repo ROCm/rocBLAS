@@ -184,6 +184,7 @@ set( rocblas_blas2_source
   blas2/rocblas_gemv_batched.cpp
   blas2/rocblas_gemv_strided_batched.cpp
   blas2/rocblas_tpmv.cpp
+  blas2/rocblas_tpmv_kernels.cpp
   blas2/rocblas_tpmv_batched.cpp
   blas2/rocblas_tpmv_strided_batched.cpp
   blas2/rocblas_gbmv.cpp
