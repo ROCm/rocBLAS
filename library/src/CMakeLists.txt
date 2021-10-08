@@ -266,6 +266,7 @@ set( rocblas_blas2_source
   blas2/rocblas_symv_batched.cpp
   blas2/rocblas_symv_strided_batched.cpp
   blas2/rocblas_trsv.cpp
+  blas2/rocblas_trsv_kernels.cpp
   blas2/rocblas_trsv_strided_batched.cpp
   blas2/rocblas_trsv_batched.cpp
 )
