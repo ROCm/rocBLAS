@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifndef USE_TENSILE_HOST
-#error "tensile_host.hpp #include'd when USE_TENSILE_HOST is undefined."
-#endif
-
 /*****************************************************************************
  * WARNING: Tensile-specific data types, functions and macros should only be *
  * referenced from tensile_host.cpp. This header file defines the interface  *

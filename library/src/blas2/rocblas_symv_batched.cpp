@@ -2,7 +2,7 @@
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
-#include "rocblas_symv.hpp"
+#include "rocblas_hemv_symv.hpp"
 #include "utility.hpp"
 
 namespace

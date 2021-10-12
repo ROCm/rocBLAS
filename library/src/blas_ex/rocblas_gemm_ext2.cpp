@@ -363,9 +363,6 @@ namespace
 
             auto status = rocblas_status_not_implemented;
 
-#ifdef USE_TENSILE_HOST
-            // This functionality is only available when using the new Tensile client
-
             std::unique_ptr<void, void (*)(void*)> erase{
                 nullptr, [](auto) { rocblas_suppress_tensile_error_messages() = false; }};
             rocblas_suppress_tensile_error_messages() = true;
@@ -418,9 +415,6 @@ namespace
             }
             if(status == rocblas_status_success || handle->is_device_memory_size_query())
                 return status;
-#else
-            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-#endif
 
             throw status;
         }

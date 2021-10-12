@@ -19,9 +19,10 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_trmm_ex_bad_arg(const Arguments& arg)
+void testing_trmm_outofplace_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trmm_ex_fn = arg.fortran ? rocblas_trmm_ex<T, true> : rocblas_trmm_ex<T, false>;
+    auto rocblas_trmm_outofplace_fn
+        = arg.fortran ? rocblas_trmm_outofplace<T, true> : rocblas_trmm_outofplace<T, false>;
 
     const rocblas_int M   = 100;
     const rocblas_int N   = 100;
@@ -54,64 +55,65 @@ void testing_trmm_ex_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_ex_fn(
+        rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_ex_fn(
+        rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, nullptr, ldb, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_ex_fn(
+        rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, nullptr, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_ex_fn(
+        rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_ex_fn(
+        rocblas_trmm_outofplace_fn(
             nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, dC, ldc),
         rocblas_status_invalid_handle);
 
     // If M==0, then all pointers can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_trmm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             0,
-                                             N,
-                                             nullptr,
-                                             nullptr,
-                                             lda,
-                                             nullptr,
-                                             ldb,
-                                             nullptr,
-                                             ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_outofplace_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     0,
+                                                     N,
+                                                     nullptr,
+                                                     nullptr,
+                                                     lda,
+                                                     nullptr,
+                                                     ldb,
+                                                     nullptr,
+                                                     ldc),
                           rocblas_status_success);
 
     // If N==0, then all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_ex_fn(
+        rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, dC, ldc),
         rocblas_status_success);
 
     // If alpha==0, then A can be nullptr without error
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_ex_fn(
+        rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, dB, ldb, dC, ldc),
         rocblas_status_success);
 }
 
 template <typename T>
-void testing_trmm_ex(const Arguments& arg)
+void testing_trmm_outofplace(const Arguments& arg)
 {
-    auto rocblas_trmm_ex_fn = arg.fortran ? rocblas_trmm_ex<T, true> : rocblas_trmm_ex<T, false>;
+    auto rocblas_trmm_outofplace_fn
+        = arg.fortran ? rocblas_trmm_outofplace<T, true> : rocblas_trmm_outofplace<T, false>;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
@@ -141,20 +143,20 @@ void testing_trmm_ex(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || ldc < M;
     if(M == 0 || N == 0 || invalid_size)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_ex_fn(handle,
-                                                 side,
-                                                 uplo,
-                                                 transA,
-                                                 diag,
-                                                 M,
-                                                 N,
-                                                 nullptr,
-                                                 nullptr,
-                                                 lda,
-                                                 nullptr,
-                                                 ldb,
-                                                 nullptr,
-                                                 ldc),
+        EXPECT_ROCBLAS_STATUS(rocblas_trmm_outofplace_fn(handle,
+                                                         side,
+                                                         uplo,
+                                                         transA,
+                                                         diag,
+                                                         M,
+                                                         N,
+                                                         nullptr,
+                                                         nullptr,
+                                                         lda,
+                                                         nullptr,
+                                                         ldb,
+                                                         nullptr,
+                                                         ldc),
                               invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
@@ -231,7 +233,7 @@ void testing_trmm_ex(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_C, hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trmm_ex_fn(
+        CHECK_ROCBLAS_ERROR(rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb, dC, ldc));
 
         CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
@@ -241,7 +243,7 @@ void testing_trmm_ex(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_C, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trmm_ex_fn(
+        CHECK_ROCBLAS_ERROR(rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb, dC, ldc));
 
         CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
@@ -297,7 +299,7 @@ void testing_trmm_ex(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_ex_fn(
+            CHECK_ROCBLAS_ERROR(rocblas_trmm_outofplace_fn(
                 handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb, dC, ldc));
         }
 
@@ -306,7 +308,7 @@ void testing_trmm_ex(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_ex_fn(
+            CHECK_ROCBLAS_ERROR(rocblas_trmm_outofplace_fn(
                 handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb, dC, ldc));
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

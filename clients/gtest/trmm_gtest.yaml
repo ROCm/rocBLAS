@@ -109,7 +109,7 @@ Tests:
   category: quick
   function:
     - trmm_bad_arg
-    - trmm_ex_bad_arg
+    - trmm_outofplace_bad_arg
   precision: *single_precision
   side: [L]
   uplo: [L]
@@ -121,7 +121,7 @@ Tests:
   category: quick
   function:
     - trmm_batched_bad_arg
-    - trmm_batched_ex_bad_arg
+    - trmm_outofplace_batched_bad_arg
   precision: *single_precision
   side: [L]
   uplo: [U]
@@ -133,7 +133,7 @@ Tests:
   category: quick
   function:
     - trmm_strided_batched_bad_arg
-    - trmm_strided_batched_ex_bad_arg
+    - trmm_outofplace_strided_batched_bad_arg
   precision: *single_precision
   side: [L]
   uplo: [L]
@@ -145,7 +145,7 @@ Tests:
   category: quick
   function:
     - trmm_batched
-    - trmm_batched_ex
+    - trmm_outofplace_batched
   precision: *single_double_precisions_complex
   side: [L   ]
   uplo: [   U]
@@ -160,7 +160,7 @@ Tests:
   category: quick
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions
   side: [L   ]
   uplo: [   U]
@@ -174,7 +174,7 @@ Tests:
   category: quick
   function:
     - trmm_batched
-    - trmm_batched_ex
+    - trmm_outofplace_batched
   precision: *single_double_precisions_complex
   side: [   R]
   uplo: [   U]
@@ -190,7 +190,7 @@ Tests:
   category: quick
   function:
     - trmm_strided_batched
-    - trmm_strided_batched_ex
+    - trmm_outofplace_strided_batched
   precision: *single_double_precisions_complex
   side: [L]
   uplo: [L]
@@ -206,7 +206,7 @@ Tests:
   category: quick
   function:
     - trmm_strided_batched
-    - trmm_strided_batched_ex
+    - trmm_outofplace_strided_batched
   precision: *single_double_precisions_complex
   side: [L   ]
   uplo: [L   ]
@@ -221,7 +221,7 @@ Tests:
   category: pre_checkin
   function:
     - trmm_batched
-    - trmm_batched_ex
+    - trmm_outofplace_batched
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -236,7 +236,7 @@ Tests:
   category: pre_checkin
   function:
     - trmm_strided_batched
-    - trmm_strided_batched_ex
+    - trmm_outofplace_strided_batched
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -251,7 +251,7 @@ Tests:
   category: quick
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -264,7 +264,7 @@ Tests:
   category: quick
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -277,7 +277,7 @@ Tests:
   category: pre_checkin
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -290,7 +290,7 @@ Tests:
   category: pre_checkin
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -303,7 +303,7 @@ Tests:
   category: pre_checkin
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -316,7 +316,7 @@ Tests:
   category: pre_checkin
   function:
     - trmm_strided_batched
-    - trmm_strided_batched_ex
+    - trmm_outofplace_strided_batched
   precision: *single_double_precisions
   side: [L,  ]
   uplo: [L,  ]
@@ -331,7 +331,7 @@ Tests:
   category: nightly
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -344,7 +344,7 @@ Tests:
   category: nightly
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions
   side: [R]
   uplo: [L]
@@ -357,7 +357,7 @@ Tests:
   category: nightly
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
@@ -370,7 +370,7 @@ Tests:
   category: nightly
   function:
     - trmm
-    - trmm_ex
+    - trmm_outofplace
   precision: *single_double_precisions_complex
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
