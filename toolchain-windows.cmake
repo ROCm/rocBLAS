@@ -35,16 +35,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHIP_CLANG_HCC_COMPAT_MODE=1")
 # args also in hipcc.bat
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -fms-compatibility -D__HIP_ROCclr__=1 -D__HIP_PLATFORM_AMD__=1 ")
 
-if (DEFINED ENV{LAPACK_DIR})
-  file(TO_CMAKE_PATH "$ENV{LAPACK_DIR}" LAPACK_DIR)
+if (DEFINED ENV{OPENBLAS_DIR})
+  file(TO_CMAKE_PATH "$ENV{OPENBLAS_DIR}" OPENBLAS_DIR)
 else()
-  set(LAPACK_DIR "C:/lapack/build")
-endif()
-
-if (DEFINED ENV{BLIS_DIR})
-  file(TO_CMAKE_PATH "$ENV{BLIS_DIR}" BLIS_DIR)
-else()
-  set(BLIS_DIR "C:/blis/blis-0.8.1-h8d14728_1/Library")
+  set(OPENBLAS_DIR "C:/OpenBLAS/OpenBLAS-0.3.18-x64")
 endif()
 
 if (DEFINED ENV{VCPKG_PATH})
