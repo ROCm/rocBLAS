@@ -6,7 +6,7 @@
 
 #include "Tensile/gemm.hpp"
 #include "definitions.hpp"
-#include "rocblas_syr2k.hpp"
+#include "rocblas_syr2k_her2k.hpp"
 
 template <int  MIN_NB,
           bool BATCHED,
