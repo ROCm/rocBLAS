@@ -30,7 +30,32 @@
 #define ROCBLAS_CLANG_STATIC
 #endif
 
-#if __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
+#if defined(ROCM_MATHLIBS_API_USE_HIP_COMPLEX)
+// If this is not internal use, or a C compiler, C++ compiler below C++14, or we expose the API
+// as using hip types for rocblas_float_complex and rocblas_double_complex
+// This allows for consistency of type reuse across hipified applications and other libraries like hipBLAS
+
+#include <hip/hip_complex.h>
+
+/*! \brief hip type to represent a complex number with single precision real and imaginary parts. */
+typedef hipFloatComplex rocblas_float_complex;
+
+/*! \brief hip type to represent a complex number with double precision real and imaginary parts. */
+typedef hipDoubleComplex rocblas_double_complex;
+
+#if __cplusplus >= 201402L
+
+// Test for compatibility with hipComplex API option when using C++14 or later
+
+static_assert(sizeof(hipFloatComplex) == 2 * sizeof(float),
+              "hipFloatComplex is not compatible with rocblas internal float complex.");
+
+static_assert(sizeof(hipDoubleComplex) == 2 * sizeof(double),
+              "hipDoubleComplex is not compatible with rocblas internal double complex.");
+
+#endif
+
+#elif __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 // If this is a C compiler, C++ compiler below C++14, or a host-only compiler, we only
 // include minimal definitions of rocblas_float_complex and rocblas_double_complex
@@ -52,13 +77,14 @@ typedef struct
 // If this a full internal build, we need full support of complex arithmetic
 // and classes. We need __host__ and __device__ so we use <hip/hip_runtime.h>.
 
-#include "rocblas-export.h"
-#include <hip/hip_runtime.h>
+#include <complex>
 #include <math.h>
 #include <ostream>
 #include <type_traits>
 
-#include <complex>
+#include <hip/hip_runtime.h>
+
+#include "rocblas-export.h"
 
 /*! \brief rocblas_complex_num is a structure which represents a complex number
  *         with precision T.
@@ -123,6 +149,40 @@ public:
     {
         return {x, y};
     }
+
+    /*  possible transition helpers for use of both internal and hipComplex
+
+    // Conversion from hipFloatComplex
+    template <typename U, std::enable_if_t<std::is_same<T, float>{} && std::is_same<U, hipFloatComplex>{}, int> = 0>
+    __device__ __host__ explicit constexpr rocblas_complex_num(const U& z)
+        : x{z.x()}
+        , y{z.y()}
+    {
+    }
+
+    // Conversion to hipFloatComplex
+    template <typename U, std::enable_if_t<std::is_same<T, float>{} && std::is_same<U, hipFloatComplex>{}, int> = 0>
+    __device__ __host__ explicit constexpr operator U() const
+    {
+        return {x, y};
+    }
+
+    // Conversion from hipDoubleComplex
+    template <typename U, std::enable_if_t<std::is_same<T, double>{} && std::is_same<U, hipDoubleComplex>{}, int> = 0>
+    __device__ __host__ explicit constexpr rocblas_complex_num(const U& z)
+        : x{z.x()}
+        , y{z.y()}
+    {
+    }
+
+    // Conversion to hipDoubleComplex
+    template <typename U, std::enable_if_t<std::is_same<T, double>{} && std::is_same<U, hipDoubleComplex>{}, int> = 0>
+    __device__ __host__ explicit constexpr operator U() const
+    {
+        return {x, y};
+    }
+
+    */
 
     // Conversion from different complex (explicit)
     template <typename U, std::enable_if_t<std::is_constructible<T, U>{}, int> = 0>
@@ -454,6 +514,6 @@ struct ROCBLAS_INTERNAL_EXPORT rocblas_index_value_t
     T value;
 };
 
-#endif // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
+#endif // using internal complex class for API
 
 #endif
