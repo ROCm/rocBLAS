@@ -320,11 +320,26 @@ std::string RocBLAS_TestName_to_string(std::unordered_map<std::string, size_t>& 
     return name;
 }
 
+static const char* const validCategories[]
+    = {"quick", "pre_checkin", "nightly", "multi_gpu", "HMM", "known_bug", NULL};
+
+static bool valid_category(const char* category)
+{
+    int i = 0;
+    while(validCategories[i])
+    {
+        if(!strcmp(category, validCategories[i++]))
+            return true;
+    }
+    return false;
+}
+
 /********************************************************************************************
  * Function which matches Arguments with a category, accounting for arg.known_bug_platforms *
  ********************************************************************************************/
 bool match_test_category(const Arguments& arg, const char* category)
 {
+    // category is currently unused as "_" for all categories
     if(*arg.known_bug_platforms)
     {
         // Regular expression for token delimiters
@@ -352,6 +367,12 @@ bool match_test_category(const Arguments& arg, const char* category)
         }
     }
 
+    // we are now bypassing the category key
     // Return whether arg.category matches the requested category
-    return !strcmp(arg.category, category);
+    // return !strcmp(arg.category, category);
+
+    // valid_category can be used if we add unused category
+    // return valid_category(arg.category);
+
+    return true;
 }

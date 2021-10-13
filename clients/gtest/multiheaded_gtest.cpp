@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifdef USE_TENSILE_HOST
+#ifdef BUILD_WITH_TENSILE
 
 #include "../../library/src/include/tensile_host.hpp"
 #include "rocblas_data.hpp"

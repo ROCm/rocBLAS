@@ -81,7 +81,8 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
 
     {
         // in case of negative incx shift pointer to end of data for negative indexing
-        ptrdiff_t shift_x = offset_x - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
+        rocblas_int k       = side == rocblas_side_left ? m : n;
+        ptrdiff_t   shift_x = offset_x - ((incx < 0) ? ptrdiff_t(incx) * (k - 1) : 0);
 
         // general case, any transA, transB, lda, incx, ldc
         static constexpr int DGMM_DIM_X = 16;

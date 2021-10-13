@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -34,11 +34,19 @@ void rocblas_init_template(U& that, T rand_gen(), bool seedReset)
         auto*     batched_data = that[batch_index];
         ptrdiff_t inc          = that.inc();
         auto      n            = that.n();
-        if(inc < 0)
-            batched_data -= (n - 1) * inc;
 
-        for(rocblas_int i = 0; i < n; ++i)
-            batched_data[i * inc] = rand_gen();
+        if(inc == 1 || inc == -1)
+        {
+            rocblas_init(batched_data, n, 1, 1);
+        }
+        else
+        {
+            if(inc < 0)
+                batched_data -= (n - 1) * inc;
+
+            for(rocblas_int i = 0; i < n; ++i)
+                batched_data[i * inc] = rand_gen();
+        }
     }
 }
 
@@ -74,7 +82,7 @@ inline void rocblas_init(host_vector<T>& that, bool seedReset = false)
 {
     if(seedReset)
         rocblas_seedrand();
-    rocblas_init(that, 1, that.size(), 1);
+    rocblas_init(that, that.size(), 1, 1);
 }
 
 //!

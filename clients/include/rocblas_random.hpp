@@ -8,27 +8,41 @@
 #include "rocblas_math.hpp"
 #include <cinttypes>
 #include <random>
+#include <thread>
 #include <type_traits>
 
 /* ============================================================================================ */
 // Random number generator
 using rocblas_rng_t = std::mt19937;
-extern thread_local rocblas_rng_t t_rocblas_rng;
-extern const rocblas_rng_t        rocblas_seed;
-extern const std::thread::id      main_thread_id;
 
-// For the main thread, we use rocblas_seed; for other threads, we start with a different seed but
+extern rocblas_rng_t   g_rocblas_seed;
+extern std::thread::id g_main_thread_id;
+
+extern thread_local rocblas_rng_t t_rocblas_rng;
+extern thread_local int           t_rocblas_rand_idx;
+
+// optimized helper
+float rocblas_uniform_int_1_10();
+
+void rocblas_uniform_int_1_10_run_float(float* ptr, size_t num);
+void rocblas_uniform_int_1_10_run_double(double* ptr, size_t num);
+void rocblas_uniform_int_1_10_run_float_complex(rocblas_float_complex* ptr, size_t num);
+void rocblas_uniform_int_1_10_run_double_complex(rocblas_double_complex* ptr, size_t num);
+
+// For the main thread, we use g_rocblas_seed; for other threads, we start with a different seed but
 // deterministically based on the thread id's hash function.
 inline rocblas_rng_t get_seed()
 {
     auto tid = std::this_thread::get_id();
-    return tid == main_thread_id ? rocblas_seed : rocblas_rng_t(std::hash<std::thread::id>{}(tid));
+    return tid == g_main_thread_id ? g_rocblas_seed
+                                   : rocblas_rng_t(std::hash<std::thread::id>{}(tid));
 }
 
 // Reset the seed (mainly to ensure repeatability of failures in a given suite)
 inline void rocblas_seedrand()
 {
-    t_rocblas_rng = get_seed();
+    t_rocblas_rng      = get_seed();
+    t_rocblas_rand_idx = 0;
 }
 
 /* ============================================================================================ */
@@ -155,13 +169,6 @@ public:
 /* ============================================================================================ */
 /* generate random number :*/
 
-/*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
-template <typename T>
-inline T random_generator()
-{
-    return std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng);
-}
-
 /*! \brief  generate a random NaN number */
 template <typename T>
 inline T random_nan_generator()
@@ -183,20 +190,31 @@ inline T random_zero_generator()
     return T(rocblas_zero_rng{});
 }
 
+/*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
+template <typename T>
+inline T random_generator()
+{
+    return T(rocblas_uniform_int_1_10());
+}
+
+template <>
+inline float random_generator()
+{
+    return rocblas_uniform_int_1_10();
+}
+
 // for rocblas_float_complex, generate two random ints (same behaviour as for floats)
 template <>
 inline rocblas_float_complex random_generator<rocblas_float_complex>()
 {
-    return {float(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng)),
-            float(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng))};
+    return {float(rocblas_uniform_int_1_10()), float(rocblas_uniform_int_1_10())};
 };
 
 // for rocblas_double_complex, generate two random ints (same behaviour as for doubles)
 template <>
 inline rocblas_double_complex random_generator<rocblas_double_complex>()
 {
-    return {double(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng)),
-            double(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng))};
+    return {double(rocblas_uniform_int_1_10()), double(rocblas_uniform_int_1_10())};
 };
 
 // for rocblas_half, generate float, and convert to rocblas_half
@@ -221,6 +239,42 @@ inline int8_t random_generator<int8_t>()
 {
     return static_cast<int8_t>(std::uniform_int_distribution<unsigned short>(1, 3)(t_rocblas_rng));
 };
+
+/*! \brief  generate a sequence of random number in range [1,2,3,4,5,6,7,8,9,10] */
+template <typename T>
+inline void random_run_generator(T* ptr, size_t num)
+{
+    for(size_t i = 0; i < num; i++)
+    {
+        ptr[i] = random_generator<T>();
+    }
+}
+
+template <>
+inline void random_run_generator<float>(float* ptr, size_t num)
+{
+    rocblas_uniform_int_1_10_run_float(ptr, num);
+};
+
+template <>
+inline void random_run_generator<double>(double* ptr, size_t num)
+{
+    rocblas_uniform_int_1_10_run_double(ptr, num);
+};
+
+template <>
+inline void random_run_generator<rocblas_float_complex>(rocblas_float_complex* ptr, size_t num)
+{
+    rocblas_uniform_int_1_10_run_float_complex(ptr, num);
+};
+
+template <>
+inline void random_run_generator<rocblas_double_complex>(rocblas_double_complex* ptr, size_t num)
+{
+    rocblas_uniform_int_1_10_run_double_complex(ptr, num);
+};
+
+// HPL
 
 /*! \brief  generate a random number in HPL-like [-0.5,0.5] doubles  */
 template <typename T>

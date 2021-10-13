@@ -10,6 +10,7 @@
 
 // rocBLAS clients contains a substitute for Boost's program_options
 #include "../../../clients/benchmarks/program_options.hpp"
+using namespace roc;
 
 void init_scalar_value(rocblas_union_t* scalar, rocblas_datatype type, double value)
 {

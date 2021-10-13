@@ -166,11 +166,15 @@ static void rocblas_print_version()
 {
     static std::string blas_version = rocblas_version_string();
 
-#ifdef USE_TENSILE_HOST
-    rocblas_cout << "rocBLAS version: " << blas_version << " (new Tensile client)\n" << std::endl;
-#else
     rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
-#endif
+}
+
+static void rocblas_print_usage_warning()
+{
+    std::string warning(
+        "parsing of test data may take a couple minutes before any test output appears...");
+
+    rocblas_cout << "info: " << warning << "\n" << std::endl;
 }
 
 // Device Query
@@ -194,11 +198,12 @@ int main(int argc, char** argv)
     // Set signal handler
     rocblas_test_sigaction();
 
-    // Print rocBLAS version
     rocblas_print_version();
 
     // Set test device
     rocblas_set_test_device();
+
+    rocblas_print_usage_warning();
 
     // Set data file path
     rocblas_parse_data(argc, argv, rocblas_exepath() + "rocblas_gtest.data");
