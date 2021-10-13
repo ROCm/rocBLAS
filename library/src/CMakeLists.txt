@@ -34,87 +34,49 @@ if( BUILD_WITH_TENSILE )
     set( BUILD_SHARED_LIBS OFF )
   else( )
     set( ROCBLAS_SHARED_LIBS OFF )
-    if( BUILD_WITH_TENSILE_HOST )
-      #list( APPEND package_targets Tensile TensileHost )
-    else()
-      list( APPEND package_targets Tensile )
-    endif()
   endif( )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
-  if( BUILD_WITH_TENSILE_HOST )
-    #TODO update when this feature has been validated
-    #set( PACKAGE_TENSILE_LIBRARY ON )
-    set( PACKAGE_TENSILE_LIBRARY OFF )
-    set( USE_LEGACY_CODE OFF )
 
-    # Build options list
-    if(Tensile_MERGE_FILES)
-      set(Tensile_Options ${Tensile_Options} MERGE_FILES)
-    endif()
-    if(Tensile_SHORT_FILENAMES)
-      set(Tensile_Options ${Tensile_Options} SHORT_FILE_NAMES)
-    endif()
-    if(Tensile_PRINT_DEBUG)
-      set(Tensile_Options ${Tensile_Options} PRINT_DEBUG)
-    endif()
-    if(PACKAGE_TENSILE_LIBRARY)
-      set(Tensile_Options ${Tensile_Options} GENERATE_PACKAGE)
-    endif()
+  #TODO update when this feature has been validated
+  #set( PACKAGE_TENSILE_LIBRARY ON )
+  set( PACKAGE_TENSILE_LIBRARY OFF )
 
-    # Add a build target for Tensile kernel library
-    # Legacy code is OFF by default for new client
-    # Runtime language is HIP by default
-    TensileCreateLibraryFiles(
-      "${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}"
-      "${PROJECT_BINARY_DIR}/Tensile"
-      ARCHITECTURE        ${Tensile_ARCHITECTURE}
-      CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
-      COMPILER            ${Tensile_COMPILER}
-      LIBRARY_FORMAT      ${Tensile_LIBRARY_FORMAT}
-      ${Tensile_Options}
-    )
-
-  else()
-    set( PACKAGE_TENSILE_LIBRARY OFF )
-    set( USE_LEGACY_CODE ON )
-
-    TensileCreateLibraryCmake(
-      ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-      ${Tensile_RUNTIME_LANGUAGE}
-      ${Tensile_COMPILER}
-      ${Tensile_CODE_OBJECT_VERSION}
-      ${Tensile_ARCHITECTURE}
-      ${Tensile_LIBRARY_FORMAT}
-      ${Tensile_MERGE_FILES}
-      ${Tensile_SHORT_FILENAMES}
-      ${Tensile_PRINT_DEBUG}
-      ${PACKAGE_TENSILE_LIBRARY}
-      ${USE_LEGACY_CODE}
-    )
+  # Build options list
+  if(Tensile_MERGE_FILES)
+    set(Tensile_Options ${Tensile_Options} MERGE_FILES)
+  endif()
+  if(Tensile_SHORT_FILENAMES)
+    set(Tensile_Options ${Tensile_Options} SHORT_FILE_NAMES)
+  endif()
+  if(Tensile_PRINT_DEBUG)
+    set(Tensile_Options ${Tensile_Options} PRINT_DEBUG)
+  endif()
+  if(PACKAGE_TENSILE_LIBRARY)
+    set(Tensile_Options ${Tensile_Options} GENERATE_PACKAGE)
   endif()
 
-  # build gemm with Tensile Host library
-  if( BUILD_WITH_TENSILE_HOST )
-    # Create a unique name for TensileHost compiled for rocBLAS
-    set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
-    target_compile_definitions( TensileHost PUBLIC USE_TENSILE_HOST )
+  # Add a build target for Tensile kernel library
+  # Runtime language is HIP by default
+  TensileCreateLibraryFiles(
+    "${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}"
+    "${PROJECT_BINARY_DIR}/Tensile"
+    ARCHITECTURE        ${Tensile_ARCHITECTURE}
+    CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
+    COMPILER            ${Tensile_COMPILER}
+    LIBRARY_FORMAT      ${Tensile_LIBRARY_FORMAT}
+    ${Tensile_Options}
+  )
 
-    # Tensile host depends on libs build target
-    add_dependencies( TensileHost TENSILE_LIBRARY_TARGET )
-  else()
-    # Create a unique name for Tensile compiled for rocBLAS
-    set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
-    target_link_libraries( Tensile PRIVATE hip::device )
-  endif()
+  # Create a unique name for TensileHost compiled for rocBLAS
+  set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
+
+  # Tensile host depends on libs build target
+  add_dependencies( TensileHost TENSILE_LIBRARY_TARGET )
 
   if( ROCBLAS_SHARED_LIBS )
     set( BUILD_SHARED_LIBS ON )
-    if( BUILD_WITH_TENSILE_HOST )
-        set_target_properties( TensileHost PROPERTIES POSITION_INDEPENDENT_CODE ON )
-    else()
-      set_target_properties( Tensile PROPERTIES POSITION_INDEPENDENT_CODE ON )
-    endif()
+    set_target_properties( TensileHost PROPERTIES POSITION_INDEPENDENT_CODE ON )
   endif()
 
   set( Tensile_SRC
@@ -165,9 +127,9 @@ set (rocblas_ex_source_no_tensile
     blas_ex/rocblas_nrm2_ex.cpp
     blas_ex/rocblas_nrm2_batched_ex.cpp
     blas_ex/rocblas_nrm2_strided_batched_ex.cpp
-    blas_ex/rocblas_trmm_ex.cpp
-    blas_ex/rocblas_trmm_batched_ex.cpp
-    blas_ex/rocblas_trmm_strided_batched_ex.cpp
+    blas_ex/rocblas_trmm_outofplace.cpp
+    blas_ex/rocblas_trmm_outofplace_batched.cpp
+    blas_ex/rocblas_trmm_outofplace_strided_batched.cpp
 )
 
 set( rocblas_blas3_source_no_tensile
@@ -196,9 +158,11 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_symm_batched.cpp
     blas3/rocblas_symm_strided_batched.cpp
     blas3/rocblas_syrk.cpp
+    blas3/rocblas_syrk_herk_kernels.cpp
     blas3/rocblas_syrk_batched.cpp
     blas3/rocblas_syrk_strided_batched.cpp
     blas3/rocblas_syr2k.cpp
+    blas3/rocblas_syr2k_her2k_kernels.cpp
     blas3/rocblas_syr2k_batched.cpp
     blas3/rocblas_syr2k_strided_batched.cpp
     blas3/Tensile/gemm.cpp
@@ -216,66 +180,86 @@ set( rocblas_blas3_source_no_tensile
 
 set( rocblas_blas2_source
   blas2/rocblas_gemv.cpp
+  blas2/rocblas_gemv_kernels.cpp
   blas2/rocblas_gemv_batched.cpp
   blas2/rocblas_gemv_strided_batched.cpp
   blas2/rocblas_tpmv.cpp
   blas2/rocblas_tpmv_batched.cpp
   blas2/rocblas_tpmv_strided_batched.cpp
   blas2/rocblas_gbmv.cpp
+  blas2/rocblas_gbmv_kernels.cpp
   blas2/rocblas_gbmv_batched.cpp
   blas2/rocblas_gbmv_strided_batched.cpp
   blas2/rocblas_tbsv.cpp
+  blas2/rocblas_tbsv_kernels.cpp
   blas2/rocblas_tbsv_batched.cpp
   blas2/rocblas_tbsv_strided_batched.cpp
   blas2/rocblas_trmv.cpp
+  blas2/rocblas_trmv_kernels.cpp
   blas2/rocblas_trmv_batched.cpp
   blas2/rocblas_trmv_strided_batched.cpp
   blas2/rocblas_ger.cpp
+  blas2/rocblas_ger_kernels.cpp
   blas2/rocblas_ger_batched.cpp
   blas2/rocblas_ger_strided_batched.cpp
   blas2/rocblas_hbmv.cpp
+  blas2/rocblas_hbmv_kernels.cpp
   blas2/rocblas_hbmv_batched.cpp
   blas2/rocblas_hbmv_strided_batched.cpp
   blas2/rocblas_hemv.cpp
+  blas2/rocblas_hemv_symv_kernels.cpp
   blas2/rocblas_hemv_batched.cpp
   blas2/rocblas_hemv_strided_batched.cpp
   blas2/rocblas_her.cpp
+  blas2/rocblas_her_kernels.cpp
   blas2/rocblas_her_batched.cpp
   blas2/rocblas_her_strided_batched.cpp
   blas2/rocblas_her2.cpp
+  blas2/rocblas_her2_kernels.cpp
   blas2/rocblas_her2_batched.cpp
   blas2/rocblas_her2_strided_batched.cpp
   blas2/rocblas_hpmv.cpp
+  blas2/rocblas_hpmv_kernels.cpp
   blas2/rocblas_hpmv_batched.cpp
   blas2/rocblas_hpmv_strided_batched.cpp
   blas2/rocblas_hpr.cpp
+  blas2/rocblas_hpr_kernels.cpp
   blas2/rocblas_hpr_batched.cpp
   blas2/rocblas_hpr_strided_batched.cpp
   blas2/rocblas_hpr2.cpp
+  blas2/rocblas_hpr2_kernels.cpp
   blas2/rocblas_hpr2_batched.cpp
   blas2/rocblas_hpr2_strided_batched.cpp
   blas2/rocblas_spr.cpp
+  blas2/rocblas_spr_kernels.cpp
   blas2/rocblas_spr_batched.cpp
   blas2/rocblas_spr_strided_batched.cpp
   blas2/rocblas_spr2.cpp
+  blas2/rocblas_spr2_kernels.cpp
   blas2/rocblas_spr2_batched.cpp
   blas2/rocblas_spr2_strided_batched.cpp
   blas2/rocblas_syr.cpp
+  blas2/rocblas_syr_kernels.cpp
   blas2/rocblas_syr_batched.cpp
   blas2/rocblas_syr_strided_batched.cpp
   blas2/rocblas_syr2.cpp
+  blas2/rocblas_syr2_kernels.cpp
   blas2/rocblas_syr2_batched.cpp
   blas2/rocblas_syr2_strided_batched.cpp
   blas2/rocblas_tbmv.cpp
+  blas2/rocblas_tbmv_kernels.cpp
   blas2/rocblas_tbmv_batched.cpp
   blas2/rocblas_tbmv_strided_batched.cpp
   blas2/rocblas_tpsv.cpp
+  blas2/rocblas_tpsv_kernels.cpp
   blas2/rocblas_tpsv_batched.cpp
   blas2/rocblas_tpsv_strided_batched.cpp
   blas2/rocblas_sbmv.cpp
+  blas2/rocblas_sbmv_kernels.cpp
   blas2/rocblas_sbmv_batched.cpp
   blas2/rocblas_sbmv_strided_batched.cpp
   blas2/rocblas_spmv.cpp
+  blas2/rocblas_spmv_kernels.cpp
   blas2/rocblas_spmv_batched.cpp
   blas2/rocblas_spmv_strided_batched.cpp
   blas2/rocblas_symv.cpp
@@ -306,9 +290,11 @@ set( rocblas_blas1_source
   blas1/rocblas_asum_batched.cpp
   blas1/rocblas_asum_strided_batched.cpp
   blas1/rocblas_axpy.cpp
+  blas1/rocblas_axpy_kernels.cpp
   blas1/rocblas_axpy_batched.cpp
   blas1/rocblas_axpy_strided_batched.cpp
   blas1/rocblas_copy.cpp
+  blas1/rocblas_copy_kernels.cpp
   blas1/rocblas_copy_batched.cpp
   blas1/rocblas_copy_strided_batched.cpp
   blas1/rocblas_dot.cpp
@@ -317,22 +303,28 @@ set( rocblas_blas1_source
   blas1/rocblas_nrm2.cpp
   blas1/rocblas_nrm2_batched.cpp
   blas1/rocblas_nrm2_strided_batched.cpp
-  blas1/rocblas_scal.cpp
-  blas1/rocblas_scal_batched.cpp
-  blas1/rocblas_scal_strided_batched.cpp
-  blas1/rocblas_swap.cpp
   blas1/rocblas_rot.cpp
+  blas1/rocblas_rot_kernels.cpp
   blas1/rocblas_rot_batched.cpp
   blas1/rocblas_rot_strided_batched.cpp
   blas1/rocblas_rotg.cpp
+  blas1/rocblas_rotg_kernels.cpp
   blas1/rocblas_rotg_batched.cpp
   blas1/rocblas_rotg_strided_batched.cpp
   blas1/rocblas_rotm.cpp
+  blas1/rocblas_rotm_kernels.cpp
   blas1/rocblas_rotm_batched.cpp
   blas1/rocblas_rotm_strided_batched.cpp
   blas1/rocblas_rotmg.cpp
+  blas1/rocblas_rotmg_kernels.cpp
   blas1/rocblas_rotmg_batched.cpp
   blas1/rocblas_rotmg_strided_batched.cpp
+  blas1/rocblas_scal.cpp
+  blas1/rocblas_scal_kernels.cpp
+  blas1/rocblas_scal_batched.cpp
+  blas1/rocblas_scal_strided_batched.cpp
+  blas1/rocblas_swap.cpp
+  blas1/rocblas_swap_kernels.cpp
   blas1/rocblas_swap_batched.cpp
   blas1/rocblas_swap_strided_batched.cpp
 )
@@ -390,55 +382,52 @@ target_include_directories( rocblas
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
 
 if( BUILD_WITH_TENSILE )
-  if( BUILD_WITH_TENSILE_HOST )
-      #target_link_libraries( rocblas PRIVATE Tensile TensileHost )
-      if( BUILD_SHARED_LIBS )
-        target_link_libraries( rocblas PRIVATE TensileHost )
-      else()
-        target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
 
-        # bypassing cmake dependencies chain for static link as it won't allow target from different directory
+  if( BUILD_SHARED_LIBS )
+    target_link_libraries( rocblas PRIVATE TensileHost )
+  else()
+    target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
 
-        # including tensile headers into rocblas tensileHost client so get compile properties
-        get_target_property(TensileHost_INCLUDES TensileHost INCLUDE_DIRECTORIES)
-        target_include_directories( rocblas PRIVATE ${TensileHost_INCLUDES} )
-        get_target_property(TensileHost_DEFINES TensileHost COMPILE_DEFINITIONS)
-        target_compile_definitions( rocblas PRIVATE ${TensileHost_DEFINES} )
+    # bypassing cmake dependencies chain for static link as it won't allow target from different directory
 
-        get_target_property( TensileHost_LIBDIR TensileHost BINARY_DIR )
+    # including tensile headers into rocblas tensileHost client so get compile properties
+    get_target_property(TensileHost_INCLUDES TensileHost INCLUDE_DIRECTORIES)
+    target_include_directories( rocblas PRIVATE ${TensileHost_INCLUDES} )
+    get_target_property(TensileHost_DEFINES TensileHost COMPILE_DEFINITIONS)
+    target_compile_definitions( rocblas PRIVATE ${TensileHost_DEFINES} )
 
-        message (STATUS "TensileHost_INCLUDES == ${TensileHost_INCLUDES}")
-        message (STATUS "TensileHost_DEFINES == ${TensileHost_DEFINES}")
-        message (STATUS "TensileHost_LIBDIR == ${TensileHost_LIBDIR}")
+    get_target_property( TensileHost_LIBDIR TensileHost BINARY_DIR )
 
-        # recreate LLVM static dependencies
-        if (${Tensile_LIBRARY_FORMAT} STREQUAL "yaml")
-          find_package(LLVM 6.0 QUIET CONFIG)
+    message (STATUS "TensileHost_INCLUDES == ${TensileHost_INCLUDES}")
+    message (STATUS "TensileHost_DEFINES == ${TensileHost_DEFINES}")
+    message (STATUS "TensileHost_LIBDIR == ${TensileHost_LIBDIR}")
+
+    # recreate LLVM static dependencies
+    if (${Tensile_LIBRARY_FORMAT} STREQUAL "yaml")
+      find_package(LLVM 6.0 QUIET CONFIG)
+      if(NOT LLVM_FOUND)
+          find_package(LLVM 7.0 QUIET CONFIG)
           if(NOT LLVM_FOUND)
-              find_package(LLVM 7.0 QUIET CONFIG)
+              find_package(LLVM 9.0 QUIET CONFIG)
               if(NOT LLVM_FOUND)
-                  find_package(LLVM 9.0 QUIET CONFIG)
-                  if(NOT LLVM_FOUND)
-                      find_package(LLVM REQUIRED CONFIG)
-                  endif()
+                  find_package(LLVM REQUIRED CONFIG)
               endif()
           endif()
-          find_library(LLVMObjectYAML_LIBRARY
-            NAMES LLVMObjectYAML
-            PATHS ${LLVM_LIBRARY_DIR})
-          message("LLVMObjectYAML_LIBRARY: ${LLVMObjectYAML_LIBRARY}")
-
-          target_link_libraries(rocblas PRIVATE LLVMObjectYAML )  # match tensile
-        endif()
-
-        # to get TensileHost built first, not to link target
-        # as dependency chain can not be created
-        add_dependencies(rocblas TensileHost)
-
       endif()
-  else()
-    target_link_libraries( rocblas PRIVATE Tensile )
+      find_library(LLVMObjectYAML_LIBRARY
+        NAMES LLVMObjectYAML
+        PATHS ${LLVM_LIBRARY_DIR})
+      message("LLVMObjectYAML_LIBRARY: ${LLVMObjectYAML_LIBRARY}")
+
+      target_link_libraries(rocblas PRIVATE LLVMObjectYAML )  # match tensile
+    endif()
+
+    # to get TensileHost built first, not to link target
+    # as dependency chain can not be created
+    add_dependencies(rocblas TensileHost)
+
   endif()
+
   target_compile_definitions( rocblas PRIVATE ${TENSILE_DEFINES} )
 endif()
 
@@ -495,7 +484,7 @@ if( NOT BUILD_SHARED_LIBS )
   # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
   set_target_properties( rocblas PROPERTIES PREFIX "lib" )
 
-  if( BUILD_WITH_TENSILE AND BUILD_WITH_TENSILE_HOST )
+  if( BUILD_WITH_TENSILE )
     add_custom_command( TARGET rocblas POST_BUILD
       COMMAND
         ${python} ${CMAKE_CURRENT_SOURCE_DIR}/merge_archives.py
@@ -535,17 +524,15 @@ rocm_install_targets(
 )
 
 if( BUILD_WITH_TENSILE )
-  if( BUILD_WITH_TENSILE_HOST )
-    if (WIN32)
-      set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin" CACHE PATH "path to tensile library" )
-    else()
-      set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
-    endif()
-    rocm_install(
-      DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
-      DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
-      COMPONENT Unspecified)
+  if (WIN32)
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin" CACHE PATH "path to tensile library" )
+  else()
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
   endif()
+  rocm_install(
+    DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
+    DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
+    COMPONENT Unspecified)
 endif()
 
 #         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
@@ -558,17 +545,13 @@ if( BUILD_SHARED_LIBS )
     NAMESPACE roc::
     )
 else()
-  if (Tensile_LIBRARY_FORMAT)
-    if (${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
-      set(USING_MSGPACK ON)
-    endif()
-  endif()
-  if (USING_MSGPACK)
+  # static
+  if (DEFINED Tensile_LIBRARY_FORMAT AND ${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
+    # header only tensile usage of msgpack
     rocm_export_targets(
       TARGETS roc::rocblas
       PREFIX rocblas
       DEPENDS PACKAGE hip
-      STATIC_DEPENDS PACKAGE msgpack
       NAMESPACE roc::
       )
   else()

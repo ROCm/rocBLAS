@@ -1,8 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_syrk.hpp"
 #include "logging.hpp"
+#include "rocblas_syrk_herk.hpp"
 #include "utility.hpp"
 
 namespace

@@ -7,47 +7,47 @@
 #include "rocblas.h"
 #include "utility.hpp"
 
-#define STRMM_STRIDED_BATCHED_EX_NB 32
-#define DTRMM_STRIDED_BATCHED_EX_NB 32
-#define CTRMM_STRIDED_BATCHED_EX_NB 32
-#define ZTRMM_STRIDED_BATCHED_EX_NB 32
+#define Strmm_outofplace_strided_batched_NB 32
+#define Dtrmm_outofplace_strided_batched_NB 32
+#define Ctrmm_outofplace_strided_batched_NB 32
+#define Ztrmm_outofplace_strided_batched_NB 32
 
 namespace
 {
     template <typename>
-    constexpr char rocblas_trmm_strided_batched_ex_name[] = "unknown";
+    constexpr char rocblas_trmm_outofplace_strided_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmm_strided_batched_ex_name<float>[]
-        = "rocblas_strmm_strided_batched_ex";
+    constexpr char rocblas_trmm_outofplace_strided_batched_name<float>[]
+        = "rocblas_strmm_outofplace_strided_batched";
     template <>
-    constexpr char rocblas_trmm_strided_batched_ex_name<double>[]
-        = "rocblas_dtrmm_strided_batched_ex";
+    constexpr char rocblas_trmm_outofplace_strided_batched_name<double>[]
+        = "rocblas_dtrmm_outofplace_strided_batched";
     template <>
-    constexpr char rocblas_trmm_strided_batched_ex_name<rocblas_float_complex>[]
-        = "rocblas_ctrmm_strided_batched_ex";
+    constexpr char rocblas_trmm_outofplace_strided_batched_name<rocblas_float_complex>[]
+        = "rocblas_ctrmm_outofplace_strided_batched";
     template <>
-    constexpr char rocblas_trmm_strided_batched_ex_name<rocblas_double_complex>[]
-        = "rocblas_ztrmm_strided_batched_ex";
+    constexpr char rocblas_trmm_outofplace_strided_batched_name<rocblas_double_complex>[]
+        = "rocblas_ztrmm_outofplace_strided_batched";
 
     template <int NB, typename T>
-    rocblas_status rocblas_trmm_strided_batched_ex_impl(rocblas_handle    handle,
-                                                        rocblas_side      side,
-                                                        rocblas_fill      uplo,
-                                                        rocblas_operation transa,
-                                                        rocblas_diagonal  diag,
-                                                        rocblas_int       m,
-                                                        rocblas_int       n,
-                                                        const T*          alpha,
-                                                        const T*          a,
-                                                        rocblas_int       lda,
-                                                        rocblas_stride    stride_a,
-                                                        const T*          b,
-                                                        rocblas_int       ldb,
-                                                        rocblas_stride    stride_b,
-                                                        T*                c,
-                                                        rocblas_int       ldc,
-                                                        rocblas_stride    stride_c,
-                                                        rocblas_int       batch_count)
+    rocblas_status rocblas_trmm_outofplace_strided_batched_impl(rocblas_handle    handle,
+                                                                rocblas_side      side,
+                                                                rocblas_fill      uplo,
+                                                                rocblas_operation transa,
+                                                                rocblas_diagonal  diag,
+                                                                rocblas_int       m,
+                                                                rocblas_int       n,
+                                                                const T*          alpha,
+                                                                const T*          a,
+                                                                rocblas_int       lda,
+                                                                rocblas_stride    stride_a,
+                                                                const T*          b,
+                                                                rocblas_int       ldb,
+                                                                rocblas_stride    stride_b,
+                                                                T*                c,
+                                                                rocblas_int       ldc,
+                                                                rocblas_stride    stride_c,
+                                                                rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -67,7 +67,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle,
-                          rocblas_trmm_strided_batched_ex_name<T>,
+                          rocblas_trmm_outofplace_strided_batched_name<T>,
                           side,
                           uplo,
                           transa,
@@ -88,7 +88,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f trmm_strided_batched_ex -r",
+                          "./rocblas-bench -f trmm_outofplace_strided_batched -r",
                           rocblas_precision_string<T>,
                           "--side",
                           side_letter,
@@ -120,7 +120,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
-                            rocblas_trmm_strided_batched_ex_name<T>,
+                            rocblas_trmm_outofplace_strided_batched_name<T>,
                             "side",
                             side_letter,
                             "uplo",
@@ -256,55 +256,59 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_, STRIDED_BATCHED_NB_)                                   \
-    rocblas_status routine_name_(rocblas_handle    handle,                             \
-                                 rocblas_side      side,                               \
-                                 rocblas_fill      uplo,                               \
-                                 rocblas_operation transa,                             \
-                                 rocblas_diagonal  diag,                               \
-                                 rocblas_int       m,                                  \
-                                 rocblas_int       n,                                  \
-                                 const T_*         alpha,                              \
-                                 const T_*         a,                                  \
-                                 rocblas_int       lda,                                \
-                                 rocblas_stride    stride_a,                           \
-                                 const T_*         b,                                  \
-                                 rocblas_int       ldb,                                \
-                                 rocblas_stride    stride_b,                           \
-                                 T_*               c,                                  \
-                                 rocblas_int       ldc,                                \
-                                 rocblas_stride    stride_c,                           \
-                                 rocblas_int       batch_count)                        \
-    try                                                                                \
-    {                                                                                  \
-        return rocblas_trmm_strided_batched_ex_impl<STRIDED_BATCHED_NB_>(handle,       \
-                                                                         side,         \
-                                                                         uplo,         \
-                                                                         transa,       \
-                                                                         diag,         \
-                                                                         m,            \
-                                                                         n,            \
-                                                                         alpha,        \
-                                                                         a,            \
-                                                                         lda,          \
-                                                                         stride_a,     \
-                                                                         b,            \
-                                                                         ldb,          \
-                                                                         stride_b,     \
-                                                                         c,            \
-                                                                         ldc,          \
-                                                                         stride_c,     \
-                                                                         batch_count); \
-    }                                                                                  \
-    catch(...)                                                                         \
-    {                                                                                  \
-        return exception_to_rocblas_status();                                          \
+#define IMPL(routine_name_, T_, STRIDED_BATCHED_NB_)                                           \
+    rocblas_status routine_name_(rocblas_handle    handle,                                     \
+                                 rocblas_side      side,                                       \
+                                 rocblas_fill      uplo,                                       \
+                                 rocblas_operation transa,                                     \
+                                 rocblas_diagonal  diag,                                       \
+                                 rocblas_int       m,                                          \
+                                 rocblas_int       n,                                          \
+                                 const T_*         alpha,                                      \
+                                 const T_*         a,                                          \
+                                 rocblas_int       lda,                                        \
+                                 rocblas_stride    stride_a,                                   \
+                                 const T_*         b,                                          \
+                                 rocblas_int       ldb,                                        \
+                                 rocblas_stride    stride_b,                                   \
+                                 T_*               c,                                          \
+                                 rocblas_int       ldc,                                        \
+                                 rocblas_stride    stride_c,                                   \
+                                 rocblas_int       batch_count)                                \
+    try                                                                                        \
+    {                                                                                          \
+        return rocblas_trmm_outofplace_strided_batched_impl<STRIDED_BATCHED_NB_>(handle,       \
+                                                                                 side,         \
+                                                                                 uplo,         \
+                                                                                 transa,       \
+                                                                                 diag,         \
+                                                                                 m,            \
+                                                                                 n,            \
+                                                                                 alpha,        \
+                                                                                 a,            \
+                                                                                 lda,          \
+                                                                                 stride_a,     \
+                                                                                 b,            \
+                                                                                 ldb,          \
+                                                                                 stride_b,     \
+                                                                                 c,            \
+                                                                                 ldc,          \
+                                                                                 stride_c,     \
+                                                                                 batch_count); \
+    }                                                                                          \
+    catch(...)                                                                                 \
+    {                                                                                          \
+        return exception_to_rocblas_status();                                                  \
     }
 
-IMPL(rocblas_strmm_strided_batched_ex, float, STRMM_STRIDED_BATCHED_EX_NB);
-IMPL(rocblas_dtrmm_strided_batched_ex, double, DTRMM_STRIDED_BATCHED_EX_NB);
-IMPL(rocblas_ctrmm_strided_batched_ex, rocblas_float_complex, CTRMM_STRIDED_BATCHED_EX_NB);
-IMPL(rocblas_ztrmm_strided_batched_ex, rocblas_double_complex, ZTRMM_STRIDED_BATCHED_EX_NB);
+IMPL(rocblas_strmm_outofplace_strided_batched, float, Strmm_outofplace_strided_batched_NB);
+IMPL(rocblas_dtrmm_outofplace_strided_batched, double, Dtrmm_outofplace_strided_batched_NB);
+IMPL(rocblas_ctrmm_outofplace_strided_batched,
+     rocblas_float_complex,
+     Ctrmm_outofplace_strided_batched_NB);
+IMPL(rocblas_ztrmm_outofplace_strided_batched,
+     rocblas_double_complex,
+     Ztrmm_outofplace_strided_batched_NB);
 
 #undef IMPL
 

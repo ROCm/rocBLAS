@@ -10,6 +10,7 @@
 #include "rocblas_random.hpp"
 #include <cinttypes>
 #include <iostream>
+#include <omp.h>
 #include <vector>
 
 /* ============================================================================================ */
@@ -17,36 +18,33 @@
 // for vector x (M=1, N=lengthX, lda=incx);
 // for complex number, the real/imag part would be initialized with the same value
 
-// Initialize vector with random values
+// Initialize matrices with random values
 template <typename T>
-void rocblas_init(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+void rocblas_init(T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = random_generator<T>();
+    {
+        size_t b_idx = i_batch * stride;
+        for(size_t j = 0; j < N; ++j)
+        {
+            size_t col_idx = b_idx + j * lda;
+            if(M > 4)
+                random_run_generator<T>(A + col_idx, M);
+            else
+            {
+                for(size_t i = 0; i < M; ++i)
+                    A[col_idx + i] = random_generator<T>();
+            }
+        }
+    }
 }
 
-// Initialize vector with random values
+// Initialize matrices with random values
 template <typename T>
-inline void
-    rocblas_init(T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = random_generator<T>();
-}
-
-template <typename T>
-void rocblas_init_sin(
+inline void rocblas_init(
     std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = T(sin(i + j * lda + i_batch * stride));
+    rocblas_init(A.data(), M, N, lda, stride, batch_count);
 }
 
 template <typename T>
@@ -54,9 +52,20 @@ void rocblas_init_sin(
     T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = T(sin(i + j * lda + i_batch * stride));
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+        {
+            size_t offset = j * lda + i_batch * stride;
+            for(size_t i = 0; i < M; ++i)
+                A[i + offset] = T(sin(i + offset));
+        }
+}
+
+template <typename T>
+inline void rocblas_init_sin(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    rocblas_init_sin(A.data(), M, N, lda, stride, batch_count);
 }
 
 // Initialize matrix so adjacent entries have alternating sign.
@@ -68,38 +77,26 @@ void rocblas_init_sin(
 // mantissa 10 bits.
 template <typename T>
 void rocblas_init_alternating_sign(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+        {
+            size_t offset = j * lda + i_batch * stride;
+            for(size_t i = 0; i < M; ++i)
             {
-                auto value                        = random_generator<T>();
-                A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : negate(value);
+                auto value    = random_generator<T>();
+                A[i + offset] = (i ^ j) & 1 ? value : negate(value);
             }
+        }
 }
 
 template <typename T>
 void rocblas_init_alternating_sign(
-    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-            {
-                auto value                        = random_generator<T>();
-                A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : negate(value);
-            }
-}
-
-template <typename T>
-void rocblas_init_cos(
     std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = T(cos(i + j * lda + i_batch * stride));
+    rocblas_init_alternating_sign(A.data(), M, N, lda, stride, batch_count);
 }
 
 template <typename T>
@@ -107,9 +104,20 @@ void rocblas_init_cos(
     T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = T(cos(i + j * lda + i_batch * stride));
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+        {
+            size_t offset = j * lda + i_batch * stride;
+            for(size_t i = 0; i < M; ++i)
+                A[i + offset] = T(cos(i + offset));
+        }
+}
+
+template <typename T>
+inline void rocblas_init_cos(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    rocblas_init_cos(A.data(), M, N, lda, stride, batch_count);
 }
 
 /*! \brief  symmetric matrix initialization: */
@@ -372,8 +380,17 @@ void rocblas_copy_matrix(const T* A,
                          size_t   strideb     = 0,
                          size_t   batch_count = 1)
 {
+
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                B[i + j * ldb + i_batch * strideb] = A[i + j * lda + i_batch * stridea];
+    {
+        size_t stride_offset_a = i_batch * stridea;
+        size_t stride_offset_b = i_batch * strideb;
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+        {
+            size_t offset_a = stride_offset_a + j * lda;
+            size_t offset_b = stride_offset_b + j * ldb;
+            memcpy(B + offset_b, A + offset_a, M * sizeof(T));
+        }
+    }
 }
