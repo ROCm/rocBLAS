@@ -177,6 +177,24 @@ static void rocblas_print_usage_warning()
     rocblas_cout << "info: " << warning << "\n" << std::endl;
 }
 
+static std::string rocblas_capture_args(int argc, char** argv)
+{
+    std::ostringstream cmdLine;
+    cmdLine << "command line: ";
+    for(int i = 0; i < argc; i++)
+    {
+        if(argv[i])
+            cmdLine << std::string(argv[i]) << " ";
+    }
+    return cmdLine.str();
+}
+
+static void rocblas_print_args(const std::string& args)
+{
+    rocblas_cout << args << std::endl;
+    rocblas_cout.flush();
+}
+
 // Device Query
 static void rocblas_set_test_device()
 {
@@ -195,6 +213,8 @@ static void rocblas_set_test_device()
  *****************/
 int main(int argc, char** argv)
 {
+    std::string args = rocblas_capture_args(argc, argv);
+
     // Set signal handler
     rocblas_test_sigaction();
 
@@ -222,6 +242,9 @@ int main(int argc, char** argv)
 
     // Failures printed at end for reporting so repeat version info
     rocblas_print_version();
+
+    // end test results with command line
+    rocblas_print_args(args);
 
     //rocblas_shutdown();
 
