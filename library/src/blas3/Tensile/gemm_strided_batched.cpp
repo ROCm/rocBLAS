@@ -196,36 +196,7 @@ namespace
 
         rocblas_int a_n2 = rocblas_operation_none == trans_a ? k : m;
         rocblas_int b_n2 = rocblas_operation_none == trans_b ? n : k;
-        //      bool        i64_indices = (a_n2 * size_t(lda) > std::numeric_limits<rocblas_int>::max())
-        //                         || (b_n2 * size_t(ldb) > std::numeric_limits<rocblas_int>::max())
-        //                         || (n * size_t(ldc) > std::numeric_limits<rocblas_int>::max());
 
-        //      if(i64_indices)
-        //      {
-        //          status = rocblas_internal_gemm_template<false>(handle,
-        //                                                         trans_a,
-        //                                                         trans_b,
-        //                                                         m,
-        //                                                         n,
-        //                                                         k,
-        //                                                         alpha,
-        //                                                         A,
-        //                                                         size_t(0),
-        //                                                         size_t(lda),
-        //                                                         stride_a,
-        //                                                         B,
-        //                                                         size_t(0),
-        //                                                         size_t(ldb),
-        //                                                         stride_b,
-        //                                                         beta,
-        //                                                         C,
-        //                                                         size_t(0),
-        //                                                         size_t(ldc),
-        //                                                         stride_c,
-        //                                                         batch_count);
-        //      }
-        //      else
-        //      {
         status = rocblas_internal_gemm_template<false>(handle,
                                                        trans_a,
                                                        trans_b,
@@ -247,7 +218,6 @@ namespace
                                                        rocblas_int(ldc),
                                                        stride_c,
                                                        batch_count);
-        //      }
         if(status != rocblas_status_success)
             return status;
 
