@@ -148,52 +148,52 @@ namespace
                            || (n2 * size_t(ldb) > std::numeric_limits<rocblas_int>::max())
                            || (n * size_t(ldc) > std::numeric_limits<rocblas_int>::max());
 
-        if(i64_indices)
-        {
-            return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
-                                                                       uplo,
-                                                                       trans,
-                                                                       n,
-                                                                       k,
-                                                                       alpha,
-                                                                       A,
-                                                                       size_t(offset_a),
-                                                                       size_t(lda),
-                                                                       stride_a,
-                                                                       B,
-                                                                       size_t(offset_b),
-                                                                       size_t(ldb),
-                                                                       stride_b,
-                                                                       beta,
-                                                                       C,
-                                                                       size_t(offset_c),
-                                                                       size_t(ldc),
-                                                                       stride_c,
-                                                                       batch_count);
-        }
-        else
-        {
-            return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
-                                                                       uplo,
-                                                                       trans,
-                                                                       n,
-                                                                       k,
-                                                                       alpha,
-                                                                       A,
-                                                                       offset_a,
-                                                                       lda,
-                                                                       stride_a,
-                                                                       B,
-                                                                       offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       beta,
-                                                                       C,
-                                                                       offset_c,
-                                                                       ldc,
-                                                                       stride_c,
-                                                                       batch_count);
-        }
+        //      if(i64_indices)
+        //      {
+        //          return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
+        //                                                                     uplo,
+        //                                                                     trans,
+        //                                                                     n,
+        //                                                                     k,
+        //                                                                     alpha,
+        //                                                                     A,
+        //                                                                     size_t(offset_a),
+        //                                                                     size_t(lda),
+        //                                                                     stride_a,
+        //                                                                     B,
+        //                                                                     size_t(offset_b),
+        //                                                                     size_t(ldb),
+        //                                                                     stride_b,
+        //                                                                     beta,
+        //                                                                     C,
+        //                                                                     size_t(offset_c),
+        //                                                                     size_t(ldc),
+        //                                                                     stride_c,
+        //                                                                     batch_count);
+        //      }
+        //      else
+        //      {
+        return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
+                                                                   uplo,
+                                                                   trans,
+                                                                   n,
+                                                                   k,
+                                                                   alpha,
+                                                                   A,
+                                                                   offset_a,
+                                                                   lda,
+                                                                   stride_a,
+                                                                   B,
+                                                                   offset_b,
+                                                                   ldb,
+                                                                   stride_b,
+                                                                   beta,
+                                                                   C,
+                                                                   offset_c,
+                                                                   ldc,
+                                                                   stride_c,
+                                                                   batch_count);
+        //      }
     }
 }
 /*
