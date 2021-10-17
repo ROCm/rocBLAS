@@ -175,60 +175,60 @@ namespace
         if(rocblas_pointer_mode_host == handle->pointer_mode && !a)
             return rocblas_status_invalid_pointer;
 
-        rocblas_int a_col       = rocblas_side_left == side ? m : n;
-        bool        i64_indices = (a_col * size_t(lda) > std::numeric_limits<rocblas_int>::max())
-                           || (n * size_t(ldb) > std::numeric_limits<rocblas_int>::max());
+        rocblas_int a_col = rocblas_side_left == side ? m : n;
+        //      bool        i64_indices = (a_col * size_t(lda) > std::numeric_limits<rocblas_int>::max())
+        //                         || (n * size_t(ldb) > std::numeric_limits<rocblas_int>::max());
 
-        if(i64_indices)
-        {
-            rocblas_internal_trmm_template<STOPPING_NB, false, T>(handle,
-                                                                  side,
-                                                                  uplo,
-                                                                  transa,
-                                                                  diag,
-                                                                  m,
-                                                                  n,
-                                                                  alpha,
-                                                                  stride_alpha,
-                                                                  a,
-                                                                  size_t(offset_a),
-                                                                  size_t(lda),
-                                                                  stride_a,
-                                                                  (const T*)b,
-                                                                  size_t(offset_b),
-                                                                  size_t(ldb),
-                                                                  stride_b,
-                                                                  b, // in place, c == b
-                                                                  size_t(offset_b),
-                                                                  size_t(ldb),
-                                                                  stride_b,
-                                                                  batch_count);
-        }
-        else
-        {
-            rocblas_internal_trmm_template<STOPPING_NB, false, T>(handle,
-                                                                  side,
-                                                                  uplo,
-                                                                  transa,
-                                                                  diag,
-                                                                  m,
-                                                                  n,
-                                                                  alpha,
-                                                                  stride_alpha,
-                                                                  a,
-                                                                  offset_a,
-                                                                  lda,
-                                                                  stride_a,
-                                                                  (const T*)b,
-                                                                  offset_b,
-                                                                  ldb,
-                                                                  stride_b,
-                                                                  b,
-                                                                  offset_b,
-                                                                  ldb,
-                                                                  stride_b,
-                                                                  batch_count);
-        }
+        //      if(i64_indices)
+        //      {
+        //          rocblas_internal_trmm_template<STOPPING_NB, false, T>(handle,
+        //                                                                side,
+        //                                                                uplo,
+        //                                                                transa,
+        //                                                                diag,
+        //                                                                m,
+        //                                                                n,
+        //                                                                alpha,
+        //                                                                stride_alpha,
+        //                                                                a,
+        //                                                                size_t(offset_a),
+        //                                                                size_t(lda),
+        //                                                                stride_a,
+        //                                                                (const T*)b,
+        //                                                                size_t(offset_b),
+        //                                                                size_t(ldb),
+        //                                                                stride_b,
+        //                                                                b, // in place, c == b
+        //                                                                size_t(offset_b),
+        //                                                                size_t(ldb),
+        //                                                                stride_b,
+        //                                                                batch_count);
+        //      }
+        //      else
+        //      {
+        rocblas_internal_trmm_template<STOPPING_NB, false, T>(handle,
+                                                              side,
+                                                              uplo,
+                                                              transa,
+                                                              diag,
+                                                              m,
+                                                              n,
+                                                              alpha,
+                                                              stride_alpha,
+                                                              a,
+                                                              offset_a,
+                                                              lda,
+                                                              stride_a,
+                                                              (const T*)b,
+                                                              offset_b,
+                                                              ldb,
+                                                              stride_b,
+                                                              b,
+                                                              offset_b,
+                                                              ldb,
+                                                              stride_b,
+                                                              batch_count);
+        //      }
         return rocblas_status_success;
     }
 

@@ -12,20 +12,19 @@ template <typename T,
           char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr,
-          typename TLd>
+          typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int    N,
                                                                    rocblas_int    K,
                                                                    const T        alpha,
                                                                    TConstPtr*     dA_array,
-                                                                   TLd            lda,
+                                                                   rocblas_int    lda,
                                                                    rocblas_stride stride_a,
                                                                    TConstPtr*     dB_array,
-                                                                   TLd            ldb,
+                                                                   rocblas_int    ldb,
                                                                    rocblas_stride stride_b,
                                                                    const T        beta,
                                                                    TPtr*          dC_array,
-                                                                   TLd            ldc,
+                                                                   rocblas_int    ldc,
                                                                    rocblas_stride stride_c,
                                                                    rocblas_int    batch_count)
 {
@@ -54,9 +53,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int  
         if(i1 < N && i3_a < K)
         {
             if(TRANS == 'N')
-                sA[thy][thx] = dA[i1 + i3_a * lda];
+                sA[thy][thx] = dA[i1 + i3_a * size_t(lda)];
             if(TRANS == 'T')
-                sA[thy][thx] = dA[i3_a + i1 * lda];
+                sA[thy][thx] = dA[i3_a + i1 * size_t(lda)];
         }
         else
         {
@@ -67,9 +66,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int  
         if(i2 < N && i3_b < K)
         {
             if(TRANS == 'T')
-                sB[thy][thx] = dB[i3_b + i2 * ldb];
+                sB[thy][thx] = dB[i3_b + i2 * size_t(ldb)];
             if(TRANS == 'N')
-                sB[thy][thx] = dB[i2 + i3_b * ldb];
+                sB[thy][thx] = dB[i2 + i3_b * size_t(ldb)];
         }
         else
         {
@@ -87,9 +86,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int  
     if((UPLO == 'L' && i2 <= i1 && i1 < N) || (UPLO == 'U' && i1 <= i2 && i2 < N))
     {
         if(BETA_EQ_ZERO)
-            dC[i1 + i2 * ldc] = alpha * rC;
+            dC[i1 + i2 * size_t(ldc)] = alpha * rC;
         else
-            dC[i1 + i2 * ldc] = alpha * rC + beta * dC[i1 + i2 * ldc];
+            dC[i1 + i2 * size_t(ldc)] = alpha * rC + beta * dC[i1 + i2 * size_t(ldc)];
     }
 }
 
@@ -100,20 +99,19 @@ template <typename T,
           char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr,
-          typename TLd>
+          typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_restrict_kernel(rocblas_int    N,
                                                                             rocblas_int    K,
                                                                             const T        alpha,
                                                                             TConstPtr*     dA_array,
-                                                                            TLd            lda,
+                                                                            rocblas_int    lda,
                                                                             rocblas_stride stride_a,
                                                                             TConstPtr*     dB_array,
-                                                                            TLd            ldb,
+                                                                            rocblas_int    ldb,
                                                                             rocblas_stride stride_b,
                                                                             const T        beta,
                                                                             TPtr*          dC_array,
-                                                                            TLd            ldc,
+                                                                            rocblas_int    ldc,
                                                                             rocblas_stride stride_c,
                                                                             rocblas_int batch_count)
 {
@@ -141,15 +139,15 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_restrict_kernel(rocb
     {
         i3_a = kk + thy;
         if(TRANS == 'N')
-            sA[thy][thx] = dA[i1 + i3_a * lda];
+            sA[thy][thx] = dA[i1 + i3_a * size_t(lda)];
         if(TRANS == 'T')
-            sA[thy][thx] = dA[i3_a + i1 * lda];
+            sA[thy][thx] = dA[i3_a + i1 * size_t(lda)];
 
         i3_b = kk + thx;
         if(TRANS == 'T')
-            sB[thy][thx] = dB[i3_b + i2 * ldb];
+            sB[thy][thx] = dB[i3_b + i2 * size_t(ldb)];
         if(TRANS == 'N')
-            sB[thy][thx] = dB[i2 + i3_b * ldb];
+            sB[thy][thx] = dB[i2 + i3_b * size_t(ldb)];
 
         __syncthreads();
 
@@ -162,9 +160,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_restrict_kernel(rocb
     if((UPLO == 'L' && i2 <= i1) || (UPLO == 'U' && i1 <= i2))
     {
         if(BETA_EQ_ZERO)
-            dC[i1 + i2 * ldc] = alpha * rC;
+            dC[i1 + i2 * size_t(ldc)] = alpha * rC;
         else
-            dC[i1 + i2 * ldc] = alpha * rC + beta * dC[i1 + i2 * ldc];
+            dC[i1 + i2 * size_t(ldc)] = alpha * rC + beta * dC[i1 + i2 * size_t(ldc)];
     }
 }
 
@@ -177,20 +175,19 @@ template <typename T,
           char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr,
-          typename TLd>
+          typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas_int    N,
                                                                          rocblas_int    K,
                                                                          const T        alpha,
                                                                          TConstPtr*     dA_array,
-                                                                         TLd            lda,
+                                                                         rocblas_int    lda,
                                                                          rocblas_stride stride_a,
                                                                          TConstPtr*     dB_array,
-                                                                         TLd            ldb,
+                                                                         rocblas_int    ldb,
                                                                          rocblas_stride stride_b,
                                                                          const T        beta,
                                                                          TPtr*          dC_array,
-                                                                         TLd            ldc,
+                                                                         rocblas_int    ldc,
                                                                          rocblas_stride stride_c,
                                                                          rocblas_int    batch_count)
 {
@@ -230,9 +227,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas
         if(i < N && j < K)
         {
             if(TRANS == 'N')
-                sA[thyA][thxA] = dA[i + j * lda];
+                sA[thyA][thxA] = dA[i + j * size_t(lda)];
             if(TRANS == 'T')
-                sA[thyA][thxA] = dA[i * lda + j];
+                sA[thyA][thxA] = dA[i * size_t(lda) + j];
         }
         else
         {
@@ -243,9 +240,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas
         if(i < K && j < N)
         {
             if(TRANS == 'T')
-                sB[thyB][thxB] = dB[i + j * ldb];
+                sB[thyB][thxB] = dB[i + j * size_t(ldb)];
             if(TRANS == 'N')
-                sB[thyB][thxB] = dB[i * ldb + j];
+                sB[thyB][thxB] = dB[i * size_t(ldb) + j];
         }
         else
         {
@@ -272,10 +269,10 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas
                || (UPLO == 'U' && coord_dCm <= coord_dCn && coord_dCn < N))
             {
                 if(BETA_EQ_ZERO)
-                    dC[coord_dCn * ldc + coord_dCm] = alpha * rC[n][m];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm] = alpha * rC[n][m];
                 else
-                    dC[coord_dCn * ldc + coord_dCm]
-                        = alpha * rC[n][m] + beta * dC[coord_dCn * ldc + coord_dCm];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm]
+                        = alpha * rC[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm];
             }
         }
     }
@@ -291,20 +288,19 @@ template <typename T,
           char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr,
-          typename TLd>
+          typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocblas_int    N,
                                                                             rocblas_int    K,
                                                                             const T        alpha,
                                                                             TConstPtr*     dA_array,
-                                                                            TLd            lda,
+                                                                            rocblas_int    lda,
                                                                             rocblas_stride stride_a,
                                                                             TConstPtr*     dB_array,
-                                                                            TLd            ldb,
+                                                                            rocblas_int    ldb,
                                                                             rocblas_stride stride_b,
                                                                             const T        beta,
                                                                             TPtr*          dC_array,
-                                                                            TLd            ldc,
+                                                                            rocblas_int    ldc,
                                                                             rocblas_stride stride_c,
                                                                             rocblas_int batch_count)
 {
@@ -333,14 +329,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
 
     size_t coord_A, coord_B;
     if(TRANS == 'N')
-        coord_A = (thxA + blx * BLK_N) + (thyA)*lda;
+        coord_A = (thxA + blx * BLK_N) + (thyA)*size_t(lda);
     if(TRANS == 'T')
-        coord_A = (thxA + blx * BLK_N) * lda + (thyA);
+        coord_A = (thxA + blx * BLK_N) * size_t(lda) + (thyA);
 
     if(TRANS == 'T')
-        coord_B = thxB + (bly * BLK_N + thyB) * ldb;
+        coord_B = thxB + (bly * BLK_N + thyB) * size_t(ldb);
     if(TRANS == 'N')
-        coord_B = thxB * ldb + (bly * BLK_N + thyB);
+        coord_B = thxB * size_t(ldb) + (bly * BLK_N + thyB);
 
     int kk = 0;
     for(; kk < K; kk += BLK_K)
@@ -358,14 +354,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
         __syncthreads();
 
         if(TRANS == 'N')
-            coord_A += BLK_K * lda;
+            coord_A += BLK_K * size_t(lda);
         if(TRANS == 'T')
             coord_A += BLK_K;
 
         if(TRANS == 'T')
             coord_B += BLK_K;
         if(TRANS == 'N')
-            coord_B += BLK_K * ldb;
+            coord_B += BLK_K * size_t(ldb);
     }
 
     for(int n = 0; n < BLK_N / DIM_N; ++n)
@@ -378,10 +374,10 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
                || (UPLO == 'U' && coord_dCm <= coord_dCn && coord_dCn < N))
             {
                 if(BETA_EQ_ZERO)
-                    dC[coord_dCn * ldc + coord_dCm] = alpha * rC[n][m];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm] = alpha * rC[n][m];
                 else
-                    dC[coord_dCn * ldc + coord_dCm]
-                        = alpha * rC[n][m] + beta * dC[coord_dCn * ldc + coord_dCm];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm]
+                        = alpha * rC[n][m] + beta * dC[coord_dCn * size_t(ldc) + coord_dCm];
             }
         }
     }
@@ -397,18 +393,17 @@ template <typename T,
           char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr,
-          typename TLd>
+          typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocblas_int    N,
                                                                             rocblas_int    K,
                                                                             TConstPtr*     dA_array,
-                                                                            TLd            lda,
+                                                                            rocblas_int    lda,
                                                                             rocblas_stride stride_a,
                                                                             TConstPtr*     dB_array,
-                                                                            TLd            ldb,
+                                                                            rocblas_int    ldb,
                                                                             rocblas_stride stride_b,
                                                                             TPtr*          dC_array,
-                                                                            TLd            ldc,
+                                                                            rocblas_int    ldc,
                                                                             rocblas_stride stride_c,
                                                                             rocblas_int batch_count)
 {
@@ -433,13 +428,13 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
 
     size_t coord_A, coord_B;
     if(TRANS == 'N')
-        coord_A = (blx * BLK_N + thxA) + thyA * lda;
+        coord_A = (blx * BLK_N + thxA) + thyA * size_t(lda);
     if(TRANS == 'T')
-        coord_A = (blx * BLK_N + thxA) * lda + thyA;
+        coord_A = (blx * BLK_N + thxA) * size_t(lda) + thyA;
     if(TRANS == 'T')
-        coord_B = (bly * BLK_N + thyB) * ldb + thxB;
+        coord_B = (bly * BLK_N + thyB) * size_t(ldb) + thxB;
     if(TRANS == 'N')
-        coord_B = (bly * BLK_N + thyB) + thxB * ldb;
+        coord_B = (bly * BLK_N + thyB) + thxB * size_t(ldb);
 
     for(int n = 0; n < BLK_N / DIM_N; ++n)
         for(int m = 0; m < BLK_N / DIM_N; ++m)
@@ -461,14 +456,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
         __syncthreads();
 
         if(TRANS == 'N')
-            coord_A += BLK_K * lda;
+            coord_A += BLK_K * size_t(lda);
         if(TRANS == 'T')
             coord_A += BLK_K;
 
         if(TRANS == 'T')
             coord_B += BLK_K;
         if(TRANS == 'N')
-            coord_B += BLK_K * ldb;
+            coord_B += BLK_K * size_t(ldb);
     }
 
     for(int n = 0; n < BLK_N / DIM_N; ++n)
@@ -482,33 +477,34 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
                || (UPLO == 'U' && coord_dCm <= coord_dCn && coord_dCn < N))
             {
                 if(alpha == 1 && beta == 1)
-                    dC[coord_dCn * ldc + coord_dCm] += rC[n][m];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm] += rC[n][m];
                 if(alpha == 1 && beta == -1)
-                    dC[coord_dCn * ldc + coord_dCm] = -dC[coord_dCn * ldc + coord_dCm] + rC[n][m];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm]
+                        = -dC[coord_dCn * size_t(ldc) + coord_dCm] + rC[n][m];
                 if(alpha == -1 && beta == 0)
-                    dC[coord_dCn * ldc + coord_dCm] = -rC[n][m];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm] = -rC[n][m];
                 if(alpha == 1 && beta == 0)
-                    dC[coord_dCn * ldc + coord_dCm] = rC[n][m];
+                    dC[coord_dCn * size_t(ldc) + coord_dCm] = rC[n][m];
             }
         }
     }
 }
 
-template <typename T, typename TConstPtr, typename TPtr, typename TLd>
+template <typename T, typename TConstPtr, typename TPtr>
 void syrkx_dispatch(rocblas_fill      uplo,
                     rocblas_operation trans,
                     rocblas_int       n,
                     rocblas_int       k,
                     const T           alpha,
                     TConstPtr*        dA_array,
-                    TLd               lda,
+                    rocblas_int       lda,
                     rocblas_stride    stride_a,
                     TConstPtr*        dB_array,
-                    TLd               ldb,
+                    rocblas_int       ldb,
                     rocblas_stride    stride_b,
                     const T           beta,
                     TPtr*             dC_array,
-                    TLd               ldc,
+                    rocblas_int       ldc,
                     rocblas_stride    stride_c,
                     rocblas_int       batch_count,
                     hipStream_t       stream)
@@ -800,17 +796,11 @@ void syrkx_dispatch(rocblas_fill      uplo,
     // clang-format on
 }
 
-#define OFFSET_A(i1) offset_a + i1* a_s1
-#define OFFSET_B(i1) offset_b + i1* b_s1
-#define OFFSET_C(i1, i2) offset_c + i1* c_s1 + i2* c_s2
+#define OFFSET_A(i1) offset_a + i1* size_t(a_s1)
+#define OFFSET_B(i1) offset_b + i1* size_t(b_s1)
+#define OFFSET_C(i1, i2) offset_c + i1* size_t(c_s1) + i2* size_t(c_s2)
 
-template <int  MIN_NB,
-          bool BATCHED,
-          typename T,
-          typename TScal,
-          typename TPtr,
-          typename TConstPtr,
-          typename TLd>
+template <int MIN_NB, bool BATCHED, typename T, typename TScal, typename TPtr, typename TConstPtr>
 rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation trans,
@@ -818,20 +808,20 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                                       rocblas_int       k,
                                       TScal*            alpha,
                                       TConstPtr*        da,
-                                      TLd               lda,
+                                      rocblas_int       lda,
                                       TConstPtr*        db,
-                                      TLd               ldb,
+                                      rocblas_int       ldb,
                                       TScal*            beta,
                                       TPtr*             dc,
-                                      TLd               ldc)
+                                      rocblas_int       ldc)
 {
-    static constexpr TLd            offset_c = 0, offset_a = 0, offset_b = 0;
+    static constexpr rocblas_int    offset_c = 0, offset_a = 0, offset_b = 0;
     static constexpr rocblas_int    batch_count = 1;
     static constexpr rocblas_stride stride_c = 0, stride_a = 0, stride_b = 0;
 
-    TLd a_s1 = rocblas_operation_none == trans ? 1 : lda;
-    TLd b_s1 = rocblas_operation_none == trans ? 1 : ldb;
-    TLd c_s1 = 1, c_s2 = ldc;
+    rocblas_int a_s1 = rocblas_operation_none == trans ? 1 : lda;
+    rocblas_int b_s1 = rocblas_operation_none == trans ? 1 : ldb;
+    rocblas_int c_s1 = 1, c_s2 = ldc;
 
     rocblas_int nb = MIN_NB;
     rocblas_int i_diag, n_diag;
@@ -846,9 +836,9 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
     // call syrkx_dispatch with batch_count = n_nb for n_nb diagonal blocks
     // clang-format off
     syrkx_dispatch<T>( uplo, trans, nb, k, *alpha,
-                       da, lda, nb * a_s1,
-                       db, ldb, nb * b_s1, *beta,
-                       dc, ldc, nb * (c_s1 + c_s2), n_nb, stream);
+                       da, lda, nb * size_t(a_s1),
+                       db, ldb, nb * size_t(b_s1), *beta,
+                       dc, ldc, nb * (size_t(c_s1) + size_t(c_s2)), n_nb, stream);
     // clang-format on
 
     // remainder diagonal block of size n_diag < nb
@@ -859,9 +849,9 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
         // call syrkx_dispatch for one remainder diagonal block of size n_diag
         // clang-format off
         syrkx_dispatch<T>( uplo, trans, n_diag, k, *alpha,
-                          &(da[i_diag * a_s1]),          lda, stride_a,
-                          &(db[i_diag * b_s1]),          ldb, stride_b, *beta,
-                          &(dc[i_diag * (c_s1 + c_s2)]), ldc, stride_c, batch_count, stream);
+                          &(da[i_diag * size_t(a_s1)]),          lda, stride_a,
+                          &(db[i_diag * size_t(b_s1)]),          ldb, stride_b, *beta,
+                          &(dc[i_diag * (size_t(c_s1) + size_t(c_s2))]), ldc, stride_c, batch_count, stream);
         // clang-format on
     }
 
@@ -891,9 +881,9 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
             // clang-format off
             RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                  handle, trans_a, trans_b, nb, nb, k, alpha,
-                 da, OFFSET_A(i_start),    lda, stride * a_s1,
-                 db, OFFSET_B(0),          ldb, stride * b_s1,          beta,
-                 dc, OFFSET_C(i_start, 0), ldc, stride * (c_s1 + c_s2), n_nb   )));
+                 da, OFFSET_A(i_start),    lda, stride * size_t(a_s1),
+                 db, OFFSET_B(0),          ldb, stride * size_t(b_s1),          beta,
+                 dc, OFFSET_C(i_start, 0), ldc, stride * (size_t(c_s1) + size_t(c_s2)), n_nb   )));
             // clang-format on
         }
         else
@@ -901,9 +891,9 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
             // clang-format off
             RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                  handle, trans_a, trans_b, nb, nb, k, alpha,
-                 da, OFFSET_A(0),          lda, stride * a_s1,
-                 db, OFFSET_B(i_start),    ldb, stride * b_s1,          beta,
-                 dc, OFFSET_C(0, i_start), ldc, stride * (c_s1 + c_s2), n_nb)));
+                 da, OFFSET_A(0),          lda, stride * size_t(a_s1),
+                 db, OFFSET_B(i_start),    ldb, stride * size_t(b_s1),          beta,
+                 dc, OFFSET_C(0, i_start), ldc, stride * (size_t(c_s1) + size_t(c_s2)), n_nb)));
             // clang-format on
         }
 
@@ -939,13 +929,7 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
-template <int  MIN_NB,
-          bool BATCHED,
-          typename T,
-          typename TScal,
-          typename TPtr,
-          typename TConstPtr,
-          typename TLd>
+template <int MIN_NB, bool BATCHED, typename T, typename TScal, typename TPtr, typename TConstPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_syrkx_template(rocblas_handle    handle,
                                     rocblas_fill      uplo,
@@ -954,17 +938,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int       k,
                                     TScal*            alpha,
                                     TConstPtr*        da,
-                                    TLd               offset_a,
-                                    TLd               lda,
+                                    rocblas_int       offset_a,
+                                    rocblas_int       lda,
                                     rocblas_stride    stride_a,
                                     TConstPtr*        db,
-                                    TLd               offset_b,
-                                    TLd               ldb,
+                                    rocblas_int       offset_b,
+                                    rocblas_int       ldb,
                                     rocblas_stride    stride_b,
                                     TScal*            beta,
                                     TPtr*             dc,
-                                    TLd               offset_c,
-                                    TLd               ldc,
+                                    rocblas_int       offset_c,
+                                    rocblas_int       ldc,
                                     rocblas_stride    stride_c,
                                     rocblas_int       batch_count)
 {
@@ -987,9 +971,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                           ldc);
     }
 
-    TLd a_s1 = rocblas_operation_none == trans ? 1 : lda;
-    TLd b_s1 = rocblas_operation_none == trans ? 1 : ldb;
-    TLd c_s1 = 1, c_s2 = ldc;
+    rocblas_int a_s1 = rocblas_operation_none == trans ? 1 : lda;
+    rocblas_int b_s1 = rocblas_operation_none == trans ? 1 : ldb;
+    rocblas_int c_s1 = 1, c_s2 = ldc;
 
     rocblas_int nb = MIN_NB;
     rocblas_int i_diag, n_diag;
@@ -1116,9 +1100,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #error INSTANTIATE_SYRKX_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYRKX_TEMPLATE(MIN_NB_, BATCHED_, T_, TScal_, TPtr_, TConstPtr_, TLd_)  \
+#define INSTANTIATE_SYRKX_TEMPLATE(MIN_NB_, BATCHED_, T_, TScal_, TPtr_, TConstPtr_)        \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syrkx_template    \
-                                   <MIN_NB_, BATCHED_, T_, TScal_, TPtr_, TConstPtr_, TLd_> \
+                                   <MIN_NB_, BATCHED_, T_, TScal_, TPtr_, TConstPtr_>       \
                                    (rocblas_handle    handle,                               \
                                     rocblas_fill      uplo,                                 \
                                     rocblas_operation trans,                                \
@@ -1126,45 +1110,34 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syrkx_
                                     rocblas_int       k,                                    \
                                     TScal_ *          alpha,                                \
                                     TConstPtr_ *      da,                                   \
-                                    TLd_              offset_a,                             \
-                                    TLd_              lda,                                  \
+                                    rocblas_int       offset_a,                             \
+                                    rocblas_int       lda,                                  \
                                     rocblas_stride    stride_a,                             \
                                     TConstPtr_ *      db,                                   \
-                                    TLd_              offset_b,                             \
-                                    TLd_              ldb,                                  \
+                                    rocblas_int       offset_b,                             \
+                                    rocblas_int       ldb,                                  \
                                     rocblas_stride    stride_b,                             \
                                     TScal_ *          beta,                                 \
                                     TPtr_ *           dc,                                   \
-                                    TLd_              offset_c,                             \
-                                    TLd_              ldc,                                  \
+                                    rocblas_int       offset_c,                             \
+                                    rocblas_int       ldc,                                  \
                                     rocblas_stride    stride_c,                             \
                                     rocblas_int       batch_count);
 
 // instantiate for rocblas_Xsyrkx and rocblas_Xsyrkx_strided_batched
-INSTANTIATE_SYRKX_TEMPLATE(16, false,  float,  float const,  float,  float const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16, false,  float,  float const,  float,  float const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE(32, false, double, double const, double, double const, int)
-INSTANTIATE_SYRKX_TEMPLATE(32, false, double, double const, double, double const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE(16, false, double, double const, double, double const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16, false, double, double const, double, double const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE( 8, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE(32, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE(32, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE( 8, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, int)
-INSTANTIATE_SYRKX_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const, size_t)
+INSTANTIATE_SYRKX_TEMPLATE(16, false,  float,  float const,  float,  float const)
+INSTANTIATE_SYRKX_TEMPLATE(32, false, double, double const, double, double const)
+INSTANTIATE_SYRKX_TEMPLATE(16, false, double, double const, double, double const)
+INSTANTIATE_SYRKX_TEMPLATE( 8, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
+INSTANTIATE_SYRKX_TEMPLATE(32, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
+INSTANTIATE_SYRKX_TEMPLATE( 8, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
+INSTANTIATE_SYRKX_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
 
 // instantiate for rocblas_Xsyrkx_batched
-INSTANTIATE_SYRKX_TEMPLATE(16,  true,  float,  float const,  float* const,  float const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16,  true,  float,  float const,  float* const,  float const* const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE(16,  true, double, double const, double* const, double const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE(16,  true, double, double const, double* const, double const* const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE( 8,  true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8,  true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const, size_t)
-INSTANTIATE_SYRKX_TEMPLATE( 8,  true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const, int)
-INSTANTIATE_SYRKX_TEMPLATE( 8,  true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const, size_t)
+INSTANTIATE_SYRKX_TEMPLATE(16,  true,  float,  float const,  float* const,  float const* const)
+INSTANTIATE_SYRKX_TEMPLATE(16,  true, double, double const, double* const, double const* const)
+INSTANTIATE_SYRKX_TEMPLATE( 8,  true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const)
+INSTANTIATE_SYRKX_TEMPLATE( 8,  true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const)
 
 #undef INSTANTIATE_SYRKX_TEMPLATE
 // clang-format on
