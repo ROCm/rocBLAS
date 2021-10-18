@@ -304,8 +304,7 @@ Coding Guidelines
     guide <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/gtest/README.md>`__.
 
     The test framework is templated, and uses
-    `SFINAE <https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error>`__
-    and ``std::enable_if<...>`` to enable and disable certain types for
+    SFINAE (substitution failure is not an error) pattern and ``std::enable_if<...>`` to enable and disable certain types for
     certain tests.
 
     YAML files are used to describe tests as combinations of arguments.
@@ -337,9 +336,7 @@ Coding Guidelines
     ```clients/benchmarks/client.cpp`` <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/benchmarks/client.cpp>`__.
 
 5.  Code should not be copied-and pasted, but rather, templates, macros,
-    `SFINAE <https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error>`__,
-    `CRTP <https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern>`__,
-    `lambdas <https://en.cppreference.com/w/cpp/language/lambda>`__,
+    SFINAE (substitution failure is not an error) pattern and CRTP (curiously recurring template pattern),
     etc. should be used to factor out differences in similar code.
 
     A code should be made more generalized, rather than copied and
@@ -405,11 +402,11 @@ Coding Guidelines
     ``uint16_t`` member, then it would be a distinct type.
 
     It is legal to convert a pointer to a `standard-layout
-    ``class``/``struct`` <https://en.cppreference.com/w/cpp/language/data_members#Standard_layout>`__
+    ``class``/``struct``
     to a pointer to its first element, and vice-versa, so the C API is
     unaffected by whether the type is enclosed in a ``struct`` or not.
 
-8.  `RAII <https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization>`__
+8.  RAII (resource acquisition is initialization) patterned
     classes should be used instead of explicit ``new``/``delete``,
     ``hipMalloc``/``hipFree``, ``malloc``/``free``, etc. RAII classes
     are automatically exception-safe because their destructor gets
@@ -675,7 +672,7 @@ Coding Guidelines
     reduction when the size is 0, and reducing a value with the
     ``default_value()`` does not change the value of the reduction.
 
-19. When `type punning <https://en.wikipedia.org/wiki/Type_punning>`__
+19. When type punning
     is needed, ``union`` should be used instead of pointer-casting,
     which violates *strict aliasing*. For example:
 
@@ -692,10 +689,7 @@ Coding Guidelines
             return u.fp32; // Legal in C, nonstandard extension in C++
         }
 
-    This violates the strict aliasing rule of
-    `C <https://en.cppreference.com/w/c/language/object#Strict_aliasing>`__
-    and
-    `C++ <https://en.cppreference.com/w/cpp/language/reinterpret_cast#Type_aliasing>`__:
+    This violates the strict aliasing rule of C and C++:
 
     .. code:: cpp
 
