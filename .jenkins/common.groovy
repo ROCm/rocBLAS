@@ -68,11 +68,14 @@ def runTestCommand (platform, project, gfilter)
                     mv build build_BAK
                     ROCBLAS_TEST=/opt/rocm/rocblas/bin/rocblas-test
                     GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
-                    #Temporarily disable hmm tests
-                    #${hmmTestCommand}
                     if (( \$? != 0 )); then
                         exit 1
                     fi
+                    #Temporarily disable hmm tests
+                    #${hmmTestCommand}
+                    #if (( \$? != 0 )); then
+                    #    exit 1
+                    #fi
                     mv build_BAK build
                     popd
                    """
@@ -83,8 +86,14 @@ def runTestCommand (platform, project, gfilter)
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
                     ROCBLAS_TEST=./rocblas-test
                     GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
                     #Temporarily disable hmm tests
                     #${hmmTestCommand}
+                    #if (( \$? != 0 )); then
+                    #    exit 1
+                    #fi
                    """
     }
 
