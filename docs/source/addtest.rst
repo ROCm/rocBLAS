@@ -302,7 +302,7 @@ J. Don't forget to close the anonymous namespace:
 
    The YAML files are organized as files which ``include:`` each other (an extension to YAML), define anchors for data types and data structures, list of test parameters or subsets thereof, and ``Tests`` which describe a combination of parameters including ``category`` and ``function``.
 
-   ``category`` must be one of ``quick``\ , ``pre_checkin``\ , ``nightly``\ , or ``disabled``. The category is automatically changed to ``known_bug`` if the test matches a test in ``known_bugs.yaml``.
+   ``category`` must be one of ``quick``\ , ``pre_checkin``\ , ``nightly``\ , or ``known_bug``. The category is automatically changed to ``known_bug`` if the test matches a test in ``known_bugs.yaml``.
 
    ``function`` must be one of the functions tested for and recognized in steps D-F.
 
