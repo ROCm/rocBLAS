@@ -4,7 +4,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_trsv_substitution.hpp"
+#include "rocblas_trsv.hpp"
 #include "utility.hpp"
 
 namespace

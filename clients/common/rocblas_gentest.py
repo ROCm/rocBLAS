@@ -449,7 +449,7 @@ def instantiate(test):
         known_bug_platforms = set()
 
         # Match known bugs
-        if test['category'] not in ('known_bug', 'disabled'):
+        if test['category'] not in ('known_bug'):
             for bug in param['known_bugs']:
                 for key, value in bug.items():
                     if key == 'known_bug_platforms' or key == 'category':
@@ -479,7 +479,7 @@ def instantiate(test):
         # Unless category is already set to known_bug or disabled, set
         # known_bug_platforms to a space-separated list of platforms
         test['known_bug_platforms'] = ' ' . join(known_bug_platforms) if test[
-            'category'] not in ('known_bug', 'disabled') else ''
+            'category'] not in ('known_bug') else ''
 
         write_test(test)
 

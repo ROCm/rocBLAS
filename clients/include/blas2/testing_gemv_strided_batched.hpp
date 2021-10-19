@@ -356,7 +356,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
     else
     {
         rocblas_init<T>(hA, M, N, lda, stride_a, batch_count);
-        rocblas_init<T>(hx, 1, dim_x, abs_incx, stride_x, batch_count);
+        rocblas_init_alternating_sign(hx, 1, dim_x, abs_incx, stride_x, batch_count);
     }
 
     if(arg.beta_isnan<T>())

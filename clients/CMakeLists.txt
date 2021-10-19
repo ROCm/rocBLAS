@@ -97,13 +97,47 @@ if( BUILD_CLIENTS_SAMPLES )
   add_subdirectory( samples )
 endif( )
 
-if( BUILD_CLIENTS_BENCHMARKS )
-  add_subdirectory( benchmarks )
-endif( )
+if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
+  if ( NOT WIN32 )
+    # Linking lapack library requires fortran flags
+    find_package( cblas REQUIRED CONFIG )
+    if (LINK_BLIS)
+      set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
+      set( BLIS_CPP ../common/blis_interface.cpp )
+      set( BLAS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.so )
+    else()
+      set( BLAS_LIBRARY "blas" )
+    endif()
+  else() # WIN32
+    set( BLAS_INCLUDE_DIR ${OPENBLAS_DIR}/include CACHE PATH "OpenBLAS library include path" )
+    find_library( BLAS_LIBRARY libopenblas
+                    PATHS ${OPENBLAS_DIR}/lib
+                    REQUIRED
+                    NO_DEFAULT_PATH
+                )
+  endif()
 
-if( BUILD_CLIENTS_TESTS )
-  add_subdirectory( gtest )
-endif( )
+  # common source files used in subdirectories benchmarks and gtest thus ../common 
+  set( rocblas_test_bench_common
+      ../common/singletons.cpp
+      ../common/utility.cpp
+      ../common/cblas_interface.cpp
+      ../common/rocblas_arguments.cpp
+      ../common/argument_model.cpp
+      ../common/rocblas_random.cpp
+      ../common/rocblas_parse_data.cpp
+      ${BLIS_CPP}
+    )
+    
+  if( BUILD_CLIENTS_BENCHMARKS )
+    add_subdirectory( benchmarks )
+  endif( )
+
+  if( BUILD_CLIENTS_TESTS )
+    add_subdirectory( gtest )
+  endif( )
+
+endif()
 
 set( ROCBLAS_COMMON "${PROJECT_BINARY_DIR}/staging/rocblas_common.yaml")
 add_custom_command( OUTPUT "${ROCBLAS_COMMON}"

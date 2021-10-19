@@ -2,9 +2,8 @@
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#pragma once
-
 #include "check_numerics_vector.hpp"
+#include "rocblas_trsv.hpp"
 
 // Copyright 2014-2021, The Science and Technology Facilities Council (STFC)
 // All rights reserved.
@@ -886,3 +885,77 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
 
     return check_numerics_status;
 }
+
+// Instantiations below will need to be manually updated to match any change in
+// template parameters in the files *trsv*.cpp
+
+// clang-format off
+
+#ifdef INSTANTIATE_TRSV_NUMERICS
+#error INSTANTIATE_TRSV_NUMERICS already defined
+#endif
+
+#define INSTANTIATE_TRSV_NUMERICS(T_, U_)                                             \
+template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>                 \
+                                                   (const char*       function_name,  \
+                                                    rocblas_handle    handle,         \
+                                                    rocblas_int       m,              \
+                                                    T_                A,              \
+                                                    rocblas_int       offset_a,       \
+                                                    rocblas_int       lda,            \
+                                                    rocblas_stride    stride_a,       \
+                                                    U_                x,              \
+                                                    rocblas_int       offset_x,       \
+                                                    rocblas_int       inc_x,          \
+                                                    rocblas_stride    stride_x,       \
+                                                    rocblas_int       batch_count,    \
+                                                    const rocblas_int check_numerics, \
+                                                    bool              is_input);
+
+INSTANTIATE_TRSV_NUMERICS(float const*, float*)
+INSTANTIATE_TRSV_NUMERICS(double const*, double*)
+INSTANTIATE_TRSV_NUMERICS(rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_TRSV_NUMERICS(rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_TRSV_NUMERICS(float const* const*, float* const*)
+INSTANTIATE_TRSV_NUMERICS(double const* const*, double* const*)
+INSTANTIATE_TRSV_NUMERICS(rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_TRSV_NUMERICS(rocblas_double_complex const* const*, rocblas_double_complex* const*)
+
+#undef INSTANTIATE_TRSV_NUMERICS
+
+#ifdef INSTANTIATE_TRSV_TEMPLATE
+#error INSTANTIATE_TRSV_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_TRSV_TEMPLATE(DIM_X_, T_, ATYPE_, XTYPE_)                                        \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_substitution_template \
+                                               <DIM_X_, T_, ATYPE_, XTYPE_>                          \
+                                               (rocblas_handle    handle,                            \
+                                                rocblas_fill      uplo,                              \
+                                                rocblas_operation transA,                            \
+                                                rocblas_diagonal  diag,                              \
+                                                rocblas_int       m,                                 \
+                                                ATYPE_             dA,                               \
+                                                ptrdiff_t         offset_A,                          \
+                                                rocblas_int       lda,                               \
+                                                rocblas_stride    stride_A,                          \
+                                                XTYPE_             dx,                               \
+                                                ptrdiff_t         offset_x,                          \
+                                                rocblas_int       incx,                              \
+                                                rocblas_stride    stride_x,                          \
+                                                rocblas_int       batch_count,                       \
+                                                rocblas_int*      w_completed_sec);
+
+
+INSTANTIATE_TRSV_TEMPLATE(64, float, float const*, float*)
+INSTANTIATE_TRSV_TEMPLATE(64, double, double const*, double*)
+INSTANTIATE_TRSV_TEMPLATE(64, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_TRSV_TEMPLATE(32, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_TRSV_TEMPLATE(64, float, float const* const*, float* const*)
+INSTANTIATE_TRSV_TEMPLATE(64, double, double const* const*, double* const*)
+INSTANTIATE_TRSV_TEMPLATE(64, rocblas_float_complex, rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_TRSV_TEMPLATE(32, rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+
+#undef INSTANTIATE_TRSV_TEMPLATE
+
+// clang-format on

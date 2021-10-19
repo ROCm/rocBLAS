@@ -113,15 +113,18 @@ endif( ) # BUILD_WITH_TENSILE
 
 set (rocblas_ex_source_no_tensile
     blas_ex/rocblas_axpy_ex.cpp
+    blas_ex/rocblas_axpy_ex_kernels.cpp
     blas_ex/rocblas_axpy_batched_ex.cpp
     blas_ex/rocblas_axpy_strided_batched_ex.cpp
     blas_ex/rocblas_dot_ex.cpp
     blas_ex/rocblas_dot_batched_ex.cpp
     blas_ex/rocblas_dot_strided_batched_ex.cpp
     blas_ex/rocblas_rot_ex.cpp
+    blas_ex/rocblas_rot_ex_kernels.cpp
     blas_ex/rocblas_rot_batched_ex.cpp
     blas_ex/rocblas_rot_strided_batched_ex.cpp
     blas_ex/rocblas_scal_ex.cpp
+    blas_ex/rocblas_scal_ex_kernels.cpp
     blas_ex/rocblas_scal_batched_ex.cpp
     blas_ex/rocblas_scal_strided_batched_ex.cpp
     blas_ex/rocblas_nrm2_ex.cpp
@@ -184,6 +187,7 @@ set( rocblas_blas2_source
   blas2/rocblas_gemv_batched.cpp
   blas2/rocblas_gemv_strided_batched.cpp
   blas2/rocblas_tpmv.cpp
+  blas2/rocblas_tpmv_kernels.cpp
   blas2/rocblas_tpmv_batched.cpp
   blas2/rocblas_tpmv_strided_batched.cpp
   blas2/rocblas_gbmv.cpp
@@ -266,6 +270,7 @@ set( rocblas_blas2_source
   blas2/rocblas_symv_batched.cpp
   blas2/rocblas_symv_strided_batched.cpp
   blas2/rocblas_trsv.cpp
+  blas2/rocblas_trsv_kernels.cpp
   blas2/rocblas_trsv_strided_batched.cpp
   blas2/rocblas_trsv_batched.cpp
 )
