@@ -386,6 +386,14 @@ namespace
         // Add problem predicates for CEqualsD
         tensileProblem.setCEqualsD(prob.C == prob.D);
 
+        static const char* fp16AltImplEnvStr = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL");
+        static const int   fp16AltImplEnv
+            = (fp16AltImplEnvStr == NULL ? -1 : (std::atoi(fp16AltImplEnvStr) == 0 ? 0 : 1));
+        if(fp16AltImplEnv != -1)
+            tensileProblem.setFp16AltImpl(fp16AltImplEnv);
+        else
+            tensileProblem.setFp16AltImpl(prob.flags & rocblas_gemm_flags_fp16_alt_impl);
+
         return tensileProblem;
     }
 
