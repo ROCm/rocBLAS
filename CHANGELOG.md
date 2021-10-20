@@ -8,9 +8,15 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Added rocblas_xtrmm_outofplace, an out-of-place version of rocblas_xtrmm
 - Added hpl and trig initialization for gemm_ex to rocblas-bench
 - Added source code gemm. It can be used as an alternative to Tensile for debugging and development
+- Added option ROCM_MATHLIBS_API_USE_HIP_COMPLEX to opt-in to use hipFloatComplex and hipDoubleComplex
 
-###Changed
+### Changed
 - Instantiate templated rocBLAS functions to reduce size of librocblas.so
+- Removed static library dependency on msgpack
+- Removed boost dependencies for clients
+
+### Fixed
+- Option to install script to build only rocBLAS clients with a pre-built rocBLAS library
 
 ## rocBLAS 2.41.0 for ROCm 4.5.0
 ### Optimizations
