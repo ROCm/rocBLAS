@@ -2501,6 +2501,17 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_medium_alt
+  category: pre_checkin
+  function:
+    gemm_ex: *hpa_half_precision
+  matrix_size: *medium_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha: 1
+  beta: 0
+  flags: 4
+  initialization: special
+
 - name: gemm_medium_HMM
   category: HMM
   function:
@@ -2639,6 +2650,17 @@ Tests:
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
 
+- name: gemm_deepbench_alt
+  category: nightly
+  function:
+    gemm_ex: *hpa_half_precision
+  matrix_size: *deepbench_sizes
+  alpha: 1
+  beta: 0
+  flags: 4
+  initialization: special
+  transA_transB: *deepbench_transA_transB_range
+
 - name: gemm_deepbench_int8
   category: nightly
   function:
@@ -2668,6 +2690,18 @@ Tests:
   matrix_size: *resnet50_fwd_sizes
   alpha: 1
   beta: 0
+
+- name: resnet50_fwd_alt
+  category: nightly
+  function:
+    gemm_ex: *hpa_half_precision
+  transA: N
+  transB: N
+  matrix_size: *resnet50_fwd_sizes
+  alpha: 1
+  beta: 0
+  flags: 4
+  initialization: special
 
 - name: resnet50_fwd_int8
   category: nightly

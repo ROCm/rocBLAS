@@ -254,7 +254,9 @@ typedef enum rocblas_gemm_flags_
     /*! \brief Select the gemm problem with the highest efficiency per compute unit used. Useful for running multiple smaller problems
     * simultaneously. This takes precedence over the performance metric set in rocblas_handle and currently only works for
     * gemm_*_ex problems. */
-    rocblas_gemm_flags_use_cu_efficiency = 0x2
+    rocblas_gemm_flags_use_cu_efficiency = 0x2,
+    /*! \brief Select an alternate implementation for FP16 HPA if available */
+    rocblas_gemm_flags_fp16_alt_impl = 0x4
 } rocblas_gemm_flags;
 
 /*! \brief Union for representing scalar values */

@@ -311,6 +311,50 @@ void rocblas_init_zero(T* A, size_t start_offset, size_t end_offset)
         A[i] = T(rocblas_zero_rng());
 }
 
+template <typename T>
+void rocblas_init_alt_impl_big(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    const rocblas_half ieee_half_max(65280.0);
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = T(ieee_half_max);
+}
+
+template <typename T>
+inline void rocblas_init_alt_impl_big(
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    const rocblas_half ieee_half_max(65280.0);
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = T(ieee_half_max);
+}
+
+template <typename T>
+void rocblas_init_alt_impl_small(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    const rocblas_half ieee_half_small(0.0000607967376708984375);
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = T(ieee_half_small);
+}
+
+template <typename T>
+void rocblas_init_alt_impl_small(
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    const rocblas_half ieee_half_small(0.0000607967376708984375);
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = T(ieee_half_small);
+}
+
 /* ============================================================================================ */
 /*! \brief  Packs strided_batched matricies into groups of 4 in N */
 

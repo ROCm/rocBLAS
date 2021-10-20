@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************/
 
@@ -2190,7 +2190,8 @@ void cblas_gemm(rocblas_operation      transA,
                 rocblas_int            ldb,
                 Tc                     beta,
                 std::add_pointer_t<To> C,
-                rocblas_int            ldc);
+                rocblas_int            ldc,
+                bool                   alt = false);
 
 template <>
 inline void cblas_gemm(rocblas_operation transA,
@@ -2205,7 +2206,8 @@ inline void cblas_gemm(rocblas_operation transA,
                        rocblas_int       ldb,
                        float             beta,
                        float*            C,
-                       rocblas_int       ldc)
+                       rocblas_int       ldc,
+                       bool              alt)
 {
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
@@ -2238,7 +2240,8 @@ inline void cblas_gemm(rocblas_operation transA,
                        rocblas_int       ldb,
                        double            beta,
                        float*            C,
-                       rocblas_int       ldc)
+                       rocblas_int       ldc,
+                       bool              alt)
 {
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
@@ -2271,7 +2274,8 @@ inline void cblas_gemm(rocblas_operation transA,
                        rocblas_int       ldb,
                        double            beta,
                        double*           C,
-                       rocblas_int       ldc)
+                       rocblas_int       ldc,
+                       bool              alt)
 {
     cblas_dgemm(CblasColMajor,
                 CBLAS_TRANSPOSE(transA),
@@ -2302,7 +2306,8 @@ inline void cblas_gemm(rocblas_operation      transA,
                        rocblas_int            ldb,
                        rocblas_float_complex  beta,
                        rocblas_float_complex* C,
-                       rocblas_int            ldc)
+                       rocblas_int            ldc,
+                       bool                   alt)
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_cgemm(CblasColMajor,
@@ -2334,7 +2339,8 @@ inline void cblas_gemm(rocblas_operation       transA,
                        rocblas_int             ldb,
                        rocblas_double_complex  beta,
                        rocblas_double_complex* C,
-                       rocblas_int             ldc)
+                       rocblas_int             ldc,
+                       bool                    alt)
 {
     cblas_zgemm(CblasColMajor,
                 CBLAS_TRANSPOSE(transA),
