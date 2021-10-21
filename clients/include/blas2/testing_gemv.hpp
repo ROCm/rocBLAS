@@ -220,7 +220,7 @@ void testing_gemv(const Arguments& arg)
     else
     {
         rocblas_init<T>(hA, M, N, lda);
-        rocblas_init<T>(hx, 1, dim_x, abs_incx);
+        rocblas_init_alternating_sign(hx, 1, dim_x, abs_incx);
     }
 
     if(arg.beta_isnan<T>())
