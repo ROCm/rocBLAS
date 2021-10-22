@@ -12402,6 +12402,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
 
         op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
 
+    When uplo == rocblas_fill_upper the  leading  k by k
+    upper triangular part of the array  A must contain the upper
+    triangular matrix and the strictly lower triangular part of
+    A is not referenced. Here k is m when side == rocblas_side_left
+    and is n when side == rocblas_side_right.
+
+    When uplo == rocblas_fill_lower the  leading  k by k
+    lower triangular part of the array  A must contain the lower
+    triangular matrix  and the strictly upper triangular part of
+    A is not referenced. Here k is m when  side == rocblas_side_left
+    and is n when side == rocblas_side_right.
+
+    Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
+    A  are not referenced either,  but are assumed to be  unity.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -12450,19 +12465,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
             A has dimension ( lda, k ), where k is m
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
-
-        When uplo == rocblas_fill_upper the  leading  k by k
-        upper triangular part of the array  A must contain the upper
-        triangular matrix  and the strictly lower triangular part of
-        A is not referenced.
-
-        When uplo == rocblas_fill_lower the  leading  k by k
-        lower triangular part of the array  A must contain the lower
-        triangular matrix  and the strictly upper triangular part of
-        A is not referenced.
-
-        Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
-        A  are not referenced either,  but are assumed to be  unity.
 
     @param[in]
     lda     [rocblas_int]
