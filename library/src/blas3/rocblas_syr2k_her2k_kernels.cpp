@@ -119,7 +119,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
     {
         // tiling over dimension K
 
-        int row_loc, col_loc, k_loc;
+        int row_loc, col_loc;
         int r, c;
 
         // first matrix mult: alpha*op(A)*op(B)^T

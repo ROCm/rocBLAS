@@ -161,22 +161,25 @@ namespace
                 return tbmv_check_numerics_status;
         }
 
-        return rocblas_tbmv_template(handle,
-                                     uplo,
-                                     transA,
-                                     diag,
-                                     m,
-                                     k,
-                                     A,
-                                     0,
-                                     lda,
-                                     stride_A,
-                                     x,
-                                     0,
-                                     incx,
-                                     stride_x,
-                                     batch_count,
-                                     (T*)w_mem_x_copy);
+        rocblas_status status = rocblas_tbmv_template(handle,
+                                                      uplo,
+                                                      transA,
+                                                      diag,
+                                                      m,
+                                                      k,
+                                                      A,
+                                                      0,
+                                                      lda,
+                                                      stride_A,
+                                                      x,
+                                                      0,
+                                                      incx,
+                                                      stride_x,
+                                                      batch_count,
+                                                      (T*)w_mem_x_copy);
+
+        if(status != rocblas_status_success)
+            return status;
 
         if(check_numerics)
         {

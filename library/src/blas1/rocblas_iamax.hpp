@@ -12,7 +12,7 @@ struct rocblas_reduce_amax
     template <typename To>
     __forceinline__ __host__ __device__ void
         operator()(rocblas_index_value_t<To>& __restrict__ x,
-                   const rocblas_index_value_t<To>& __restrict__ y)
+                   const rocblas_index_value_t<To>& __restrict__ y) const
     {
         // If y.index == -1 then y.value is invalid and should not be compared
         if(y.index != -1)

@@ -1082,7 +1082,7 @@ using void_t = void;
 template <typename PROP, typename = void>
 struct ArchName
 {
-    std::string operator()(const PROP& prop)
+    std::string operator()(const PROP& prop) const
     {
         return "gfx" + std::to_string(prop.gcnArch);
     }
@@ -1092,7 +1092,7 @@ struct ArchName
 template <typename PROP>
 struct ArchName<PROP, void_t<decltype(PROP::gcnArchName)>>
 {
-    std::string operator()(const PROP& prop)
+    std::string operator()(const PROP& prop) const
     {
         // strip out xnack/ecc from name
         std::string gcnArchName(prop.gcnArchName);

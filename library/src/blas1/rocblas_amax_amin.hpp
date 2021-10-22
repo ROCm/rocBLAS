@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -27,8 +27,8 @@ template <typename To>
 struct rocblas_fetch_amax_amin
 {
     template <typename Ti>
-    __forceinline__ __host__ __device__ rocblas_index_value_t<To> operator()(Ti          x,
-                                                                             rocblas_int index)
+    __forceinline__ __host__ __device__ rocblas_index_value_t<To>
+                                        operator()(Ti x, rocblas_int index) const
     {
         return {index, fetch_asum(x)};
     }
@@ -40,7 +40,7 @@ struct rocblas_fetch_amax_amin
 struct rocblas_finalize_amax_amin
 {
     template <typename To>
-    __forceinline__ __host__ __device__ auto operator()(const rocblas_index_value_t<To>& x)
+    __forceinline__ __host__ __device__ auto operator()(const rocblas_index_value_t<To>& x) const
     {
         return x.index + 1;
     }

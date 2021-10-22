@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -10,7 +10,7 @@ template <class To>
 struct rocblas_fetch_asum
 {
     template <typename Ti>
-    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t)
+    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t) const
     {
         return {fetch_asum(x)};
     }
