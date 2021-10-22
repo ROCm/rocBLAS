@@ -757,7 +757,7 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(roc
             for(rocblas_int j = 0; j < NB; j += DIM)
             {
                 // Check if the A index is within the bounds of the matrix, is on a diagonal, and is within the triangular section.
-                rocblas_int A_idx = TRANSPOSE ? j * size_t(lda) + i : i * size_t(lda) + j;
+                size_t A_idx = TRANSPOSE ? j * size_t(lda) + i : i * size_t(lda) + j;
                 bool in_diag = diag == rocblas_diagonal_unit && j + A_row_offset == i + A_col_offset;
                 bool in_size = j + A_row_offset < k && i + A_col_offset < k;
                 bool in_bounds = in_size && (UPPER ? (TRANSPOSE ? (j + A_row_offset >= i + A_col_offset)
