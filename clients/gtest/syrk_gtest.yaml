@@ -43,6 +43,18 @@ Tests:
   precision: *single_precision_complex_real
   fortran: [ false, true ]
 
+- name: syrk_size_t
+  category: nightly
+  function: syrk
+  precision: *single_precision
+  uplo: [ L ]
+  transA: [ T ]
+  matrix_size:
+    - { N:  51200, ldc: 51200, K:     4, lda:     4 }
+    - { N:      4, ldc:     4, K: 51200, lda: 51200 }
+  alpha_beta:
+    - { alpha:  1.0, alphai:  0.0, beta:  1.0, betai: 0.0 } # quick success
+
 - name: syrk_quick
   category: quick
   function: syrk

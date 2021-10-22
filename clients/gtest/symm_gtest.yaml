@@ -40,6 +40,18 @@ Tests:
   precision: *single_precision
   fortran: [ false, true ]
 
+- name: symm_size_t
+  category: nightly
+  function: symm
+  precision: *single_precision
+  uplo: [ L ]
+  side: [ R ]
+  matrix_size:
+    - { M:     4, N:  51200, lda: 51200, ldb:     4, ldc:     4 }
+    - { M: 51200, N:      4, lda:     4, ldb: 51200, ldc: 51200 }
+  alpha_beta:
+    - { alpha:  3.0, alphai:  0.0, beta:  2.0, betai: 0.0 }
+
 - name: symm_quick
   category: quick
   function: symm
