@@ -378,6 +378,10 @@ target_include_directories( rocblas
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/internal>
           $<BUILD_INTERFACE:${Tensile_INC}>
           $<INSTALL_INTERFACE:include>
+ PRIVATE
+          ${CMAKE_SOURCE_DIR}/include/rocblas
+          ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas
+	  ${PROJECT_BINARY_DIR}/include/rocblas
           )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
@@ -510,8 +514,8 @@ endif( )
 # Installation
 
 # Force installation of .f90 module file
-install(FILES "../include/rocblas_module.f90"
-        DESTINATION "include/rocblas"
+install(FILES "../include/rocblas_module.f90" "../include/rocblas.h"
+        DESTINATION "include/rocblas/"
 )
 
 # Force installation of LICENSE.md
@@ -524,8 +528,10 @@ rocm_install_targets(
 )
 
 install(
-  DIRECTORY "${CMAKE_SOURCE_DIR}/library/include/" "${CMAKE_BINARY_DIR}/include/"
-  DESTINATION include/rocblas
+    DIRECTORY
+       "${CMAKE_SOURCE_DIR}/library/include/internal/"
+       "${PROJECT_BINARY_DIR}/include/internal/"
+        DESTINATION "include/rocblas/internal/"
   FILES_MATCHING
   PATTERN "*.h"
   PATTERN "*.hpp"
@@ -534,9 +540,9 @@ install(
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
     if (WIN32)
-      set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin" CACHE PATH "path to tensile library" )
+      set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}bin/rocblas" CACHE PATH "path to tensile library" )
     else()
-      set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
+      set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}lib/rocblas" CACHE PATH "path to tensile library" )
     endif()
     install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR})
   endif()
