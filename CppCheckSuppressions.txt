@@ -1,0 +1,52 @@
+//List of false positives for uninitialized variables / member variables
+uninitMemberVar:clients/benchmarks/program_options.hpp:56
+uninitMemberVar:clients/benchmarks/program_options.hpp:69
+
+//unintialized variables
+uninitvar:scripts/utilities/check_for_pretuned_sizes_c/check-for-pretuned-sizes.cpp:178
+uninitvar:scripts/utilities/check_for_pretuned_sizes_c/check-for-pretuned-sizes.cpp:182
+uninitvar:scripts/utilities/check_for_pretuned_sizes_c/check-for-pretuned-sizes.cpp:221
+uninitvar:scripts/utilities/check_for_pretuned_sizes_c/check-for-pretuned-sizes.cpp:222
+
+//List of false positives for Pass by value
+passedByValue:clients/benchmarks/program_options.hpp:132
+passedByValue:clients/benchmarks/program_options.hpp:172
+passedByValue:clients/benchmarks/program_options.hpp:172
+passedByValue:clients/benchmarks/program_options.hpp:180
+passedByValue:clients/benchmarks/program_options.hpp:180
+passedByValue:clients/benchmarks/program_options.hpp:210
+passedByValue:clients/benchmarks/program_options.hpp:366
+passedByValue:clients/benchmarks/program_options.hpp:61
+passedByValue:clients/gtest/rocblas_test.cpp:240
+passedByValue:clients/gtest/rocblas_test.cpp:259
+
+//To suppres variableScope
+variableScope:library/src/blas3/rocblas_trtri.hpp:30
+variableScope:library/src/blas3/rocblas_trtri.hpp:31
+
+//List of false positives for duplicate expressions
+duplicateExpression:library/src/blas1/rocblas_axpy_kernels.cpp:260
+duplicateExpression:library/src/blas2/rocblas_tpmv_kernels.cpp:50
+duplicateExpression:library/src/blas2/rocblas_tpmv_kernels.cpp:91
+duplicateExpression:library/src/blas2/rocblas_tpmv_kernels.cpp:137
+
+//List of false positives for redundant assignment
+redundantAssignment:clients/samples/example_scal_template.cpp:52
+redundantAssignment:clients/samples/example_sscal.cpp:53
+
+//List of false positives for unread variables
+unreadVariable:library/src/blas3/rocblas_trsm.hpp:1499
+unreadVariable:library/src/blas3/rocblas_trsm.hpp:1521
+unreadVariable:library/src/blas3/rocblas_trsm.hpp:1566
+unreadVariable:library/src/blas3/rocblas_trsm.hpp:1675
+unreadVariable:library/src/rocblas_ostream.cpp:65
+unreadVariable:library/src/blas_ex/rocblas_gemm_ext2.cpp:424
+unreadVariable:clients/samples/example_solver_rocblas.cpp:60
+unreadVariable:clients/samples/example_solver_rocblas.cpp:69
+unreadVariable:clients/samples/example_solver_rocblas.cpp:95
+
+//List of warnings to ignore
+accessMoved:library/src/rocblas_ostream.cpp:224
+
+//List of false positives syntax errors' to be suppressed
+syntaxError
