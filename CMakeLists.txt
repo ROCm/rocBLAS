@@ -195,7 +195,7 @@ set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xna
 # Sets the AMDGPU_TARGETS with backward compatiblity
 if(COMMAND rocm_check_target_ids)
   rocm_check_target_ids(target_list
-      TARGETS "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030"
+      TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030"
   )
 else()
   # This section is deprecated. Please use rocm_check_target_ids for future use.
@@ -210,12 +210,12 @@ else()
     if(Tensile_LOGIC STREQUAL "aldebaran")
       # Temporary bypass: if logic aldebaran logic is selected, assume aldebaran compiler support exists
       # To be removed for ROCm 4.4
-      set(target_list "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
     else()
-      set(target_list "gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
     endif()
   else()
-    set(target_list "gfx900;gfx906;gfx908")
+    set(target_list "gfx803;gfx900;gfx906;gfx908")
   endif()
 endif()
 
