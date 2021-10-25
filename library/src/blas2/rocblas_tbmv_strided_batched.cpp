@@ -202,6 +202,7 @@ namespace
             if(tbmv_check_numerics_status != rocblas_status_success)
                 return tbmv_check_numerics_status;
         }
+        return status;
     }
 
 } // namespace
