@@ -143,11 +143,6 @@ namespace
 
         static constexpr bool BATCHED = false;
 
-        rocblas_int n2          = rocblas_operation_none == trans ? k : n;
-        bool        i64_indices = (n2 * size_t(lda) > std::numeric_limits<rocblas_int>::max())
-                           || (n2 * size_t(ldb) > std::numeric_limits<rocblas_int>::max())
-                           || (n * size_t(ldc) > std::numeric_limits<rocblas_int>::max());
-
         return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
                                                                    uplo,
                                                                    trans,

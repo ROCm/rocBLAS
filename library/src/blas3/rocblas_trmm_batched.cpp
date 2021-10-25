@@ -165,29 +165,28 @@ namespace
 
         rocblas_int a_col = rocblas_side_left == side ? m : n;
 
-        rocblas_internal_trmm_template<STOPPING_NB, true, T>(handle,
-                                                             side,
-                                                             uplo,
-                                                             transa,
-                                                             diag,
-                                                             m,
-                                                             n,
-                                                             alpha,
-                                                             stride_alpha,
-                                                             a,
-                                                             offset_a,
-                                                             lda,
-                                                             stride_a,
-                                                             (const T* const*)b,
-                                                             offset_b,
-                                                             ldb,
-                                                             stride_b,
-                                                             b,
-                                                             offset_b,
-                                                             ldb,
-                                                             stride_b,
-                                                             batch_count);
-        return rocblas_status_success;
+        return rocblas_internal_trmm_template<STOPPING_NB, true, T>(handle,
+                                                                    side,
+                                                                    uplo,
+                                                                    transa,
+                                                                    diag,
+                                                                    m,
+                                                                    n,
+                                                                    alpha,
+                                                                    stride_alpha,
+                                                                    a,
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    (const T* const*)b,
+                                                                    offset_b,
+                                                                    ldb,
+                                                                    stride_b,
+                                                                    b,
+                                                                    offset_b,
+                                                                    ldb,
+                                                                    stride_b,
+                                                                    batch_count);
     }
 
 } // namespace
