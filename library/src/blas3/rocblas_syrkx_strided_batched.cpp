@@ -166,8 +166,6 @@ namespace
 
         static constexpr bool BATCHED = false;
 
-        rocblas_int n2 = rocblas_operation_none == trans ? k : n;
-
         return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
                                                                    uplo,
                                                                    trans,

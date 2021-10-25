@@ -163,8 +163,6 @@ namespace
         if(rocblas_pointer_mode_host == handle->pointer_mode && !a)
             return rocblas_status_invalid_pointer;
 
-        rocblas_int a_col = rocblas_side_left == side ? m : n;
-
         return rocblas_internal_trmm_template<STOPPING_NB, true, T>(handle,
                                                                     side,
                                                                     uplo,
