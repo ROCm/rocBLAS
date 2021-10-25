@@ -24,6 +24,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Correctly set output of nrm2_batched_ex and nrm2_strided_batched_ex when given bad input
 - Fix for dgmm with side == rocblas_side_left and a negative incx
 - Fixed out-of-bounds read for small trsm
+- Fixed numerical checking for tbmv_strided_batched
 
 ## rocBLAS 2.41.0 for ROCm 4.5.0
 ### Optimizations
