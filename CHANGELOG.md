@@ -17,6 +17,9 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ### Fixed
 - Option to install script to build only rocBLAS clients with a pre-built rocBLAS library
+- Correctly set output of nrm2_batched_ex and nrm2_strided_batched_ex when given bad input
+- Fix for dgmm with side == rocblas_side_left and a negative incx
+- Fixed out-of-bounds read for small trsm
 
 ## rocBLAS 2.41.0 for ROCm 4.5.0
 ### Optimizations
