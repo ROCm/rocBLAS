@@ -32,11 +32,11 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void dgmm_device(rocblas_int    m
 
         if(side_right)
         {
-            C[tx + ldc * ty] = A[tx + lda * ty] * X[ty * incx];
+            C[tx + size_t(ldc) * ty] = A[tx + size_t(lda) * ty] * X[ty * incx];
         }
         else
         {
-            C[tx + ldc * ty] = A[tx + lda * ty] * X[tx * incx];
+            C[tx + size_t(ldc) * ty] = A[tx + size_t(lda) * ty] * X[tx * incx];
         }
     }
 }

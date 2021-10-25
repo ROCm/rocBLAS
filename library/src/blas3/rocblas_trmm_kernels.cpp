@@ -38,14 +38,14 @@
 
 rocblas_int rocblas_get_trmm_recursive_nb(rocblas_int n);
 
-template <typename TScal, typename TPtr, typename T_lda>
+template <typename TScal, typename TPtr>
 ROCBLAS_KERNEL void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                                          rocblas_int    n,
                                                          TScal          alpha_device_host,
                                                          rocblas_stride stride_alpha,
                                                          TPtr           Aa,
-                                                         T_lda          offsetA,
-                                                         T_lda          lda,
+                                                         rocblas_int    offsetA,
+                                                         rocblas_int    lda,
                                                          rocblas_stride strideA)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -57,19 +57,19 @@ ROCBLAS_KERNEL void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
     {
         auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offsetA, strideA);
 
-        A[tx + lda * ty] = 0;
+        A[tx + size_t(lda) * ty] = 0;
     }
 }
 
-template <typename TScal, typename TPtr, typename T_lda>
+template <typename TScal, typename TPtr>
 rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
                                                       rocblas_int    m,
                                                       rocblas_int    n,
                                                       TScal          alpha,
                                                       rocblas_stride stride_alpha,
                                                       TPtr           A,
-                                                      T_lda          offsetA,
-                                                      T_lda          lda,
+                                                      rocblas_int    offsetA,
+                                                      rocblas_int    lda,
                                                       rocblas_stride strideA,
                                                       rocblas_int    batch_count)
 {
@@ -119,12 +119,7 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
 }
 
 // left, NoTrans
-template <const int NB,
-          typename T,
-          typename TScal,
-          typename TConstPtr,
-          typename TPtr,
-          typename T_lda>
+template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
                                                                       rocblas_diagonal diag,
                                                                       int              m,
@@ -132,12 +127,12 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fi
                                                                       TScal alpha_device_host,
                                                                       rocblas_stride stride_alpha,
                                                                       TConstPtr*     A_arg,
-                                                                      T_lda          offset_a,
-                                                                      T_lda          ldda,
+                                                                      rocblas_int    offset_a,
+                                                                      rocblas_int    lda,
                                                                       rocblas_stride stride_a,
                                                                       TPtr*          B_arg,
-                                                                      T_lda          offset_b,
-                                                                      T_lda          lddb,
+                                                                      rocblas_int    offset_b,
+                                                                      rocblas_int    ldb,
                                                                       rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
@@ -152,7 +147,7 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fi
 
     const int nblocks = (n + NB - 1) / NB;
     const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
-    B += bx * NB * lddb;
+    B += bx * NB * size_t(ldb);
 
     __shared__ T sA[NB * NB];
     __shared__ T sB[NB * NB];
@@ -163,9 +158,9 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fi
 
     // load A and B
     if(ty < m && tx < m)
-        sA[ty * NB + tx] = A[ty * ldda + tx];
+        sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
     if(ty < nn && tx < m)
-        sB[ty * NB + tx] = B[ty * lddb + tx];
+        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
 
     // handle diag
     if(diag == rocblas_diagonal_unit)
@@ -193,17 +188,11 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fi
         accumulator += sA[i * NB + tx] * sB[ty * NB + i];
     accumulator *= alpha;
     if(ty < nn && tx < m)
-        B[ty * lddb + tx] = accumulator;
+        B[ty * size_t(ldb) + tx] = accumulator;
 }
 
 // left, Trans|ConjTrans
-template <const int NB,
-          bool      CONJA,
-          typename T,
-          typename TScal,
-          typename TConstPtr,
-          typename TPtr,
-          typename T_lda>
+template <const int NB, bool CONJA, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
                                                                       rocblas_diagonal diag,
                                                                       int              m,
@@ -211,12 +200,12 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fi
                                                                       TScal alpha_device_host,
                                                                       rocblas_stride stride_alpha,
                                                                       TConstPtr*     A_arg,
-                                                                      T_lda          offset_a,
-                                                                      T_lda          ldda,
+                                                                      rocblas_int    offset_a,
+                                                                      rocblas_int    lda,
                                                                       rocblas_stride stride_a,
                                                                       TPtr*          B_arg,
-                                                                      T_lda          offset_b,
-                                                                      T_lda          lddb,
+                                                                      rocblas_int    offset_b,
+                                                                      rocblas_int    ldb,
                                                                       rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
@@ -231,7 +220,7 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fi
 
     const int nblocks = (n + NB - 1) / NB;
     const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
-    B += bx * NB * lddb;
+    B += bx * NB * size_t(ldb);
 
     __shared__ T sA[NB * NB];
     __shared__ T sB[NB * NB];
@@ -246,15 +235,15 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fi
     {
         if(CONJA)
         {
-            sA[tx * NB + ty] = conj(A[ty * ldda + tx]);
+            sA[tx * NB + ty] = conj(A[ty * size_t(lda) + tx]);
         }
         else
         {
-            sA[tx * NB + ty] = A[ty * ldda + tx];
+            sA[tx * NB + ty] = A[ty * size_t(lda) + tx];
         }
     }
     if(ty < nn && tx < m)
-        sB[ty * NB + tx] = B[ty * lddb + tx];
+        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
 
     // handle diag
     if(diag == rocblas_diagonal_unit)
@@ -285,16 +274,11 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fi
 
     // write B
     if(ty < nn && tx < m)
-        B[ty * lddb + tx] = accumulator;
+        B[ty * size_t(ldb) + tx] = accumulator;
 }
 
 // right NoTrans
-template <const int NB,
-          typename T,
-          typename TScal,
-          typename TConstPtr,
-          typename TPtr,
-          typename T_lda>
+template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
                                                                       rocblas_diagonal diag,
                                                                       int              m,
@@ -302,12 +286,12 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fi
                                                                       TScal alpha_device_host,
                                                                       rocblas_stride stride_alpha,
                                                                       TConstPtr*     A_arg,
-                                                                      T_lda          offset_a,
-                                                                      T_lda          ldda,
+                                                                      rocblas_int    offset_a,
+                                                                      rocblas_int    lda,
                                                                       rocblas_stride stride_a,
                                                                       TPtr*          B_arg,
-                                                                      T_lda          offset_b,
-                                                                      T_lda          lddb,
+                                                                      rocblas_int    offset_b,
+                                                                      rocblas_int    ldb,
                                                                       rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
@@ -333,9 +317,9 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fi
 
     // load A and B
     if(ty < n && tx < n)
-        sA[ty * NB + tx] = A[ty * ldda + tx];
+        sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
     if(ty < n && tx < mm)
-        sB[ty * NB + tx] = B[ty * lddb + tx];
+        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
 
     // handle diag
     if(diag == rocblas_diagonal_unit)
@@ -364,17 +348,11 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fi
     accumulator *= alpha;
     // write B
     if(ty < n && tx < mm)
-        B[ty * lddb + tx] = accumulator;
+        B[ty * size_t(ldb) + tx] = accumulator;
 }
 
 // right, transpose_and_conjugate_transpose
-template <const int NB,
-          bool      CONJA,
-          typename T,
-          typename TScal,
-          typename TConstPtr,
-          typename TPtr,
-          typename T_lda>
+template <const int NB, bool CONJA, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
                                                                       rocblas_diagonal diag,
                                                                       int              m,
@@ -382,12 +360,12 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rTx_kernel(rocblas_fi
                                                                       TScal alpha_device_host,
                                                                       rocblas_stride stride_alpha,
                                                                       TConstPtr*     A_arg,
-                                                                      T_lda          offset_a,
-                                                                      T_lda          ldda,
+                                                                      rocblas_int    offset_a,
+                                                                      rocblas_int    lda,
                                                                       rocblas_stride stride_a,
                                                                       TPtr*          B_arg,
-                                                                      T_lda          offset_b,
-                                                                      T_lda          lddb,
+                                                                      rocblas_int    offset_b,
+                                                                      rocblas_int    ldb,
                                                                       rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
@@ -416,15 +394,15 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rTx_kernel(rocblas_fi
     {
         if(CONJA)
         {
-            sA[ty * NB + tx] = conj(A[ty * ldda + tx]);
+            sA[ty * NB + tx] = conj(A[ty * size_t(lda) + tx]);
         }
         else
         {
-            sA[ty * NB + tx] = A[ty * ldda + tx];
+            sA[ty * NB + tx] = A[ty * size_t(lda) + tx];
         }
     }
     if(ty < n && tx < mm)
-        sB[ty * NB + tx] = B[ty * lddb + tx];
+        sB[ty * NB + tx] = B[ty * size_t(ldb) + tx];
 
     // handle diag
     if(diag == rocblas_diagonal_unit)
@@ -453,12 +431,12 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rTx_kernel(rocblas_fi
     accumulator *= alpha;
     // write B
     if(ty < n && tx < mm)
-        B[ty * lddb + tx] = accumulator;
+        B[ty * size_t(ldb) + tx] = accumulator;
 }
 
 // clang-format off
 // left, NoTrans
-template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status trmm_template_lNx(rocblas_handle   handle,
                        rocblas_fill     uplo,
                        rocblas_diagonal diag,
@@ -466,8 +444,8 @@ rocblas_status trmm_template_lNx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
-                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       TConstPtr*       dA, rocblas_int offset_a, rocblas_int lda, rocblas_stride stride_a,
+                       TPtr*            dB, rocblas_int offset_b, rocblas_int ldb, rocblas_stride stride_b,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
@@ -479,20 +457,20 @@ rocblas_status trmm_template_lNx(rocblas_handle   handle,
         hipLaunchKernelGGL((rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
     else
         hipLaunchKernelGGL((rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
 
     return rocblas_status_success;
 }
 
 // left, Trans|ConjTrans
-template <const int NB, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template <const int NB, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status trmm_template_lTx(rocblas_handle   handle,
                        rocblas_fill     uplo,
                        rocblas_diagonal diag,
@@ -500,8 +478,8 @@ rocblas_status trmm_template_lTx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
-                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       TConstPtr*       dA, rocblas_int offset_a, rocblas_int lda, rocblas_stride stride_a,
+                       TPtr*            dB, rocblas_int offset_b, rocblas_int ldb, rocblas_stride stride_b,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
@@ -513,20 +491,20 @@ rocblas_status trmm_template_lTx(rocblas_handle   handle,
         hipLaunchKernelGGL((rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
     else
         hipLaunchKernelGGL((rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
 
     return rocblas_status_success;
 }
 
 // right, NoTrans
-template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status trmm_template_rNx(rocblas_handle   handle,
                        rocblas_fill     uplo,
                        rocblas_diagonal diag,
@@ -534,8 +512,8 @@ rocblas_status trmm_template_rNx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
-                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       TConstPtr*       dA, rocblas_int offset_a, rocblas_int lda, rocblas_stride stride_a,
+                       TPtr*            dB, rocblas_int offset_b, rocblas_int ldb, rocblas_stride stride_b,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
@@ -547,20 +525,20 @@ rocblas_status trmm_template_rNx(rocblas_handle   handle,
         hipLaunchKernelGGL((rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
     else
         hipLaunchKernelGGL((rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
 
     return rocblas_status_success;
 }
 
 // right, Trans|ConjTrans
-template <const int NB, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template <const int NB, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status trmm_template_rTx(rocblas_handle   handle,
                        rocblas_fill     uplo,
                        rocblas_diagonal diag,
@@ -568,8 +546,8 @@ rocblas_status trmm_template_rTx(rocblas_handle   handle,
                        rocblas_int      n,
                        TScal*           alpha,
                        rocblas_stride   stride_alpha,
-                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
-                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       TConstPtr*       dA, rocblas_int offset_a, rocblas_int lda, rocblas_stride stride_a,
+                       TPtr*            dB, rocblas_int offset_b, rocblas_int ldb, rocblas_stride stride_b,
                        rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
@@ -581,19 +559,19 @@ rocblas_status trmm_template_rTx(rocblas_handle   handle,
         hipLaunchKernelGGL((rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
     else
         hipLaunchKernelGGL((rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
-                           dA, offset_a, ldda, stride_a,
-                           dB, offset_b, lddb, stride_b);
+                           dA, offset_a, lda, stride_a,
+                           dB, offset_b, ldb, stride_b);
 
     return rocblas_status_success;
 }
 
-template <int STOPPING_NB, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template <int STOPPING_NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_trmm_small(rocblas_handle    handle,
                         rocblas_side      side,
                         rocblas_fill      uplo,
@@ -603,8 +581,8 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
                         rocblas_int       n,
                         TScal*            alpha,
                         rocblas_stride    stride_alpha,
-                        TConstPtr*        dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
-                        TPtr*             dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                        TConstPtr*        dA, rocblas_int offset_a, rocblas_int lda, rocblas_stride stride_a,
+                        TPtr*             dB, rocblas_int offset_b, rocblas_int ldb, rocblas_stride stride_b,
                         rocblas_int       batch_count)
 {
     rocblas_int shape = -1;
@@ -624,33 +602,33 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
     if (shape == 0) // lNx, left, NoTrans
         return trmm_template_lNx<STOPPING_NB, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
-                                               dA, offset_a, ldda, stride_a,
-                                               dB, offset_b, lddb, stride_b, batch_count);
+                                               dA, offset_a, lda, stride_a,
+                                               dB, offset_b, ldb, stride_b, batch_count);
     else if (shape == 1) // lTx, left, Transpose
         return trmm_template_lTx<STOPPING_NB, false, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
-                                               dA, offset_a, ldda, stride_a,
-                                               dB, offset_b, lddb, stride_b, batch_count);
+                                               dA, offset_a, lda, stride_a,
+                                               dB, offset_b, ldb, stride_b, batch_count);
     else if (shape == 2) // lCx, left, ConjTrans
         return trmm_template_lTx<STOPPING_NB, true, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
-                                               dA, offset_a, ldda, stride_a,
-                                               dB, offset_b, lddb, stride_b, batch_count);
+                                               dA, offset_a, lda, stride_a,
+                                               dB, offset_b, ldb, stride_b, batch_count);
     else if (shape == 3) // rNx, right, NoTrans
         return trmm_template_rNx<STOPPING_NB, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
-                                               dA, offset_a, ldda, stride_a,
-                                               dB, offset_b, lddb, stride_b, batch_count);
+                                               dA, offset_a, lda, stride_a,
+                                               dB, offset_b, ldb, stride_b, batch_count);
     else if (shape == 4) // rTx, right, Transpose
         return trmm_template_rTx<STOPPING_NB, false, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
-                                               dA, offset_a, ldda, stride_a,
-                                               dB, offset_b, lddb, stride_b, batch_count);
+                                               dA, offset_a, lda, stride_a,
+                                               dB, offset_b, ldb, stride_b, batch_count);
     else if (shape == 5) // rCx, right, ConjTrans
         return trmm_template_rTx<STOPPING_NB, true, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
-                                               dA, offset_a, ldda, stride_a,
-                                               dB, offset_b, lddb, stride_b, batch_count);
+                                               dA, offset_a, lda, stride_a,
+                                               dB, offset_b, ldb, stride_b, batch_count);
     else
         return rocblas_status_internal_error;
 }
@@ -694,24 +672,23 @@ template <typename T,
           bool CONJ,
           typename TScal,
           typename TConstPtr,
-          typename TPtr,
-          typename T_lda>
+          typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
                                                                              int              m,
                                                                              int              n,
                                                                              TScal            alpha_device_host,
                                                                              rocblas_stride   stride_alpha,
                                                                              TConstPtr*       A_arg,
-                                                                             T_lda            offset_a,
-                                                                             T_lda            lda,
+                                                                             rocblas_int      offset_a,
+                                                                             rocblas_int      lda,
                                                                              rocblas_stride   stride_a,
                                                                              TConstPtr*       B_arg,
-                                                                             T_lda            offset_b,
-                                                                             T_lda            ldb,
+                                                                             rocblas_int      offset_b,
+                                                                             rocblas_int      ldb,
                                                                              rocblas_stride   stride_b,
                                                                              TPtr*            C_arg,
-                                                                             T_lda            offset_c,
-                                                                             T_lda            ldc,
+                                                                             rocblas_int      offset_c,
+                                                                             rocblas_int      ldc,
                                                                              rocblas_stride   stride_c,
                                                                              rocblas_int      batch_count)
 {
@@ -753,8 +730,8 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(roc
     rocblas_int B_col_offset = LEFT ? by * NB + ty
                                     : (ITER_UPPER ? ty : ty + NB * by);
 
-    const T* dA = A + (TRANSPOSE ? A_col_offset + A_row_offset * lda : A_row_offset + A_col_offset * lda);
-    const T* dB = B + B_row_offset + B_col_offset * ldb;
+    const T* dA = A + (TRANSPOSE ? A_col_offset + A_row_offset * size_t(lda) : A_row_offset + A_col_offset * size_t(lda));
+    const T* dB = B + B_row_offset + B_col_offset * size_t(ldb);
 
     // zero out result matrix
     for(rocblas_int i = 0; i < THR_DIM; i++)
@@ -780,7 +757,7 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(roc
             for(rocblas_int j = 0; j < NB; j += DIM)
             {
                 // Check if the A index is within the bounds of the matrix, is on a diagonal, and is within the triangular section.
-                rocblas_int A_idx = TRANSPOSE ? j * lda + i : i * lda + j;
+                size_t A_idx = TRANSPOSE ? j * size_t(lda) + i : i * size_t(lda) + j;
                 bool in_diag = diag == rocblas_diagonal_unit && j + A_row_offset == i + A_col_offset;
                 bool in_size = j + A_row_offset < k && i + A_col_offset < k;
                 bool in_bounds = in_size && (UPPER ? (TRANSPOSE ? (j + A_row_offset >= i + A_col_offset)
@@ -803,7 +780,7 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(roc
             for(rocblas_int j = 0; j < NB; j += DIM)
             {
                 if(i + B_col_offset < n && j + B_row_offset < m)
-                    sB[i + ty][j + tx] = dB[j + i * ldb];
+                    sB[i + ty][j + tx] = dB[j + i * size_t(ldb)];
                 else
                     sB[i + ty][j + tx] = 0;
             }
@@ -831,16 +808,16 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(roc
         // iterating across the column of the transposed matrix
         if(LEFT)
         {
-            dA += TRANSPOSE ? NB : NB * lda;
+            dA += TRANSPOSE ? NB : NB * size_t(lda);
             A_col_offset += NB;
             dB += NB;
             B_row_offset += NB;
         }
         else
         {
-            dA += !TRANSPOSE ? NB : NB * lda;
+            dA += !TRANSPOSE ? NB : NB * size_t(lda);
             A_row_offset += NB;
-            dB += NB * ldb;
+            dB += NB * size_t(ldb);
             B_col_offset += NB;
         }
 
@@ -856,22 +833,22 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(roc
             rocblas_int c_idxm = bx * NB + jm * DIM + tx;
             if(c_idxm < m && c_idxn < n)
             {
-                C[c_idxn * ldc + c_idxm] = alpha * rC[jn][jm];
+                C[c_idxn * size_t(ldc) + c_idxm] = alpha * rC[jn][jm];
             }
         }
     }
 }
 
-template<typename T, rocblas_int NB, bool LEFT, bool UPPER, bool TRANSPOSE, bool CONJ, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template<typename T, rocblas_int NB, bool LEFT, bool UPPER, bool TRANSPOSE, bool CONJ, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status trmm_outofplace(rocblas_handle   handle,
                                  rocblas_diagonal diag,
                                  rocblas_int      m,
                                  rocblas_int      n,
                                  TScal*           alpha,
                                  rocblas_stride   stride_alpha,
-                                 TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
-                                 TConstPtr*       dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
-                                 TPtr*            dC, T_lda offset_c, T_lda lddc, rocblas_stride stride_c,
+                                 TConstPtr*       dA, rocblas_int offset_a, rocblas_int lda, rocblas_stride stride_a,
+                                 TConstPtr*       dB, rocblas_int offset_b, rocblas_int ldb, rocblas_stride stride_b,
+                                 TPtr*            dC, rocblas_int offset_c, rocblas_int lddc, rocblas_stride stride_c,
                                  rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
@@ -886,23 +863,23 @@ rocblas_status trmm_outofplace(rocblas_handle   handle,
     {
         hipLaunchKernelGGL((rocblas_trmm_outofplace_kernel<T, NB, THR_DIM, LEFT, UPPER, TRANSPOSE, CONJ>), grid, threads, 0, rocblas_stream,
                             diag, m, n, alpha, stride_alpha,
-                            dA, offset_a, ldda, stride_a,
-                            dB, offset_b, lddb, stride_b,
+                            dA, offset_a, lda, stride_a,
+                            dB, offset_b, ldb, stride_b,
                             dC, offset_c, lddc, stride_c, batch_count);
     }
     else
     {
         hipLaunchKernelGGL((rocblas_trmm_outofplace_kernel<T, NB, THR_DIM, LEFT, UPPER, TRANSPOSE, CONJ>), grid, threads, 0, rocblas_stream,
                             diag, m, n, *alpha, stride_alpha,
-                            dA, offset_a, ldda, stride_a,
-                            dB, offset_b, lddb, stride_b,
+                            dA, offset_a, lda, stride_a,
+                            dB, offset_b, ldb, stride_b,
                             dC, offset_c, lddc, stride_c, batch_count);
     }
 
     return rocblas_status_success;
 }
 
-template <int NB, bool BATCHED, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template <int NB, bool BATCHED, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_outofplace_template(rocblas_handle    handle,
                                      rocblas_side      side,
                                      rocblas_fill      uplo,
@@ -913,16 +890,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_outofplace
                                      TScal*            alpha,
                                      rocblas_stride    stride_alpha,
                                      TConstPtr*        dA,
-                                     T_lda             offset_a,
-                                     T_lda             ldda,
+                                     rocblas_int       offset_a,
+                                     rocblas_int       lda,
                                      rocblas_stride    stride_a,
                                      TConstPtr*        dB,
-                                     T_lda             offset_b,
-                                     T_lda             lddb,
+                                     rocblas_int       offset_b,
+                                     rocblas_int       ldb,
                                      rocblas_stride    stride_b,
                                      TPtr*             dC,
-                                     T_lda             offset_c,
-                                     T_lda             lddc,
+                                     rocblas_int       offset_c,
+                                     rocblas_int       lddc,
                                      rocblas_stride    stride_c,
                                      rocblas_int       batch_count)
 {
@@ -931,64 +908,64 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_outofplace
     if(shape == 0) // lNl Left, NoTrans, Lower
     {
         trmm_outofplace<T, NB, true, false, false, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
     else if(shape == 1) // lNU Left, NoTrans, Upper
     {
         trmm_outofplace<T, NB, true, true, false, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
     else if(shape == 2) // lTL Left, Trans, Lower
     {
         trmm_outofplace<T, NB, true, false, true, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
     else if(shape == 3) // lTU Left, Trans, Upper
     {
         trmm_outofplace<T, NB, true, true, true, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
     else if(shape == 4) // rNL Right, NoTrans, Lower
     {
         trmm_outofplace<T, NB, false, false, false, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
     else if(shape == 5) // rNU Right, NoTrans, Upper
     {
         trmm_outofplace<T, NB, false, true, false, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
     else if(shape == 6) // rTL Right, Trans, Lower
     {
         trmm_outofplace<T, NB, false, false, true, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
     else if(shape == 7) // rTU Right, Trans, Upper
     {
         trmm_outofplace<T, NB, false, true, true, CONJ>(handle, diag, m, n, alpha, stride_alpha,
-                        dA, offset_a, ldda, stride_a,
-                        dB, offset_b, lddb, stride_b,
+                        dA, offset_a, lda, stride_a,
+                        dB, offset_b, ldb, stride_b,
                         dC, offset_c, lddc, stride_c, batch_count);
     }
 
     return rocblas_status_success;
 }
 
-template <int STOPPING_NB, bool BATCHED, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+template <int STOPPING_NB, bool BATCHED, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_inplace_template(rocblas_handle    handle,
                                      rocblas_side      side,
                                      rocblas_fill      uplo,
@@ -999,18 +976,18 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
                                      TScal*            alpha,
                                      rocblas_stride    stride_alpha,
                                      TConstPtr*        dA,
-                                     T_lda             offset_a,
-                                     T_lda             ldda,
+                                     rocblas_int       offset_a,
+                                     rocblas_int       lda,
                                      rocblas_stride    stride_a,
                                      TPtr*        dB,
-                                     T_lda             offset_b,
-                                     T_lda             lddb,
+                                     rocblas_int       offset_b,
+                                     rocblas_int       ldb,
                                      rocblas_stride    stride_b,
                                      rocblas_int       batch_count)
 {
 
-#define CALC_OFFSET_A(i, j) offset_a + i + j* ldda
-#define CALC_OFFSET_B(i, j) offset_b + i + j* lddb
+#define CALC_OFFSET_A(i, j) offset_a + i + j* size_t(lda)
+#define CALC_OFFSET_B(i, j) offset_b + i + j* size_t(ldb)
 
     const T one = 1.0;
 
@@ -1020,8 +997,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
     {
         return rocblas_trmm_small<STOPPING_NB, T>(handle, side, uplo, trans_a, diag,
                                                   m, n, alpha, stride_alpha,
-                                                  dA, offset_a, ldda, stride_a,
-                                                  dB, offset_b, lddb, stride_b, batch_count);
+                                                  dA, offset_a, lda, stride_a,
+                                                  dB, offset_b, ldb, stride_b, batch_count);
     }
 
     rocblas_status status = rocblas_status_success;
@@ -1035,19 +1012,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
          RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(m1, m1), lda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), ldb, stride_b, batch_count)));
 
          RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
                                      m2, n, m1, alpha,
-                                     dA, CALC_OFFSET_A(m1, 0), ldda, stride_a,
-                        (TConstPtr*) dB, CALC_OFFSET_B( 0, 0), lddb, stride_b, &one,
-                                     dB, CALC_OFFSET_B(m1, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(m1, 0), lda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0, 0), ldb, stride_b, &one,
+                                     dB, CALC_OFFSET_B(m1, 0), ldb, stride_b, batch_count)));
 
          RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
     }
     else if (shape == 1) // lNU  left, NoTrans, Upper
     {
@@ -1056,20 +1033,20 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
 
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
                                      m1, n, m2, alpha,
-                                     dA, CALC_OFFSET_A( 0, m1), ldda, stride_a,
-                        (TConstPtr*) dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, &one,
-                                     dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A( 0, m1), lda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B(m1,  0), ldb, stride_b, &one,
+                                     dB, CALC_OFFSET_B( 0,  0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(m1, m1), lda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), ldb, stride_b, batch_count)));
     }
     else if (shape == 2) // lTL | lCL    left, Trans|ConjTrans, Lower
     {
@@ -1078,19 +1055,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
                                      m1, n, m2, alpha,
-                                     dA, CALC_OFFSET_A(m1, 0), ldda, stride_a,
-                        (TConstPtr*) dB, CALC_OFFSET_B(m1, 0), lddb, stride_b, &one,
-                                     dB, CALC_OFFSET_B( 0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(m1, 0), lda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B(m1, 0), ldb, stride_b, &one,
+                                     dB, CALC_OFFSET_B( 0, 0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(m1, m1), lda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), ldb, stride_b, batch_count)));
     }
     else if (shape == 3) // lTU | lCU     left, Trans|ConjTrans, Upper
     {
@@ -1099,19 +1076,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(m1, m1), lda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
                                      m2, n, m1, alpha,
-                                     dA, CALC_OFFSET_A( 0, m1), ldda, stride_a,
-                        (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, &one,
-                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A( 0, m1), lda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), ldb, stride_b, &one,
+                                     dB, CALC_OFFSET_B(m1,  0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
     }
     else if (shape == 4) // rNL       right, NoTrans, Lower
     {
@@ -1120,19 +1097,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n1, n2, alpha,
-                        (TConstPtr*) dB, CALC_OFFSET_B( 0, n1), lddb, stride_b,
-                                     dA, CALC_OFFSET_A(n1,  0), ldda, stride_a, &one,
-                                     dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, batch_count)));
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0, n1), ldb, stride_b,
+                                     dA, CALC_OFFSET_A(n1,  0), lda, stride_a, &one,
+                                     dB, CALC_OFFSET_B( 0,  0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(n1, n1), lda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), ldb, stride_b, batch_count)));
     }
     else if (shape == 5) // rNU       right, NoTrans, Upper
     {
@@ -1141,19 +1118,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(n1, n1), lda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n2, n1, alpha,
-                        (TConstPtr*) dB, CALC_OFFSET_B(0,  0), lddb, stride_b,
-                                     dA, CALC_OFFSET_A(0, n1), ldda, stride_a, &one,
-                                     dB, CALC_OFFSET_B(0, n1), lddb, stride_b, batch_count)));
+                        (TConstPtr*) dB, CALC_OFFSET_B(0,  0), ldb, stride_b,
+                                     dA, CALC_OFFSET_A(0, n1), lda, stride_a, &one,
+                                     dB, CALC_OFFSET_B(0, n1), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
     }
     else if (shape == 6) // rTL | rCL      right, Trans|ConjTrans, Lower
     {
@@ -1162,19 +1139,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(n1, n1), lda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n2, n1, alpha,
-                        (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), lddb, stride_b,
-                                     dA, CALC_OFFSET_A(n1,  0), ldda, stride_a, &one,
-                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), ldb, stride_b,
+                                     dA, CALC_OFFSET_A(n1,  0), lda, stride_a, &one,
+                                     dB, CALC_OFFSET_B( 0, n1), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
     }
     else if (shape == 7) // rTU | rCU      right, Trans|ConjTrans, Upper
     {
@@ -1183,19 +1160,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
-                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(0, 0), lda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n1, n2, alpha,
-                        (TConstPtr*) dB, CALC_OFFSET_B(0, n1), lddb, stride_b,
-                                     dA, CALC_OFFSET_A(0, n1), ldda, stride_a, &one,
-                                     dB, CALC_OFFSET_B(0,  0), lddb, stride_b, batch_count)));
+                        (TConstPtr*) dB, CALC_OFFSET_B(0, n1), ldb, stride_b,
+                                     dA, CALC_OFFSET_A(0, n1), lda, stride_a, &one,
+                                     dB, CALC_OFFSET_B(0,  0), ldb, stride_b, batch_count)));
 
         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_inplace_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
-                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
-                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+                                     dA, CALC_OFFSET_A(n1, n1), lda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), ldb, stride_b, batch_count)));
     }
     else
     {
@@ -1206,13 +1183,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 
 // clang-format on
 
-template <int  NB,
-          bool BATCHED,
-          typename T,
-          typename TScal,
-          typename TConstPtr,
-          typename TPtr,
-          typename T_lda>
+template <int NB, bool BATCHED, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_trmm_template(rocblas_handle    handle,
                                    rocblas_side      side,
@@ -1224,16 +1195,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    TScal*            alpha,
                                    rocblas_stride    stride_alpha,
                                    TConstPtr*        dA,
-                                   T_lda             offset_a,
-                                   T_lda             ldda,
+                                   rocblas_int       offset_a,
+                                   rocblas_int       lda,
                                    rocblas_stride    stride_a,
                                    TConstPtr*        dB,
-                                   T_lda             offset_b,
-                                   T_lda             lddb,
+                                   rocblas_int       offset_b,
+                                   rocblas_int       ldb,
                                    rocblas_stride    stride_b,
                                    TPtr*             dC,
-                                   T_lda             offset_c,
-                                   T_lda             lddc,
+                                   rocblas_int       offset_c,
+                                   rocblas_int       lddc,
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count)
 {
@@ -1252,7 +1223,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                                 stride_alpha,
                                                                                 dA,
                                                                                 offset_a,
-                                                                                ldda,
+                                                                                lda,
                                                                                 stride_a,
                                                                                 dC,
                                                                                 offset_c,
@@ -1273,11 +1244,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                                stride_alpha,
                                                                                dA,
                                                                                offset_a,
-                                                                               ldda,
+                                                                               lda,
                                                                                stride_a,
                                                                                dB,
                                                                                offset_b,
-                                                                               lddb,
+                                                                               ldb,
                                                                                stride_b,
                                                                                dC,
                                                                                offset_c,
@@ -1298,11 +1269,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                                 stride_alpha,
                                                                                 dA,
                                                                                 offset_a,
-                                                                                ldda,
+                                                                                lda,
                                                                                 stride_a,
                                                                                 dB,
                                                                                 offset_b,
-                                                                                lddb,
+                                                                                ldb,
                                                                                 stride_b,
                                                                                 dC,
                                                                                 offset_c,
@@ -1321,9 +1292,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #error INSTANTIATE_TRMM_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_TRMM_TEMPLATE(NB_, BATCHED_, T_, TScal_, TConstPtr_, TPtr_, T_lda_)  \
+#define INSTANTIATE_TRMM_TEMPLATE(NB_, BATCHED_, T_, TScal_, TConstPtr_, TPtr_)          \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_template  \
-                                  <NB_, BATCHED_, T_, TScal_, TConstPtr_, TPtr_, T_lda_> \
+                                  <NB_, BATCHED_, T_, TScal_, TConstPtr_, TPtr_>         \
                                   (rocblas_handle    handle,                             \
                                    rocblas_side      side,                               \
                                    rocblas_fill      uplo,                               \
@@ -1334,46 +1305,34 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_t
                                    TScal_*           alpha,                              \
                                    rocblas_stride    stride_alpha,                       \
                                    TConstPtr_*       dA,                                 \
-                                   T_lda_            offset_a,                           \
-                                   T_lda_            ldda,                               \
+                                   rocblas_int       offset_a,                           \
+                                   rocblas_int       lda,                                \
                                    rocblas_stride    stride_a,                           \
                                    TConstPtr_*       dB,                                 \
-                                   T_lda_            offset_b,                           \
-                                   T_lda_            lddb,                               \
+                                   rocblas_int       offset_b,                           \
+                                   rocblas_int       ldb,                               \
                                    rocblas_stride    stride_b,                           \
                                    TPtr_*            dC,                                 \
-                                   T_lda_            offset_c,                           \
-                                   T_lda_            lddc,                               \
+                                   rocblas_int       offset_c,                           \
+                                   rocblas_int       lddc,                               \
                                    rocblas_stride    stride_c,                           \
                                    rocblas_int       batch_count);
 
 // instantiate for rocblas_Xtrmm and rocblas_Xtrmm_strided_batched
-INSTANTIATE_TRMM_TEMPLATE(32, false,  float,  float const,  float const,  float, int)
-INSTANTIATE_TRMM_TEMPLATE(32, false,  float,  float const,  float const,  float, size_t)
-INSTANTIATE_TRMM_TEMPLATE(32, false, double, double const, double const, double, int)
-INSTANTIATE_TRMM_TEMPLATE(32, false, double, double const, double const, double, size_t)
-INSTANTIATE_TRMM_TEMPLATE(32, false, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const, rocblas_float_complex, int)
-INSTANTIATE_TRMM_TEMPLATE(32, false, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const, rocblas_float_complex, size_t)
-INSTANTIATE_TRMM_TEMPLATE(16, false, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const, rocblas_float_complex, int)
-INSTANTIATE_TRMM_TEMPLATE(16, false, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const, rocblas_float_complex, size_t)
-INSTANTIATE_TRMM_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const, rocblas_double_complex, int)
-INSTANTIATE_TRMM_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const, rocblas_double_complex, size_t)
-INSTANTIATE_TRMM_TEMPLATE(16, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const, rocblas_double_complex, int)
-INSTANTIATE_TRMM_TEMPLATE(16, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const, rocblas_double_complex, size_t)
+INSTANTIATE_TRMM_TEMPLATE(32, false,  float,  float const,  float const,  float)
+INSTANTIATE_TRMM_TEMPLATE(32, false, double, double const, double const, double)
+INSTANTIATE_TRMM_TEMPLATE(32, false, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const, rocblas_float_complex)
+INSTANTIATE_TRMM_TEMPLATE(16, false, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const, rocblas_float_complex)
+INSTANTIATE_TRMM_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const, rocblas_double_complex)
+INSTANTIATE_TRMM_TEMPLATE(16, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const, rocblas_double_complex)
 
 // instantiate for rocblas_Xtrmm_batched
-INSTANTIATE_TRMM_TEMPLATE(32, true,  float,  float const,  float const* const,  float* const, int)
-INSTANTIATE_TRMM_TEMPLATE(32, true,  float,  float const,  float const* const,  float* const, size_t)
-INSTANTIATE_TRMM_TEMPLATE(32, true, double, double const, double const* const, double* const, int)
-INSTANTIATE_TRMM_TEMPLATE(32, true, double, double const, double const* const, double* const, size_t)
-INSTANTIATE_TRMM_TEMPLATE(32, true, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const* const, rocblas_float_complex* const, int)
-INSTANTIATE_TRMM_TEMPLATE(32, true, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const* const, rocblas_float_complex* const, size_t)
-INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const* const, rocblas_float_complex* const, int)
-INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const* const, rocblas_float_complex* const, size_t)
-INSTANTIATE_TRMM_TEMPLATE(32, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const* const, rocblas_double_complex* const, int)
-INSTANTIATE_TRMM_TEMPLATE(32, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const* const, rocblas_double_complex* const, size_t)
-INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const* const, rocblas_double_complex* const, int)
-INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const* const, rocblas_double_complex* const, size_t)
+INSTANTIATE_TRMM_TEMPLATE(32, true,  float,  float const,  float const* const,  float* const)
+INSTANTIATE_TRMM_TEMPLATE(32, true, double, double const, double const* const, double* const)
+INSTANTIATE_TRMM_TEMPLATE(32, true, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const* const, rocblas_float_complex* const)
+INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_float_complex, rocblas_float_complex const, rocblas_float_complex const* const, rocblas_float_complex* const)
+INSTANTIATE_TRMM_TEMPLATE(32, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const* const, rocblas_double_complex* const)
+INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex const* const, rocblas_double_complex* const)
 
 #undef INSTANTIATE_TRMM_TEMPLATE
 
@@ -1381,30 +1340,30 @@ INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_double_complex, rocblas_double_compl
 #error INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(TScal_, TPtr_, T_lda_) \
+#define INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(TScal_, TPtr_)     \
 template rocblas_status set_matrix_zero_if_alpha_zero_template  \
-                        <TScal_, TPtr_, T_lda_>                 \
+                        <TScal_, TPtr_>                         \
                         (rocblas_handle handle,                 \
                          rocblas_int    m,                      \
                          rocblas_int    n,                      \
                          TScal_         alpha,                  \
                          rocblas_stride stride_alpha,           \
                          TPtr_          A,                      \
-                         T_lda_         offsetA,                \
-                         T_lda_         lda,                    \
+                         rocblas_int    offsetA,                \
+                         rocblas_int    lda,                    \
                          rocblas_stride strideA,                \
                          rocblas_int    batch_count);
 
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( float const*,  float* const*, int)
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( float const*,  float*,        int)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( float const*,  float* const*)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( float const*,  float*)
 
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(double const*, double*,        int)
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(double const*, double* const*, int)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(double const*, double*)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(double const*, double* const*)
 
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( rocblas_float_complex const*,  rocblas_float_complex* const*, int)
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( rocblas_float_complex const*,  rocblas_float_complex*,        int)
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex* const*, int)
-INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex*,        int)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( rocblas_float_complex const*,  rocblas_float_complex* const*)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE( rocblas_float_complex const*,  rocblas_float_complex*)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex* const*)
+INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex*)
 
 #undef INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE
 

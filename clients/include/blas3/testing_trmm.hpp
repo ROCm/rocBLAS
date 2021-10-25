@@ -147,21 +147,11 @@ void testing_trmm(const Arguments& arg)
     else
         rocblas_init<T>(hA, K, K, lda);
 
-    //  pad untouched area into zero
-    for(int i = K; i < lda; i++)
-        for(int j = 0; j < K; j++)
-            hA[i + j * lda] = 0.0;
-
     // Initial hB
     if(arg.alpha_isnan<T>())
         rocblas_init_nan<T>(hB, M, N, ldb);
     else
-        rocblas_init<T>(hB, M, N, ldb);
-
-    // pad untouched area into zero
-    for(int i = M; i < ldb; i++)
-        for(int j = 0; j < N; j++)
-            hB[i + j * ldb] = 0.0;
+        rocblas_init_alternating_sign<T>(hB, M, N, ldb);
 
     hB_1 = hB; // hXorB <- B
     hB_2 = hB; // hXorB <- B
