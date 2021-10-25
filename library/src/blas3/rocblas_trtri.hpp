@@ -309,7 +309,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_upper(size_t         offset,
                                                   T              value,
                                                   T*             A)
 {
-    rocblas_int row = n - 2 - floor(sqrt(-8 * idx + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
+    rocblas_int row = n - 2 - floor(sqrt(4 * n * (n - 1) - 7 - 8 * idx) / 2.0 - 0.5);
     rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
 
     size_t final_offset = offset * sub_stride_A + (row * lda) + col;

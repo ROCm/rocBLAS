@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -58,7 +58,7 @@
 template <rocblas_int k, typename REDUCE, typename T>
 struct rocblas_reduction_s
 {
-    __forceinline__ __device__ void operator()(rocblas_int tx, T* x)
+    __forceinline__ __device__ void operator()(rocblas_int tx, T* x) const
     {
         // Reduce the lower half with the upper half
         if(tx < k)
@@ -74,7 +74,7 @@ struct rocblas_reduction_s
 template <typename REDUCE, typename T>
 struct rocblas_reduction_s<0, REDUCE, T>
 {
-    __forceinline__ __device__ void operator()(rocblas_int tx, T* x) {}
+    __forceinline__ __device__ void operator()(rocblas_int tx, T* x) const {}
 };
 
 /*! \brief general parallel reduction
@@ -118,7 +118,7 @@ __attribute__((flatten)) __device__ void rocblas_reduction(rocblas_int tx, T* x)
 struct rocblas_reduce_sum
 {
     template <typename T>
-    __forceinline__ __device__ void operator()(T& __restrict__ a, const T& __restrict__ b)
+    __forceinline__ __device__ void operator()(T& __restrict__ a, const T& __restrict__ b) const
     {
         a += b;
     }

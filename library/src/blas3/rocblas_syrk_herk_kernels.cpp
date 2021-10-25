@@ -107,7 +107,7 @@ ROCBLAS_KERNEL_ILF void syrk_herk_mult_add_device(bool        upper,
     {
         // tiling over dimension K
 
-        int row_loc, col_loc, k_loc;
+        int row_loc, col_loc;
         int r, c;
 
         // fetch tile of matrix A

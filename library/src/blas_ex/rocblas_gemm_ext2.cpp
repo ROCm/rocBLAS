@@ -63,7 +63,7 @@ namespace
                                   rocblas_stride col_stride_c,
                                   void*          D,
                                   rocblas_stride row_stride_d,
-                                  rocblas_stride col_stride_d)
+                                  rocblas_stride col_stride_d) const
         {
             return reference_gemm_ext2(M,
                                        N,
