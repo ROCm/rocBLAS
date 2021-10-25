@@ -10,6 +10,10 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Added source code gemm. It can be used as an alternative to Tensile for debugging and development
 - Added option ROCM_MATHLIBS_API_USE_HIP_COMPLEX to opt-in to use hipFloatComplex and hipDoubleComplex
 
+### Optimizations
+- Improved performance of non-batched and batched single-precision GER for size m > 1024. Performance enhanced by 5-10% measured on a MI100 (gfx908) GPU.
+- Improved performance of non-batched and batched HER for all sizes and data types. Performance enhanced by 2-17% measured on a MI100 (gfx908) GPU.
+
 ### Changed
 - Instantiate templated rocBLAS functions to reduce size of librocblas.so
 - Removed static library dependency on msgpack
