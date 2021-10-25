@@ -137,8 +137,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
 
     //Identifying the architecture to have an appropriate optimization
-    bool is_gfx908 = handle->getArch() == 908 ? true : false;
-    bool is_gfx906 = handle->getArch() == 906 ? true : false;
+    bool is_gfx1030 = handle->getArch() == 1030 ? true : false;
+    bool is_gfx908  = handle->getArch() == 908 ? true : false;
+    bool is_gfx906  = handle->getArch() == 906 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -395,8 +396,43 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #define gemvt_KARGS(alpha_, beta_)                                                             \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
-        //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000.
-        else if(is_float || m < 6000 || n < 6000)
+
+        //Using kernel code with warp reduction for gfx1030.
+        else if(is_gfx1030
+                && (is_double || is_complex_float
+                    || (is_float
+                        && (m < sgemvt_gfx1030_threshold || n < sgemvt_gfx1030_threshold))))
+        {
+            //Number of threads per block
+            static constexpr int NB = 256;
+            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_threads(NB);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(alpha, beta));
+                else
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(alpha, beta));
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(*alpha, *beta));
+                else
+                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(*alpha, *beta));
+            }
+        }
+        //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000 and for complex double in gfx1030.
+        else if((is_float || m < gemvt_threshold || n < gemvt_threshold)
+                || (is_gfx1030 && is_complex_double))
         {
             //Number of threads per block
             static constexpr int NB = 256;
