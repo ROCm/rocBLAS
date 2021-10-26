@@ -10,7 +10,7 @@ template <class To>
 struct rocblas_fetch_nrm2
 {
     template <class Ti>
-    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid)
+    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid) const
     {
         return {fetch_abs2(x)};
     }
@@ -19,7 +19,7 @@ struct rocblas_fetch_nrm2
 struct rocblas_finalize_nrm2
 {
     template <class To>
-    __forceinline__ __host__ __device__ To operator()(To x)
+    __forceinline__ __host__ __device__ To operator()(To x) const
     {
         return sqrt(x);
     }

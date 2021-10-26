@@ -29,6 +29,7 @@ Datatypes:
         rand_int: 111
         trig_float: 222
         hpl: 333
+        special: 444
   - rocblas_gemm_flags:
       bases: [ c_uint32 ]
       attr:

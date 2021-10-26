@@ -378,6 +378,18 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 3 ]
 
+- name: gemm_strided_batched_medium_alt
+  category: pre_checkin
+  function:
+    gemm_strided_batched_ex: *hpa_half_precision
+  matrix_size: *medium_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha: 1
+  beta: 0
+  flags: 4
+  initialization: special
+  batch_count: [ -1, 0, 3 ]
+
 - name: gemm_strided_batched_medium_complex
   category: pre_checkin
   function:
@@ -398,6 +410,19 @@ Tests:
   alphai: 1.0
   beta: 3.0
   betai: -1.0
+  transA: N
+  transB: N
+  batch_count: 3
+
+- name: gemm_strided_batched_medium_stride_zero_alt
+  category: nightly
+  function:
+    gemm_strided_batched_ex: *hpa_half_precision
+  matrix_size: *medium_matrix_size_stride_a_range
+  alpha: 1
+  beta: 0
+  flags: 4
+  initialization: special
   transA: N
   transB: N
   batch_count: 3
@@ -496,6 +521,19 @@ Tests:
   matrix_size: *deepbench_vec
   alpha: 1.0
   beta: 0.0
+  transA: N
+  transB: T
+  batch_count: [ 2 ]
+
+- name: gemm_strided_batched_deepbench_alt
+  category: nightly
+  function:
+    gemm_strided_batched_ex: *hpa_half_precision
+  matrix_size: *deepbench_vec
+  alpha: 1.0
+  beta: 0.0
+  flags: 4
+  initialization: special
   transA: N
   transB: T
   batch_count: [ 2 ]

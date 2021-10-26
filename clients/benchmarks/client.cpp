@@ -1407,7 +1407,24 @@ try
     // transfer local variable state
 
     arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
-    arg.flags        = rocblas_gemm_flags(flags);
+
+    static const char* fp16AltImplEnvStr = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL");
+    static const int   fp16AltImplEnv
+        = (fp16AltImplEnvStr == NULL ? -1 : (std::atoi(fp16AltImplEnvStr) == 0 ? 0 : 1));
+    if(fp16AltImplEnv != -1)
+    {
+        if(fp16AltImplEnv == 0)
+            flags &= ~rocblas_gemm_flags_fp16_alt_impl;
+        else
+            flags |= rocblas_gemm_flags_fp16_alt_impl;
+    }
+
+    if((rocblas_gemm_flags_fp16_alt_impl & arg.flags)
+       && rocblas_internal_get_arch_name() != "gfx90a")
+        flags &= ~rocblas_gemm_flags_fp16_alt_impl;
+
+    arg.flags = rocblas_gemm_flags(flags);
+
     ArgumentModel_set_log_function_name(log_function_name);
 
     // Device Query

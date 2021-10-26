@@ -16,7 +16,7 @@ ROCBLAS_KERNEL_ILF void syr2k_scale_device(bool upper, rocblas_int n, T beta, U*
     int to   = upper ? ty : tx;
 
     if(tx < n && ty < n && from <= to)
-        C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
+        C[ty * size_t(ldc) + tx] = beta ? beta * C[ty * size_t(ldc) + tx] : 0;
 }
 
 /**
@@ -119,7 +119,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
     {
         // tiling over dimension K
 
-        int row_loc, col_loc, k_loc;
+        int row_loc, col_loc;
         int r, c;
 
         // first matrix mult: alpha*op(A)*op(B)^T
@@ -132,8 +132,9 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
         c       = trans ? row_loc : col_loc;
 
         atile[threadIdx.x][threadIdx.y]
-            = (r < ab_rows && c < ab_cols) ? (HERM && trans ? conj(A[c * lda + r]) : A[c * lda + r])
-                                           : 0;
+            = (r < ab_rows && c < ab_cols)
+                  ? (HERM && trans ? conj(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r])
+                  : 0;
 
         // fetch tile of matrix B
         row_loc = k_pos + threadIdx.x;
@@ -143,7 +144,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
 
         btile[threadIdx.x][threadIdx.y]
             = (c < ab_cols && r < ab_rows)
-                  ? (HERM && !trans ? conj(B[c * ldb + r]) : B[c * ldb + r])
+                  ? (HERM && !trans ? conj(B[c * size_t(ldb) + r]) : B[c * size_t(ldb) + r])
                   : 0;
 
         __syncthreads();
@@ -156,7 +157,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
             {
                 sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
             }
-            C[col * ldc + row] += alpha * sum;
+            C[col * size_t(ldc) + row] += alpha * sum;
         }
 
         __syncthreads();
@@ -172,7 +173,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
 
             atile[threadIdx.x][threadIdx.y]
                 = (r < ab_rows && c < ab_cols)
-                      ? (HERM && trans ? conj(B[c * ldb + r]) : B[c * ldb + r])
+                      ? (HERM && trans ? conj(B[c * size_t(ldb) + r]) : B[c * size_t(ldb) + r])
                       : 0;
 
             // fetch tile of matrix A into tileB
@@ -183,7 +184,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
 
             btile[threadIdx.x][threadIdx.y]
                 = (c < ab_cols && r < ab_rows)
-                      ? (HERM && !trans ? conj(A[c * lda + r]) : A[c * lda + r])
+                      ? (HERM && !trans ? conj(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r])
                       : 0;
 
             __syncthreads();
@@ -196,7 +197,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
                 {
                     sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
                 }
-                C[col * ldc + row] += (HERM ? conj(alpha) : alpha) * sum;
+                C[col * size_t(ldc) + row] += (HERM ? conj(alpha) : alpha) * sum;
             }
 
             __syncthreads();
@@ -207,7 +208,7 @@ ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
     if(!TWOK && HERM && row == col && row < n)
     {
         // zero imaginary for cases when A*B aren't true Hermitian
-        syr2k_her2k_zero_imaginary(C[col * ldc + row]);
+        syr2k_her2k_zero_imaginary(C[col * size_t(ldc) + row]);
     }
 }
 
