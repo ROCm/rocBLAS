@@ -37,6 +37,16 @@ Tests:
   side: [R]
   fortran: [ false, true ]
 
+- name: dgmm_size_t
+  category: nightly
+  function: dgmm
+  precision: *single_precision
+  side: [R]
+  matrix_size:
+    - { M:  4, N:  51200, lda:  51200, incx:     1, ldc:       4}
+  batch_count: [        1    ]
+  fortran: [ false ]
+
 - name: dgmm_batched_bad_arg
   category: quick
   function: dgmm_batched_bad_arg

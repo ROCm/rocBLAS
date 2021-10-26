@@ -130,6 +130,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                  
         CASE(rocblas_initialization::rand_int);
         CASE(rocblas_initialization::trig_float);
         CASE(rocblas_initialization::hpl);
+        CASE(rocblas_initialization::special);
     }
     return os << "unknown";
 }

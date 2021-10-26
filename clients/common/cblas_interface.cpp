@@ -4,6 +4,7 @@
 #include "cblas_interface.hpp"
 #include "rocblas_vector.hpp"
 #include "utility.hpp"
+#include <bitset>
 #include <omp.h>
 
 /*
@@ -452,7 +453,8 @@ void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation transA,
                                                 rocblas_int       ldb,
                                                 float             beta,
                                                 float*            C,
-                                                rocblas_int       ldc)
+                                                rocblas_int       ldc,
+                                                bool              alt)
 {
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -498,7 +500,8 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation tra
                                                            rocblas_int       ldb,
                                                            float             beta,
                                                            rocblas_bfloat16* C,
-                                                           rocblas_int       ldc)
+                                                           rocblas_int       ldc,
+                                                           bool              alt)
 {
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -550,14 +553,14 @@ void cblas_gemm<rocblas_half, float, float>(rocblas_operation transA,
                                             rocblas_int       ldb,
                                             float             beta,
                                             float*            C,
-                                            rocblas_int       ldc)
+                                            rocblas_int       ldc,
+                                            bool              alt)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
 
     size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
     size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
-    size_t sizeC = n * size_t(ldc);
 
     host_vector<float> A_float(sizeA), B_float(sizeB);
 
@@ -597,7 +600,8 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
                                                    rocblas_int       ldb,
                                                    float             beta,
                                                    rocblas_half*     C,
-                                                   rocblas_int       ldc)
+                                                   rocblas_int       ldc,
+                                                   bool              alt)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -608,12 +612,24 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
-    for(size_t i = 0; i < sizeA; i++)
-        A_float[i] = A[i];
-    for(size_t i = 0; i < sizeB; i++)
-        B_float[i] = B[i];
-    for(size_t i = 0; i < sizeC; i++)
-        C_float[i] = C[i];
+    if(alt)
+    {
+        for(size_t i = 0; i < sizeA; i++)
+            A_float[i] = rocblas_bfloat16(float(A[i]), rocblas_bfloat16::truncate_t::truncate);
+        for(size_t i = 0; i < sizeB; i++)
+            B_float[i] = rocblas_bfloat16(float(B[i]), rocblas_bfloat16::truncate_t::truncate);
+        for(size_t i = 0; i < sizeC; i++)
+            C_float[i] = rocblas_bfloat16(float(C[i]), rocblas_bfloat16::truncate_t::truncate);
+    }
+    else
+    {
+        for(size_t i = 0; i < sizeA; i++)
+            A_float[i] = A[i];
+        for(size_t i = 0; i < sizeB; i++)
+            B_float[i] = B[i];
+        for(size_t i = 0; i < sizeC; i++)
+            C_float[i] = C[i];
+    }
 
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
@@ -649,7 +665,8 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation tran
                                                           rocblas_int       ldb,
                                                           rocblas_half      beta,
                                                           rocblas_half*     C,
-                                                          rocblas_int       ldc)
+                                                          rocblas_int       ldc,
+                                                          bool              alt)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -703,7 +720,8 @@ void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation transA,
                                           rocblas_int       ldb,
                                           int32_t           beta,
                                           int32_t*          C,
-                                          rocblas_int       ldc)
+                                          rocblas_int       ldc,
+                                          bool              alt)
 {
     // cblas does not support int8_t input / int32_t output, however non-overflowing
     // 32-bit integer operations can be represented accurately with double-precision

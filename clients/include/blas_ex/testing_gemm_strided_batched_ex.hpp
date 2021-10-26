@@ -666,6 +666,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
     host_vector<To_hpa> hD_gold(size_d);
 
+    bool alt = (rocblas_gemm_flags_fp16_alt_impl & flags);
+
     // Initial Data on CPU
     rocblas_seedrand();
 
@@ -691,6 +693,11 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
             rocblas_init_hpl<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
             rocblas_init_hpl<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
         }
+        else if(arg.initialization == rocblas_initialization::special)
+        {
+            rocblas_init_alt_impl_big<Ti>(hA, A_row, A_col, lda);
+            rocblas_init_alt_impl_small<Ti>(hB, B_row, B_col, ldb);
+        }
         else
         {
 #ifdef GOOGLE_TEST
@@ -715,6 +722,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
             rocblas_init_sin<To>(hC, M, N, ldc, stride_c, batch_count);
         else if(arg.initialization == rocblas_initialization::hpl)
             rocblas_init_hpl<To>(hC, M, N, ldc, stride_c, batch_count);
+        else if(arg.initialization == rocblas_initialization::special)
+            rocblas_init<To>(hC, M, N, ldc, stride_c, batch_count);
     }
     rocblas_init_nan<To>(hD_1, M, N, ldd, stride_d, batch_count);
 
@@ -957,7 +966,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                    ldb,
                                    h_beta_Tc,
                                    hD_gold + stride_d * i,
-                                   ldd);
+                                   ldd,
+                                   alt);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

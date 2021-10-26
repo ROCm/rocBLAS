@@ -2694,7 +2694,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgbmv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xGBMV performs one of the matrix-vector operations
+    gbmv performs one of the matrix-vector operations
 
         y := alpha*A*x    + beta*y,   or
         y := alpha*A**T*x + beta*y,   or
@@ -2823,7 +2823,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xGBMV_BATCHED performs one of the matrix-vector operations
+    gbmv_batched performs one of the matrix-vector operations
 
         y_i := alpha*A_i*x_i    + beta*y_i,   or
         y_i := alpha*A_i**T*x_i + beta*y_i,   or
@@ -2967,7 +2967,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xGBMV_STRIDED_BATCHED performs one of the matrix-vector operations
+    gbmv_strided_batched performs one of the matrix-vector operations
 
         y_i := alpha*A_i*x_i    + beta*y_i,   or
         y_i := alpha*A_i**T*x_i + beta*y_i,   or
@@ -3105,7 +3105,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xGEMV performs one of the matrix-vector operations
+    gemv performs one of the matrix-vector operations
 
         y := alpha*A*x    + beta*y,   or
         y := alpha*A**T*x + beta*y,   or
@@ -3205,7 +3205,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xGEMV_BATCHED performs a batch of matrix-vector operations
+    gemv_batched performs a batch of matrix-vector operations
 
         y_i := alpha*A_i*x_i    + beta*y_i,   or
         y_i := alpha*A_i**T*x_i + beta*y_i,   or
@@ -3319,7 +3319,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xGEMV_STRIDED_BATCHED performs a batch of matrix-vector operations
+    gemv_strided_batched performs a batch of matrix-vector operations
 
         y_i := alpha*A_i*x_i    + beta*y_i,   or
         y_i := alpha*A_i**T*x_i + beta*y_i,   or
@@ -3413,7 +3413,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xHBMV performs the matrix-vector operations
+    hbmv performs the matrix-vector operations
 
         y := alpha*A*x + beta*y
 
@@ -3512,7 +3512,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xHBMV_BATCHED performs one of the matrix-vector operations
+    hbmv_batched performs one of the matrix-vector operations
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -3618,7 +3618,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xHBMV_STRIDED_BATCHED performs one of the matrix-vector operations
+    hbmv_strided_batched performs one of the matrix-vector operations
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -3731,7 +3731,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xHEMV performs one of the matrix-vector operations
+    hemv performs one of the matrix-vector operations
 
         y := alpha*A*x + beta*y
 
@@ -3807,7 +3807,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xHEMV_BATCHED performs one of the matrix-vector operations
+    hemv_batched performs one of the matrix-vector operations
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -3890,7 +3890,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xHEMV_STRIDED_BATCHED performs one of the matrix-vector operations
+    hemv_strided_batched performs one of the matrix-vector operations
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -3925,10 +3925,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle      
     lda       [rocblas_int]
               specifies the leading dimension of each A_i. must be >= max(1, n)
     @param[in]
+    stride_A    [rocblas_stride]
+                stride from the start of one (A_i) to the next (A_i+1)
+    @param[in]
     x         device array of device pointers storing each vector x_i.
     @param[in]
     incx      [rocblas_int]
               specifies the increment for the elements of each x_i.
+    @param[in]
+    stride_x  [rocblas_stride]
+              stride from the start of one vector (x_i) and the next one (x_i+1).
     @param[in]
     beta      device pointer or host pointer to scalar beta.
     @param[inout]
@@ -3936,6 +3942,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle      
     @param[in]
     incy      [rocblas_int]
               specifies the increment for the elements of y.
+    @param[in]
+    stride_y  [rocblas_stride]
+              stride from the start of one vector (y_i) and the next one (y_i+1).
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
@@ -3969,7 +3978,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xHER performs the matrix-vector operations
+    her performs the matrix-vector operations
 
         A := A + alpha*x*x**H
 
@@ -4032,7 +4041,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher_batched(rocblas_handle               
 /*! \brief BLAS Level 2 API
 
     \details
-    xHER_BATCHED performs the matrix-vector operations
+    her_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*x_i**H
 
@@ -4101,7 +4110,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher_strided_batched(rocblas_handle       
 /*! \brief BLAS Level 2 API
 
     \details
-    xHER_STRIDED_BATCHED performs the matrix-vector operations
+    her_strided_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*x_i**H
 
@@ -4177,7 +4186,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xHER2 performs the matrix-vector operations
+    her2 performs the matrix-vector operations
 
         A := A + alpha*x*y**H + conj(alpha)*y*x**H
 
@@ -4249,7 +4258,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xHER2_BATCHED performs the matrix-vector operations
+    her2_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*y_i**H + conj(alpha)*y_i*x_i**H
 
@@ -4327,7 +4336,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xHER2_STRIDED_BATCHED performs the matrix-vector operations
+    her2_strided_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*y_i**H + conj(alpha)*y_i*x_i**H
 
@@ -4415,7 +4424,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPMV performs the matrix-vector operation
+    hpmv performs the matrix-vector operation
 
         y := alpha*A*x + beta*y
 
@@ -4501,7 +4510,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPMV_BATCHED performs the matrix-vector operation
+    hpmv_batched performs the matrix-vector operation
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -4595,7 +4604,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPMV_STRIDED_BATCHED performs the matrix-vector operation
+    hpmv_strided_batched performs the matrix-vector operation
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -4694,7 +4703,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPR performs the matrix-vector operations
+    hpr performs the matrix-vector operations
 
         A := A + alpha*x*x**H
 
@@ -4768,7 +4777,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr_batched(rocblas_handle               
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPR_BATCHED performs the matrix-vector operations
+    hpr_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*x_i**H
 
@@ -4848,7 +4857,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr_strided_batched(rocblas_handle       
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPR_STRIDED_BATCHED performs the matrix-vector operations
+    hpr_strided_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*x_i**H
 
@@ -4935,7 +4944,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPR2 performs the matrix-vector operations
+    hpr2 performs the matrix-vector operations
 
         A := A + alpha*x*y**H + conj(alpha)*y*x**H
 
@@ -5018,7 +5027,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPR2_BATCHED performs the matrix-vector operations
+    hpr2_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*y_i**H + conj(alpha)*y_i*x_i**H
 
@@ -5107,7 +5116,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPR2_STRIDED_BATCHED performs the matrix-vector operations
+    hpr2_strided_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*y_i**H + conj(alpha)*y_i*x_i**H
 
@@ -5815,7 +5824,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctbmv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xTBMV performs one of the matrix-vector operations
+    tbmv performs one of the matrix-vector operations
 
         x := A*x      or
         x := A**T*x   or
@@ -5934,7 +5943,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xTBMV_BATCHED performs one of the matrix-vector operations
+    tbmv_batched performs one of the matrix-vector operations
 
         x_i := A_i*x_i      or
         x_i := A_i**T*x_i   or
@@ -6065,7 +6074,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xTBMV_STRIDED_BATCHED performs one of the matrix-vector operations
+    tbmv_strided_batched performs one of the matrix-vector operations
 
         x_i := A_i*x_i      or
         x_i := A_i**T*x_i   or
@@ -6826,7 +6835,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctpsv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    TPSV solves
+    tpsv solves
 
          A*x = b or A**T*x = b, or A**H*x = b,
 
@@ -6912,7 +6921,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctpsv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    TPSV_BATCHED solves
+    tpsv_batched solves
 
          A_i*x_i = b_i or A_i**T*x_i = b_i, or A_i**H*x_i = b_i,
 
@@ -7011,7 +7020,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctpsv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    TPSV_STRIDED_BATCHED solves
+    tpsv_strided_batched solves
 
          A_i*x_i = b_i or A_i**T*x_i = b_i, or A_i**H*x_i = b_i,
 
@@ -7118,7 +7127,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csymv(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYMV performs the matrix-vector operation:
+    symv performs the matrix-vector operation:
 
         y := alpha*A*x + beta*y,
 
@@ -7212,7 +7221,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csymv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYMV_batched performs the matrix-vector operation:
+    symv_batched performs the matrix-vector operation:
 
         y_i := alpha*A_i*x_i + beta*y_i,
 
@@ -7322,7 +7331,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csymv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYMV_strided_batched performs the matrix-vector operation:
+    symv_strided_batched performs the matrix-vector operation:
 
         y_i := alpha*A_i*x_i + beta*y_i,
 
@@ -7413,7 +7422,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sspmv(rocblas_handle handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPMV performs the matrix-vector operation:
+    spmv performs the matrix-vector operation:
 
         y := alpha*A*x + beta*y,
 
@@ -7475,7 +7484,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sspmv_batched(rocblas_handle     handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPMV_batched performs the matrix-vector operation:
+    spmv_batched performs the matrix-vector operation:
 
         y_i := alpha*A_i*x_i + beta*y_i,
 
@@ -7547,7 +7556,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sspmv_strided_batched(rocblas_handle handl
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPMV_strided_batched performs the matrix-vector operation:
+    spmv_strided_batched performs the matrix-vector operation:
 
         y_i := alpha*A_i*x_i + beta*y_i,
 
@@ -7636,7 +7645,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ssbmv(rocblas_handle handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSBMV performs the matrix-vector operation:
+    sbmv performs the matrix-vector operation:
 
         y := alpha*A*x + beta*y,
 
@@ -7708,7 +7717,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSBMV_batched performs the matrix-vector operation:
+    sbmv_batched performs the matrix-vector operation:
 
         y_i := alpha*A_i*x_i + beta*y_i,
 
@@ -7791,7 +7800,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ssbmv_strided_batched(rocblas_handle handl
 /*! \brief BLAS Level 2 API
 
     \details
-    xSBMV_strided_batched performs the matrix-vector operation:
+    sbmv_strided_batched performs the matrix-vector operation:
 
         y_i := alpha*A_i*x_i + beta*y_i,
 
@@ -7929,10 +7938,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgerc(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xGER,xGERU,xGERC performs the matrix-vector operations
+    ger,geru,gerc performs the matrix-vector operations
 
         A := A + alpha*x*y**T , OR
-        A := A + alpha*x*y**H for xGERC
+        A := A + alpha*x*y**H for gerc
 
     where alpha is a scalar, x and y are vectors, and A is an
     m by n matrix.
@@ -8040,10 +8049,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgerc_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xGER,xGERU,xGERC_BATCHED performs a batch of the matrix-vector operations
+    ger_batched,geru_batched,gerc_batched perform a batch of the matrix-vector operations
 
         A := A + alpha*x*y**T , OR
-        A := A + alpha*x*y**H for xGERC
+        A := A + alpha*x*y**H for gerc
 
     where (A_i, x_i, y_i) is the i-th instance of the batch.
     alpha is a scalar, x_i and y_i are vectors and A_i is an
@@ -8171,10 +8180,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgerc_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xGERC,xGERU,xGERC_STRIDED_BATCHED performs the matrix-vector operations
+    ger_strided_batched,geru_strided_batched,gerc_strided_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*y_i**T, OR
-        A_i := A_i + alpha*x_i*y_i**H  for xGERC
+        A_i := A_i + alpha*x_i*y_i**H  for gerc
 
     where (A_i, x_i, y_i) is the i-th instance of the batch.
     alpha is a scalar, x_i and y_i are vectors and A_i is an
@@ -8269,7 +8278,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cspr(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR performs the matrix-vector operations
+    spr performs the matrix-vector operations
 
         A := A + alpha*x*x**T
 
@@ -8361,7 +8370,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cspr_batched(rocblas_handle               
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR_BATCHED performs the matrix-vector operations
+    spr_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*x_i**T
 
@@ -8463,7 +8472,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cspr_strided_batched(rocblas_handle       
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR_STRIDED_BATCHED performs the matrix-vector operations
+    spr_strided_batched performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*x_i**T
 
@@ -8550,7 +8559,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sspr2(rocblas_handle handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR2 performs the matrix-vector operation
+    spr2 performs the matrix-vector operation
 
         A := A + alpha*x*y**T + alpha*y*x**T
 
@@ -8633,11 +8642,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_sspr2_batched(rocblas_handle     handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR2_BATCHED performs the matrix-vector operation
+    spr2_batched performs the matrix-vector operation
 
-        A_i := A_i + alpha*x_i*y_i**T + alpha*y*x**T
+        A_i := A_i + alpha*x_i*y_i**T + alpha*y_i*x_i**T
 
-    where alpha is a scalar, x_i is a vector, and A_i is an
+    where alpha is a scalar, x_i and y_i are vectors, and A_i is an
     n by n symmetric matrix, supplied in packed form, for i = 1, ..., batch_count.
 
     @param[in]
@@ -8723,11 +8732,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_sspr2_strided_batched(rocblas_handle handl
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR_STRIDED_BATCHED performs the matrix-vector operation
+    spr2_strided_batched performs the matrix-vector operation
 
-        A_i := A_i + alpha*x_i*x_i**T
+        A_i := A_i + alpha*x_i*y_i**T + alpha*y_i*x_i**T
 
-    where alpha is a scalar, x_i is a vector, and A_i is an
+    where alpha is a scalar, x_i and y_i are vectors, and A_i is an
     n by n symmetric matrix, supplied in packed form, for i = 1, ..., batch_count.
 
     @param[in]
@@ -8838,7 +8847,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyr(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYR performs the matrix-vector operations
+    syr performs the matrix-vector operations
 
         A := A + alpha*x*x**T
 
@@ -8914,7 +8923,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyr_batched(rocblas_handle               
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYR_batched performs a batch of matrix-vector operations
+    syr_batched performs a batch of matrix-vector operations
 
         A[i] := A[i] + alpha*x[i]*x[i]**T
 
@@ -8999,7 +9008,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyr_strided_batched(rocblas_handle       
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYR_strided_batched performs the matrix-vector operations
+    syr_strided_batched performs the matrix-vector operations
 
         A[i] := A[i] + alpha*x[i]*x[i]**T
 
@@ -9089,7 +9098,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyr2(rocblas_handle               handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYR2 performs the matrix-vector operations
+    syr2 performs the matrix-vector operations
 
         A := A + alpha*x*y**T + alpha*y*x**T
 
@@ -9178,7 +9187,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyr2_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYR2_BATCHED performs a batch of matrix-vector operations
+    syr2_batched performs a batch of matrix-vector operations
 
         A[i] := A[i] + alpha*x[i]*y[i]**T + alpha*y[i]*x[i]**T
 
@@ -9279,7 +9288,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csyr2_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xSYR2_STRIDED_BATCHED the matrix-vector operations
+    syr2_strided_batched the matrix-vector operations
 
         A[i] := A[i] + alpha*x[i]*y[i]**T + alpha*y[i]*x[i]**T
 
@@ -12393,6 +12402,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
 
         op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
 
+    When uplo == rocblas_fill_upper the  leading  k by k
+    upper triangular part of the array  A must contain the upper
+    triangular matrix and the strictly lower triangular part of
+    A is not referenced. Here k is m when side == rocblas_side_left
+    and is n when side == rocblas_side_right.
+
+    When uplo == rocblas_fill_lower the  leading  k by k
+    lower triangular part of the array  A must contain the lower
+    triangular matrix  and the strictly upper triangular part of
+    A is not referenced. Here k is m when  side == rocblas_side_left
+    and is n when side == rocblas_side_right.
+
+    Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
+    A  are not referenced either,  but are assumed to be  unity.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -12441,19 +12465,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
             A has dimension ( lda, k ), where k is m
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
-
-        When uplo == rocblas_fill_upper the  leading  k by k
-        upper triangular part of the array  A must contain the upper
-        triangular matrix  and the strictly lower triangular part of
-        A is not referenced.
-
-        When uplo == rocblas_fill_lower the  leading  k by k
-        lower triangular part of the array  A must contain the lower
-        triangular matrix  and the strictly upper triangular part of
-        A is not referenced.
-
-        Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
-        A  are not referenced either,  but are assumed to be  unity.
 
     @param[in]
     lda     [rocblas_int]
@@ -14038,7 +14049,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemm(rocblas_handle               handle,
 /*! \brief BLAS Level 3 API
 
     \details
-    xGEMM performs one of the matrix-matrix operations
+    gemm performs one of the matrix-matrix operations
 
         C = alpha*op( A )*op( B ) + beta*C,
 
@@ -14171,7 +14182,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemm_batched(rocblas_handle              
 
 /*! \brief BLAS Level 3 API
      \details
-    xGEMM_BATCHED performs one of the batched matrix-matrix operations
+    gemm_batched performs one of the batched matrix-matrix operations
          C_i = alpha*op( A_i )*op( B_i ) + beta*C_i, for i = 1, ..., batch_count.
      where op( X ) is one of
          op( X ) = X      or
@@ -14375,7 +14386,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemm_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 3 API
 
     \details
-    xGEMM_STRIDED_BATCHED performs one of the strided batched matrix-matrix operations
+    gemm_strided_batched performs one of the strided batched matrix-matrix operations
 
         C_i = alpha*op( A_i )*op( B_i ) + beta*C_i, for i = 1, ..., batch_count.
 
@@ -14497,7 +14508,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cdgmm(rocblas_handle               handle,
 /*! \brief BLAS Level 3 API
 
     \details
-    xDGMM performs one of the matrix-matrix operations
+    dgmm performs one of the matrix-matrix operations
 
         C = A * diag(x) if side == rocblas_side_right
         C = diag(x) * A if side == rocblas_side_left
@@ -14586,7 +14597,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_batched(rocblas_handle              
 /*! \brief BLAS Level 3 API
 
     \details
-    xDGMM_batched performs one of the batched matrix-matrix operations
+    dgmm_batched performs one of the batched matrix-matrix operations
 
         C_i = A_i * diag(x_i) for i = 0, 1, ... batch_count-1 if side == rocblas_side_right
         C_i = diag(x_i) * A_i for i = 0, 1, ... batch_count-1 if side == rocblas_side_left
@@ -14691,7 +14702,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 3 API
 
     \details
-    xDGMM_strided_batched performs one of the batched matrix-matrix operations
+    dgmm_strided_batched performs one of the batched matrix-matrix operations
 
         C_i = A_i * diag(x_i)   if side == rocblas_side_right   for i = 0, 1, ... batch_count-1
         C_i = diag(x_i) * A_i   if side == rocblas_side_left    for i = 0, 1, ... batch_count-1
@@ -14805,7 +14816,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgeam(rocblas_handle               handle,
 /*! \brief BLAS Level 3 API
 
     \details
-    xGEAM performs one of the matrix-matrix operations
+    geam performs one of the matrix-matrix operations
 
         C = alpha*op( A ) + beta*op( B ),
 
@@ -14916,7 +14927,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgeam_batched(rocblas_handle              
 /*! \brief BLAS Level 3 API
 
     \details
-    xGEAM_batched performs one of the batched matrix-matrix operations
+    geam_batched performs one of the batched matrix-matrix operations
 
         C_i = alpha*op( A_i ) + beta*op( B_i )  for i = 0, 1, ... batch_count - 1
 
@@ -15045,7 +15056,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgeam_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 3 API
 
     \details
-    xGEAM_strided_batched performs one of the batched matrix-matrix operations
+    geam_strided_batched performs one of the batched matrix-matrix operations
 
         C_i = alpha*op( A_i ) + beta*op( B_i )  for i = 0, 1, ... batch_count - 1
 
@@ -15153,7 +15164,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
 /*! \brief BLAS EX API
 
     \details
-    GEMM_EX performs one of the matrix-matrix operations
+    gemm_ex performs one of the matrix-matrix operations
 
         D = alpha*op( A )*op( B ) + beta*C,
 
@@ -15401,7 +15412,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
 
 /*! \brief BLAS EX API
     \details
-    GEMM_BATCHED_EX performs one of the batched matrix-matrix operations
+    gemm_batched_ex performs one of the batched matrix-matrix operations
         D_i = alpha*op(A_i)*op(B_i) + beta*C_i, for i = 1, ..., batch_count.
     where op( X ) is one of
         op( X ) = X      or
@@ -15594,7 +15605,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
 /*! \brief BLAS EX API
 
     \details
-    GEMM_STRIDED_BATCHED_EX performs one of the strided_batched matrix-matrix operations
+    gemm_strided_batched_ex performs one of the strided_batched matrix-matrix operations
 
         D_i = alpha*op(A_i)*op(B_i) + beta*C_i, for i = 1, ..., batch_count
 
@@ -15876,7 +15887,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 /*! \brief BLAS EX API
 
     \details
-    GEMM_EXT2 performs the matrix-matrix operations
+    gemm_ext2 performs the matrix-matrix operations
 
         D = alpha * A * B  + beta * C,
 
@@ -15998,7 +16009,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
 /*! BLAS EX API
 
     \details
-    TRSM_EX solves
+    trsm_ex solves
 
         op(A)*X = alpha*B or X*op(A) = alpha*B,
 
@@ -16009,7 +16020,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
 
     The matrix X is overwritten on B.
 
-    TRSM_EX gives the user the ability to reuse the invA matrix between runs.
+    This function gives the user the ability to reuse the invA matrix between runs.
     If invA == NULL, rocblas_trsm_ex will automatically calculate invA on every run.
 
     Setting up invA:
@@ -16172,7 +16183,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 /*! BLAS EX API
 
     \details
-    TRSM_BATCHED_EX solves
+    trsm_batched_ex solves
 
         op(A_i)*X_i = alpha*B_i or X_i*op(A_i) = alpha*B_i,
 
@@ -16183,7 +16194,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 
     Each matrix X_i is overwritten on B_i.
 
-    TRSM_EX gives the user the ability to reuse the invA matrix between runs.
+    This function gives the user the ability to reuse the invA matrix between runs.
     If invA == NULL, rocblas_trsm_batched_ex will automatically calculate each invA_i on every run.
 
     Setting up invA:
@@ -16315,7 +16326,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_batched_ex(rocblas_handle    handle,
 /*! BLAS EX API
 
     \details
-    TRSM_STRIDED_BATCHED_EX solves
+    trsm_strided_batched_ex solves
 
         op(A_i)*X_i = alpha*B_i or X_i*op(A_i) = alpha*B_i,
 
@@ -16326,7 +16337,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_batched_ex(rocblas_handle    handle,
 
     Each matrix X_i is overwritten on B_i.
 
-    TRSM_EX gives the user the ability to reuse each invA_i matrix between runs.
+    This function gives the user the ability to reuse each invA_i matrix between runs.
     If invA == NULL, rocblas_trsm_batched_ex will automatically calculate each invA_i on every run.
 
     Setting up invA:

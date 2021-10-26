@@ -281,8 +281,6 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
     rocblas_int          blocks      = (block_dim - 1) / (GBMVX_DIM_X) + 1;
     dim3                 gbmvx_grid(blocks, batch_count);
     dim3                 gbmvx_threads(GBMVX_DIM_X, GBMVX_DIM_Y);
-    const bool           trans = transA == rocblas_operation_none;
-    const bool           conj  = transA == rocblas_operation_conjugate_transpose;
 
     // Launch a modified gemv kernel. The logic is similar to gemv just with modified
     // indices for the banded matrices.

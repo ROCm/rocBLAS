@@ -304,8 +304,6 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     rocblas_int          blocks      = (m - 1) / (TBMVX_DIM_X) + 1;
     dim3                 tbmvx_grid(blocks, batch_count);
     dim3                 tbmvx_threads(TBMVX_DIM_X, TBMVX_DIM_Y);
-    const bool           trans = transA == rocblas_operation_none;
-    const bool           conj  = transA == rocblas_operation_conjugate_transpose;
 
     // Launch a modified gemv kernel. The logic is similar to gemv just with modified
     // indices for the banded matrices.

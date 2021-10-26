@@ -14,7 +14,7 @@ ROCBLAS_KERNEL_ILF void
 
     if(tx < m && ty < n)
     {
-        C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
+        C[ty * size_t(ldc) + tx] = beta ? beta * C[ty * size_t(ldc) + tx] : 0;
     }
 }
 
@@ -92,14 +92,14 @@ ROCBLAS_KERNEL_ILF void symm_hemm_mult_add_device(bool        upper,
 
             if(!HERM)
             {
-                atile[threadIdx.x][threadIdx.y] = (r < m && c < m) ? A[c * lda + r] : 0;
+                atile[threadIdx.x][threadIdx.y] = (r < m && c < m) ? A[c * size_t(lda) + r] : 0;
             }
             else
             {
                 // clang-format off
                 T e = (r < m && c < m)
-                          ? (from > to ? conj(A[c * lda + r])
-                                       : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
+                          ? (from > to ? conj(A[c * size_t(lda) + r])
+                                       : (from == to ? std::real(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r]))
                           : 0;
                 // clang-format on
                 atile[threadIdx.x][threadIdx.y] = e;
@@ -111,7 +111,7 @@ ROCBLAS_KERNEL_ILF void symm_hemm_mult_add_device(bool        upper,
             r       = row_loc;
             c       = col_loc;
 
-            btile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
+            btile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * size_t(ldb) + r] : 0;
 
             __syncthreads();
         }
@@ -125,7 +125,7 @@ ROCBLAS_KERNEL_ILF void symm_hemm_mult_add_device(bool        upper,
             r       = row_loc;
             c       = col_loc;
 
-            atile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * ldb + r] : 0;
+            atile[threadIdx.x][threadIdx.y] = (r < m && c < n) ? B[c * size_t(ldb) + r] : 0;
 
             // fetch tile of symm matrix A into tileB
             row_loc = k_pos + threadIdx.x;
@@ -139,14 +139,14 @@ ROCBLAS_KERNEL_ILF void symm_hemm_mult_add_device(bool        upper,
 
             if(!HERM)
             {
-                btile[threadIdx.x][threadIdx.y] = (r < n && c < n) ? A[c * lda + r] : 0;
+                btile[threadIdx.x][threadIdx.y] = (r < n && c < n) ? A[c * size_t(lda) + r] : 0;
             }
             else
             {
                 // clang-format off
                 T e = (r < n && c < n)
-                          ? (from > to ? conj(A[c * lda + r])
-                                       : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
+                          ? (from > to ? conj(A[c * size_t(lda) + r])
+                                       : (from == to ? std::real(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r]))
                           : 0;
                 // clang-format on
                 btile[threadIdx.x][threadIdx.y] = e;
@@ -163,7 +163,7 @@ ROCBLAS_KERNEL_ILF void symm_hemm_mult_add_device(bool        upper,
             {
                 sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
             }
-            C[col * ldc + row] += alpha * sum;
+            C[col * size_t(ldc) + row] += alpha * sum;
         }
 
         __syncthreads();

@@ -17,7 +17,7 @@ ROCBLAS_KERNEL_ILF void syrk_scale_device(bool upper, rocblas_int n, T beta, U* 
 
     if(tx < n && ty < n && from <= to)
     {
-        C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
+        C[ty * size_t(ldc) + tx] = beta ? beta * C[ty * size_t(ldc) + tx] : 0;
     }
 }
 
@@ -107,7 +107,7 @@ ROCBLAS_KERNEL_ILF void syrk_herk_mult_add_device(bool        upper,
     {
         // tiling over dimension K
 
-        int row_loc, col_loc, k_loc;
+        int row_loc, col_loc;
         int r, c;
 
         // fetch tile of matrix A
@@ -117,8 +117,9 @@ ROCBLAS_KERNEL_ILF void syrk_herk_mult_add_device(bool        upper,
         c       = TRANSA ? row_loc : col_loc;
 
         atile[threadIdx.x][threadIdx.y]
-            = (r < a_rows && c < a_cols) ? (HERM && TRANSA ? conj(A[c * lda + r]) : A[c * lda + r])
-                                         : 0;
+            = (r < a_rows && c < a_cols)
+                  ? (HERM && TRANSA ? conj(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r])
+                  : 0;
 
         // fetch tile of matrix B
         row_loc = k_pos + threadIdx.x;
@@ -127,8 +128,9 @@ ROCBLAS_KERNEL_ILF void syrk_herk_mult_add_device(bool        upper,
         c       = TRANSA ? col_loc : row_loc;
 
         btile[threadIdx.x][threadIdx.y]
-            = (c < a_cols && r < a_rows) ? (HERM && !TRANSA ? conj(A[c * lda + r]) : A[c * lda + r])
-                                         : 0;
+            = (c < a_cols && r < a_rows)
+                  ? (HERM && !TRANSA ? conj(A[c * size_t(lda) + r]) : A[c * size_t(lda) + r])
+                  : 0;
 
         __syncthreads();
 
@@ -140,7 +142,7 @@ ROCBLAS_KERNEL_ILF void syrk_herk_mult_add_device(bool        upper,
             {
                 sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
             }
-            C[col * ldc + row] += alpha * sum;
+            C[col * size_t(ldc) + row] += alpha * sum;
         }
 
         __syncthreads();
@@ -150,7 +152,7 @@ ROCBLAS_KERNEL_ILF void syrk_herk_mult_add_device(bool        upper,
     // if(HERM && row == col && row < n)
     // {
     //     // zero imaginary in case of numerical drift
-    //     C[col * ldc + row].y = 0;
+    //     C[col * size_t(ldc) + row].y = 0;
     // }
 }
 

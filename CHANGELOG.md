@@ -6,13 +6,37 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Added
 - Added rocblas_get_version_string_size convenience function
 - Added rocblas_xtrmm_outofplace, an out-of-place version of rocblas_xtrmm
+- Added hpl and trig initialization for gemm_ex to rocblas-bench
+- Added source code gemm. It can be used as an alternative to Tensile for debugging and development
+- Added option ROCM_MATHLIBS_API_USE_HIP_COMPLEX to opt-in to use hipFloatComplex and hipDoubleComplex
 
-## (Unreleased) rocBLAS 2.41.0
+### Optimizations
+- Improved performance of non-batched and batched single-precision GER for size m > 1024. Performance enhanced by 5-10% measured on a MI100 (gfx908) GPU.
+- Improved performance of non-batched and batched HER for all sizes and data types. Performance enhanced by 2-17% measured on a MI100 (gfx908) GPU.
+
+### Changed
+- Instantiate templated rocBLAS functions to reduce size of librocblas.so
+- Removed static library dependency on msgpack
+- Removed boost dependencies for clients
+
+### Fixed
+- Option to install script to build only rocBLAS clients with a pre-built rocBLAS library
+- Correctly set output of nrm2_batched_ex and nrm2_strided_batched_ex when given bad input
+- Fix for dgmm with side == rocblas_side_left and a negative incx
+- Fixed out-of-bounds read for small trsm
+- Fixed numerical checking for tbmv_strided_batched
+
+## rocBLAS 2.41.0 for ROCm 4.5.0
 ### Optimizations
 - Improved performance of non-batched and batched syr for all sizes and data types
 - Improved performance of non-batched and batched hemv for all sizes and data types
 - Improved performance of non-batched and batched symv for all sizes and data types
 - Improved memory utilization in rocblas-bench, rocblas-test gemm functions, increasing possible runtime sizes.
+- Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000.
+- Improved performance of non-batched and batched trmv for all sizes and matrix types.
+- Improved performance of non-batched and batched gemv transpose case for all sizes and datatypes.
+- Improved performance of sger and dger for all sizes, in particular the larger dger sizes.
+- Improved performance of syrkx for for large size including those in rocBLAS Issue #1184.
 
 ### Changed
 - Update from C++14 to C++17.
@@ -23,14 +47,6 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - For function syr avoid overflow in offset calculation.
 - For function gemv (Transpose-case) avoid overflow in offset calculation.
 - For functions ssyrk and dsyrk, allow conjugate-transpose case to match legacy BLAS. Behavior is the same as the transpose case.
-
-## [rocBLAS 2.40.0 for ROCm 4.4.0]
-### Optimizations
-- Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000.
-- Improved performance of non-batched and batched trmv for all sizes and matrix types.
-- Improved performance of non-batched and batched gemv transpose case for all sizes and datatypes.
-- Improved performance of sger and dger for all sizes, in particular the larger dger sizes.
-- Improved performance of syrkx for for large size including those in rocBLAS Issue #1184.
 
 ## [rocBLAS 2.39.0 for ROCm 4.3.0]
 ### Optimizations
