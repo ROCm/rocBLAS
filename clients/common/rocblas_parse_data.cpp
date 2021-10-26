@@ -36,6 +36,8 @@ static std::string rocblas_parse_yaml(const std::string& yaml)
 
 #ifdef WIN32
     int status = std::system(cmd.c_str());
+    if(status == -1)
+        exit(EXIT_FAILURE);
 #else
     int status = system(cmd.c_str());
     if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
