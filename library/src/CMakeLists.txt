@@ -381,7 +381,7 @@ target_include_directories( rocblas
  PRIVATE
           ${CMAKE_SOURCE_DIR}/include/rocblas
           ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas
-	  ${PROJECT_BINARY_DIR}/include/rocblas
+	  ${PROJECT_BINARY_DIR}/include
           )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
