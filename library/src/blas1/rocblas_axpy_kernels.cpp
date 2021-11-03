@@ -257,6 +257,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     // Using rocblas_half ?
     static constexpr bool using_rocblas_half
+        //cppcheck-suppress duplicateExpression
         = std::is_same<Ta, rocblas_half>::value && std::is_same<Tex, rocblas_half>::value;
 
     // Using float ?

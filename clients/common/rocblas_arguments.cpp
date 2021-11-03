@@ -156,6 +156,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Argumen
 
     // Print each (name, value) tuple pair
 #define NAME_VALUE_PAIR(NAME) print_pair(#NAME, arg.NAME)
+    // cppcheck-suppress unknownMacro
     FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, ;);
 
     // Closing brace

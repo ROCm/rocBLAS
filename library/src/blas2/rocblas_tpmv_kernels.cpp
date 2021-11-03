@@ -23,12 +23,12 @@ ROCBLAS_KERNEL_ILF void tpmvn_kernel_calc(rocblas_fill     uplo,
                                           rocblas_diagonal diag,
                                           rocblas_int      m,
                                           const T*         A,
-                                          T*               x,
+                                          const T*         x,
                                           rocblas_int      incx,
                                           T*               workspace)
 {
-    ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int tx  = hipThreadIdx_x;
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+
     if(tid < m)
     {
         T res = x[tid * incx];
@@ -47,6 +47,7 @@ ROCBLAS_KERNEL_ILF void tpmvn_kernel_calc(rocblas_fill     uplo,
         {
             if(diag == rocblas_diagonal_non_unit)
             {
+                //cppcheck-suppress duplicateExpression
                 res *= A[tmpv_calc_lowerat(tid, tid)];
             }
             for(rocblas_int col = 0; col < tid; ++col)
@@ -64,12 +65,12 @@ ROCBLAS_KERNEL_ILF void tpmvc_kernel_calc(rocblas_fill     uplo,
                                           rocblas_diagonal diag,
                                           rocblas_int      m,
                                           const T*         A,
-                                          T*               x,
+                                          const T*         x,
                                           rocblas_int      incx,
                                           T*               workspace)
 {
-    ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int tx  = hipThreadIdx_x;
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+
     if(tid < m)
     {
         T res = x[tid * incx];
@@ -88,6 +89,7 @@ ROCBLAS_KERNEL_ILF void tpmvc_kernel_calc(rocblas_fill     uplo,
         {
             if(diag == rocblas_diagonal_non_unit)
             {
+                //cppcheck-suppress duplicateExpression
                 res *= conj(A[tmpv_calc_lowerat(tid, tid)]);
             }
             for(rocblas_int row = tid + 1; row < m; ++row)
@@ -104,12 +106,11 @@ ROCBLAS_KERNEL_ILF void tpmvt_kernel_calc(rocblas_fill     uplo,
                                           rocblas_diagonal diag,
                                           rocblas_int      m,
                                           const T*         A,
-                                          T*               x,
+                                          const T*         x,
                                           rocblas_int      incx,
                                           T*               workspace)
 {
-    ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int tx  = hipThreadIdx_x;
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     T           res;
     rocblas_int row;
@@ -117,7 +118,7 @@ ROCBLAS_KERNEL_ILF void tpmvt_kernel_calc(rocblas_fill     uplo,
     if(tid < m)
     {
 
-        T res = x[tid * incx];
+        res = x[tid * incx];
         if(rocblas_fill_upper == uplo)
         {
             if(diag == rocblas_diagonal_non_unit)
@@ -125,7 +126,7 @@ ROCBLAS_KERNEL_ILF void tpmvt_kernel_calc(rocblas_fill     uplo,
                 res *= A[tmpv_calc_upperat(tid, tid)];
             }
 
-            for(rocblas_int row = 0; row < tid; ++row)
+            for(row = 0; row < tid; ++row)
             {
                 res += A[tmpv_calc_upperat(row, tid)] * x[row * incx];
             }
@@ -134,10 +135,11 @@ ROCBLAS_KERNEL_ILF void tpmvt_kernel_calc(rocblas_fill     uplo,
         {
             if(diag == rocblas_diagonal_non_unit)
             {
+                //cppcheck-suppress duplicateExpression
                 res *= A[tmpv_calc_lowerat(tid, tid)];
             }
 
-            for(rocblas_int row = tid + 1; row < m; ++row)
+            for(row = tid + 1; row < m; ++row)
             {
                 res += A[tmpv_calc_lowerat(row, tid)] * x[row * incx];
             }

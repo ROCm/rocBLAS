@@ -53,7 +53,7 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int m,
     ind = hipBlockIdx_x * DIM_X * 4 + tx;
 
     rocblas_int n_tail = n % (4 * DIM_Y);
-    rocblas_int col    = ty * 4;
+    rocblas_int col;
 
     for(col = ty * 4; col < (n - n_tail); col += 4 * DIM_Y)
     {
@@ -212,11 +212,10 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int                   m,
     res_A = res_x = rocblas_double_complex{0, 0};
 
     rocblas_int n_tail = n % (DIM_Y);
-    rocblas_int col    = ty;
+    rocblas_int col;
 
     for(col = ty; col < (n - n_tail); col += DIM_Y)
     {
-        res_x = x[(col)*incx];
 
         if(ind < m)
         {

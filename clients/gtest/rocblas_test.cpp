@@ -277,7 +277,7 @@ void launch_test_on_threads(std::function<void()> test,
 
 // Convert stream to normalized Google Test name
 std::string RocBLAS_TestName_to_string(std::unordered_map<std::string, size_t>& table,
-                                       std::ostringstream&                      str)
+                                       const std::ostringstream&                str)
 {
     std::string name{str.str()};
 

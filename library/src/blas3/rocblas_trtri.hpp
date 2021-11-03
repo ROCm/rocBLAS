@@ -26,18 +26,18 @@ ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
     __shared__ T sA[IB * IB];
     __shared__ T temp[IB * IB];
 
-    T*  diagP      = tx < n ? diag1 : (tx < 2 * n ? diag2 : sA);
-    int Aoffset    = tx < n ? 0 : n * lda + n;
-    int AInvoffset = tx < n ? 0 : n * ldinvA + n;
-    int index      = tx < n ? tx : (tx < 2 * n ? tx - n : tx - 2 * n);
-    int r          = tx % n;
-    int c          = tx / n;
+    T*  diagP = tx < n ? diag1 : (tx < 2 * n ? diag2 : sA);
+    int index = tx < n ? tx : (tx < 2 * n ? tx - n : tx - 2 * n);
+    int r     = tx % n;
+    int c     = tx / n;
 
     // read matrix A into shared memory, only need to read lower part
     // its inverse will overwrite the shared memory
 
     if(tx < 2 * n)
     {
+        int Aoffset = tx < n ? 0 : n * lda + n;
+
         if(uplo == rocblas_fill_lower)
         {
             for(int i = 0; i < n; i++)
@@ -179,6 +179,8 @@ ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
 
     if(tx < 2 * n)
     {
+        int AInvoffset = tx < n ? 0 : n * ldinvA + n;
+
         if(uplo == rocblas_fill_lower)
         {
             for(int i = 0; i <= index; i++)
