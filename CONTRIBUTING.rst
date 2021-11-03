@@ -401,7 +401,7 @@ Coding Guidelines
     differentiable. If ``rocblas_half`` were simply a ``struct`` with a
     ``uint16_t`` member, then it would be a distinct type.
 
-    It is legal to convert a pointer to a `standard-layout
+    It is legal to convert a pointer to a standard-layout
     ``class``/``struct``
     to a pointer to its first element, and vice-versa, so the C API is
     unaffected by whether the type is enclosed in a ``struct`` or not.
@@ -887,3 +887,26 @@ Guidelines:
 -  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
 
 -  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
+
+
+
+Static Code Analysis
+=====================
+
+``cppcheck`` is an open-source static analysis tool. This project uses this tool for performing static code analysis.
+
+Users can use the following command to run cppcheck locally to generate the report for all files.
+
+.. code:: bash
+
+   $ cd rocBLAS-internal
+   $ cppcheck --enable=all --inconclusive --library=googletest --inline-suppr -i./build --suppressions-list=./CppCheckSuppressions.txt --template="{file}:{line}: {severity}: {id} :{message}" . 2> cppcheck_report.txt
+
+
+Also, githooks can be installed to perform static analysis on new/modified files using pre-commit:
+
+::
+
+    ./.githooks/install
+
+For more information on the command line options, refer to `cppcheck_Manual.pdf <https://cppcheck.sourceforge.io/manual.pdf>`__

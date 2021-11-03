@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas.h"
@@ -55,9 +55,9 @@ int main()
     using c_t = float;
     using d_t = float;
 
-    rocblas_int m = 960;
-    rocblas_int n = 1024;
-    rocblas_int k = 1024;
+    constexpr rocblas_int m = 960;
+    constexpr rocblas_int n = 1024;
+    constexpr rocblas_int k = 1024;
 
     float alpha = 1.0;
     float beta  = 1.0;

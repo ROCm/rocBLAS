@@ -77,8 +77,6 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
 {
     hipStream_t rocblas_stream = handle->get_stream();
 
-    auto pointer_mode = handle->pointer_mode;
-
     {
         // in case of negative incx shift pointer to end of data for negative indexing
         rocblas_int k       = side == rocblas_side_left ? m : n;

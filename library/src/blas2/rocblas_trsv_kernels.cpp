@@ -768,9 +768,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(batch_count == 0)
         return rocblas_status_success;
 
-    rocblas_status status = rocblas_status_success;
-
     // Temporarily change the thread's default device ID to the handle's device ID
+    // cppcheck-suppress unreadVariable
     auto saved_device_id = handle->push_device_id();
 
     offset_x = incx < 0 ? offset_x + ptrdiff_t(incx) * (1 - m) : offset_x;

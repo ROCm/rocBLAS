@@ -300,7 +300,7 @@ public:
         // Placed inside function to avoid dependency on initialization order
         static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
         std::string RocBLAS_TestName_to_string(std::unordered_map<std::string, size_t>&,
-                                               std::ostringstream&);
+                                               const std::ostringstream&);
         return RocBLAS_TestName_to_string(*table, m_str);
     }
 

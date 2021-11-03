@@ -22,9 +22,10 @@ __device__ T hbmvn_kernel_helper(rocblas_int ty,
                                  rocblas_int incx)
 {
     T           res_A = 0.0;
-    rocblas_int col   = ty; // ty defines the column of banded & regular matrix
+    rocblas_int col;
 
     // Since the column is consistent, we can iterate up the diagonal
+    // ty defines the column of banded & regular matrix
     for(col = ty; col < m; col += DIM_Y)
     {
         // We have to convert ind to banded matrix row
@@ -42,6 +43,7 @@ __device__ T hbmvn_kernel_helper(rocblas_int ty,
                 }
                 else if(row == 0)
                 {
+                    // cppcheck-suppress knownConditionTrueFalse
                     // If main diagonal, assume 0 imaginary part.
                     if(!upper || (k == 0 && upper))
                         res_A += (std::real(A[row + col * lda]) * x[col * incx]);

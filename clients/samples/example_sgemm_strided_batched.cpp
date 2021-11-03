@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas.h"
 #include <cstdio>
@@ -99,20 +99,20 @@ void print_strided_batched(const char* name,
 }
 
 template <typename T>
-void mat_mat_mult(T   alpha,
-                  T   beta,
-                  int M,
-                  int N,
-                  int K,
-                  T*  A,
-                  int As1,
-                  int As2,
-                  T*  B,
-                  int Bs1,
-                  int Bs2,
-                  T*  C,
-                  int Cs1,
-                  int Cs2)
+void mat_mat_mult(T        alpha,
+                  T        beta,
+                  int      M,
+                  int      N,
+                  int      K,
+                  const T* A,
+                  int      As1,
+                  int      As2,
+                  const T* B,
+                  int      Bs1,
+                  int      Bs2,
+                  T*       C,
+                  int      Cs1,
+                  int      Cs2)
 {
     for(int i1 = 0; i1 < M; i1++)
     {
@@ -128,6 +128,7 @@ void mat_mat_mult(T   alpha,
     }
 }
 
+// cppcheck-suppress constParameter
 static void show_usage(char* argv[])
 {
     std::cerr << "Usage: " << argv[0] << " <options>\n"
