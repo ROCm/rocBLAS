@@ -15,6 +15,7 @@ rocBLAS build & installation helper script
   $0 <options>
       -h | --help                Print this help message
       -i | --install             Install after build
+      -j | --jobs                Parallelism used for building, increases memory usage (default logical core count)
       -d | --dependencies        Install build dependencies
            --cleanup             Removes intermediary build artifacts after successful build to reduce disk usage
       -c | --clients             Build library clients too (combines with -i & -d)
@@ -327,6 +328,7 @@ tensile_merge_files=
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
+build_jobs=$(nproc)
 build_library=true
 build_cleanup=false
 build_clients=false
@@ -359,7 +361,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhicdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -381,6 +383,9 @@ while true; do
     -i|--install)
         install_package=true
         shift ;;
+    -j|--jobs)
+        build_jobs=${2}
+        shift 2 ;;
     -d|--dependencies)
         install_dependencies=true
         shift ;;
@@ -602,7 +607,7 @@ if [[ "${install_dependencies}" == true ]]; then
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
-    make -j$(nproc)
+    make -j${build_jobs}
     elevate_if_not_root make install_deps
     install_blis
     popd
@@ -673,6 +678,9 @@ pushd .
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
    else
     tensile_opt="${tensile_opt} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+    if [[ ${build_jobs} != $(nproc) ]]; then
+      tensile_opt="${tensile_opt} -DTensile_CPU_THREADS=${build_jobs}"
+    fi
   fi
 
   if [[ "${tensile_merge_files}" == false ]]; then
@@ -720,9 +728,9 @@ pushd .
   check_exit_code "$?"
 
   if [[ "${build_library}" == true ]]; then
-    make -j$(nproc) install
+    make -j${build_jobs} install
   else
-    make -j$(nproc)
+    make -j${build_jobs}
   fi
   check_exit_code "$?"
 

@@ -58,15 +58,31 @@ if( BUILD_WITH_TENSILE )
 
   # Add a build target for Tensile kernel library
   # Runtime language is HIP by default
-  TensileCreateLibraryFiles(
-    "${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}"
-    "${PROJECT_BINARY_DIR}/Tensile"
-    ARCHITECTURE        ${Tensile_ARCHITECTURE}
-    CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
-    COMPILER            ${Tensile_COMPILER}
-    LIBRARY_FORMAT      ${Tensile_LIBRARY_FORMAT}
-    ${Tensile_Options}
-  )
+  # warning our Tensile_ variables may shadow variable in TensileCreateLibraryFiles
+  # thus bypassing the function argument parameter system (mainly the options list) and CPU_THREADS
+  if(Tensile_CPU_THREADS MATCHES "^[0-9]+$")
+    # only including threads argument if number
+    TensileCreateLibraryFiles(
+      "${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}"
+      "${PROJECT_BINARY_DIR}/Tensile"
+      ARCHITECTURE        ${Tensile_ARCHITECTURE}
+      CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
+      COMPILER            ${Tensile_COMPILER}
+      LIBRARY_FORMAT      ${Tensile_LIBRARY_FORMAT}
+      CPU_THREADS         ${Tensile_CPU_THREADS}
+      ${Tensile_Options}
+    )
+  else()
+    TensileCreateLibraryFiles(
+      "${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}"
+      "${PROJECT_BINARY_DIR}/Tensile"
+      ARCHITECTURE        ${Tensile_ARCHITECTURE}
+      CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
+      COMPILER            ${Tensile_COMPILER}
+      LIBRARY_FORMAT      ${Tensile_LIBRARY_FORMAT}
+      ${Tensile_Options}
+    )
+  endif()
 
   # Create a unique name for TensileHost compiled for rocBLAS
   set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
