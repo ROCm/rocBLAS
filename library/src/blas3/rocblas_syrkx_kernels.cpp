@@ -796,9 +796,9 @@ void syrkx_dispatch(rocblas_fill      uplo,
     // clang-format on
 }
 
-#define OFFSET_A(i1) offset_a + i1* size_t(a_s1)
-#define OFFSET_B(i1) offset_b + i1* size_t(b_s1)
-#define OFFSET_C(i1, i2) offset_c + i1* size_t(c_s1) + i2* size_t(c_s2)
+#define OFFSET_A(i1) offset_a + i1* rocblas_stride(a_s1)
+#define OFFSET_B(i1) offset_b + i1* rocblas_stride(b_s1)
+#define OFFSET_C(i1, i2) offset_c + i1* rocblas_stride(c_s1) + i2* rocblas_stride(c_s2)
 
 template <int MIN_NB, bool BATCHED, typename T, typename TScal, typename TPtr, typename TConstPtr>
 rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
@@ -815,13 +815,13 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                                       TPtr*             dc,
                                       rocblas_int       ldc)
 {
-    static constexpr rocblas_int    offset_c = 0, offset_a = 0, offset_b = 0;
+    static constexpr rocblas_stride offset_c = 0, offset_a = 0, offset_b = 0;
     static constexpr rocblas_int    batch_count = 1;
     static constexpr rocblas_stride stride_c = 0, stride_a = 0, stride_b = 0;
 
-    rocblas_int a_s1 = rocblas_operation_none == trans ? 1 : lda;
-    rocblas_int b_s1 = rocblas_operation_none == trans ? 1 : ldb;
-    rocblas_int c_s1 = 1, c_s2 = ldc;
+    rocblas_stride a_s1 = rocblas_operation_none == trans ? 1 : lda;
+    rocblas_stride b_s1 = rocblas_operation_none == trans ? 1 : ldb;
+    rocblas_stride c_s1 = 1, c_s2 = ldc;
 
     rocblas_int nb = MIN_NB;
     rocblas_int i_diag, n_diag;
@@ -836,9 +836,9 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
     // call syrkx_dispatch with batch_count = n_nb for n_nb diagonal blocks
     // clang-format off
     syrkx_dispatch<T>( uplo, trans, nb, k, *alpha,
-                       da, lda, nb * size_t(a_s1),
-                       db, ldb, nb * size_t(b_s1), *beta,
-                       dc, ldc, nb * (size_t(c_s1) + size_t(c_s2)), n_nb, stream);
+                       da, lda, nb * a_s1,
+                       db, ldb, nb * b_s1, *beta,
+                       dc, ldc, nb * (c_s1 + c_s2), n_nb, stream);
     // clang-format on
 
     // remainder diagonal block of size n_diag < nb
@@ -849,9 +849,9 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
         // call syrkx_dispatch for one remainder diagonal block of size n_diag
         // clang-format off
         syrkx_dispatch<T>( uplo, trans, n_diag, k, *alpha,
-                          &(da[i_diag * size_t(a_s1)]),          lda, stride_a,
-                          &(db[i_diag * size_t(b_s1)]),          ldb, stride_b, *beta,
-                          &(dc[i_diag * (size_t(c_s1) + size_t(c_s2))]), ldc, stride_c, batch_count, stream);
+                          &(da[i_diag * a_s1]),          lda, stride_a,
+                          &(db[i_diag * b_s1]),          ldb, stride_b, *beta,
+                          &(dc[i_diag * (c_s1 + c_s2)]), ldc, stride_c, batch_count, stream);
         // clang-format on
     }
 
@@ -881,9 +881,9 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
             // clang-format off
             RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                  handle, trans_a, trans_b, nb, nb, k, alpha,
-                 da, OFFSET_A(i_start),    lda, stride * size_t(a_s1),
-                 db, OFFSET_B(0),          ldb, stride * size_t(b_s1),          beta,
-                 dc, OFFSET_C(i_start, 0), ldc, stride * (size_t(c_s1) + size_t(c_s2)), n_nb   )));
+                 da, OFFSET_A(i_start),    lda, stride * a_s1,
+                 db, OFFSET_B(0),          ldb, stride * b_s1,          beta,
+                 dc, OFFSET_C(i_start, 0), ldc, stride * (c_s1 + c_s2), n_nb   )));
             // clang-format on
         }
         else
@@ -891,18 +891,18 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
             // clang-format off
             RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                  handle, trans_a, trans_b, nb, nb, k, alpha,
-                 da, OFFSET_A(0),          lda, stride * size_t(a_s1),
-                 db, OFFSET_B(i_start),    ldb, stride * size_t(b_s1),          beta,
-                 dc, OFFSET_C(0, i_start), ldc, stride * (size_t(c_s1) + size_t(c_s2)), n_nb)));
+                 da, OFFSET_A(0),          lda, stride * a_s1,
+                 db, OFFSET_B(i_start),    ldb, stride * b_s1,          beta,
+                 dc, OFFSET_C(0, i_start), ldc, stride * (c_s1 + c_s2), n_nb)));
             // clang-format on
         }
 
         // call gemm for remainder block of size n1 x nb where n1 < nb
         if(rem != 0)
         {
-            rocblas_int i1 = i_start + n_nb * stride;
-            rocblas_int i2 = i1 - nb;
-            rocblas_int n1 = n - i1;
+            rocblas_stride i1 = i_start + n_nb * stride;
+            rocblas_stride i2 = i1 - nb;
+            rocblas_stride n1 = n - i1;
 
             if(rocblas_fill_lower == uplo)
             {
@@ -938,16 +938,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int       k,
                                     TScal*            alpha,
                                     TConstPtr*        da,
-                                    rocblas_int       offset_a,
+                                    rocblas_stride    offset_a,
                                     rocblas_int       lda,
                                     rocblas_stride    stride_a,
                                     TConstPtr*        db,
-                                    rocblas_int       offset_b,
+                                    rocblas_stride    offset_b,
                                     rocblas_int       ldb,
                                     rocblas_stride    stride_b,
                                     TScal*            beta,
                                     TPtr*             dc,
-                                    rocblas_int       offset_c,
+                                    rocblas_stride    offset_c,
                                     rocblas_int       ldc,
                                     rocblas_stride    stride_c,
                                     rocblas_int       batch_count)
@@ -988,7 +988,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     {
         i_diag = i_nb * nb; // diag block at c[i_diag, i_diag], size is nb
         // clang-format off
-        rocblas_internal_syr2k_template<TWOK>(
+        rocblas_internal_syr2k_template<BATCHED, TWOK>(
               handle, uplo, trans, nb, k, alpha,
               da, OFFSET_A(i_diag),         lda, stride_a,
               db, OFFSET_B(i_diag),         ldb, stride_b, beta,
@@ -1002,7 +1002,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         i_diag = n_nb * nb; // diag block at c[i_diag, i_diag], size is n_diag
         n_diag = n - i_diag;
         // clang-format off
-        rocblas_internal_syr2k_template<TWOK>(
+        rocblas_internal_syr2k_template<BATCHED, TWOK>(
               handle, uplo, trans, n_diag, k, alpha,
               da, OFFSET_A(i_diag),         lda, stride_a,
               db, OFFSET_B(i_diag),         ldb, stride_b, beta,
@@ -1110,16 +1110,16 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syrkx_
                                     rocblas_int       k,                                    \
                                     TScal_ *          alpha,                                \
                                     TConstPtr_ *      da,                                   \
-                                    rocblas_int       offset_a,                             \
+                                    rocblas_stride    offset_a,                             \
                                     rocblas_int       lda,                                  \
                                     rocblas_stride    stride_a,                             \
                                     TConstPtr_ *      db,                                   \
-                                    rocblas_int       offset_b,                             \
+                                    rocblas_stride    offset_b,                             \
                                     rocblas_int       ldb,                                  \
                                     rocblas_stride    stride_b,                             \
                                     TScal_ *          beta,                                 \
                                     TPtr_ *           dc,                                   \
-                                    rocblas_int       offset_c,                             \
+                                    rocblas_stride    offset_c,                             \
                                     rocblas_int       ldc,                                  \
                                     rocblas_stride    stride_c,                             \
                                     rocblas_int       batch_count);

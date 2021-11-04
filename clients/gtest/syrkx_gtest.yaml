@@ -78,18 +78,17 @@ Tests:
     - { alpha:  1.0, beta:  1.0 }
   batch_count: [ 1 ]
 
-#TODO
-#- name: syrkx_size_t_T
-#  category: nightly
-#  function: syrkx
-#  precision: *single_precision
-#  uplo: [ U ]
-#  transA: [ T ]
-#  matrix_size:
-#    - { N: 51200, K:      4,  lda:     4,  ldb: 4,  ldc: 51200}
-#  alpha_beta:
-#    - { alpha:  1.0, beta:  1.0 }
-#  batch_count: [ 1 ]
+- name: syrkx_size_t_T
+  category: nightly
+  function: syrkx
+  precision: *single_precision
+  uplo: [ U ]
+  transA: [ T ]
+  matrix_size:
+    - { N: 51200, K:      4,  lda:     4,  ldb: 4,  ldc: 51200}
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  batch_count: [ 1 ]
 
 - name: syrkx_restricted_kernel_32_8
   category: quick
