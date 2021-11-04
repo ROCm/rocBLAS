@@ -64,50 +64,50 @@ class ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream
         // task_t represents a payload of data and a promise to finish
         class task_t
         {
-            std::string        str;
-            std::promise<void> promise;
+            std::string        m_str;
+            std::promise<void> m_promise;
 
         public:
             // The task takes ownership of the string payload and promise
             task_t(std::string&& str, std::promise<void>&& promise)
-                : str(std::move(str))
-                , promise(std::move(promise))
+                : m_str(std::move(str))
+                , m_promise(std::move(promise))
             {
             }
 
             // Notify the future to wake up
             void set_value()
             {
-                promise.set_value();
+                m_promise.set_value();
             }
 
             // Size of the string payload
             size_t size() const
             {
-                return str.size();
+                return m_str.size();
             }
 
             // Data of the string payload
             const char* data() const
             {
-                return str.data();
+                return m_str.data();
             }
         };
 
         // FILE is used for safety in the presence of signals
-        FILE* file = nullptr;
+        FILE* m_file = nullptr;
 
         // This worker's thread
-        std::thread thread;
+        std::thread m_thread;
 
         // Condition variable for worker notification
-        std::condition_variable cond;
+        std::condition_variable m_cond;
 
         // Mutex for this thread's queue
-        std::mutex mutex;
+        std::mutex m_mutex;
 
         // Queue of tasks
-        std::queue<task_t> queue;
+        std::queue<task_t> m_queue;
 
         // Worker thread which waits for and handles tasks sequentially
         void thread_function();
@@ -158,20 +158,20 @@ class ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream
     }
 
     // Output buffer for formatted IO
-    std::ostringstream os;
+    std::ostringstream m_os;
 
     // Worker thread for accepting tasks
-    std::shared_ptr<worker> worker_ptr;
+    std::shared_ptr<worker> m_worker_ptr;
 
     // Flag indicating whether YAML mode is turned on
-    bool yaml = false;
+    bool m_yaml = false;
 
     // Get worker for file descriptor
     static std::shared_ptr<worker> get_worker(int fd);
 
     // Private explicit copy constructor duplicates the worker and starts a new buffer
     explicit rocblas_internal_ostream(const rocblas_internal_ostream& other)
-        : worker_ptr(other.worker_ptr)
+        : m_worker_ptr(other.m_worker_ptr)
     {
     }
 
@@ -203,7 +203,7 @@ public:
     // Create a duplicate of this
     rocblas_internal_ostream dup() const
     {
-        if(!worker_ptr)
+        if(!m_worker_ptr)
             throw std::runtime_error(
                 "Attempting to duplicate a rocblas_internal_ostream without an associated file");
         return rocblas_internal_ostream(*this);
@@ -215,14 +215,14 @@ public:
     // Convert stream output to string
     std::string str() const
     {
-        return os.str();
+        return m_os.str();
     }
 
     // Clear the buffer
     void clear()
     {
-        os.clear();
-        os.str({});
+        m_os.clear();
+        m_os.str({});
     }
 
     // Flush the output
@@ -256,7 +256,7 @@ public:
     template <typename T, std::enable_if_t<!std::is_enum<std::decay_t<T>>{}, int> = 0>
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, T&& x)
     {
-        os.os << std::forward<T>(x);
+        os.m_os << std::forward<T>(x);
         return os;
     }
 
@@ -264,7 +264,7 @@ public:
     template <typename T, std::enable_if_t<std::is_enum<std::decay_t<T>>{}, int> = 0>
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, T&& x)
     {
-        os.os << std::underlying_type_t<std::decay_t<T>>(x);
+        os.m_os << std::underlying_type_t<std::decay_t<T>>(x);
         return os;
     }
 
@@ -273,9 +273,9 @@ public:
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, std::pair<T1, T2> p)
     {
         os << p.first << ": ";
-        os.yaml = true;
+        os.m_yaml = true;
         os << p.second;
-        os.yaml = false;
+        os.m_yaml = false;
         return os;
     }
 
@@ -284,25 +284,25 @@ public:
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&     os,
                                                 const rocblas_complex_num<T>& x)
     {
-        if(os.yaml)
-            os.os << "'(" << std::real(x) << "," << std::imag(x) << ")'";
+        if(os.m_yaml)
+            os.m_os << "'(" << std::real(x) << "," << std::imag(x) << ")'";
         else
-            os.os << x;
+            os.m_os << x;
         return os;
     }
 
     // Floating-point output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, double x)
     {
-        if(!os.yaml)
-            os.os << x;
+        if(!os.m_yaml)
+            os.m_os << x;
         else
         {
             // For YAML, we must output the floating-point value exactly
             if(std::isnan(x))
-                os.os << ".nan";
+                os.m_os << ".nan";
             else if(std::isinf(x))
-                os.os << (x < 0 ? "-.inf" : ".inf");
+                os.m_os << (x < 0 ? "-.inf" : ".inf");
             else
             {
                 char s[32];
@@ -319,7 +319,7 @@ public:
                         break;
                     }
                 }
-                os.os << s;
+                os.m_os << s;
             }
         }
         return os;
@@ -338,55 +338,55 @@ public:
     // Integer output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, int32_t x)
     {
-        os.os << x;
+        os.m_os << x;
         return os;
     }
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, uint32_t x)
     {
-        os.os << x;
+        os.m_os << x;
         return os;
     }
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, int64_t x)
     {
-        os.os << x;
+        os.m_os << x;
         return os;
     }
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, uint64_t x)
     {
-        os.os << x;
+        os.m_os << x;
         return os;
     }
 
     // bool output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, bool b)
     {
-        if(os.yaml)
-            os.os << (b ? "true" : "false");
+        if(os.m_yaml)
+            os.m_os << (b ? "true" : "false");
         else
-            os.os << (b ? 1 : 0);
+            os.m_os << (b ? 1 : 0);
         return os;
     }
 
     // Character output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, char c)
     {
-        if(os.yaml)
+        if(os.m_yaml)
         {
             char s[]{c, 0};
-            os.os << std::quoted(s, '\'');
+            os.m_os << std::quoted(s, '\'');
         }
         else
-            os.os << c;
+            os.m_os << c;
         return os;
     }
 
     // String output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const char* s)
     {
-        if(os.yaml)
-            os.os << std::quoted(s);
+        if(os.m_yaml)
+            os.m_os << std::quoted(s);
         else
-            os.os << s;
+            os.m_os << s;
         return os;
     }
 
@@ -398,7 +398,7 @@ public:
     // rocblas_datatype output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, rocblas_datatype d)
     {
-        os.os << rocblas_datatype_string(d);
+        os.m_os << rocblas_datatype_string(d);
         return os;
     }
 
@@ -434,7 +434,7 @@ public:
     // rocblas_status output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, rocblas_status status)
     {
-        os.os << rocblas_status_to_string(status);
+        os.m_os << rocblas_status_to_string(status);
         return os;
     }
 
@@ -442,7 +442,7 @@ public:
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
                                                 rocblas_atomics_mode      mode)
     {
-        os.os << rocblas_atomics_mode_to_string(mode);
+        os.m_os << rocblas_atomics_mode_to_string(mode);
         return os;
     }
 
@@ -450,7 +450,7 @@ public:
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
                                                 rocblas_gemm_flags        flags)
     {
-        os.os << rocblas_gemm_flags_to_string(flags);
+        os.m_os << rocblas_gemm_flags_to_string(flags);
         return os;
     }
 
@@ -474,13 +474,13 @@ public:
     {
         // Turn YAML formatting on or off
         if(pf == rocblas_internal_ostream::yaml_on)
-            os.yaml = true;
+            os.m_yaml = true;
         else if(pf == rocblas_internal_ostream::yaml_off)
-            os.yaml = false;
+            os.m_yaml = false;
         else
         {
             // Output the manipulator to the buffer
-            os.os << pf;
+            os.m_os << pf;
 
             // If the manipulator is std::endl or std::flush, flush the output
             if(pf == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)
