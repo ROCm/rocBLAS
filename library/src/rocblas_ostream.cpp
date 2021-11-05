@@ -129,9 +129,9 @@ std::shared_ptr<rocblas_internal_ostream::worker> rocblas_internal_ostream::get_
 
 // Construct rocblas_internal_ostream from a file descriptor
 rocblas_internal_ostream::rocblas_internal_ostream(int fd)
-    : worker_ptr(get_worker(fd))
+    : m_worker_ptr(get_worker(fd))
 {
-    if(!worker_ptr)
+    if(!m_worker_ptr)
     {
         std::cerr << "Error: Bad file descriptor " << fd << std::endl;
         rocblas_abort();
@@ -141,9 +141,9 @@ rocblas_internal_ostream::rocblas_internal_ostream(int fd)
 // Construct rocblas_internal_ostream from a filename opened for writing with truncation
 rocblas_internal_ostream::rocblas_internal_ostream(const char* filename)
 {
-    int fd     = OPEN(filename);
-    worker_ptr = get_worker(fd);
-    if(!worker_ptr)
+    int fd       = OPEN(filename);
+    m_worker_ptr = get_worker(fd);
+    if(!m_worker_ptr)
     {
         std::cerr << "Cannot open " << filename << std::endl;
         rocblas_abort();
@@ -160,14 +160,14 @@ rocblas_internal_ostream::~rocblas_internal_ostream()
 void rocblas_internal_ostream::flush()
 {
     // Flush only if this stream contains a worker (i.e., is not a string)
-    if(worker_ptr)
+    if(m_worker_ptr)
     {
         // The contents of the string buffer
-        auto str = os.str();
+        auto str = m_os.str();
 
         // Empty string buffers kill the worker thread, so they are not flushed here
         if(str.size())
-            worker_ptr->send(std::move(str));
+            m_worker_ptr->send(std::move(str));
 
         // Clear the string buffer
         clear();
@@ -218,11 +218,11 @@ void rocblas_internal_ostream::worker::send(std::string str)
     // Submit the task to the worker assigned to this device/inode
     // Hold mutex for as short as possible, to reduce contention
     {
-        std::lock_guard<std::mutex> lock(mutex);
-        queue.push(std::move(worker_task));
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_queue.push(std::move(worker_task));
 
         // no lock needed for notification but keeping here
-        cond.notify_one();
+        m_cond.notify_one();
     }
 
 // Wait for the task to be completed, to ensure flushed IO
@@ -242,19 +242,19 @@ void rocblas_internal_ostream::worker::send(std::string str)
 void rocblas_internal_ostream::worker::thread_function()
 {
     // Clear any errors in the FILE
-    clearerr(file);
+    clearerr(m_file);
 
     // Lock the mutex in preparation for cond.wait
-    std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock<std::mutex> lock(m_mutex);
 
     while(true)
     {
         // Wait for any data, ignoring spurious wakeups, locks lock on continue
-        cond.wait(lock, [&] { return !queue.empty(); });
+        m_cond.wait(lock, [&] { return !m_queue.empty(); });
 
         // With the mutex locked, get and pop data from the front of queue
-        task_t task = std::move(queue.front());
-        queue.pop();
+        task_t task = std::move(m_queue.front());
+        m_queue.pop();
 
         // Temporarily unlock queue mutex, unblocking other threads
         lock.unlock();
@@ -268,10 +268,10 @@ void rocblas_internal_ostream::worker::thread_function()
         }
 
         // Write the data
-        fwrite(task.data(), 1, task.size(), file);
+        fwrite(task.data(), 1, task.size(), m_file);
 
         // Detect any error and flush the C FILE stream
-        if(ferror(file) || fflush(file))
+        if(ferror(m_file) || fflush(m_file))
         {
             perror("Error writing log file");
 
@@ -299,17 +299,17 @@ rocblas_internal_ostream::worker::worker(int fd)
 #endif
 
     // If the dup fails or fdopen fails, print error and abort
-    if(fd == -1 || !(file = FDOPEN(fd, "a")))
+    if(fd == -1 || !(m_file = FDOPEN(fd, "a")))
     {
         perror("fdopen() error");
         rocblas_abort();
     }
 
     // Create a worker thread, capturing *this
-    thread = std::thread([=] { thread_function(); });
+    m_thread = std::thread([=] { thread_function(); });
 
     // Detatch from the worker thread
-    thread.detach();
+    m_thread.detach();
 }
 
 rocblas_internal_ostream::worker::~worker()
@@ -318,6 +318,6 @@ rocblas_internal_ostream::worker::~worker()
     send({});
 
     // Close the FILE
-    if(file)
-        fclose(file);
+    if(m_file)
+        fclose(m_file);
 }
