@@ -57,22 +57,22 @@ typedef long long ssize_t; /* x64 only supported */
 // This wraps the rocBLAS call with catch_signals_and_exceptions_as_failures().
 // By placing it at the rocBLAS call site, memory resources are less likely to
 // be leaked in the event of a caught signal.
-#define EXPECT_ROCBLAS_STATUS(STATUS, EXPECT)                \
-    do                                                       \
-    {                                                        \
-        volatile bool signal_or_exception = true;            \
-        /* Use status__ in case STATUS contains "status" */  \
-        rocblas_status status__;                             \
-        catch_signals_and_exceptions_as_failures([&] {       \
-            status__            = (STATUS);                  \
-            signal_or_exception = false;                     \
-        });                                                  \
-        if(signal_or_exception)                              \
-            return;                                          \
-        { /* localize status for ASSERT_EQ message */        \
-            rocblas_status status = status__;                \
-            ASSERT_EQ(status, EXPECT); /* prints "status" */ \
-        }                                                    \
+#define EXPECT_ROCBLAS_STATUS(STATUS, EXPECT)                 \
+    do                                                        \
+    {                                                         \
+        volatile bool signal_or_exception = true;             \
+        /* Use status__ in case STATUS contains "status" */   \
+        rocblas_status status__;                              \
+        catch_signals_and_exceptions_as_failures([&] {        \
+            status__            = (STATUS);                   \
+            signal_or_exception = false;                      \
+        });                                                   \
+        if(signal_or_exception)                               \
+            return;                                           \
+        { /* localize status for ASSERT_EQ message */         \
+            rocblas_status status_ = status__;                \
+            ASSERT_EQ(status_, EXPECT); /* prints "status" */ \
+        }                                                     \
     } while(0)
 
 #define CHECK_ALLOC_QUERY(STATUS)                                  \
