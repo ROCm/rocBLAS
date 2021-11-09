@@ -46,7 +46,7 @@ extern "C" void rocblas_shutdown();
 #include <libgen.h>
 #include <link.h>
 #include <unistd.h>
-#define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib"
+#define ROCBLAS_LIB_PATH "/opt/rocm/lib/rocblas"
 #endif
 
 #ifdef WIN32
