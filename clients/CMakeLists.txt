@@ -78,7 +78,7 @@ include( build-options )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 if( NOT TARGET rocblas )
-  find_package( rocblas REQUIRED CONFIG PATHS ${ROCM_PATH}/rocblas /opt/rocm/rocblas ${ROCBLAS_LIBRARY_DIR})
+  find_package( rocblas REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm ${ROCBLAS_LIBRARY_DIR})
 endif( )
 
 # Hip headers required of all clients; clients use hip to allocate device memory
@@ -160,7 +160,7 @@ if(NOT WIN32)
       if(EXISTS "${PACKAGE_DIR}")
           file(REMOVE_RECURSE "${PACKAGE_DIR}")
       endif()
-      set(PACKAGE_INSTALL_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/${PARSE_LIB_NAME}")
+      set(PACKAGE_INSTALL_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}")
       file(MAKE_DIRECTORY "${PACKAGE_INSTALL_DIR}/bin")
       ### AMD BLIS is not packaged right now, so we have to put the so files into /opt/rocm/lib temporarily
       ### BLIS will be packaged soon and this will not be needed
@@ -173,7 +173,6 @@ if(NOT WIN32)
           COMMAND ${CMAKE_COMMAND} -E remove -f "${PACKAGE_INSTALL_DIR}/*"
           COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../../deps/blis/lib/*" "${BLIS_LIB_DIR}"
           COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../clients/*rocblas_fortran_client*" "${ROCBLAS_FORT_LIB_DIR}"
-          COMMAND ln -r -s "${ROCBLAS_FORT_LIB_DIR}/*rocblas_fortran_client*" "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib/"
           COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PACKAGE_INSTALL_DIR}/bin"
           COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
   endfunction(rocm_create_package_clients)
