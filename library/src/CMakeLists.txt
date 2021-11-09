@@ -492,7 +492,7 @@ add_dependencies( rocblas rocblas_device_malloc )
 if( NOT BUILD_SHARED_LIBS )
   # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
   set_target_properties( rocblas PROPERTIES PREFIX "lib" )
-
+   message (STATUS "TEST -- TensileHost_LIBDIR == ${TensileHost_LIBDIR}")
   if( BUILD_WITH_TENSILE AND BUILD_WITH_TENSILE_HOST )
     add_custom_command( TARGET rocblas POST_BUILD
       COMMAND
@@ -538,6 +538,9 @@ install(
   PATTERN "*.hpp"
   PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ )
 
+message (STATUS "TEST -- TensileHost_LIBDIR == ${TensileHost_LIBDIR}")
+message(STATUS "TEST ROCBLAS_TENSILE_LIBRARY_DIR - 1 ${ROCBLAS_TENSILE_LIBRARY_DIR}" )
+
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
     if (WIN32)
@@ -545,6 +548,7 @@ if( BUILD_WITH_TENSILE )
     else()
       set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}lib/rocblas" CACHE PATH "path to tensile library" )
     endif()
+     message(STATUS "TEST ROCBLAS_TENSILE_LIBRARY_DIR - 1 ${ROCBLAS_TENSILE_LIBRARY_DIR}" )
     install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR})
   endif()
 endif()
