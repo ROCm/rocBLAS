@@ -579,7 +579,7 @@ namespace
                 else if(TestPath(path + "library"))
                     path += "/library";
                 else
-                    path += "rocblas/library";
+                    path += "/rocblas/library";
                 print_once(msg << "\nrocBLAS TEST TENSILE PATH: path1 " << path);
                 if(TestPath(path + "/" + processor))
                     path += "/" + processor;
@@ -650,6 +650,7 @@ namespace
 #else
                 path += "/TensileLibrary.dat";
 #endif
+                print_once(msg << "\nrocBLAS TEST TENSILE PATH: ROCBLAS_LIB_PATH " << path);
                 if(!TestPath(path))
                 {
                     rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": "
