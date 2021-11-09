@@ -53,7 +53,7 @@ extern "C" void rocblas_initialize() {}
 #include <glob.h>
 #include <libgen.h>
 #include <unistd.h>
-#define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib/rocblas"
+#define ROCBLAS_LIB_PATH "/opt/rocm/lib/rocblas"
 #endif
 
 #ifdef WIN32
