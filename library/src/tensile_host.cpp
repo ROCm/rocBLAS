@@ -540,7 +540,7 @@ namespace
             else
             {
                 path = ROCBLAS_LIB_PATH;
-                print_once(msg << "\nrocBLAS TEST TENSILE PATH: ROCBLAS_LIB_PATH " << path); 
+                 
 #ifndef ROCBLAS_STATIC_LIB
 #ifdef WIN32
                 // Find the location of librocblas.dll
@@ -580,10 +580,9 @@ namespace
                     path += "/library";
                 else
                     path += "/rocblas/library";
-                print_once(msg << "\nrocBLAS TEST TENSILE PATH: path1 " << path);
                 if(TestPath(path + "/" + processor))
                     path += "/" + processor;
-                print_once(msg << "\nrocBLAS TEST TENSILE PATH: path2 " << path);
+                
             }
 
             // only load modules for the current architecture
@@ -650,7 +649,7 @@ namespace
 #else
                 path += "/TensileLibrary.dat";
 #endif
-                print_once(msg << "\nrocBLAS TEST TENSILE PATH: ROCBLAS_LIB_PATH " << path);
+                
                 if(!TestPath(path))
                 {
                     rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": "
