@@ -87,18 +87,9 @@ void testing_axpy(const Arguments& arg)
     host_vector<T> hy_2(size_y);
     host_vector<T> hy_gold(size_y);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx);
-        rocblas_init_nan<T>(hy_1, 1, N, abs_incy);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, N, abs_incx);
-        rocblas_init<T>(hy_1, 1, N, abs_incy);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(hx, N, abs_incx, 0, 1, arg, true);
+    rocblas_init_vector(hy_1, N, abs_incy, 0, 1, arg, false);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS
