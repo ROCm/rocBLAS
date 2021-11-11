@@ -2,7 +2,7 @@
 Introduction
 ************
 
-rocBLAS is a `BLAS <http://www.netlib.org/blas/>`__ implementation on top of AMD's Radeon Open Compute `ROCm <https://rocm.github.io/install.html>`__ runtime and toolchains.
+rocBLAS is a BLAS implementation on top of AMD's Radeon Open Compute `ROCm <https://rocm.github.io/install.html>`__ runtime and toolchains.
 rocBLAS is implemented in the `HIP <https://github.com/ROCm-Developer-Tools/HIP>`__ programming language and optimized for AMD's latest
 discrete GPUs.
 
@@ -24,7 +24,7 @@ rocBLAS is written in C++14 and HIP. It uses AMD's ROCm runtime to run on GPU de
 
 The rocBLAS API is a thin C99 API using the Hourglass Pattern. It contains:
 
-- [Level1]_, [Level2]_, and [Level3]_ `BLAS <http://www.netlib.org/blas/>`_ functions, with batched and strided_batched versions
+- [Level1]_, [Level2]_, and [Level3]_ BLAS functions, with batched and strided_batched versions
 - Extensions to Legacy BLAS, including functions for mixed precision
 - Auxiliary functions
 - Device Memory functions
