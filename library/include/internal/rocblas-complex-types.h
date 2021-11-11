@@ -325,6 +325,7 @@ public:
 
     __device__ __host__ auto& operator/=(const rocblas_complex_num& rhs)
     {
+        // Form of Robert L. Smith's Algorithm 116
         if(abs(rhs.x) > abs(rhs.y))
         {
             T ratio = rhs.y / rhs.x;
@@ -401,7 +402,7 @@ public:
     friend __device__ __host__ rocblas_complex_num operator/(const U&                   lhs,
                                                              const rocblas_complex_num& rhs)
     {
-        // Smith Algorithm. https://dl.acm.org/doi/10.1145/368637.368661
+        // Form of Robert L. Smith's Algorithm 116
         if(abs(rhs.x) > abs(rhs.y))
         {
             T ratio = rhs.y / rhs.x;
