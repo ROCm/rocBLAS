@@ -158,7 +158,7 @@ rocm_setup_version( VERSION ${VERSION_STRING} )
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
 # NOTE:  workaround until llvm & hip cmake modules fixes symlink logic in their config files; remove when fixed
-list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm/hip )
+list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} /opt/rocm/llvm /opt/rocm )
 
 option( BUILD_VERBOSE "Output additional build information" OFF )
 
