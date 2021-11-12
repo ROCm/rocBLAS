@@ -49,8 +49,8 @@ for the functions xMAX and xMIN. This is the same as Legacy BLAS and
 cuBLAS.
 
 If you need row-major and 0 based indexing (used in C language arrays)
-download the `CBLAS <http://www.netlib.org/blas/#_cblas>`__ file
-cblas.tgz. Look at the CBLAS functions that provide a thin interface to
+download the file cblas.tgz from the Netlib Repository. 
+Look at the CBLAS functions that provide a thin interface to
 Legacy BLAS. They convert from row-major, 0 based, to column-major, 1
 based. This is done by swapping the order of function arguments. It is
 not necessary to transpose matrices.

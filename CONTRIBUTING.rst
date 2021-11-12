@@ -18,17 +18,14 @@ Pull-request guidelines
 
 Our code contriubtion guidelines closely follows the model of `GitHub
 pull-requests <https://help.github.com/articles/using-pull-requests/>`__.
-The rocBLAS repository follows the `git
-flow <http://nvie.com/posts/a-successful-git-branching-model/>`__
-workflow, which dictates a /master branch where releases are cut, and a
+The rocBLAS repository follows a workflow which dictates a /master branch where releases are cut, and a
 /develop branch which serves as an integration branch for new code. Pull requests should:
 
 -  target the **develop** branch for integration
 -  ensure code builds successfully.
 -  do not break existing test cases
 -  new functionality will only be merged with new unit tests
--  new unit tests should integrate within the existing `googletest
-   framework <https://github.com/google/googletest/blob/master/googletest/docs/primer.md>`__
+-  new unit tests should integrate within the existing googletest framework.
 -  tests must have good code coverage
 -  code must also have benchmark tests, and performance must approach
    the compute bound limit or memory bound limit.
@@ -489,10 +486,8 @@ Coding Guidelines
 
 11. static duration variables which aren't constants should usually be
     made function-local ``static`` variables, rather than namespace or
-    class static variables. This is to avoid the `static initialization
-    order
-    fiasco <https://isocpp.org/wiki/faq/ctors#static-init-order>`__. For
-    example:
+    class static variables. This is to avoid the static initialization
+    order fiasco. For example:
 
     .. code:: cpp
 
@@ -510,10 +505,8 @@ Coding Guidelines
     function, and the function is used everywhere access to the variable
     is needed. In the case of multithreaded programs, the C++11 and
     later standards guarantee that there won't be any race conditions.
-    It is also
-    `faster <https://www.modernescpp.com/index.php/thread-safe-initialization-of-a-singleton>`__
-    to initialize function-local ``static`` variables than it is to
-    explicitly call ``std::call_once``. For example:
+    It is preferred to initialize function-local ``static`` variables than
+    it is to explicitly call ``std::call_once``. For example:
 
     .. code:: cpp
 
@@ -536,8 +529,8 @@ Coding Guidelines
     When C preprocessor macros are needed (such as if they contain a
     ``return`` statement to return from the calling function), if the
     macro's definition contains more than one simple expression, then
-    `it should be wrapped in a
-    ``do { } while(0)`` <https://stackoverflow.com/questions/154136/why-use-apparently-meaningless-do-while-and-if-else-statements-in-macros>`__,
+    it should be wrapped in a
+    ``do { } while(0)``,
     without a terminating semicolon. This is to allow them to be used
     inside ``if`` statements. For example:
 
@@ -862,7 +855,7 @@ The ``error__`` variable name is used, to prevent it from conflicting with varia
         func(&hostA[0], &hostB[0], &hostC[0], &hostD[0]);
 
 
-27. Do not define unnamed (anonymous) namespaces in header files `DCL59-CPP <https://wiki.sei.cmu.edu/confluence/display/cplusplus/DCL59-CPP.+Do+not+define+an+unnamed+namespace+in+a+header+file>`__
+27. Do not define unnamed (anonymous) namespaces in header files (for explanation see DCL59-CPP)
 
 If the reason for using an unnamed namespace in a header file is to prevent multiple definitions, keep in mind that the following are allowed to be defined in multiple compilation units, such as if they all come from the same header file, as long as they are defined with identical token sequences in each compilation unit:
 
