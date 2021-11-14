@@ -93,20 +93,22 @@ if( BUILD_VERBOSE )
 endif( )
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-version.h.in" 
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-version.h.in"
 	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h" )
 
 # Copy Header to Build Dir
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/rocblas.h" 
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/rocblas.h"
 	"${PROJECT_BINARY_DIR}/include/rocblas/rocblas.h" COPYONLY)
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-types.h" 
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-types.h"
 	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-types.h" COPYONLY)
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-bfloat16.h" 
-	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-bfloat16.h" COPYONLY)
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-auxiliary.h" 
-	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-auziliary.h" COPYONLY)
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-functions.h" 
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas_bfloat16.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas_bfloat16.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-auxiliary.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-auxiliary.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-functions.h"
 	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-functions.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-complex-types.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-complex-types.h" COPYONLY)
 
 
 

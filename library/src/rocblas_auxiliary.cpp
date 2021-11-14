@@ -4,7 +4,7 @@
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas-auxiliary.h"
+#include "rocblas/internal/rocblas-auxiliary.h"
 #include <cctype>
 #include <cstdlib>
 #include <memory>
