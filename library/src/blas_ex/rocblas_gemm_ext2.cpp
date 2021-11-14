@@ -5,7 +5,7 @@
 #include "rocblas_gemm_ext2.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "utility.hpp"
 
 namespace

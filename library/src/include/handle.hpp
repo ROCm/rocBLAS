@@ -5,7 +5,7 @@
 #pragma once
 
 #include "macros.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_ostream.hpp"
 #include "utility.hpp"
 #include <array>

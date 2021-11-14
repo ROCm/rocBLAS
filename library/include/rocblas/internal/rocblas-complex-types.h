@@ -52,7 +52,7 @@ typedef struct
 // If this a full internal build, we need full support of complex arithmetic
 // and classes. We need __host__ and __device__ so we use <hip/hip_runtime.h>.
 
-#include "rocblas-export.h"
+#include "rocblas/internal/rocblas-export.h"
 #include <hip/hip_runtime.h>
 #include <math.h>
 #include <ostream>

@@ -18,7 +18,7 @@ BUILD_DIR=$(realpath "$(pwd)")
 
 SOURCE_DIR=$(realpath -m "$(grep CMAKE_HOME_DIRECTORY CMakeCache.txt | sed 's/CMAKE_HOME_DIRECTORY:INTERNAL=//g')")
 
-[[ ! -e $BUILD_DIR/include/rocblas-export.h ]] && build_first
+[[ ! -e $BUILD_DIR/include/rocblas/rocblas-export.h ]] && build_first
 
 # Returns whether the output file is up to date.
 # Prints the output file.
@@ -115,12 +115,12 @@ EOF
         exit 1
 fi
 
-# The headers in $SOURCE_DIR/library/include must compile with clang host, C99 or C++11,
+# The headers in $SOURCE_DIR/library/include/rocblas must compile with clang host, C99 or C++11,
 # for client code.
 #
 if [[ -x "$CLANG" ]]; then
     xargs_coproc
-    for file in $SOURCE_DIR/library/include/*.{h,in}; do
+    for file in $SOURCE_DIR/library/include/rocblas/*.{h,in}; do
         out=$(out_uptodate $file clang) || \
              echo "$CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
@@ -143,7 +143,7 @@ fi
 
 if [[ -x "$GCC" ]]; then
     xargs_coproc
-    for file in $SOURCE_DIR/library/include/*.{h,in}; do
+    for file in $SOURCE_DIR/library/include/rocblas/*.{h,in}; do
         out=$(out_uptodate $file clang) || \
              echo "$GCC $GCC_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
@@ -165,7 +165,7 @@ EOF
 fi
 
 xargs_coproc
-for file in $SOURCE_DIR/library/include/*.{h,in}; do
+for file in $SOURCE_DIR/library/include/rocblas/*.{h,in}; do
     out=$(out_uptodate $file c99) || \
         echo "$C99 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
@@ -185,7 +185,7 @@ EOF
 fi
 
 xargs_coproc
-for file in $SOURCE_DIR/library/include/*.{h,in}; do
+for file in $SOURCE_DIR/library/include/rocblas/*.{h,in}; do
     out=$(out_uptodate $file cpp11) ||
         echo "$CPP11 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done

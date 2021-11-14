@@ -6,7 +6,7 @@
 
 #include "../blas1/rocblas_copy.hpp"
 #include "../blas1/rocblas_dot.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include <cstddef>
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, bool LOWER, bool UNIT, typename T>

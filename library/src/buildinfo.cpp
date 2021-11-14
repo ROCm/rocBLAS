@@ -2,8 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-#include "rocblas-version.h"
-#include "rocblas.h"
+#include "rocblas/internal/rocblas-version.h"
+#include "rocblas/rocblas.h"
 #include <cstring>
 
 #define TO_STR2(x) #x

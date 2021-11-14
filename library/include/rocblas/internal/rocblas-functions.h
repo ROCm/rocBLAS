@@ -4,8 +4,8 @@
 
 #ifndef _ROCBLAS_FUNCTIONS_H_
 #define _ROCBLAS_FUNCTIONS_H_
-#include "rocblas-export.h"
-#include "rocblas-types.h"
+#include "rocblas/internal/rocblas-export.h"
+#include "rocblas/internal/rocblas-types.h"
 
 /*!\file
  * \brief rocblas_functions.h provides Basic Linear Algebra Subprograms of Level 1, 2 and 3,

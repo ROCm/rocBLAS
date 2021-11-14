@@ -12,8 +12,8 @@
 // Request _Float16 type extension
 #define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
 
-#include "rocblas-export.h"
-#include "rocblas_bfloat16.h"
+#include "rocblas/internal/rocblas-export.h"
+#include "rocblas/internal/rocblas_bfloat16.h"
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
@@ -101,7 +101,7 @@ typedef struct
 } rocblas_int8x4;
 
 // complex types
-#include "rocblas-complex-types.h"
+#include "rocblas/internal/rocblas-complex-types.h"
 
 /* ============================================================================================ */
 

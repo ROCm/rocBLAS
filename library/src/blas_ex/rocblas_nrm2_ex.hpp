@@ -7,7 +7,7 @@
 #include "../blas1/rocblas_nrm2.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "utility.hpp"
 
 template <int NB, bool ISBATCHED, typename Tx, typename Tr = Tx, typename Tex = Tr>

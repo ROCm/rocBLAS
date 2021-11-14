@@ -6,7 +6,7 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 /**
   *  Computes y := alpha*A*x + beta*y where A is a symmetric matrix.

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <typename Tex, typename Ta, typename Tx>
 ROCBLAS_KERNEL void rocblas_scal_kernel(rocblas_int    n,

@@ -6,7 +6,7 @@
 #include "gemm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "trtri_trsm.hpp"
 #include "utility.hpp"
 

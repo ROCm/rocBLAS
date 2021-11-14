@@ -6,7 +6,7 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V, typename W>
 ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void rocblas_syr_kernel(rocblas_fill uplo,

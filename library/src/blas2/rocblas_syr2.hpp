@@ -6,7 +6,7 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <typename T>
 __device__ void syr2_kernel_calc(bool        upper,

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "macros.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <typename T, typename U>
 ROCBLAS_KERNEL_ILF void herk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)

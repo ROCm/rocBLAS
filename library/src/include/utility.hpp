@@ -6,7 +6,7 @@
 
 #include "definitions.hpp"
 #include "macros.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include <cmath>
 #include <complex>
 #include <exception>
