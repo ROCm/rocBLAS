@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_math.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"

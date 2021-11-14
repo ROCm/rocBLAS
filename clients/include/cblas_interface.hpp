@@ -6,7 +6,7 @@
 #pragma once
 
 #include "cblas.h"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas.hpp"
 #include <type_traits>
 

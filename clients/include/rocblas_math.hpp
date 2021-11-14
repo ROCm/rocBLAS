@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include <cmath>
 #include <hip/hip_runtime.h>
 #include <immintrin.h>

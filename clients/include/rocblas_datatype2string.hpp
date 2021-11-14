@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include <string>
 
 enum class rocblas_initialization

@@ -3,7 +3,7 @@
  *
  * ************************************************************************ */
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_init.hpp"
 #include "utility.hpp"
 #include <cstdio>

@@ -7,7 +7,7 @@
 
 /* library headers */
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #ifndef WIN32
 #include "rocblas_fortran.hpp"
 #else

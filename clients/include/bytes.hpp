@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 /*!\file
  * \brief provides bandwidth measure as byte counts Basic Linear Algebra Subprograms (BLAS) of
