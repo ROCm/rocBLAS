@@ -127,22 +127,12 @@ void testing_rotmg_batched(const Arguments& arg)
         host_batch_vector<T> cy1(1, 1, batch_count);
         host_batch_vector<T> cparams(5, 1, batch_count);
 
-        if(rocblas_isnan(arg.alpha))
-        {
-            rocblas_init_nan(hd1, true);
-            rocblas_init_nan(hd2, false);
-            rocblas_init_nan(hx1, false);
-            rocblas_init_nan(hy1, false);
-            rocblas_init_nan(hparams, false);
-        }
-        else
-        {
-            rocblas_init(hd1, true);
-            rocblas_init(hd2, false);
-            rocblas_init(hx1, false);
-            rocblas_init(hy1, false);
-            rocblas_init(hparams, false);
-        }
+        // Initialize data on host memory
+        rocblas_init_vector(hd1, arg, true);
+        rocblas_init_vector(hd2, arg, false);
+        rocblas_init_vector(hx1, arg, false);
+        rocblas_init_vector(hy1, arg, false);
+        rocblas_init_vector(hparams, arg, false);
 
         cd1.copy_from(hd1);
         cd2.copy_from(hd2);
