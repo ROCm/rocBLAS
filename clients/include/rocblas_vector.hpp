@@ -224,6 +224,10 @@ inline void rocblas_init_vector(host_strided_batch_vector<T>& hx,
     {
         rocblas_init_nan(hx, seedReset);
     }
+    else if(rocblas_isnan(arg.beta))
+    {
+        rocblas_init_nan(hx, seedReset);
+    }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
         rocblas_init_hpl(hx, seedReset);
@@ -249,6 +253,10 @@ inline void
     rocblas_init_vector(host_batch_vector<T>& hx, const Arguments& arg, bool seedReset = false)
 {
     if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, seedReset);
+    }
+    else if(rocblas_isnan(arg.beta))
     {
         rocblas_init_nan(hx, seedReset);
     }
@@ -278,17 +286,21 @@ inline void
 //!
 template <typename T>
 inline void rocblas_init_vector(host_vector<T>&  hx,
+                                const Arguments& arg,
                                 size_t           N,
                                 size_t           incx,
                                 rocblas_stride   stride_x,
                                 rocblas_int      batch_count,
-                                const Arguments& arg,
                                 bool             seedReset = false)
 {
     if(seedReset)
         rocblas_seedrand();
 
     if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, 1, N, incx, stride_x, batch_count);
+    }
+    else if(rocblas_isnan(arg.beta))
     {
         rocblas_init_nan(hx, 1, N, incx, stride_x, batch_count);
     }

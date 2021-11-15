@@ -88,8 +88,8 @@ void testing_axpy(const Arguments& arg)
     host_vector<T> hy_gold(size_y);
 
     // Initialize data on host memory
-    rocblas_init_vector(hx, N, abs_incx, 0, 1, arg, true);
-    rocblas_init_vector(hy_1, N, abs_incy, 0, 1, arg, false);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, true);
+    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, false);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

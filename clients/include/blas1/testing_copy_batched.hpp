@@ -84,17 +84,10 @@ void testing_copy_batched(const Arguments& arg)
     host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
     host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
 
-    // Initial Data on CPU
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan(hx, true);
-        rocblas_init_nan(hy, false);
-    }
-    else
-    {
-        rocblas_init(hx, true);
-        rocblas_init(hy, false);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, true);
+    rocblas_init_vector(hy, arg, false);
+
     hy_gold.copy_from(hy);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
