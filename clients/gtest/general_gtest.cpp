@@ -4,8 +4,8 @@
 
 #include "rocblas_test.hpp"
 
-#include "../../library/src/include/check_numerics_matrix.hpp"
-#include "../../library/src/include/check_numerics_vector.hpp"
+#include "check_numerics_matrix.hpp"
+#include "check_numerics_vector.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_vector.hpp"
 #include "type_dispatch.hpp"

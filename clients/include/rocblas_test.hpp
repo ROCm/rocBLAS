@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -8,8 +8,8 @@
 #include <gtest/gtest.h>
 #endif
 
-#include "../../library/src/include/handle.hpp"
 #include "argument_model.hpp"
+#include "handle.hpp"
 #include "rocblas/rocblas.h"
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"

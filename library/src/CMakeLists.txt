@@ -373,16 +373,10 @@ target_compile_options( rocblas PRIVATE -Werror=vla )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
-          $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include/internal>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/internal>
-	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas/internal>
+	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${Tensile_INC}>
           $<INSTALL_INTERFACE:include>
- PRIVATE
-          $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/rocblas>
-          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas>
-	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols

@@ -3,9 +3,9 @@
  * ************************************************************************ */
 #ifdef USE_TENSILE_HOST
 
-#include "../../library/src/include/tensile_host.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_test.hpp"
+#include "tensile_host.hpp"
 #include "type_dispatch.hpp"
 
 namespace

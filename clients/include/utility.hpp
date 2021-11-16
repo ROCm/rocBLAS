@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "../../library/src/include/logging.hpp"
-#include "../../library/src/include/utility.hpp"
+#include "logging.hpp"
 #include "rocblas/rocblas.h"
 #include "rocblas_vector.hpp"
+#include "utility.hpp"
 #include <cstdio>
 #include <iomanip>
 #include <iostream>

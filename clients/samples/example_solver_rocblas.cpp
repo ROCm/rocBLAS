@@ -1,7 +1,7 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas/rocblas_device_malloc.hpp"
+#include "rocblas/internal/rocblas_device_malloc.hpp"
 #include "utility.hpp"
 
 int main()

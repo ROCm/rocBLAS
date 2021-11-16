@@ -3,7 +3,7 @@
  * ************************************************************************ */
 
 #include "rocblas_arguments.hpp"
-#include "../../library/src/include/tuple_helper.hpp"
+#include "tuple_helper.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>

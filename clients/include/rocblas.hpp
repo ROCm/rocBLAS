@@ -14,7 +14,7 @@
 #include "rocblas_no_fortran.hpp"
 #endif
 
-#include "../../library/src/include/utility.hpp"
+#include "utility.hpp"
 
 #if not defined(__clang_major__)
 #define CONSTEXPR constexpr
