@@ -17593,13 +17593,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_scal_strided_batched_ex(rocblas_handle   h
     @param[in]
     status  [rocblas_status]
             rocBLAS status to convert to string
-*/
-
+ ******************************************************************************/
 ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
 
-/* \brief Initialize rocBLAS on the current HIP device, to avoid costly startup time at the first call on that device.
-*/
+/*! \brief Initialize rocBLAS on the current HIP device, to avoid costly startup time at the first call on that device.
+    \details
 
+    Calling `rocblas_initialize()`` allows upfront intialization including device specific kernel setup,
+    otherwise this function is automatically called on the first function call that requires these initializations (mainly GEMM).
+
+ ******************************************************************************/
 ROCBLAS_EXPORT void rocblas_initialize(void);
 
 /*
