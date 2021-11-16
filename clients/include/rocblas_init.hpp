@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "rocblas_ostream.hpp"
 #include "rocblas/rocblas.h"
 #include "rocblas_math.hpp"
-#include "rocblas_ostream.hpp"
 #include "rocblas_random.hpp"
 #include <cinttypes>
 #include <iostream>

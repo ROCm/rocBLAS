@@ -8,8 +8,8 @@
 #include <gtest/gtest.h>
 #endif
 
-#include "argument_model.hpp"
 #include "handle.hpp"
+#include "argument_model.hpp"
 #include "rocblas/rocblas.h"
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"

@@ -5,9 +5,9 @@
 #pragma once
 
 #include "logging.hpp"
+#include "utility.hpp"
 #include "rocblas/rocblas.h"
 #include "rocblas_vector.hpp"
-#include "utility.hpp"
 #include <cstdio>
 #include <iomanip>
 #include <iostream>
