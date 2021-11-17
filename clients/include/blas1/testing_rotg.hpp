@@ -63,22 +63,11 @@ void testing_rotg(const Arguments& arg)
 
     for(int i = 0; i < TEST_COUNT; ++i)
     {
-        // Initial data on CPU
-        rocblas_seedrand();
-        if(rocblas_isnan(arg.alpha))
-        {
-            rocblas_init_nan<T>(a, 1, 1, 1);
-            rocblas_init_nan<T>(b, 1, 1, 1);
-            rocblas_init_nan<U>(c, 1, 1, 1);
-            rocblas_init_nan<T>(s, 1, 1, 1);
-        }
-        else
-        {
-            rocblas_init<T>(a, 1, 1, 1);
-            rocblas_init<T>(b, 1, 1, 1);
-            rocblas_init<U>(c, 1, 1, 1);
-            rocblas_init<T>(s, 1, 1, 1);
-        }
+        // Initialize data on host memory
+        rocblas_init_vector(a, arg, 1, 1, 0, 1, true);
+        rocblas_init_vector(b, arg, 1, 1, 0, 1, false);
+        rocblas_init_vector(c, arg, 1, 1, 0, 1, false);
+        rocblas_init_vector(s, arg, 1, 1, 0, 1, false);
 
         // CPU BLAS
         host_vector<T> ca = a;

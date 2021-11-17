@@ -1018,6 +1018,9 @@ rocblas_get_matrix_async
 ------------------------
 .. doxygenfunction:: rocblas_get_matrix_async
 
+rocblas_initialize
+------------------------
+.. doxygenfunction:: rocblas_initialize
 
 Device Memory functions
 =======================

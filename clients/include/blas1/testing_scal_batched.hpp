@@ -59,11 +59,9 @@ void testing_scal_batched(const Arguments& arg)
     host_vector<U>       halpha(1);
     halpha[0] = h_alpha;
 
-    // Initial Data on CPU
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan(hx_1, true);
-    else
-        rocblas_init(hx_1, true);
+    // Initialize memory on host.
+    rocblas_init_vector(hx_1, arg, true);
+
     hx_2.copy_from(hx_1);
     hx_gold.copy_from(hx_1);
 

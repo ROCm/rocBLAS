@@ -91,18 +91,9 @@ void testing_swap_strided_batched(const Arguments& arg)
     host_vector<T> hx_gold(size_x * batch_count);
     host_vector<T> hy_gold(size_y * batch_count);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx, size_x, batch_count);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy, size_y, batch_count);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, N, abs_incx, size_x, batch_count);
-        rocblas_init<T>(hy, 1, N, abs_incy, size_y, batch_count);
-    }
+    // Initialize the host vector.
+    rocblas_init_vector(hx, arg, N, abs_incx, size_x, batch_count, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, size_y, batch_count, false);
 
     hx_gold = hx;
     hy_gold = hy;

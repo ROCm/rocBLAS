@@ -91,11 +91,7 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     host_vector<T> hx(size_x);
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan<T>(hx, 1, N, incx);
-    else
-        rocblas_init<T>(hx, 1, N, incx);
+    rocblas_init_vector(hx, arg, N, incx, 0, 1, true);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
