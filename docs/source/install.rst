@@ -38,7 +38,7 @@ dependent for the user applciation.
 
 Once installed, rocblas.h and rocblas_module.f90 can be found in the /opt/rocm/include
 directory. Only these two installed files should be used when needed in user code.
-Other rocBLAS files can be found in /opt/rocm/include/internal, however these files
+Other rocBLAS files can be found in /opt/rocm/include/rocblas/internal, however these files
 should not be directly included.
 
 
@@ -209,7 +209,7 @@ Build clients without library
 
 The rocBLAS clients can be built on their own using install.sh with a preexisting rocBLAS library.
 
-Note that the version of the rocBLAS clients being built should match the version of the installed rocBLAS. The version of the installed rocBLAS can be found in the installed rocBLAS directory, in the file include/internal/rocblas-version.h. The version of rocBLAS being built can be found by running ``grep"VERSION_STRING" CMakeLists.txt`` in the rocBLAS directory being built.
+Note that the version of the rocBLAS clients being built should match the version of the installed rocBLAS. The version of the installed rocBLAS can be found in the installed rocBLAS directory, in the file include/rocblas/internal/rocblas-version.h. The version of rocBLAS being built can be found by running ``grep"VERSION_STRING" CMakeLists.txt`` in the rocBLAS directory being built.
 
 .. tabularcolumns::
    |\X{1}{4}|\X{3}{4}|
