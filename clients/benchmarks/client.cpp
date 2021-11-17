@@ -4,7 +4,7 @@
 
 #include "program_options.hpp"
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"

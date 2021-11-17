@@ -10,10 +10,10 @@
 #define _ROCBLAS_H_
 
 /* library headers */
-#include "internal/rocblas-auxiliary.h"
-#include "internal/rocblas-export.h"
-#include "internal/rocblas-functions.h"
-#include "internal/rocblas-types.h"
-#include "internal/rocblas-version.h"
+#include "rocblas/internal/rocblas-auxiliary.h"
+#include "rocblas/internal/rocblas-export.h"
+#include "rocblas/internal/rocblas-functions.h"
+#include "rocblas/internal/rocblas-types.h"
+#include "rocblas/internal/rocblas-version.h"
 
 #endif // _ROCBLAS_H_

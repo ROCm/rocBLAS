@@ -5,7 +5,7 @@
 #pragma once
 
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <rocblas_int NB, typename Tex, typename Ta, typename Tx>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status

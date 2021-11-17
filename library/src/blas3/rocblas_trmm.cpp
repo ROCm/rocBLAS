@@ -4,7 +4,7 @@
 #include "rocblas_trmm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "utility.hpp"
 
 #define STRMM_STOPPING_NB 32

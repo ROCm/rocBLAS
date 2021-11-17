@@ -5,7 +5,7 @@
 #pragma once
 
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <typename T, typename U>
 rocblas_status rocblas_axpy_check_numerics(const char*    function_name,

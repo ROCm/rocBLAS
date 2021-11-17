@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 /*!\file
  * \brief provides Floating point counts of Basic Linear Algebra Subprograms (BLAS) of Level 1, 2,

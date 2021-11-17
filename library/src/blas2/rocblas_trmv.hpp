@@ -6,7 +6,7 @@
 
 #include "../blas1/rocblas_copy.hpp"
 #include "../blas1/rocblas_dot.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include <cstddef>
 
 template <typename A, typename X, typename W>

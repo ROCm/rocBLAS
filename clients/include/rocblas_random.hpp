@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_math.hpp"
 #include <cinttypes>
 #include <random>

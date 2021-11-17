@@ -3,7 +3,7 @@
  * ************************************************************************ */
 
 #pragma once
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 // Threshold values of (M, N) in gfx908 and gfx906 below which the threads per block should be 512 or less to get better performance
 constexpr int gemvn_gfx908_threshold        = 15000;

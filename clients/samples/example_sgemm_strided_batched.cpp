@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

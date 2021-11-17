@@ -4,7 +4,7 @@
 
 // The implementation of the rocBLAS<->Tensile interface layer.
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 extern "C" void rocblas_shutdown();
 

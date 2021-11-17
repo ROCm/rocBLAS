@@ -4,7 +4,7 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_syr.hpp"
 
 template <bool UPPER, rocblas_int DIM_X, typename T, typename U, typename V, typename W>

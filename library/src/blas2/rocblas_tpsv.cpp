@@ -4,7 +4,7 @@
 #include "rocblas_tpsv.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_gemv.hpp"
 #include "utility.hpp"
 

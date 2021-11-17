@@ -5,7 +5,7 @@
 #pragma once
 
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "utility.hpp"
 #include <type_traits>
 #include <utility>
