@@ -1,4 +1,4 @@
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
