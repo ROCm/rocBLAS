@@ -15,6 +15,10 @@ Definitions:
     - { M:    64, N: 65, lda: 65, ldb: 65 }
     - { M:    65, N: 64, lda: 64, ldb: 65 }
 
+    # Trsv kernel
+    - { M:   128, N:    1, lda:  128, ldb:  128 }
+    - { M:  1024, N:    1, lda: 2000, ldb: 1024 }
+
   - &medium_matrix_size_range
     - { M:   192, N:   192, lda:   192, ldb:   192 }
     - { M:   600, N:   500, lda:   600, ldb:   600 }
