@@ -84,7 +84,7 @@ typedef struct
 
 #include <hip/hip_runtime.h>
 
-#include "rocblas-export.h"
+#include "rocblas/internal/rocblas-export.h"
 
 /*! \brief rocblas_complex_num is a structure which represents a complex number
  *         with precision T.
