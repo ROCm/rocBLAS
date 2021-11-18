@@ -5,7 +5,7 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
-#include "handle.hpp"
+#include "../../library/src/include/handle.hpp"
 #include "rocblas_random.hpp"
 #include "utility.hpp"
 #include <chrono>

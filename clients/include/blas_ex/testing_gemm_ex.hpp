@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "handle.hpp"
+#include "../../library/src/include/handle.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"

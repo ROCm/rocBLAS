@@ -35,7 +35,6 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas3>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas_ex>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/src/include>
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
 )
 

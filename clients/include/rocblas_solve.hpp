@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "utility.hpp"
+#include "../../library/src/include/utility.hpp"
 #include "cblas_interface.hpp"
 #include "rocblas/rocblas.h"
 

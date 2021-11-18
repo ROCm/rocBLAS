@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #endif
 
-#include "handle.hpp"
+#include "../../library/src/include/handle.hpp"
 #include "argument_model.hpp"
 #include "rocblas/rocblas.h"
 #include "rocblas_arguments.hpp"

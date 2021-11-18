@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "rocblas_ostream.hpp"
+#include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas/rocblas.h"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_math.hpp"
