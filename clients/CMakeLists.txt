@@ -43,10 +43,10 @@ else()
 endif()
 
 if( SKIP_LIBRARY )
-  include_directories(${ROCBLAS_LIBRARY_DIR}/include/rocblas)
+  include_directories(${ROCBLAS_LIBRARY_DIR}/include)
   include_directories(${ROCBLAS_LIBRARY_DIR}/include/rocblas/internal)
 else()
-  include_directories(${CMAKE_BINARY_DIR}/include/rocblas)
+  include_directories(${CMAKE_BINARY_DIR}/include)
   include_directories(${CMAKE_BINARY_DIR}/include/rocblas/internal)
 endif()
 
