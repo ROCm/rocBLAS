@@ -541,8 +541,8 @@ rocm_install_targets(
 
 install(
     DIRECTORY
-       "${CMAKE_SOURCE_DIR}/library/include/internal/"
-       "${PROJECT_BINARY_DIR}/include/internal/"
+       "${CMAKE_SOURCE_DIR}/library/include/rocblas/internal/"
+       "${PROJECT_BINARY_DIR}/include/rocblas/internal/"
         DESTINATION "include/rocblas/internal/"
   FILES_MATCHING
   PATTERN "*.h"
