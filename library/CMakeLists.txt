@@ -93,15 +93,32 @@ if( BUILD_VERBOSE )
 endif( )
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h" )
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-version.h.in"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h" )
+
+# Copy Header to Build Dir
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/rocblas.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/rocblas.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-types.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-types.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas_bfloat16.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas_bfloat16.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-auxiliary.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-auxiliary.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-functions.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-functions.h" COPYONLY)
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas/internal/rocblas-complex-types.h"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-complex-types.h" COPYONLY)
+
+
 
 set( rocblas_headers_public
-  include/rocblas.h
-  include/internal/rocblas-types.h
-  include/internal/rocblas_bfloat16.h
-  include/internal/rocblas-auxiliary.h
-  include/internal/rocblas-functions.h
-  ${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h
+  include/rocblas/rocblas.h
+  include/rocblas/internal/rocblas-types.h
+  include/rocblas/internal/rocblas_bfloat16.h
+  include/rocblas/internal/rocblas-auxiliary.h
+  include/rocblas/internal/rocblas-functions.h
+  ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
 )
 
 source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )

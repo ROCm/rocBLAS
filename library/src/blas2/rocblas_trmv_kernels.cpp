@@ -4,7 +4,7 @@
 
 #include "../blas1/rocblas_copy.hpp"
 #include "../blas1/rocblas_dot.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_trmv.hpp"
 #include <cstddef>
 

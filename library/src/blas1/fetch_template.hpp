@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <typename T>
 __device__ __host__ inline auto fetch_asum(T A)

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_arguments.hpp"
 
 template <typename T>

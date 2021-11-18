@@ -6,7 +6,7 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 /**
  * TScal     is always: const T* (either host or device)

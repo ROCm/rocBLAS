@@ -3,7 +3,7 @@
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_trmm.hpp"
 #include "utility.hpp"
 

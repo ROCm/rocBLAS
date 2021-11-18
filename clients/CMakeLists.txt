@@ -28,10 +28,10 @@ if ( NOT WIN32 )
   )
 
   # Set Fortran module output directory
-  set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include/internal)
+  set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include/rocblas/internal)
 
   # Create rocBLAS Fortran module
-  add_library(rocblas_fortran OBJECT ../library/include/rocblas_module.f90)
+  add_library(rocblas_fortran OBJECT ../library/include/rocblas/rocblas_module.f90)
 
   if( BUILD_WITH_TENSILE )
     list( APPEND rocblas_f90_source_clients include/rocblas_fortran_tensile.f90 )
@@ -44,10 +44,10 @@ endif()
 
 if( SKIP_LIBRARY )
   include_directories(${ROCBLAS_LIBRARY_DIR}/include)
-  include_directories(${ROCBLAS_LIBRARY_DIR}/include/internal)
+  include_directories(${ROCBLAS_LIBRARY_DIR}/include/rocblas/internal)
 else()
   include_directories(${CMAKE_BINARY_DIR}/include)
-  include_directories(${CMAKE_BINARY_DIR}/include/internal)
+  include_directories(${CMAKE_BINARY_DIR}/include/rocblas/internal)
 endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

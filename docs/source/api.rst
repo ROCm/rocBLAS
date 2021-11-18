@@ -149,7 +149,7 @@ to interpret the API as using hipFloatComplex and hipDoubleComplex types (i.e. t
 for users to avoid casting when using the hip complex types in their code.  As the memory layout is consistent across all three types
 it is safe to cast arguments to API calls between the 3 types: hipFloatComplex, std::complex<float>, and rocblas_float_complex, as well as for
 the double precision variants.  In order to expose the API as using the hip defined complex types, either a compiler define or inlined
-#define ROCM_MATHLIBS_API_USE_HIP_COMPLEX can be used before including the header file <rocblas.h>.  Thus the API is compatible with both forms but
+#define ROCM_MATHLIBS_API_USE_HIP_COMPLEX can be used before including the header file <rocblas/rocblas.h>.  Thus the API is compatible with both forms but
 recompilation is required to avoid casting if switching to pass in the hip complex types.  Most device memory pointers are passed with void*
 types to hip utility functions (e.g. hipMemcpy) so uploading memory from std::complex arrays or hipFloatComplex arrays requires no changes
 regardless of complex data type API choice.

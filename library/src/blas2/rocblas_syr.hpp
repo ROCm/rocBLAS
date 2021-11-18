@@ -6,7 +6,7 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 
 template <typename T, typename U, typename V, typename W>
 inline rocblas_status rocblas_syr_arg_check(rocblas_fill   uplo,

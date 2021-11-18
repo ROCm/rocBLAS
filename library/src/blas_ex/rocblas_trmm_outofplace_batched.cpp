@@ -4,7 +4,7 @@
 #include "../blas3/rocblas_trmm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "utility.hpp"
 
 #define Strmm_outofplace_batched_NB 32

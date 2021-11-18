@@ -4,7 +4,7 @@
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_syr2.hpp"
 
 template <typename T>

@@ -393,16 +393,10 @@ target_compile_options( rocblas PRIVATE -Werror=vla )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
-          $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include/internal>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/internal>
-	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas/internal>
+	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${Tensile_INC}>
           $<INSTALL_INTERFACE:include>
- PRIVATE
-          $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/rocblas>
-          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas>
-	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
@@ -473,7 +467,7 @@ endif()
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
 set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
-generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/internal/rocblas-export.h )
+generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-export.h )
 
 # generate header with prototypes for export reuse
 file( GLOB rocblas_prototype_inputs
@@ -484,7 +478,7 @@ file( GLOB rocblas_prototype_inputs
   ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
 )
-set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/internal/rocblas-exported-proto.hpp" )
+set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
   COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
   #DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/
@@ -496,7 +490,7 @@ add_custom_target( rocblas_proto_templates DEPENDS ${ROCBLAS_PROTO_TEMPLATES} )
 add_dependencies( rocblas rocblas_proto_templates )
 
 # generate rocblas_device_malloc.hpp header for device memory allocation
-set( ROCBLAS_DEVICE_MALLOC "${PROJECT_BINARY_DIR}/include/rocblas/rocblas_device_malloc.hpp" )
+set( ROCBLAS_DEVICE_MALLOC "${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas_device_malloc.hpp" )
 add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp ${ROCBLAS_DEVICE_MALLOC}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp
@@ -532,7 +526,7 @@ endif( )
 # Installation
 
 # Force installation of .f90 module file
-install(FILES "../include/rocblas_module.f90" "../include/rocblas.h" "${ROCBLAS_DEVICE_MALLOC}"
+install(FILES "../include/rocblas/rocblas_module.f90" "../include/rocblas/rocblas.h" "${ROCBLAS_DEVICE_MALLOC}"
         DESTINATION "include/rocblas/"
 )
 

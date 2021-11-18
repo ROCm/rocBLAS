@@ -3,7 +3,7 @@
  * ************************************************************************ */
 
 #include "handle.hpp"
-#include "rocblas.h"
+#include "rocblas/rocblas.h"
 #include "rocblas_scal.hpp"
 
 template <typename Tex, typename Ta, typename Tx>
