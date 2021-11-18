@@ -34,6 +34,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                 ptrdiff_t         offset_A,
                                                 rocblas_int       lda,
                                                 rocblas_stride    stride_A,
+                                                T const*          alpha,
                                                 XTYPE             dx,
                                                 ptrdiff_t         offset_x,
                                                 rocblas_int       incx,
