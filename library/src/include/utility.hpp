@@ -82,27 +82,53 @@ __forceinline__ __device__ __host__ T load_scalar(T x, rocblas_int idx, rocblas_
 
 // Load a pointer from a batch. If the argument is a T**, use block to index it and
 // add the offset, if the argument is a T*, add block * stride to pointer and add offset.
+//
+// ----- for batched use offset else use stride, do not use both stride and offset -----
 
-// For device pointers
+// For device pointers (used by non-batched and _strided_batched functions)
 // clang-format off
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+                                    load_ptr_batch(T* p, rocblas_int block, rocblas_stride stride)
 {
-    return p + block * stride + offset;
+    return p + block * stride;
 }
 
-// For device array of device pointers
+// For device array of device pointers (used by _batched functions)
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* const* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+                                    load_ptr_batch(T* const* p, rocblas_int block, rocblas_stride offset)
 {
     return p[block] + offset;
 }
 
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T** p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+                                    load_ptr_batch(T** p, rocblas_int block, rocblas_stride offset)
+{
+    return p[block] + offset;
+}
+
+// ----- use both stride and offset -----
+// For device pointers (used by non-batched and _strided_batched functions)
+template <typename T>
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+{
+    return p + block * stride + offset;
+}
+
+// For device array of device pointers (used by _batched functions)
+template <typename T>
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T* const* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+{
+    return p[block] + offset;
+}
+
+template <typename T>
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T** p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
 {
     return p[block] + offset;
 }
@@ -110,7 +136,7 @@ __forceinline__ __device__ __host__ T*
 // guarded by condition
 template <typename C, typename T>
 __forceinline__ __device__ __host__ T*
-                                    cond_load_ptr_batch(C cond, T* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+                                    cond_load_ptr_batch(C cond, T* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
 {
     // safe to offset pointer regardless of condition as not dereferenced
     return load_ptr_batch( p, block, offset, stride);
@@ -119,14 +145,14 @@ __forceinline__ __device__ __host__ T*
 // For device array of device pointers array is dereferenced, e.g. alpha, if !alpha don't dereference pointer array as we allow it to be null
 template <typename C, typename T>
 __forceinline__ __device__ __host__ T*
-                                    cond_load_ptr_batch(C cond, T* const* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+                                    cond_load_ptr_batch(C cond, T* const* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
 {
     return cond ? load_ptr_batch( p, block, offset, stride) : nullptr;
 }
 
 template <typename C, typename T>
 __forceinline__ __device__ __host__ T*
-                                    cond_load_ptr_batch(C cond, T** p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+                                    cond_load_ptr_batch(C cond, T** p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
 {
     return cond ? load_ptr_batch( p, block, offset, stride) : nullptr;
 }
