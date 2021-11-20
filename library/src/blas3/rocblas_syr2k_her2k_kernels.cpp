@@ -3,8 +3,7 @@
  * ************************************************************************ */
 
 #include "handle.hpp"
-#include "herk_scale_device.hpp"
-#include "rocblas_syr2k.hpp"
+#include "rocblas_syr2k_her2k.hpp"
 
 template <typename T, typename U>
 ROCBLAS_KERNEL_ILF void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
@@ -27,15 +26,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void syr2k_scale_kernel(bool     
                                                                        rocblas_int n,
                                                                        U           beta_host_device,
                                                                        V           CP_array,
-                                                                       ptrdiff_t   shift_c,
                                                                        rocblas_int ldc,
-                                                                       rocblas_stride stride_c)
+                                                                       rocblas_stride c_st_or_of)
 {
     auto beta = load_scalar(beta_host_device);
     if(beta == 1)
         return;
 
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
+    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, c_st_or_of);
     syr2k_scale_device(upper, n, beta, C, ldc);
 }
 
@@ -46,12 +44,11 @@ template <int DIM_X, int DIM_Y, typename U, typename V, typename W>
 ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void her2k_scale_kernel(bool        upper,
                                                                        rocblas_int n,
                                                                        rocblas_int k,
-                                                                       U         alpha_host_device,
-                                                                       V         beta_host_device,
-                                                                       W         CP_array,
-                                                                       ptrdiff_t shift_c,
+                                                                       U alpha_host_device,
+                                                                       V beta_host_device,
+                                                                       W CP_array,
                                                                        rocblas_int    ldc,
-                                                                       rocblas_stride stride_c)
+                                                                       rocblas_stride c_st_or_of)
 {
     auto alpha = load_scalar(alpha_host_device);
     auto beta  = load_scalar(beta_host_device);
@@ -59,7 +56,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void her2k_scale_kernel(bool     
     if(beta == 1 && (k == 0 || alpha == 0)) // if alpha not zero we need imaginary clear on diagonal
         return;
 
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
+    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, c_st_or_of);
     herk_scale_device(upper, n, beta, C, ldc);
 }
 
@@ -229,25 +226,22 @@ ROCBLAS_KERNEL_INSTANTIATE
                                                                 rocblas_int       k,
                                                                 TScal             alpha_host_device,
                                                                 TConstPtr         AP_array,
-                                                                ptrdiff_t         shift_a,
                                                                 rocblas_int       lda,
-                                                                rocblas_stride    stride_a,
+                                                                rocblas_stride    a_st_or_of,
                                                                 TConstPtr         BP_array,
-                                                                ptrdiff_t         shift_b,
                                                                 rocblas_int       ldb,
-                                                                rocblas_stride    stride_b,
+                                                                rocblas_stride    b_st_or_of,
                                                                 TPtr              CP_array,
-                                                                ptrdiff_t         shift_c,
                                                                 rocblas_int       ldc,
-                                                                rocblas_stride    stride_c)
+                                                                rocblas_stride    c_st_or_of)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)
         return;
 
-    auto A = load_ptr_batch(AP_array, hipBlockIdx_z, shift_a, stride_a);
-    auto B = load_ptr_batch(BP_array, hipBlockIdx_z, shift_b, stride_b);
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
+    auto A = load_ptr_batch(AP_array, hipBlockIdx_z, a_st_or_of);
+    auto B = load_ptr_batch(BP_array, hipBlockIdx_z, b_st_or_of);
+    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, c_st_or_of);
 
     // compute matrix multiplies and accumulate on the fly into C
     // when HERM does ^H in place of ^T
@@ -260,7 +254,7 @@ ROCBLAS_KERNEL_INSTANTIATE
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
-template <bool TWOK, typename TScal, typename TConstPtr, typename TPtr>
+template <bool BATCHED, bool TWOK, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_syr2k_template(rocblas_handle    handle,
                                     rocblas_fill      uplo,
@@ -269,16 +263,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int       k,
                                     TScal             alpha,
                                     TConstPtr         AP,
-                                    rocblas_int       offsetA,
+                                    rocblas_stride    offsetA,
                                     rocblas_int       lda,
                                     rocblas_stride    strideA,
                                     TConstPtr         BP,
-                                    rocblas_int       offsetB,
+                                    rocblas_stride    offsetB,
                                     rocblas_int       ldb,
                                     rocblas_stride    strideB,
                                     TScal             beta,
                                     TPtr              CP,
-                                    rocblas_int       offsetC,
+                                    rocblas_stride    offsetC,
                                     rocblas_int       ldc,
                                     rocblas_stride    strideC,
                                     rocblas_int       batch_count)
@@ -300,6 +294,32 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     dim3                 syr2k_grid(bx, by, batch_count);
     dim3                 syr2k_threads(syr2k_DIM_XY, syr2k_DIM_XY);
 
+    TPtr           CP_krn;
+    TConstPtr      BP_krn;
+    TConstPtr      AP_krn;
+    rocblas_stride a_st_or_of;
+    rocblas_stride b_st_or_of;
+    rocblas_stride c_st_or_of;
+
+    if(BATCHED)
+    {
+        CP_krn     = CP;
+        BP_krn     = BP;
+        AP_krn     = AP;
+        a_st_or_of = offsetA;
+        b_st_or_of = offsetB;
+        c_st_or_of = offsetC;
+    }
+    else
+    {
+        CP_krn     = CP + offsetC;
+        BP_krn     = BP + offsetB;
+        AP_krn     = AP + offsetA;
+        a_st_or_of = strideA;
+        b_st_or_of = strideB;
+        c_st_or_of = strideC;
+    }
+
     // Launch a herk kernel for syr2k.
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
@@ -312,10 +332,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            uplo == rocblas_fill_upper,
                            n,
                            beta,
-                           CP,
-                           offsetC,
+                           CP_krn,
                            ldc,
-                           strideC);
+                           c_st_or_of);
 
         if(k == 0)
             return rocblas_status_success;
@@ -332,18 +351,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
         else
         {
@@ -357,18 +373,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
     }
     else
@@ -385,10 +398,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            uplo == rocblas_fill_upper,
                            n,
                            *beta,
-                           CP,
-                           offsetC,
+                           CP_krn,
                            ldc,
-                           strideC);
+                           c_st_or_of);
 
         if(k == 0)
             return rocblas_status_success;
@@ -405,18 +417,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                *alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
         else
         {
@@ -430,18 +439,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                *alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
     }
 
@@ -453,7 +459,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
-template <bool TWOK, typename TScal, typename TConstPtr, typename UScal, typename TPtr>
+template <bool BATCHED,
+          bool TWOK,
+          typename TScal,
+          typename TConstPtr,
+          typename UScal,
+          typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_her2k_template(rocblas_handle    handle,
                                     rocblas_fill      uplo,
@@ -462,16 +473,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int       k,
                                     TScal             alpha,
                                     TConstPtr         AP,
-                                    rocblas_int       offsetA,
+                                    rocblas_stride    offsetA,
                                     rocblas_int       lda,
                                     rocblas_stride    strideA,
                                     TConstPtr         BP,
-                                    rocblas_int       offsetB,
+                                    rocblas_stride    offsetB,
                                     rocblas_int       ldb,
                                     rocblas_stride    strideB,
                                     UScal             beta,
                                     TPtr              CP,
-                                    rocblas_int       offsetC,
+                                    rocblas_stride    offsetC,
                                     rocblas_int       ldc,
                                     rocblas_stride    strideC,
                                     rocblas_int       batch_count)
@@ -495,6 +506,32 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     dim3                  syrk_threads(SYRK_DIM_XY, SYRK_DIM_XY);
     static constexpr bool Hermitian = true;
 
+    TPtr           CP_krn;
+    TConstPtr      BP_krn;
+    TConstPtr      AP_krn;
+    rocblas_stride a_st_or_of;
+    rocblas_stride b_st_or_of;
+    rocblas_stride c_st_or_of;
+
+    if(BATCHED)
+    {
+        CP_krn     = CP;
+        BP_krn     = BP;
+        AP_krn     = AP;
+        a_st_or_of = offsetA;
+        b_st_or_of = offsetB;
+        c_st_or_of = offsetC;
+    }
+    else
+    {
+        CP_krn     = CP + offsetC;
+        BP_krn     = BP + offsetB;
+        AP_krn     = AP + offsetA;
+        a_st_or_of = strideA;
+        b_st_or_of = strideB;
+        c_st_or_of = strideC;
+    }
+
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
@@ -508,10 +545,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            k,
                            alpha,
                            beta,
-                           CP,
-                           offsetC,
+                           CP_krn,
                            ldc,
-                           strideC);
+                           c_st_or_of);
 
         if(k == 0)
             return rocblas_status_success;
@@ -528,18 +564,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
         else
         {
@@ -553,18 +586,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
     }
     else
@@ -583,10 +613,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            k,
                            *alpha,
                            *beta,
-                           CP,
-                           offsetC,
+                           CP_krn,
                            ldc,
-                           strideC);
+                           c_st_or_of);
 
         if(k == 0)
             return rocblas_status_success;
@@ -603,18 +632,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                *alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
         else
         {
@@ -628,18 +654,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                n,
                                k,
                                *alpha,
-                               AP,
-                               offsetA,
+                               AP_krn,
                                lda,
-                               strideA,
-                               BP,
-                               offsetB,
+                               a_st_or_of,
+                               BP_krn,
                                ldb,
-                               strideB,
-                               CP,
-                               offsetC,
+                               b_st_or_of,
+                               CP_krn,
                                ldc,
-                               strideC);
+                               c_st_or_of);
         }
     }
 
@@ -655,9 +678,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #error INSTANTIATE_SYR2K_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYR2K_TEMPLATE(TWOK_, TScal_, TConstPtr_, TPtr_)                     \
+#define INSTANTIATE_SYR2K_TEMPLATE(BATCHED, TWOK_, TScal_, TConstPtr_, TPtr_)            \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syr2k_template \
-                                <TWOK_, TScal_, TConstPtr_, TPtr_>                       \
+                                <BATCHED, TWOK_, TScal_, TConstPtr_, TPtr_>              \
 				(rocblas_handle    handle,                               \
                                  rocblas_fill      uplo,                                 \
                                  rocblas_operation trans,                                \
@@ -665,36 +688,36 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syr2k_
                                  rocblas_int       k,                                    \
                                  TScal_            alpha,                                \
                                  TConstPtr_        AP,                                   \
-                                 rocblas_int       offsetA,                              \
+                                 rocblas_stride    offsetA,                              \
                                  rocblas_int       lda,                                  \
                                  rocblas_stride    strideA,                              \
                                  TConstPtr_        BP,                                   \
-                                 rocblas_int       offsetB,                              \
+                                 rocblas_stride    offsetB,                              \
                                  rocblas_int       ldb,                                  \
                                  rocblas_stride    strideB,                              \
                                  TScal_            beta,                                 \
                                  TPtr_             CP,                                   \
-                                 rocblas_int       offsetC,                              \
+                                 rocblas_stride    offsetC,                              \
                                  rocblas_int       ldc,                                  \
                                  rocblas_stride    strideC,                              \
                                  rocblas_int       batch_count);
 
-INSTANTIATE_SYR2K_TEMPLATE(true, float const*, float const*, float*)
-INSTANTIATE_SYR2K_TEMPLATE(true, double const*, double const*, double*)
-INSTANTIATE_SYR2K_TEMPLATE(true, rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYR2K_TEMPLATE(true, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_SYR2K_TEMPLATE(true, float const*, float const* const*, float* const*)
-INSTANTIATE_SYR2K_TEMPLATE(true, double const*, double const* const*, double* const*)
-INSTANTIATE_SYR2K_TEMPLATE(true, rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_SYR2K_TEMPLATE(true, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
-INSTANTIATE_SYR2K_TEMPLATE(false, float const*, float const*, float*)
-INSTANTIATE_SYR2K_TEMPLATE(false, double const*, double const*, double*)
-INSTANTIATE_SYR2K_TEMPLATE(false, rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYR2K_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_SYR2K_TEMPLATE(false, float const*, float const* const*, float* const*)
-INSTANTIATE_SYR2K_TEMPLATE(false, double const*, double const* const*, double* const*)
-INSTANTIATE_SYR2K_TEMPLATE(false, rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_SYR2K_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_SYR2K_TEMPLATE(false, true, float const*, float const*, float*)
+INSTANTIATE_SYR2K_TEMPLATE(false, true, double const*, double const*, double*)
+INSTANTIATE_SYR2K_TEMPLATE(false, true, rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_SYR2K_TEMPLATE(false, true, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_SYR2K_TEMPLATE( true, true, float const*, float const* const*, float* const*)
+INSTANTIATE_SYR2K_TEMPLATE( true, true, double const*, double const* const*, double* const*)
+INSTANTIATE_SYR2K_TEMPLATE( true, true, rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_SYR2K_TEMPLATE( true, true, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_SYR2K_TEMPLATE(false, false, float const*, float const*, float*)
+INSTANTIATE_SYR2K_TEMPLATE(false, false, double const*, double const*, double*)
+INSTANTIATE_SYR2K_TEMPLATE(false, false, rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_SYR2K_TEMPLATE(false, false, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_SYR2K_TEMPLATE( true, false, float const*, float const* const*, float* const*)
+INSTANTIATE_SYR2K_TEMPLATE( true, false, double const*, double const* const*, double* const*)
+INSTANTIATE_SYR2K_TEMPLATE( true, false, rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_SYR2K_TEMPLATE( true, false, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_SYR2K_TEMPLATE
 
@@ -702,38 +725,38 @@ INSTANTIATE_SYR2K_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_
 #error INSTANTIATE_HER2K_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_HER2K_TEMPLATE(TWOK_, TScal_, TConstPtr_, UScal_, TPtr_) \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                     \
-rocblas_internal_her2k_template<TWOK_, TScal_, TConstPtr_, UScal_, TPtr_>    \
-                               (rocblas_handle    handle,                    \
-                                rocblas_fill      uplo,                      \
-                                rocblas_operation trans,                     \
-                                rocblas_int       n,                         \
-                                rocblas_int       k,                         \
-                                TScal_            alpha,                     \
-                                TConstPtr_        AP,                        \
-                                rocblas_int       offsetA,                   \
-                                rocblas_int       lda,                       \
-                                rocblas_stride    strideA,                   \
-                                TConstPtr_        BP,                        \
-                                rocblas_int       offsetB,                   \
-                                rocblas_int       ldb,                       \
-                                rocblas_stride    strideB,                   \
-                                UScal_            beta,                      \
-                                TPtr_             CP,                        \
-                                rocblas_int       offsetC,                   \
-                                rocblas_int       ldc,                       \
-                                rocblas_stride    strideC,                   \
+#define INSTANTIATE_HER2K_TEMPLATE(BATCHED_, TWOK_, TScal_, TConstPtr_, UScal_, TPtr_) \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                               \
+rocblas_internal_her2k_template<BATCHED_, TWOK_, TScal_, TConstPtr_, UScal_, TPtr_>    \
+                               (rocblas_handle    handle,                              \
+                                rocblas_fill      uplo,                                \
+                                rocblas_operation trans,                               \
+                                rocblas_int       n,                                   \
+                                rocblas_int       k,                                   \
+                                TScal_            alpha,                               \
+                                TConstPtr_        AP,                                  \
+                                rocblas_stride    offsetA,                             \
+                                rocblas_int       lda,                                 \
+                                rocblas_stride    strideA,                             \
+                                TConstPtr_        BP,                                  \
+                                rocblas_stride    offsetB,                             \
+                                rocblas_int       ldb,                                 \
+                                rocblas_stride    strideB,                             \
+                                UScal_            beta,                                \
+                                TPtr_             CP,                                  \
+                                rocblas_stride    offsetC,                             \
+                                rocblas_int       ldc,                                 \
+                                rocblas_stride    strideC,                             \
                                 rocblas_int       batch_count);
 
-INSTANTIATE_HER2K_TEMPLATE(true, rocblas_float_complex const*, rocblas_float_complex const*, float const*, rocblas_float_complex*)
-INSTANTIATE_HER2K_TEMPLATE(true, rocblas_double_complex const*, rocblas_double_complex const*, double const*, rocblas_double_complex*)
-INSTANTIATE_HER2K_TEMPLATE(true, rocblas_float_complex const*, rocblas_float_complex const* const*, float const*, rocblas_float_complex* const*)
-INSTANTIATE_HER2K_TEMPLATE(true, rocblas_double_complex const*, rocblas_double_complex const* const*, double const*, rocblas_double_complex* const*)
-INSTANTIATE_HER2K_TEMPLATE(false, rocblas_float_complex const*, rocblas_float_complex const*, float const*, rocblas_float_complex*)
-INSTANTIATE_HER2K_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_complex const*, double const*, rocblas_double_complex*)
-INSTANTIATE_HER2K_TEMPLATE(false, rocblas_float_complex const*, rocblas_float_complex const* const*, float const*, rocblas_float_complex* const*)
-INSTANTIATE_HER2K_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_complex const* const*, double const*, rocblas_double_complex* const*)
+INSTANTIATE_HER2K_TEMPLATE(false, true, rocblas_float_complex const*, rocblas_float_complex const*, float const*, rocblas_float_complex*)
+INSTANTIATE_HER2K_TEMPLATE(false, true, rocblas_double_complex const*, rocblas_double_complex const*, double const*, rocblas_double_complex*)
+INSTANTIATE_HER2K_TEMPLATE( true, true, rocblas_float_complex const*, rocblas_float_complex const* const*, float const*, rocblas_float_complex* const*)
+INSTANTIATE_HER2K_TEMPLATE( true, true, rocblas_double_complex const*, rocblas_double_complex const* const*, double const*, rocblas_double_complex* const*)
+INSTANTIATE_HER2K_TEMPLATE(false, false, rocblas_float_complex const*, rocblas_float_complex const*, float const*, rocblas_float_complex*)
+INSTANTIATE_HER2K_TEMPLATE(false, false, rocblas_double_complex const*, rocblas_double_complex const*, double const*, rocblas_double_complex*)
+INSTANTIATE_HER2K_TEMPLATE( true, false, rocblas_float_complex const*, rocblas_float_complex const* const*, float const*, rocblas_float_complex* const*)
+INSTANTIATE_HER2K_TEMPLATE( true, false, rocblas_double_complex const*, rocblas_double_complex const* const*, double const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_HER2K_TEMPLATE
 
