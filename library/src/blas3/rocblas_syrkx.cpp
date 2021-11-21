@@ -114,7 +114,8 @@ namespace
                             ldc);
         }
 
-        static constexpr rocblas_int    offset_c = 0, offset_a = 0, offset_b = 0, batch_count = 1;
+        static constexpr rocblas_int    batch_count = 1;
+        static constexpr rocblas_stride offset_c = 0, offset_a = 0, offset_b = 0;
         static constexpr rocblas_stride stride_c = 0, stride_a = 0, stride_b = 0;
 
         // syr2k arg check is equivalent
