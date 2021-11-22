@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -377,22 +377,10 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    // Initial Data on CPU
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, true);
-        rocblas_init_nan<T>(hx, false);
-    }
-    else
-    {
-        rocblas_init<T>(hA, true);
-        rocblas_init<T>(hx, false);
-    }
-
-    if(arg.beta_isnan<T>())
-        rocblas_init_nan<T>(hy_1, false);
-    else
-        rocblas_init<T>(hy_1, false);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, true);
+    rocblas_init_vector(hx, arg, false, true);
+    rocblas_init_vector(hy_1, arg, false, false, true);
 
     // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
     // CPU BLAS

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -255,9 +255,10 @@ void testing_gbmv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    rocblas_init(hA, true);
-    rocblas_init(hxA);
-    rocblas_init(hy_1A);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, true);
+    rocblas_init_vector(hxA, arg, false, true);
+    rocblas_init_vector(hy_1A, arg, false, false, true);
 
     hy_2A.copy_from(hy_1A);
     hy_goldA.copy_from(hy_1A);

@@ -24,7 +24,7 @@
 //! @param seedReset Reset the seed if true, do not reset the seed otherwise.
 //!
 template <typename U, typename T>
-void rocblas_init_template(U& that, T rand_gen(), bool seedReset)
+void rocblas_init_template(U& that, T rand_gen(), bool seedReset, bool alternating_sign = false)
 {
     if(seedReset)
         rocblas_seedrand();
@@ -38,8 +38,19 @@ void rocblas_init_template(U& that, T rand_gen(), bool seedReset)
         if(inc < 0)
             batched_data -= (n - 1) * inc;
 
-        for(rocblas_int i = 0; i < n; ++i)
-            batched_data[i * inc] = rand_gen();
+        if(alternating_sign)
+        {
+            for(rocblas_int i = 0; i < n; ++i)
+            {
+                auto value            = rand_gen();
+                batched_data[i * inc] = (i ^ 0) & 1 ? value : negate(value);
+            }
+        }
+        else
+        {
+            for(rocblas_int i = 0; i < n; ++i)
+                batched_data[i * inc] = rand_gen();
+        }
     }
 }
 
@@ -82,9 +93,11 @@ inline void rocblas_init_nan(host_vector<T>& that, bool seedReset = false)
 //! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
 template <typename T>
-inline void rocblas_init_hpl(host_strided_batch_vector<T>& that, bool seedReset = false)
+inline void rocblas_init_hpl(host_strided_batch_vector<T>& that,
+                             bool                          seedReset        = false,
+                             bool                          alternating_sign = false)
 {
-    rocblas_init_template(that, random_hpl_generator<T>, seedReset);
+    rocblas_init_template(that, random_hpl_generator<T>, seedReset, alternating_sign);
 }
 
 //!
@@ -93,9 +106,11 @@ inline void rocblas_init_hpl(host_strided_batch_vector<T>& that, bool seedReset 
 //! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
 template <typename T>
-inline void rocblas_init_hpl(host_batch_vector<T>& that, bool seedReset = false)
+inline void rocblas_init_hpl(host_batch_vector<T>& that,
+                             bool                  seedReset        = false,
+                             bool                  alternating_sign = false)
 {
-    rocblas_init_template(that, random_hpl_generator<T>, seedReset);
+    rocblas_init_template(that, random_hpl_generator<T>, seedReset, alternating_sign);
 }
 
 //!
@@ -104,9 +119,11 @@ inline void rocblas_init_hpl(host_batch_vector<T>& that, bool seedReset = false)
 //! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
 template <typename T>
-inline void rocblas_init(host_strided_batch_vector<T>& that, bool seedReset = false)
+inline void rocblas_init(host_strided_batch_vector<T>& that,
+                         bool                          seedReset        = false,
+                         bool                          alternating_sign = false)
 {
-    rocblas_init_template(that, random_generator<T>, seedReset);
+    rocblas_init_template(that, random_generator<T>, seedReset, alternating_sign);
 }
 
 //!
@@ -115,9 +132,10 @@ inline void rocblas_init(host_strided_batch_vector<T>& that, bool seedReset = fa
 //! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
 template <typename T>
-inline void rocblas_init(host_batch_vector<T>& that, bool seedReset = false)
+inline void
+    rocblas_init(host_batch_vector<T>& that, bool seedReset = false, bool alternating_sign = false)
 {
-    rocblas_init_template(that, random_generator<T>, seedReset);
+    rocblas_init_template(that, random_generator<T>, seedReset, alternating_sign);
 }
 
 //!
@@ -213,28 +231,32 @@ inline void rocblas_init_trig(host_batch_vector<T>& that, bool init_cos = false)
 //! @brief Initialize a host_strided_batch_vector.
 //! @param hx The host_strided_batch_vector.
 //! @param arg Specifies the argument class.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise. Use init_cos if seedReset is true else use init_sin.
+//! @param alternating_sign Initialize vector so adjacent entries have alternating sign.
+//! @param beta_controls_nan Initialize vector with Nan's if arg.alpha is NaN and beta_controls_nan is false and if arg.beta is NaN and beta_controls_nan is true.
 //!
 template <typename T>
 inline void rocblas_init_vector(host_strided_batch_vector<T>& hx,
                                 const Arguments&              arg,
-                                bool                          seedReset = false)
+                                bool                          seedReset         = false,
+                                bool                          alternating_sign  = false,
+                                bool                          beta_controls_nan = false)
 {
-    if(rocblas_isnan(arg.alpha))
+    if(!beta_controls_nan && rocblas_isnan(arg.alpha))
     {
         rocblas_init_nan(hx, seedReset);
     }
-    else if(rocblas_isnan(arg.beta))
+    else if(beta_controls_nan && rocblas_isnan(arg.beta))
     {
         rocblas_init_nan(hx, seedReset);
     }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
-        rocblas_init_hpl(hx, seedReset);
+        rocblas_init_hpl(hx, seedReset, alternating_sign);
     }
     else if(arg.initialization == rocblas_initialization::rand_int)
     {
-        rocblas_init(hx, seedReset);
+        rocblas_init(hx, seedReset, alternating_sign);
     }
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
@@ -246,27 +268,32 @@ inline void rocblas_init_vector(host_strided_batch_vector<T>& hx,
 //! @brief Initialize a host_batch_vector.
 //! @param hx The host_batch_vector.
 //! @param arg Specifies the argument class.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise. Use init_cos if seedReset is true else use init_sin.
+//! @param alternating_sign Initialize vector so adjacent entries have alternating sign.
+//! @param beta_controls_nan Initialize vector with Nan's if arg.alpha is NaN and beta_controls_nan is false and if arg.beta is NaN and beta_controls_nan is true.
 //!
 template <typename T>
-inline void
-    rocblas_init_vector(host_batch_vector<T>& hx, const Arguments& arg, bool seedReset = false)
+inline void rocblas_init_vector(host_batch_vector<T>& hx,
+                                const Arguments&      arg,
+                                bool                  seedReset         = false,
+                                bool                  alternating_sign  = false,
+                                bool                  beta_controls_nan = false)
 {
-    if(rocblas_isnan(arg.alpha))
+    if(!beta_controls_nan && rocblas_isnan(arg.alpha))
     {
         rocblas_init_nan(hx, seedReset);
     }
-    else if(rocblas_isnan(arg.beta))
+    else if(beta_controls_nan && rocblas_isnan(arg.beta))
     {
         rocblas_init_nan(hx, seedReset);
     }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
-        rocblas_init_hpl(hx, seedReset);
+        rocblas_init_hpl(hx, seedReset, alternating_sign);
     }
     else if(arg.initialization == rocblas_initialization::rand_int)
     {
-        rocblas_init(hx, seedReset);
+        rocblas_init(hx, seedReset, alternating_sign);
     }
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
@@ -277,12 +304,14 @@ inline void
 //!
 //! @brief Initialize a host_vector.
 //! @param hx The host_vector.
+//! @param arg Specifies the argument class.
 //! @param N Length of the host vector.
 //! @param incx Increment for the host vector.
 //! @param stride_x Incement between the host vector.
 //! @param batch_count number of instances in the batch.
-//! @param arg Specifies the argument class.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise. Use init_cos if seedReset is true else use init_sin.
+//! @param alternating_sign Initialize vector so adjacent entries have alternating sign.
+//! @param beta_controls_nan Initialize vector with Nan's if arg.alpha is NaN and beta_controls_nan is false and if arg.beta is NaN and beta_controls_nan is true.
 //!
 template <typename T>
 inline void rocblas_init_vector(host_vector<T>&  hx,
@@ -291,26 +320,34 @@ inline void rocblas_init_vector(host_vector<T>&  hx,
                                 size_t           incx,
                                 rocblas_stride   stride_x,
                                 rocblas_int      batch_count,
-                                bool             seedReset = false)
+                                bool             seedReset         = false,
+                                bool             alternating_sign  = false,
+                                bool             beta_controls_nan = false)
 {
     if(seedReset)
         rocblas_seedrand();
 
-    if(rocblas_isnan(arg.alpha))
+    if(!beta_controls_nan && rocblas_isnan(arg.alpha))
     {
         rocblas_init_nan(hx, 1, N, incx, stride_x, batch_count);
     }
-    else if(rocblas_isnan(arg.beta))
+    else if(beta_controls_nan && rocblas_isnan(arg.beta))
     {
         rocblas_init_nan(hx, 1, N, incx, stride_x, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
-        rocblas_init_hpl(hx, 1, N, incx, stride_x, batch_count);
+        if(alternating_sign)
+            rocblas_init_hpl_alternating_sign(hx, 1, N, incx, stride_x, batch_count);
+        else
+            rocblas_init_hpl(hx, 1, N, incx, stride_x, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::rand_int)
     {
-        rocblas_init(hx, 1, N, incx, stride_x, batch_count);
+        if(alternating_sign)
+            rocblas_init_alternating_sign(hx, 1, N, incx, stride_x, batch_count);
+        else
+            rocblas_init(hx, 1, N, incx, stride_x, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
@@ -318,5 +355,64 @@ inline void rocblas_init_vector(host_vector<T>&  hx,
             rocblas_init_cos(hx, 1, N, incx, stride_x, batch_count);
         else
             rocblas_init_sin(hx, 1, N, incx, stride_x, batch_count);
+    }
+}
+
+//!
+//! @brief Initialize a host matrix.
+//! @param hA The host matrix.
+//! @param arg Specifies the argument class.
+//! @param M Length of the host matrix.
+//! @param N Length of the host matrix.
+//! @param lda Leading dimension of the host matrix.
+//! @param stride_A Incement between the host matrix.
+//! @param batch_count number of instances in the batch.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise. Use init_cos if seedReset is true else use init_sin.
+//! @param alternating_sign Initialize matrix so adjacent entries have alternating sign.
+//! @param beta_controls_nan Initialize matrix with Nan's if arg.alpha is NaN and beta_controls_nan is false and if arg.beta is NaN and beta_controls_nan is true.
+//!
+template <typename T>
+inline void rocblas_init_matrix(host_vector<T>&  hA,
+                                const Arguments& arg,
+                                size_t           M,
+                                size_t           N,
+                                size_t           lda,
+                                rocblas_stride   stride_A,
+                                rocblas_int      batch_count,
+                                bool             seedReset         = false,
+                                bool             alternating_sign  = false,
+                                bool             beta_controls_nan = false)
+{
+    if(seedReset)
+        rocblas_seedrand();
+
+    if(!beta_controls_nan && rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hA, M, N, lda, stride_A, batch_count);
+    }
+    else if(beta_controls_nan && rocblas_isnan(arg.beta))
+    {
+        rocblas_init_nan(hA, M, N, lda, stride_A, batch_count);
+    }
+    else if(arg.initialization == rocblas_initialization::hpl)
+    {
+        if(alternating_sign)
+            rocblas_init_hpl_alternating_sign(hA, M, N, lda, stride_A, batch_count);
+        else
+            rocblas_init_hpl(hA, M, N, lda, stride_A, batch_count);
+    }
+    else if(arg.initialization == rocblas_initialization::rand_int)
+    {
+        if(alternating_sign)
+            rocblas_init_alternating_sign(hA, M, N, lda, stride_A, batch_count);
+        else
+            rocblas_init(hA, M, N, lda, stride_A, batch_count);
+    }
+    else if(arg.initialization == rocblas_initialization::trig_float)
+    {
+        if(seedReset)
+            rocblas_init_cos(hA, M, N, lda, stride_A, batch_count);
+        else
+            rocblas_init_sin(hA, M, N, lda, stride_A, batch_count);
     }
 }
