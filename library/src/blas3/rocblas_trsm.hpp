@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "../blas2/rocblas_trsv.hpp"
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #include "trtri_trsm.hpp"
 
@@ -1367,17 +1366,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         return rocblas_status_invalid_pointer;
     }
 
-    // can use trsv kernel for n == 1 && left
-    if(n == 1 && side == rocblas_side_left)
-    {
-        *w_x_tmp_size        = batch_count * sizeof(rocblas_int);
-        *w_x_tmp_arr_size    = 0;
-        *w_invA_size         = 0;
-        *w_invA_arr_size     = 0;
-        *w_x_tmp_size_backup = 0;
-        return rocblas_status_success;
-    }
-
     // no memory needed if using small kernels
     bool is_small = (m <= 64 && n <= 64);
     if(is_small)
@@ -2208,7 +2196,7 @@ void rocblas_trsm_small_64(rocblas_handle    handle,
 //////////////////////////////
 //////////////////////////////
 //////////////////////////////
-template <rocblas_int BLOCK, rocblas_int DIM_X, bool BATCHED, typename T, typename U, typename V>
+template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_trsm_template(rocblas_handle    handle,
                                    rocblas_side      side,
@@ -2242,319 +2230,293 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(batch_count == 0)
         return rocblas_status_success;
 
+    // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
+    auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    // Get alpha - Check if zero for quick return
+    T alpha_h;
+    if(saved_pointer_mode == rocblas_pointer_mode_host)
+        alpha_h = *alpha;
+    else
+        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
+
+    if(alpha_h == T(0.0))
+    {
+        set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, offset_B);
+        return rocblas_status_success;
+    }
+
     if(!is_complex<T> && transA == rocblas_operation_conjugate_transpose)
         transA = rocblas_operation_transpose;
 
     rocblas_int k = side == rocblas_side_left ? m : n;
 
-    if(n == 1 && side == rocblas_side_left)
+    // bool is_small = k <= 64;
+    bool is_small = (m <= 64 && n <= 64);
+    if(SUBSTITUTION_ENABLED && is_small)
     {
-        // left
-        // B is essentially a vector (x, in trsv). Don't need ldb, can use 1 for incx.
-        rocblas_internal_trsv_substitution_template<DIM_X, T>(handle,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              m,
-                                                              A,
-                                                              offset_A,
-                                                              lda,
-                                                              stride_A,
-                                                              alpha,
-                                                              B,
-                                                              offset_B,
-                                                              1,
-                                                              stride_B,
-                                                              batch_count,
-                                                              (rocblas_int*)w_x_temp);
+        if(k <= 2)
+            rocblas_trsm_small<T, T, U, V, 2>(handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              diag,
+                                              m,
+                                              n,
+                                              alpha_h,
+                                              A,
+                                              offset_A,
+                                              lda,
+                                              stride_A,
+                                              B,
+                                              offset_B,
+                                              ldb,
+                                              stride_B,
+                                              batch_count);
+        else if(k <= 4)
+            rocblas_trsm_small<T, T, U, V, 4>(handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              diag,
+                                              m,
+                                              n,
+                                              alpha_h,
+                                              A,
+                                              offset_A,
+                                              lda,
+                                              stride_A,
+                                              B,
+                                              offset_B,
+                                              ldb,
+                                              stride_B,
+                                              batch_count);
+        else if(k <= 8)
+            rocblas_trsm_small<T, T, U, V, 8>(handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              diag,
+                                              m,
+                                              n,
+                                              alpha_h,
+                                              A,
+                                              offset_A,
+                                              lda,
+                                              stride_A,
+                                              B,
+                                              offset_B,
+                                              ldb,
+                                              stride_B,
+                                              batch_count);
+        else if(k <= 16)
+            rocblas_trsm_small<T, T, U, V, 16>(handle,
+                                               side,
+                                               uplo,
+                                               transA,
+                                               diag,
+                                               m,
+                                               n,
+                                               alpha_h,
+                                               A,
+                                               offset_A,
+                                               lda,
+                                               stride_A,
+                                               B,
+                                               offset_B,
+                                               ldb,
+                                               stride_B,
+                                               batch_count);
+        else if(k <= 32)
+            rocblas_trsm_small<T, T, U, V, 32>(handle,
+                                               side,
+                                               uplo,
+                                               transA,
+                                               diag,
+                                               m,
+                                               n,
+                                               alpha_h,
+                                               A,
+                                               offset_A,
+                                               lda,
+                                               stride_A,
+                                               B,
+                                               offset_B,
+                                               ldb,
+                                               stride_B,
+                                               batch_count);
+        else if(k <= 64)
+            rocblas_trsm_small_64<T, T, U, V, 64>(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  m,
+                                                  n,
+                                                  alpha_h,
+                                                  A,
+                                                  offset_A,
+                                                  lda,
+                                                  stride_A,
+                                                  B,
+                                                  offset_B,
+                                                  ldb,
+                                                  stride_B,
+                                                  batch_count);
     }
     else
     {
-        // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
-        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+        // Whether size is an exact multiple of blocksize
+        const bool exact_blocks = (k % BLOCK) == 0;
 
-        // Get alpha - Check if zero for quick return
-        T alpha_h;
-        if(saved_pointer_mode == rocblas_pointer_mode_host)
-            alpha_h = *alpha;
-        else
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
+        // perf_status indicates whether optimal performance is obtainable with available memory
+        rocblas_status perf_status = rocblas_status_success;
 
-        if(alpha_h == T(0.0))
+        if(supplied_invA && supplied_invA_size / BLOCK < k)
         {
-            set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, offset_B);
-            return rocblas_status_success;
+            perf_status   = rocblas_status_perf_degraded;
+            supplied_invA = nullptr;
         }
 
-        // bool is_small = k <= 64;
-        bool is_small = (m <= 64 && n <= 64);
-        if(SUBSTITUTION_ENABLED && is_small)
+        rocblas_status status = rocblas_status_success;
+
+        if(supplied_invA)
         {
-            if(k <= 2)
-                rocblas_trsm_small<T, T, U, V, 2>(handle,
-                                                  side,
-                                                  uplo,
-                                                  transA,
-                                                  diag,
-                                                  m,
-                                                  n,
-                                                  alpha_h,
-                                                  A,
-                                                  offset_A,
-                                                  lda,
-                                                  stride_A,
-                                                  B,
-                                                  offset_B,
-                                                  ldb,
-                                                  stride_B,
-                                                  batch_count);
-            else if(k <= 4)
-                rocblas_trsm_small<T, T, U, V, 4>(handle,
-                                                  side,
-                                                  uplo,
-                                                  transA,
-                                                  diag,
-                                                  m,
-                                                  n,
-                                                  alpha_h,
-                                                  A,
-                                                  offset_A,
-                                                  lda,
-                                                  stride_A,
-                                                  B,
-                                                  offset_B,
-                                                  ldb,
-                                                  stride_B,
-                                                  batch_count);
-            else if(k <= 8)
-                rocblas_trsm_small<T, T, U, V, 8>(handle,
-                                                  side,
-                                                  uplo,
-                                                  transA,
-                                                  diag,
-                                                  m,
-                                                  n,
-                                                  alpha_h,
-                                                  A,
-                                                  offset_A,
-                                                  lda,
-                                                  stride_A,
-                                                  B,
-                                                  offset_B,
-                                                  ldb,
-                                                  stride_B,
-                                                  batch_count);
-            else if(k <= 16)
-                rocblas_trsm_small<T, T, U, V, 16>(handle,
-                                                   side,
-                                                   uplo,
-                                                   transA,
-                                                   diag,
-                                                   m,
-                                                   n,
-                                                   alpha_h,
-                                                   A,
-                                                   offset_A,
-                                                   lda,
-                                                   stride_A,
-                                                   B,
-                                                   offset_B,
-                                                   ldb,
-                                                   stride_B,
-                                                   batch_count);
-            else if(k <= 32)
-                rocblas_trsm_small<T, T, U, V, 32>(handle,
-                                                   side,
-                                                   uplo,
-                                                   transA,
-                                                   diag,
-                                                   m,
-                                                   n,
-                                                   alpha_h,
-                                                   A,
-                                                   offset_A,
-                                                   lda,
-                                                   stride_A,
-                                                   B,
-                                                   offset_B,
-                                                   ldb,
-                                                   stride_B,
-                                                   batch_count);
-            else if(k <= 64)
-                rocblas_trsm_small_64<T, T, U, V, 64>(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      m,
-                                                      n,
-                                                      alpha_h,
-                                                      A,
-                                                      offset_A,
-                                                      lda,
-                                                      stride_A,
-                                                      B,
-                                                      offset_B,
-                                                      ldb,
-                                                      stride_B,
-                                                      batch_count);
+            invAarr = (void*)(supplied_invA);
+            invA    = (void*)(supplied_invA);
         }
         else
         {
-            // Whether size is an exact multiple of blocksize
-            const bool exact_blocks = (k % BLOCK) == 0;
-
-            // perf_status indicates whether optimal performance is obtainable with available memory
-            rocblas_status perf_status = rocblas_status_success;
-
-            if(supplied_invA && supplied_invA_size / BLOCK < k)
-            {
-                perf_status   = rocblas_status_perf_degraded;
-                supplied_invA = nullptr;
-            }
-
-            rocblas_status status = rocblas_status_success;
-
-            if(supplied_invA)
-            {
-                invAarr = (void*)(supplied_invA);
-                invA    = (void*)(supplied_invA);
-            }
-            else
-            {
-                // w_c_temp and w_x_temp can reuse the same device memory
-                T* w_c_temp = (T*)w_x_temp;
-                stride_invA = BLOCK * k;
-                if(BATCHED)
-                {
-                    // for w_c_temp, we currently can use the same memory from each batch since
-                    // trtri_batched is naive (since gemm_batched is naive)
-                    setup_batched_array<BLOCK>(
-                        handle->get_stream(), (T*)w_c_temp, 0, (T**)w_x_temparr, batch_count);
-                    setup_batched_array<BLOCK>(
-                        handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count);
-                }
-
-                status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(
-                    handle,
-                    V(BATCHED ? w_x_temparr : w_c_temp),
-                    uplo,
-                    diag,
-                    k,
-                    A,
-                    offset_A,
-                    lda,
-                    stride_A,
-                    V(BATCHED ? invAarr : invA),
-                    offset_invA,
-                    stride_invA,
-                    batch_count);
-
-                if(status != rocblas_status_success)
-                    return status;
-            }
-
-            size_t B_chunk_size = optimal_mem ? size_t(m) + size_t(n) - size_t(k) : 1;
-            size_t x_temp_els   = exact_blocks ? BLOCK * B_chunk_size : size_t(m) * n;
+            // w_c_temp and w_x_temp can reuse the same device memory
+            T* w_c_temp = (T*)w_x_temp;
+            stride_invA = BLOCK * k;
             if(BATCHED)
             {
+                // for w_c_temp, we currently can use the same memory from each batch since
+                // trtri_batched is naive (since gemm_batched is naive)
                 setup_batched_array<BLOCK>(
-                    handle->get_stream(), (T*)w_x_temp, x_temp_els, (T**)w_x_temparr, batch_count);
+                    handle->get_stream(), (T*)w_c_temp, 0, (T**)w_x_temparr, batch_count);
+                setup_batched_array<BLOCK>(
+                    handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count);
             }
 
-            if(exact_blocks)
-            {
-                status = special_trsm_template<BLOCK, BATCHED>(handle,
-                                                               side,
-                                                               uplo,
-                                                               transA,
-                                                               diag,
-                                                               m,
-                                                               n,
-                                                               &alpha_h,
-                                                               U(A),
-                                                               offset_A,
-                                                               lda,
-                                                               stride_A,
-                                                               V(B),
-                                                               offset_B,
-                                                               ldb,
-                                                               stride_B,
-                                                               batch_count,
-                                                               U(BATCHED ? invAarr : invA),
-                                                               offset_invA,
-                                                               stride_invA,
-                                                               B_chunk_size,
-                                                               V(BATCHED ? w_x_temparr : w_x_temp),
-                                                               x_temp_els);
-            }
-            else
-            {
-                if(side == rocblas_side_left)
-                    status
-                        = rocblas_trsm_left<BLOCK, BATCHED, T>(handle,
-                                                               uplo,
-                                                               transA,
-                                                               m,
-                                                               n,
-                                                               &alpha_h,
-                                                               U(A),
-                                                               offset_A,
-                                                               lda,
-                                                               stride_A,
-                                                               V(B),
-                                                               offset_B,
-                                                               ldb,
-                                                               stride_B,
-                                                               batch_count,
-                                                               U(BATCHED ? invAarr : invA),
-                                                               offset_invA,
-                                                               stride_invA,
-                                                               V(BATCHED ? w_x_temparr : w_x_temp),
-                                                               x_temp_els);
-                else
-                    status
-                        = rocblas_trsm_right<BLOCK, BATCHED, T>(handle,
-                                                                uplo,
-                                                                transA,
-                                                                m,
-                                                                n,
-                                                                &alpha_h,
-                                                                U(A),
-                                                                offset_A,
-                                                                lda,
-                                                                stride_A,
-                                                                V(B),
-                                                                offset_B,
-                                                                ldb,
-                                                                stride_B,
-                                                                batch_count,
-                                                                U(BATCHED ? invAarr : invA),
-                                                                offset_invA,
-                                                                stride_invA,
-                                                                V(BATCHED ? w_x_temparr : w_x_temp),
-                                                                x_temp_els);
+            status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(
+                handle,
+                V(BATCHED ? w_x_temparr : w_c_temp),
+                uplo,
+                diag,
+                k,
+                A,
+                offset_A,
+                lda,
+                stride_A,
+                V(BATCHED ? invAarr : invA),
+                offset_invA,
+                stride_invA,
+                batch_count);
 
-                if(status != rocblas_status_success)
-                    return status;
-
-                copy_block_unit<T>(handle,
-                                   m,
-                                   n,
-                                   U(BATCHED ? w_x_temparr : w_x_temp),
-                                   m,
-                                   x_temp_els,
-                                   V(B),
-                                   ldb,
-                                   stride_B,
-                                   batch_count,
-                                   0,
-                                   offset_B);
-            }
-
-            // If status is successful, return perf_status; else return status
-            return status == rocblas_status_success ? perf_status : status;
+            if(status != rocblas_status_success)
+                return status;
         }
+
+        size_t B_chunk_size = optimal_mem ? size_t(m) + size_t(n) - size_t(k) : 1;
+        size_t x_temp_els   = exact_blocks ? BLOCK * B_chunk_size : size_t(m) * n;
+        if(BATCHED)
+        {
+            setup_batched_array<BLOCK>(
+                handle->get_stream(), (T*)w_x_temp, x_temp_els, (T**)w_x_temparr, batch_count);
+        }
+
+        if(exact_blocks)
+        {
+            status = special_trsm_template<BLOCK, BATCHED>(handle,
+                                                           side,
+                                                           uplo,
+                                                           transA,
+                                                           diag,
+                                                           m,
+                                                           n,
+                                                           &alpha_h,
+                                                           U(A),
+                                                           offset_A,
+                                                           lda,
+                                                           stride_A,
+                                                           V(B),
+                                                           offset_B,
+                                                           ldb,
+                                                           stride_B,
+                                                           batch_count,
+                                                           U(BATCHED ? invAarr : invA),
+                                                           offset_invA,
+                                                           stride_invA,
+                                                           B_chunk_size,
+                                                           V(BATCHED ? w_x_temparr : w_x_temp),
+                                                           x_temp_els);
+        }
+        else
+        {
+            if(side == rocblas_side_left)
+                status = rocblas_trsm_left<BLOCK, BATCHED, T>(handle,
+                                                              uplo,
+                                                              transA,
+                                                              m,
+                                                              n,
+                                                              &alpha_h,
+                                                              U(A),
+                                                              offset_A,
+                                                              lda,
+                                                              stride_A,
+                                                              V(B),
+                                                              offset_B,
+                                                              ldb,
+                                                              stride_B,
+                                                              batch_count,
+                                                              U(BATCHED ? invAarr : invA),
+                                                              offset_invA,
+                                                              stride_invA,
+                                                              V(BATCHED ? w_x_temparr : w_x_temp),
+                                                              x_temp_els);
+            else
+                status = rocblas_trsm_right<BLOCK, BATCHED, T>(handle,
+                                                               uplo,
+                                                               transA,
+                                                               m,
+                                                               n,
+                                                               &alpha_h,
+                                                               U(A),
+                                                               offset_A,
+                                                               lda,
+                                                               stride_A,
+                                                               V(B),
+                                                               offset_B,
+                                                               ldb,
+                                                               stride_B,
+                                                               batch_count,
+                                                               U(BATCHED ? invAarr : invA),
+                                                               offset_invA,
+                                                               stride_invA,
+                                                               V(BATCHED ? w_x_temparr : w_x_temp),
+                                                               x_temp_els);
+
+            if(status != rocblas_status_success)
+                return status;
+
+            copy_block_unit<T>(handle,
+                               m,
+                               n,
+                               U(BATCHED ? w_x_temparr : w_x_temp),
+                               m,
+                               x_temp_els,
+                               V(B),
+                               ldb,
+                               stride_B,
+                               batch_count,
+                               0,
+                               offset_B);
+        }
+
+        // If status is successful, return perf_status; else return status
+        return status == rocblas_status_success ? perf_status : status;
     }
 
     return rocblas_status_success;
