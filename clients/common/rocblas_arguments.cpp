@@ -71,7 +71,7 @@ void Arguments::init()
     d_type       = rocblas_datatype_f32_r;
     compute_type = rocblas_datatype_f32_r;
 
-    initialization = rocblas_initialization::rand_int;
+    initialization = rocblas_initialization::hpl;
 
     atomics_mode = rocblas_atomics_allowed;
 
