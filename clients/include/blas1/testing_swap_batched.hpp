@@ -80,7 +80,7 @@ void testing_swap_batched(const Arguments& arg)
     host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     // Initialize memory on host.
-    rocblas_init_vector(hx, arg, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     for(int i = 0; i < batch_count; i++)
     {

@@ -93,7 +93,7 @@ void template_testing_reduction_strided_batched(
     //
     // Initialize the host vector.
     //
-    rocblas_init_vector(hx, arg, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     //
     // Transfer host data to device.

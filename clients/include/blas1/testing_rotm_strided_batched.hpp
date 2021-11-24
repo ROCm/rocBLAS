@@ -134,9 +134,11 @@ void testing_rotm_strided_batched(const Arguments& arg)
     host_vector<T> hparam(size_param);
 
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, abs_incx, stride_x, batch_count, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, stride_y, batch_count, false);
-    rocblas_init_vector(hdata, arg, 4, 1, 4, batch_count, false);
+    rocblas_init_vector(
+        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(
+        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hdata, arg, 4, 1, 4, batch_count, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
     for(int b = 0; b < batch_count; b++)

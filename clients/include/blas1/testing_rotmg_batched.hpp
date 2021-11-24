@@ -128,11 +128,11 @@ void testing_rotmg_batched(const Arguments& arg)
         host_batch_vector<T> cparams(5, 1, batch_count);
 
         // Initialize data on host memory
-        rocblas_init_vector(hd1, arg, true);
-        rocblas_init_vector(hd2, arg, false);
-        rocblas_init_vector(hx1, arg, false);
-        rocblas_init_vector(hy1, arg, false);
-        rocblas_init_vector(hparams, arg, false);
+        rocblas_init_vector(hd1, arg, rocblas_client_alpha_sets_nan, true);
+        rocblas_init_vector(hd2, arg, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(hx1, arg, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(hy1, arg, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(hparams, arg, rocblas_client_alpha_sets_nan, false);
 
         cd1.copy_from(hd1);
         cd2.copy_from(hd2);

@@ -81,8 +81,8 @@ void testing_copy(const Arguments& arg)
     host_vector<T> hy_gold(size_y);
 
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, false);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

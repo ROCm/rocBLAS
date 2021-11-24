@@ -92,8 +92,10 @@ void testing_swap_strided_batched(const Arguments& arg)
     host_vector<T> hy_gold(size_y * batch_count);
 
     // Initialize the host vector.
-    rocblas_init_vector(hx, arg, N, abs_incx, size_x, batch_count, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, size_y, batch_count, false);
+    rocblas_init_vector(
+        hx, arg, N, abs_incx, size_x, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(
+        hy, arg, N, abs_incy, size_y, batch_count, rocblas_client_alpha_sets_nan, false);
 
     hx_gold = hx;
     hy_gold = hy;

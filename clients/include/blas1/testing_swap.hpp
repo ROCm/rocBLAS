@@ -72,7 +72,7 @@ void testing_swap(const Arguments& arg)
     host_vector<T> hy_gold(size_y);
 
     // Initial Data on CPU
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, true);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
 
     // make hy different to hx
     for(size_t i = 0; i < N; i++)

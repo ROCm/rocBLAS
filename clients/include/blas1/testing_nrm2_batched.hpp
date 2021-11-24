@@ -112,7 +112,7 @@ void testing_nrm2_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initialize memory on host.
-    rocblas_init_vector(hx, arg, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 

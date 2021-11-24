@@ -60,7 +60,7 @@ void testing_scal_batched(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Initialize memory on host.
-    rocblas_init_vector(hx_1, arg, true);
+    rocblas_init_vector(hx_1, arg, rocblas_client_alpha_sets_nan, true);
 
     hx_2.copy_from(hx_1);
     hx_gold.copy_from(hx_1);
