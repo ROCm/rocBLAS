@@ -114,7 +114,8 @@ void testing_nrm2_strided_batched(const Arguments& arg)
     host_vector<T> hx(batch_count * size_x);
 
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, incx, stridex, batch_count, true);
+    rocblas_init_vector(
+        hx, arg, N, incx, stridex, batch_count, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x * batch_count, hipMemcpyHostToDevice));

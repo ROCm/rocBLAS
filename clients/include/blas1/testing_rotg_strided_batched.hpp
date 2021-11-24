@@ -115,10 +115,14 @@ void testing_rotg_strided_batched(const Arguments& arg)
     for(int i = 0; i < TEST_COUNT; i++)
     {
         // Initialize data on host memory
-        rocblas_init_vector(ha, arg, 1, 1, stride_a, batch_count, true);
-        rocblas_init_vector(hb, arg, 1, 1, stride_b, batch_count, false);
-        rocblas_init_vector(hc, arg, 1, 1, stride_c, batch_count, false);
-        rocblas_init_vector(hs, arg, 1, 1, stride_s, batch_count, false);
+        rocblas_init_vector(
+            ha, arg, 1, 1, stride_a, batch_count, rocblas_client_alpha_sets_nan, true);
+        rocblas_init_vector(
+            hb, arg, 1, 1, stride_b, batch_count, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(
+            hc, arg, 1, 1, stride_c, batch_count, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(
+            hs, arg, 1, 1, stride_s, batch_count, rocblas_client_alpha_sets_nan, false);
 
         // CPU_BLAS
         host_vector<T> ca = ha;

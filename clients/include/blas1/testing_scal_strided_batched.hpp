@@ -55,7 +55,8 @@ void testing_scal_strided_batched(const Arguments& arg)
     host_vector<T> hx_gold(size_x);
 
     // Initialize the host vector.
-    rocblas_init_vector(hx_1, arg, N, incx, stridex, batch_count, true);
+    rocblas_init_vector(
+        hx_1, arg, N, incx, stridex, batch_count, rocblas_client_alpha_sets_nan, true);
 
     // copy vector is easy in STL; hx_gold = hx: save a copy in hx_gold which will be output of CPU
     // BLAS

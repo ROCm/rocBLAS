@@ -116,10 +116,10 @@ void testing_rot_batched(const Arguments& arg)
     host_vector<V>       hs(1);
 
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, true);
-    rocblas_init_vector(hy, arg, false);
-    rocblas_init_vector(hc, arg, 1, 1, 0, 1, false);
-    rocblas_init_vector(hs, arg, 1, 1, 0, 1, false);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hc, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hs, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
     host_batch_vector<T> cx(N, incx, batch_count);

@@ -64,10 +64,10 @@ void testing_rotg(const Arguments& arg)
     for(int i = 0; i < TEST_COUNT; ++i)
     {
         // Initialize data on host memory
-        rocblas_init_vector(a, arg, 1, 1, 0, 1, true);
-        rocblas_init_vector(b, arg, 1, 1, 0, 1, false);
-        rocblas_init_vector(c, arg, 1, 1, 0, 1, false);
-        rocblas_init_vector(s, arg, 1, 1, 0, 1, false);
+        rocblas_init_vector(a, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+        rocblas_init_vector(b, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(c, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(s, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
         // CPU BLAS
         host_vector<T> ca = a;

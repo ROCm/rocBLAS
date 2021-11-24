@@ -87,7 +87,7 @@ void template_testing_reduction_batched(
     //
     // Initialize memory on host.
     //
-    rocblas_init_vector(hx, arg, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     //
     // Copy data from host to device.

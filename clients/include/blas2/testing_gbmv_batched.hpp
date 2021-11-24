@@ -256,9 +256,9 @@ void testing_gbmv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, true);
-    rocblas_init_vector(hxA, arg, false, true);
-    rocblas_init_vector(hy_1A, arg, false, false, true);
+    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hxA, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1A, arg, rocblas_client_beta_sets_nan, false, false);
 
     hy_2A.copy_from(hy_1A);
     hy_goldA.copy_from(hy_1A);

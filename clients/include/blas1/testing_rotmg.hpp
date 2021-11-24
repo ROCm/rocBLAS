@@ -64,7 +64,7 @@ void testing_rotmg(const Arguments& arg)
     for(int i = 0; i < TEST_COUNT; ++i)
     {
         // Initialize data on host memory
-        rocblas_init_vector(params, arg, 9, 1, 0, 1, true);
+        rocblas_init_vector(params, arg, 9, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
 
         // CPU BLAS
         host_vector<T> cparams = params;

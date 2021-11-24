@@ -86,7 +86,7 @@ void testing_asum(const Arguments& arg)
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Initial Data on CPU
-    rocblas_init_vector(hx, arg, N, incx, 0, 1, true);
+    rocblas_init_vector(hx, arg, N, incx, 0, 1, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));

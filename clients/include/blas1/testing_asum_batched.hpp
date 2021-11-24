@@ -95,7 +95,7 @@ void testing_asum_batched(const Arguments& arg)
     //
     // Initialize memory on host.
     //
-    rocblas_init_vector(hx, arg, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     //
     // Transfer from host to device.

@@ -95,7 +95,7 @@ void testing_asum_strided_batched(const Arguments& arg)
     //
     // Initialize the host vector.
     //
-    rocblas_init_vector(hx, arg, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     //
     // copy data from CPU to device, does not work for incx != 1

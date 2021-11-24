@@ -117,11 +117,16 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     for(int i = 0; i < TEST_COUNT; i++)
     {
         // Initialize data on host memory
-        rocblas_init_vector(hparams, arg, 5, 1, stride_param, batch_count, true);
-        rocblas_init_vector(hd1, arg, 1, 1, stride_d1, batch_count, false);
-        rocblas_init_vector(hd2, arg, 1, 1, stride_d2, batch_count, false);
-        rocblas_init_vector(hx1, arg, 1, 1, stride_x1, batch_count, false);
-        rocblas_init_vector(hy1, arg, 1, 1, stride_y1, batch_count, false);
+        rocblas_init_vector(
+            hparams, arg, 5, 1, stride_param, batch_count, rocblas_client_alpha_sets_nan, true);
+        rocblas_init_vector(
+            hd1, arg, 1, 1, stride_d1, batch_count, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(
+            hd2, arg, 1, 1, stride_d2, batch_count, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(
+            hx1, arg, 1, 1, stride_x1, batch_count, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(
+            hy1, arg, 1, 1, stride_y1, batch_count, rocblas_client_alpha_sets_nan, false);
 
         host_vector<T> cparams = hparams;
         host_vector<T> cd1     = hd1;
