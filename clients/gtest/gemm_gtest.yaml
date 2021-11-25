@@ -55,8 +55,8 @@ Definitions:
     - { M:    18, N:    18, K:    18, lda:    18, ldb:    18, ldc:    18, ldd:    18 }
     - { M:    19, N:    19, K:    19, lda:    19, ldb:    19, ldc:    19, ldd:    19 }
     - { M:    20, N:    20, K:    20, lda:    20, ldb:    20, ldc:    20, ldd:    20 }
-    - { M:     2, N:     3, K:     4, lda:     5, ldb:     6, ldc:     7, ldd:     8 }
-    - { M:     3, N:     4, K:     5, lda:     6, ldb:     7, ldc:     8, ldd:     9 }
+    - { M:     2, N:     3, K:     4, lda:     5, ldb:     6, ldc:     7, ldd:     7 }
+    - { M:     3, N:     4, K:     5, lda:     6, ldb:     7, ldc:     8, ldd:     8 }
     - { M:     4, N:     5, K:     6, lda:     6, ldb:     6, ldc:     6, ldd:     6 }
     - { M:     5, N:     6, K:     7, lda:     7, ldb:     8, ldc:     9, ldd:     9 }
     - { M:     6, N:     7, K:     8, lda:    10, ldb:     9, ldc:     8, ldd:     8 }
@@ -3087,6 +3087,7 @@ Tests:
   function:
     gemm_ex: *nonint8_real_precisions
   matrix_size: *ldd_size_range
+  c_noalias_d: true
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
 
@@ -3360,6 +3361,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *ldd_size_range
+  c_noalias_d: true
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
   flags: [0,1]
@@ -3431,6 +3433,7 @@ Tests:
     - { M:  512, N:  512, K:  512 }
     - { M: 960,  N: 1024, K: 1024 }
     - { M: 1024, N: 1024, K: 1024 }
+  c_noalias_d: true
   alpha: [ 0.0, 0.5, 1.0 ]
   beta:  [ 0.0, 0.5, 1.0 ]
   fortran: [ false, true ]
@@ -3445,6 +3448,7 @@ Tests:
     - gemm_ext2: *hpa_half_single_precisions
   matrix_size:
     - { M: 4096, N: 4096, K: 4096 }
+  c_noalias_d: true
   alpha: [ 0.0, 0.5, 1.0 ]
   beta:  [ 0.0, 0.5, 1.0 ]
   fortran: [ false, true ]
