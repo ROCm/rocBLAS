@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2020 Advanced Micro Devices, Inc.
+# Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # This file is intended to be used in two ways; independently in a stand alone PROJECT
@@ -13,6 +13,11 @@
 # library without tensile to allow for rapid iteration without GEMM functionality
 if( NOT BUILD_WITH_TENSILE )
   option( BUILD_WITH_TENSILE "Build rocBLAS with Tensile or not" ON )
+endif( )
+
+# Clients utilize rocblas fortran API and a fortran compiler
+if( NOT BUILD_FORTRAN_CLIENTS )
+  option( BUILD_FORTRAN_CLIENTS "Build rocBLAS clients requiring Fortran capabilities" ON )
 endif( )
 
 # Samples have no other dependencies except for rocblas, so are enabled by default
