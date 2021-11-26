@@ -19,7 +19,7 @@ add_executable( example-scal-template example_scal_template.cpp ${rocblas_sample
 add_executable( example-solver-rocblas example_solver_rocblas.cpp ${rocblas_samples_common} )
 add_executable( example-hip-complex-her2 example_hip_complex_her2.cpp )
 
-if (NOT WIN32)
+if ( BUILD_FORTRAN_CLIENTS )
   # Fortran examples
   add_executable( example-fortran-axpy example_fortran_axpy.f90 $<TARGET_OBJECTS:rocblas_fortran>)
   add_executable( example-fortran-scal example_fortran_scal.f90 $<TARGET_OBJECTS:rocblas_fortran>)

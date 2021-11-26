@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef WIN32
+#ifdef CLIENTS_NO_FORTRAN
 
 #define rocblas_axpy_ex_fortran rocblas_axpy_ex
 #define rocblas_axpy_batched_ex_fortran rocblas_axpy_batched_ex
