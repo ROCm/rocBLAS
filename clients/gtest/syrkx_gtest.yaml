@@ -59,6 +59,37 @@ Definitions:
 
 Tests:
 
+- name: syrkx_bad
+  category: pre_checkin
+  function: syrkx_bad_arg
+  precision: *single_precision
+  fortran: [ false, true ]
+
+- name: syrkx_size_t_N
+  category: nightly
+  function: syrkx
+  precision: *single_precision
+  uplo: [ U ]
+  transA: [ N ]
+  matrix_size:
+    - { N:     1, K:  51200,  lda: 51200,  ldb:     1,  ldc: 1 }
+    - { N:     1, K:  51200,  lda:     1,  ldb: 51200,  ldc: 1 }
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  batch_count: [ 1 ]
+
+- name: syrkx_size_t_T
+  category: nightly
+  function: syrkx
+  precision: *single_precision
+  uplo: [ U ]
+  transA: [ T ]
+  matrix_size:
+    - { N: 51200, K:      4,  lda:     4,  ldb: 4,  ldc: 51200}
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
+  batch_count: [ 1 ]
+
 - name: syrkx_restricted_kernel_32_8
   category: quick
   function: syrkx
@@ -98,12 +129,6 @@ Tests:
   matrix_size: *general_size_range_17
   alpha_beta: *alpha_beta_restrict_16
   batch_count: [ 1 ]
-
-- name: syrkx_bad
-  category: pre_checkin
-  function: syrkx_bad_arg
-  precision: *single_precision
-  fortran: [ false, true ]
 
 - name: syrkx_quick
   category: quick

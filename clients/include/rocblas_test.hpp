@@ -57,22 +57,22 @@ typedef long long ssize_t; /* x64 only supported */
 // This wraps the rocBLAS call with catch_signals_and_exceptions_as_failures().
 // By placing it at the rocBLAS call site, memory resources are less likely to
 // be leaked in the event of a caught signal.
-#define EXPECT_ROCBLAS_STATUS(STATUS, EXPECT)                \
-    do                                                       \
-    {                                                        \
-        volatile bool signal_or_exception = true;            \
-        /* Use status__ in case STATUS contains "status" */  \
-        rocblas_status status__;                             \
-        catch_signals_and_exceptions_as_failures([&] {       \
-            status__            = (STATUS);                  \
-            signal_or_exception = false;                     \
-        });                                                  \
-        if(signal_or_exception)                              \
-            return;                                          \
-        { /* localize status for ASSERT_EQ message */        \
-            rocblas_status status = status__;                \
-            ASSERT_EQ(status, EXPECT); /* prints "status" */ \
-        }                                                    \
+#define EXPECT_ROCBLAS_STATUS(STATUS, EXPECT)                 \
+    do                                                        \
+    {                                                         \
+        volatile bool signal_or_exception = true;             \
+        /* Use status__ in case STATUS contains "status" */   \
+        rocblas_status status__;                              \
+        catch_signals_and_exceptions_as_failures([&] {        \
+            status__            = (STATUS);                   \
+            signal_or_exception = false;                      \
+        });                                                   \
+        if(signal_or_exception)                               \
+            return;                                           \
+        { /* localize status for ASSERT_EQ message */         \
+            rocblas_status status_ = status__;                \
+            ASSERT_EQ(status_, EXPECT); /* prints "status" */ \
+        }                                                     \
     } while(0)
 
 #define CHECK_ALLOC_QUERY(STATUS)                                  \
@@ -145,14 +145,14 @@ bool match_test_category(const Arguments& arg, const char* category);
     INSTANTIATE_TEST_SUITE_P(category,                                                            \
                              testclass,                                                           \
                              testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
-                                                   return testclass::type_filter(arg)             \
+                                                   return match_test_category(arg, #category)     \
                                                           && testclass::function_filter(arg)      \
-                                                          && match_test_category(arg, #category); \
+                                                          && testclass::type_filter(arg);         \
                                                }),                                                \
                                                RocBLAS_TestData::end()),                          \
                              testclass::PrintToStringParamName());
 
-#ifdef GTEST_ROCBLAS_ALLOW_UNINSTANTIATED_GTESTANTIATED_PARAMETERIZED_TEST
+#if !defined(WIN32) && defined(GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST)
 #define ROCBLAS_ALLOW_UNINSTANTIATED_GTEST(testclass) \
     GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(testclass);
 #else
@@ -160,14 +160,19 @@ bool match_test_category(const Arguments& arg, const char* category);
 #endif
 
 // Instantiate all test categories
-#define INSTANTIATE_TEST_CATEGORIES(testclass)        \
-    ROCBLAS_ALLOW_UNINSTANTIATED_GTEST(testclass)     \
-    INSTANTIATE_TEST_CATEGORY(testclass, quick)       \
-    INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
-    INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
-    INSTANTIATE_TEST_CATEGORY(testclass, multi_gpu)   \
-    INSTANTIATE_TEST_CATEGORY(testclass, HMM)         \
-    INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
+#define INSTANTIATE_TEST_CATEGORIES(testclass)    \
+    ROCBLAS_ALLOW_UNINSTANTIATED_GTEST(testclass) \
+    INSTANTIATE_TEST_CATEGORY(testclass, _)
+
+// Category based intantiation requires pass of large yaml data for each category
+// Using single '_' named category and category name is moved to test name prefix
+// gtest_filter should be able to select same test subsets
+// INSTANTIATE_TEST_CATEGORY(testclass, quick)       \
+// INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
+// INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
+// INSTANTIATE_TEST_CATEGORY(testclass, multi_gpu)   \
+// INSTANTIATE_TEST_CATEGORY(testclass, HMM)         \
+// INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
 
 // Function to catch signals and exceptions as failures
 void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm = false);
@@ -295,7 +300,7 @@ public:
         // Placed inside function to avoid dependency on initialization order
         static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
         std::string RocBLAS_TestName_to_string(std::unordered_map<std::string, size_t>&,
-                                               std::ostringstream&);
+                                               const std::ostringstream&);
         return RocBLAS_TestName_to_string(*table, m_str);
     }
 
@@ -345,7 +350,10 @@ public:
     {
         std::string operator()(const testing::TestParamInfo<Arguments>& info) const
         {
-            return TEST::name_suffix(info.param);
+            std::string name(info.param.category);
+            name += "_";
+            name += TEST::name_suffix(info.param);
+            return name;
         }
     };
 };

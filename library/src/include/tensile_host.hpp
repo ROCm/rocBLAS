@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifndef USE_TENSILE_HOST
-#error "tensile_host.hpp #include'd when USE_TENSILE_HOST is undefined."
-#endif
-
 /*****************************************************************************
  * WARNING: Tensile-specific data types, functions and macros should only be *
  * referenced from tensile_host.cpp. This header file defines the interface  *
@@ -92,18 +88,18 @@ struct RocblasContractionProblem
                               const Ti* const*   batch_A,
                               rocblas_int        ld_a,
                               rocblas_stride     batch_stride_a,
-                              rocblas_int        offset_a,
+                              rocblas_stride     offset_a,
                               const Ti*          B,
                               const Ti* const*   batch_B,
                               rocblas_int        ld_b,
                               rocblas_stride     batch_stride_b,
-                              rocblas_int        offset_b,
+                              rocblas_stride     offset_b,
                               const Tc*          beta,
                               To*                C,
                               To* const*         batch_C,
                               rocblas_int        ld_c,
                               rocblas_stride     batch_stride_c,
-                              rocblas_int        offset_c,
+                              rocblas_stride     offset_c,
                               rocblas_int        batch_count,
                               bool               strided_batch,
                               rocblas_gemm_flags flags)

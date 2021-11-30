@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -91,9 +91,9 @@ void template_testing_reduction_strided_batched(
     double gpu_time_used, cpu_time_used;
 
     //
-    // Initialize hx
+    // Initialize the host vector.
     //
-    rocblas_init(hx, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     //
     // Transfer host data to device.

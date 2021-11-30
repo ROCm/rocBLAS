@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -77,6 +77,7 @@ void testing_dgmm_batched(const Arguments& arg)
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
+    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
     rocblas_int lda      = arg.lda;
     rocblas_int incx     = arg.incx;
@@ -93,7 +94,7 @@ void testing_dgmm_batched(const Arguments& arg)
 
     size_t size_A = size_t(lda) * size_t(N);
     size_t size_C = size_t(ldc) * size_t(N);
-    size_t size_x = size_t(abs_incx) * (rocblas_side_right == side ? size_t(N) : size_t(M));
+    size_t size_x = size_t(abs_incx) * K;
     if(!size_x)
         size_x = 1;
 
@@ -159,7 +160,7 @@ void testing_dgmm_batched(const Arguments& arg)
                                                     batch_count));
 
         // reference calculation for golden result
-        ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (N - 1) : 0;
+        ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (K - 1) : 0;
         cpu_time_used     = get_time_us_no_sync();
 
         for(int i3 = 0; i3 < batch_count; i3++)

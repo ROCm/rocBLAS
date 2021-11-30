@@ -3,9 +3,6 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
-  - &size_t_matrix_size_range
-    - { M:     4, N: 51200, lda: 51200, ldb:     4, ldc:     4 }
-
   - &small_matrix_size_range
     - { M:     0, N:     0, lda:     1, ldb:     1, ldc:     1 }
     - { M:     3, N:    33, lda:    35, ldb:    35, ldc:    35 }
@@ -21,10 +18,6 @@ Definitions:
 
   - &huge_matrix_size_range
     - { M:  4011, N:  4012, lda:  4012, ldb:  4013, ldc:  4014 }
-
-  - &size_t_alpha_beta_range
-    - { alpha:  0.0, beta:  0.0 }
-    - { alpha:  1.0, beta:  0.0 }
 
   - &small_alpha_beta_range
     - { alpha:  0.0, beta:  0.0 }
@@ -81,11 +74,15 @@ Tests:
   precision: *single_precision
   transA: [N]
   transB: [N]
-  matrix_size: *size_t_matrix_size_range
-  alpha_beta: *size_t_alpha_beta_range
+  matrix_size:
+    - { M:     4, N: 51200, lda: 51200, ldb:     4, ldc:     4 }
+    - { M:     4, N: 51200, lda:     4, ldb: 51200, ldc:     4 }
+    - { M:     4, N: 51200, lda:     4, ldb:     4, ldc: 51200 }
+  alpha_beta:
+    - { alpha:  1.0, beta:  1.0 }
   stride_scale: [ 1 ]
   batch_count: [ 1 ]
-  fortran: [ false, true ]
+  fortran: [ false ]
 
 - name: geam_batched_bad_arg
   category: quick

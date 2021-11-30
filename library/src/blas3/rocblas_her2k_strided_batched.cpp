@@ -2,7 +2,7 @@
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
-#include "rocblas_her2k.hpp"
+#include "rocblas_syr2k_her2k.hpp"
 #include "utility.hpp"
 
 namespace
@@ -122,7 +122,7 @@ namespace
                             batch_count);
         }
 
-        static constexpr rocblas_int offset_C = 0, offset_A = 0, offset_B = 0;
+        static constexpr rocblas_stride offset_C = 0, offset_A = 0, offset_B = 0;
 
         rocblas_status arg_status = rocblas_her2k_arg_check(handle,
                                                             uplo,
@@ -147,27 +147,28 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        static constexpr bool is2K = true;
-        return rocblas_internal_her2k_template<is2K>(handle,
-                                                     uplo,
-                                                     trans,
-                                                     n,
-                                                     k,
-                                                     alpha,
-                                                     A,
-                                                     offset_A,
-                                                     lda,
-                                                     stride_a,
-                                                     B,
-                                                     offset_B,
-                                                     ldb,
-                                                     stride_b,
-                                                     beta,
-                                                     C,
-                                                     offset_C,
-                                                     ldc,
-                                                     stride_c,
-                                                     batch_count);
+        static constexpr bool is2K    = true;
+        static constexpr bool BATCHED = false;
+        return rocblas_internal_her2k_template<BATCHED, is2K>(handle,
+                                                              uplo,
+                                                              trans,
+                                                              n,
+                                                              k,
+                                                              alpha,
+                                                              A,
+                                                              offset_A,
+                                                              lda,
+                                                              stride_a,
+                                                              B,
+                                                              offset_B,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              C,
+                                                              offset_C,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count);
     }
 
 }

@@ -68,12 +68,33 @@ void testing_nrm2_strided_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<real_t<T>> res(std::max(1, std::abs(batch_count)));
-        CHECK_HIP_ERROR(res.memcheck());
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_nrm2_strided_batched_fn(handle, N, nullptr, incx, stridex, batch_count, res),
-            rocblas_status_success);
+        device_vector<real_t<T>> d_rocblas_result_0(std::max(1, batch_count));
+        host_vector<real_t<T>>   h_rocblas_result_0(std::max(1, batch_count));
+        CHECK_HIP_ERROR(d_rocblas_result_0.memcheck());
+        CHECK_HIP_ERROR(h_rocblas_result_0.memcheck());
+
+        rocblas_init_nan(h_rocblas_result_0, 1, std::max(1, batch_count), 1);
+        CHECK_HIP_ERROR(hipMemcpy(d_rocblas_result_0,
+                                  h_rocblas_result_0,
+                                  sizeof(real_t<T>) * std::max(1, batch_count),
+                                  hipMemcpyHostToDevice));
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_strided_batched_fn(
+            handle, N, nullptr, incx, stridex, batch_count, d_rocblas_result_0));
+
+        if(batch_count > 0)
+        {
+            host_vector<real_t<T>> cpu_0(batch_count);
+            host_vector<real_t<T>> gpu_0(batch_count);
+            CHECK_HIP_ERROR(cpu_0.memcheck());
+            CHECK_HIP_ERROR(gpu_0.memcheck());
+
+            CHECK_HIP_ERROR(hipMemcpy(
+                gpu_0, d_rocblas_result_0, sizeof(real_t<T>) * batch_count, hipMemcpyDeviceToHost));
+            unit_check_general<real_t<T>>(1, batch_count, 1, cpu_0, gpu_0);
+        }
+
         return;
     }
 
@@ -92,12 +113,9 @@ void testing_nrm2_strided_batched(const Arguments& arg)
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(batch_count * size_x);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan<T>(hx, 1, N, incx, stridex, batch_count);
-    else
-        rocblas_init<T>(hx, 1, N, incx, stridex, batch_count);
+    // Initialize data on host memory
+    rocblas_init_vector(
+        hx, arg, N, incx, stridex, batch_count, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x * batch_count, hipMemcpyHostToDevice));

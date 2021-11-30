@@ -17,8 +17,6 @@
 #include <string>
 #include <utility>
 
-// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
-//
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
 #else
@@ -49,8 +47,9 @@ class RocBLAS_TestData
         // Skip entries for which filter is false
         void skip_filter()
         {
+            static auto endIter = std::istream_iterator<Arguments>{};
             if(filter)
-                while(*this != std::istream_iterator<Arguments>{} && !filter(**this))
+                while(*this != endIter && !filter(**this))
                     ++*static_cast<std::istream_iterator<Arguments>*>(this);
         }
 

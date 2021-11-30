@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -85,9 +85,9 @@ void template_testing_reduction_batched(
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
-    // Initialize.
+    // Initialize memory on host.
     //
-    rocblas_init(hx, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     //
     // Copy data from host to device.

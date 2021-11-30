@@ -63,7 +63,7 @@ namespace
                                   rocblas_stride col_stride_c,
                                   void*          D,
                                   rocblas_stride row_stride_d,
-                                  rocblas_stride col_stride_d)
+                                  rocblas_stride col_stride_d) const
         {
             return reference_gemm_ext2(M,
                                        N,
@@ -363,9 +363,6 @@ namespace
 
             auto status = rocblas_status_not_implemented;
 
-#ifdef USE_TENSILE_HOST
-            // This functionality is only available when using the new Tensile client
-
             std::unique_ptr<void, void (*)(void*)> erase{
                 nullptr, [](auto) { rocblas_suppress_tensile_error_messages() = false; }};
             rocblas_suppress_tensile_error_messages() = true;
@@ -418,9 +415,6 @@ namespace
             }
             if(status == rocblas_status_success || handle->is_device_memory_size_query())
                 return status;
-#else
-            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-#endif
 
             throw status;
         }

@@ -4,7 +4,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_trsv_substitution.hpp"
+#include "rocblas_trsv.hpp"
 #include "utility.hpp"
 
 namespace
@@ -183,6 +183,7 @@ namespace
                                                                     0,
                                                                     lda,
                                                                     stride_A,
+                                                                    nullptr,
                                                                     B,
                                                                     0,
                                                                     incx,

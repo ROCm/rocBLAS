@@ -12,6 +12,7 @@ enum class rocblas_initialization
     rand_int   = 111,
     trig_float = 222,
     hpl        = 333,
+    special    = 444,
 };
 
 /* ============================================================================================ */
@@ -122,6 +123,8 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
         return "trig_float";
     case rocblas_initialization::hpl:
         return "hpl";
+    case rocblas_initialization::special:
+        return "special";
     }
     return "invalid";
 }
@@ -205,6 +208,7 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
         value == "rand_int"   ? rocblas_initialization::rand_int   :
         value == "trig_float" ? rocblas_initialization::trig_float :
         value == "hpl"        ? rocblas_initialization::hpl        :
+        value == "special"    ? rocblas_initialization::special        :
         static_cast<rocblas_initialization>(-1);
 }
 

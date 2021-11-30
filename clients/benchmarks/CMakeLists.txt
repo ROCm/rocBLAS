@@ -2,28 +2,13 @@
 # Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# Linking lapack library requires fortran flags
-find_package( cblas REQUIRED CONFIG PATHS ${LAPACK_DIR} )
+set(rocblas_bench_source
+  client.cpp
+  )
 
-if(LINK_BLIS)
-  set( BLIS_CPP ../common/blis_interface.cpp )
-endif()
-
-set( rocblas_benchmark_common
-      ../common/singletons.cpp
-      ../common/utility.cpp
-      ../common/cblas_interface.cpp
-      ../common/rocblas_arguments.cpp
-      ../common/argument_model.cpp
-      ${BLIS_CPP}
-      ../common/rocblas_parse_data.cpp
-    )
-
-add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
+add_executable( rocblas-bench ${rocblas_bench_source} ${rocblas_test_bench_common} )
 
 target_compile_definitions( rocblas-bench PRIVATE ${TENSILE_DEFINES} )
-
-target_compile_features( rocblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
 # Internal header includes
 target_include_directories( rocblas-bench
@@ -36,36 +21,19 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
 )
 
-if (NOT WIN32)
-  set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
-  set( BLIS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.so )
-else()
-  set( BLIS_INCLUDE_DIR ${BLIS_DIR}/include/blis CACHE PATH "Blis library include path" )
-  find_library( BLIS_LIBRARY libblis
-                  PATHS ${BLIS_DIR}/lib
-                  REQUIRED
-                  NO_DEFAULT_PATH
-              )
-endif()
-
-
 # External header includes included as system files
 target_include_directories( rocblas-bench
   SYSTEM PRIVATE
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
 )
 
 if( NOT WIN32 )
   target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client )
 endif( )
-target_link_libraries( rocblas-bench PRIVATE roc::rocblas lapack cblas )
 
-if(LINK_BLIS)
-  target_link_libraries( rocblas-bench PRIVATE ${BLIS_LIBRARY} )
-else()
-  target_link_libraries( rocblas-bench PRIVATE blas )
-endif()
+target_link_libraries( rocblas-bench PRIVATE ${BLAS_LIBRARY} roc::rocblas )
 
 if( CUDA_FOUND )
   target_include_directories( rocblas-bench
@@ -86,9 +54,12 @@ if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
+target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
+
 target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 # target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
 if (NOT WIN32)
+  target_link_libraries( rocblas-bench PRIVATE lapack cblas )
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
 else()
   list( APPEND COMMON_LINK_LIBS "libomp")
@@ -98,6 +69,8 @@ target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
 set_target_properties( rocblas-bench PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
+
 add_dependencies( rocblas-bench rocblas-common )
+
 add_subdirectory ( ./perf_script )
-target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
+

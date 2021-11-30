@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -130,6 +130,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
+    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
     rocblas_int lda  = arg.lda;
     rocblas_int incx = arg.incx;
@@ -152,7 +153,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
         rocblas_cout << "WARNING: stride_a < lda * N" << std::endl;
     if((stride_c > 0) && (stride_c < ldc * N))
         rocblas_cout << "WARNING: stride_c < ldc * N" << std::endl;
-    if((stride_x > 0) && (stride_x < incx * (rocblas_side_right == side ? N : M)))
+    if((stride_x > 0) && (stride_x < incx * K))
         rocblas_cout << "WARNING: stride_x < incx * (rocblas_side_right == side ? N : M))"
                      << std::endl;
 
@@ -238,7 +239,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         // reference calculation for golden result
-        ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (N - 1) : 0;
+        ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (K - 1) : 0;
         cpu_time_used     = get_time_us_no_sync();
 
         for(size_t i3 = 0; i3 < batch_count; i3++)

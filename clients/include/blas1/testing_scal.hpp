@@ -71,11 +71,7 @@ void testing_scal(const Arguments& arg)
     host_vector<T> hy_gold(size_x);
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan<T>(hx_1, 1, N, incx);
-    else
-        rocblas_init<T>(hx_1, 1, N, incx);
+    rocblas_init_vector(hx_1, arg, N, incx, 0, 1, rocblas_client_alpha_sets_nan, true);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

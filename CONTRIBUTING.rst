@@ -18,17 +18,14 @@ Pull-request guidelines
 
 Our code contriubtion guidelines closely follows the model of `GitHub
 pull-requests <https://help.github.com/articles/using-pull-requests/>`__.
-The rocBLAS repository follows the `git
-flow <http://nvie.com/posts/a-successful-git-branching-model/>`__
-workflow, which dictates a /master branch where releases are cut, and a
+The rocBLAS repository follows a workflow which dictates a /master branch where releases are cut, and a
 /develop branch which serves as an integration branch for new code. Pull requests should:
 
 -  target the **develop** branch for integration
 -  ensure code builds successfully.
 -  do not break existing test cases
 -  new functionality will only be merged with new unit tests
--  new unit tests should integrate within the existing `googletest
-   framework <https://github.com/google/googletest/blob/master/googletest/docs/primer.md>`__
+-  new unit tests should integrate within the existing googletest framework.
 -  tests must have good code coverage
 -  code must also have benchmark tests, and performance must approach
    the compute bound limit or memory bound limit.
@@ -304,8 +301,7 @@ Coding Guidelines
     guide <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/gtest/README.md>`__.
 
     The test framework is templated, and uses
-    `SFINAE <https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error>`__
-    and ``std::enable_if<...>`` to enable and disable certain types for
+    SFINAE (substitution failure is not an error) pattern and ``std::enable_if<...>`` to enable and disable certain types for
     certain tests.
 
     YAML files are used to describe tests as combinations of arguments.
@@ -337,9 +333,7 @@ Coding Guidelines
     ```clients/benchmarks/client.cpp`` <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/benchmarks/client.cpp>`__.
 
 5.  Code should not be copied-and pasted, but rather, templates, macros,
-    `SFINAE <https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error>`__,
-    `CRTP <https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern>`__,
-    `lambdas <https://en.cppreference.com/w/cpp/language/lambda>`__,
+    SFINAE (substitution failure is not an error) pattern and CRTP (curiously recurring template pattern),
     etc. should be used to factor out differences in similar code.
 
     A code should be made more generalized, rather than copied and
@@ -404,12 +398,12 @@ Coding Guidelines
     differentiable. If ``rocblas_half`` were simply a ``struct`` with a
     ``uint16_t`` member, then it would be a distinct type.
 
-    It is legal to convert a pointer to a `standard-layout
-    ``class``/``struct`` <https://en.cppreference.com/w/cpp/language/data_members#Standard_layout>`__
+    It is legal to convert a pointer to a standard-layout
+    ``class``/``struct``
     to a pointer to its first element, and vice-versa, so the C API is
     unaffected by whether the type is enclosed in a ``struct`` or not.
 
-8.  `RAII <https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization>`__
+8.  RAII (resource acquisition is initialization) patterned
     classes should be used instead of explicit ``new``/``delete``,
     ``hipMalloc``/``hipFree``, ``malloc``/``free``, etc. RAII classes
     are automatically exception-safe because their destructor gets
@@ -492,10 +486,8 @@ Coding Guidelines
 
 11. static duration variables which aren't constants should usually be
     made function-local ``static`` variables, rather than namespace or
-    class static variables. This is to avoid the `static initialization
-    order
-    fiasco <https://isocpp.org/wiki/faq/ctors#static-init-order>`__. For
-    example:
+    class static variables. This is to avoid the static initialization
+    order fiasco. For example:
 
     .. code:: cpp
 
@@ -513,10 +505,8 @@ Coding Guidelines
     function, and the function is used everywhere access to the variable
     is needed. In the case of multithreaded programs, the C++11 and
     later standards guarantee that there won't be any race conditions.
-    It is also
-    `faster <https://www.modernescpp.com/index.php/thread-safe-initialization-of-a-singleton>`__
-    to initialize function-local ``static`` variables than it is to
-    explicitly call ``std::call_once``. For example:
+    It is preferred to initialize function-local ``static`` variables than
+    it is to explicitly call ``std::call_once``. For example:
 
     .. code:: cpp
 
@@ -539,8 +529,8 @@ Coding Guidelines
     When C preprocessor macros are needed (such as if they contain a
     ``return`` statement to return from the calling function), if the
     macro's definition contains more than one simple expression, then
-    `it should be wrapped in a
-    ``do { } while(0)`` <https://stackoverflow.com/questions/154136/why-use-apparently-meaningless-do-while-and-if-else-statements-in-macros>`__,
+    it should be wrapped in a
+    ``do { } while(0)``,
     without a terminating semicolon. This is to allow them to be used
     inside ``if`` statements. For example:
 
@@ -675,7 +665,7 @@ Coding Guidelines
     reduction when the size is 0, and reducing a value with the
     ``default_value()`` does not change the value of the reduction.
 
-19. When `type punning <https://en.wikipedia.org/wiki/Type_punning>`__
+19. When type punning
     is needed, ``union`` should be used instead of pointer-casting,
     which violates *strict aliasing*. For example:
 
@@ -692,10 +682,7 @@ Coding Guidelines
             return u.fp32; // Legal in C, nonstandard extension in C++
         }
 
-    This violates the strict aliasing rule of
-    `C <https://en.cppreference.com/w/c/language/object#Strict_aliasing>`__
-    and
-    `C++ <https://en.cppreference.com/w/cpp/language/reinterpret_cast#Type_aliasing>`__:
+    This violates the strict aliasing rule of C and C++:
 
     .. code:: cpp
 
@@ -757,6 +744,7 @@ Coding Guidelines
     The ``rocblas_internal_ostream::yaml_on`` and ``rocblas_internal_ostream::yaml_off`` IO modifiers enable or disable YAML formatting, for when outputting abitrary types as YAML source code. For example, to output a ``key: value`` pair as YAML source code, you would use:
 
     .. code:: cpp
+
         os << key << ": " << rocblas_internal_ostream::yaml_on << value << rocblas_internal_ostream::yaml_off;
 
     The ``key`` is outputted normally as a bare string, but the ``value`` uses YAML metacharacters and lexical syntax to output the value, so that when it's read in as YAML, it has the type and value of ``value``.
@@ -867,7 +855,7 @@ The ``error__`` variable name is used, to prevent it from conflicting with varia
         func(&hostA[0], &hostB[0], &hostC[0], &hostD[0]);
 
 
-27. Do not define unnamed (anonymous) namespaces in header files `DCL59-CPP <https://wiki.sei.cmu.edu/confluence/display/cplusplus/DCL59-CPP.+Do+not+define+an+unnamed+namespace+in+a+header+file>`__
+27. Do not define unnamed (anonymous) namespaces in header files (for explanation see DCL59-CPP)
 
 If the reason for using an unnamed namespace in a header file is to prevent multiple definitions, keep in mind that the following are allowed to be defined in multiple compilation units, such as if they all come from the same header file, as long as they are defined with identical token sequences in each compilation unit:
 
@@ -892,3 +880,26 @@ Guidelines:
 -  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
 
 -  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
+
+
+
+Static Code Analysis
+=====================
+
+``cppcheck`` is an open-source static analysis tool. This project uses this tool for performing static code analysis.
+
+Users can use the following command to run cppcheck locally to generate the report for all files.
+
+.. code:: bash
+
+   $ cd rocBLAS-internal
+   $ cppcheck --enable=all --inconclusive --library=googletest --inline-suppr -i./build --suppressions-list=./CppCheckSuppressions.txt --template="{file}:{line}: {severity}: {id} :{message}" . 2> cppcheck_report.txt
+
+
+Also, githooks can be installed to perform static analysis on new/modified files using pre-commit:
+
+::
+
+    ./.githooks/install
+
+For more information on the command line options, refer to the cppcheck manual on the web.

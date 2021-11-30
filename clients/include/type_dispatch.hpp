@@ -238,6 +238,10 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
 {
     const auto Ti = arg.a_type, To = arg.c_type, Tc = arg.compute_type;
 
+    if((rocblas_gemm_flags_fp16_alt_impl & arg.flags)
+       && rocblas_internal_get_arch_name() != "gfx90a")
+        return TEST<void>{}(arg);
+
     if(arg.b_type == Ti && arg.d_type == To)
     {
         if(Ti != To)

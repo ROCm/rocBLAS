@@ -169,9 +169,9 @@
 #include "testing_syrk.hpp"
 #include "testing_syrk_batched.hpp"
 #include "testing_syrk_strided_batched.hpp"
-#include "testing_trmm_batched_ex.hpp"
-#include "testing_trmm_ex.hpp"
-#include "testing_trmm_strided_batched_ex.hpp"
+#include "testing_trmm_outofplace.hpp"
+#include "testing_trmm_outofplace_batched.hpp"
+#include "testing_trmm_outofplace_strided_batched.hpp"
 //
 #include "type_dispatch.hpp"
 #include "utility.hpp"
@@ -388,9 +388,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"trsv", testing_trsv<T>},
                 {"trsv_batched", testing_trsv_batched<T>},
                 {"trsv_strided_batched", testing_trsv_strided_batched<T>},
-                {"trmm_ex", testing_trmm_ex<T>},
-                {"trmm_batched_ex", testing_trmm_batched_ex<T>},
-                {"trmm_strided_batched_ex", testing_trmm_strided_batched_ex<T>},
+                {"trmm_outofplace", testing_trmm_outofplace<T>},
+                {"trmm_outofplace_batched", testing_trmm_outofplace_batched<T>},
+                {"trmm_outofplace_strided_batched", testing_trmm_outofplace_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
@@ -585,9 +585,9 @@ struct perf_blas<T,
                 {"herkx", testing_her2k<T, false>},
                 {"herkx_batched", testing_her2k_batched<T, false>},
                 {"herkx_strided_batched", testing_her2k_strided_batched<T, false>},
-                {"trmm_ex", testing_trmm_ex<T>},
-                {"trmm_batched_ex", testing_trmm_batched_ex<T>},
-                {"trmm_strided_batched_ex", testing_trmm_strided_batched_ex<T>},
+                {"trmm_outofplace", testing_trmm_outofplace<T>},
+                {"trmm_outofplace_batched", testing_trmm_outofplace_batched<T>},
+                {"trmm_outofplace_strided_batched", testing_trmm_outofplace_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
@@ -977,33 +977,19 @@ int run_bench_test(Arguments& arg, const std::string& filter, bool any_stride, b
             rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
-
-        //      rocblas_int min_stride_a =
-        //          arg.transA == 'N' ? arg.K * arg.lda : arg.M * arg.lda;
-        //      rocblas_int min_stride_b =
-        //          arg.transB == 'N' ? arg.N * arg.ldb : arg.K * arg.ldb;
-        //      rocblas_int min_stride_a =
-        //          arg.transA == 'N' ? arg.K * arg.lda : arg.M * arg.lda;
-        //      rocblas_int min_stride_b =
-        //          arg.transB == 'N' ? arg.N * arg.ldb : arg.K * arg.ldb;
         rocblas_int min_stride_c = arg.ldc * arg.N;
-        //      if (arg.stride_a < min_stride_a)
-        //      {
-        //          rocblas_cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
-        //          min_stride_a << std::endl;
-        //          arg.stride_a = min_stride_a;
-        //      }
-        //      if (arg.stride_b < min_stride_b)
-        //      {
-        //          rocblas_cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
-        //          min_stride_b << std::endl;
-        //          arg.stride_b = min_stride_b;
-        //      }
+        rocblas_int min_stride_d = arg.ldd * arg.N;
         if(!any_stride && arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
                          << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
+        }
+        if(!any_stride && arg.stride_d < min_stride_d)
+        {
+            rocblas_cout << "rocblas-bench INFO: stride_d < min_stride_d, set stride_d = "
+                         << min_stride_d << std::endl;
+            arg.stride_d = min_stride_d;
         }
     }
 
@@ -1071,11 +1057,18 @@ int run_bench_test(Arguments& arg, const std::string& filter, bool any_stride, b
             arg.ldd = min_ldd;
         }
         rocblas_int min_stride_c = arg.ldc * arg.N;
+        rocblas_int min_stride_d = arg.ldd * arg.N;
         if(!any_stride && arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
                          << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
+        }
+        if(!any_stride && arg.stride_d < min_stride_d)
+        {
+            rocblas_cout << "rocblas-bench INFO: stride_d < min_stride_d, set stride_d = "
+                         << min_stride_d << std::endl;
+            arg.stride_d = min_stride_d;
         }
 
         rocblas_gemm_dispatch<perf_gemm_strided_batched_ex>(arg);
@@ -1294,7 +1287,7 @@ try
          "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("initialization",
-         value<std::string>(&initialization)->default_value("rand_int"),
+         value<std::string>(&initialization)->default_value("hpl"),
          "Intialize with random integers, trig functions sin and cos, or hpl-like input. "
          "Options: rand_int, trig_float, hpl")
 
@@ -1407,7 +1400,24 @@ try
     // transfer local variable state
 
     arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
-    arg.flags        = rocblas_gemm_flags(flags);
+
+    static const char* fp16AltImplEnvStr = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL");
+    static const int   fp16AltImplEnv
+        = (fp16AltImplEnvStr == NULL ? -1 : (std::atoi(fp16AltImplEnvStr) == 0 ? 0 : 1));
+    if(fp16AltImplEnv != -1)
+    {
+        if(fp16AltImplEnv == 0)
+            flags &= ~rocblas_gemm_flags_fp16_alt_impl;
+        else
+            flags |= rocblas_gemm_flags_fp16_alt_impl;
+    }
+
+    if((rocblas_gemm_flags_fp16_alt_impl & arg.flags)
+       && rocblas_internal_get_arch_name() != "gfx90a")
+        flags &= ~rocblas_gemm_flags_fp16_alt_impl;
+
+    arg.flags = rocblas_gemm_flags(flags);
+
     ArgumentModel_set_log_function_name(log_function_name);
 
     // Device Query

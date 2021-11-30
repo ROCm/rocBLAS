@@ -9,9 +9,6 @@
 #endif
 
 #if BUILD_WITH_TENSILE
-#ifndef USE_TENSILE_HOST
-#include "Tensile.h"
-#endif
 #else
 // see TensileHost.cpp for normal rocblas_initialize definition
 // it isn't compiled if not BUILD_WITH_TENSILE so defining here
@@ -73,12 +70,6 @@ _rocblas_handle::_rocblas_handle()
     , // active device is handle device
     arch(getActiveArch(device))
 {
-#if BUILD_WITH_TENSILE
-#ifndef USE_TENSILE_HOST
-    static int once = (tensileInitialize(), 0);
-#endif
-#endif
-
     // Device memory size
     const char* env = read_env("ROCBLAS_DEVICE_MEMORY_SIZE");
     if(env)
@@ -161,6 +152,7 @@ bool _rocblas_handle::device_allocator(size_t size)
         }
 
         // Temporarily change the thread's default device ID to the handle's device ID
+        // cppcheck-suppress unreadVariable
         auto saved_device_id = push_device_id();
 
         device_memory_size = 0;

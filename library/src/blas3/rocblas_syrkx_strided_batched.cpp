@@ -138,7 +138,7 @@ namespace
                             batch_count);
         }
 
-        static constexpr rocblas_int offset_c = 0, offset_a = 0, offset_b = 0;
+        static constexpr rocblas_stride offset_c = 0, offset_a = 0, offset_b = 0;
 
         // syr2k arg check is equivalent
         rocblas_status arg_status = rocblas_syr2k_arg_check(handle,
@@ -165,58 +165,6 @@ namespace
             return arg_status;
 
         static constexpr bool BATCHED = false;
-
-        rocblas_int n2          = rocblas_operation_none == trans ? k : n;
-        bool        i64_indices = (n2 * size_t(lda) > std::numeric_limits<rocblas_int>::max())
-                           || (n2 * size_t(ldb) > std::numeric_limits<rocblas_int>::max())
-                           || (n * size_t(ldc) > std::numeric_limits<rocblas_int>::max());
-
-        if(i64_indices)
-        {
-            return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
-                                                                       uplo,
-                                                                       trans,
-                                                                       n,
-                                                                       k,
-                                                                       alpha,
-                                                                       A,
-                                                                       size_t(offset_a),
-                                                                       size_t(lda),
-                                                                       stride_a,
-                                                                       B,
-                                                                       size_t(offset_b),
-                                                                       size_t(ldb),
-                                                                       stride_b,
-                                                                       beta,
-                                                                       C,
-                                                                       size_t(offset_a),
-                                                                       size_t(ldc),
-                                                                       stride_c,
-                                                                       batch_count);
-        }
-        else
-        {
-            return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
-                                                                       uplo,
-                                                                       trans,
-                                                                       n,
-                                                                       k,
-                                                                       alpha,
-                                                                       A,
-                                                                       offset_a,
-                                                                       lda,
-                                                                       stride_a,
-                                                                       B,
-                                                                       offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       beta,
-                                                                       C,
-                                                                       offset_c,
-                                                                       ldc,
-                                                                       stride_c,
-                                                                       batch_count);
-        }
 
         return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
                                                                    uplo,

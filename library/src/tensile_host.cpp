@@ -8,13 +8,6 @@
 
 extern "C" void rocblas_shutdown();
 
-#ifndef USE_TENSILE_HOST
-
-// In the old Tensile client, rocblas_initialize() is a no-op
-extern "C" void rocblas_initialize() {}
-
-#else
-
 /*****************************************************************************
  * This is the only file in rocBLAS which should #include Tensile headers    *
  * or reference Tensile identifiers. tensile_host.hpp defines the interface. *
@@ -57,9 +50,7 @@ extern "C" void rocblas_initialize() {}
 #endif
 
 #ifdef WIN32
-//
-// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
-//
+
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
 #else
@@ -71,7 +62,7 @@ namespace std
 }
 #endif
 
-#endif
+#endif // WIN32
 
 namespace
 {
@@ -394,6 +385,14 @@ namespace
 
         // Add problem predicates for CEqualsD
         tensileProblem.setCEqualsD(prob.C == prob.D);
+
+        static const char* fp16AltImplEnvStr = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL");
+        static const int   fp16AltImplEnv
+            = (fp16AltImplEnvStr == NULL ? -1 : (std::atoi(fp16AltImplEnvStr) == 0 ? 0 : 1));
+        if(fp16AltImplEnv != -1)
+            tensileProblem.setFp16AltImpl(fp16AltImplEnv);
+        else
+            tensileProblem.setFp16AltImpl(prob.flags & rocblas_gemm_flags_fp16_alt_impl);
 
         return tensileProblem;
     }
@@ -754,7 +753,7 @@ namespace
     /**************************************************************************
     * We normally print error messages only once, to avoid excessive logging *
     **************************************************************************/
-    void print_once(rocblas_internal_ostream& msg)
+    void print_once(const rocblas_internal_ostream& msg)
     {
         if(rocblas_suppress_tensile_error_messages())
             return;
@@ -898,4 +897,3 @@ ROCBLAS_INTERNAL_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialize
     static std::atomic_bool init;
     return init;
 }
-#endif

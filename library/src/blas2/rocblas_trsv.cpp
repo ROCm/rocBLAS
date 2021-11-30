@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_trsv.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_trsv_substitution.hpp"
 #include "utility.hpp"
 
 namespace
@@ -153,6 +153,7 @@ namespace
                                                                     0,
                                                                     lda,
                                                                     0,
+                                                                    nullptr,
                                                                     B,
                                                                     0,
                                                                     incx,

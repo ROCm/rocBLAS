@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -229,25 +229,11 @@ void testing_gbmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-
-    // Init a lda * N matrix, not M * N
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, lda, N, lda);
-        rocblas_init_nan<T>(hx, 1, dim_x, abs_incx);
-    }
-    else
-    {
-        rocblas_init<T>(hA, lda, N, lda);
-        rocblas_init<T>(hx, 1, dim_x, abs_incx);
-    }
-
-    if(arg.beta_isnan<T>())
-        rocblas_init_nan<T>(hy_1, 1, dim_y, abs_incy);
-    else
-        rocblas_init<T>(hy_1, 1, dim_y, abs_incy);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, lda, N, lda, 0, 1, rocblas_client_alpha_sets_nan, true, false);
+    rocblas_init_vector(hx, arg, dim_x, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(
+        hy_1, arg, dim_y, abs_incy, 0, 1, rocblas_client_beta_sets_nan, false, false);
 
     // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
     // CPU BLAS

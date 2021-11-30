@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -44,30 +44,32 @@ ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_double_complex
 #define NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, err, NEAR_ASSERT)
 #else
 
-#define NEAR_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, err, NEAR_ASSERT)               \
-    do                                                                                          \
-    {                                                                                           \
-        for(size_t k = 0; k < batch_count; k++)                                                 \
-            for(size_t j = 0; j < N; j++)                                                       \
-                for(size_t i = 0; i < M; i++)                                                   \
-                    NEAR_ASSERT(                                                                \
-                        hCPU[i + j * lda + k * strideA], hGPU[i + j * lda + k * strideA], err); \
+#define NEAR_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, err, NEAR_ASSERT) \
+    do                                                                            \
+    {                                                                             \
+        for(size_t k = 0; k < batch_count; k++)                                   \
+            for(size_t j = 0; j < N; j++)                                         \
+                for(size_t i = 0; i < M; i++)                                     \
+                    NEAR_ASSERT(hCPU[i + j * size_t(lda) + k * strideA],          \
+                                hGPU[i + j * size_t(lda) + k * strideA],          \
+                                err);                                             \
     } while(0)
 
-#define NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, err, NEAR_ASSERT)            \
-    do                                                                                \
-    {                                                                                 \
-        for(size_t k = 0; k < batch_count; k++)                                       \
-            for(size_t j = 0; j < N; j++)                                             \
-                for(size_t i = 0; i < M; i++)                                         \
-                    if(rocblas_isnan(hCPU[k][i + j * lda]))                           \
-                    {                                                                 \
-                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * lda]));             \
-                    }                                                                 \
-                    else                                                              \
-                    {                                                                 \
-                        NEAR_ASSERT(hCPU[k][i + j * lda], hGPU[k][i + j * lda], err); \
-                    }                                                                 \
+#define NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, err, NEAR_ASSERT)                    \
+    do                                                                                        \
+    {                                                                                         \
+        for(size_t k = 0; k < batch_count; k++)                                               \
+            for(size_t j = 0; j < N; j++)                                                     \
+                for(size_t i = 0; i < M; i++)                                                 \
+                    if(rocblas_isnan(hCPU[k][i + j * size_t(lda)]))                           \
+                    {                                                                         \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * size_t(lda)]));             \
+                    }                                                                         \
+                    else                                                                      \
+                    {                                                                         \
+                        NEAR_ASSERT(                                                          \
+                            hCPU[k][i + j * size_t(lda)], hGPU[k][i + j * size_t(lda)], err); \
+                    }                                                                         \
     } while(0)
 
 #endif

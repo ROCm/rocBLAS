@@ -67,4 +67,26 @@ if command -v clang-format >/dev/null; then
             git add -u "$file"
         fi
     done
+else 
+    echo "clang-format command not found, skipping file formatting."
+    # exit 127 
+fi
+
+# Perform cppcheck for added or modified files
+# if cppcheck exists, run it on C/C++ files
+if command -v cppcheck >/dev/null; then
+    for file in $files; do
+        [[ -L $file ]] && continue
+        if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'; then
+            echo "cppcheck for $file"
+            cppcheck --enable=all --inconclusive --library=googletest --inline-suppr \
+                    -i./build --suppressions-list=./CppCheckSuppressions.txt \
+                    --template="{file}:{line}: {severity}: {id} :{message}" \
+                    --error-exitcode=1 "$file"
+            exit $?
+        fi
+    done
+else
+    echo "cppcheck command not found, skipping static analysis."
+    # exit 127
 fi

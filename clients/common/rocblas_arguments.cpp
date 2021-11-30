@@ -71,7 +71,7 @@ void Arguments::init()
     d_type       = rocblas_datatype_f32_r;
     compute_type = rocblas_datatype_f32_r;
 
-    initialization = rocblas_initialization::rand_int;
+    initialization = rocblas_initialization::hpl;
 
     atomics_mode = rocblas_atomics_allowed;
 
@@ -130,6 +130,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                  
         CASE(rocblas_initialization::rand_int);
         CASE(rocblas_initialization::trig_float);
         CASE(rocblas_initialization::hpl);
+        CASE(rocblas_initialization::special);
     }
     return os << "unknown";
 }
@@ -155,6 +156,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Argumen
 
     // Print each (name, value) tuple pair
 #define NAME_VALUE_PAIR(NAME) print_pair(#NAME, arg.NAME)
+    // cppcheck-suppress unknownMacro
     FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, ;);
 
     // Closing brace

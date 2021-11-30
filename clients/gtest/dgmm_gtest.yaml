@@ -17,13 +17,13 @@ Definitions:
 
   - &small_matrix_size_range
     - { M:     2, N:     2, lda:     2, incx:     0, ldc:     2 } # incx = 0
-    - { M:     3, N:     3, lda:     3, incx:     1, ldc:     3 }
+    - { M:     3, N:     3, lda:     3, incx:    -1, ldc:     3 }
     - { M:     3, N:    33, lda:    35, incx:     2, ldc:    35 }
     - { M:    10, N:    11, lda:   100, incx:     3, ldc:    13 }
 
   - &large_matrix_size_range
     - { M:   192, N:   193, lda:   194, incx:     1, ldc:   196 }
-    - { M:   640, N:   641, lda:   960, incx:     2, ldc:   962 }
+    - { M:   640, N:   641, lda:   960, incx:    -2, ldc:   962 }
     - { M:  1001, N:  1000, lda:  1003, incx:     3, ldc:  1001 }
 
   - &huge_matrix_size_range
@@ -36,6 +36,16 @@ Tests:
   precision: *single_precision
   side: [R]
   fortran: [ false, true ]
+
+- name: dgmm_size_t
+  category: nightly
+  function: dgmm
+  precision: *single_precision
+  side: [R]
+  matrix_size:
+    - { M:  4, N:  51200, lda:  51200, incx:     1, ldc:       4}
+  batch_count: [        1    ]
+  fortran: [ false ]
 
 - name: dgmm_batched_bad_arg
   category: quick

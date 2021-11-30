@@ -426,15 +426,21 @@ void testing_gemm_ext2(const Arguments& arg)
     const size_t size_B = size_t(col_stride_b) * size_t(B_col);
     const size_t size_C = size_t(col_stride_c) * size_t(N);
     const size_t size_D = size_t(col_stride_d) * size_t(N);
+    const size_t max_CD = std::max(size_C, size_D);
 
     // allocate memory on device
     device_vector<Ti> dA(size_A);
     device_vector<Ti> dB(size_B);
-    device_vector<To> dC(size_C);
-    device_vector<To> dD(size_D);
+
+    // if C!=D, allocate C and D normally
+    // if C==D, allocate C big enough for the larger of C and D; D points to C
+    device_vector<To> dC
+        = (arg.c_noalias_d) ? device_vector<To>(size_C) : device_vector<To>(max_CD);
+    device_vector<To>  dD    = (arg.c_noalias_d) ? device_vector<To>(size_D) : device_vector<To>(0);
+    device_vector<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
-
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -446,8 +452,6 @@ void testing_gemm_ext2(const Arguments& arg)
     host_vector<Ti> hA(size_A);
     host_vector<Ti> hB(size_B);
     host_vector<To> hC(size_C);
-    host_vector<To> hC_1(size_C);
-    host_vector<To> hC_2(size_C);
     host_vector<To> hD_1(size_D);
     host_vector<To> hD_2(size_D);
     using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
@@ -543,8 +547,6 @@ void testing_gemm_ext2(const Arguments& arg)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(To) * size_D, hipMemcpyHostToDevice));
-
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ext2_fn(handle,
                                                  M,
                                                  N,
@@ -563,7 +565,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  arg.c_type,
                                                  row_stride_c,
                                                  col_stride_c,
-                                                 dD,
+                                                 dDref,
                                                  arg.d_type,
                                                  row_stride_d,
                                                  col_stride_d,
@@ -572,12 +574,11 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  solution_index,
                                                  flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_1, dDref, sizeof(To) * size_D, hipMemcpyDeviceToHost));
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2, sizeof(To) * size_D, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_C, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ext2_fn(handle,
@@ -598,7 +599,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  arg.c_type,
                                                  row_stride_c,
                                                  col_stride_c,
-                                                 dD,
+                                                 dDref,
                                                  arg.d_type,
                                                  row_stride_d,
                                                  col_stride_d,
@@ -607,8 +608,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  solution_index,
                                                  flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_2, dDref, sizeof(To) * size_D, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -686,10 +686,10 @@ void testing_gemm_ext2(const Arguments& arg)
                                                      arg.c_type,
                                                      row_stride_c,
                                                      col_stride_c,
-                                                     arg.c_noalias_d ? dD : dC,
-                                                     arg.c_noalias_d ? arg.d_type : arg.c_type,
-                                                     arg.c_noalias_d ? row_stride_d : row_stride_c,
-                                                     arg.c_noalias_d ? col_stride_d : col_stride_c,
+                                                     dDref,
+                                                     arg.d_type,
+                                                     row_stride_d,
+                                                     col_stride_d,
                                                      arg.compute_type,
                                                      algo,
                                                      solution_index,
@@ -719,10 +719,10 @@ void testing_gemm_ext2(const Arguments& arg)
                                  arg.c_type,
                                  row_stride_c,
                                  col_stride_c,
-                                 arg.c_noalias_d ? dD : dC,
-                                 arg.c_noalias_d ? arg.d_type : arg.c_type,
-                                 arg.c_noalias_d ? row_stride_d : row_stride_c,
-                                 arg.c_noalias_d ? col_stride_d : row_stride_d,
+                                 dDref,
+                                 arg.d_type,
+                                 row_stride_d,
+                                 col_stride_d,
                                  arg.compute_type,
                                  algo,
                                  solution_index,

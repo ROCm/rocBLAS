@@ -304,7 +304,10 @@ void testing_gemv_batched(const Arguments& arg)
     else
     {
         rocblas_init(hA, true);
-        rocblas_init(hx, false);
+        for(int b = 0; b < batch_count; b++)
+        {
+            rocblas_init_alternating_sign(hx[b], 1, dim_x, abs_incx);
+        }
     }
 
     if(arg.beta_isnan<T>())

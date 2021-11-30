@@ -13,9 +13,6 @@
 #include <string>
 #include <sys/types.h>
 #ifdef WIN32
-//
-// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
-//
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
 #else
@@ -39,6 +36,8 @@ static std::string rocblas_parse_yaml(const std::string& yaml)
 
 #ifdef WIN32
     int status = std::system(cmd.c_str());
+    if(status == -1)
+        exit(EXIT_FAILURE);
 #else
     int status = system(cmd.c_str());
     if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))

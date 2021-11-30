@@ -1,5 +1,5 @@
 /*
-Copyright 2019-2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright 2019-2021 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -101,8 +101,10 @@ int main(int argc, char** argv)
     // upload asynchronously from pinned memory
     rstatus
         = rocblas_set_matrix_async(rows, cols, sizeof(data_type), ha, lda, da, lddev, test_stream);
+    CHECK_ROCBLAS_STATUS(rstatus);
     rstatus
         = rocblas_set_matrix_async(rows, cols, sizeof(data_type), ha, lda, db, lddev, test_stream);
+    CHECK_ROCBLAS_STATUS(rstatus);
 
     // scalar arguments will be from host memory
     rstatus = rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host);

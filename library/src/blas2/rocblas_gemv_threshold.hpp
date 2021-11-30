@@ -11,3 +11,7 @@ constexpr int zgemvn_gfx908_threshold       = 18000;
 constexpr int gemvn_gfx906_threshold        = 6000;
 constexpr int dgemvn_gfx906_lower_threshold = 15000;
 constexpr int dgemvn_gfx906_upper_threshold = 24000;
+constexpr int gemvt_threshold               = 6000;
+
+// Threshold values of (M, N) in gfx1030
+constexpr int sgemvt_gfx1030_threshold = 4000;

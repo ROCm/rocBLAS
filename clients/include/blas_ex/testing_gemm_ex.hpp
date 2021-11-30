@@ -527,13 +527,20 @@ void testing_gemm_ex(const Arguments& arg)
     const size_t size_B      = size_t(ldb) * size_t(B_col);
     const size_t size_C      = size_t(ldc) * size_t(N);
     const size_t size_D      = size_t(ldd) * size_t(N);
+    const size_t max_CD      = std::max(size_C, size_D);
     const size_t size_D_copy = arg.unit_check || arg.norm_check ? size_D : 0;
 
     // allocate memory on device
     device_vector<Ti> dA(size_A);
     device_vector<Ti> dB(size_B);
-    device_vector<To> dC(size_C);
-    device_vector<To> dD(size_D);
+
+    // if C!=D, allocate C and D normally
+    // if C==D, allocate C big enough for the larger of C and D; D points to C
+    device_vector<To> dC
+        = (arg.c_noalias_d) ? device_vector<To>(size_C) : device_vector<To>(max_CD);
+    device_vector<To>  dD    = (arg.c_noalias_d) ? device_vector<To>(size_D) : device_vector<To>(0);
+    device_vector<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -550,6 +557,8 @@ void testing_gemm_ex(const Arguments& arg)
     host_vector<To> hD_1(size_D_copy);
     using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
     host_vector<To_hpa> hD_gold(size_D_copy);
+
+    bool alt = (rocblas_gemm_flags_fp16_alt_impl & flags);
 
     rocblas_seedrand();
 
@@ -576,6 +585,11 @@ void testing_gemm_ex(const Arguments& arg)
             rocblas_init_hpl<Ti>(hA, A_row, A_col, lda);
             rocblas_init_hpl<Ti>(hB, B_row, B_col, ldb);
         }
+        else if(arg.initialization == rocblas_initialization::special)
+        {
+            rocblas_init_alt_impl_big<Ti>(hA, A_row, A_col, lda);
+            rocblas_init_alt_impl_small<Ti>(hB, B_row, B_col, ldb);
+        }
         else
         {
 #ifdef GOOGLE_TEST
@@ -599,6 +613,8 @@ void testing_gemm_ex(const Arguments& arg)
             rocblas_init_sin<To>(hC, M, N, ldc);
         else if(arg.initialization == rocblas_initialization::hpl)
             rocblas_init_hpl<To>(hC, M, N, ldc);
+        else if(arg.initialization == rocblas_initialization::special)
+            rocblas_init<To>(hC, M, N, ldc);
     }
     if(size_D_copy)
     {
@@ -606,7 +622,8 @@ void testing_gemm_ex(const Arguments& arg)
         hD_gold = hD_1;
     }
 
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
+    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{}
+       && arg.initialization != rocblas_initialization::special)
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -684,8 +701,6 @@ void testing_gemm_ex(const Arguments& arg)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(To) * size_D, hipMemcpyHostToDevice));
-
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
                                                transA,
                                                transB,
@@ -703,7 +718,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                dC,
                                                arg.c_type,
                                                ldc,
-                                               dD,
+                                               dDref,
                                                arg.d_type,
                                                ldd,
                                                arg.compute_type,
@@ -711,11 +726,12 @@ void testing_gemm_ex(const Arguments& arg)
                                                solution_index,
                                                flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hipMemcpy(hD_1, dDref, sizeof(To) * size_D, hipMemcpyDeviceToHost));
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_gold, sizeof(To) * size_D, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_C, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
@@ -735,7 +751,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                dC,
                                                arg.c_type,
                                                ldc,
-                                               dD,
+                                               dDref,
                                                arg.d_type,
                                                ldd,
                                                arg.compute_type,
@@ -752,7 +768,7 @@ void testing_gemm_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         cblas_gemm<Ti, To_hpa, Tc>(
-            transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd);
+            transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd, alt);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -783,7 +799,7 @@ void testing_gemm_ex(const Arguments& arg)
         }
 
         // fetch device mode GPU results
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_1, dDref, sizeof(To) * size_D, hipMemcpyDeviceToHost));
 
         if(arg.unit_check)
         {
@@ -833,9 +849,9 @@ void testing_gemm_ex(const Arguments& arg)
                                                    dC,
                                                    arg.c_type,
                                                    ldc,
-                                                   arg.c_noalias_d ? dD : dC,
-                                                   arg.c_noalias_d ? arg.d_type : arg.c_type,
-                                                   arg.c_noalias_d ? ldd : ldc,
+                                                   dDref,
+                                                   arg.d_type,
+                                                   ldd,
                                                    arg.compute_type,
                                                    algo,
                                                    solution_index,
@@ -864,9 +880,9 @@ void testing_gemm_ex(const Arguments& arg)
                                dC,
                                arg.c_type,
                                ldc,
-                               arg.c_noalias_d ? dD : dC,
-                               arg.c_noalias_d ? arg.d_type : arg.c_type,
-                               arg.c_noalias_d ? ldd : ldc,
+                               dDref,
+                               arg.d_type,
+                               ldd,
                                arg.compute_type,
                                algo,
                                solution_index,
