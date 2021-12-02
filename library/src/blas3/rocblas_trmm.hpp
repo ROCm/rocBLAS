@@ -13,9 +13,8 @@ ROCBLAS_KERNEL void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                                          TScal          alpha_device_host,
                                                          rocblas_stride stride_alpha,
                                                          TPtr           Aa,
-                                                         rocblas_int    offsetA,
                                                          rocblas_int    lda,
-                                                         rocblas_stride strideA);
+                                                         rocblas_stride a_st_or_of);
 
 template <typename TScal, typename TPtr>
 rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
@@ -24,9 +23,8 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
                                                       TScal          alpha,
                                                       rocblas_stride stride_alpha,
                                                       TPtr           A,
-                                                      rocblas_int    offsetA,
                                                       rocblas_int    lda,
-                                                      rocblas_stride strideA,
+                                                      rocblas_stride a_st_or_of,
                                                       rocblas_int    batch_count);
 
 template <int  NB,
@@ -77,12 +75,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                      TScal*            alpha,
                                                      rocblas_stride    stride_alpha,
                                                      TConstPtr*        dA,
-                                                     rocblas_int       offset_a,
-                                                     rocblas_int       ldda,
+                                                     rocblas_stride    offset_a,
+                                                     rocblas_int       lda,
                                                      rocblas_stride    stride_a,
                                                      TPtr*             dB,
-                                                     rocblas_int       offset_b,
-                                                     rocblas_int       lddb,
+                                                     rocblas_stride    offset_b,
+                                                     rocblas_int       ldb,
                                                      rocblas_stride    stride_b,
                                                      rocblas_int       batch_count);
 
