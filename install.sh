@@ -30,6 +30,8 @@ rocBLAS build & installation helper script.
     -c, --clients                    Build the library clients benchmark and gtest.
                                      (Generated binaries will be located at builddir/clients/staging)
 
+    --clients_no_fortran             When building clients, build them without Fortran API testing or Fortran examples
+
     --clients-only                   Skip building the library and only build the clients with a pre-built library.
 
     --cpu_ref_lib  <lib>             Specify library to use for CPU reference code in testing (blis or lapack)
@@ -380,6 +382,7 @@ build_jobs=$(nproc)
 build_library=true
 build_cleanup=false
 build_clients=false
+build_clients_no_fortran=false
 use_cuda=false
 build_tensile=true
 cpu_ref_lib=blis
@@ -409,7 +412,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -446,6 +449,9 @@ while true; do
     --clients-only)
         build_library=false
         build_clients=true
+        shift ;;
+    --clients_no_fortran)
+        build_clients_no_fortran=true
         shift ;;
     --library-path)
         library_dir_installed=${2}
@@ -746,6 +752,9 @@ pushd .
 
   if [[ "${build_clients}" == true ]]; then
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS} -DBUILD_DIR=${build_dir}"
+    if [[ "${build_clients_no_fortran}" == true ]]; then
+      cmake_client_options="${cmake_client_options} -DBUILD_FORTRAN_CLIENTS=OFF"
+    fi
   fi
 
   if [[ "${build_library}" == false ]]; then

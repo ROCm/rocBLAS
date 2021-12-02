@@ -174,15 +174,18 @@ if(BUILD_CODE_COVERAGE)
   add_link_options(--coverage)
 endif()
 
+include( clients/cmake/build-options.cmake )
+
 # FOR OPTIONAL ADDRESS SANITIZER
 option(BUILD_ADDRESS_SANITIZER "Build with address sanitizer enabled" OFF)
 if(BUILD_ADDRESS_SANITIZER AND BUILD_SHARED_LIBS)
+  # Fortran not supported, add_link_options below invalid for fortran linking
+  set(BUILD_FORTRAN_CLIENTS OFF)
+
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -shared-libasan")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -shared-libasan")
   add_link_options(-fuse-ld=lld)
 endif()
-
-include( clients/cmake/build-options.cmake )
 
 # force library install path to lib (CentOS 7 defaults to lib64)
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)

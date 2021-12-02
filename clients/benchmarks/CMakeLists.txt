@@ -8,8 +8,6 @@ set(rocblas_bench_source
 
 add_executable( rocblas-bench ${rocblas_bench_source} ${rocblas_test_bench_common} )
 
-target_compile_definitions( rocblas-bench PRIVATE ${TENSILE_DEFINES} )
-
 # Internal header includes
 target_include_directories( rocblas-bench
   PRIVATE
@@ -29,7 +27,7 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
 )
 
-if( NOT WIN32 )
+if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client )
 endif( )
 
@@ -54,13 +52,19 @@ if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
-target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
+target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ${TENSILE_DEFINES} )
+if ( NOT BUILD_FORTRAN_CLIENTS )
+  target_compile_definitions( rocblas-bench PRIVATE CLIENTS_NO_FORTRAN )
+endif()
 
 target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 # target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
 if (NOT WIN32)
   target_link_libraries( rocblas-bench PRIVATE lapack cblas )
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+  if (NOT BUILD_FORTRAN_CLIENTS)
+    list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
+  endif()
 else()
   list( APPEND COMMON_LINK_LIBS "libomp")
 endif()
