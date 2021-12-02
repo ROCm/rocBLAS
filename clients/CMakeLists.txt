@@ -17,12 +17,12 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
 endif()
 
 # This project may compile dependencies for clients
-if (NOT WIN32)
+if ( BUILD_FORTRAN_CLIENTS )
   set( fortran_language "Fortran" )
 endif()
 project( rocblas-clients LANGUAGES CXX C ${fortran_language} )
 
-if ( NOT WIN32 )
+if ( BUILD_FORTRAN_CLIENTS )
   set(rocblas_f90_source_clients
       include/rocblas_fortran.f90
   )
@@ -117,7 +117,7 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
                 )
   endif()
 
-  # common source files used in subdirectories benchmarks and gtest thus ../common 
+  # common source files used in subdirectories benchmarks and gtest thus ../common
   set( rocblas_test_bench_common
       ../common/singletons.cpp
       ../common/utility.cpp
@@ -128,7 +128,7 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
       ../common/rocblas_parse_data.cpp
       ${BLIS_CPP}
     )
-    
+
   if( BUILD_CLIENTS_BENCHMARKS )
     add_subdirectory( benchmarks )
   endif( )

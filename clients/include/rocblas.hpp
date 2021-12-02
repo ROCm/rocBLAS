@@ -8,10 +8,10 @@
 /* library headers */
 
 #include "rocblas.h"
-#ifndef WIN32
-#include "rocblas_fortran.hpp"
-#else
+#ifdef CLIENTS_NO_FORTRAN
 #include "rocblas_no_fortran.hpp"
+#else
+#include "rocblas_fortran.hpp"
 #endif
 
 #include "../../library/src/include/utility.hpp"
@@ -25,7 +25,7 @@
 #define GET_MACRO(_1, _2, _3, _4, _5, NAME, ...) NAME
 #define MAP2CF(...) GET_MACRO(__VA_ARGS__, MAP2CF5, MAP2CF4, MAP2CF3, dum2, dum1)(__VA_ARGS__)
 
-#ifndef WIN32
+#ifndef CLIENTS_NO_FORTRAN
 #define MAP2CF3(FN, A, PFN)         \
     template <>                     \
     static auto FN<A, false> = PFN; \
