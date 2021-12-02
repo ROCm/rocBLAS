@@ -159,7 +159,7 @@ namespace
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-                handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
+                handle, m, n, alpha, 0, b, ldb, stride_b, batch_count));
             return rocblas_status_success;
         }
         else if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -169,34 +169,36 @@ namespace
             // it should not be copied from device to host because this is
             // an asynchronous function and the copy would make it synchronous.
             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-                handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
+                handle, m, n, alpha, 0, b, ldb, stride_b, batch_count));
         }
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && !a)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_internal_trmm_template<STOPPING_NB, false, T>(handle,
-                                                                     side,
-                                                                     uplo,
-                                                                     transa,
-                                                                     diag,
-                                                                     m,
-                                                                     n,
-                                                                     alpha,
-                                                                     stride_alpha,
-                                                                     a,
-                                                                     offset_a,
-                                                                     lda,
-                                                                     stride_a,
-                                                                     (const T*)b,
-                                                                     offset_b,
-                                                                     ldb,
-                                                                     stride_b,
-                                                                     b,
-                                                                     offset_b,
-                                                                     ldb,
-                                                                     stride_b,
-                                                                     batch_count);
+        constexpr bool BATCHED = false;
+
+        return rocblas_internal_trmm_template<STOPPING_NB, BATCHED, T>(handle,
+                                                                       side,
+                                                                       uplo,
+                                                                       transa,
+                                                                       diag,
+                                                                       m,
+                                                                       n,
+                                                                       alpha,
+                                                                       stride_alpha,
+                                                                       a,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       (const T*)b,
+                                                                       offset_b,
+                                                                       ldb,
+                                                                       stride_b,
+                                                                       b,
+                                                                       offset_b,
+                                                                       ldb,
+                                                                       stride_b,
+                                                                       batch_count);
     }
 
 } // namespace
