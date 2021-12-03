@@ -141,7 +141,6 @@ Tests:
   diag: [N]
   fortran: [ false, true ]
 
-#TODO
 - name: trmm_size_t
   category: nightly
   function:
@@ -153,7 +152,7 @@ Tests:
   diag: [U]
   matrix_size:
      - { M:  51200,  N:     4,  lda:     4, ldb:   51200, ldc: 51200 }
-#    - { M:      1,  N: 51200,  lda: 51200, ldb:       1, ldc:     1 }
+     - { M:      1,  N: 51200,  lda: 51200, ldb:       1, ldc:     1 }
   alpha: [ 1 ]
 
 - name: trmm_batched_small

@@ -153,7 +153,7 @@ namespace
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-                handle, m, n, alpha, 0, c, offset_c, ldc, stride_c, batch_count));
+                handle, m, n, alpha, 0, c, ldc, offset_c, batch_count));
             return rocblas_status_success;
         }
         else if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -163,7 +163,7 @@ namespace
             // it should not be copied from device to host because this is
             // an asynchronous function and the copy would make it synchronous.
             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-                handle, m, n, alpha, 0, c, offset_c, ldc, stride_c, batch_count));
+                handle, m, n, alpha, 0, c, ldc, offset_c, batch_count));
         }
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && !a)

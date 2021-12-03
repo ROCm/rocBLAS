@@ -73,14 +73,20 @@ set(rocblas_no_tensile_test_source
 
 # Keep ${rocblas_tensile_test_source} first, so that multiheaded tests are the
 # first to initialize Tensile.
-if (NOT WIN32)
+if ( BUILD_FORTRAN_CLIENTS )
   add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} $<TARGET_OBJECTS:rocblas_fortran> ${rocblas_test_bench_common} )
 else()
   add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} ${rocblas_test_bench_common} )
+endif()
+
+if (WIN32)
   target_compile_definitions( rocblas-test PRIVATE _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING )
 endif()
 
 target_compile_definitions( rocblas-test PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST )
+if ( NOT BUILD_FORTRAN_CLIENTS )
+  target_compile_definitions( rocblas-test PRIVATE CLIENTS_NO_FORTRAN )
+endif()
 
 # Internal header includes
 target_include_directories( rocblas-test
@@ -102,7 +108,7 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
 )
 
-if( NOT WIN32 )
+if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client )
 endif( )
 target_link_libraries( rocblas-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas )
@@ -133,6 +139,9 @@ target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_C
 if (NOT WIN32)
   target_link_libraries( rocblas-test PRIVATE lapack cblas )
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+  if (NOT BUILD_FORTRAN_CLIENTS)
+    list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
+  endif()
 else()
   list( APPEND COMMON_LINK_LIBS "libomp")
 endif()
