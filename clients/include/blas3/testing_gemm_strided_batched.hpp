@@ -18,6 +18,295 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+/* ============================================================================================ */
+template <typename T>
+void testing_gemm_strided_batched_bad_arg(const Arguments& arg)
+{
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        auto rocblas_gemm_strided_batched_fn = arg.fortran ? rocblas_gemm_strided_batched<T, true>
+                                                           : rocblas_gemm_strided_batched<T, false>;
+
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transB = rocblas_operation_none;
+
+        const rocblas_int M = 100;
+        const rocblas_int N = 100;
+        const rocblas_int K = 100;
+
+        const rocblas_int lda = 100;
+        const rocblas_int ldb = 100;
+        const rocblas_int ldc = 100;
+
+        const rocblas_int stride_a = 100 * 100;
+        const rocblas_int stride_b = 100 * 100;
+        const rocblas_int stride_c = 100 * 100;
+
+        const rocblas_int batch_count = 1;
+
+        device_vector<T> alpha_d(1), beta_d(1), zero_d(1);
+        const T          alpha_h(1), beta_h(1), zero_h(0);
+
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* zero  = &zero_h;
+
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
+
+        rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+        int32_t           solution_index = 0;
+        rocblas_int       flags          = 0;
+
+        const size_t safe_size = stride_c;
+
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
+
+        // allocate memory on device
+        device_vector<T> dA(safe_size);
+        device_vector<T> dB(safe_size);
+        device_vector<T> dC(safe_size);
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              nullptr,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              nullptr,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              nullptr,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              nullptr,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              nullptr,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(nullptr,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_invalid_handle);
+
+        // If batch_count==0, then all pointers can be nullptr without issue
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              nullptr,
+                                                              nullptr,
+                                                              lda,
+                                                              stride_a,
+                                                              nullptr,
+                                                              ldb,
+                                                              stride_b,
+                                                              nullptr,
+                                                              nullptr,
+                                                              ldc,
+                                                              stride_c,
+                                                              0),
+                              rocblas_status_success);
+
+        // If M==0, then all pointers can be nullptr without issue
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              0,
+                                                              N,
+                                                              K,
+                                                              nullptr,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              nullptr,
+                                                              ldb,
+                                                              stride_b,
+                                                              nullptr,
+                                                              nullptr,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_success);
+
+        // If N==0, then all pointers can be nullptr without issue
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              0,
+                                                              K,
+                                                              nullptr,
+                                                              nullptr,
+                                                              lda,
+                                                              stride_a,
+                                                              nullptr,
+                                                              ldb,
+                                                              stride_b,
+                                                              nullptr,
+                                                              nullptr,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_success);
+
+        // the following tests still output to C
+
+        // If K==0, then A and B can both be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              0,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_success);
+
+        // If alpha==0, then A and B can both be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              zero,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_success);
+    }
+}
+
 template <typename T>
 void testing_gemm_strided_batched(const Arguments& arg)
 {

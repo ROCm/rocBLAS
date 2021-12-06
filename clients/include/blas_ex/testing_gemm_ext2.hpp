@@ -16,6 +16,7 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
+#include "type_dispatch.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -73,29 +74,43 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
         const rocblas_stride row_stride_c = 0, col_stride_c = ldc;
         const rocblas_stride row_stride_d = 1, col_stride_d = ldd;
 
-        const rocblas_datatype a_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype b_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype c_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype d_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype compute_type = rocblas_datatype_f32_r;
+        const rocblas_datatype a_type       = rocblas_type2datatype<Ti>();
+        const rocblas_datatype b_type       = rocblas_type2datatype<Ti>();
+        const rocblas_datatype c_type       = rocblas_type2datatype<To>();
+        const rocblas_datatype d_type       = rocblas_type2datatype<To>();
+        const rocblas_datatype compute_type = rocblas_type2datatype<Tc>();
 
-        const float alpha_float = 1.0;
-        const float beta_float  = 1.0;
+        const rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+        int32_t                 solution_index = 0;
+        rocblas_int             flags          = 0;
 
-        const rocblas_gemm_algo algo      = rocblas_gemm_algo_standard;
-        static const size_t     safe_size = 100;
-
-        int32_t     solution_index = 0;
-        rocblas_int flags          = 0;
+        static const size_t safe_size = 100;
 
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
+        device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
+        const Tc          alpha_h(1), beta_h(1), zero_h(0);
+
+        const Tc* alpha = &alpha_h;
+        const Tc* beta  = &beta_h;
+        const Tc* zero  = &zero_h;
+
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
+
         // allocate memory on device
-        device_vector<float> dA(safe_size);
-        device_vector<float> dB(safe_size);
-        device_vector<float> dC(safe_size);
-        device_vector<float> dD(safe_size);
+        device_vector<Ti> dA(safe_size);
+        device_vector<Ti> dB(safe_size);
+        device_vector<To> dC(safe_size);
+        device_vector<To> dD(safe_size);
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -105,7 +120,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    M,
                                                    N,
                                                    K,
-                                                   &alpha_float,
+                                                   alpha,
                                                    nullptr,
                                                    a_type,
                                                    row_stride_a,
@@ -114,7 +129,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    b_type,
                                                    row_stride_b,
                                                    col_stride_b,
-                                                   &beta_float,
+                                                   beta,
                                                    dC,
                                                    c_type,
                                                    row_stride_c,
@@ -133,7 +148,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    M,
                                                    N,
                                                    K,
-                                                   &alpha_float,
+                                                   alpha,
                                                    dA,
                                                    a_type,
                                                    row_stride_a,
@@ -142,7 +157,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    b_type,
                                                    row_stride_b,
                                                    col_stride_b,
-                                                   &beta_float,
+                                                   beta,
                                                    dC,
                                                    c_type,
                                                    row_stride_c,
@@ -161,35 +176,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    M,
                                                    N,
                                                    K,
-                                                   &alpha_float,
-                                                   dA,
-                                                   a_type,
-                                                   row_stride_a,
-                                                   col_stride_a,
-                                                   dB,
-                                                   b_type,
-                                                   row_stride_b,
-                                                   col_stride_b,
-                                                   &beta_float,
-                                                   nullptr,
-                                                   c_type,
-                                                   row_stride_c,
-                                                   col_stride_c,
-                                                   dC,
-                                                   c_type,
-                                                   row_stride_c,
-                                                   col_stride_c,
-                                                   compute_type,
-                                                   algo,
-                                                   solution_index,
-                                                   flags),
-                              rocblas_status_invalid_pointer);
-
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ext2_fn(handle,
-                                                   M,
-                                                   N,
-                                                   K,
-                                                   &alpha_float,
+                                                   alpha,
                                                    dA,
                                                    a_type,
                                                    row_stride_a,
@@ -198,7 +185,35 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    b_type,
                                                    row_stride_b,
                                                    col_stride_b,
-                                                   &beta_float,
+                                                   beta,
+                                                   nullptr,
+                                                   c_type,
+                                                   row_stride_c,
+                                                   col_stride_c,
+                                                   dC,
+                                                   c_type,
+                                                   row_stride_c,
+                                                   col_stride_c,
+                                                   compute_type,
+                                                   algo,
+                                                   solution_index,
+                                                   flags),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ext2_fn(handle,
+                                                   M,
+                                                   N,
+                                                   K,
+                                                   alpha,
+                                                   dA,
+                                                   a_type,
+                                                   row_stride_a,
+                                                   col_stride_a,
+                                                   dB,
+                                                   b_type,
+                                                   row_stride_b,
+                                                   col_stride_b,
+                                                   beta,
                                                    dC,
                                                    c_type,
                                                    row_stride_c,
@@ -226,7 +241,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    b_type,
                                                    row_stride_b,
                                                    col_stride_b,
-                                                   &beta_float,
+                                                   beta,
                                                    dC,
                                                    c_type,
                                                    row_stride_c,
@@ -245,7 +260,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    M,
                                                    N,
                                                    K,
-                                                   &alpha_float,
+                                                   alpha,
                                                    dA,
                                                    a_type,
                                                    row_stride_a,
@@ -273,7 +288,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    M,
                                                    N,
                                                    K,
-                                                   &alpha_float,
+                                                   alpha,
                                                    dA,
                                                    a_type,
                                                    row_stride_a,
@@ -282,7 +297,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
                                                    b_type,
                                                    row_stride_b,
                                                    col_stride_b,
-                                                   &beta_float,
+                                                   beta,
                                                    dC,
                                                    c_type,
                                                    row_stride_c,
@@ -330,6 +345,8 @@ void testing_gemm_ext2(const Arguments& arg)
     auto A_col = transA == rocblas_operation_none ? K : M;
     auto B_row = transB == rocblas_operation_none ? K : N;
     auto B_col = transB == rocblas_operation_none ? N : K;
+
+    auto d_type = arg.d_type;
 
     // Row and column strides are based on transpose and leading dimensions
     rocblas_stride row_stride_a = transA == rocblas_operation_none ? 1 : lda;
@@ -422,20 +439,28 @@ void testing_gemm_ext2(const Arguments& arg)
     }
 #endif
 
+    // update after invalid checks
+    if(!arg.c_noalias_d)
+    {
+        // c alias of d must be identical descriptors
+        row_stride_d = row_stride_c;
+        col_stride_d = col_stride_c;
+        ldd          = ldc;
+        d_type       = arg.c_type;
+    }
+
     const size_t size_A = size_t(col_stride_a) * size_t(A_col);
     const size_t size_B = size_t(col_stride_b) * size_t(B_col);
     const size_t size_C = size_t(col_stride_c) * size_t(N);
     const size_t size_D = size_t(col_stride_d) * size_t(N);
-    const size_t max_CD = std::max(size_C, size_D);
 
     // allocate memory on device
     device_vector<Ti> dA(size_A);
     device_vector<Ti> dB(size_B);
 
     // if C!=D, allocate C and D normally
-    // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_vector<To> dC
-        = (arg.c_noalias_d) ? device_vector<To>(size_C) : device_vector<To>(max_CD);
+    // if C==D, allocate C normally and dummy D
+    device_vector<To>  dC    = device_vector<To>(size_C);
     device_vector<To>  dD    = (arg.c_noalias_d) ? device_vector<To>(size_D) : device_vector<To>(0);
     device_vector<To>& dDref = (arg.c_noalias_d) ? dD : dC;
 
@@ -520,11 +545,11 @@ void testing_gemm_ext2(const Arguments& arg)
         host_vector<Ti> hA_packed(hA);
 
         rocblas_packInt8(hA_packed, M, K, lda);
-        CHECK_HIP_ERROR(hipMemcpy(dA, hA_packed, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA.transfer_from(hA_packed));
     }
     else
     {
-        CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
     }
 
     // do packing only when pack_to_int8x4=true (int8x4)
@@ -534,14 +559,14 @@ void testing_gemm_ext2(const Arguments& arg)
         host_vector<Ti> hB_packed(hB);
 
         rocblas_packInt8(hB_packed, N, K, ldb);
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB_packed, sizeof(Ti) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB_packed));
     }
     else
     {
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Ti) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB));
     }
 
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_C, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -566,7 +591,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  row_stride_c,
                                                  col_stride_c,
                                                  dDref,
-                                                 arg.d_type,
+                                                 d_type,
                                                  row_stride_d,
                                                  col_stride_d,
                                                  arg.compute_type,
@@ -574,11 +599,14 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  solution_index,
                                                  flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dDref, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_C, hipMemcpyHostToDevice));
+        if(!arg.c_noalias_d)
+        {
+            CHECK_HIP_ERROR(dC.transfer_from(hC));
+        }
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ext2_fn(handle,
@@ -600,7 +628,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  row_stride_c,
                                                  col_stride_c,
                                                  dDref,
-                                                 arg.d_type,
+                                                 d_type,
                                                  row_stride_d,
                                                  col_stride_d,
                                                  arg.compute_type,
@@ -608,7 +636,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  solution_index,
                                                  flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_2, dDref, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -687,7 +715,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                                      row_stride_c,
                                                      col_stride_c,
                                                      dDref,
-                                                     arg.d_type,
+                                                     d_type,
                                                      row_stride_d,
                                                      col_stride_d,
                                                      arg.compute_type,
@@ -720,7 +748,7 @@ void testing_gemm_ext2(const Arguments& arg)
                                  row_stride_c,
                                  col_stride_c,
                                  dDref,
-                                 arg.d_type,
+                                 d_type,
                                  row_stride_d,
                                  col_stride_d,
                                  arg.compute_type,

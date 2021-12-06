@@ -15,6 +15,7 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
+#include "type_dispatch.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -29,6 +30,9 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
         auto rocblas_gemm_strided_batched_ex_fn = arg.fortran
                                                       ? rocblas_gemm_strided_batched_ex_fortran
                                                       : rocblas_gemm_strided_batched_ex;
+
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transB = rocblas_operation_none;
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
@@ -46,18 +50,27 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
 
         const rocblas_int batch_count = 1;
 
-        rocblas_datatype a_type       = rocblas_datatype_f32_r;
-        rocblas_datatype b_type       = rocblas_datatype_f32_r;
-        rocblas_datatype c_type       = rocblas_datatype_f32_r;
-        rocblas_datatype d_type       = rocblas_datatype_f32_r;
-        rocblas_datatype compute_type = rocblas_datatype_f32_r;
+        const rocblas_datatype a_type       = rocblas_type2datatype<Ti>();
+        const rocblas_datatype b_type       = rocblas_type2datatype<Ti>();
+        const rocblas_datatype c_type       = rocblas_type2datatype<To>();
+        const rocblas_datatype d_type       = rocblas_type2datatype<To>();
+        const rocblas_datatype compute_type = rocblas_type2datatype<Tc>();
 
-        device_vector<float> alpha_d(1), beta_d(1), zero_d(1);
-        const float          alpha_h(1), beta_h(1), zero_h(0);
+        rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+        int32_t           solution_index = 0;
+        rocblas_int       flags          = 0;
 
-        const float* alpha = &alpha_h;
-        const float* beta  = &beta_h;
-        const float* zero  = &zero_h;
+        const size_t safe_size = stride_d;
+
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
+
+        device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
+        const Tc          alpha_h(1), beta_h(1), zero_h(0);
+
+        const Tc* alpha = &alpha_h;
+        const Tc* beta  = &beta_h;
+        const Tc* zero  = &zero_h;
 
         if(pointer_mode == rocblas_pointer_mode_device)
         {
@@ -69,23 +82,11 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
             zero = zero_d;
         }
 
-        rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
-        int32_t           solution_index = 0;
-        rocblas_int       flags          = 0;
-
-        const size_t safe_size = 100;
-
-        const rocblas_operation transA = rocblas_operation_none;
-        const rocblas_operation transB = rocblas_operation_none;
-
-        rocblas_local_handle handle{arg};
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
-
         // allocate memory on device
-        device_vector<float> dA(safe_size);
-        device_vector<float> dB(safe_size);
-        device_vector<float> dC(safe_size);
-        device_vector<float> dD(safe_size);
+        device_vector<Ti> dA(safe_size);
+        device_vector<Ti> dB(safe_size);
+        device_vector<To> dC(safe_size);
+        device_vector<To> dD(safe_size);
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -404,8 +405,8 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                                  flags),
                               rocblas_status_success);
 
-// TODO: This does not pass right now. Need to allow nullptr A and B if K==0 || alpha==0
-#if 0
+        // the following tests still output to D
+
         // If K==0, then A and B can both be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex_fn(handle,
                                                                  transA,
@@ -469,7 +470,6 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                                  solution_index,
                                                                  flags),
                               rocblas_status_success);
-#endif
     }
 }
 
@@ -508,6 +508,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     auto   B_row       = transB == rocblas_operation_none ? K : N;
     auto   B_col       = transB == rocblas_operation_none ? N : K;
     auto   batch_count = arg.batch_count;
+    auto   d_type      = arg.d_type;
 
     // check for invalid sizes
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
@@ -637,12 +638,18 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         return;
     }
 #endif
+    // update after invalid checks
+    if(!arg.c_noalias_d)
+    {
+        ldd      = ldc;
+        stride_d = stride_c;
+        d_type   = arg.c_type;
+    }
 
     const size_t size_a = strided_batched_matrix_size(A_row, A_col, lda, stride_a, batch_count);
     const size_t size_b = strided_batched_matrix_size(B_row, B_col, ldb, stride_b, batch_count);
     const size_t size_c = strided_batched_matrix_size(M, N, ldc, stride_c, batch_count);
     const size_t size_d = strided_batched_matrix_size(M, N, ldd, stride_d, batch_count);
-    const size_t max_cd = std::max(size_c, size_d);
 
     // allocate memory on device
     device_vector<Ti> dA(size_a);
@@ -650,8 +657,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     // if C!=D, allocate C and D normally
     // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_vector<To> dC
-        = (arg.c_noalias_d) ? device_vector<To>(size_c) : device_vector<To>(max_cd);
+    device_vector<To>  dC    = device_vector<To>(size_c);
     device_vector<To>  dD    = (arg.c_noalias_d) ? device_vector<To>(size_d) : device_vector<To>(0);
     device_vector<To>& dDref = (arg.c_noalias_d) ? dD : dC;
 
@@ -825,11 +831,11 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         host_vector<Ti> hA_packed(hA);
 
         rocblas_packInt8(hA_packed, M, K, batch_count, lda, stride_a);
-        CHECK_HIP_ERROR(hipMemcpy(dA, hA_packed, sizeof(Ti) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA.transfer_from(hA_packed));
     }
     else
     {
-        CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Ti) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
     }
 
     // if int8 and B transposed and valid case, pack B
@@ -838,14 +844,14 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         host_vector<Ti> hB_packed(hB);
 
         rocblas_packInt8(hB_packed, N, K, batch_count, ldb, stride_b);
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB_packed, sizeof(Ti) * size_b, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB_packed));
     }
     else
     {
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Ti) * size_b, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB));
     }
 
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_c, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -872,7 +878,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                ldc,
                                                                stride_c,
                                                                dDref,
-                                                               arg.d_type,
+                                                               d_type,
                                                                ldd,
                                                                stride_d,
                                                                batch_count,
@@ -881,7 +887,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                solution_index,
                                                                flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dDref, sizeof(To) * size_d, hipMemcpyDeviceToHost));
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
 
 #if DEBUG_PRINT
         rocblas_cout << std::endl
@@ -897,7 +904,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_c, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
@@ -921,7 +928,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                ldc,
                                                                stride_c,
                                                                dDref,
-                                                               arg.d_type,
+                                                               d_type,
                                                                ldd,
                                                                stride_d,
                                                                batch_count,
@@ -930,7 +937,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                solution_index,
                                                                flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_2, dDref, sizeof(To) * size_d, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
 
 #if DEBUG_PRINT
         rocblas_cout << std::endl
@@ -1074,7 +1081,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                    ldc,
                                                                    stride_c,
                                                                    dDref,
-                                                                   arg.d_type,
+                                                                   d_type,
                                                                    ldd,
                                                                    stride_d,
                                                                    batch_count,
@@ -1111,7 +1118,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                ldc,
                                                stride_c,
                                                dDref,
-                                               arg.d_type,
+                                               d_type,
                                                ldd,
                                                stride_d,
                                                batch_count,

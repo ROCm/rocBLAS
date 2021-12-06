@@ -197,10 +197,12 @@ Definitions:
 
 
 Tests:
-- name: gemm_batched_bad_arg
+- name: gemm_xx_batched_bad_arg
   category: pre_checkin
   function:
+    - gemm_batched_bad_arg: *half_single_double_complex_real_precisions
     - gemm_batched_ex_bad_arg: *real_precisions
+    - gemm_batched_ex_bad_arg: *complex_precisions
   transA: N
   transB: N
   fortran: [ false, true ]
@@ -442,8 +444,10 @@ Tests:
 - name: gemm_batched_zerok
   category: quick
   function:
-    gemm_batched: { <<: *half_single_double_precisions, <<: *complex_precisions }
-    gemm_batched_ex: { <<: *real_precisions, <<: *complex_precisions }
+    gemm_batched: *half_single_double_precisions
+    gemm_batched: *complex_precisions
+    gemm_batched_ex: *real_precisions
+    gemm_batched_ex: *complex_precisions
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   K: 0
