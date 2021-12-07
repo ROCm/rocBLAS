@@ -55,10 +55,9 @@ def runTestCommand (platform, project, gfilter)
     def hmmTestCommand= ''
     if (platform.jenkinsLabel.contains('gfx90a'))
     {
-        hmmTestCommand = ""
-                        //  """
-                        //     HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
-                        //  """
+        hmmTestCommand = """
+                            HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
+                         """
     }
 
     if (platform.jenkinsLabel.contains('ubuntu'))
@@ -71,11 +70,10 @@ def runTestCommand (platform, project, gfilter)
                     if (( \$? != 0 )); then
                         exit 1
                     fi
-                    #Temporarily disable hmm tests
-                    #${hmmTestCommand}
-                    #if (( \$? != 0 )); then
-                    #    exit 1
-                    #fi
+                    ${hmmTestCommand}
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
                     mv build_BAK build
                     popd
                    """
@@ -89,11 +87,10 @@ def runTestCommand (platform, project, gfilter)
                     if (( \$? != 0 )); then
                         exit 1
                     fi
-                    #Temporarily disable hmm tests
-                    #${hmmTestCommand}
-                    #if (( \$? != 0 )); then
-                    #    exit 1
-                    #fi
+                    ${hmmTestCommand}
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
                    """
     }
 
