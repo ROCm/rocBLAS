@@ -15458,6 +15458,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
 
     alpha and beta are scalars, and A, B, C, and D are matrices, with
     op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
+    C and D may point to the same matrix if their parameters are identical.
 
     Supported types are as follows:
         - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
@@ -15591,6 +15592,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
     @param[out]
     d         [void *]
               device pointer storing matrix D.
+              If d and c pointers are to the same matrix then d_type must equal c_type and ldd must equal ldc
+              or the respective invalid status will be returned.
     @param[in]
     d_type    [rocblas_datatype]
               specifies the datatype of matrix D.
@@ -15709,6 +15712,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     C and D are m by n by batch_count batched matrices.
     The batched matrices are an array of pointers to matrices.
     The number of pointers to matrices is batch_count.
+    C and D may point to the same matrices if their parameters are identical.
+
     Supported types are as follows:
         - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
@@ -15749,6 +15754,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
           and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
    the size of
           the B_packed matrix is the same as the size of the B matrix.
+
     @code
     if(transA == rocblas_operation_none)
     {
@@ -15835,6 +15841,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     @param[out]
     d         [void *]
               device array of device pointers to each matrix D_i.
+              If d and c are the same array of matrix pointers then d_type must equal c_type and ldd must equal ldc
+              or the respective invalid status will be returned.
     @param[in]
     d_type    [rocblas_datatype]
               specifies the datatype of each matrix D_i.
@@ -15906,6 +15914,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     op( A ) an m by k by batch_count strided_batched matrix,
     op( B ) a k by n by batch_count strided_batched matrix and
     C and D are m by n by batch_count strided_batched matrices.
+    C and D may point to the same matrices if their parameters are identical.
 
     The strided_batched matrices are multiple matrices separated by a constant stride.
     The number of matrices is batch_count.
@@ -16047,6 +16056,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     @param[out]
     d         [void *]
               device pointer storing each matrix D_i.
+              If d and c pointers are to the same matrix then d_type must equal c_type and ldd must equal ldc
+              and stride_d must equal stride_c or the respective invalid status will be returned.
     @param[in]
     d_type    [rocblas_datatype]
               specifies the datatype of each matrix D_i.
