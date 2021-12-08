@@ -49,7 +49,7 @@ for the functions xMAX and xMIN. This is the same as Legacy BLAS and
 cuBLAS.
 
 If you need row-major and 0 based indexing (used in C language arrays)
-download the file cblas.tgz from the Netlib Repository. 
+download the file cblas.tgz from the Netlib Repository.
 Look at the CBLAS functions that provide a thin interface to
 Legacy BLAS. They convert from row-major, 0 based, to column-major, 1
 based. This is done by swapping the order of function arguments. It is
@@ -157,11 +157,11 @@ regardless of complex data type API choice.
 MI100 (gfx908) Considerations
 =============================
 
-On nodes with the MI100 (gfx908), MFMA instructions are available to
-substantially speed up matrix operations.  This hardware feature is
-used in all gemm and gemm based functions in rocBLAS with 32-bit
-or shorter base datatypes with an associated 32-bit compute_type
-(f32_r, i32_r or f32_c as appropriate).
+On nodes with the MI100 (gfx908), MFMA (Matrix-Fused-Multiply-Add)
+instructions are available to substantially speed up matrix operations.
+This hardware feature is used in all gemm and gemm based functions in
+rocBLAS with 32-bit or shorter base datatypes with an associated 32-bit
+compute_type (f32_r, i32_r or f32_c as appropriate).
 
 Specifically, rocBLAS takes advantage of MI100's MFMA instructions for
 three real base types f16_r, bf16_r and f32_r with compute_type f32_r,
@@ -178,17 +178,29 @@ MFMA instructions.
    Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
 
 
-gfx90a Considerations
-=====================
+MI200 (gfx90a) Considerations
+=============================
 
-On nodes with gfx90a, MFMA_F64 instructions are available to
+On nodes with the MI200 (gfx90a), MFMA_F64 instructions are available to
 substantially speed up double precision matrix operations.  This
 hardware feature is used in all GEMM and GEMM based functions in
 rocBLAS with 64-bit floating-point datatype, namely DGEMM, ZGEMM,
 DTRSM, ZTRSM, DTRMM, ZTRMM, DSYRKX and ZSYRKX.
 
+The MI200 MFMA_F16, MFMA_BF16, MFMA_BF16_1K and MFMA_F32 instructions
+flush subnormal input/output data ("denorms") to zero. It is observed that
+certain use cases utilizing the HPA (High Precision Accumulate) HGEMM
+kernels where a_type=b_type=c_type=d_type=f16_r and compute_type=f32_r
+do not tolerate the MI200's flush-denorms-to-zero behavior well
+due to F16's limited exponent range. An alternate implementation of the
+HPA HGEMM kernel utilizing the MFMA_BF16_1K instruction is provided which
+takes advantage of BF16's much larger exponent range, albeit with reduced
+accuracy.  To select the alternate implementation of HPA HGEMM with the
+gemm_ex/gemm_strided_batched_ex functions, for the flags argument, use
+the enum value of rocblas_gemm_flags_fp16_alt_impl.
+
 .. note::
 
-   The use of gfx90a's MFMA_F64 instructions is automatic.  There is no user control for on/off.
+   The use of MI200's MFMA instructions (including MFMA_F64) is automatic.  There is no user control for on/off.
 
-   Not all problem sizes may select MFMA_F64 based kernels; additional tuning may be needed to get good performance.
+   Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
