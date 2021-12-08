@@ -255,7 +255,12 @@ typedef enum rocblas_gemm_flags_
     * simultaneously. This takes precedence over the performance metric set in rocblas_handle and currently only works for
     * gemm_*_ex problems. */
     rocblas_gemm_flags_use_cu_efficiency = 0x2,
-    /*! \brief Select an alternate implementation for FP16 HPA if available */
+    /*! \brief Select an alternate implementation for the MI200 FP16 HPA
+    * (High Precision Accumulate) GEMM kernel utilizing the BF16 matrix
+    * instructions with reduced accuracy in cases where computation cannot
+    * tolerate the FP16 matrix instructions flushing subnormal FP16
+    * input/output data to zero. See "MI200 (gfx90a) Considerations"
+    * section for more details. */
     rocblas_gemm_flags_fp16_alt_impl = 0x4
 } rocblas_gemm_flags;
 
