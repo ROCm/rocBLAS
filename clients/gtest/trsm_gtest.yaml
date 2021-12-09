@@ -59,6 +59,9 @@ Definitions:
     - { M:  1024, N:  1024, lda:  1024, ldb:  1024 }
     # - { M:  2000, N:  2000, lda:  2000, ldb:  2000 }
 
+  - &large_memory_matrix_size_range
+    - { M: 8320, N: 128, lda: 8320, ldb: 8320 }
+
   - &substitution_size_range_thorough
     - { M:   1, N:  1, lda: 100, ldb: 100 }
     - { M:   1, N:  7, lda: 100, ldb: 100 }
@@ -547,6 +550,19 @@ Tests:
   alpha_beta: *complex_alpha_range
   stride_scale: [ 2 ]
   batch_count: [ 2 ]
+
+# nightly - large memory allocation
+# - name: trsm_batched_largememory
+#   category: nightly
+#   function: trsm_batched
+#   precision: *double_precision
+#   side: [L]
+#   uplo: [U]
+#   transA: [N]
+#   diag: [U]
+#   matrix_size: *large_memory_matrix_size_range
+#   alpha: [1]
+#   batch_count: [16]
 
 # nightly - many batches
 
