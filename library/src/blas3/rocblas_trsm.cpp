@@ -148,15 +148,15 @@ namespace
         //////////////////////
 
         // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
-        auto  w_mem = handle->device_malloc(0);
-        void* w_mem_x_temp;
-        void* w_mem_x_temp_arr;
-        void* w_mem_invA;
-        void* w_mem_invA_arr;
-
+        auto           w_mem = handle->device_malloc(0);
+        void*          w_mem_x_temp;
+        void*          w_mem_x_temp_arr;
+        void*          w_mem_invA;
+        void*          w_mem_invA_arr;
         rocblas_status perf_status
             = rocblas_internal_trsm_template_mem<BLOCK, false, T>(handle,
                                                                   side,
+                                                                  transA,
                                                                   m,
                                                                   n,
                                                                   1,

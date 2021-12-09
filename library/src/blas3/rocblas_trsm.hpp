@@ -1310,6 +1310,77 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
+inline bool
+    trsm_is_skinny(rocblas_side side, rocblas_operation transA, rocblas_int m, rocblas_int n)
+{
+    // TODO: work on logic here. This is somewhat data-driven right now, but can be taken further.
+    // We see optimizations for right-hand-side cases, along with smaller transpose cases, but just going to
+    // worry about this specific configuration for now, in a future release we can expand this.
+    return (side == rocblas_side_left && transA == rocblas_operation_none && m > n * 4 && m > 8192);
+}
+
+static const size_t rocblas_internal_trsm_reg_kernel_mem_limit = [] {
+    // 128 MB
+    // How much memory to limit usage of regular trsm_left and trsm_right kernels,
+    // when trsm_special can also be used, to increase performance
+    // i.e. reduce memory usage if possible if trying to allocate more than this amount of memory
+    constexpr size_t TRSM_REG_KERNEL_MEM_LIMIT = 128 * 1024 * 1024;
+    size_t           mem_limit;
+    const char*      env = getenv("ROCBLAS_INTERNAL_TRSM_REG_KERNEL_MEM_LIMIT");
+    return env && sscanf(env, "%zu", &mem_limit) == 1 ? mem_limit : TRSM_REG_KERNEL_MEM_LIMIT;
+}();
+
+template <rocblas_int BLOCK, bool BATCHED, typename T>
+inline bool trsm_use_special_kernel(rocblas_side      side,
+                                    rocblas_operation transA,
+                                    rocblas_int       m,
+                                    rocblas_int       n,
+                                    rocblas_int       batch_count,
+                                    rocblas_int       supplied_invA_size)
+{
+    // small sizes have their own kernel
+    if(m <= 64 || n <= 64)
+        return false;
+
+    rocblas_int k = side == rocblas_side_left ? m : n;
+
+    // to use the special kernel, k must be divisible by block.
+    // also, for skinny matrices, the regular kernels perform better
+    const bool exact_blocks = (k % BLOCK) == 0;
+    const bool is_skinny    = trsm_is_skinny(side, transA, m, n);
+
+    // if k is not divisible by BLOCK, we can't use the special kernel
+    if(!exact_blocks)
+        return false;
+
+    // if the matrix is not "skinny", go ahead with the special kernel
+    if(!is_skinny)
+        return true;
+
+    // If the matrix IS "skinny", see if we can allocate enough memory for the regular
+    // kernel without going over our defined memory limit
+
+    // Calculate needed memory for regular kernel
+    size_t invA_temp_bytes = 0;
+    size_t x_temp_bytes    = 0;
+    if(supplied_invA_size / BLOCK < k)
+    {
+        invA_temp_bytes = BLOCK * k * sizeof(T) * batch_count;
+
+        // When k < BLOCK, C is unnecessary for trtri
+        x_temp_bytes = ((k / BLOCK) * ((BLOCK / 2) * (BLOCK / 2))) * sizeof(T);
+
+        // don't need remainder bytes, because k is divisible by BLOCK here
+    }
+
+    x_temp_bytes = std::max(size_t(m) * n * sizeof(T) * batch_count, x_temp_bytes);
+    const size_t total_regular_kernel_req_mem
+        = x_temp_bytes + invA_temp_bytes + (BATCHED ? 2 * sizeof(T) * batch_count : 0);
+
+    // If the regular kernel as calculated here needs too much memory, use special kernel, otherwise use regular kernel.
+    return total_regular_kernel_req_mem > rocblas_internal_trsm_reg_kernel_mem_limit;
+}
+
 /*! \brief rocblas_internal_trsm_workspace_size
     Calculates needed memory allocation for trsm, does not allocate any memory.
     Note that for the batched version of trsm, we are also allocating memory to store the
@@ -1350,16 +1421,17 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
     ********************************************************************/
 template <rocblas_int BLOCK, bool BATCHED, typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsm_workspace_size(rocblas_side side,
-                                         rocblas_int  m,
-                                         rocblas_int  n,
-                                         rocblas_int  batch_count,
-                                         rocblas_int  supplied_invA_size,
-                                         size_t*      w_x_tmp_size,
-                                         size_t*      w_x_tmp_arr_size,
-                                         size_t*      w_invA_size,
-                                         size_t*      w_invA_arr_size,
-                                         size_t*      w_x_tmp_size_backup)
+    rocblas_internal_trsm_workspace_size(rocblas_side      side,
+                                         rocblas_operation transA,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       batch_count,
+                                         rocblas_int       supplied_invA_size,
+                                         size_t*           w_x_tmp_size,
+                                         size_t*           w_x_tmp_arr_size,
+                                         size_t*           w_invA_size,
+                                         size_t*           w_invA_arr_size,
+                                         size_t*           w_x_tmp_size_backup)
 {
     if(!w_x_tmp_size || !w_x_tmp_arr_size || !w_invA_size || !w_invA_arr_size
        || !w_x_tmp_size_backup)
@@ -1393,8 +1465,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     rocblas_int k = side == rocblas_side_left ? m : n;
 
-    // Whether size is an exact multiple of blocksize
+    // Whether size is an exact multiple of blocksize.
     const bool exact_blocks = (k % BLOCK) == 0;
+    const bool use_special  = trsm_use_special_kernel<BLOCK, BATCHED, T>(
+        side, transA, m, n, batch_count, supplied_invA_size);
 
     size_t invA_temp_bytes     = 0;
     size_t c_temp_bytes        = 0;
@@ -1420,7 +1494,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         }
     }
 
-    if(exact_blocks)
+    // non-special kernel (regular left/right kernel) when not exact blocks. Also used
+    // when exact_blocks, but is a skinny matrix, as this out-performs the special kernel
+    if(!use_special)
+    {
+        // When k % BLOCK != 0, we need m * n space
+        x_temp_bytes_backup = x_temp_bytes = size_t(m) * n * sizeof(T) * batch_count;
+    }
+
+    if(use_special)
     {
         // Optimal B_chunk_size is the orthogonal dimension to k
         size_t B_chunk_size = size_t(m) + size_t(n) - size_t(k);
@@ -1430,11 +1512,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         // backup memory allocation if initial allocation fails, only for exact blocks
         x_temp_bytes_backup = BLOCK * sizeof(T) * batch_count;
-    }
-    else
-    {
-        // When k % BLOCK != 0, we need m * n space
-        x_temp_bytes_backup = x_temp_bytes = size_t(m) * n * sizeof(T) * batch_count;
     }
 
     // X and C temporaries can share space, so the maximum size is allocated
@@ -1458,6 +1535,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
 rocblas_status rocblas_internal_trsm_template_mem(rocblas_handle              handle,
                                                   rocblas_side                side,
+                                                  rocblas_operation           transA,
                                                   rocblas_int                 m,
                                                   rocblas_int                 n,
                                                   rocblas_int                 batch_count,
@@ -1475,6 +1553,7 @@ rocblas_status rocblas_internal_trsm_template_mem(rocblas_handle              ha
     size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size, w_x_tmp_size_backup;
     rocblas_status memory_status
         = rocblas_internal_trsm_workspace_size<BLOCK, BATCHED, T>(side,
+                                                                  transA,
                                                                   m,
                                                                   n,
                                                                   batch_count,
@@ -2401,9 +2480,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         }
         else
         {
-            // Whether size is an exact multiple of blocksize
-            const bool exact_blocks = (k % BLOCK) == 0;
-
             // perf_status indicates whether optimal performance is obtainable with available memory
             rocblas_status perf_status = rocblas_status_success;
 
@@ -2454,15 +2530,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                     return status;
             }
 
+            const bool use_special = trsm_use_special_kernel<BLOCK, BATCHED, T>(
+                side, transA, m, n, batch_count, supplied_invA_size);
             size_t B_chunk_size = optimal_mem ? size_t(m) + size_t(n) - size_t(k) : 1;
-            size_t x_temp_els   = exact_blocks ? BLOCK * B_chunk_size : size_t(m) * n;
+            size_t x_temp_els   = use_special ? BLOCK * B_chunk_size : size_t(m) * n;
             if(BATCHED)
             {
                 setup_batched_array<BLOCK>(
                     handle->get_stream(), (T*)w_x_temp, x_temp_els, (T**)w_x_temparr, batch_count);
             }
 
-            if(exact_blocks)
+            if(use_special)
             {
                 status = special_trsm_template<BLOCK, BATCHED>(handle,
                                                                side,

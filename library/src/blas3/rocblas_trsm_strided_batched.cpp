@@ -180,6 +180,7 @@ namespace
         rocblas_status perf_status
             = rocblas_internal_trsm_template_mem<BLOCK, false, T>(handle,
                                                                   side,
+                                                                  transA,
                                                                   m,
                                                                   n,
                                                                   batch_count,
