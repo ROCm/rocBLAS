@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -113,7 +113,9 @@ void testing_tbsv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dAB.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
-    rocblas_init<T>(hA, true);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
     // Make hA a banded matrix with k sub/super-diagonals
     banded_matrix_setup(uplo == rocblas_fill_upper, (T*)hA, N, N, K);
@@ -129,7 +131,7 @@ void testing_tbsv(const Arguments& arg)
     CHECK_HIP_ERROR(dAB.transfer_from(hAB));
 
     // initialize "exact" answer hx
-    rocblas_init<T>(hx, false);
+
     hb = hx;
 
     cblas_tbmv<T>(uplo, transA, diag, N, K, hAB, lda, hb, incx);

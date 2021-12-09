@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -167,7 +167,9 @@ void testing_tbsv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dAB.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
-    rocblas_init<T>(hA, true);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     for(int b = 0; b < batch_count; b++)
     {
@@ -186,8 +188,6 @@ void testing_tbsv_strided_batched(const Arguments& arg)
 
     CHECK_HIP_ERROR(dAB.transfer_from(hAB));
 
-    // initialize "exact" answer hx
-    rocblas_init<T>(hx, false);
     hb.copy_from(hx);
 
     // Calculate hb = hA*hx;

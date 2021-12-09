@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -301,23 +301,13 @@ void testing_hemv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, N, N, lda, stride_A, batch_count);
-        rocblas_init_nan<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-    }
-    else
-    {
-        rocblas_init<T>(hA, N, N, lda, stride_A, batch_count);
-        rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-    }
-
-    if(arg.beta_isnan<T>())
-        rocblas_init_nan<T>(hy_1, 1, N, abs_incy, stride_y, batch_count);
-    else
-        rocblas_init<T>(hy_1, 1, N, abs_incy, stride_y, batch_count);
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, N, N, lda, stride_A, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(
+        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(
+        hy_1, arg, N, abs_incy, stride_y, batch_count, rocblas_client_beta_sets_nan);
 
     // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
     // CPU BLAS
