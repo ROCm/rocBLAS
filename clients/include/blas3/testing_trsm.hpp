@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -99,8 +99,9 @@ void testing_trsm(const Arguments& arg)
     //  should have condition number approximately equal to
     //  the condition number of the original matrix A.
 
-    //  initialize full random matrix hA with all entries in [1, 10]
-    rocblas_init<T>(hA, K, K, lda);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, K, K, lda, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hX, arg, M, N, ldb, 0, 1, rocblas_client_never_set_nan, false, true);
 
     //  pad untouched area into zero
     for(int i = K; i < lda; i++)
@@ -156,8 +157,6 @@ void testing_trsm(const Arguments& arg)
             }
     }
 
-    // Initialize "exact" answer hX
-    rocblas_init<T>(hX, M, N, ldb);
     // pad untouched area into zero
     for(int i = M; i < ldb; i++)
         for(int j = 0; j < N; j++)

@@ -155,23 +155,16 @@ void testing_syrk(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, rows, cols, lda);
-    }
-    else
-    {
-        rocblas_init<T>(hA);
-    }
 
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, rows, cols, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
     if(arg.beta_isnan<T>())
     {
         rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, N, N, ldc);
     }
     else
     {
-        rocblas_init<T>(hC_1);
+        rocblas_init_matrix(hC_1, arg, N, N, ldc, 0, 1, rocblas_client_never_set_nan);
     }
 
     hC_2    = hC_1;

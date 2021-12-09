@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -261,9 +261,10 @@ void testing_herk_strided_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hC_1);
+
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hC_1, arg, size_C, 1, 1, 0, 1, rocblas_client_beta_sets_nan, false, true);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

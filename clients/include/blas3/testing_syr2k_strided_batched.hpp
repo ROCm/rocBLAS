@@ -323,17 +323,29 @@ void testing_syr2k_strided_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
+
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, rows, cols, lda, strideA, batch_count, rocblas_client_never_set_nan, true);
+
     if(TWOK)
     {
-        rocblas_init<T>(hB);
+        rocblas_init_matrix(hB,
+                            arg,
+                            rows,
+                            cols,
+                            ldb,
+                            strideB,
+                            batch_count,
+                            rocblas_client_never_set_nan,
+                            false,
+                            true);
     }
     else
-    { // using syrk as reference so testing with B = A
+    { // using syrk as syrkx reference so testing with B = A
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb, strideA, strideB, batch_count);
     }
-    rocblas_init<T>(hC_1);
+    rocblas_init_matrix(hC_1, arg, N, N, ldc, strideC, batch_count, rocblas_client_never_set_nan);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

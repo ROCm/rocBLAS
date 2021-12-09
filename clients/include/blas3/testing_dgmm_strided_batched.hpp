@@ -198,11 +198,10 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hC_1.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hX);
-    rocblas_init<T>(hC);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, size_A, 1, 1, 1, 0, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hX, arg, size_x, 1, 1, 0, rocblas_client_never_set_nan, false, true);
+    rocblas_init_matrix(hC, arg, size_C, 1, 1, 1, 0, rocblas_client_never_set_nan);
 
     hA_copy = hA;
     hX_copy = hX;

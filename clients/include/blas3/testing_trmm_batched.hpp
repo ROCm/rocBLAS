@@ -187,17 +187,10 @@ void testing_trmm_batched(const Arguments& arg)
 
     //  initialize data on CPU
     h_alpha[0] = alpha;
-    rocblas_seedrand();
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA);
-        rocblas_init_nan<T>(hB);
-    }
-    else
-    {
-        rocblas_init<T>(hA);
-        rocblas_init<T>(hB);
-    }
+
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hB, arg, rocblas_client_alpha_sets_nan, false, true);
 
     hB_1.copy_from(hB);
     hB_2.copy_from(hB);
