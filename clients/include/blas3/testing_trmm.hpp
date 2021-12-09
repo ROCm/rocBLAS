@@ -140,18 +140,9 @@ void testing_trmm(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
-    //  initialize full random matrix hA with all entries in [1, 10]
-    rocblas_seedrand();
-    if(arg.alpha_isnan<T>())
-        rocblas_init_nan<T>(hA, K, K, lda);
-    else
-        rocblas_init<T>(hA, K, K, lda);
-
-    // Initial hB
-    if(arg.alpha_isnan<T>())
-        rocblas_init_nan<T>(hB, M, N, ldb);
-    else
-        rocblas_init_alternating_sign<T>(hB, M, N, ldb);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, K, K, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hB, arg, M, N, ldb, 0, 1, rocblas_client_alpha_sets_nan, false, true);
 
     hB_1 = hB; // hXorB <- B
     hB_2 = hB; // hXorB <- B

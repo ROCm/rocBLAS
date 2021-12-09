@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -108,10 +108,12 @@ void testing_trsm_batched(const Arguments& arg)
     //  should have condition number approximately equal to
     //  the condition number of the original matrix A.
 
-    //  initialize full random matrix hA with all entries in [1, 10]
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hX, arg, rocblas_client_never_set_nan, false, true);
+
     for(int b = 0; b < batch_count; b++)
     {
-        rocblas_init<T>(hA[b], K, K, lda);
         for(int i = K; i < lda; i++)
             for(int j = 0; j < K; j++)
                 hA[b][i + j * lda] = 0.0;
@@ -180,7 +182,6 @@ void testing_trsm_batched(const Arguments& arg)
     // Initialize "exact" answer hx
     for(int b = 0; b < batch_count; b++)
     {
-        rocblas_init<T>(hX[b], M, N, ldb);
         for(int i = M; i < ldb; i++)
             for(int j = 0; j < N; j++)
                 hX[b][i + j * ldb] = 0.0;

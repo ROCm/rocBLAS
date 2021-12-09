@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -189,23 +189,10 @@ void testing_geam(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, A_row, A_col, lda);
-    }
-    else
-    {
-        rocblas_init<T>(hA, A_row, A_col, lda);
-    }
-    if(arg.beta_isnan<T>())
-    {
-        rocblas_init_nan<T>(hB, B_row, B_col, ldb);
-    }
-    else
-    {
-        rocblas_init<T>(hB, B_row, B_col, ldb);
-    }
+
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, A_row, A_col, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hB, arg, B_row, B_col, ldb, 0, 1, rocblas_client_beta_sets_nan);
 
     // allocate memory on device
     device_vector<T> dA(size_A);

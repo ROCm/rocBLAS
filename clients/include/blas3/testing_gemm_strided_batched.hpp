@@ -424,56 +424,20 @@ void testing_gemm_strided_batched(const Arguments& arg)
     host_vector<T> hC_2(size_c_copy);
     host_vector<T> hC_gold(size_c_copy);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-        rocblas_init_nan<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-        {
-            rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-            rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-        }
-        else if(arg.initialization == rocblas_initialization::trig_float)
-        {
-            rocblas_init_sin<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-            rocblas_init_cos<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-        }
-        else if(arg.initialization == rocblas_initialization::hpl)
-        {
-            rocblas_init_hpl<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-            rocblas_init_hpl<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-        }
-        else
-        {
-#ifdef GOOGLE_TEST
-            FAIL() << "unknown initialization type";
-            return;
-#else
-            rocblas_cerr << "unknown initialization type" << std::endl;
-            rocblas_abort();
-#endif
-        }
-    }
-
-    if(arg.beta_isnan<T>())
-    {
-        rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-            rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
-        else if(arg.initialization == rocblas_initialization::trig_float)
-            rocblas_init_sin<T>(hC_1, M, N, ldc, stride_c, batch_count);
-        else if(arg.initialization == rocblas_initialization::hpl)
-            rocblas_init_hpl<T>(hC_1, M, N, ldc, stride_c, batch_count);
-    }
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, A_row, A_col, lda, stride_a, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        B_row,
+                        B_col,
+                        ldb,
+                        stride_b,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        false,
+                        true);
+    rocblas_init_matrix(hC_1, arg, M, N, ldc, stride_c, batch_count, rocblas_client_beta_sets_nan);
 
     if(size_c_copy)
     {

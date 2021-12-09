@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -170,26 +170,10 @@ void testing_symm_hemm(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
 
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hB, M, N, ldb);
-    }
-    else
-    {
-        rocblas_init<T>(hB);
-    }
-
-    if(arg.beta_isnan<T>())
-    {
-        rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, M, N, ldc);
-    }
-    else
-    {
-        rocblas_init<T>(hC_1);
-    }
+    rocblas_init_matrix<T>(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix<T>(hB, arg, M, N, ldb, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_matrix<T>(hC_1, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan);
 
     hC_2    = hC_1;
     hC_gold = hC_1;
