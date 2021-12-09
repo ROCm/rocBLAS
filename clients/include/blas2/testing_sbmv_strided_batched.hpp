@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -250,12 +250,10 @@ void testing_sbmv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-
-    rocblas_init<T>(hx);
-    rocblas_init<T>(hy);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
 
     // make copy in hg which will later be used with CPU BLAS
     hg.copy_from(hy);

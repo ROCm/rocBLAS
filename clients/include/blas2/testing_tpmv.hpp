@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -99,11 +99,9 @@ void testing_tpmv(const Arguments& arg)
     host_vector<T> hres(M, incx);
     CHECK_HIP_ERROR(hres.memcheck());
 
-    //
-    // Initialize.
-    //
-    rocblas_init(hA, true);
-    rocblas_init(hx, false);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, M, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
     //
     // Transfer.

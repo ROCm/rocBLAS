@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
 
 
  *
@@ -124,12 +124,9 @@ void testing_trmv_batched(const Arguments& arg)
     auto dA_on_device = dA.ptr_on_device();
     auto dx_on_device = dx.ptr_on_device();
 
-    //
-    // Initialize.
-    //
-    rocblas_init(hA, true);
-    rocblas_init(hx);
-
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
     //
     // Transfer.
     //

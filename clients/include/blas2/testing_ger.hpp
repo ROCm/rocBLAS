@@ -117,23 +117,10 @@ void testing_ger(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(lda >= M)
-    {
-        rocblas_init<T>(hA_1, M, N, lda);
-    }
-
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hx, 1, M, abs_incx);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, M, abs_incx);
-        rocblas_init<T>(hy, 1, N, abs_incy);
-    }
+    // Initialize data on host memory
+    rocblas_init_matrix(hA_1, arg, M, N, lda, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, M, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan);
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -110,7 +110,9 @@ void testing_tpsv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dAP.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
-    rocblas_init<T>(hA, true);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
     prepare_triangular_solve((T*)hA, N, (T*)AAT, N, char_uplo);
     if(diag == rocblas_diagonal_unit)
@@ -118,7 +120,6 @@ void testing_tpsv(const Arguments& arg)
         make_unit_diagonal(uplo, (T*)hA, N, N);
     }
 
-    rocblas_init<T>(hx, 1, N, abs_incx);
     hb = hx;
 
     // Calculate hb = hA*hx;

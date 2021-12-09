@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -126,24 +126,10 @@ void testing_spmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, size_A, 1, 1);
-        rocblas_init_nan<T>(hx, 1, N, abs_incx);
-    }
-    else
-    {
-        rocblas_init<T>(hA);
-        rocblas_init<T>(hx, 1, N, abs_incx);
-    }
-
-    if(arg.beta_isnan<T>())
-        rocblas_init_nan<T>(hy, 1, N, abs_incy);
-    else
-        rocblas_init<T>(hy, 1, N, abs_incy);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
 
     // make copy in hg which will later be used with CPU BLAS
     hg  = hy;
