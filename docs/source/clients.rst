@@ -14,9 +14,7 @@ The next two sections will cover a brief explanation and the usage of each rocBL
 
 rocblas-bench
 =============
-rocblas-bench is used to measure performance and to verify the correctness of rocBLAS functions.
-
-It has a command line interface. For more information:
+rocblas-bench is used to measure performance and verify the correctness of rocBLAS functions. It has a command-line interface. HPL initialization is the default initialization used for input vectors and matrices with values in the range of (-0.5,0.5) when running rocblas-bench. This default initialization can be altered using the ``--initialization <argument>`` and the argument can be equal to  either ``hpl`` , ``rand_int`` or ``trig_float``. For more information, please use the following command:
 
 .. code-block:: bash
 
@@ -62,7 +60,7 @@ Note that rocblas-bench also has the flag ``-v 1`` for correctness checks.
 rocblas-test
 ============
 
-rocblas-test is used in performing rocBLAS unit tests and it uses Googletest framework.
+rocblas-test is used in performing rocBLAS unit tests and it uses Googletest framework. Random integer initialization is the default initialization used for input vectors and matrices with values in the range of (1, 10) when running rocblas-test.
 
 The tests are in 4 categories:
 
