@@ -42,9 +42,9 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // allocate memory on device
-    device_batch_vector<T> dA(batch_count, safe_size);
-    device_batch_vector<T> dx(batch_count, safe_size);
-    device_batch_vector<T> dy(batch_count, safe_size);
+    device_batch_vector<T> dA(safe_size, 1, batch_count);
+    device_batch_vector<T> dx(safe_size, 1, batch_count);
+    device_batch_vector<T> dy(safe_size, 1, batch_count);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
@@ -240,7 +240,7 @@ void testing_gbmv_batched(const Arguments& arg)
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 
-    device_batch_vector<T> AA(batch_count, size_A);
+    device_batch_vector<T> AA(size_A, 1, batch_count);
     device_batch_vector<T> xA(dim_x, incx, batch_count);
     device_batch_vector<T> y_1A(dim_y, incy, batch_count);
     device_batch_vector<T> y_2A(dim_y, incy, batch_count);

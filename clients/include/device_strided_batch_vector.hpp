@@ -45,7 +45,7 @@ public:
     //! @param stg The storage format to use.
     //! @param HMM         HipManagedMemory Flag.
     //!
-    explicit device_strided_batch_vector(rocblas_int    n,
+    explicit device_strided_batch_vector(size_t         n,
                                          rocblas_int    inc,
                                          rocblas_stride stride,
                                          rocblas_int    batch_count,
@@ -117,7 +117,7 @@ public:
     //!
     //! @brief Returns the length.
     //!
-    rocblas_int n() const
+    size_t n() const
     {
         return this->m_n;
     }
@@ -223,14 +223,14 @@ public:
 
 private:
     storage        m_storage{storage::block};
-    rocblas_int    m_n{};
+    size_t         m_n{};
     rocblas_int    m_inc{};
     rocblas_stride m_stride{};
     rocblas_int    m_batch_count{};
     T*             m_data{};
 
     static size_t calculate_nmemb(
-        rocblas_int n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
+        size_t n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
     {
         switch(st)
         {
