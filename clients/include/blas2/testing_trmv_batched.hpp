@@ -45,7 +45,7 @@ void testing_trmv_batched_bad_arg(const Arguments& arg)
     host_batch_vector<T> hx(M, incx, batch_count);
     CHECK_HIP_ERROR(hx.memcheck());
 
-    device_batch_vector<T> dA(batch_count, M * lda);
+    device_batch_vector<T> dA(size_A, 1, batch_count);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     device_batch_vector<T> dx(M, incx, batch_count);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -115,7 +115,7 @@ void testing_trmv_batched(const Arguments& arg)
     host_batch_vector<T> hres(M, incx, batch_count);
     CHECK_HIP_ERROR(hres.memcheck());
 
-    device_batch_vector<T> dA(batch_count, size_A);
+    device_batch_vector<T> dA(size_A, 1, batch_count);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
     device_batch_vector<T> dx(M, incx, batch_count);
