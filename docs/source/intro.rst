@@ -113,7 +113,7 @@ Below is a simple example code for calling function rocblas_sscal.
        return 0;
    }
 
-.. rubic:: References
+.. rubric:: References
 
 .. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
 
