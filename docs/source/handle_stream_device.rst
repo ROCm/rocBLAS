@@ -38,6 +38,7 @@ stream and the non-default device, then call:
     if(rocblas_create_handle(&handle) != rocblas_status_success) return EXIT_FAILURE;
 
     if(rocblas_set_stream(handle, stream) != rocblas_status_success) return EXIT_FAILURE;
+
 For the library to use a non default device within a host thread, the device must be set using hipSetDevice() before creating the handle.
 
 The device in the host thread should not be changed between hipStreamCreate and hipStreamDestroy. If the device in the host thread is changed between creating and destroying the stream the behavior is undefined.

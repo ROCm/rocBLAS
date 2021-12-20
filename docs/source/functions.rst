@@ -80,7 +80,7 @@ rocblas_gemm_algo
 .. doxygenenum:: rocblas_gemm_algo
 
 rocblas_gemm_flags
------------------
+------------------
 .. doxygenenum:: rocblas_gemm_flags
 
 *****************
