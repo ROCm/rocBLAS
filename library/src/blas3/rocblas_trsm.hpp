@@ -1450,8 +1450,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         return rocblas_status_success;
     }
 
+    rocblas_int k = side == rocblas_side_left ? m : n;
+
     // no memory needed if using small kernels
-    bool is_small = (m <= 64 && n <= 64);
+    bool is_small = (k <= 32) || (m <= 64 && n <= 64);
     if(is_small)
     {
         // return rocblas_status_continue indicating no memory needed
@@ -1463,9 +1465,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         return rocblas_status_continue;
     }
 
-    rocblas_int k = side == rocblas_side_left ? m : n;
-
-    // Whether size is an exact multiple of blocksize.
+    // Whether size is an exact multiple of blocksize
     const bool exact_blocks = (k % BLOCK) == 0;
     const bool use_special  = trsm_use_special_kernel<BLOCK, BATCHED, T>(
         side, transA, m, n, batch_count, supplied_invA_size);
@@ -1670,6 +1670,8 @@ ROCBLAS_KERNEL void rocblas_trsm_small_right_device(rocblas_fill      uplo,
     __shared__ T sA[NB * NB];
     __shared__ T sB[NB * NB];
 
+    T resB[4];
+
     if(tx <= maxColA)
     {
         // Load A into sA, handle conjugation if necessary
@@ -1692,40 +1694,200 @@ ROCBLAS_KERNEL void rocblas_trsm_small_right_device(rocblas_fill      uplo,
     // Solve for B in shared memory
     if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
     {
-        for(int i = 0; i <= maxColA; i++)
+        int i;
+        for(i = 0; i + 3 <= maxColA; i += 4)
         {
             // Subtract previously solved parts
+            resB[0] = sB[(i + 0) * NB + tx];
+            resB[1] = sB[(i + 1) * NB + tx];
+            resB[2] = sB[(i + 2) * NB + tx];
+            resB[3] = sB[(i + 3) * NB + tx];
+
             for(int j = 0; j < i; j++)
-                sB[i * NB + tx] -= sB[j * NB + tx] * sA[i * NB + j];
-            // Solve
-            sB[i * NB + tx] /= sA[i * NB + i];
+            {
+                T sB_reg = sB[j * NB + tx];
+                resB[0] -= sB_reg * sA[(i + 0) * NB + j];
+                resB[1] -= sB_reg * sA[(i + 1) * NB + j];
+                resB[2] -= sB_reg * sA[(i + 2) * NB + j];
+                resB[3] -= sB_reg * sA[(i + 3) * NB + j];
+            }
+
+            resB[0] /= sA[(i + 0) * NB + (i + 0)];
+            sB[(i + 0) * NB + tx] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i + 1) * NB + (i + 0)];
+            resB[1] /= sA[(i + 1) * NB + (i + 1)];
+            sB[(i + 1) * NB + tx] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i + 2) * NB + (i + 0)];
+            resB[2] -= resB[1] * sA[(i + 2) * NB + (i + 1)];
+            resB[2] /= sA[(i + 2) * NB + (i + 2)];
+            sB[(i + 2) * NB + tx] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i + 3) * NB + (i + 0)];
+            resB[3] -= resB[1] * sA[(i + 3) * NB + (i + 1)];
+            resB[3] -= resB[2] * sA[(i + 3) * NB + (i + 2)];
+            resB[3] /= sA[(i + 3) * NB + (i + 3)];
+            sB[(i + 3) * NB + tx] = resB[3];
+        }
+
+        // tail end if not divisible by 4
+        for(; i <= maxColA; i++)
+        {
+            resB[0] = sB[i * NB + tx];
+            for(int j = 0; j < i; j++)
+            {
+                resB[0] -= sB[j * NB + tx] * sA[i * NB + j];
+            }
+            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
         }
     }
     else if(transA == rocblas_operation_none && uplo == rocblas_fill_lower)
     {
-        for(int i = maxColA; i >= 0; i--)
+        int i;
+        for(i = maxColA; i >= 3; i -= 4)
         {
+            resB[0] = sB[(i - 0) * NB + tx];
+            resB[1] = sB[(i - 1) * NB + tx];
+            resB[2] = sB[(i - 2) * NB + tx];
+            resB[3] = sB[(i - 3) * NB + tx];
+
             for(int j = maxColA; j > i; j--)
-                sB[i * NB + tx] -= sB[j * NB + tx] * sA[i * NB + j];
-            sB[i * NB + tx] /= sA[i * NB + i];
+            {
+                T sB_reg = sB[j * NB + tx];
+                resB[0] -= sB_reg * sA[(i - 0) * NB + j];
+                resB[1] -= sB_reg * sA[(i - 1) * NB + j];
+                resB[2] -= sB_reg * sA[(i - 2) * NB + j];
+                resB[3] -= sB_reg * sA[(i - 3) * NB + j];
+            }
+
+            resB[0] /= sA[(i - 0) * NB + (i - 0)];
+            sB[(i - 0) * NB + tx] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i - 1) * NB + (i - 0)];
+            resB[1] /= sA[(i - 1) * NB + (i - 1)];
+            sB[(i - 1) * NB + tx] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i - 2) * NB + (i - 0)];
+            resB[2] -= resB[1] * sA[(i - 2) * NB + (i - 1)];
+            resB[2] /= sA[(i - 2) * NB + (i - 2)];
+            sB[(i - 2) * NB + tx] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i - 3) * NB + (i - 0)];
+            resB[3] -= resB[1] * sA[(i - 3) * NB + (i - 1)];
+            resB[3] -= resB[2] * sA[(i - 3) * NB + (i - 2)];
+            resB[3] /= sA[(i - 3) * NB + (i - 3)];
+            sB[(i - 3) * NB + tx] = resB[3];
+        }
+
+        for(; i >= 0; i--)
+        {
+            resB[0] = sB[i * NB + tx];
+            for(int j = maxColA; j > i; j--)
+            {
+                resB[0] -= sB[j * NB + tx] * sA[i * NB + j];
+            }
+            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
         }
     }
     else if(uplo == rocblas_fill_upper)
     {
-        for(int i = maxColA; i >= 0; i--)
+        int i;
+        for(i = maxColA; i >= 3; i -= 4)
         {
+            resB[0] = sB[(i - 0) * NB + tx];
+            resB[1] = sB[(i - 1) * NB + tx];
+            resB[2] = sB[(i - 2) * NB + tx];
+            resB[3] = sB[(i - 3) * NB + tx];
+
             for(int j = maxColA; j > i; j--)
-                sB[i * NB + tx] -= sB[j * NB + tx] * sA[j * NB + i];
-            sB[i * NB + tx] /= sA[i * NB + i];
+            {
+                rocblas_int col_off = j * NB;
+                T           sB_reg  = sB[col_off + tx];
+                resB[0] -= sB_reg * sA[col_off + (i - 0)];
+                resB[1] -= sB_reg * sA[col_off + (i - 1)];
+                resB[2] -= sB_reg * sA[col_off + (i - 2)];
+                resB[3] -= sB_reg * sA[col_off + (i - 3)];
+            }
+
+            resB[0] /= sA[(i - 0) * NB + (i - 0)];
+            sB[(i - 0) * NB + tx] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i - 0) * NB + (i - 1)];
+            resB[1] /= sA[(i - 1) * NB + (i - 1)];
+            sB[(i - 1) * NB + tx] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i - 0) * NB + (i - 2)];
+            resB[2] -= resB[1] * sA[(i - 1) * NB + (i - 2)];
+            resB[2] /= sA[(i - 2) * NB + (i - 2)];
+            sB[(i - 2) * NB + tx] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i - 0) * NB + (i - 3)];
+            resB[3] -= resB[1] * sA[(i - 1) * NB + (i - 3)];
+            resB[3] -= resB[2] * sA[(i - 2) * NB + (i - 3)];
+            resB[3] /= sA[(i - 3) * NB + (i - 3)];
+            sB[(i - 3) * NB + tx] = resB[3];
+        }
+
+        for(; i >= 0; i--)
+        {
+            resB[0] = sB[i * NB + tx];
+            for(int j = maxColA; j > i; j--)
+            {
+                resB[0] -= sB[j * NB + tx] * sA[j * NB + i];
+            }
+            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
         }
     }
     else // lower (conjugate-)transpose
     {
-        for(int i = 0; i <= maxColA; i++)
+        int i;
+        for(i = 0; i + 3 <= maxColA; i += 4)
         {
+            // Subtract previously solved parts
+            resB[0] = sB[(i + 0) * NB + tx];
+            resB[1] = sB[(i + 1) * NB + tx];
+            resB[2] = sB[(i + 2) * NB + tx];
+            resB[3] = sB[(i + 3) * NB + tx];
+
             for(int j = 0; j < i; j++)
-                sB[i * NB + tx] -= sB[j * NB + tx] * sA[j * NB + i];
-            sB[i * NB + tx] /= sA[i * NB + i];
+            {
+                rocblas_int col_off = j * NB;
+                T           sB_reg  = sB[col_off + tx];
+                resB[0] -= sB_reg * sA[col_off + (i + 0)];
+                resB[1] -= sB_reg * sA[col_off + (i + 1)];
+                resB[2] -= sB_reg * sA[col_off + (i + 2)];
+                resB[3] -= sB_reg * sA[col_off + (i + 3)];
+            }
+
+            resB[0] /= sA[(i + 0) * NB + (i + 0)];
+            sB[(i + 0) * NB + tx] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i + 0) * NB + (i + 1)];
+            resB[1] /= sA[(i + 1) * NB + (i + 1)];
+            sB[(i + 1) * NB + tx] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i + 0) * NB + (i + 2)];
+            resB[2] -= resB[1] * sA[(i + 1) * NB + (i + 2)];
+            resB[2] /= sA[(i + 2) * NB + (i + 2)];
+            sB[(i + 2) * NB + tx] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i + 0) * NB + (i + 3)];
+            resB[3] -= resB[1] * sA[(i + 1) * NB + (i + 3)];
+            resB[3] -= resB[2] * sA[(i + 2) * NB + (i + 3)];
+            resB[3] /= sA[(i + 3) * NB + (i + 3)];
+            sB[(i + 3) * NB + tx] = resB[3];
+        }
+
+        // tail end if not divisible by 4
+        for(; i <= maxColA; i++)
+        {
+            resB[0] = sB[i * NB + tx];
+            for(int j = 0; j < i; j++)
+            {
+                resB[0] -= sB[j * NB + tx] * sA[j * NB + i];
+            }
+            sB[i * NB + tx] = resB[0] / sA[i * NB + i];
         }
     }
 
@@ -1785,19 +1947,22 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
             sB[i * NB + tx] = alpha * B[i * ldb + tx];
     }
     __syncthreads();
-
     // Solve for B in shared memory
     if(transA == rocblas_operation_none && uplo == rocblas_fill_upper)
     {
+        // Note: I didn't find that using 4 registers (as in the above function) to be noticeably faster in this version
+
         for(int i = 0; i <= maxColA; i++)
         {
             // Subtract previously solved parts
+            T temp_reg_B = sB[i * NB + tx];
             for(int j = 0; j < i; j++)
             {
                 T valA = A[i * lda + j];
-                sB[i * NB + tx] -= sB[j * NB + tx] * valA;
+                temp_reg_B -= sB[j * NB + tx] * valA;
             }
             // Solve
+            sB[i * NB + tx] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
                 sB[i * NB + tx] /= A[i * lda + i];
         }
@@ -1806,11 +1971,13 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
     {
         for(int i = maxColA; i >= 0; i--)
         {
+            T temp_reg_B = sB[i * NB + tx];
             for(int j = maxColA; j > i; j--)
             {
                 T valA = A[i * lda + j];
-                sB[i * NB + tx] -= sB[j * NB + tx] * valA;
+                temp_reg_B -= sB[j * NB + tx] * valA;
             }
+            sB[i * NB + tx] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
                 sB[i * NB + tx] /= A[i * lda + i];
         }
@@ -1819,11 +1986,13 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
     {
         for(int i = maxColA; i >= 0; i--)
         {
+            T temp_reg_B = sB[i * NB + tx];
             for(int j = maxColA; j > i; j--)
             {
                 T valA = CONJ ? conj(A[j * lda + i]) : A[j * lda + i];
-                sB[i * NB + tx] -= sB[j * NB + tx] * valA;
+                temp_reg_B -= sB[j * NB + tx] * valA;
             }
+            sB[i * NB + tx] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
                 sB[i * NB + tx] /= CONJ ? conj(A[i * lda + i]) : A[i * lda + i];
         }
@@ -1832,11 +2001,13 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
     {
         for(int i = 0; i <= maxColA; i++)
         {
+            T temp_reg_B = sB[i * NB + tx];
             for(int j = 0; j < i; j++)
             {
                 T valA = CONJ ? conj(A[j * lda + i]) : A[j * lda + i];
-                sB[i * NB + tx] -= sB[j * NB + tx] * valA;
+                temp_reg_B -= sB[j * NB + tx] * valA;
             }
+            sB[i * NB + tx] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
                 sB[i * NB + tx] /= CONJ ? conj(A[i * lda + i]) : A[i * lda + i];
         }
@@ -1895,6 +2066,9 @@ ROCBLAS_KERNEL void rocblas_trsm_small_left_device(rocblas_fill      uplo,
     __shared__ T sA[NB * NB];
     __shared__ T sB[NB * NB];
 
+    T           resB[4];
+    rocblas_int sb_col = tx * NB;
+
     if(tx <= maxColA)
     {
         // Load A into sA, handle conjugation if necessary
@@ -1903,7 +2077,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_left_device(rocblas_fill      uplo,
 
         // set unit diagonal if needed
         if(diag == rocblas_diagonal_unit)
-            sA[tx * NB + tx] = T(1.0);
+            sA[sb_col + tx] = T(1.0);
 
         // Load B into sB and multiply by alpha
         for(int i = 0; i < maxColB; i++)
@@ -1914,39 +2088,200 @@ ROCBLAS_KERNEL void rocblas_trsm_small_left_device(rocblas_fill      uplo,
     // Solve for B in shared memory
     if(LOWER && transA == rocblas_operation_none)
     {
-        for(int i = 0; i <= maxColA; i++)
+        int i;
+        for(i = 0; i + 3 <= maxColA; i += 4)
         {
             // Subtract previously solved parts
+            resB[0] = sB[sb_col + i + 0];
+            resB[1] = sB[sb_col + i + 1];
+            resB[2] = sB[sb_col + i + 2];
+            resB[3] = sB[sb_col + i + 3];
+
             for(int j = 0; j < i; j++)
-                sB[tx * NB + i] -= sB[tx * NB + j] * sA[j * NB + i];
-            sB[tx * NB + i] /= sA[i * NB + i];
+            {
+                rocblas_int col_off = j * NB;
+                T           sB_reg  = sB[sb_col + j];
+                resB[0] -= sB_reg * sA[col_off + i];
+                resB[1] -= sB_reg * sA[col_off + (i + 1)];
+                resB[2] -= sB_reg * sA[col_off + (i + 2)];
+                resB[3] -= sB_reg * sA[col_off + (i + 3)];
+            }
+
+            resB[0] /= sA[(i + 0) * NB + (i + 0)];
+            sB[sb_col + i + 0] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i + 0) * NB + (i + 1)];
+            resB[1] /= sA[(i + 1) * NB + (i + 1)];
+            sB[sb_col + i + 1] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i + 0) * NB + (i + 2)];
+            resB[2] -= resB[1] * sA[(i + 1) * NB + (i + 2)];
+            resB[2] /= sA[(i + 2) * NB + (i + 2)];
+            sB[sb_col + i + 2] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i + 0) * NB + (i + 3)];
+            resB[3] -= resB[1] * sA[(i + 1) * NB + (i + 3)];
+            resB[3] -= resB[2] * sA[(i + 2) * NB + (i + 3)];
+            resB[3] /= sA[(i + 3) * NB + (i + 3)];
+            sB[sb_col + i + 3] = resB[3];
+        }
+
+        // tail end if not divisible by 4
+        for(; i <= maxColA; i++)
+        {
+            resB[0] = sB[sb_col + i];
+            for(int j = 0; j < i; j++)
+            {
+                resB[0] -= sB[sb_col + j] * sA[j * NB + i];
+            }
+            sB[sb_col + i] = resB[0] / sA[i * NB + i];
         }
     }
     else if(!LOWER && transA == rocblas_operation_none)
     {
-        for(int i = maxColA; i >= 0; i--)
+        int i;
+        for(i = maxColA; i >= 3; i -= 4)
         {
+            resB[0] = sB[sb_col + i - 0];
+            resB[1] = sB[sb_col + i - 1];
+            resB[2] = sB[sb_col + i - 2];
+            resB[3] = sB[sb_col + i - 3];
+
             for(int j = maxColA; j > i; j--)
-                sB[tx * NB + i] -= sB[tx * NB + j] * sA[j * NB + i];
-            sB[tx * NB + i] /= sA[i * NB + i];
+            {
+                rocblas_int col_off = j * NB;
+                T           sB_reg  = sB[sb_col + j];
+                resB[0] -= sB_reg * sA[col_off + (i - 0)];
+                resB[1] -= sB_reg * sA[col_off + (i - 1)];
+                resB[2] -= sB_reg * sA[col_off + (i - 2)];
+                resB[3] -= sB_reg * sA[col_off + (i - 3)];
+            }
+
+            resB[0] /= sA[(i - 0) * NB + (i - 0)];
+            sB[sb_col + i - 0] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i - 0) * NB + (i - 1)];
+            resB[1] /= sA[(i - 1) * NB + (i - 1)];
+            sB[sb_col + i - 1] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i - 0) * NB + (i - 2)];
+            resB[2] -= resB[1] * sA[(i - 1) * NB + (i - 2)];
+            resB[2] /= sA[(i - 2) * NB + (i - 2)];
+            sB[sb_col + i - 2] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i - 0) * NB + (i - 3)];
+            resB[3] -= resB[1] * sA[(i - 1) * NB + (i - 3)];
+            resB[3] -= resB[2] * sA[(i - 2) * NB + (i - 3)];
+            resB[3] /= sA[(i - 3) * NB + (i - 3)];
+            sB[sb_col + i - 3] = resB[3];
+        }
+
+        for(; i >= 0; i--)
+        {
+            resB[0] = sB[sb_col + i];
+            for(int j = maxColA; j > i; j--)
+            {
+                resB[0] -= sB[sb_col + j] * sA[j * NB + i];
+            }
+            sB[sb_col + i] = resB[0] / sA[i * NB + i];
         }
     }
     else if(LOWER)
     {
-        for(int i = maxColA; i >= 0; i--)
+        int i;
+        for(i = maxColA; i >= 3; i -= 4)
         {
+            resB[0] = sB[sb_col + i - 0];
+            resB[1] = sB[sb_col + i - 1];
+            resB[2] = sB[sb_col + i - 2];
+            resB[3] = sB[sb_col + i - 3];
+
             for(int j = maxColA; j > i; j--)
-                sB[tx * NB + i] -= sB[tx * NB + j] * sA[i * NB + j];
-            sB[tx * NB + i] /= sA[i * NB + i];
+            {
+                T sB_reg = sB[sb_col + j];
+                resB[0] -= sB_reg * sA[(i - 0) * NB + j];
+                resB[1] -= sB_reg * sA[(i - 1) * NB + j];
+                resB[2] -= sB_reg * sA[(i - 2) * NB + j];
+                resB[3] -= sB_reg * sA[(i - 3) * NB + j];
+            }
+
+            resB[0] /= sA[(i - 0) * NB + (i - 0)];
+            sB[sb_col + i - 0] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i - 1) * NB + (i - 0)];
+            resB[1] /= sA[(i - 1) * NB + (i - 1)];
+            sB[sb_col + i - 1] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i - 2) * NB + (i - 0)];
+            resB[2] -= resB[1] * sA[(i - 2) * NB + (i - 1)];
+            resB[2] /= sA[(i - 2) * NB + (i - 2)];
+            sB[sb_col + i - 2] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i - 3) * NB + (i - 0)];
+            resB[3] -= resB[1] * sA[(i - 3) * NB + (i - 1)];
+            resB[3] -= resB[2] * sA[(i - 3) * NB + (i - 2)];
+            resB[3] /= sA[(i - 3) * NB + (i - 3)];
+            sB[sb_col + i - 3] = resB[3];
+        }
+
+        for(; i >= 0; i--)
+        {
+            resB[0] = sB[sb_col + i];
+            for(int j = maxColA; j > i; j--)
+            {
+                resB[0] -= sB[sb_col + j] * sA[i * NB + j];
+            }
+            sB[sb_col + i] = resB[0] / sA[i * NB + i];
         }
     }
     else if(!LOWER)
     {
-        for(int i = 0; i <= maxColA; i++)
+        int i;
+        for(i = 0; i + 3 <= maxColA; i += 4)
         {
+            // Subtract previously solved parts
+            resB[0] = sB[sb_col + i + 0];
+            resB[1] = sB[sb_col + i + 1];
+            resB[2] = sB[sb_col + i + 2];
+            resB[3] = sB[sb_col + i + 3];
+
             for(int j = 0; j < i; j++)
-                sB[tx * NB + i] -= sB[tx * NB + j] * sA[i * NB + j];
-            sB[tx * NB + i] /= sA[i * NB + i];
+            {
+                T sB_reg = sB[sb_col + j];
+                resB[0] -= sB_reg * sA[(i + 0) * NB + j];
+                resB[1] -= sB_reg * sA[(i + 1) * NB + j];
+                resB[2] -= sB_reg * sA[(i + 2) * NB + j];
+                resB[3] -= sB_reg * sA[(i + 3) * NB + j];
+            }
+
+            resB[0] /= sA[(i + 0) * NB + (i + 0)];
+            sB[sb_col + i + 0] = resB[0];
+
+            resB[1] -= resB[0] * sA[(i + 1) * NB + (i + 0)];
+            resB[1] /= sA[(i + 1) * NB + (i + 1)];
+            sB[sb_col + i + 1] = resB[1];
+
+            resB[2] -= resB[0] * sA[(i + 2) * NB + (i + 0)];
+            resB[2] -= resB[1] * sA[(i + 2) * NB + (i + 1)];
+            resB[2] /= sA[(i + 2) * NB + (i + 2)];
+            sB[sb_col + i + 2] = resB[2];
+
+            resB[3] -= resB[0] * sA[(i + 3) * NB + (i + 0)];
+            resB[3] -= resB[1] * sA[(i + 3) * NB + (i + 1)];
+            resB[3] -= resB[2] * sA[(i + 3) * NB + (i + 2)];
+            resB[3] /= sA[(i + 3) * NB + (i + 3)];
+            sB[sb_col + i + 3] = resB[3];
+        }
+
+        // tail end if not divisible by 4
+        for(; i <= maxColA; i++)
+        {
+            resB[0] = sB[sb_col + i];
+            for(int j = 0; j < i; j++)
+            {
+                resB[0] -= sB[sb_col + j] * sA[i * NB + j];
+            }
+            sB[sb_col + i] = resB[0] / sA[i * NB + i];
         }
     }
 
@@ -2001,7 +2336,6 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
 
     // shared B
     __shared__ T sB[NB * NB];
-
     if(tx <= maxColA)
     {
         // Load B into sB and multiply by alpha
@@ -2013,6 +2347,7 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
     // Solve for B in shared memory
     if(LOWER && transA == rocblas_operation_none)
     {
+        // Note: I didn't find that using 4 registers (as in the above function) to be noticeably faster in this version
         for(int i = 0; i <= maxColA; i++)
         {
             // Subtract previously solved parts
@@ -2029,11 +2364,13 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
     {
         for(int i = maxColA; i >= 0; i--)
         {
+            T temp_reg_B = sB[tx * NB + i];
             for(int j = maxColA; j > i; j--)
             {
                 T valA = A[j * lda + i];
-                sB[tx * NB + i] -= sB[tx * NB + j] * valA;
+                temp_reg_B -= sB[tx * NB + j] * valA;
             }
+            sB[tx * NB + i] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
                 sB[tx * NB + i] /= A[i * lda + i];
         }
@@ -2042,11 +2379,13 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
     {
         for(int i = maxColA; i >= 0; i--)
         {
+            T temp_reg_B = sB[tx * NB + i];
             for(int j = maxColA; j > i; j--)
             {
                 T valA = (CONJ) ? conj(A[i * lda + j]) : A[i * lda + j];
-                sB[tx * NB + i] -= sB[tx * NB + j] * valA;
+                temp_reg_B -= sB[tx * NB + j] * valA;
             }
+            sB[tx * NB + i] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
                 sB[tx * NB + i] /= (CONJ) ? conj(A[i * lda + i]) : A[i * lda + i];
         }
@@ -2055,11 +2394,13 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
     {
         for(int i = 0; i <= maxColA; i++)
         {
+            T temp_reg_B = sB[tx * NB + i];
             for(int j = 0; j < i; j++)
             {
                 T valA = (CONJ) ? conj(A[i * lda + j]) : A[i * lda + j];
-                sB[tx * NB + i] -= sB[tx * NB + j] * valA;
+                temp_reg_B -= sB[tx * NB + j] * valA;
             }
+            sB[tx * NB + i] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
                 sB[tx * NB + i] /= (CONJ) ? conj(A[i * lda + i]) : A[i * lda + i];
         }
@@ -2365,8 +2706,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             return rocblas_status_success;
         }
 
-        // bool is_small = k <= 64;
-        bool is_small = (m <= 64 && n <= 64);
+        bool is_small = (k <= 32) || (m <= 64 && n <= 64);
         if(SUBSTITUTION_ENABLED && is_small)
         {
             if(k <= 2)
