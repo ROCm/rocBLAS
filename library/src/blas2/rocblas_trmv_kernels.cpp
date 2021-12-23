@@ -30,14 +30,14 @@ ROCBLAS_KERNEL_ILF void trmvn_kernel_calc(
         if(UNIT)
             res_A = x[row * incx];
         else
-            res_A = A[row + row * lda] * x[row * incx];
+            res_A = A[row + row * size_t(lda)] * x[row * incx];
     }
 
     // multiply and sum across columns
     for(rocblas_int col = ty; col < m; col += DIM_Y)
     {
         if(row < m && ((!LOWER && col > row) || (LOWER && col < row)))
-            res_A += A[row + col * lda] * x[col * incx];
+            res_A += A[row + col * size_t(lda)] * x[col * incx];
     }
 
     // move partial sum to shared memory to sum further

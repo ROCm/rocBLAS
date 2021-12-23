@@ -33,6 +33,9 @@ Definitions:
     - { M:  4011, lda: 4011, stride_a: 16088200 }
     - { M:  8000, lda: 8000, stride_a: 64000000 }
 
+  - &size_t_index
+    - { M:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341 }
+
   - &incx_range
     - [2, -2, 1, -1, 3, 10]
 
@@ -60,6 +63,19 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+
+- name: trmv_size_t_M
+  category: nightly
+  function:
+  - trmv: *single_precision
+  # shared code for size_t with non-batched
+  #- trmv_batched: *single_precision
+  #- trmv_strided_batched: *single_precision
+  uplo: [U]
+  transA: [N, T]
+  diag: [N]
+  matrix_size: *size_t_index
+  incx: 1
 
 - name: trmv_fortran
   category: quick
