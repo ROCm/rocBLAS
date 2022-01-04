@@ -36,7 +36,7 @@ rocBLAS build & installation helper script.
 
     --cpu_ref_lib  <lib>             Specify library to use for CPU reference code in testing (blis or lapack)
 
-    --cmake-install                  Auto update CMake to minimum version if required.
+    --cmake_install                  Auto update CMake to minimum version if required.
 
     --codecoverage                   Build with code coverage profiling enabled, excluding release mode.
 
