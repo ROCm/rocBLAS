@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -83,6 +83,10 @@ void testing_nrm2_strided_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_strided_batched_fn(
             handle, N, nullptr, incx, stridex, batch_count, d_rocblas_result_0));
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_strided_batched_fn(
+            handle, N, nullptr, incx, stridex, batch_count, h_rocblas_result_0));
+
         if(batch_count > 0)
         {
             host_vector<real_t<T>> cpu_0(batch_count);
@@ -93,6 +97,7 @@ void testing_nrm2_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(
                 gpu_0, d_rocblas_result_0, sizeof(real_t<T>) * batch_count, hipMemcpyDeviceToHost));
             unit_check_general<real_t<T>>(1, batch_count, 1, cpu_0, gpu_0);
+            unit_check_general<real_t<T>>(1, batch_count, 1, cpu_0, h_rocblas_result_0);
         }
 
         return;

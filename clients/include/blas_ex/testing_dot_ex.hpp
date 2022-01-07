@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -129,6 +129,9 @@ void testing_dot_ex(const Arguments& arg)
         device_vector<Tr> d_rocblas_result(1);
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
+        host_vector<Tr> h_rocblas_result(1);
+        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_dot_ex_fn)(handle,
                                                 N,
@@ -142,10 +145,25 @@ void testing_dot_ex(const Arguments& arg)
                                                 result_type,
                                                 execution_type));
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_ex_fn)(handle,
+                                                N,
+                                                nullptr,
+                                                x_type,
+                                                incx,
+                                                nullptr,
+                                                y_type,
+                                                incy,
+                                                h_rocblas_result,
+                                                result_type,
+                                                execution_type));
+
         Tr cpu_0 = Tr(0);
-        Tr gpu_0;
+        Tr gpu_0, gpu_1;
         CHECK_HIP_ERROR(hipMemcpy(&gpu_0, d_rocblas_result, sizeof(Tr), hipMemcpyDeviceToHost));
+        gpu_1 = h_rocblas_result[0];
         unit_check_general<Tr>(1, 1, 1, &cpu_0, &gpu_0);
+        unit_check_general<Tr>(1, 1, 1, &cpu_0, &gpu_1);
 
         return;
     }
