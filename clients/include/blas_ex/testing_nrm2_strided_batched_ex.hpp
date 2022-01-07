@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -123,6 +123,18 @@ void testing_nrm2_strided_batched_ex(const Arguments& arg)
                                                                result_type,
                                                                execution_type));
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_strided_batched_ex_fn(handle,
+                                                               N,
+                                                               nullptr,
+                                                               x_type,
+                                                               incx,
+                                                               stridex,
+                                                               batch_count,
+                                                               h_rocblas_result_0,
+                                                               result_type,
+                                                               execution_type));
+
         if(batch_count > 0)
         {
             host_vector<Tr> cpu_0(batch_count);
@@ -133,6 +145,7 @@ void testing_nrm2_strided_batched_ex(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(
                 gpu_0, d_rocblas_result_0, sizeof(Tr) * batch_count, hipMemcpyDeviceToHost));
             unit_check_general<Tr>(1, batch_count, 1, cpu_0, gpu_0);
+            unit_check_general<Tr>(1, batch_count, 1, cpu_0, h_rocblas_result_0);
         }
 
         return;

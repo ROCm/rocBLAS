@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -77,6 +77,9 @@ void testing_nrm2(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, nullptr, incx, d_rocblas_result_0));
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, nullptr, incx, h_rocblas_result_0));
+
         host_vector<real_t<T>> cpu_0(1);
         host_vector<real_t<T>> gpu_0(1);
         CHECK_HIP_ERROR(cpu_0.memcheck());
@@ -85,6 +88,7 @@ void testing_nrm2(const Arguments& arg)
         CHECK_HIP_ERROR(
             hipMemcpy(gpu_0, d_rocblas_result_0, sizeof(real_t<T>), hipMemcpyDeviceToHost));
         unit_check_general<real_t<T>>(1, 1, 1, cpu_0, gpu_0);
+        unit_check_general<real_t<T>>(1, 1, 1, cpu_0, h_rocblas_result_0);
         return;
     }
 

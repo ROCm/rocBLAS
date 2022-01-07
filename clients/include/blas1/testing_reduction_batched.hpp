@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -62,11 +62,27 @@ void template_testing_reduction_batched(
 
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        host_vector<R> res(std::max(1, std::abs(batch_count)));
-        CHECK_HIP_ERROR(res.memcheck());
+        device_vector<R> d_rocblas_result(std::max(batch_count, 1));
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+
+        host_vector<R> h_rocblas_result(std::max(batch_count, 1));
+        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, batch_count, d_rocblas_result));
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, batch_count, res),
-                              rocblas_status_success);
+        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, batch_count, h_rocblas_result));
+
+        if(batch_count > 0)
+        {
+            host_vector<R> cpu_0(batch_count);
+            host_vector<R> gpu_0(batch_count);
+            CHECK_HIP_ERROR(gpu_0.transfer_from(d_rocblas_result));
+            unit_check_general<R>(1, 1, 1, 1, cpu_0, gpu_0, batch_count);
+            unit_check_general<R>(1, 1, 1, 1, cpu_0, h_rocblas_result, batch_count);
+        }
+
         return;
     }
 

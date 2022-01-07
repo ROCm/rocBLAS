@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -69,12 +69,26 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, &h_rocblas_result_1));
+        using R = rocblas_int;
+        device_vector<R> d_rocblas_result(1);
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-#ifdef GOOGLE_TEST
-        EXPECT_EQ(h_rocblas_result_1, 0);
-#endif
+        host_vector<R> h_rocblas_result(1);
+        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, d_rocblas_result));
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, h_rocblas_result));
+
+        R cpu_0 = R(0);
+        R gpu_0, gpu_1;
+        CHECK_HIP_ERROR(hipMemcpy(&gpu_0, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
+        gpu_1 = h_rocblas_result[0];
+        unit_check_general<R>(1, 1, 1, &cpu_0, &gpu_0);
+        unit_check_general<R>(1, 1, 1, &cpu_0, &gpu_1);
+
         return;
     }
 
