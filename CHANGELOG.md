@@ -2,7 +2,7 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 2.42.0
+## rocBLAS 2.42.0 for ROCm 5.0.0
 ### Added
 - Added rocblas_get_version_string_size convenience function
 - Added rocblas_xtrmm_outofplace, an out-of-place version of rocblas_xtrmm
