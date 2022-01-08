@@ -42,6 +42,9 @@ Definitions:
   - &alpha_range_small
     - { alpha: 4.0 }
 
+  - &size_t_index
+    - { N:  23170, lda: 23170, stride_a:  1073744140, stride_x: 23170 }
+
 Tests:
 
 - name: her_bad_arg
@@ -196,5 +199,17 @@ Tests:
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
+
+- name: her_size_t_M
+  category: nightly
+  function:
+  - her: *single_precision_complex
+  # shared code for size_t with non-batched
+  #- her_batched: *single_precision_complex
+  #- her_strided_batched: *single_precision_complex
+  uplo: [ U, L ]
+  matrix_size: *size_t_index
+  incx: [ 1 ]
+  alpha_beta: *alpha_range_small
 
 ...
