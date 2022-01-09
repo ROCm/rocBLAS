@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*! \file
@@ -40,39 +40,39 @@
  */
 typedef struct _rocblas_handle* rocblas_handle;
 
-// Forward declaration of hipStream_t
+/*! \brief Forward declaration of hipStream_t */
 typedef struct ihipStream_t* hipStream_t;
 
-// Forward declaration of hipEvent_t
+/*! \brief Forward declaration of hipEvent_t */
 typedef struct ihipEvent_t* hipEvent_t;
 
-// Opaque base class for device memory allocation
+/*! \brief Opaque base class for device memory allocation */
 struct rocblas_device_malloc_base;
 
 // integer types
-// /*! \brief To specify whether int32 is used for LP64 or int64 is used for ILP64
-//  */
+/*! \brief To specify whether int32 is used for LP64 or int64 is used for ILP64 */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_int;
 #else
 typedef int32_t rocblas_int;
 #endif
 
-// /*! \brief Stride between matrices or vectors in strided_batched functions
-//  */
+/*! \brief Stride between matrices or vectors in strided_batched functions */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_stride;
 #else
 typedef int64_t rocblas_stride;
 #endif
 
-// floating point types
-typedef float  rocblas_float;
+/*! \brief Single precision floating point type */
+typedef float rocblas_float;
+/*! \brief Double precision floating point type */
 typedef double rocblas_double;
 
 #ifdef ROCM_USE_FLOAT16
 typedef _Float16 rocblas_half;
 #else
+/*! \brief Structure definition for rocblas_half */
 typedef struct rocblas_half
 {
     uint16_t data;
@@ -91,10 +91,14 @@ namespace std
 
 #endif
 
-// (4.2) When rocblas API takes input --a/b_type as i8_r,
-// we use --flags (0/1) to determine which TensileType (int8_t or int8x4) to be cast
-// in order to having a way to call gemm_ex_typecasting<?>(),
-// we can define a minimal definition of rocblas_int8x4, and int8 is for MI-kernel
+/* Structure definition of rocblas_int8x4
+    (For internal use only)
+    (4.2) When rocblas API takes input --a/b_type as i8_r,
+            we use --flags (0/1) to determine which TensileType (int8_t or int8x4) to be cast
+            in order to having a way to call gemm_ex_typecasting<?>(),
+            we can define a minimal definition of rocblas_int8x4, and int8 is for MI-kernel
+
+    ********************************************************************************************/
 typedef struct
 {
     int8_t a, b, c, d;
@@ -275,9 +279,7 @@ typedef union rocblas_union_u
     rocblas_double_complex z;
 } rocblas_union_t;
 
-/*****************************************************************************************************************************************
-* \brief Numerical checking for verifying the Input and Output vector/matrix of the rocBLAS functions for a NaN, zero and infinity
-******************************************************************************************************************************************/
+/*! \brief Numerical checking for verifying the Input and Output vector/matrix of the rocBLAS functions for a NaN, zero and infinity */
 typedef enum rocblas_check_numerics_mode_
 {
     //No numeric checks
