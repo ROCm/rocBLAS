@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef _ROCBLAS_FUNCTIONS_H_
@@ -28,7 +28,7 @@
 
    __VA_OPT__ support is automatically detected if it's available; otherwise,
    the GCC/Clang ##__VA_ARGS__ extension is used to emulate it.
-*/
+    ********************************************************************/
 #define ROCBLAS_VA_OPT_3RD_ARG(_1, _2, _3, ...) _3
 #define ROCBLAS_VA_OPT_SUPPORTED(...) ROCBLAS_VA_OPT_3RD_ARG(__VA_OPT__(, ), 1, 0, )
 
@@ -15642,7 +15642,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                               uint32_t          flags);
 //! @}
 
-/* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
+/*! For backward compatiblity, unused workspace_size and workspace arguments are ignored */
 // clang-format off
 #define rocblas_gemm_ex(handle,         \
                         transA,         \
@@ -16118,7 +16118,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                                               uint32_t          flags);
 //! @}
 
-/* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
+/*! For backward compatiblity, unused workspace_size and workspace arguments are ignored */
 // clang-format off
 #define rocblas_gemm_strided_batched_ex(handle,         \
                                         transA,         \
@@ -16447,7 +16447,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                                               rocblas_datatype  compute_type);
 //! @}
 
-/* For backward compatiblity, option, x_temp_size and x_temp_workspace arguments are ignored */
+/*! For backward compatiblity, option, x_temp_size and x_temp_workspace arguments are ignored */
 // clang-format off
 #define rocblas_trsm_ex(handle,       \
                         side,         \
