@@ -9,6 +9,7 @@
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
+#include "tensile_host.hpp"
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 #include <algorithm>
@@ -897,7 +898,7 @@ struct perf_blas_rotg<
 
 int run_bench_test(Arguments& arg, const std::string& filter, bool any_stride, bool yaml = false)
 {
-    static int runOnce = (rocblas_initialize(), 0); // Initialize rocBLAS
+    static int runOnce = (rocblas_client_initialize(), 0); // Initialize rocBLAS
 
     rocblas_cout << std::setiosflags(std::ios::fixed)
                  << std::setprecision(7); // Set precision to 7 digits
