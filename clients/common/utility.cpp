@@ -292,3 +292,39 @@ rocblas_local_handle::~rocblas_local_handle()
         (hipFree)(m_memory);
     rocblas_destroy_handle(m_handle);
 }
+
+/*!
+ * Initialize rocBLAS for the current HIP device and report
+ * the time taken to complete the initialization. This is to
+ * avoid costly startup time at the first call on that device.
+ * Internal use for benchmark & testing.
+ */
+void rocblas_client_initialize()
+{
+    // when executed on a CPU under normal load( Disk I/O, memory etc.),
+    // this routine completes execution under max limit of 12 seconds.
+    // The minimum time it takes to complete varies based on
+    // the architecture & build options used while building the library.
+    // Setting a max duration of 15 seconds for rocblas library initialization to complete.
+    constexpr static int max_duration = 15;
+
+    // Store the start timepoint of rocblas initialize
+    auto start_time = std::chrono::steady_clock::now();
+
+    rocblas_initialize();
+
+    // Store the end timepoint of rocblas initialize
+    auto end_time = std::chrono::steady_clock::now();
+
+    // Compute the time taken to load the Tensile kernels (in seconds).
+    auto total_library_initialize_time
+        = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
+
+    rocblas_cout << "\nrocBLAS info: Time taken to complete rocBLAS library initialization is "
+                 << total_library_initialize_time << " seconds." << std::endl;
+
+    // If initialization time exceeds the max duration, display the following info message.
+    if(total_library_initialize_time > max_duration)
+        rocblas_cerr << "\nrocBLAS info: rocBLAS initialization exceeded the max duration of "
+                     << max_duration << " seconds. Check CPU's load metrics." << std::endl;
+}
