@@ -5,7 +5,6 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## (Unreleased) rocBLAS 2.43.0
 ### Changed
 - For syrkx and trmm internal API use rocblas_stride datatype for offset
-- For L3 BLAS kernels pass one argument that can be either offset or stride
 
 ## rocBLAS 2.42.0 for ROCm 5.0.0
 ### Added
