@@ -2,6 +2,10 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+## (Unreleased) rocBLAS 2.43.0
+### Changed
+- For syrkx and trmm internal API use rocblas_stride datatype for offset
+
 ## rocBLAS 2.42.0 for ROCm 5.0.0
 ### Added
 - Added rocblas_get_version_string_size convenience function
