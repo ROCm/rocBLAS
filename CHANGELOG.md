@@ -6,14 +6,20 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Added
 - Option to install script for number of jobs to use for rocBLAS and Tensile compilation (-j, --jobs)
 - Option to install script to build clients without using any Fortran (--clients_no_fortran)
+- rocblas_client_initialize function, to perform rocBLAS initialize for clients(benchmark/test) and report the execution time.
 
 ### Changed
 - For syrkx and trmm internal API use rocblas_stride datatype for offset
 - For non-batched and batched gemm_ex functions if the C matrix pointer equals the D matrix pointer (aliased) their respective type and leading dimension arguments must now match
 - Test client dependencies updated to GTest 1.11
+- non-global false positives reported by cppcheck from file based suppression to inline suppression. File based suppression will only be used for global false positives.
+- Help menu messages in install.sh
+- For ger function, typecast the 'lda'(offset) datatype to size_t during offset calculation to avoid overflow and remove duplicate template functions.
 
 ### Fixed
 - For function trmv (non-transposed cases) avoid overflow in offset calculation
+- Fixed cppcheck errors/warnings
+- Fixed doxygen warnings
 
 ## rocBLAS 2.42.0 for ROCm 5.0.0
 ### Added
