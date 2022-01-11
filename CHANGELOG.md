@@ -3,8 +3,17 @@
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
 ## (Unreleased) rocBLAS 2.43.0
+### Added
+- Option to install script for number of jobs to use for rocBLAS and Tensile compilation (-j, --jobs)
+- Option to install script to build clients without using any Fortran (--clients_no_fortran)
+
 ### Changed
 - For syrkx and trmm internal API use rocblas_stride datatype for offset
+- For non-batched and batched gemm_ex functions if the C matrix pointer equals the D matrix pointer (aliased) their respective type and leading dimension arguments must now match
+- Test client dependencies updated to GTest 1.11
+
+### Fixed
+- For function trmv (non-transposed cases) avoid overflow in offset calculation
 
 ## rocBLAS 2.42.0 for ROCm 5.0.0
 ### Added
