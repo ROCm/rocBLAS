@@ -7,6 +7,11 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Option to install script for number of jobs to use for rocBLAS and Tensile compilation (-j, --jobs)
 - Option to install script to build clients without using any Fortran (--clients_no_fortran)
 - rocblas_client_initialize function, to perform rocBLAS initialize for clients(benchmark/test) and report the execution time.
+- Added tests for output of reduction functions when given bad input
+
+### Optimizations
+- Improved performance of trsm with side == left and n == 1
+- Improved perforamnce of trsm with side == left and m <= 32 along with side == right and n <= 32
 
 ### Changed
 - For syrkx and trmm internal API use rocblas_stride datatype for offset
