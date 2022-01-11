@@ -36,7 +36,7 @@ Definitions:
 
 # These sizes don't test the size_t index support
   - &size_t_index
-    - { N:  24170, lda: 24170, stride_a:  1073744140, stride_x: 23170 }
+    - { N:  23170, lda: 23170, stride_a:  1073744140, stride_x: 23170 }
 
   - &alpha_range
     - { alpha:  2.0 }
