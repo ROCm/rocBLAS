@@ -34,8 +34,9 @@ Definitions:
     - { N:  2048, lda: 2048 }
     - { N:  4011, lda: 4012 }
 
+# These sizes don't test the size_t index support
   - &size_t_index
-    - { N:  23170, lda: 23170, stride_a:  1073744140, stride_x: 23170 }
+    - { N:  24170, lda: 24170, stride_a:  1073744140, stride_x: 23170 }
 
   - &alpha_range
     - { alpha:  2.0 }
@@ -207,7 +208,7 @@ Tests:
   # shared code for size_t with non-batched
   #- her_batched: *single_precision_complex
   #- her_strided_batched: *single_precision_complex
-  uplo: [ U, L ]
+  uplo: [ U ]
   matrix_size: *size_t_index
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
