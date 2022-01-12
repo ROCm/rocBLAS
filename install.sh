@@ -714,9 +714,6 @@ pushd .
 
   if [[ "${build_address_sanitizer}" == true ]]; then
     cmake_common_options="$cmake_common_options -DBUILD_ADDRESS_SANITIZER=ON"
-    export CFLAGS="-fsanitize=address -shared-libasan"
-    export CXXFLAGS="-fsanitize=address -shared-libasan"
-    export LDFLAGS="-fuse-ld=lld -fsanitize=address -shared-libasan"
   fi
 
   # Uncomment for cmake debugging
