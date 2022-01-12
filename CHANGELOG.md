@@ -8,6 +8,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Option to install script to build clients without using any Fortran (--clients_no_fortran)
 - rocblas_client_initialize function, to perform rocBLAS initialize for clients(benchmark/test) and report the execution time.
 - Added tests for output of reduction functions when given bad input
+- Added user specified initialization (rand_int/trig_float/hpl) for initializing matrices and vectors in rocblas-bench
 
 ### Optimizations
 - Improved performance of trsm with side == left and n == 1
@@ -20,6 +21,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - non-global false positives reported by cppcheck from file based suppression to inline suppression. File based suppression will only be used for global false positives.
 - Help menu messages in install.sh
 - For ger function, typecast the 'lda'(offset) datatype to size_t during offset calculation to avoid overflow and remove duplicate template functions.
+- Modified default initialization from rand_int to hpl for initializing matrices and vectors in rocblas-bench
 
 ### Fixed
 - For function trmv (non-transposed cases) avoid overflow in offset calculation
