@@ -26,14 +26,9 @@ Definitions:
 
   # - &substitution_size_range
     - { M:  2, N:  1, lda: 30, ldb: 30 }
-    - { M:  2, N: 12, lda: 30, ldb: 30 }
     - { M:  1, N:  2, lda: 30, ldb: 30 }
-    - { M: 12, N:  2, lda: 30, ldb: 30 }
 
-    - { M:  3, N: 32, lda: 32, ldb: 32 }
     - { M: 32, N:  3, lda: 32, ldb: 32 }
-    - { M:  8, N: 16, lda: 32, ldb: 32 }
-    - { M: 16, N:  8, lda: 32, ldb: 32 }
     - { M: 17, N: 20, lda: 32, ldb: 32 }
     - { M: 32, N: 32, lda: 32, ldb: 32 }
     - { M: 32, N: 31, lda: 32, ldb: 32 }
@@ -64,38 +59,24 @@ Definitions:
 
   - &substitution_size_range_thorough
     - { M:   1, N:  1, lda: 100, ldb: 100 }
-    - { M:   1, N:  7, lda: 100, ldb: 100 }
-    - { M:   1, N: 16, lda: 100, ldb: 100 }
     - { M:   1, N: 32, lda: 100, ldb: 100 }
     - { M:   1, N: 64, lda: 100, ldb: 100 }
     - { M:   2, N:  1, lda: 100, ldb: 100 }
-    - { M:   2, N:  7, lda: 100, ldb: 100 }
-    - { M:   2, N: 16, lda: 100, ldb: 100 }
     - { M:   2, N: 32, lda: 100, ldb: 100 }
     - { M:   2, N: 64, lda: 100, ldb: 100 }
     - { M:   4, N:  1, lda: 100, ldb: 100 }
-    - { M:   4, N:  7, lda: 100, ldb: 100 }
-    - { M:   4, N: 16, lda: 100, ldb: 100 }
     - { M:   4, N: 32, lda: 100, ldb: 100 }
     - { M:   4, N: 64, lda: 100, ldb: 100 }
     - { M:   7, N:  1, lda: 100, ldb: 100 }
-    - { M:   7, N:  7, lda: 100, ldb: 100 }
-    - { M:   7, N: 16, lda: 100, ldb: 100 }
     - { M:   7, N: 32, lda: 100, ldb: 100 }
     - { M:   7, N: 64, lda: 100, ldb: 100 }
     - { M:  16, N:  1, lda: 100, ldb: 100 }
-    - { M:  16, N:  7, lda: 100, ldb: 100 }
-    - { M:  16, N: 16, lda: 100, ldb: 100 }
     - { M:  16, N: 32, lda: 100, ldb: 100 }
     - { M:  16, N: 64, lda: 100, ldb: 100 }
     - { M:  32, N:  1, lda: 100, ldb: 100 }
-    - { M:  32, N:  7, lda: 100, ldb: 100 }
-    - { M:  32, N: 16, lda: 100, ldb: 100 }
     - { M:  32, N: 32, lda: 100, ldb: 100 }
     - { M:  32, N: 64, lda: 100, ldb: 100 }
     - { M:  64, N:  1, lda: 100, ldb: 100 }
-    - { M:  64, N:  7, lda: 100, ldb: 100 }
-    - { M:  64, N: 16, lda: 100, ldb: 100 }
     - { M:  64, N: 32, lda: 100, ldb: 100 }
     - { M:  64, N: 64, lda: 100, ldb: 100 }
     - { M:  35, N:  7, lda:  48, ldb:  52 }
@@ -103,18 +84,10 @@ Definitions:
 
   - &substitution_size_range_skinny_left
     - { M: 31, N: 4000, lda: 4000, ldb: 4000 }
-    - { M: 32, N: 2048, lda: 2048, ldb: 2048 }
-    - { M:  3, N: 4096, lda: 4096, ldb: 4096 }
-    - { M:  7, N:  512, lda:  512, ldb: 1024 }
-    - { M: 16, N: 1000, lda: 1000, ldb: 1000 }
     - { M:  2, N:  256, lda:  256, ldb:  256 }
 
   - &substitution_size_range_skinny_right
     - { M: 4000, N: 31, lda: 4000, ldb: 4000 }
-    - { M: 2048, N: 32, lda: 2048, ldb: 2048 }
-    - { M: 4096, N:  3, lda: 4096, ldb: 4096 }
-    - { M:  512, N:  7, lda:  512, ldb: 1024 }
-    - { M: 1000, N: 16, lda: 1000, ldb: 1000 }
     - { M:  256, N:  2, lda:  256, ldb:  256 }
 
   - &alpha_range_sub
@@ -648,10 +621,10 @@ Tests:
   side: [L]
   uplo: [L, U]
   transA: [N, C]
-  diag: [N, U]
+  diag: [N]
   matrix_size: *substitution_size_range_skinny_left
   alpha_beta: *alpha_range_sub
-  batch_count: [ 1, 16 ]
+  batch_count: [ 1, 4 ]
 
 - name: trsm_batched_small_right
   category: nightly
@@ -660,10 +633,10 @@ Tests:
   side: [R]
   uplo: [L, U]
   transA: [N, C]
-  diag: [N, U]
+  diag: [N]
   matrix_size: *substitution_size_range_skinny_right
   alpha_beta: *alpha_range_sub
-  batch_count: [ 1, 16 ]
+  batch_count: [ 1, 4 ]
 
 - name: trsm_batched_small_complex
   category: nightly
@@ -684,11 +657,11 @@ Tests:
   side: [L]
   uplo: [L, U]
   transA: [N, C]
-  diag: [N, U]
+  diag: [U]
   matrix_size: *substitution_size_range_skinny_left
   alpha_beta: *alpha_range_sub
   stride_scale: [ 1.5]
-  batch_count: [ 1, 16 ]
+  batch_count: [ 1, 4 ]
 
 - name: trsm_strided_batched_small_right
   category: nightly
@@ -697,11 +670,11 @@ Tests:
   side: [R]
   uplo: [L, U]
   transA: [N, C]
-  diag: [N, U]
+  diag: [U]
   matrix_size: *substitution_size_range_skinny_right
   alpha_beta: *alpha_range_sub
   stride_scale: [ 1.5]
-  batch_count: [ 1, 16 ]
+  batch_count: [ 1, 4 ]
 
 - name: trsm_strided_batched_small_complex
   category: nightly
