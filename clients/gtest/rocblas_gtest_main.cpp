@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include <string>
@@ -215,8 +215,16 @@ int main(int argc, char** argv)
 {
     std::string args = rocblas_capture_args(argc, argv);
 
-    // Set signal handler
-    rocblas_test_sigaction();
+    auto* no_signal_handling = getenv("ROCBLAS_TEST_NO_SIGACTION");
+    if(no_signal_handling)
+    {
+        rocblas_cout << "rocblas-test INFO: sigactions disabled." << std::endl;
+    }
+    else
+    {
+        // Set signal handler
+        rocblas_test_sigaction();
+    }
 
     rocblas_print_version();
 
