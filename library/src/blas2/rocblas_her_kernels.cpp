@@ -1,19 +1,19 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "rocblas_her.hpp"
 
-template <rocblas_int DIM_X, typename T_lda, typename T, typename U>
+template <rocblas_int DIM_X, typename T, typename U>
 ROCBLAS_KERNEL_ILF void her_kernel_calc(bool        upper,
                                         rocblas_int n,
                                         U           alpha,
                                         const T* __restrict__ x,
                                         rocblas_int incx,
                                         T* __restrict__ A,
-                                        T_lda lda)
+                                        rocblas_int lda)
 {
     rocblas_int tx  = hipThreadIdx_x;
     rocblas_int col = hipBlockIdx_x;
@@ -22,7 +22,7 @@ ROCBLAS_KERNEL_ILF void her_kernel_calc(bool        upper,
         A += tx;
 
     //Each BlockIdx.x takes care of each column of matrix A
-    A += col * lda;
+    A += col * size_t(lda);
 
     const T res_x = conj(x[col * incx]) * alpha;
 
@@ -58,7 +58,7 @@ ROCBLAS_KERNEL_ILF void her_kernel_calc(bool        upper,
     }
 }
 
-template <rocblas_int DIM_X, typename T_lda, typename TScal, typename TConstPtr, typename TPtr>
+template <rocblas_int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL __launch_bounds__(DIM_X) void rocblas_her_kernel(bool           upper,
                                                                 rocblas_int    n,
                                                                 TScal          alpha_device_host,
@@ -78,7 +78,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void rocblas_her_kernel(bool           u
     auto*       A = load_ptr_batch(Aa, hipBlockIdx_y, shift_A, stride_A);
     const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shift_x, stride_x);
 
-    her_kernel_calc<DIM_X, T_lda>(upper, n, alpha, x, incx, A, lda);
+    her_kernel_calc<DIM_X>(upper, n, alpha, x, incx, A, lda);
 }
 
 /**
@@ -112,8 +112,6 @@ rocblas_status rocblas_her_template(rocblas_handle handle,
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
 
-    bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
-
 #define her_KARGS(alpha_)                                                                        \
     her_grid, her_threads, 0, rocblas_stream, uplo == rocblas_fill_upper, n, alpha_, x, shift_x, \
         incx, stride_x, A, lda, offset_A, stride_A
@@ -125,17 +123,11 @@ rocblas_status rocblas_her_template(rocblas_handle handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        if(i64_indices)
-            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, size_t>), her_KARGS(alpha));
-        else
-            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, rocblas_int>), her_KARGS(alpha));
+        hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X>), her_KARGS(alpha));
     }
     else
     {
-        if(i64_indices)
-            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, size_t>), her_KARGS(*alpha));
-        else
-            hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X, rocblas_int>), her_KARGS(*alpha));
+        hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X>), her_KARGS(*alpha));
     }
 #undef her_KARGS
     return rocblas_status_success;
