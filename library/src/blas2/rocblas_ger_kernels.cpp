@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_matrix.hpp"
@@ -11,7 +11,6 @@ template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
           rocblas_int WIN,
           bool        CONJ,
-          typename T_lda,
           typename T,
           typename V,
           typename U,
@@ -30,7 +29,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
                                                                rocblas_stride stridey,
                                                                W __restrict__ Aa,
                                                                ptrdiff_t      shifta,
-                                                               T_lda          lda,
+                                                               rocblas_int    lda,
                                                                rocblas_stride strideA)
 {
     __shared__ T xdata[DIM_X];
@@ -73,13 +72,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
         {
             int yi = ty + i;
             if(yi < n)
-                A[tx + lda * yi] += x_value * (CONJ ? conj(ydata[tyi + i]) : ydata[tyi + i]);
+                A[tx + size_t(lda) * yi]
+                    += x_value * (CONJ ? conj(ydata[tyi + i]) : ydata[tyi + i]);
         }
     }
 }
 
 //optimized kernel for SGER
-template <rocblas_int DIM_X, typename T_lda, typename T, typename V, typename U, typename W>
+template <rocblas_int DIM_X, typename T, typename V, typename U, typename W>
 ROCBLAS_KERNEL __launch_bounds__(DIM_X) void sger_kernel(rocblas_int    m,
                                                          rocblas_int    n,
                                                          V              alpha_device_host,
@@ -94,7 +94,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void sger_kernel(rocblas_int    m,
                                                          rocblas_stride stridey,
                                                          W __restrict__ Aa,
                                                          ptrdiff_t      shifta,
-                                                         T_lda          lda,
+                                                         rocblas_int    lda,
                                                          rocblas_stride strideA)
 {
     rocblas_int tx  = hipThreadIdx_x;
@@ -114,7 +114,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void sger_kernel(rocblas_int    m,
         A += tx;
 
     //Each hipBlockIdx_x takes care of the computation of each column of matrix 'A'
-    A += col * lda;
+    A += col * size_t(lda);
 
     const T res_y = y[col * incy] * alpha;
 
@@ -158,8 +158,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
-    bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
-
     //Identifying the precision to have an appropriate optimization
     bool is_float = std::is_same<T, float>{};
 
@@ -176,17 +174,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            if(i64_indices)
-                hipLaunchKernelGGL((sger_kernel<DIM_X, size_t, T>), ger_KARGS(alpha));
-            else
-                hipLaunchKernelGGL((sger_kernel<DIM_X, rocblas_int, T>), ger_KARGS(alpha));
+            hipLaunchKernelGGL((sger_kernel<DIM_X, T>), ger_KARGS(alpha));
         }
         else
         {
-            if(i64_indices)
-                hipLaunchKernelGGL((sger_kernel<DIM_X, size_t, T>), ger_KARGS(*alpha));
-            else
-                hipLaunchKernelGGL((sger_kernel<DIM_X, rocblas_int, T>), ger_KARGS(*alpha));
+            hipLaunchKernelGGL((sger_kernel<DIM_X, T>), ger_KARGS(*alpha));
         }
     }
     else
@@ -202,21 +194,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            if(i64_indices)
-                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, size_t, T>),
-                                   ger_KARGS(alpha));
-            else
-                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, rocblas_int, T>),
-                                   ger_KARGS(alpha));
+            hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(alpha));
         }
         else
         {
-            if(i64_indices)
-                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, size_t, T>),
-                                   ger_KARGS(*alpha));
-            else
-                hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, rocblas_int, T>),
-                                   ger_KARGS(*alpha));
+            hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(*alpha));
         }
     }
 #undef ger_KARGS
