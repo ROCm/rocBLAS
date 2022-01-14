@@ -1,9 +1,10 @@
-- {MinimumRequiredVersion: 4.14.0}
+- {MinimumRequiredVersion: 4.31.0}
 - aldebaran
-- {Architecture: gfx90a, CUCount: 104}
+- gfx90a
 - [Device 0050, Device 0051, Device 0052, Device 0054, Device 0062, Device 7400, Device
     740c]
-- AssignedDerivedParameters: true
+- AllowNoFreeDims: false
+  AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
   ComplexConjugateB: false
@@ -11,6 +12,7 @@
   ConvolutionConfig: []
   DataType: 7
   DestDataType: 7
+  Fp16AltImpl: false
   HighPrecisionAccumulate: true
   Index0: 0
   Index01A: 0
@@ -25,6 +27,8 @@
   IndicesBatch: [2]
   IndicesFree: [0, 1]
   IndicesSummation: [3]
+  MirrorDimsA: []
+  MirrorDimsB: []
   NumIndicesBatch: 1
   NumIndicesC: 3
   NumIndicesFree: 2
@@ -34,6 +38,7 @@
   SetConstStrideA: []
   SetConstStrideB: []
   SilentHighPrecisionAccumulate: false
+  StridedBatched: true
   TLUA: true
   TLUB: true
   Tensor0: 0
@@ -49,23 +54,34 @@
   UseInitialStridesCD: false
   ZeroPadA: []
   ZeroPadB: []
-- - AggressivePerfMode: 1
+- - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
     AssertFree0ElementMultiple: 1
     AssertFree1ElementMultiple: 1
     AssertMinApproxSize: 3
     AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
     AssertStrideAEqual: {0: 1}
     AssertStrideBEqual: {0: 1}
     AssertStrideCEqual: {0: 1}
     AssertStrideDEqual: {0: 1}
     AssertSummationElementMultiple: 1
-    AssignedDerivedParameters: false
+    AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
     BufferLoad: true
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
+    CodeObjectVersion: V3
+    CustomKernelName: ''
     DepthU: 64
+    DepthULdsDivisor: 1
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
@@ -73,8 +89,11 @@
     DirectToVgprB: false
     DisableAtomicFail: 0
     DisableKernelPieces: 0
+    DisableVgprOverlapping: false
     EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -84,11 +103,14 @@
     GlobalReadCoalesceGroupB: true
     GlobalReadCoalesceVectorA: true
     GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
     GlobalReadVectorWidth: 2
     GlobalSplitU: 1
+    GlobalSplitUAlgorithm: SingleBuffer
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
     GuaranteeNoPartialA: false
     GuaranteeNoPartialB: false
     ISA: [9, 0, 10]
@@ -105,7 +127,10 @@
     LVPA: 4
     LVPB: 2
     LdcEqualsLdd: true
-    LdsBlockSizePerPad: -1
+    LdsBlockSizePerPad: 0
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 0
+    LdsInitCVgprs: false
     LdsNumElements: 28672
     LdsNumElementsAlignedA: 4096
     LdsNumElementsAlignedB: 8192
@@ -118,25 +143,40 @@
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
-    LocalReadVectorWidth: -1
+    LocalReadVectorWidth: 2
     LocalSplitU: 1
     LocalWrite2A: true
     LocalWrite2B: true
+    LocalWritePerMfma: -1
     LocalWriteUseSgprA: false
     LocalWriteUseSgprB: false
     LoopDoWhile: false
     LoopIters: 32
     LoopTail: true
     LoopUnroll: 64
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 2, 2, 2, 1]
+    MIInputPerThread: 2
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
     MIWG0: 64
     MIWG1: 4
+    MIWaveGroup: [1, 4]
+    MIWaveTile: [1, 1]
+    MIWaveTileA: 1
+    MIWaveTileB: 1
     MacroTile0: 64
     MacroTile1: 128
     MacroTileA: 64
     MacroTileB: 128
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
+    MagicDivAlg: 2
     MatrixInstB: 2
+    MatrixInstBM: 2
+    MatrixInstBN: 1
     MatrixInstK: 2
     MatrixInstM: 32
     MatrixInstN: 32
@@ -144,10 +184,13 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
     NonTemporalD: 0
+    NumElementsPerBatchStore: 0
     NumElementsPerThread: 32
     NumGlobalWriteVectorsPerThread: 16
     NumLoadsA: 8
@@ -158,6 +201,7 @@
     NumLoadsPerpendicularB: 16
     NumThreads: 256
     OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
@@ -170,6 +214,7 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
+    PersistentKernelAlongBatch: false
     PrefetchAcrossPersistent: 0
     PrefetchAcrossPersistentMode: 0
     PrefetchGlobalRead: 1
@@ -184,6 +229,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -198,6 +244,8 @@
       IndicesBatch: [2]
       IndicesFree: [0, 1]
       IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -207,6 +255,7 @@
       SetConstStrideA: []
       SetConstStrideB: []
       SilentHighPrecisionAccumulate: false
+      StridedBatched: true
       TLUA: true
       TLUB: true
       Tensor0: 0
@@ -227,22 +276,32 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 0
+    SourceSwap: false
     StaggerU: 16
     StaggerUMapping: 1
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 0
+    StoreSyncOpt: 0
     StoreVectorWidth: 4
-    SubGroup0: 64
-    SubGroup1: 4
-    SubGroupA: 64
-    SubGroupB: 4
+    SubGroup0: 2
+    SubGroup1: 128
+    SubGroupA: 2
+    SubGroupB: 128
     SuppressNoLoadLoop: false
     ThreadTile: [1, 32]
-    ThreadTile0: 1
-    ThreadTile1: 32
-    ThreadTileA: 1
-    ThreadTileB: 32
+    ThreadTile0: 32
+    ThreadTile1: 1
+    ThreadTileA: 32
+    ThreadTileB: 1
     TransposeLDS: 0
     UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: 0
+    UnrollMajorLDSB: 0
     UnrollMemFence: false
     Use64bShadowLimit: 1
     UseInstOffsetForGRO: 0
@@ -251,30 +310,47 @@
     VectorAtomicWidth: 1
     VectorStore: -1
     VectorWidth: 2
+    WaveSeparateGlobalReadA: 0
+    WaveSeparateGlobalReadB: 0
+    WavefrontSize: 64
     WorkGroup: [64, 4, 1]
     WorkGroupMapping: 4
     WorkGroupMappingType: B
+    _DepthULds: 64
+    _GlobalAccumulation: null
     _NumElemPerMfmaInput: 2
     _UseSgprForGRO: false
     _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
     _staggerStrideShift: 1
-  - AggressivePerfMode: 1
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
     AssertFree0ElementMultiple: 1
     AssertFree1ElementMultiple: 8
     AssertMinApproxSize: 3
     AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
     AssertStrideAEqual: {0: 1}
     AssertStrideBEqual: {0: 1}
     AssertStrideCEqual: {0: 1}
     AssertStrideDEqual: {0: 1}
     AssertSummationElementMultiple: 1
-    AssignedDerivedParameters: false
+    AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
     BufferLoad: true
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
+    CodeObjectVersion: V3
+    CustomKernelName: ''
     DepthU: 32
+    DepthULdsDivisor: 1
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
@@ -282,8 +358,11 @@
     DirectToVgprB: false
     DisableAtomicFail: 0
     DisableKernelPieces: 0
+    DisableVgprOverlapping: false
     EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -293,11 +372,14 @@
     GlobalReadCoalesceGroupB: true
     GlobalReadCoalesceVectorA: true
     GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
     GlobalReadVectorWidth: 2
     GlobalSplitU: 1
+    GlobalSplitUAlgorithm: SingleBuffer
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
     GuaranteeNoPartialA: false
     GuaranteeNoPartialB: true
     ISA: [9, 0, 10]
@@ -314,7 +396,10 @@
     LVPA: 4
     LVPB: 2
     LdcEqualsLdd: true
-    LdsBlockSizePerPad: -1
+    LdsBlockSizePerPad: 0
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 0
+    LdsInitCVgprs: false
     LdsNumElements: 14336
     LdsNumElementsAlignedA: 2048
     LdsNumElementsAlignedB: 4096
@@ -327,25 +412,40 @@
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
-    LocalReadVectorWidth: -1
+    LocalReadVectorWidth: 2
     LocalSplitU: 1
     LocalWrite2A: true
     LocalWrite2B: true
+    LocalWritePerMfma: -1
     LocalWriteUseSgprA: false
     LocalWriteUseSgprB: false
     LoopDoWhile: false
     LoopIters: 16
     LoopTail: true
     LoopUnroll: 32
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 2, 2, 2, 1]
+    MIInputPerThread: 2
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
     MIWG0: 64
     MIWG1: 4
+    MIWaveGroup: [1, 4]
+    MIWaveTile: [1, 1]
+    MIWaveTileA: 1
+    MIWaveTileB: 1
     MacroTile0: 64
     MacroTile1: 128
     MacroTileA: 64
     MacroTileB: 128
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
+    MagicDivAlg: 2
     MatrixInstB: 2
+    MatrixInstBM: 2
+    MatrixInstBN: 1
     MatrixInstK: 2
     MatrixInstM: 32
     MatrixInstN: 32
@@ -353,10 +453,13 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
     NonTemporalD: 0
+    NumElementsPerBatchStore: 0
     NumElementsPerThread: 32
     NumGlobalWriteVectorsPerThread: 16
     NumLoadsA: 4
@@ -367,6 +470,7 @@
     NumLoadsPerpendicularB: 8
     NumThreads: 256
     OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
@@ -379,6 +483,7 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
+    PersistentKernelAlongBatch: false
     PrefetchAcrossPersistent: 0
     PrefetchAcrossPersistentMode: 0
     PrefetchGlobalRead: 1
@@ -393,6 +498,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -407,6 +513,8 @@
       IndicesBatch: [2]
       IndicesFree: [0, 1]
       IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -416,6 +524,7 @@
       SetConstStrideA: []
       SetConstStrideB: []
       SilentHighPrecisionAccumulate: false
+      StridedBatched: true
       TLUA: true
       TLUB: true
       Tensor0: 0
@@ -436,22 +545,32 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 1
+    SourceSwap: false
     StaggerU: 8
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 0
+    StoreSyncOpt: 0
     StoreVectorWidth: 4
-    SubGroup0: 64
-    SubGroup1: 4
-    SubGroupA: 64
-    SubGroupB: 4
+    SubGroup0: 2
+    SubGroup1: 128
+    SubGroupA: 2
+    SubGroupB: 128
     SuppressNoLoadLoop: false
     ThreadTile: [1, 32]
-    ThreadTile0: 1
-    ThreadTile1: 32
-    ThreadTileA: 1
-    ThreadTileB: 32
+    ThreadTile0: 32
+    ThreadTile1: 1
+    ThreadTileA: 32
+    ThreadTileB: 1
     TransposeLDS: 0
     UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: 0
+    UnrollMajorLDSB: 0
     UnrollMemFence: false
     Use64bShadowLimit: 1
     UseInstOffsetForGRO: 0
@@ -460,30 +579,47 @@
     VectorAtomicWidth: 1
     VectorStore: -1
     VectorWidth: 2
+    WaveSeparateGlobalReadA: 0
+    WaveSeparateGlobalReadB: 0
+    WavefrontSize: 64
     WorkGroup: [64, 4, 1]
     WorkGroupMapping: 4
     WorkGroupMappingType: B
+    _DepthULds: 32
+    _GlobalAccumulation: null
     _NumElemPerMfmaInput: 2
     _UseSgprForGRO: false
     _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
     _staggerStrideShift: 2
-  - AggressivePerfMode: 1
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
     AssertFree0ElementMultiple: 8
     AssertFree1ElementMultiple: 8
     AssertMinApproxSize: 3
     AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
     AssertStrideAEqual: {0: 1}
     AssertStrideBEqual: {0: 1}
     AssertStrideCEqual: {0: 1}
     AssertStrideDEqual: {0: 1}
     AssertSummationElementMultiple: 1
-    AssignedDerivedParameters: false
+    AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
     BufferLoad: true
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
+    CodeObjectVersion: V3
+    CustomKernelName: ''
     DepthU: 32
+    DepthULdsDivisor: 1
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
@@ -491,8 +627,11 @@
     DirectToVgprB: false
     DisableAtomicFail: 0
     DisableKernelPieces: 0
+    DisableVgprOverlapping: false
     EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -502,11 +641,14 @@
     GlobalReadCoalesceGroupB: true
     GlobalReadCoalesceVectorA: true
     GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
     GlobalReadVectorWidth: 8
     GlobalSplitU: 1
+    GlobalSplitUAlgorithm: SingleBuffer
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
     GuaranteeNoPartialA: true
     GuaranteeNoPartialB: true
     ISA: [9, 0, 10]
@@ -523,7 +665,10 @@
     LVPA: 8
     LVPB: 1
     LdcEqualsLdd: true
-    LdsBlockSizePerPad: -1
+    LdsBlockSizePerPad: 0
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 0
+    LdsInitCVgprs: false
     LdsNumElements: 25600
     LdsNumElementsAlignedA: 1024
     LdsNumElementsAlignedB: 8192
@@ -536,25 +681,40 @@
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
-    LocalReadVectorWidth: -1
+    LocalReadVectorWidth: 2
     LocalSplitU: 1
     LocalWrite2A: true
     LocalWrite2B: true
+    LocalWritePerMfma: -1
     LocalWriteUseSgprA: false
     LocalWriteUseSgprB: false
     LoopDoWhile: false
     LoopIters: 2
     LoopTail: true
     LoopUnroll: 4
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 2, 2, 1, 2]
+    MIInputPerThread: 2
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
     MIWG0: 32
     MIWG1: 8
+    MIWaveGroup: [1, 4]
+    MIWaveTile: [1, 1]
+    MIWaveTileA: 1
+    MIWaveTileB: 1
     MacroTile0: 32
     MacroTile1: 256
     MacroTileA: 32
     MacroTileB: 256
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
+    MagicDivAlg: 2
     MatrixInstB: 2
+    MatrixInstBM: 1
+    MatrixInstBN: 2
     MatrixInstK: 2
     MatrixInstM: 32
     MatrixInstN: 32
@@ -562,10 +722,13 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
     NonTemporalD: 0
+    NumElementsPerBatchStore: 0
     NumElementsPerThread: 32
     NumGlobalWriteVectorsPerThread: 16
     NumLoadsA: 1
@@ -576,6 +739,7 @@
     NumLoadsPerpendicularB: 4
     NumThreads: 256
     OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
@@ -588,6 +752,7 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
+    PersistentKernelAlongBatch: false
     PrefetchAcrossPersistent: 0
     PrefetchAcrossPersistentMode: 0
     PrefetchGlobalRead: 1
@@ -602,6 +767,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -616,6 +782,8 @@
       IndicesBatch: [2]
       IndicesFree: [0, 1]
       IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -625,6 +793,7 @@
       SetConstStrideA: []
       SetConstStrideB: []
       SilentHighPrecisionAccumulate: false
+      StridedBatched: true
       TLUA: true
       TLUB: true
       Tensor0: 0
@@ -645,22 +814,32 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 2
+    SourceSwap: false
     StaggerU: 8
     StaggerUMapping: 1
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 0
+    StoreSyncOpt: 0
     StoreVectorWidth: 4
-    SubGroup0: 32
-    SubGroup1: 8
-    SubGroupA: 32
-    SubGroupB: 8
+    SubGroup0: 2
+    SubGroup1: 128
+    SubGroupA: 2
+    SubGroupB: 128
     SuppressNoLoadLoop: false
     ThreadTile: [1, 32]
-    ThreadTile0: 1
-    ThreadTile1: 32
-    ThreadTileA: 1
-    ThreadTileB: 32
+    ThreadTile0: 16
+    ThreadTile1: 2
+    ThreadTileA: 16
+    ThreadTileB: 2
     TransposeLDS: 0
     UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: 0
+    UnrollMajorLDSB: 0
     UnrollMemFence: false
     Use64bShadowLimit: 1
     UseInstOffsetForGRO: 0
@@ -669,30 +848,47 @@
     VectorAtomicWidth: 1
     VectorStore: -1
     VectorWidth: 2
+    WaveSeparateGlobalReadA: 0
+    WaveSeparateGlobalReadB: 0
+    WavefrontSize: 64
     WorkGroup: [32, 8, 1]
     WorkGroupMapping: 16
     WorkGroupMappingType: B
+    _DepthULds: 32
+    _GlobalAccumulation: null
     _NumElemPerMfmaInput: 2
     _UseSgprForGRO: 1
     _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
     _staggerStrideShift: 2
-  - AggressivePerfMode: 1
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
     AssertFree0ElementMultiple: 1
     AssertFree1ElementMultiple: 1
     AssertMinApproxSize: 3
     AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
     AssertStrideAEqual: {0: 1}
     AssertStrideBEqual: {0: 1}
     AssertStrideCEqual: {0: 1}
     AssertStrideDEqual: {0: 1}
     AssertSummationElementMultiple: 1
-    AssignedDerivedParameters: false
+    AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
     BufferLoad: true
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
+    CodeObjectVersion: V3
+    CustomKernelName: ''
     DepthU: 16
+    DepthULdsDivisor: 1
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
@@ -700,8 +896,11 @@
     DirectToVgprB: false
     DisableAtomicFail: 0
     DisableKernelPieces: 0
+    DisableVgprOverlapping: false
     EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -711,11 +910,14 @@
     GlobalReadCoalesceGroupB: true
     GlobalReadCoalesceVectorA: true
     GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
     GlobalReadVectorWidth: 2
     GlobalSplitU: 1
+    GlobalSplitUAlgorithm: SingleBuffer
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
     GuaranteeNoPartialA: false
     GuaranteeNoPartialB: false
     ISA: [9, 0, 10]
@@ -732,7 +934,10 @@
     LVPA: 4
     LVPB: 2
     LdcEqualsLdd: true
-    LdsBlockSizePerPad: -1
+    LdsBlockSizePerPad: 0
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 0
+    LdsInitCVgprs: false
     LdsNumElements: 7168
     LdsNumElementsAlignedA: 1024
     LdsNumElementsAlignedB: 2048
@@ -745,25 +950,40 @@
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
-    LocalReadVectorWidth: -1
+    LocalReadVectorWidth: 2
     LocalSplitU: 1
     LocalWrite2A: true
     LocalWrite2B: true
+    LocalWritePerMfma: -1
     LocalWriteUseSgprA: false
     LocalWriteUseSgprB: false
     LoopDoWhile: false
     LoopIters: 4
     LoopTail: true
     LoopUnroll: 8
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 2, 2, 2, 1]
+    MIInputPerThread: 2
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
     MIWG0: 64
     MIWG1: 4
+    MIWaveGroup: [1, 4]
+    MIWaveTile: [1, 1]
+    MIWaveTileA: 1
+    MIWaveTileB: 1
     MacroTile0: 64
     MacroTile1: 128
     MacroTileA: 64
     MacroTileB: 128
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
+    MagicDivAlg: 2
     MatrixInstB: 2
+    MatrixInstBM: 2
+    MatrixInstBN: 1
     MatrixInstK: 2
     MatrixInstM: 32
     MatrixInstN: 32
@@ -771,10 +991,13 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
     NonTemporalD: 0
+    NumElementsPerBatchStore: 0
     NumElementsPerThread: 32
     NumGlobalWriteVectorsPerThread: 16
     NumLoadsA: 2
@@ -785,6 +1008,7 @@
     NumLoadsPerpendicularB: 4
     NumThreads: 256
     OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
@@ -797,6 +1021,7 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
+    PersistentKernelAlongBatch: false
     PrefetchAcrossPersistent: 0
     PrefetchAcrossPersistentMode: 0
     PrefetchGlobalRead: 1
@@ -811,6 +1036,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -825,6 +1051,8 @@
       IndicesBatch: [2]
       IndicesFree: [0, 1]
       IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -834,6 +1062,7 @@
       SetConstStrideA: []
       SetConstStrideB: []
       SilentHighPrecisionAccumulate: false
+      StridedBatched: true
       TLUA: true
       TLUB: true
       Tensor0: 0
@@ -854,22 +1083,32 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 3
+    SourceSwap: false
     StaggerU: 8
     StaggerUMapping: 0
     StaggerUStride: 64
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 0
+    StoreSyncOpt: 0
     StoreVectorWidth: 4
-    SubGroup0: 64
-    SubGroup1: 4
-    SubGroupA: 64
-    SubGroupB: 4
+    SubGroup0: 2
+    SubGroup1: 128
+    SubGroupA: 2
+    SubGroupB: 128
     SuppressNoLoadLoop: false
     ThreadTile: [1, 32]
-    ThreadTile0: 1
-    ThreadTile1: 32
-    ThreadTileA: 1
-    ThreadTileB: 32
+    ThreadTile0: 32
+    ThreadTile1: 1
+    ThreadTileA: 32
+    ThreadTileB: 1
     TransposeLDS: 0
     UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: 0
+    UnrollMajorLDSB: 0
     UnrollMemFence: false
     Use64bShadowLimit: 1
     UseInstOffsetForGRO: 0
@@ -878,12 +1117,18 @@
     VectorAtomicWidth: 1
     VectorStore: -1
     VectorWidth: 2
+    WaveSeparateGlobalReadA: 0
+    WaveSeparateGlobalReadB: 0
+    WavefrontSize: 64
     WorkGroup: [64, 4, 1]
     WorkGroupMapping: 4
     WorkGroupMappingType: B
+    _DepthULds: 16
+    _GlobalAccumulation: null
     _NumElemPerMfmaInput: 2
     _UseSgprForGRO: false
     _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
     _staggerStrideShift: 1
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
@@ -924,6 +1169,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -1011,6 +1257,7 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
     NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
@@ -1055,6 +1302,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -1106,6 +1354,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -1183,6 +1435,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -1270,6 +1523,7 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
     NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
@@ -1314,6 +1568,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -1365,6 +1620,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -1442,6 +1701,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -1529,6 +1789,7 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
     NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
@@ -1573,6 +1834,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -1624,6 +1886,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -1701,6 +1967,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -1788,6 +2055,7 @@
     MaxOccupancy: 40
     MaxVgprNumber: 256
     MinVgprNumber: 0
+    NoLdsWriteCode: false
     NoReject: false
     NonTemporalA: 0
     NonTemporalB: 0
@@ -1832,6 +2100,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -1883,6 +2152,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -1960,6 +2233,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 8
@@ -2092,6 +2366,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -2143,6 +2418,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -2220,6 +2499,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -2352,6 +2632,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -2403,6 +2684,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -2480,6 +2765,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -2612,6 +2898,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -2663,6 +2950,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -2740,6 +3031,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -2872,6 +3164,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -2923,6 +3216,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -3000,6 +3297,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -3132,6 +3430,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -3183,6 +3482,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -3260,6 +3563,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 2
@@ -3392,6 +3696,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -3443,6 +3748,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -3520,6 +3829,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -3652,6 +3962,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -3703,6 +4014,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -3780,6 +4095,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -3912,6 +4228,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -3963,6 +4280,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -4040,6 +4361,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 8
@@ -4172,6 +4494,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -4223,6 +4546,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -4300,6 +4627,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -4432,6 +4760,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -4483,6 +4812,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -4560,6 +4893,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -4692,6 +5026,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -4743,6 +5078,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -4820,6 +5159,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -4952,6 +5292,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -5003,6 +5344,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -5080,6 +5425,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -5212,6 +5558,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -5263,6 +5610,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -5340,6 +5691,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -5472,6 +5824,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -5523,6 +5876,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -5600,6 +5957,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -5732,6 +6090,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -5783,6 +6142,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -5860,6 +6223,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 4
@@ -5992,6 +6356,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -6043,6 +6408,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -6120,6 +6489,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -6252,6 +6622,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -6303,6 +6674,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -6380,6 +6755,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -6512,6 +6888,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -6563,6 +6940,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -6640,6 +7021,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -6772,6 +7154,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -6823,6 +7206,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -6900,6 +7287,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -7032,6 +7420,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -7083,6 +7472,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -7160,6 +7553,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -7292,6 +7686,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -7343,6 +7738,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -7420,6 +7819,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -7552,6 +7952,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -7603,6 +8004,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -7680,6 +8085,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -7812,6 +8218,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -7863,6 +8270,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -7940,6 +8351,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -8072,6 +8484,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -8123,6 +8536,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -8200,6 +8617,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -8332,6 +8750,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -8383,6 +8802,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -8460,6 +8883,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -8592,6 +9016,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -8643,6 +9068,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -8720,6 +9149,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -8852,6 +9282,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -8903,6 +9334,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -8980,6 +9415,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -9112,6 +9548,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -9163,6 +9600,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -9240,6 +9681,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -9372,6 +9814,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -9423,6 +9866,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -9500,6 +9947,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -9632,6 +10080,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -9683,6 +10132,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -9760,6 +10213,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -9892,6 +10346,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -9943,6 +10398,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -10020,6 +10479,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -10152,6 +10612,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -10203,6 +10664,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -10280,6 +10745,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -10412,6 +10878,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -10463,6 +10930,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -10540,6 +11011,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -10672,6 +11144,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -10723,6 +11196,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -10800,6 +11277,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -10932,6 +11410,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -10983,6 +11462,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -11060,6 +11543,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -11192,6 +11676,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -11243,6 +11728,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -11320,6 +11809,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -11452,6 +11942,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -11503,6 +11994,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -11580,6 +12075,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -11712,6 +12208,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -11763,6 +12260,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -11840,6 +12341,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -11972,6 +12474,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -12023,6 +12526,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -12100,6 +12607,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -12232,6 +12740,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -12283,6 +12792,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -12360,6 +12873,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -12492,6 +13006,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -12543,6 +13058,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -12620,6 +13139,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -12752,6 +13272,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -12803,6 +13324,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -12880,6 +13405,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -13012,6 +13538,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -13063,6 +13590,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -13140,6 +13671,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -13272,6 +13804,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -13323,6 +13856,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -13400,6 +13937,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -13532,6 +14070,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -13583,6 +14122,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -13660,6 +14203,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -13792,6 +14336,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -13843,6 +14388,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -13920,6 +14469,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -14052,6 +14602,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -14103,6 +14654,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -14180,6 +14735,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -14312,6 +14868,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -14363,6 +14920,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -14440,6 +15001,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -14572,6 +15134,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -14623,6 +15186,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -14700,6 +15267,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -14832,6 +15400,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -14883,6 +15452,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -14960,6 +15533,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -15092,6 +15666,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -15143,6 +15718,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -15220,6 +15799,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -15352,6 +15932,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -15403,6 +15984,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -15480,6 +16065,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -15612,6 +16198,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -15663,6 +16250,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -15740,6 +16331,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -15872,6 +16464,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -15923,6 +16516,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -16000,6 +16597,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -16132,6 +16730,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -16183,6 +16782,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -16260,6 +16863,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -16392,6 +16996,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -16443,6 +17048,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -16520,6 +17129,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -16652,6 +17262,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -16703,6 +17314,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -16780,6 +17395,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -16912,6 +17528,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -16963,6 +17580,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -17040,6 +17661,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -17172,6 +17794,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -17223,6 +17846,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -17300,6 +17927,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -17432,6 +18060,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -17483,6 +18112,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -17560,6 +18193,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -17692,6 +18326,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -17743,6 +18378,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -17820,6 +18459,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -17952,6 +18592,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -18003,6 +18644,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -18080,6 +18725,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -18212,6 +18858,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -18263,6 +18910,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -18340,6 +18991,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -18472,6 +19124,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -18523,6 +19176,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -18600,6 +19257,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -18732,6 +19390,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -18783,6 +19442,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -18860,6 +19523,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -18992,6 +19656,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -19043,6 +19708,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -19120,6 +19789,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -19252,6 +19922,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -19303,6 +19974,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -19380,6 +20055,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -19512,6 +20188,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -19563,6 +20240,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -19640,6 +20321,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -19772,6 +20454,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -19823,6 +20506,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -19900,6 +20587,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 4
@@ -20032,6 +20720,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -20083,6 +20772,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -20160,6 +20853,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -20292,6 +20986,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -20343,6 +21038,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -20420,6 +21119,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 4
@@ -20552,6 +21252,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -20603,6 +21304,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -20680,6 +21385,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -20812,6 +21518,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -20863,6 +21570,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -20940,6 +21651,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 2
@@ -21072,6 +21784,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -21123,6 +21836,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -21200,6 +21917,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -21332,6 +22050,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -21383,6 +22102,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -21460,6 +22183,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -21592,6 +22316,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -21643,6 +22368,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -21720,6 +22449,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -21852,6 +22582,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -21903,6 +22634,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -21980,6 +22715,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -22112,6 +22848,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -22163,6 +22900,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -22240,6 +22981,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -22372,6 +23114,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -22423,6 +23166,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -22500,6 +23247,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -22632,6 +23380,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -22683,6 +23432,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -22760,6 +23513,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -22892,6 +23646,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -22943,6 +23698,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -23020,6 +23779,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -23152,6 +23912,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -23203,6 +23964,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -23280,6 +24045,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -23412,6 +24178,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -23463,6 +24230,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -23540,6 +24311,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -23672,6 +24444,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -23723,6 +24496,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -23800,6 +24577,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -23932,6 +24710,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -23983,6 +24762,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -24060,6 +24843,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -24192,6 +24976,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -24243,6 +25028,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -24320,6 +25109,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -24452,6 +25242,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -24503,6 +25294,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -24580,6 +25375,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -24712,6 +25508,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -24763,6 +25560,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -24840,6 +25641,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -24972,6 +25774,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -25023,6 +25826,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -25100,6 +25907,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -25232,6 +26040,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -25283,6 +26092,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -25360,6 +26173,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -25492,6 +26306,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -25543,6 +26358,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -25620,6 +26439,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -25752,6 +26572,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -25803,6 +26624,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -25880,6 +26705,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 4
@@ -26012,6 +26838,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -26063,6 +26890,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -26140,6 +26971,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -26272,6 +27104,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -26323,6 +27156,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -26400,6 +27237,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -26532,6 +27370,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -26583,6 +27422,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -26660,6 +27503,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -26792,6 +27636,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -26843,6 +27688,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -26920,6 +27769,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -27052,6 +27902,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -27103,6 +27954,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -27180,6 +28035,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -27312,6 +28168,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -27363,6 +28220,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -27440,6 +28301,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -27572,6 +28434,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -27623,6 +28486,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -27700,6 +28567,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -27832,6 +28700,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -27883,6 +28752,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -27960,6 +28833,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -28092,6 +28966,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -28143,6 +29018,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -28220,6 +29099,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 2
@@ -28352,6 +29232,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -28403,6 +29284,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -28480,6 +29365,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -28612,6 +29498,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -28663,6 +29550,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -28740,6 +29631,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -28872,6 +29764,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -28923,6 +29816,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -29000,6 +29897,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -29132,6 +30030,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -29183,6 +30082,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -29260,6 +30163,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -29392,6 +30296,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -29443,6 +30348,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -29520,6 +30429,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -29652,6 +30562,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -29703,6 +30614,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -29780,6 +30695,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -29912,6 +30828,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -29963,6 +30880,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -30040,6 +30961,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -30172,6 +31094,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -30223,6 +31146,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -30300,6 +31227,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -30432,6 +31360,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -30483,6 +31412,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -30560,6 +31493,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -30692,6 +31626,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -30743,6 +31678,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -30820,6 +31759,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -30952,6 +31892,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -31003,6 +31944,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -31080,6 +32025,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -31212,6 +32158,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -31263,6 +32210,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -31340,6 +32291,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -31472,6 +32424,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -31523,6 +32476,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -31600,6 +32557,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -31732,6 +32690,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -31783,6 +32742,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -31860,6 +32823,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -31992,6 +32956,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -32043,6 +33008,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -32120,6 +33089,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -32252,6 +33222,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -32303,6 +33274,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -32380,6 +33355,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -32512,6 +33488,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -32563,6 +33540,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -32640,6 +33621,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 4
@@ -32772,6 +33754,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -32823,6 +33806,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -32900,6 +33887,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -33032,6 +34020,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -33083,6 +34072,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -33160,6 +34153,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -33292,6 +34286,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -33343,6 +34338,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -33420,6 +34419,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -33552,6 +34552,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -33603,6 +34604,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -33680,6 +34685,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -33812,6 +34818,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -33863,6 +34870,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -33940,6 +34951,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -34072,6 +35084,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -34123,6 +35136,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -34200,6 +35217,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -34332,6 +35350,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -34383,6 +35402,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -34460,6 +35483,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -34592,6 +35616,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -34643,6 +35668,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -34720,6 +35749,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -34852,6 +35882,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -34903,6 +35934,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -34980,6 +36015,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -35112,6 +36148,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -35163,6 +36200,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -35240,6 +36281,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -35372,6 +36414,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -35423,6 +36466,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -35500,6 +36547,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 4
@@ -35632,6 +36680,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -35683,6 +36732,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -35760,6 +36813,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -35892,6 +36946,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -35943,6 +36998,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -36020,6 +37079,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -36152,6 +37212,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -36203,6 +37264,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -36280,6 +37345,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -36412,6 +37478,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -36463,6 +37530,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -36540,6 +37611,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -36672,6 +37744,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -36723,6 +37796,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -36800,6 +37877,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -36932,6 +38010,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -36983,6 +38062,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -37060,6 +38143,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -37192,6 +38276,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -37243,6 +38328,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -37320,6 +38409,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -37452,6 +38542,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -37503,6 +38594,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -37580,6 +38675,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -37712,6 +38808,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -37763,6 +38860,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -37840,6 +38941,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -37972,6 +39074,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -38023,6 +39126,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -38100,6 +39207,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -38232,6 +39340,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -38283,6 +39392,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -38360,6 +39473,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -38492,6 +39606,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -38543,6 +39658,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -38620,6 +39739,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -38752,6 +39872,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -38803,6 +39924,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -38880,6 +40005,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -39012,6 +40138,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -39063,6 +40190,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -39140,6 +40271,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -39272,6 +40404,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -39323,6 +40456,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -39400,6 +40537,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -39532,6 +40670,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -39583,6 +40722,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -39660,6 +40803,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -39792,6 +40936,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -39843,6 +40988,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -39920,6 +41069,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -40052,6 +41202,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -40103,6 +41254,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -40180,6 +41335,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -40312,6 +41468,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -40363,6 +41520,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -40440,6 +41601,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -40572,6 +41734,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -40623,6 +41786,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -40700,6 +41867,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -40832,6 +42000,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -40883,6 +42052,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -40960,6 +42133,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 2
@@ -41092,6 +42266,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -41143,6 +42318,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -41220,6 +42399,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -41352,6 +42532,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -41403,6 +42584,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -41480,6 +42665,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 8
@@ -41612,6 +42798,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -41663,6 +42850,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -41740,6 +42931,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -41872,6 +43064,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -41923,6 +43116,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -42000,6 +43197,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -42132,6 +43330,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -42183,6 +43382,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -42260,6 +43463,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -42392,6 +43596,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -42443,6 +43648,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -42520,6 +43729,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -42652,6 +43862,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -42703,6 +43914,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -42780,6 +43995,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -42912,6 +44128,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -42963,6 +44180,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -43040,6 +44261,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
@@ -43172,6 +44394,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -43223,6 +44446,10 @@
     StaggerU: 0
     StaggerUMapping: 0
     StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -43300,6 +44527,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -43432,6 +44660,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -43483,6 +44712,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -43560,6 +44793,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 0
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 4
@@ -43692,6 +44926,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -43743,6 +44978,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -43820,6 +45059,7 @@
     EdgeType: ShiftPtr
     EnableMatrixInstruction: true
     ExpandPointerSwap: 1
+    Fp16AltImpl: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
@@ -43952,6 +45192,7 @@
       ConvolutionConfig: []
       DataType: 7
       DestDataType: 7
+      Fp16AltImpl: false
       HighPrecisionAccumulate: true
       Index0: 0
       Index01A: 0
@@ -44003,6 +45244,10 @@
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 0
     StoreSyncOpt: 0
@@ -44266,7 +45511,9 @@
     StaggerUMapping: 0
     StaggerUStride: 128
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
     StoreCInUnrollInterval: 2
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -44530,7 +45777,9 @@
     StaggerUMapping: 0
     StaggerUStride: 128
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
     StoreCInUnrollInterval: 2
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -44794,7 +46043,9 @@
     StaggerUMapping: 0
     StaggerUStride: 0
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
     StoreCInUnrollInterval: 2
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -45058,7 +46309,9 @@
     StaggerUMapping: 0
     StaggerUStride: 0
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
     StoreCInUnrollInterval: 2
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -45322,6 +46575,9 @@
     StaggerUMapping: 0
     StaggerUStride: 0
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -45585,6 +46841,9 @@
     StaggerUMapping: 0
     StaggerUStride: 0
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -45848,6 +47107,9 @@
     StaggerUMapping: 0
     StaggerUStride: 0
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -46111,6 +47373,9 @@
     StaggerUMapping: 0
     StaggerUStride: 0
     StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
     StorePriorityOpt: false
     StoreRemapVectorWidth: 4
     StoreSyncOpt: 0
@@ -47079,7 +48344,7 @@
   - - [7680, 8192, 1, 8192]
     - [27, 80.829]
   - - [4096, 1024, 1, 8192]
-    - [32, 68.907]
+    - [32, 78.649]
   - - [1024, 2, 1, 1280]
     - [13, 0.126]
   - - [479, 1024, 1, 32768]
@@ -48480,4 +49745,108 @@
     - [173, 98.35]
   - - [7680, 8448, 1, 7937]
     - [173, 98.578]
+  - - [64, 32, 16, 32]
+    - [9, 0.122]
+  - - [64, 48, 16, 48]
+    - [10, 0.261]
+  - - [64, 80, 16, 80]
+    - [9, 0.631]
+  - - [64, 96, 16, 96]
+    - [13, 0.901]
+  - - [64, 160, 16, 160]
+    - [59, 2.344]
+  - - [64, 192, 16, 192]
+    - [13, 3.198]
+  - - [64, 240, 16, 240]
+    - [156, 4.206]
+  - - [64, 304, 16, 304]
+    - [156, 6.128]
+  - - [64, 320, 16, 320]
+    - [36, 7.671]
+  - - [64, 384, 16, 384]
+    - [112, 9.666]
+  - - [64, 416, 16, 416]
+    - [62, 10.453]
+  - - [64, 432, 16, 432]
+    - [115, 9.876]
+  - - [64, 448, 16, 448]
+    - [66, 11.997]
+  - - [64, 464, 16, 464]
+    - [62, 11.342]
+  - - [64, 480, 16, 480]
+    - [62, 13.159]
+  - - [64, 496, 16, 496]
+    - [62, 12.503]
+  - - [1024, 1024, 1, 5552]
+    - [42, 50.299]
+  - - [1024, 1024, 1, 6128]
+    - [42, 52.422]
+  - - [1024, 3072, 1, 7344]
+    - [50, 79.791]
+  - - [1024, 1024, 1, 7760]
+    - [42, 56.764]
+  - - [1024, 1024, 1, 5936]
+    - [42, 51.945]
+  - - [1024, 4096, 1, 5936]
+    - [52, 75.567]
+  - - [1024, 1024, 1, 5616]
+    - [42, 51.272]
+  - - [1024, 1024, 1, 5904]
+    - [42, 51.935]
+  - - [1024, 1024, 1, 5776]
+    - [42, 51.812]
+  - - [4096, 1024, 1, 7232]
+    - [32, 78.131]
+  - - [1024, 1024, 1, 5312]
+    - [43, 52.078]
+  - - [1024, 1024, 1, 5872]
+    - [42, 51.769]
+  - - [1024, 1024, 1, 6000]
+    - [42, 52.196]
+  - - [1024, 4096, 1, 8016]
+    - [52, 79.279]
+  - - [1024, 1024, 1, 5744]
+    - [42, 51.603]
+  - - [1024, 1024, 1, 5728]
+    - [42, 51.735]
+  - - [1024, 1024, 1, 5632]
+    - [43, 52.514]
+  - - [1024, 1024, 1, 5504]
+    - [43, 52.185]
+  - - [1024, 1024, 1, 5488]
+    - [42, 49.987]
+  - - [1024, 1024, 1, 5456]
+    - [43, 50.199]
+  - - [1024, 1024, 1, 6288]
+    - [42, 52.647]
+  - - [1024, 1024, 1, 6256]
+    - [42, 53.018]
+  - - [1024, 4096, 1, 7264]
+    - [28, 79.22]
+  - - [1024, 1024, 1, 6304]
+    - [42, 53.272]
+  - - [1024, 1024, 1, 5520]
+    - [42, 50.201]
+  - - [1024, 1024, 1, 5360]
+    - [42, 49.664]
+  - - [1024, 1024, 1, 5392]
+    - [42, 49.688]
+  - - [1024, 1024, 1, 5376]
+    - [43, 52.229]
+  - - [1024, 1024, 1, 5328]
+    - [43, 49.836]
+  - - [1024, 1024, 1, 6224]
+    - [42, 52.52]
+  - - [1024, 1024, 1, 6320]
+    - [42, 52.691]
+  - - [1024, 1024, 1, 5696]
+    - [43, 52.407]
+  - - [1024, 1024, 1, 6096]
+    - [42, 52.376]
+  - - [1024, 1024, 1, 5712]
+    - [42, 51.355]
+  - - [1024, 4096, 1, 6016]
+    - [52, 76.813]
+  - - [1024, 1024, 1, 11248]
+    - [42, 63.007]
 - null
