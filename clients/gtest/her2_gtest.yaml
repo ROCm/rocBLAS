@@ -34,6 +34,9 @@ Definitions:
     - { N:  2048, lda: 2048 }
     - { N:  4011, lda: 4012 }
 
+  - &size_t_index
+    - { N:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341 }
+
   - &incx_incy_range
     - { incx:  -1, incy:   2 }
     - { incx:   3, incy:  -1 }
@@ -69,6 +72,21 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: L
   matrix_size: *special_case_range
+
+# - name: her2_size_t_M
+#   category: nightly
+#   function:
+#   - her2
+#   precision: *single_precision_complex
+#   #- her2: *single_double_precisions_complex
+#   # shared code for size_t with non-batched
+#   #- her2_batched: *single_precision_complex
+#   #- her2_strided_batched: *single_precision_complex
+#   uplo: [U, L]
+#   matrix_size: *size_t_index
+#   incx: 1
+#   incy: 1
+
 
 - name: her2_fortran
   category: quick
