@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright (c) 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -44,15 +44,18 @@ public:
     // Allocate memory in a RAII class
     template <
         typename... Ss,
-        std::enable_if_t<sizeof...(Ss) && rocblas_conjunction<std::is_convertible<Ss, size_t>...>{},
+        std::enable_if_t<rocblas_conjunction<std::is_convertible<Ss, size_t>...>{},
                          int> = 0>
     explicit rocblas_device_malloc(rocblas_handle handle, Ss... sizes)
         : handle(handle)
         , dm_ptr(nullptr)
     {
-        rocblas_status status = rocblas_device_malloc_alloc(handle, &dm_ptr, sizeof...(sizes), size_t(sizes)...);
-        if (status != rocblas_status_success && status != rocblas_status_memory_error)
-            throw std::bad_alloc();
+        if(sizeof...(sizes) > 0)
+        {
+            rocblas_status status = rocblas_device_malloc_alloc(handle, &dm_ptr, sizeof...(sizes), size_t(sizes)...);
+            if (status != rocblas_status_success && status != rocblas_status_memory_error)
+                throw std::bad_alloc();
+        }
     }
 
     // Move constructor
@@ -61,6 +64,17 @@ public:
         , dm_ptr(other.dm_ptr)
     {
         other.dm_ptr = nullptr;
+    }
+
+    // Move assignment
+    rocblas_device_malloc& operator=(rocblas_device_malloc&& other)
+    {
+        if(dm_ptr && dm_ptr != other.dm_ptr)
+            rocblas_device_malloc_free(dm_ptr);
+        handle = other.handle;
+        dm_ptr = other.dm_ptr;
+        other.dm_ptr = nullptr;
+        return *this;
     }
 
     // Conversion to a pointer type, to get the address of the device memory
@@ -111,7 +125,6 @@ public:
     // Copying and assigning to rocblas_device_malloc are deleted
     rocblas_device_malloc(const rocblas_device_malloc&) = delete;
     rocblas_device_malloc& operator=(const rocblas_device_malloc&) = delete;
-    rocblas_device_malloc& operator=(rocblas_device_malloc&&) = delete;
 };
 // clang-format on
 
