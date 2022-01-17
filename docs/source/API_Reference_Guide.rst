@@ -1,97 +1,513 @@
-.. _api_label:
 
-*************
-rocBLAS Types
-*************
+===================
+API Reference Guide
+===================
 
-Definitions
-===========
-
-rocblas_int
------------
-.. doxygentypedef:: rocblas_int
-
-rocblas_stride
---------------
-.. doxygentypedef:: rocblas_stride
-
-rocblas_half
 ------------
-.. doxygenstruct:: rocblas_half
+Introduction
+------------
 
-rocblas_bfloat16
-----------------
-.. doxygenstruct:: rocblas_bfloat16
+rocBLAS is a BLAS implementation on top of AMD's Radeon Open Compute `ROCm <https://rocm.github.io/install.html>`__ runtime and toolchains.
+rocBLAS is implemented in the `HIP <https://github.com/ROCm-Developer-Tools/HIP>`__ programming language and optimized for AMD's latest
+discrete GPUs.
 
-rocblas_float_complex
----------------------
-.. doxygenstruct:: rocblas_float_complex
+======== =========
+Acronym  Expansion
+======== =========
+**BLAS**    **B**\ asic **L**\ inear **A**\ lgebra **S**\ ubprograms
+**ROCm**    **R**\ adeon **O**\ pen E\ **C**\ osyste\ **m**
+**HIP**     **H**\ eterogeneous-Compute **I**\ nterface for **P**\ ortability
+======== =========
 
-rocblas_double_complex
------------------------
-.. doxygenstruct:: rocblas_double_complex
+The aim of rocBLAS is to provide:
+
+- functionality similar to Legacy BLAS, adapted to run on GPUs
+- high performance robust implementation
+
+rocBLAS is written in C++14 and HIP. It uses AMD's ROCm runtime to run on GPU devices.
+
+The rocBLAS API is a thin C99 API using the Hourglass Pattern. It contains:
+
+- [Level1]_, [Level2]_, and [Level3]_ BLAS functions, with batched and strided_batched versions
+- Extensions to Legacy BLAS, including functions for mixed precision
+- Auxiliary functions
+- Device Memory functions
+
+.. note::
+  - The official rocBLAS API is the C99 API defined in rocblas.h and therefore the use of any other public symbols is discouraged. All other C/C++ interfaces may not follow a deprecation model and so can change without warning from one release to the next.
+  - rocBLAS array storage format is column major and one based. This is to maintain compatibility with the Legacy BLAS code which is written in Fortran.
+  - rocBLAS calls AMD's library `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`_ for Level 3 BLAS matrix multiplication.
+
+--------------------------------------
+rocBLAS API and Legacy BLAS functions
+--------------------------------------
+
+rocBLAS is initialized by calling rocblas_create_handle and it is terminated by calling rocblas_destroy_handle. The rocblas_handle is persistent and it contains
+
+- HIP stream
+- temporary device work space
+- mode for enabling or disabling logging (default is logging disabled)
+
+rocBLAS functions run on the host and they call HIP to launch rocBLAS kernels that run on the device in a HIP stream. The kernels are asynchronous unless:
+
+- the function returns a scalar result from device to host
+- temporary device memory is allocated
+
+In both cases above, the launch can be made asynchronous by:
+
+- use rocblas_pointer_mode_device to keep the scalar result on the device. Note that it is only the following Level1 BLAS functions that return a scalar result: Xdot, Xdotu, Xnrm2, Xasum, iXamax, iXamin.
+
+- use the provided device memory functions to allocate device memory that persists in the handle. Note that most rocBLAS functions do not allocate temporary device memory.
+
+Before calling a rocBLAS function arrays must be copied to the device. Integer scalars like m, n, k are stored on the host. Floating point scalars like alpha and beta can be on host or device.
+
+Error handling is by returning a rocblas_status. Functions conform to the Legacy BLAS argument checking.
+
+
+Rules for obtaining rocBLAS API from Legacy BLAS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. The Legacy BLAS routine name is changed to lower case, and prefixed
+   by rocblas\_. For example: Legacy BLAS routine SSCAL, scales a vector by a constant, is converted to rocblas_sscal.
+
+2. A first argument rocblas_handle handle is added to all rocBLAS
+   functions.
+
+3. Input arguments are declared with the const modifier.
+
+4. Character arguments are replaced with enumerated types defined in
+   rocblas_types.h. They are passed by value on the host.
+
+5. Array arguments are passed by reference on the device.
+
+6. Scalar arguments are passed by value on the host with the following
+   two exceptions. See the section Pointer Mode for more information on
+   these two exceptions.
+
+-  Scalar values alpha and beta are passed by reference on either the
+   host or the device.
+
+-  Where Legacy BLAS functions have return values, the return value is
+   instead added as the last function argument. It is returned by
+   reference on either the host or the device. This applies to the
+   following functions: xDOT, xDOTU, xNRM2, xASUM, IxAMAX, IxAMIN.
+
+7. The return value of all functions is rocblas_status, defined in
+   rocblas_types.h. It is used to check for errors.
+
+
+Example Code
+^^^^^^^^^^^^
+
+Below is a simple example code for calling function rocblas_sscal.
+
+.. code-block:: c++
+
+   #include <iostream>
+   #include <vector>
+   #include "hip/hip_runtime_api.h"
+   #include "rocblas.h"
+
+   using namespace std;
+
+   int main()
+   {
+       rocblas_int n = 10240;
+       float alpha = 10.0;
+
+       vector<float> hx(n);
+       vector<float> hz(n);
+       float* dx;
+
+       rocblas_handle handle;
+       rocblas_create_handle(&handle);
+
+       // allocate memory on device
+       hipMalloc(&dx, n * sizeof(float));
+
+       // Initial Data on CPU,
+       srand(1);
+       for( int i = 0; i < n; ++i )
+       {
+           hx[i] = rand() % 10 + 1;  //generate a integer number between [1, 10]
+       }
+
+       // copy array from host memory to device memory
+       hipMemcpy(dx, hx.data(), sizeof(float) * n, hipMemcpyHostToDevice);
+
+       // call rocBLAS function
+       rocblas_status status = rocblas_sscal(handle, n, &alpha, dx, 1);
+
+       // check status for errors
+       if(status == rocblas_status_success)
+       {
+           cout << "status == rocblas_status_success" << endl;
+       }
+       else
+       {
+           cout << "rocblas failure: status = " << status << endl;
+       }
+
+       // copy output from device memory to host memory
+       hipMemcpy(hx.data(), dx, sizeof(float) * n, hipMemcpyDeviceToHost);
+
+       hipFree(dx);
+       rocblas_destroy_handle(handle);
+       return 0;
+   }
+
+
+LP64 interface
+^^^^^^^^^^^^^^
+
+The rocBLAS library is LP64, so rocblas_int arguments are 32 bit and
+rocblas_long arguments are 64 bit.
+
+
+Column-major storage and 1 based indexing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+rocBLAS uses column-major storage for 2D arrays, and 1 based indexing
+for the functions xMAX and xMIN. This is the same as Legacy BLAS and
+cuBLAS.
+
+If you need row-major and 0 based indexing (used in C language arrays)
+download the file cblas.tgz from the Netlib Repository.
+Look at the CBLAS functions that provide a thin interface to
+Legacy BLAS. They convert from row-major, 0 based, to column-major, 1
+based. This is done by swapping the order of function arguments. It is
+not necessary to transpose matrices.
+
+
+Pointer mode
+^^^^^^^^^^^^
+
+The auxiliary functions rocblas_set_pointer and rocblas_get_pointer are
+used to set and get the value of the state variable
+rocblas_pointer_mode. This variable is stored in rocblas_handle. If rocblas_pointer_mode ==
+rocblas_pointer_mode_host then scalar parameters must be allocated on
+the host. If rocblas_pointer_mode == rocblas_pointer_mode_device, then
+scalar parameters must be allocated on the device.
+
+There are two types of scalar parameter:
+
+* scaling parameters like alpha and beta used in functions like axpy, gemv, gemm 2
+
+* scalar results from functions amax, amin, asum, dot, nrm2
+
+For scalar parameters like alpha and beta when rocblas_pointer_mode ==
+rocblas_pointer_mode_host they can be allocated on the host heap or
+stack. The kernel launch is asynchronous, and if they are on the heap
+they can be freed after the return from the kernel launch. When
+rocblas_pointer_mode == rocblas_pointer_mode_device they must not be
+changed till the kernel completes.
+
+For scalar results, when rocblas_pointer_mode ==
+rocblas_pointer_mode_host then the function blocks the CPU till the GPU
+has copied the result back to the host. When rocblas_pointer_mode ==
+rocblas_pointer_mode_device the function will return after the
+asynchronous launch. Similarly to vector and matrix results, the scalar
+result is only available when the kernel has completed execution.
+
+
+Asynchronous API
+^^^^^^^^^^^^^^^^
+
+rocBLAS functions will be asynchronous unless:
+
+* the function needs to allocate device memory
+
+* the function returns a scalar result from GPU to CPU
+
+The order of operations in the asynchronous functions is as in the figure
+below. The argument checking, calculation of process grid, and kernel
+launch take very little time. The asynchronous kernel running on the GPU
+does not block the CPU. After the kernel launch the CPU keeps processing
+the next instructions.
+
+.. asynch_blocks
+.. figure:: ../fig/asynch_function.PNG
+   :alt: code blocks in asynch function call
+   :align: center
+
+   Order of operations in asynchronous functions
+
+
+The above order of operations will change if there is logging, or if the
+function is synchronous. Logging requires system calls, and the program
+will need to wait for them to complete before executing the next instruction.
+See the Logging section for more information.
+
+.. note:: The default is no logging.
+
+If the cpu needs to allocate device memory, it needs to wait till this is complete before
+executing the next instruction. See the Device Memory Allocation section for more information.
+
+.. note:: Memory can be pre-allocated. This will make the function asynchronous as it removes the need for the function to allocate memory.
+
+The following functions copy a scalar result from GPU to CPU if
+rocblas_pointer_mode == rocblas_pointer_mode_host: asum, dot, max, min, nrm2.
+
+This makes the function synchronous, as the program will need to wait
+for the copy before executing the next instruction. See the section on
+Pointer Mode for more information
+
+.. note:: Set rocblas_pointer_mode to rocblas_pointer_mode_device make the function asynchronous by keeping the result on the GPU.
+
+The order of operations with logging, device memory allocation and return of a scalar
+result is as in the figure below:
+
+.. asynch_blocks
+.. figure:: ../fig/synchronous_function.PNG
+   :alt: code blocks in synchronous function call
+   :align: center
+
+   Code blocks in synchronous function call
+
+
+Complex Number Data Types
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Data types for rocBLAS complex numbers in the API are a special case.  For C compiler users, gcc and other non-hipcc compiler users these types
+are exposed as a struct with x and y components and identical memory layout to std::complex for float and double precision.   Internally a templated
+C++ class is defined but it should be considered deprecated for external use.   For simplified usage with hipified code there is an option
+to interpret the API as using hipFloatComplex and hipDoubleComplex types (i.e. typedef hipFloatComplex rocblas_float_complex).  This is provided
+for users to avoid casting when using the hip complex types in their code.  As the memory layout is consistent across all three types
+it is safe to cast arguments to API calls between the 3 types: hipFloatComplex, std::complex<float>, and rocblas_float_complex, as well as for
+the double precision variants.  In order to expose the API as using the hip defined complex types, either a compiler define or inlined
+#define ROCM_MATHLIBS_API_USE_HIP_COMPLEX can be used before including the header file <rocblas.h>.  Thus the API is compatible with both forms but
+recompilation is required to avoid casting if switching to pass in the hip complex types.  Most device memory pointers are passed with void*
+types to hip utility functions (e.g. hipMemcpy) so uploading memory from std::complex arrays or hipFloatComplex arrays requires no changes
+regardless of complex data type API choice.
+
+
+MI100 (gfx908) Considerations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On nodes with the MI100 (gfx908), MFMA (Matrix-Fused-Multiply-Add)
+instructions are available to substantially speed up matrix operations.
+This hardware feature is used in all gemm and gemm based functions in
+rocBLAS with 32-bit or shorter base datatypes with an associated 32-bit
+compute_type (f32_r, i32_r or f32_c as appropriate).
+
+Specifically, rocBLAS takes advantage of MI100's MFMA instructions for
+three real base types f16_r, bf16_r and f32_r with compute_type f32_r,
+one integral base type i8_r with compute_type i32_r, and one complex
+base type f32_c with compute_type f32_c.  In summary, all GEMM APIs and
+APIs for GEMM based functions using these five base types and their
+associated compute_type (explicit or implicit) take advantage of MI100's
+MFMA instructions.
+
+.. note::
+
+   The use of MI100's MFMA instructions is automatic.  There is no user control for on/off.
+
+   Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
+
+
+MI200 (gfx90a) Considerations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On nodes with the MI200 (gfx90a), MFMA_F64 instructions are available to
+substantially speed up double precision matrix operations.  This
+hardware feature is used in all GEMM and GEMM based functions in
+rocBLAS with 64-bit floating-point datatype, namely DGEMM, ZGEMM,
+DTRSM, ZTRSM, DTRMM, ZTRMM, DSYRKX and ZSYRKX.
+
+The MI200 MFMA_F16, MFMA_BF16, MFMA_BF16_1K and MFMA_F32 instructions
+flush subnormal input/output data ("denorms") to zero. It is observed that
+certain use cases utilizing the HPA (High Precision Accumulate) HGEMM
+kernels where a_type=b_type=c_type=d_type=f16_r and compute_type=f32_r
+do not tolerate the MI200's flush-denorms-to-zero behavior well
+due to F16's limited exponent range. An alternate implementation of the
+HPA HGEMM kernel utilizing the MFMA_BF16_1K instruction is provided which
+takes advantage of BF16's much larger exponent range, albeit with reduced
+accuracy.  To select the alternate implementation of HPA HGEMM with the
+gemm_ex/gemm_strided_batched_ex functions, for the flags argument, use
+the enum value of rocblas_gemm_flags_fp16_alt_impl.
+
+.. note::
+
+   The use of MI200's MFMA instructions (including MFMA_F64) is automatic.  There is no user control for on/off.
+
+   Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
+
+-----------------
+Using rocBLAS API
+-----------------
+
+This section describes how to use the rocBLAS library API.
+
+
+rocBLAS Datatypes
+^^^^^^^^^^^^^^^^^
+
 
 rocblas_handle
---------------
+'''''''''''''''
+
 .. doxygentypedef:: rocblas_handle
 
-Enums
-=====
-Enumeration constants have numbering that is consistent with CBLAS, ACML and most standard C BLAS libraries.
+
+rocblas_int
+''''''''''''
+
+.. doxygentypedef:: rocblas_int
+
+
+rocblas_stride
+'''''''''''''''
+
+.. doxygentypedef:: rocblas_stride
+
+
+rocblas_half
+''''''''''''
+
+.. doxygenstruct:: rocblas_half
+
+
+rocblas_bfloat16
+'''''''''''''''''
+
+.. doxygenstruct:: rocblas_bfloat16
+
+
+rocblas_float_complex
+''''''''''''''''''''''
+
+.. doxygenstruct:: rocblas_float_complex
+
+
+rocblas_double_complex
+'''''''''''''''''''''''
+
+.. doxygenstruct:: rocblas_double_complex
+
+
+rocBLAS Enumeration
+^^^^^^^^^^^^^^^^^^^
+
+   Enumeration constants have numbering that is consistent with CBLAS, ACML and most standard C BLAS libraries.
+
 
 rocblas_operation
------------------
+'''''''''''''''''
+
 .. doxygenenum:: rocblas_operation
 
+
 rocblas_fill
-------------
+'''''''''''''
+
 .. doxygenenum:: rocblas_fill
 
+
 rocblas_diagonal
-----------------
+'''''''''''''''''
+
 .. doxygenenum:: rocblas_diagonal
 
+
 rocblas_side
-------------
+''''''''''''
+
 .. doxygenenum:: rocblas_side
 
+
 rocblas_status
---------------
+'''''''''''''''
+
 .. doxygenenum:: rocblas_status
 
+
 rocblas_datatype
-----------------
+'''''''''''''''''
+
 .. doxygenenum:: rocblas_datatype
 
+
 rocblas_pointer_mode
---------------------
+'''''''''''''''''''''
+
 .. doxygenenum:: rocblas_pointer_mode
 
+
 rocblas_atomics_mode
---------------------
+'''''''''''''''''''''
+
 .. doxygenenum:: rocblas_atomics_mode
 
+
 rocblas_layer_mode
-------------------
+'''''''''''''''''''
+
 .. doxygenenum:: rocblas_layer_mode
 
+
 rocblas_gemm_algo
------------------
+'''''''''''''''''
+
 .. doxygenenum:: rocblas_gemm_algo
 
+
 rocblas_gemm_flags
-------------------
+'''''''''''''''''''
+
 .. doxygenenum:: rocblas_gemm_flags
 
-*****************
-rocBLAS Functions
-*****************
 
-Level 1 BLAS
-============
+rocBLAS Helper functions
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Auxiliary Functions
+'''''''''''''''''''
+
+.. doxygenfunction:: rocblas_create_handle
+.. doxygenfunction:: rocblas_destroy_handle
+.. doxygenfunction:: rocblas_set_stream
+.. doxygenfunction:: rocblas_get_stream
+.. doxygenfunction:: rocblas_set_pointer_mode
+.. doxygenfunction:: rocblas_get_pointer_mode
+.. doxygenfunction:: rocblas_set_atomics_mode
+.. doxygenfunction:: rocblas_get_atomics_mode
+.. doxygenfunction:: rocblas_query_int8_layout_flag
+.. doxygenfunction:: rocblas_pointer_to_mode
+.. doxygenfunction:: rocblas_set_vector
+.. doxygenfunction:: rocblas_get_vector
+.. doxygenfunction:: rocblas_set_matrix
+.. doxygenfunction:: rocblas_get_matrix
+.. doxygenfunction:: rocblas_set_vector_async
+.. doxygenfunction:: rocblas_set_matrix_async
+.. doxygenfunction:: rocblas_get_matrix_async
+.. doxygenfunction:: rocblas_initialize
+.. doxygenfunction:: rocblas_status_to_string
+
+Device Memory Allocation Functions
+''''''''''''''''''''''''''''''''''
+
+.. doxygenfunction:: rocblas_start_device_memory_size_query
+.. doxygenfunction:: rocblas_stop_device_memory_size_query
+.. doxygenfunction:: rocblas_get_device_memory_size
+.. doxygenfunction:: rocblas_set_device_memory_size
+.. doxygenfunction:: rocblas_set_workspace
+.. doxygenfunction:: rocblas_is_managing_device_memory
+.. doxygenfunction:: rocblas_is_user_managing_device_memory
+
+For more detailed information refer to sections :ref:`Device Memory Allocation Usage` and :ref:`Device Memory allocation in detail`:
+
+Build Information Functions
+'''''''''''''''''''''''''''
+
+.. doxygenfunction:: rocblas_get_version_string_size
+.. doxygenfunction:: rocblas_get_version_string
+
+rocBLAS Level-1 functions
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 rocblas_iXamax + batched, strided_batched
------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_isamax
    :outline:
 .. doxygenfunction:: rocblas_idamax
@@ -118,7 +534,8 @@ rocblas_iXamax + batched, strided_batched
 
 
 rocblas_iXamin + batched, strided_batched
------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_isamin
    :outline:
 .. doxygenfunction:: rocblas_idamin
@@ -144,7 +561,8 @@ rocblas_iXamin + batched, strided_batched
 .. doxygenfunction:: rocblas_izamin_strided_batched
 
 rocblas_Xasum + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sasum
    :outline:
 .. doxygenfunction:: rocblas_dasum
@@ -170,7 +588,8 @@ rocblas_Xasum + batched, strided_batched
 .. doxygenfunction:: rocblas_dzasum_strided_batched
 
 rocblas_Xaxpy + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_saxpy
    :outline:
 .. doxygenfunction:: rocblas_daxpy
@@ -202,7 +621,8 @@ rocblas_Xaxpy + batched, strided_batched
 .. doxygenfunction:: rocblas_zaxpy_strided_batched
 
 rocblas_Xcopy + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_scopy
    :outline:
 .. doxygenfunction:: rocblas_dcopy
@@ -228,7 +648,8 @@ rocblas_Xcopy + batched, strided_batched
 .. doxygenfunction:: rocblas_zcopy_strided_batched
 
 rocblas_Xdot + batched, strided_batched
----------------------------------------
+'''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sdot
    :outline:
 .. doxygenfunction:: rocblas_ddot
@@ -278,7 +699,8 @@ rocblas_Xdot + batched, strided_batched
 .. doxygenfunction:: rocblas_zdotc_strided_batched
 
 rocblas_Xnrm2 + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_snrm2
    :outline:
 .. doxygenfunction:: rocblas_dnrm2
@@ -304,7 +726,8 @@ rocblas_Xnrm2 + batched, strided_batched
 .. doxygenfunction:: rocblas_dznrm2_strided_batched
 
 rocblas_Xrot + batched, strided_batched
----------------------------------------
+'''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_srot
    :outline:
 .. doxygenfunction:: rocblas_drot
@@ -342,7 +765,8 @@ rocblas_Xrot + batched, strided_batched
 .. doxygenfunction:: rocblas_zdrot_strided_batched
 
 rocblas_Xrotg + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_srotg
    :outline:
 .. doxygenfunction:: rocblas_drotg
@@ -368,7 +792,8 @@ rocblas_Xrotg + batched, strided_batched
 .. doxygenfunction:: rocblas_zrotg_strided_batched
 
 rocblas_Xrotm + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_srotm
    :outline:
 .. doxygenfunction:: rocblas_drotm
@@ -382,7 +807,8 @@ rocblas_Xrotm + batched, strided_batched
 .. doxygenfunction:: rocblas_drotm_strided_batched
 
 rocblas_Xrotmg + batched, strided_batched
------------------------------------------
+''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_srotmg
    :outline:
 .. doxygenfunction:: rocblas_drotmg
@@ -396,7 +822,8 @@ rocblas_Xrotmg + batched, strided_batched
 .. doxygenfunction:: rocblas_drotmg_strided_batched
 
 rocblas_Xscal + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sscal
    :outline:
 .. doxygenfunction:: rocblas_dscal
@@ -434,7 +861,8 @@ rocblas_Xscal + batched, strided_batched
 .. doxygenfunction:: rocblas_zdscal_strided_batched
 
 rocblas_Xswap + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sswap
    :outline:
 .. doxygenfunction:: rocblas_dswap
@@ -460,10 +888,12 @@ rocblas_Xswap + batched, strided_batched
 .. doxygenfunction:: rocblas_zswap_strided_batched
 
 
-Level 2 BLAS
-============
+rocBLAS Level-2 functions
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 rocblas_Xgbmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sgbmv
    :outline:
 .. doxygenfunction:: rocblas_dgbmv
@@ -489,7 +919,8 @@ rocblas_Xgbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_zgbmv_strided_batched
 
 rocblas_Xgemv + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sgemv
    :outline:
 .. doxygenfunction:: rocblas_dgemv
@@ -515,7 +946,8 @@ rocblas_Xgemv + batched, strided_batched
 .. doxygenfunction:: rocblas_zgemv_strided_batched
 
 rocblas_Xger + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sger
    :outline:
 .. doxygenfunction:: rocblas_dger
@@ -553,7 +985,8 @@ rocblas_Xger + batched, strided_batched
 .. doxygenfunction:: rocblas_zgerc_strided_batched
 
 rocblas_Xsbmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssbmv
    :outline:
 .. doxygenfunction:: rocblas_dsbmv
@@ -567,7 +1000,8 @@ rocblas_Xsbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_dsbmv_strided_batched
 
 rocblas_Xspmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sspmv
    :outline:
 .. doxygenfunction:: rocblas_dspmv
@@ -581,7 +1015,8 @@ rocblas_Xspmv + batched, strided_batched
 .. doxygenfunction:: rocblas_dspmv_strided_batched
 
 rocblas_Xspr + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sspr
    :outline:
 .. doxygenfunction:: rocblas_dspr
@@ -607,7 +1042,8 @@ rocblas_Xspr + batched, strided_batched
 .. doxygenfunction:: rocblas_zspr_strided_batched
 
 rocblas_Xspr2 + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sspr2
    :outline:
 .. doxygenfunction:: rocblas_dspr2
@@ -621,7 +1057,8 @@ rocblas_Xspr2 + batched, strided_batched
 .. doxygenfunction:: rocblas_dspr2_strided_batched
 
 rocblas_Xsymv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssymv
    :outline:
 .. doxygenfunction:: rocblas_dsymv
@@ -647,7 +1084,8 @@ rocblas_Xsymv + batched, strided_batched
 .. doxygenfunction:: rocblas_zsymv_strided_batched
 
 rocblas_Xsyr + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssyr
    :outline:
 .. doxygenfunction:: rocblas_dsyr
@@ -673,7 +1111,8 @@ rocblas_Xsyr + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyr_strided_batched
 
 rocblas_Xsyr2 + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssyr2
    :outline:
 .. doxygenfunction:: rocblas_dsyr2
@@ -699,7 +1138,8 @@ rocblas_Xsyr2 + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyr2_strided_batched
 
 rocblas_Xtbmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_stbmv
    :outline:
 .. doxygenfunction:: rocblas_dtbmv
@@ -725,7 +1165,8 @@ rocblas_Xtbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztbmv_strided_batched
 
 rocblas_Xtbsv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_stbsv
    :outline:
 .. doxygenfunction:: rocblas_dtbsv
@@ -751,7 +1192,8 @@ rocblas_Xtbsv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztbsv_strided_batched
 
 rocblas_Xtpmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_stpmv
    :outline:
 .. doxygenfunction:: rocblas_dtpmv
@@ -777,7 +1219,8 @@ rocblas_Xtpmv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztpmv_strided_batched
 
 rocblas_Xtpsv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_stpsv
    :outline:
 .. doxygenfunction:: rocblas_dtpsv
@@ -803,7 +1246,8 @@ rocblas_Xtpsv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztpsv_strided_batched
 
 rocblas_Xtrmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_strmv
    :outline:
 .. doxygenfunction:: rocblas_dtrmv
@@ -829,7 +1273,8 @@ rocblas_Xtrmv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztrmv_strided_batched
 
 rocblas_Xtrsv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_strsv
    :outline:
 .. doxygenfunction:: rocblas_dtrsv
@@ -855,7 +1300,8 @@ rocblas_Xtrsv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztrsv_strided_batched
 
 rocblas_Xhemv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_chemv
    :outline:
 .. doxygenfunction:: rocblas_zhemv
@@ -869,7 +1315,8 @@ rocblas_Xhemv + batched, strided_batched
 .. doxygenfunction:: rocblas_zhemv_strided_batched
 
 rocblas_Xhbmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_chbmv
    :outline:
 .. doxygenfunction:: rocblas_zhbmv
@@ -883,7 +1330,8 @@ rocblas_Xhbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_zhbmv_strided_batched
 
 rocblas_Xhpmv + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_chpmv
    :outline:
 .. doxygenfunction:: rocblas_zhpmv
@@ -897,7 +1345,8 @@ rocblas_Xhpmv + batched, strided_batched
 .. doxygenfunction:: rocblas_zhpmv_strided_batched
 
 rocblas_Xher + batched, strided_batched
----------------------------------------
+'''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_cher
    :outline:
 .. doxygenfunction:: rocblas_zher
@@ -911,7 +1360,8 @@ rocblas_Xher + batched, strided_batched
 .. doxygenfunction:: rocblas_zher_strided_batched
 
 rocblas_Xher2 + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_cher2
    :outline:
 .. doxygenfunction:: rocblas_zher2
@@ -925,7 +1375,8 @@ rocblas_Xher2 + batched, strided_batched
 .. doxygenfunction:: rocblas_zher2_strided_batched
 
 rocblas_Xhpr + batched, strided_batched
----------------------------------------
+'''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_chpr
    :outline:
 .. doxygenfunction:: rocblas_zhpr
@@ -939,7 +1390,8 @@ rocblas_Xhpr + batched, strided_batched
 .. doxygenfunction:: rocblas_zhpr_strided_batched
 
 rocblas_Xhpr2 + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_chpr2
    :outline:
 .. doxygenfunction:: rocblas_zhpr2
@@ -952,11 +1404,13 @@ rocblas_Xhpr2 + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zhpr2_strided_batched
 
-Level 3 BLAS
-============
+
+rocBLAS Level-3 functions
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 rocblas_Xgemm + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sgemm
    :outline:
 .. doxygenfunction:: rocblas_dgemm
@@ -988,7 +1442,8 @@ rocblas_Xgemm + batched, strided_batched
 .. doxygenfunction:: rocblas_zgemm_strided_batched
 
 rocblas_Xsymm + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssymm
    :outline:
 .. doxygenfunction:: rocblas_dsymm
@@ -1014,7 +1469,8 @@ rocblas_Xsymm + batched, strided_batched
 .. doxygenfunction:: rocblas_zsymm_strided_batched
 
 rocblas_Xsyrk + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssyrk
    :outline:
 .. doxygenfunction:: rocblas_dsyrk
@@ -1040,7 +1496,8 @@ rocblas_Xsyrk + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyrk_strided_batched
 
 rocblas_Xsyr2k + batched, strided_batched
------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssyr2k
    :outline:
 .. doxygenfunction:: rocblas_dsyr2k
@@ -1066,7 +1523,8 @@ rocblas_Xsyr2k + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyr2k_strided_batched
 
 rocblas_Xsyrkx + batched, strided_batched
------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_ssyrkx
    :outline:
 .. doxygenfunction:: rocblas_dsyrkx
@@ -1092,7 +1550,8 @@ rocblas_Xsyrkx + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyrkx_strided_batched
 
 rocblas_Xtrmm + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_strmm
    :outline:
 .. doxygenfunction:: rocblas_dtrmm
@@ -1119,7 +1578,8 @@ rocblas_Xtrmm + batched, strided_batched
 
 
 rocblas_Xtrsm + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_strsm
    :outline:
 .. doxygenfunction:: rocblas_dtrsm
@@ -1145,7 +1605,8 @@ rocblas_Xtrsm + batched, strided_batched
 .. doxygenfunction:: rocblas_ztrsm_strided_batched
 
 rocblas_Xhemm + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_chemm
    :outline:
 .. doxygenfunction:: rocblas_zhemm
@@ -1159,7 +1620,8 @@ rocblas_Xhemm + batched, strided_batched
 .. doxygenfunction:: rocblas_zhemm_strided_batched
 
 rocblas_Xherk + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_cherk
    :outline:
 .. doxygenfunction:: rocblas_zherk
@@ -1173,7 +1635,8 @@ rocblas_Xherk + batched, strided_batched
 .. doxygenfunction:: rocblas_zherk_strided_batched
 
 rocblas_Xher2k + batched, strided_batched
------------------------------------------
+''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_cher2k
    :outline:
 .. doxygenfunction:: rocblas_zher2k
@@ -1187,7 +1650,8 @@ rocblas_Xher2k + batched, strided_batched
 .. doxygenfunction:: rocblas_zher2k_strided_batched
 
 rocblas_Xherkx + batched, strided_batched
------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_cherkx
    :outline:
 .. doxygenfunction:: rocblas_zherkx
@@ -1201,7 +1665,8 @@ rocblas_Xherkx + batched, strided_batched
 .. doxygenfunction:: rocblas_zherkx_strided_batched
 
 rocblas_Xtrtri + batched, strided_batched
------------------------------------------
+''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_strtri
    :outline:
 .. doxygenfunction:: rocblas_dtrtri
@@ -1215,63 +1680,73 @@ rocblas_Xtrtri + batched, strided_batched
 .. doxygenfunction:: rocblas_dtrtri_strided_batched
 
 
-BLAS Extensions
-===============
+rocBLAS Extension
+^^^^^^^^^^^^^^^^^
 
 rocblas_axpy_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_axpy_ex
 .. doxygenfunction:: rocblas_axpy_batched_ex
 .. doxygenfunction:: rocblas_axpy_strided_batched_ex
 
 rocblas_dot_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_dot_ex
 .. doxygenfunction:: rocblas_dot_batched_ex
 .. doxygenfunction:: rocblas_dot_strided_batched_ex
 
 rocblas_dotc_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_dotc_ex
 .. doxygenfunction:: rocblas_dotc_batched_ex
 .. doxygenfunction:: rocblas_dotc_strided_batched_ex
 
 rocblas_nrm2_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_nrm2_ex
 .. doxygenfunction:: rocblas_nrm2_batched_ex
 .. doxygenfunction:: rocblas_nrm2_strided_batched_ex
 
 rocblas_rot_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_rot_ex
 .. doxygenfunction:: rocblas_rot_batched_ex
 .. doxygenfunction:: rocblas_rot_strided_batched_ex
 
 rocblas_scal_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_scal_ex
 .. doxygenfunction:: rocblas_scal_batched_ex
 .. doxygenfunction:: rocblas_scal_strided_batched_ex
 
 rocblas_gemm_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_gemm_ex
 .. doxygenfunction:: rocblas_gemm_batched_ex
 .. doxygenfunction:: rocblas_gemm_strided_batched_ex
 
 rocblas_gemm_ext2
------------------
+'''''''''''''''''
+
 .. doxygenfunction:: rocblas_gemm_ext2
 
 rocblas_trsm_ex + batched, strided_batched
-------------------------------------------
+'''''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_trsm_ex
 .. doxygenfunction:: rocblas_trsm_batched_ex
 .. doxygenfunction:: rocblas_trsm_strided_batched_ex
 
 rocblas_Xgeam + batched, strided_batched
-----------------------------------------
+'''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sgeam
    :outline:
 .. doxygenfunction:: rocblas_dgeam
@@ -1298,7 +1773,8 @@ rocblas_Xgeam + batched, strided_batched
 
 
 rocblas_Xdgmm + batched, strided_batched
-----------------------------------------
+''''''''''''''''''''''''''''''''''''''''
+
 .. doxygenfunction:: rocblas_sdgmm
    :outline:
 .. doxygenfunction:: rocblas_ddgmm
@@ -1323,121 +1799,155 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_strided_batched
 
+.. _Device Memory Allocation Usage:
 
-Auxiliary
-=========
+Device Memory Allocation in rocBLAS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-rocblas_pointer_to_mode
------------------------
-.. doxygenfunction:: rocblas_pointer_to_mode
+The following computational functions use temporary device memory.
 
-rocblas_create_handle
----------------------
-.. doxygenfunction:: rocblas_create_handle
-
-rocblas_destroy_handle
-----------------------
-.. doxygenfunction:: rocblas_destroy_handle
-
-rocblas_set_stream
-------------------
-.. doxygenfunction:: rocblas_set_stream
-
-rocblas_get_stream
-------------------
-.. doxygenfunction:: rocblas_get_stream
-
-rocblas_set_pointer_mode
-------------------------
-.. doxygenfunction:: rocblas_set_pointer_mode
-
-rocblas_get_pointer_mode
-------------------------
-.. doxygenfunction:: rocblas_get_pointer_mode
-
-rocblas_set_atomics_mode
-------------------------
-.. doxygenfunction:: rocblas_set_atomics_mode
-
-rocblas_get_atomics_mode
-------------------------
-.. doxygenfunction:: rocblas_get_atomics_mode
-
-rocblas_set_vector
-------------------
-.. doxygenfunction:: rocblas_set_vector
-
-rocblas_set_vector_async
-------------------------
-.. doxygenfunction:: rocblas_set_vector_async
-
-rocblas_get_vector
-------------------
-.. doxygenfunction:: rocblas_get_vector
-
-rocblas_get_vector_async
-------------------------
-.. doxygenfunction:: rocblas_get_vector_async
-
-rocblas_set_matrix
-------------------
-.. doxygenfunction:: rocblas_set_matrix
-
-rocblas_set_matrix_async
-------------------------
-.. doxygenfunction:: rocblas_set_matrix_async
-
-rocblas_get_matrix
-------------------
-.. doxygenfunction:: rocblas_get_matrix
-
-rocblas_get_matrix_async
-------------------------
-.. doxygenfunction:: rocblas_get_matrix_async
-
-rocblas_initialize
-------------------------
-.. doxygenfunction:: rocblas_initialize
-
-Device Memory functions
-=======================
-
-rocblas_start_device_memory_size_query
---------------------------------------
-.. doxygenfunction:: rocblas_start_device_memory_size_query
-
-rocblas_stop_device_memory_size_query
--------------------------------------
-.. doxygenfunction:: rocblas_stop_device_memory_size_query
-
-rocblas_get_device_memory_size
-------------------------------
-.. doxygenfunction:: rocblas_get_device_memory_size
-
-rocblas_set_device_memory_size
-------------------------------
-.. doxygenfunction:: rocblas_set_device_memory_size
-
-rocblas_set_workspace
----------------------
-.. doxygenfunction:: rocblas_set_workspace
-
-rocblas_is_managing_device_memory
----------------------------------
-.. doxygenfunction:: rocblas_is_managing_device_memory
-
-rocblas_is_user_managing_device_memory
---------------------------------------
-.. doxygenfunction:: rocblas_is_user_managing_device_memory
++------------------------------------+------------------------------------------------+
+|Function                            |use of temporary device memory                  |
++====================================+================================================+
+|L1 reduction functions              |reduction array                                 |
+| - rocblas_Xdot                     |                                                |
+| - rocblas_Xmax                     |                                                |
+| - rocblas_Xmin                     |                                                |
+| - rocblas_Xnrm2                    |                                                |
+| - rocblas_dot_ex                   |                                                |
+| - rocblas_nrm2_ex                  |                                                |
++------------------------------------+------------------------------------------------+
+|L2 functions                        |result array before overwriting input           |
+| - rocblas_Xtbmv                    |                                                |
+| - rocblas_Xtpmv                    |                                                |
+| - rocblas_Xtrmv                    |                                                |
+| - rocblas_Xtrsv                    |                                                |
+| - rocblas_Xgemv (optional)         |column reductions of skinny transposed matrices |
++------------------------------------+------------------------------------------------+
+|L3 gemm based functions             |block of matrix                                 |
+| - rocblas_Xtrsm                    |                                                |
+| - rocblas_Xgemm                    |                                                |
+| - rocblas_Xtrtri                   |                                                |
++------------------------------------+------------------------------------------------+
+|auxiliary                           |buffer to compress noncontiguous arrays         |
+| - rocblas_set_vector               |                                                |
+| - rocblas_get_vector               |                                                |
+| - rocblas_set_matrix               |                                                |
+| - rocblas_get_matrix               |                                                |
++------------------------------------+------------------------------------------------+
 
 
-Build Information
-=================
+For temporary device memory rocBLAS uses a per-handle memory allocation with out-of-band management. The temporary device memory is stored in the handle. This allows for recycling temporary device memory across multiple computational kernels that use the same handle. Each handle has a single stream, and kernels execute in order in the stream, with each kernel completing before the next kernel in the stream starts. There are 4 schemes for temporary device memory:
 
-rocblas_get_version_string
-----------------------------
-.. doxygenfunction:: rocblas_get_version_string
+#. **rocBLAS_managed**: This is the default scheme. If there is not enough memory in the handle, computational functions allocate the memory they require. Note that any memory allocated persists in the handle, so it is available for later computational functions that use the handle.
+#. **user_managed, preallocate**: An environment variable is set before the rocBLAS handle is created and thereafter there are no more allocations or deallocations.
+#. **user_managed, manual**:  The user calls helper functions to get or set memory size throughout the program, thereby controlling when allocation and deallocation occur.
+#. **user_owned**:  User allocates workspace and calls a helper function to allow rocBLAS to access the workspace.
 
-rocblas_get_version_string_size
--------------------------------
-.. doxygenfunction:: rocblas_get_version_string_size
+The default scheme has the disadvantage that allocation is synchronizing, so if there is not enough memory in the handle, a synchronizing deallocation and allocation occurs.
+
+Environment Variable for Preallocating
+'''''''''''''''''''''''''''''''''''''''
+The environment variable ROCBLAS_DEVICE_MEMORY_SIZE is used to set how much memory to preallocate:
+
+- if > 0, sets the default handle device memory size to the specified size (in bytes)
+- if == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MB), and expanding it when necessary
+
+Functions for manually setting memory size
+''''''''''''''''''''''''''''''''''''''''''
+
+- rocblas_set_device_memory_size
+- rocblas_get_device_memory_size
+- rocblas_is_user_managing_device_memory
+
+Function for setting user owned workspace
+'''''''''''''''''''''''''''''''''''''''''
+
+- rocblas_set_workspace
+
+Functions for finding how much memory is required
+'''''''''''''''''''''''''''''''''''''''''''''''''
+
+- rocblas_start_device_memory_size_query
+- rocblas_stop_device_memory_size_query
+- rocblas_is_managing_device_memory
+
+See the API section for information on the above functions.
+
+rocBLAS Function Return Values for insufficient device memory
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+If the user preallocates or manually allocates, then that size is used as the limit, and no resizing or synchronizing ever occurs. The following two function return values indicate insufficient memory:
+
+- rocblas_status == rocblas_status_memory_error: indicates there is not sufficient device memory for a rocBLAS function
+- rocblas_status == rocblas_status_perf_degraded: indicates that a slower algorthm was used because of insufficient device memory for the optimal algorithm
+
+
+Logging in rocBLAS
+^^^^^^^^^^^^^^^^^^
+
+**Note that performance will degrade when logging is enabled.**
+
+Four environment variables can be set to control logging:
+
+* ``ROCBLAS_LAYER``
+
+* ``ROCBLAS_LOG_TRACE_PATH``
+
+* ``ROCBLAS_LOG_BENCH_PATH``
+
+* ``ROCBLAS_LOG_PROFILE_PATH``
+
+``ROCBLAS_LAYER`` is a bitwise OR of zero or more bit masks as follows:
+
+*  If ``ROCBLAS_LAYER`` is not set, then there is no logging
+
+*  If ``(ROCBLAS_LAYER & 1) != 0``, then there is trace logging
+
+*  If ``(ROCBLAS_LAYER & 2) != 0``, then there is bench logging
+
+*  If ``(ROCBLAS_LAYER & 4) != 0``, then there is profile logging
+
+Trace logging outputs a line each time a rocBLAS function is called. The
+line contains the function name and the values of arguments.
+
+Bench logging outputs a line each time a rocBLAS function is called. The
+line can be used with the executable ``rocblas-bench`` to call the
+function with the same arguments.
+
+Profile logging, at the end of program execution, outputs a YAML
+description of each rocBLAS function called, the values of its
+performance-critical arguments, and the number of times it was called
+with those arguments (the ``call_count``). Some arguments, such as
+``alpha`` and ``beta`` in GEMM, are recorded with a value representing
+the category that the argument falls in, such as ``-1``, ``0``, ``1``,
+or ``2``. The number of categories, and the values representing them,
+may change over time, depending on how many categories are needed to
+adequately represent all of the values which can affect the performance
+of the function.
+
+The default stream for logging output is standard error. Three
+environment variables can set the full path name for a log file:
+
+* ``ROCBLAS_LOG_TRACE_PATH`` sets the full path name for trace logging
+* ``ROCBLAS_LOG_BENCH_PATH`` sets the full path name for bench logging
+* ``ROCBLAS_LOG_PROFILE_PATH`` sets the full path name for profile logging
+
+If one of these environment variables is not set, then ``ROCBLAS_LOG_PATH``
+sets the full path for the corresponding logging, if it is set.
+
+If neither the above nor ``ROCBLAS_LOG_PATH`` are set, then the
+corresponding logging output is streamed to standard error.
+
+When profile logging is enabled, memory usage will increase. If the
+program exits abnormally, then it is possible that profile logging will
+not be outputted before the program exits.
+
+References
+^^^^^^^^^^
+
+.. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
+
+.. [Level2] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1--17
+
+.. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18--32

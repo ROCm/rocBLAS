@@ -1,6 +1,6 @@
-============
-Contributing
-============
+===================
+Contributor's Guide
+===================
 
 License Agreement
 =================
@@ -874,11 +874,11 @@ Guidelines:
 
 -  Do not use unnamed ``namespaces`` inside of header files.
 
--  Use either ``template`` or ``inline`` (or both) for functions defined outside of classes in header files.
+    -  Use either ``template`` or ``inline`` (or both) for functions defined outside of classes in header files.
 
--  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
+    -  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
 
--  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
+    -  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
 
 
 
