@@ -6,14 +6,14 @@
 # - after running this script and merging staging into master, run bump_staging_version.sh in master and
 #   merge master into staging
 
-OLD_TENSILE_VERSION="Tensile 4.30.0"
-NEW_TENSILE_VERSION="Tensile 4.31.0"
+OLD_TENSILE_VERSION="Tensile 4.31.0"
+NEW_TENSILE_VERSION="Tensile 4.32.0"
 
-OLD_TENSILE_HASH="0c7458c49dc3c6bb361ccd013e6bcaa2755df164"
-NEW_TENSILE_HASH="4ddf088d83d4e287f7bc3fc0631c2c5dba49cf8e"
+OLD_TENSILE_HASH="ed6862d1ba8dca1dbb0a6a8177dd5a1d271d6f88"
+NEW_TENSILE_HASH="730f511a39859c7e2911bb0056d7ddada0ec8e58"
 
-OLD_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.6.0"
-NEW_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.7.1"
+# OLD_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.6.0"
+# NEW_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.7.1"
 
 sed -i "s/${OLD_TENSILE_VERSION}/${NEW_TENSILE_VERSION}/g" CMakeLists.txt
 sed -i "s/${OLD_TENSILE_HASH}/${NEW_TENSILE_HASH}/g" tensile_tag.txt
