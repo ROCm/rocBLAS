@@ -245,9 +245,8 @@ rocblas_status rocblas_tbsv_template(rocblas_handle    handle,
     if(batch_count == 0 || n == 0)
         return rocblas_status_success;
 
-    rocblas_status status = rocblas_status_success;
-
     // Temporarily switch to host pointer mode, restoring on return
+    // cppcheck-suppress unreadVariable
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;

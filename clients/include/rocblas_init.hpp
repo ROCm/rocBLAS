@@ -99,6 +99,31 @@ void rocblas_init_alternating_sign(
     rocblas_init_alternating_sign(A.data(), M, N, lda, stride, batch_count);
 }
 
+// Initialize matrix so adjacent entries have alternating sign.
+template <typename T>
+void rocblas_init_hpl_alternating_sign(
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+        {
+            size_t offset = j * lda + i_batch * stride;
+            for(size_t i = 0; i < M; ++i)
+            {
+                auto value    = random_hpl_generator<T>();
+                A[i + offset] = (i ^ j) & 1 ? value : negate(value);
+            }
+        }
+}
+
+template <typename T>
+void rocblas_init_hpl_alternating_sign(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    rocblas_init_hpl_alternating_sign(A.data(), M, N, lda, stride, batch_count);
+}
+
 template <typename T>
 void rocblas_init_cos(
     T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)

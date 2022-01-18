@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -331,17 +331,20 @@ void testing_her2k_strided_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
+
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+
     if(TWOK)
     {
-        rocblas_init<T>(hB);
+        rocblas_init_matrix(hB, arg, size_B, 1, 1, 0, 1, rocblas_client_never_set_nan, false, true);
     }
     else
     { // require symmetric A*B^H so testing with B = A
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb, strideA, strideB, batch_count);
     }
-    rocblas_init<T>(hC_1);
+
+    rocblas_init_matrix(hC_1, arg, size_C, 1, 1, 0, 1, rocblas_client_beta_sets_nan);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

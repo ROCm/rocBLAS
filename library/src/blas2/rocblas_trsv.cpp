@@ -153,6 +153,7 @@ namespace
                                                                     0,
                                                                     lda,
                                                                     0,
+                                                                    nullptr,
                                                                     B,
                                                                     0,
                                                                     incx,

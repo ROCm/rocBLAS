@@ -152,6 +152,7 @@ bool _rocblas_handle::device_allocator(size_t size)
         }
 
         // Temporarily change the thread's default device ID to the handle's device ID
+        // cppcheck-suppress unreadVariable
         auto saved_device_id = push_device_id();
 
         device_memory_size = 0;

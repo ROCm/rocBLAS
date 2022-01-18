@@ -114,18 +114,10 @@ void testing_rotm_batched(const Arguments& arg)
     host_batch_vector<T> hdata(4, 1, batch_count);
     host_batch_vector<T> hparam(5, 1, batch_count);
 
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan(hx, true);
-        rocblas_init_nan(hy, false);
-        rocblas_init_nan(hdata, false);
-    }
-    else
-    {
-        rocblas_init(hx, true);
-        rocblas_init(hy, false);
-        rocblas_init(hdata, false);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hdata, arg, rocblas_client_alpha_sets_nan, false);
 
     for(int b = 0; b < batch_count; b++)
     {

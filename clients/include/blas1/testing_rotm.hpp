@@ -85,19 +85,11 @@ void testing_rotm(const Arguments& arg)
     host_vector<T> hy(size_y);
     host_vector<T> hdata(4);
     host_vector<T> hparam(5);
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy);
-        rocblas_init_nan<T>(hdata, 1, 4, 1);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, N, abs_incx);
-        rocblas_init<T>(hy, 1, N, abs_incy);
-        rocblas_init<T>(hdata, 1, 4, 1);
-    }
+
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hdata, arg, 4, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
     cblas_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);

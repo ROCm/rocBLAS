@@ -153,15 +153,8 @@ void testing_herk(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    if(arg.alpha_isnan<U>())
-    {
-        rocblas_init_nan<T>(hA, rows, cols, lda);
-    }
-    else
-    {
-        rocblas_init<T>(hA);
-    }
+
+    rocblas_init_matrix<T>(hA, arg, rows, cols, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
 
     if(arg.beta_isnan<U>())
     {
@@ -169,7 +162,7 @@ void testing_herk(const Arguments& arg)
     }
     else
     {
-        rocblas_init<T>(hC_1);
+        rocblas_init_matrix<T>(hC_1, arg, N, N, ldc, 0, 1, rocblas_client_beta_sets_nan, true);
     }
 
     hC_2    = hC_1;

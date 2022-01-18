@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_device_malloc.hpp"
 #include "utility.hpp"
@@ -50,11 +50,7 @@ int main()
             }
 
             void* ptr = static_cast<void*>(mem);
-            if(!ptr)
-            {
-                rocblas_cerr << "nullptr returned from rocblas_device_malloc" << std::endl;
-                return 1;
-            }
+
             hipMemset(ptr, 0, size);
 
             rocblas_device_malloc_base& ref = mem;

@@ -11,38 +11,88 @@ ROCBLAS_SRC_PATH=`dirname "$(readlink -m $0)"`
 function display_help()
 {
 cat <<EOF
-rocBLAS build & installation helper script
-  $0 <options>
-      -h | --help                Print this help message
-      -i | --install             Install after build
-      -d | --dependencies        Install build dependencies
-           --cleanup             Removes intermediary build artifacts after successful build to reduce disk usage
-      -c | --clients             Build library clients too (combines with -i & -d)
-           --clients-only        Build only clients with a pre-built library
-           --clients_no_fortran  When building clients, build them without Fortran API testing or Fortran examples
-           --library-path        When only building clients, the path to the pre-built rocBLAS library (default is /opt/rocm/rocblas)
-      -g | --debug               Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
-      -f | --fork                GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
-      -b | --branch              GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
-      -l | --logic               Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture        Set GPU architecture target(s), e.g., all, gfx000, gfx900, gfx906:xnack-;gfx908:xnack-
-      -o | --cov                 Set Tensile code_object_version (V2 or V3)
-      -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
-           --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
-           --[no-]hip-clang      Whether to build library for amdgpu backend using hip-clang
-           --[no-]merge-files    Whether to enable Tensile_MERGE_FILES (default is enable)
-           --build_dir           Specify path of output directory relative to the current directory (default is ./build). Also supports absolute path to output directory.
-      -n | --no-tensile          Build subset of library that does not require Tensile
-      -u | --use-custom-version  Ignore Tensile version and just use the Tensile tag
-           --use-cuda            Uses installed cuda version instead of rocm stack
-           --skipldconf          Skip ld.so.conf entry
-           --static              Create static library instead of shared library
-      -v | --rocm-dev            Set specific rocm-dev version
-           --[no-]msgpack        Set Tensile backend to use MessagePack
-           --cmake_install       Auto Update CMake to minimum version if required
-           --codecoverage        Build with code coverage profiling enabled
-      -k | --relwithdebinfo      Set -DCMAKE_BUILD_TYPE=RelWithDebInfo
-           --address-sanitizer   Build with address sanitizer enabled
+rocBLAS build & installation helper script.
+
+  Usage:
+    $0 (build rocBLAS and put library files at ./build/rocblas-install)
+    $0 <options> (modify default behavior according to the following flags)
+
+  Options:
+    -a, --architecture               Set GPU architecture target, e.g. "all, gfx000, gfx900, gfx906:xnack-;gfx908:xnack-".
+
+    --address-sanitizer              Build with address sanitizer enabled.
+
+    -b, --branch <arg>               Specify the Tensile repository branch or tag to use.(eg. develop, mybranch or <commit hash>).
+
+    --build_dir <builddir>           Specify path to configure & build process output directory.
+                                     Relative paths are relative to the current directory (Default is ./build).
+
+    -c, --clients                    Build the library clients benchmark and gtest.
+                                     (Generated binaries will be located at builddir/clients/staging)
+
+    --clients_no_fortran             When building clients, build them without Fortran API testing or Fortran examples
+
+    --clients-only                   Skip building the library and only build the clients with a pre-built library.
+
+    --cpu_ref_lib  <lib>             Specify library to use for CPU reference code in testing (blis or lapack)
+
+    --cmake_install                  Auto update CMake to minimum version if required.
+
+    --codecoverage                   Build with code coverage profiling enabled, excluding release mode.
+
+    --cleanup                        Remove intermediary build files after build and reduce disk usage
+
+    -d, --dependencies               Build and install external dependencies.
+                                     Dependencies are to be installed in /usr/local. This should be done only once.
+
+    -f, --fork <username>            Specify the username to fork the Tensile GitHub repository (e.g., ROCmSoftwarePlatform or MyUserName).
+
+    -g, --debug                      Build in Debug mode, equivalent to set CMAKE_BUILD_TYPE=Debug.
+                                     (Default build type is Release)
+
+    -h, --help                       Print this help message
+
+    --hip-clang                      Build library for amdgpu backend using the hip-clang compiler.
+
+    -i, --install                    Generate and install library package after build.
+
+    -j, --jobs <num>                 Specify number of parallel jobs to launch, increases memory usage (Default logical core count)
+
+    -k, --relwithdebinfo             Build in release debug mode, equivalent to set CMAKE_BUILD_TYPE=RelWithDebInfo.
+                                     (Default build type is Release)
+
+    -l, --logic <arg>                Specify the Tesile logic target. (e.g., asm_full,asm_lite, etc)
+
+    --library-path <blasdir>         Specify path to a pre-built rocBLAS library, when building clients only using '--clients-only' flag.
+                                     (Default is /opt/rocm/rocblas)
+
+    --merge-files                    Enable Tensilse_MERGE_FILES (Default is Enabled).
+
+    --msgpack                        Build Tensile backend to use MessagePack.
+
+    -n, --no-tensile                 Build a subset of rocBLAS library which does not require Tensile.
+
+    --no-hip-clang                   Build library without using the hip-clang compiler.
+
+    --no-merge-files                 Disable Tensile_MERGE_FILES.
+
+    --no-msgpack                     Build Tensile backend not to use MessagePack.
+
+    -o, --cov <version>              Specify the Tesnile code_object version (e.g. V2 or V3.)
+
+    -r, --relocatable                Add RUNPATH(based on ROCM_RPATH) and remove ldconf entry.
+
+    -s, --static                     Build rocblas as a static library.
+
+    --skipldconf                     Skip ld.so.conf entry.
+
+    -t, --test_local_path <path>     Specify a local path for Tensile instead of remote GIT repo.
+
+    -u, --use-custom-version <arg>   Ignore Tensile version and just use the Tensile tag.
+
+    --use-cuda                       Use installed CUDA version instead of ROCm stack.
+
+    -v, --rocm-dev <version>         Specify specific rocm-dev version (e.g. 4.5.0).
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -328,6 +378,7 @@ tensile_merge_files=
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
+build_jobs=$(nproc)
 build_library=true
 build_cleanup=false
 build_clients=false
@@ -361,7 +412,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,clients_no_fortran,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhicdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -383,6 +434,9 @@ while true; do
     -i|--install)
         install_package=true
         shift ;;
+    -j|--jobs)
+        build_jobs=${2}
+        shift 2 ;;
     -d|--dependencies)
         install_dependencies=true
         shift ;;
@@ -607,7 +661,7 @@ if [[ "${install_dependencies}" == true ]]; then
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
-    make -j$(nproc)
+    make -j${build_jobs}
     elevate_if_not_root make install_deps
     install_blis
     popd
@@ -678,6 +732,9 @@ pushd .
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
    else
     tensile_opt="${tensile_opt} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+    if [[ ${build_jobs} != $(nproc) ]]; then
+      tensile_opt="${tensile_opt} -DTensile_CPU_THREADS=${build_jobs}"
+    fi
   fi
 
   if [[ "${tensile_merge_files}" == false ]]; then
@@ -728,9 +785,9 @@ pushd .
   check_exit_code "$?"
 
   if [[ "${build_library}" == true ]]; then
-    make -j$(nproc) install
+    make -j${build_jobs} install
   else
-    make -j$(nproc)
+    make -j${build_jobs}
   fi
   check_exit_code "$?"
 

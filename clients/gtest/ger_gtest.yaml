@@ -46,6 +46,9 @@ Definitions:
     - { incx:   2, incy:   1}
     - { incx:  10, incy:  99}
 
+  - &size_t_index
+    - { M: 46431, N: 46431, lda: 46431, stride_a: 2147488281 }
+
   - &incx_incy_range_small
     - { incx: 2, incy: 2 }
 
@@ -69,6 +72,18 @@ Tests:
   precision: *single_double_precisions
   transA: N
   matrix_size: *special_case_range
+
+- name: ger_size_t_M
+  category: nightly
+  function:
+  - ger
+  # shared code for size_t with non-batched
+  #- ger_batched
+  #- ger_strided_batched
+  precision: *single_double_precisions
+  matrix_size: *size_t_index
+  incx_incy: *incx_incy_range_small
+  alpha: [ -0.5, 0.0 ]
 
 # Regular ger
 - name: ger_fortran

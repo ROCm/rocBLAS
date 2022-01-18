@@ -17,50 +17,75 @@ OS_info = {}
 
 def parse_args():
     """Parse command-line arguments"""
+    global OS_info
+
     parser = argparse.ArgumentParser(description="""Checks build arguments""")
-    # common
-    parser.add_argument('-g', '--debug', required=False, default = False,  action='store_true',
-                        help='Generate Debug build (optional, default: False)')
-    parser.add_argument(      '--build_dir', type=str, required=False, default = "build",
-                        help='Build directory path (optional, default: build)')
-    parser.add_argument(      '--skip_ld_conf_entry', required=False, default = False)
-    parser.add_argument(      '--static', required=False, default = False, dest='static_lib', action='store_true',
-                        help='Generate static library build (optional, default: False)')
-    parser.add_argument('-c', '--clients', required=False, default = False, dest='build_clients', action='store_true',
-                        help='Generate all client builds (optional, default: False)')
-    parser.add_argument('-i', '--install', required=False, default = False, dest='install', action='store_true',
-                        help='Install after build (optional, default: False)')
-    parser.add_argument(      '--cmake-darg', required=False, dest='cmake_dargs', action='append', default=[],
-                        help='List of additional cmake defines for builds (optional, e.g. CMAKE)')
-    parser.add_argument('-v', '--verbose', required=False, default = False, action='store_true',
-                        help='Verbose build (optional, default: False)')
-    # rocblas
-    parser.add_argument(     '--clients-only', dest='clients_only', required=False, default = False, action='store_true',
-                        help='Build only clients with a pre-built library')
-    parser.add_argument(     '--library-path', dest='library_dir_installed', type=str, required=False, default = "", 
-                        help='When only building clients, the path to the pre-built rocBLAS library (optional, default: /opt/rocm/rocblas)')
-    parser.add_argument(      '--cpu_ref_lib', type=str, required=False, default = "blis",
-                        help='Specify library to use for CPU reference code in testing (blis or lapack)')
-    parser.add_argument(      '--rocm_dev', type=str, required=False, default = "",
-                        help='Set specific rocm-dev version')
-    #tensile
-    parser.add_argument('-n', '--no_tensile', dest='build_tensile', required=False, default=True, action='store_false')
+
     parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx906", #:sramecc+:xnack-" ) #gfx1030" ) #gfx906" ) # gfx1030" )
                         help='Set GPU architectures, e.g. all, gfx000, gfx803, gfx906:xnack-;gfx1030 (optional, default: all)')
-    parser.add_argument('-l', '--logic', dest='tensile_logic', type=str, required=False, default="asm_full",
-                        help='Set Tensile logic target, e.g., asm_full, asm_lite, etc. (optional, default: asm_full)')
-    parser.add_argument('-f', '--fork', dest='tensile_fork', type=str, required=False, default="",
-                        help='GitHub Tensile fork to use, e.g., ROCmSoftwarePlatform or MyUserName')
+
     parser.add_argument('-b', '--branch', dest='tensile_tag', type=str, required=False, default="",
-                        help='GitHub Tensile branch or tag to use, e.g., develop, mybranch or <commit hash>')
+                        help='Specify the Tensile repository branch or tag to use.(eg. develop, mybranch or <commit hash> )')
+
+    parser.add_argument(      '--build_dir', type=str, required=False, default = "build",
+                        help='Specify path to configure & build process output directory.(optional, default: ./build)')
+
+    parser.add_argument('-c', '--clients', required=False, default = False, dest='build_clients', action='store_true',
+                        help='Build the library clients benchmark and gtest (optional, default: False,Generated binaries will be located at builddir/clients/staging)')
+
+    parser.add_argument(     '--clients-only', dest='clients_only', required=False, default = False, action='store_true',
+                        help='Skip building the library and only build the clients with a pre-built library.')
+
+    parser.add_argument(      '--cpu_ref_lib', type=str, required=False, default = "blis",
+                        help='Specify library to use for CPU reference code in testing (blis or lapack)')
+
+    parser.add_argument(      '--cmake-darg', required=False, dest='cmake_dargs', action='append', default=[],
+                        help='List of additional cmake defines for builds (optional, e.g. CMAKE)')
+
+    parser.add_argument('-f', '--fork', dest='tensile_fork', type=str, required=False, default="",
+                        help='Specify the username to fork the Tensile GitHub repository (e.g., ROCmSoftwarePlatform or MyUserName)')
+
+    parser.add_argument('-g', '--debug', required=False, default = False,  action='store_true',
+                        help='Build in Debug mode (optional, default: False)')
+
+    parser.add_argument('-i', '--install', required=False, default = False, dest='install', action='store_true',
+                        help='Generate and install library package after build. (optional, default: False)')
+
+    parser.add_argument('-j', '--jobs', type=int, required=False, default = OS_info["NUM_PROC"],
+                        help='Specify number of parallel jobs to launch, increases memory usage (Default logical core count) ')
+
+    parser.add_argument('-l', '--logic', dest='tensile_logic', type=str, required=False, default="asm_full",
+                        help='Specify the Tensile logic target, e.g., asm_full, asm_lite, etc. (optional, default: asm_full)')
+
+    parser.add_argument(     '--library-path', dest='library_dir_installed', type=str, required=False, default = "",
+                        help='Specify path to a pre-built rocBLAS library, when building clients only using --clients-only flag. (optional, default: /opt/rocm/rocblas)')
+
+    parser.add_argument('-n', '--no_tensile', dest='build_tensile', required=False, default=True, action='store_false',
+                        help='Build a subset of rocBLAS library which does not require Tensile.')
+
+    parser.add_argument(     '--no-merge-files', dest='merge_files', required=False, default=True, action='store_false',
+                        help='Disable Tensile_MERGE_FILES (optional)')
+
+    parser.add_argument(     '--no-msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_false',
+                        help='Build Tensile backend not to use MessagePack and so use YAML (optional)')
+
+    parser.add_argument(      '--rocm_dev', type=str, required=False, default = "",
+                        help='Specify specific rocm-dev version (e.g. 4.5.0).')
+
+    parser.add_argument(      '--skip_ld_conf_entry', required=False, default = False,
+                        help='Skip ld.so.conf entry.')
+
+    parser.add_argument(      '--static', required=False, default = False, dest='static_lib', action='store_true',
+                        help='Build rocblas as a static library. (optional, default: False)')
+
     parser.add_argument('-t', '--test_local_path', dest='tensile_test_local_path', type=str, required=False, default="",
                         help='Use a local path for Tensile instead of remote GIT repo (optional)')
+
     parser.add_argument('-u', '--use-custom-version', dest='tensile_version', type=str, required=False, default="",
                         help='Ignore Tensile version and just use the Tensile tag (optional)')
-    parser.add_argument(     '--no-merge-files', dest='merge_files', required=False, default=True, action='store_false',
-                        help='To disable Tensile_MERGE_FILES (optional)')
-    parser.add_argument(     '--no-msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_false',
-                        help='Set Tensile backend to not use MessagePack and so use YAML (optional)')
+
+    parser.add_argument('-v', '--verbose', required=False, default = False, action='store_true',
+                        help='Verbose build (optional, default: False)')
 
     return parser.parse_args()
 
@@ -101,7 +126,7 @@ def cmake_path(os_path):
         return os_path.replace("\\", "/")
     else:
         return os_path
-    
+
 def config_cmd():
     global args
     global OS_info
@@ -137,11 +162,11 @@ def config_cmd():
 
     cmake_options.extend( cmake_platform_opts )
 
-    cmake_base_options = f"-DROCM_PATH={rocm_path} -DCMAKE_PREFIX_PATH:PATH={rocm_path}" 
+    cmake_base_options = f"-DROCM_PATH={rocm_path} -DCMAKE_PREFIX_PATH:PATH={rocm_path}"
     cmake_options.append( cmake_base_options )
 
     # packaging options
-    cmake_pack_options = f"-DCPACK_SET_DESTDIR=OFF" 
+    cmake_pack_options = f"-DCPACK_SET_DESTDIR=OFF"
     cmake_options.append( cmake_pack_options )
 
     if os.getenv('CMAKE_CXX_COMPILER_LAUNCHER'):
@@ -161,7 +186,7 @@ def config_cmd():
         build_path = os.path.join(build_dir, "debug")
         cmake_config="Debug"
 
-    cmake_options.append( f"-DCMAKE_BUILD_TYPE={cmake_config}" ) 
+    cmake_options.append( f"-DCMAKE_BUILD_TYPE={cmake_config}" )
 
     # clean
     delete_dir( build_path )
@@ -190,7 +215,7 @@ def config_cmd():
     if args.cpu_ref_lib == 'blis':
         cmake_options.append( f"-DLINK_BLIS=ON" )
 
-    # not just for tensile 
+    # not just for tensile
     cmake_options.append( f"-DAMDGPU_TARGETS={args.gpu_architecture}" )
 
     if not args.build_tensile:
@@ -213,6 +238,8 @@ def config_cmd():
             cmake_options.append( f"-DTensile_LIBRARY_FORMAT=msgpack" )
         else:
             cmake_options.append( f"-DTensile_LIBRARY_FORMAT=yaml" )
+        if args.jobs != OS_info["NUM_PROC"]:
+            cmake_options.append( f"-DTensile_CPU_THREADS={str(args.jobs)}" )
 
     if args.cmake_dargs:
         for i in args.cmake_dargs:
@@ -230,16 +257,17 @@ def make_cmd():
 
     make_options = []
 
-    nproc = OS_info["NUM_PROC"]
     if os.name == "nt":
-        make_executable = f"cmake.exe --build . " # ninja
+        # the CMAKE_BUILD_PARALLEL_LEVEL currently doesn't work for windows build, so using -j
+        #make_executable = f"cmake.exe -DCMAKE_BUILD_PARALLEL_LEVEL=4 --build . " # ninja
+        make_executable = f"ninja.exe -j {args.jobs}"
         if args.verbose:
           make_options.append( "--verbose" )
-        make_options.append( "--target all" )
+        make_options.append( "all" ) # for cmake "--target all" )
         if args.install:
-          make_options.append( "--target package --target install" )
+          make_options.append( "package install" ) # for cmake "--target package --target install" )
     else:
-        make_executable = f"make -j{nproc}"
+        make_executable = f"make -j{args.jobs}"
         if args.verbose:
           make_options.append( "VERBOSE=1" )
         if True: # args.install:

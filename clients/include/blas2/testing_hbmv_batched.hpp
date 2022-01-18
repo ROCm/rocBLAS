@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -275,21 +275,10 @@ void testing_hbmv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan(hA, true);
-        rocblas_init_nan(hx, false);
-    }
-    else
-    {
-        rocblas_init(hA, true);
-        rocblas_init(hx, false);
-    }
-
-    if(arg.beta_isnan<T>())
-        rocblas_init_nan(hy_1, false);
-    else
-        rocblas_init(hy_1, false);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     hy_gold.copy_from(hy_1);
     hy_2.copy_from(hy_1);

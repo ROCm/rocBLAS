@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -111,8 +111,11 @@ void testing_trsm_strided_batched(const Arguments& arg)
     //  should have condition number approximately equal to
     //  the condition number of the original matrix A.
 
-    //  initialize full random matrix hA with all entries in [1, 10]
-    rocblas_init<T>(hA, K, K, lda, stride_a, batch_count);
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, K, K, lda, stride_a, batch_count, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hX, arg, M, N, ldb, stride_b, batch_count, rocblas_client_never_set_nan, false, true);
 
     //  pad untouched area into zero
     for(int b = 0; b < batch_count; b++)
@@ -182,8 +185,6 @@ void testing_trsm_strided_batched(const Arguments& arg)
         }
     }
 
-    // Initialize "exact" answer hx
-    rocblas_init<T>(hX, M, N, ldb, stride_b, batch_count);
     // pad untouched area into zero
     for(int b = 0; b < batch_count; b++)
         for(int i = M; i < ldb; i++)

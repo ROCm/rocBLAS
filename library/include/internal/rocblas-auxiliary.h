@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef _ROCBLAS_AUXILIARY_H_
@@ -75,6 +75,9 @@ ROCBLAS_EXPORT rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr);
     n           [rocblas_int]
                 number of elements in the vector
     @param[in]
+    elem_size   [rocblas_int]
+                number of bytes per element in the matrix
+    @param[in]
     x           pointer to vector on the host
     @param[in]
     incx        [rocblas_int]
@@ -96,6 +99,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_vector(rocblas_int n,
     @param[in]
     n           [rocblas_int]
                 number of elements in the vector
+    @param[in]
+    elem_size   [rocblas_int]
+                number of bytes per element in the matrix
     @param[in]
     x           pointer to vector on the device
     @param[in]
@@ -180,6 +186,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix(rocblas_int rows,
     n           [rocblas_int]
                 number of elements in the vector
     @param[in]
+    elem_size   [rocblas_int]
+                number of bytes per element in the matrix
+    @param[in]
     x           pointer to vector on the host
     @param[in]
     incx        [rocblas_int]
@@ -207,6 +216,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_vector_async(rocblas_int n,
     @param[in]
     n           [rocblas_int]
                 number of elements in the vector
+    @param[in]
+    elem_size   [rocblas_int]
+                number of bytes per element in the matrix
     @param[in]
     x           pointer to vector on the device
     @param[in]
@@ -304,7 +316,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix_async(rocblas_int rows,
 ROCBLAS_EXPORT rocblas_status rocblas_set_start_stop_events(rocblas_handle handle,
                                                             hipEvent_t     startEvent,
                                                             hipEvent_t     stopEvent);
-
 #define ROCBLAS_INVOKE_START_STOP_EVENTS(handle, startEvent, stopEvent, call) \
     do                                                                        \
     {                                                                         \

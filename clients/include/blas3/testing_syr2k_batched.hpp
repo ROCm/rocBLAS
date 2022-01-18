@@ -214,18 +214,19 @@ void testing_syr2k_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
+
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
     if(TWOK)
     {
-        rocblas_init<T>(hB);
+        rocblas_init_vector(hB, arg, rocblas_client_never_set_nan, false, true);
     }
     else
     { // using syrk as reference so testing with B = A
         for(int i = 0; i < batch_count; i++)
             rocblas_copy_matrix(hA[i], hB[i], rows, cols, lda, ldb);
     }
-    rocblas_init<T>(hC_1);
+    rocblas_init_vector(hC_1, arg, rocblas_client_never_set_nan);
 
     hC_2.copy_from(hC_1);
     hC_gold.copy_from(hC_1);

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -132,8 +132,10 @@ void testing_dot_strided_batched(const Arguments& arg)
         device_vector<T> d_rocblas_result(std::max(batch_count, 1));
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        host_vector<T> h_rocblas_result(std::max(batch_count, 1));
+        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
                                                                N,
                                                                nullptr,
@@ -146,12 +148,26 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                                d_rocblas_result),
                               rocblas_status_success);
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                               N,
+                                                               nullptr,
+                                                               incx,
+                                                               stride_x,
+                                                               nullptr,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count,
+                                                               h_rocblas_result),
+                              rocblas_status_success);
+
         if(batch_count > 0)
         {
             host_vector<T> cpu_0(batch_count);
             host_vector<T> gpu_0(batch_count);
             CHECK_HIP_ERROR(gpu_0.transfer_from(d_rocblas_result));
             unit_check_general<T>(1, 1, 1, 1, cpu_0, gpu_0, batch_count);
+            unit_check_general<T>(1, 1, 1, 1, cpu_0, h_rocblas_result, batch_count);
         }
 
         return;
@@ -176,18 +192,11 @@ void testing_dot_strided_batched(const Arguments& arg)
     host_vector<T> hx(size_x);
     host_vector<T> hy(size_y);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy, stride_y, batch_count);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-        rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(
+        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(
+        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));

@@ -72,11 +72,8 @@ void testing_swap(const Arguments& arg)
     host_vector<T> hy_gold(size_y);
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan<T>(hx, 1, N, abs_incx);
-    else
-        rocblas_init<T>(hx, 1, N, abs_incx);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+
     // make hy different to hx
     for(size_t i = 0; i < N; i++)
     {

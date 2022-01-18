@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -22,8 +22,8 @@ struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
     //! @brief Constructor.
     //!
 
-    host_pinned_vector(rocblas_int n, rocblas_int inc)
-        : std::vector<T, pinned_memory_allocator<T>>(size_t(n) * inc, pinned_memory_allocator<T>())
+    host_pinned_vector(size_t n, rocblas_int inc)
+        : std::vector<T, pinned_memory_allocator<T>>(n * inc, pinned_memory_allocator<T>())
         , m_n(n)
         , m_inc(inc)
     {
@@ -59,7 +59,7 @@ struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
     //!
     //! @brief Returns the length of the vector.
     //!
-    rocblas_int n() const
+    size_t n() const
     {
         return this->m_n;
     }
@@ -82,6 +82,6 @@ struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
     }
 
 private:
-    rocblas_int m_n{};
+    size_t      m_n{};
     rocblas_int m_inc{};
 };

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -124,11 +124,9 @@ void testing_tpmv_strided_batched(const Arguments& arg)
     device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
-    // Initialize.
-    //
-    rocblas_init(hA, true);
-    rocblas_init(hx);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     //
     // Transfer.

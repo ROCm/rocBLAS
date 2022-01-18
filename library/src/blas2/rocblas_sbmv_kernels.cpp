@@ -20,9 +20,10 @@ inline __device__ T sbmv_kernel_helper(rocblas_int ty,
                                        rocblas_int incx)
 {
     T           res_A = 0.0;
-    rocblas_int col   = ty; // ty defines the column of banded matrix
+    rocblas_int col;
 
     // Since the column is consistent, we iterate up diagonally in banded format
+    // ty defines the column of banded matrix
     for(col = ty; col < n; col += DIM_Y)
     {
         // We have to convert ind to banded matrix row

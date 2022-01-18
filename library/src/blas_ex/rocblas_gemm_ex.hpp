@@ -263,8 +263,10 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
                                    rocblas_int       ld_b,
                                    const T*          beta,
                                    const void*       c,
+                                   rocblas_datatype  c_type,
                                    rocblas_int       ld_c,
                                    const void*       d,
+                                   rocblas_datatype  d_type,
                                    rocblas_int       ld_d,
                                    rocblas_datatype  compute_type,
                                    rocblas_int       batch_count = 1)
@@ -357,6 +359,14 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
         default:
             break;
         }
+    }
+
+    if(c == d)
+    {
+        if(ld_c != ld_d)
+            return rocblas_status_invalid_size;
+        if(c_type != d_type)
+            return rocblas_status_invalid_value;
     }
 
     return rocblas_status_continue;

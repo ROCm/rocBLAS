@@ -16,6 +16,7 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
+#include "type_dispatch.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -39,18 +40,18 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         const rocblas_int ldc = 100;
         const rocblas_int ldd = 100;
 
-        const rocblas_datatype a_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype b_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype c_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype d_type       = rocblas_datatype_f32_r;
-        const rocblas_datatype compute_type = rocblas_datatype_f32_r;
+        const rocblas_datatype a_type       = rocblas_type2datatype<Ti>();
+        const rocblas_datatype b_type       = rocblas_type2datatype<Ti>();
+        const rocblas_datatype c_type       = rocblas_type2datatype<To>();
+        const rocblas_datatype d_type       = rocblas_type2datatype<To>();
+        const rocblas_datatype compute_type = rocblas_type2datatype<Tc>();
 
-        device_vector<float> alpha_d(1), beta_d(1), zero_d(1);
-        const float          alpha_h(1), beta_h(1), zero_h(0);
+        device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
+        const Tc          alpha_h(1), beta_h(1), zero_h(0);
 
-        const float* alpha = &alpha_h;
-        const float* beta  = &beta_h;
-        const float* zero  = &zero_h;
+        const Tc* alpha = &alpha_h;
+        const Tc* beta  = &beta_h;
+        const Tc* zero  = &zero_h;
 
         if(pointer_mode == rocblas_pointer_mode_device)
         {
@@ -62,8 +63,9 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
             zero = zero_d;
         }
 
-        const rocblas_gemm_algo algo      = rocblas_gemm_algo_standard;
-        static const size_t     safe_size = 100;
+        const rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+        // we still have to copy C to D for some quick returns
+        static const size_t safe_size = 100 * ldd;
 
         int32_t     solution_index = 0;
         rocblas_int flags          = 0;
@@ -72,14 +74,46 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         // allocate memory on device
-        device_vector<float> dA(safe_size);
-        device_vector<float> dB(safe_size);
-        device_vector<float> dC(safe_size);
-        device_vector<float> dD(safe_size);
+        device_vector<Ti> dA(safe_size);
+        device_vector<Ti> dB(safe_size);
+        device_vector<To> dC(safe_size);
+        device_vector<To> dD(safe_size);
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
         CHECK_DEVICE_ALLOCATION(dD.memcheck());
+
+        // host
+        host_vector<To> hC(safe_size);
+        rocblas_seedrand();
+        rocblas_init<To>(hC);
+        dC.transfer_from(hC);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
+                                                 transA,
+                                                 transB,
+                                                 M,
+                                                 N,
+                                                 K,
+                                                 alpha,
+                                                 dA,
+                                                 a_type,
+                                                 lda,
+                                                 dB,
+                                                 b_type,
+                                                 ldb,
+                                                 beta,
+                                                 dC,
+                                                 c_type,
+                                                 ldc,
+                                                 dC, // aliased C
+                                                 d_type,
+                                                 ldc + 1,
+                                                 compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags),
+                              rocblas_status_invalid_size);
 
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
                                                  transA,
@@ -318,8 +352,8 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  flags),
                               rocblas_status_success);
 
-#if 0
-        // TODO: Currently these tests fail
+        // the following tests still output to D
+
         // If K==0, then A and B can both be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
                                                  transA,
@@ -334,7 +368,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  nullptr,
                                                  b_type,
                                                  ldb,
-                                                 &beta,
+                                                 beta,
                                                  dC,
                                                  c_type,
                                                  ldc,
@@ -373,7 +407,6 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  solution_index,
                                                  flags),
                               rocblas_status_success);
-#endif
     }
 }
 
@@ -404,10 +437,11 @@ void testing_gemm_ex(const Arguments& arg)
     auto                 transB = char2rocblas_operation(arg.transB);
     auto                 M = arg.M, N = arg.N, K = arg.K;
     auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
-    auto                 A_row = transA == rocblas_operation_none ? M : K;
-    auto                 A_col = transA == rocblas_operation_none ? K : M;
-    auto                 B_row = transB == rocblas_operation_none ? K : N;
-    auto                 B_col = transB == rocblas_operation_none ? N : K;
+    auto                 A_row  = transA == rocblas_operation_none ? M : K;
+    auto                 A_col  = transA == rocblas_operation_none ? K : M;
+    auto                 B_row  = transB == rocblas_operation_none ? K : N;
+    auto                 B_col  = transB == rocblas_operation_none ? N : K;
+    auto                 d_type = arg.d_type;
 
     // check for invalid sizes
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M;
@@ -447,6 +481,7 @@ void testing_gemm_ex(const Arguments& arg)
                               rocblas_status_invalid_size);
         return;
     }
+
     if(int8_invalid)
     {
         // This check is currently done below the invalid_pointer checks, so we can't pass in nullptrs.
@@ -478,7 +513,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                  arg.c_type,
                                                  ldc,
                                                  dD,
-                                                 arg.d_type,
+                                                 d_type,
                                                  ldd,
                                                  arg.compute_type,
                                                  algo,
@@ -522,6 +557,12 @@ void testing_gemm_ex(const Arguments& arg)
         return;
     }
 #endif
+    // update after invalid checks
+    if(!arg.c_noalias_d)
+    {
+        ldd    = ldc;
+        d_type = arg.c_type;
+    }
 
     const size_t size_A      = size_t(lda) * size_t(A_col);
     const size_t size_B      = size_t(ldb) * size_t(B_col);
@@ -532,8 +573,13 @@ void testing_gemm_ex(const Arguments& arg)
     // allocate memory on device
     device_vector<Ti> dA(size_A);
     device_vector<Ti> dB(size_B);
-    device_vector<To> dC(size_C);
-    device_vector<To> dD(size_D);
+
+    // if C!=D, allocate C and D normally
+    // if C==D, allocate C big enough for the larger of C and D; D points to C
+    device_vector<To>  dC    = device_vector<To>(size_C);
+    device_vector<To>  dD    = (arg.c_noalias_d) ? device_vector<To>(size_D) : device_vector<To>(0);
+    device_vector<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -667,11 +713,11 @@ void testing_gemm_ex(const Arguments& arg)
         host_vector<Ti> hA_packed(hA);
 
         rocblas_packInt8(hA_packed, M, K, lda);
-        CHECK_HIP_ERROR(hipMemcpy(dA, hA_packed, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA.transfer_from(hA_packed));
     }
     else
     {
-        CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
     }
 
     // do packing only when pack_to_int8x4=true (int8x4)
@@ -681,21 +727,19 @@ void testing_gemm_ex(const Arguments& arg)
         host_vector<Ti> hB_packed(hB);
 
         rocblas_packInt8(hB_packed, N, K, ldb);
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB_packed, sizeof(Ti) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB_packed));
     }
     else
     {
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Ti) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB));
     }
 
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_C, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(To) * size_D, hipMemcpyHostToDevice));
-
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
                                                transA,
                                                transB,
@@ -713,19 +757,20 @@ void testing_gemm_ex(const Arguments& arg)
                                                dC,
                                                arg.c_type,
                                                ldc,
-                                               dD,
-                                               arg.d_type,
+                                               dDref,
+                                               d_type,
                                                ldd,
                                                arg.compute_type,
                                                algo,
                                                solution_index,
                                                flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_gold, sizeof(To) * size_D, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
@@ -745,8 +790,8 @@ void testing_gemm_ex(const Arguments& arg)
                                                dC,
                                                arg.c_type,
                                                ldc,
-                                               dD,
-                                               arg.d_type,
+                                               dDref,
+                                               d_type,
                                                ldd,
                                                arg.compute_type,
                                                algo,
@@ -793,7 +838,7 @@ void testing_gemm_ex(const Arguments& arg)
         }
 
         // fetch device mode GPU results
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
 
         if(arg.unit_check)
         {
@@ -843,9 +888,9 @@ void testing_gemm_ex(const Arguments& arg)
                                                    dC,
                                                    arg.c_type,
                                                    ldc,
-                                                   arg.c_noalias_d ? dD : dC,
-                                                   arg.c_noalias_d ? arg.d_type : arg.c_type,
-                                                   arg.c_noalias_d ? ldd : ldc,
+                                                   dDref,
+                                                   d_type,
+                                                   ldd,
                                                    arg.compute_type,
                                                    algo,
                                                    solution_index,
@@ -874,9 +919,9 @@ void testing_gemm_ex(const Arguments& arg)
                                dC,
                                arg.c_type,
                                ldc,
-                               arg.c_noalias_d ? dD : dC,
-                               arg.c_noalias_d ? arg.d_type : arg.c_type,
-                               arg.c_noalias_d ? ldd : ldc,
+                               dDref,
+                               d_type,
+                               ldd,
                                arg.compute_type,
                                algo,
                                solution_index,

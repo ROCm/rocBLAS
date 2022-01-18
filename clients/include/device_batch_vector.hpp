@@ -38,7 +38,7 @@ public:
     //! @param batch_count The batch count.
     //! @param HMM         HipManagedMemory Flag.
     //!
-    explicit device_batch_vector(rocblas_int n,
+    explicit device_batch_vector(size_t      n,
                                  rocblas_int inc,
                                  rocblas_int batch_count,
                                  bool        HMM = false)
@@ -61,22 +61,9 @@ public:
     //! @param batch_count The batch count.
     //! @param HMM         HipManagedMemory Flag.
     //!
-    explicit device_batch_vector(rocblas_int    n,
-                                 rocblas_int    inc,
-                                 rocblas_stride stride,
-                                 rocblas_int    batch_count,
-                                 bool           HMM = false)
+    explicit device_batch_vector(
+        size_t n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, bool HMM = false)
         : device_batch_vector(n, inc, batch_count, HMM)
-    {
-    }
-
-    //!
-    //! @brief Constructor (kept for backward compatibility only, to be removed).
-    //! @param batch_count The number of vectors.
-    //! @param size_vector The size of each vectors.
-    //!
-    explicit device_batch_vector(rocblas_int batch_count, size_t size_vector)
-        : device_batch_vector(size_vector, 1, batch_count)
     {
     }
 
@@ -91,7 +78,7 @@ public:
     //!
     //! @brief Returns the length of the vector.
     //!
-    rocblas_int n() const
+    size_t n() const
     {
         return this->m_n;
     }
@@ -232,7 +219,7 @@ public:
     }
 
 private:
-    rocblas_int m_n{};
+    size_t      m_n{};
     rocblas_int m_inc{};
     rocblas_int m_batch_count{};
     T**         m_data{};

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -67,8 +67,25 @@ void testing_asum(const Arguments& arg)
         device_vector<real_t<T>> dr(1);
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
+        host_vector<real_t<T>> hr1(1);
+        host_vector<real_t<T>> hr2(1);
+        host_vector<real_t<T>> result_0(1);
+        CHECK_HIP_ERROR(hr1.memcheck());
+        CHECK_HIP_ERROR(hr2.memcheck());
+        CHECK_HIP_ERROR(result_0.memcheck());
+        result_0[0] = real_t<T>(0);
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, dr));
+        CHECK_HIP_ERROR(hr1.transfer_from(dr));
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, hr2));
+
+        // check that result is set to 0
+        unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, result_0, hr1);
+        unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, result_0, hr2);
+
         return;
     }
 
@@ -86,10 +103,7 @@ void testing_asum(const Arguments& arg)
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Initial Data on CPU
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan<T>(hx, 1, N, incx);
-    else
-        rocblas_init(hx);
+    rocblas_init_vector(hx, arg, N, incx, 0, 1, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));

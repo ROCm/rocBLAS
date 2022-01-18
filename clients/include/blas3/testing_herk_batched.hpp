@@ -188,9 +188,10 @@ void testing_herk_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hC_1);
+
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hC_1, arg, rocblas_client_beta_sets_nan, false, true);
 
     hC_2.copy_from(hC_1);
     hC_gold.copy_from(hC_1);

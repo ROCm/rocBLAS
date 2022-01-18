@@ -231,18 +231,12 @@ Definitions:
     - { alpha: 2, alphai: 2, beta: -1.0, betai: 2.0 }
 
 Tests:
-- name: gemm_strided_batched_bad_arg
+- name: gemm_strided_batched_xx_bad_arg
   category: pre_checkin
   function:
+    - gemm_strided_batched_bad_arg: *half_single_double_complex_real_precisions
     - gemm_strided_batched_ex_bad_arg: *real_precisions
-  transA: N
-  transB: N
-  fortran: [ false, true ]
-
-- name: gemm_strided_batched_bad_arg
-  category: pre_checkin
-  function:
-    - gemm_strided_batched_ex_bad_arg: *single_double_precisions_complex
+    - gemm_strided_batched_ex_bad_arg: *complex_precisions
   transA: N
   transB: N
   fortran: [ false, true ]
@@ -610,11 +604,12 @@ Tests:
   transB: N
   batch_count: 1
 
-- name: gemm_strided_batched_zerok
+- name: gemm_strided_batched_xx_zerok
   category: quick
   function:
-    gemm_strided_batched: { <<: *half_single_double_precisions, <<: *complex_precisions }
-    gemm_strided_batched_ex: { <<: *real_precisions, <<: *complex_precisions }
+    gemm_strided_batched: *half_single_double_precisions_complex_real
+    gemm_strided_batched_ex: *complex_precisions
+    gemm_strided_batched_ex: *real_precisions
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   K: 0

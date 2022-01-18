@@ -110,10 +110,6 @@ void testing_syr_strided_batched(const Arguments& arg)
     host_vector<T> hA_gold(size_A);
     host_vector<T> hx(size_x);
 
-    // base for batch creation
-    host_vector<T> hA(lda * N);
-    host_vector<T> x(N * abs_incx);
-
     // allocate memory on device
     device_vector<T> dA_1(size_A);
     device_vector<T> dA_2(size_A);
@@ -129,20 +125,10 @@ void testing_syr_strided_batched(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(lda >= N)
-    {
-        rocblas_init_symmetric<T>(hA, N, lda);
-    }
-    rocblas_init<T>(x, 1, N, abs_incx);
-
-    for(int i = 0; i < batch_count; i++)
-    {
-        // for now batches are identical data, need rocblas_init methods which take pointers for strided tests
-        memcpy(hA_1 + i * strideA, hA, lda * N * sizeof(T));
-        memcpy(hx + i * stridex, x, N * abs_incx * sizeof(T));
-    }
+    // Initialize data on host memory
+    rocblas_init_matrix(hA_1, arg, N, N, lda, 1, batch_count, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(
+        hx, arg, N, abs_incx, 1, batch_count, rocblas_client_alpha_sets_nan, false, true);
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS

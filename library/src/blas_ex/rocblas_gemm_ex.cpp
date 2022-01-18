@@ -216,8 +216,10 @@ namespace
                                           ldb,
                                           beta,
                                           c,
+                                          c_type,
                                           ldc,
                                           d,
+                                          d_type,
                                           ldd,
                                           compute_type);
 

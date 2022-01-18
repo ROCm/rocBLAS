@@ -95,18 +95,11 @@ void testing_copy_strided_batched(const Arguments& arg)
     host_vector<T> hy(size_y);
     host_vector<T> hy_gold(size_y);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy, stride_y, batch_count);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-        rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(
+        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(
+        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
 
     // copy_strided_batched vector is easy in STL; hy_gold = hx: save a copy_strided_batched in hy_gold which will be output of CPU
     // BLAS

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -295,9 +295,12 @@ void testing_geam_strided_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
+
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, A_row, A_col, lda, stride_a, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(
+        hB, arg, B_row, B_col, ldb, stride_b, batch_count, rocblas_client_beta_sets_nan);
 
     hA_copy = hA;
     hB_copy = hB;

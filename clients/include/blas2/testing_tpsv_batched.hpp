@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -116,7 +116,9 @@ void testing_tpsv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dAP.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
-    rocblas_init<T>(hA, true);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     for(int b = 0; b < batch_count; b++)
     {
@@ -125,9 +127,6 @@ void testing_tpsv_batched(const Arguments& arg)
         {
             make_unit_diagonal(uplo, (T*)hA[b], N, N);
         }
-
-        //initialize "exact" answer hx
-        rocblas_init<T>(hx[b], 1, N, abs_incx);
     }
 
     hb.copy_from(hx);

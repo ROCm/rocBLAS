@@ -183,6 +183,7 @@ namespace
                                                                     0,
                                                                     lda,
                                                                     stride_A,
+                                                                    nullptr,
                                                                     B,
                                                                     0,
                                                                     incx,

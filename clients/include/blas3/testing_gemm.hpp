@@ -264,55 +264,11 @@ void testing_gemm(const Arguments& arg)
     host_vector<T> hC_1(size_C);
     host_vector<T> hC_gold(size_C_copy);
 
-    rocblas_seedrand();
-
-    // Initial Data on CPU
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, A_row, A_col, lda);
-        rocblas_init_nan<T>(hB, B_row, B_col, ldb);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-        {
-            rocblas_init<T>(hA, A_row, A_col, lda);
-            rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
-        }
-        else if(arg.initialization == rocblas_initialization::trig_float)
-        {
-            rocblas_init_sin<T>(hA, A_row, A_col, lda);
-            rocblas_init_cos<T>(hB, B_row, B_col, ldb);
-        }
-        else if(arg.initialization == rocblas_initialization::hpl)
-        {
-            rocblas_init_hpl<T>(hA, A_row, A_col, lda);
-            rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
-        }
-        else
-        {
-#ifdef GOOGLE_TEST
-            FAIL() << "unknown initialization type";
-            return;
-#else
-            rocblas_cerr << "unknown initialization type" << std::endl;
-            rocblas_abort();
-#endif
-        }
-    }
-    if(arg.beta_isnan<T>())
-    {
-        rocblas_init_nan<T>(hC_1, M, N, ldc);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-            rocblas_init<T>(hC_1, M, N, ldc);
-        else if(arg.initialization == rocblas_initialization::trig_float)
-            rocblas_init_sin<T>(hC_1, M, N, ldc);
-        else if(arg.initialization == rocblas_initialization::hpl)
-            rocblas_init_hpl<T>(hC_1, M, N, ldc);
-    }
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, A_row, A_col, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(
+        hB, arg, B_row, B_col, ldb, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_matrix(hC_1, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan);
 
     if(size_C_copy)
     {

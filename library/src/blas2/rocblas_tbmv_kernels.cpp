@@ -23,9 +23,10 @@ __device__ T tbmvn_kernel_helper(rocblas_int ty,
                                  const T*    w_x_copy)
 {
     T           res_A = 0.0;
-    rocblas_int col   = ty; // ty defines the column of banded & regular matrix
+    rocblas_int col;
 
     // Since the column is consistent, we can iterate up the diagonal
+    // ty defines the column of banded & regular matrix
     for(col = ty; col < m; col += DIM_Y)
     {
         // We have to convert ind to banded matrix row
@@ -79,8 +80,9 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
                                  const T*    w_x_copy)
 {
     T           res_A = 0.0;
-    rocblas_int row   = ty; // for transpose case, ty defines the row
+    rocblas_int row;
 
+    // for transpose case, ty defines the row
     for(row = ty; row < lda; row += DIM_Y)
     {
         // We have to convert ind to banded matrix row
@@ -92,6 +94,7 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
             {
                 // Regular case
                 rocblas_int min_row = k - col;
+                // cppcheck-suppress knownConditionTrueFalse
                 if(row < k && row >= k - col && row != k)
                 {
                     res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])

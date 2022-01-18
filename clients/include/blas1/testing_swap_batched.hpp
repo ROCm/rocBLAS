@@ -79,11 +79,8 @@ void testing_swap_batched(const Arguments& arg)
     host_batch_vector<T> hx_gold(N, incx, batch_count);
     host_batch_vector<T> hy_gold(N, incy, batch_count);
 
-    // Initial Data on CPU
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan(hx, true);
-    else
-        rocblas_init(hx, true);
+    // Initialize memory on host.
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     for(int i = 0; i < batch_count; i++)
     {

@@ -782,6 +782,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     size_t         x_temp_els   = exact_blocks ? BLOCK : m;
 
     // Temporarily switch to host pointer mode, restoring on return
+    // cppcheck-suppress unreadVariable
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     if(supplied_invA)
