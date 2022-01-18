@@ -356,6 +356,14 @@ namespace
                 return rocblas_status_invalid_pointer;
             if(k && (!a || !b) && alpha)
                 return rocblas_status_invalid_pointer;
+            // added from gemm_ex
+            // pointers must be valid
+            if((k && !alpha) || !beta || !d)
+                return rocblas_status_invalid_pointer;
+
+            // Consider gemm_ex constraints which allow null pointers if alpha/beta are zero
+            // If C is nullptr, beta must be zero
+            // If k != 0 and either A or B is nullptr, alpha must be zero
 
             rocblas_stride batch_stride = 1; // can be changed to 0 when Tensile bug is fixed
             rocblas_int    offset       = 0;

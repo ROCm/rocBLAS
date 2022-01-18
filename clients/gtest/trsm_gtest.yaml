@@ -15,6 +15,10 @@ Definitions:
     - { M:    64, N: 65, lda: 65, ldb: 65 }
     - { M:    65, N: 64, lda: 64, ldb: 65 }
 
+    # Trsv kernel
+    - { M:   128, N:    1, lda:  128, ldb:  128 }
+    - { M:  1024, N:    1, lda: 2000, ldb: 1024 }
+
   - &medium_matrix_size_range
     - { M:   192, N:   192, lda:   192, ldb:   192 }
     - { M:   600, N:   500, lda:   600, ldb:   600 }
@@ -22,23 +26,15 @@ Definitions:
 
   # - &substitution_size_range
     - { M:  2, N:  1, lda: 30, ldb: 30 }
-    - { M:  2, N: 12, lda: 30, ldb: 30 }
     - { M:  1, N:  2, lda: 30, ldb: 30 }
-    - { M: 12, N:  2, lda: 30, ldb: 30 }
 
-    - { M:  3, N: 32, lda: 32, ldb: 32 }
     - { M: 32, N:  3, lda: 32, ldb: 32 }
-    - { M:  8, N: 16, lda: 32, ldb: 32 }
-    - { M: 16, N:  8, lda: 32, ldb: 32 }
-    - { M: 17, N: 20, lda: 32, ldb: 32 }
     - { M: 32, N: 32, lda: 32, ldb: 32 }
     - { M: 32, N: 31, lda: 32, ldb: 32 }
     - { M: 31, N: 31, lda: 32, ldb: 32 }
 
     - { M: 33, N: 35, lda:  62, ldb:  61 }
     - { M: 35, N: 33, lda:  61, ldb:  62 }
-    - { M: 64, N: 51, lda:  64, ldb:  64 }
-    - { M: 51, N: 64, lda:  64, ldb:  64 }
     - { M:  7, N: 58, lda:  59, ldb: 130 }
     - { M: 58, N:  7, lda: 130, ldb: 129 }
 
@@ -60,52 +56,45 @@ Definitions:
 
   - &substitution_size_range_thorough
     - { M:   1, N:  1, lda: 100, ldb: 100 }
-    - { M:   1, N:  7, lda: 100, ldb: 100 }
-    - { M:   1, N: 16, lda: 100, ldb: 100 }
     - { M:   1, N: 32, lda: 100, ldb: 100 }
     - { M:   1, N: 64, lda: 100, ldb: 100 }
     - { M:   2, N:  1, lda: 100, ldb: 100 }
-    - { M:   2, N:  7, lda: 100, ldb: 100 }
-    - { M:   2, N: 16, lda: 100, ldb: 100 }
     - { M:   2, N: 32, lda: 100, ldb: 100 }
     - { M:   2, N: 64, lda: 100, ldb: 100 }
     - { M:   4, N:  1, lda: 100, ldb: 100 }
-    - { M:   4, N:  7, lda: 100, ldb: 100 }
-    - { M:   4, N: 16, lda: 100, ldb: 100 }
     - { M:   4, N: 32, lda: 100, ldb: 100 }
     - { M:   4, N: 64, lda: 100, ldb: 100 }
     - { M:   7, N:  1, lda: 100, ldb: 100 }
-    - { M:   7, N:  7, lda: 100, ldb: 100 }
-    - { M:   7, N: 16, lda: 100, ldb: 100 }
     - { M:   7, N: 32, lda: 100, ldb: 100 }
     - { M:   7, N: 64, lda: 100, ldb: 100 }
     - { M:  16, N:  1, lda: 100, ldb: 100 }
-    - { M:  16, N:  7, lda: 100, ldb: 100 }
-    - { M:  16, N: 16, lda: 100, ldb: 100 }
     - { M:  16, N: 32, lda: 100, ldb: 100 }
     - { M:  16, N: 64, lda: 100, ldb: 100 }
     - { M:  32, N:  1, lda: 100, ldb: 100 }
-    - { M:  32, N:  7, lda: 100, ldb: 100 }
-    - { M:  32, N: 16, lda: 100, ldb: 100 }
     - { M:  32, N: 32, lda: 100, ldb: 100 }
     - { M:  32, N: 64, lda: 100, ldb: 100 }
     - { M:  64, N:  1, lda: 100, ldb: 100 }
-    - { M:  64, N:  7, lda: 100, ldb: 100 }
-    - { M:  64, N: 16, lda: 100, ldb: 100 }
     - { M:  64, N: 32, lda: 100, ldb: 100 }
     - { M:  64, N: 64, lda: 100, ldb: 100 }
     - { M:  35, N:  7, lda:  48, ldb:  52 }
     - { M:   3, N: 61, lda:  62, ldb:  63 }
 
+  - &substitution_size_range_skinny_left
+    - { M: 31, N: 4000, lda: 4000, ldb: 4000 }
+    - { M:  2, N:  256, lda:  256, ldb:  256 }
+
+  - &substitution_size_range_skinny_right
+    - { M: 4000, N: 31, lda: 4000, ldb: 4000 }
+    - { M:  256, N:  2, lda:  256, ldb:  256 }
+
   - &alpha_range_sub
-    - { alpha: 2.0, alphai: -1.5 }
+    - { alpha: 2.0 }
 
   - &alpha_range [ 1.0, -5.0 ]
 
   - &complex_alpha_range
     - { alpha: -5, alphai: -5 }
     - { alpha:  1, alphai:  3 }
-    - { alpha:  5, alphai:  3 }
 
   - &testset1_small_matrix_size_range
     - { M:      256,    N:      256,    lda:    256,    ldb:    256     }
@@ -199,7 +188,7 @@ Tests:
 - name: trsm_small_complex
   category: quick
   function: trsm
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
   transA: [N, C]
@@ -213,10 +202,11 @@ Tests:
   category: quick
   function: trsm_batched
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
   batch_count: [-1, 0, 1, 3]
@@ -226,11 +216,12 @@ Tests:
 - name: trsm_batched_small_complex
   category: quick
   function: trsm_batched
-  precision: *single_double_precisions_complex_real
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  precision: *single_double_precisions_complex
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
   batch_count: [-1, 0, 1, 3]
@@ -241,13 +232,14 @@ Tests:
   category: quick
   function: trsm_strided_batched
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  stride_scale: [ 1, 1.5, 3 ]
+  stride_scale: [ 1 ]
   batch_count: [ -1, 0, 1, 3 ]
   fortran: [ false, true ]
   user_allocated_workspace: [0, 1000000]
@@ -255,14 +247,15 @@ Tests:
 - name: trsm_strided_batched_small_complex
   category: quick
   function: trsm_strided_batched
-  precision: *single_double_precisions_complex_real
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  precision: *single_double_precisions_complex
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
-  stride_scale: [ 1, 1.5, 3 ]
+  stride_scale: [ 3 ]
   batch_count: [ -1, 0, 1, 3 ]
   fortran: [ false, true ]
   user_allocated_workspace: [0, 1000000]
@@ -308,7 +301,7 @@ Tests:
 - name: trsm_medium_complex
   category: pre_checkin
   function: trsm
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
   transA: [N, C]
@@ -323,13 +316,14 @@ Tests:
   category: pre_checkin
   function: trsm_batched
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
-  batch_count: [1, 3]
+  batch_count: [3]
   user_allocated_workspace: [0, 20000000]
 # if adjusting algo add back in for local testing
 #  pad: [0, 4096]
@@ -337,14 +331,15 @@ Tests:
 - name: trsm_batched_medium_complex
   category: pre_checkin
   function: trsm_batched
-  precision: *single_double_precisions_complex_real
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  precision: *single_double_precisions_complex
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha_range
-  batch_count: [1, 3]
+  batch_count: [3]
   user_allocated_workspace: [0, 20000000]
 # if adjusting algo add back in for local testing
 #  pad: [0, 4096]
@@ -353,28 +348,30 @@ Tests:
   category: pre_checkin
   function: trsm_strided_batched
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
-  stride_scale: [ 1, 1.5, 3 ]
-  batch_count: [ 1, 3 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
   user_allocated_workspace: [0, 20000000]
 
 - name: trsm_strided_batched_medium_complex
   category: pre_checkin
   function: trsm_strided_batched
-  precision: *single_double_precisions_complex_real
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  precision: *single_double_precisions_complex
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha_range
-  stride_scale: [ 1, 1.5, 3 ]
-  batch_count: [ 1, 3 ]
+  stride_scale: [ 3 ]
+  batch_count: [ 3 ]
   user_allocated_workspace: [0, 20000000]
 
 # nightly
@@ -439,7 +436,7 @@ Tests:
 - name: trsm_large_complex
   category: nightly
   function: trsm
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
     - { side: R, uplo: L, transA: N, diag: N }
@@ -486,7 +483,7 @@ Tests:
 - name: trsm_batched_large_complex
   category: nightly
   function: trsm_batched
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
     - { side: R, uplo: L, transA: N, diag: N }
@@ -537,7 +534,7 @@ Tests:
 - name: trsm_strided_batched_large_complex
   category: nightly
   function: trsm_strided_batched
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
     - { side: R, uplo: L, transA: N, diag: N }
@@ -566,37 +563,48 @@ Tests:
   category: nightly
   function: trsm_batched
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  batch_count: [1024]
+  batch_count: [128]
 
 - name: trsm_strided_batched_manybatch
   category: nightly
   function: trsm_strided_batched
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: U, transA: C, diag: N }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
   stride_scale: [ 1 ]
-  batch_count: [1024]
+  batch_count: [128]
 
 # nightly - substitution method
-- name: trsm_small
+- name: trsm_small_left
   category: nightly
   function: trsm
-  precision: *single_double_precisions
-  side: [L, R]
+  precision: *single_double_precisions_complex_real
+  side: [L]
   uplo: [L, U]
   transA: [N, C]
   diag: [N, U]
-  matrix_size: *substitution_size_range_thorough
+  matrix_size: *substitution_size_range_skinny_left
+  alpha_beta: *alpha_range_sub
+
+- name: trsm_small_right
+  category: nightly
+  function: trsm
+  precision: *single_double_precisions_complex_real
+  side: [R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *substitution_size_range_skinny_right
   alpha_beta: *alpha_range_sub
 
 - name: trsm_small_complex
@@ -610,17 +618,29 @@ Tests:
   matrix_size: *substitution_size_range_thorough
   alpha_beta: *alpha_range_sub
 
-- name: trsm_batched_small
+- name: trsm_batched_small_left
   category: nightly
   function: trsm_batched
-  precision: *single_double_precisions
-  side: [L, R]
+  precision: *single_double_precisions_complex_real
+  side: [L]
   uplo: [L, U]
   transA: [N, C]
-  diag: [N, U]
-  matrix_size: *substitution_size_range_thorough
+  diag: [N]
+  matrix_size: *substitution_size_range_skinny_left
   alpha_beta: *alpha_range_sub
-  batch_count: [ 1, 128 ]
+  batch_count: [ 1, 4 ]
+
+- name: trsm_batched_small_right
+  category: nightly
+  function: trsm_batched
+  precision: *single_double_precisions_complex_real
+  side: [R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N]
+  matrix_size: *substitution_size_range_skinny_right
+  alpha_beta: *alpha_range_sub
+  batch_count: [ 1, 4 ]
 
 - name: trsm_batched_small_complex
   category: nightly
@@ -632,20 +652,33 @@ Tests:
   diag: [N, U]
   matrix_size: *substitution_size_range_thorough
   alpha_beta: *alpha_range_sub
-  batch_count: [ 1, 128 ]
+  batch_count: [ 1, 4 ]
 
-- name: trsm_strided_batched_small
+- name: trsm_strided_batched_small_left
   category: nightly
   function: trsm_strided_batched
-  precision: *single_double_precisions
-  side: [L, R]
+  precision: *single_double_precisions_complex_real
+  side: [L]
   uplo: [L, U]
   transA: [N, C]
-  diag: [N, U]
-  matrix_size: *substitution_size_range_thorough
+  diag: [U]
+  matrix_size: *substitution_size_range_skinny_left
   alpha_beta: *alpha_range_sub
   stride_scale: [ 1.5]
-  batch_count: [ 1, 128 ]
+  batch_count: [ 1, 4 ]
+
+- name: trsm_strided_batched_small_right
+  category: nightly
+  function: trsm_strided_batched
+  precision: *single_double_precisions_complex_real
+  side: [R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [U]
+  matrix_size: *substitution_size_range_skinny_right
+  alpha_beta: *alpha_range_sub
+  stride_scale: [ 1.5]
+  batch_count: [ 1, 4 ]
 
 - name: trsm_strided_batched_small_complex
   category: nightly
@@ -658,7 +691,7 @@ Tests:
   matrix_size: *substitution_size_range_thorough
   alpha_beta: *alpha_range_sub
   stride_scale: [ 1.5 ]
-  batch_count: [ 1, 128 ]
+  batch_count: [ 1, 4 ]
 
 #############
 ## trsm_ex ##
@@ -679,7 +712,7 @@ Tests:
 - name: trsm_ex_small_complex
   category: quick
   function: trsm_ex
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
   transA: [N, C]
@@ -691,10 +724,11 @@ Tests:
   category: quick
   function: trsm_batched_ex
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
   batch_count: [-1, 0, 1, 3]
@@ -702,11 +736,12 @@ Tests:
 - name: trsm_batched_ex_small_complex
   category: quick
   function: trsm_batched_ex
-  precision: *single_double_precisions_complex_real
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  precision: *single_double_precisions_complex
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
   batch_count: [-1, 0, 1, 3]
@@ -715,26 +750,28 @@ Tests:
   category: quick
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  stride_scale: [ 1, 1.5, 3 ]
+  stride_scale: [ 1, 3 ]
   batch_count: [-1, 0, 1, 3]
 
 - name: trsm_strided_batched_ex_small_complex
   category: quick
   function: trsm_strided_batched_ex
-  precision: *single_double_precisions_complex_real
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  precision: *single_double_precisions_complex
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
-  stride_scale: [ 1, 1.5, 3 ]
+  stride_scale: [ 1, 1.5 ]
   batch_count: [-1, 0, 1, 3]
 
 # Medium - pre_checkin
@@ -753,10 +790,11 @@ Tests:
   category: pre_checkin
   function: trsm_batched_ex
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
   batch_count: [1, 3]
@@ -765,13 +803,14 @@ Tests:
   category: pre_checkin
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
-  stride_scale: [ 1, 1.5, 3 ]
+  stride_scale: [ 1, 1.5 ]
   batch_count: [ 1, 3 ]
 
 - name: trsm_ex_testset1_small
@@ -910,24 +949,26 @@ Tests:
   category: nightly
   function: trsm_batched_ex
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  batch_count: [1024]
+  batch_count: [64]
 
 - name: trsm_strided_batched_ex_manybatch
   category: nightly
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [N, U]
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
   stride_scale: [ 1 ]
-  batch_count: [1024]
+  batch_count: [64]
 ...

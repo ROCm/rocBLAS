@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -133,8 +133,10 @@ void testing_dot_batched_ex(const Arguments& arg)
         device_vector<Tr> d_rocblas_result(std::max(batch_count, 1));
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        host_vector<Tr> h_rocblas_result(std::max(batch_count, 1));
+        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_dot_batched_ex_fn)(handle,
                                                         N,
                                                         nullptr,
@@ -148,12 +150,27 @@ void testing_dot_batched_ex(const Arguments& arg)
                                                         result_type,
                                                         execution_type));
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_ex_fn)(handle,
+                                                        N,
+                                                        nullptr,
+                                                        x_type,
+                                                        incx,
+                                                        nullptr,
+                                                        y_type,
+                                                        incy,
+                                                        batch_count,
+                                                        h_rocblas_result,
+                                                        result_type,
+                                                        execution_type));
+
         if(batch_count > 0)
         {
             host_vector<Tr> cpu_0(batch_count);
             host_vector<Tr> gpu_0(batch_count);
             CHECK_HIP_ERROR(gpu_0.transfer_from(d_rocblas_result));
             unit_check_general<Tr>(1, 1, 1, 1, cpu_0, gpu_0, batch_count);
+            unit_check_general<Tr>(1, 1, 1, 1, cpu_0, h_rocblas_result, batch_count);
         }
 
         return;

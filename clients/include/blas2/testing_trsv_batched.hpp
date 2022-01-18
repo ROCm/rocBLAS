@@ -77,10 +77,12 @@ void testing_trsv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
+
     for(int b = 0; b < batch_count; b++)
     {
-        rocblas_init<T>(hA[b], M, M, lda);
-
         //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
         cblas_gemm<T>(rocblas_operation_none,
                       rocblas_operation_conjugate_transpose,
@@ -135,8 +137,6 @@ void testing_trsv_batched(const Arguments& arg)
             }
         }
     }
-
-    rocblas_init(hx, false);
     hb.copy_from(hx);
 
     for(int b = 0; b < batch_count; b++)

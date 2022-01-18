@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -41,7 +41,7 @@ void testing_tpmv_batched_bad_arg(const Arguments& arg)
     host_batch_vector<T> hx(M, incx, batch_count);
     CHECK_HIP_ERROR(hx.memcheck());
 
-    device_batch_vector<T> dA(batch_count, size_A);
+    device_batch_vector<T> dA(size_A, 1, batch_count);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     device_batch_vector<T> dx(M, incx, batch_count);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -110,7 +110,7 @@ void testing_tpmv_batched(const Arguments& arg)
     host_batch_vector<T> hres(M, incx, batch_count);
     CHECK_HIP_ERROR(hres.memcheck());
 
-    device_batch_vector<T> dA(batch_count, size_A);
+    device_batch_vector<T> dA(size_A, 1, batch_count);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
     device_batch_vector<T> dx(M, incx, batch_count);
@@ -119,11 +119,9 @@ void testing_tpmv_batched(const Arguments& arg)
     auto dA_on_device = dA.ptr_on_device();
     auto dx_on_device = dx.ptr_on_device();
 
-    //
-    // Initialize.
-    //
-    rocblas_init(hA, true);
-    rocblas_init(hx);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     //
     // Transfer.

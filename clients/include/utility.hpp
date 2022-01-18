@@ -71,6 +71,14 @@
 #define TOO_MANY_DEVICES_STRING_GTEST "Succeeded\n" TOO_MANY_DEVICES_STRING
 #define HMM_NOT_SUPPORTED_GTEST "Succeeded\n" HMM_NOT_SUPPORTED
 
+/*!
+ * Initialize rocBLAS for the current HIP device and report
+ * the time taken to complete the initialization. This is used to
+ * avoid costly startup time at the first call on that device.
+ * Internal use for benchmark & testing.
+ */
+void rocblas_client_initialize();
+
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */
 class rocblas_local_handle

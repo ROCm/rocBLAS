@@ -48,7 +48,7 @@ namespace roc
     template <typename T>
     class value : public value_base
     {
-        T  m_var; // Variable to be modified if no pointer provided
+        T  m_var{}; // Variable to be modified if no pointer provided
         T* m_var_ptr; // Pointer to variable to be modified
 
     public:
@@ -58,7 +58,7 @@ namespace roc
         {
         }
 
-        explicit value(T var, bool defaulted)
+        explicit value(const T& var, bool defaulted)
             : m_var(var)
             , m_var_ptr(nullptr)
         {
@@ -207,7 +207,7 @@ namespace roc
             }
 
             // Set a value
-            void set_val(int& argc, char**& argv, std::string inopt) const
+            void set_val(int& argc, char**& argv, const std::string& inopt) const
             {
                 // We test all supported types with dynamic_cast and parse accordingly
                 bool match = false;

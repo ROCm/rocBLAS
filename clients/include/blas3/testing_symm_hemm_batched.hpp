@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -213,10 +213,11 @@ void testing_symm_hemm_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
-    rocblas_init<T>(hC_1);
+
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hB, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hC_1, arg, rocblas_client_beta_sets_nan);
 
     hC_2.copy_from(hC_1);
     hC_gold.copy_from(hC_1);

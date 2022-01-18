@@ -88,7 +88,11 @@ void testing_trsv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
-    rocblas_init<T>(hA, M, M, lda, stride_a, batch_count);
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, M, M, lda, stride_a, batch_count, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(
+        hx, arg, M, abs_incx, stride_x, batch_count, rocblas_client_never_set_nan, false, true);
 
     //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
     for(int b = 0; b < batch_count; b++)
@@ -147,8 +151,6 @@ void testing_trsv_strided_batched(const Arguments& arg)
         }
     }
 
-    //initialize "exact" answer hx
-    rocblas_init<T>(hx, 1, M, abs_incx, stride_x, batch_count);
     hb = hx;
 
     // Calculate hb = hA*hx;

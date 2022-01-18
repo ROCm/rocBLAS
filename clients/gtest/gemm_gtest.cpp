@@ -68,7 +68,8 @@ namespace
                        || !strcmp(arg.function, "gemm_batched_bad_arg");
 
             case GEMM_STRIDED_BATCHED:
-                return !strcmp(arg.function, "gemm_strided_batched");
+                return !strcmp(arg.function, "gemm_strided_batched")
+                       || !strcmp(arg.function, "gemm_strided_batched_bad_arg");
 
 #if(BUILD_WITH_TENSILE)
             case GEMM_EX:
@@ -96,33 +97,45 @@ namespace
         {
             RocBLAS_TestName<gemm_test_template> name(arg.name);
             name << rocblas_datatype2string(arg.a_type);
-            constexpr bool isEx = GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
-                                  || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX || GEMM_TYPE == GEMM_EXT2;
-            constexpr bool isBatched
-                = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
-                   || GEMM_TYPE == GEMM_BATCHED || GEMM_TYPE == GEMM_BATCHED_EX);
 
-            if(isEx)
-                name << rocblas_datatype2string(arg.b_type) << rocblas_datatype2string(arg.c_type)
-                     << rocblas_datatype2string(arg.d_type)
-                     << rocblas_datatype2string(arg.compute_type);
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+            else
+            {
+                constexpr bool isEx = GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
+                                      || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
+                                      || GEMM_TYPE == GEMM_EXT2;
+                constexpr bool isBatched
+                    = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
+                       || GEMM_TYPE == GEMM_BATCHED || GEMM_TYPE == GEMM_BATCHED_EX);
 
-            name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB);
+                if(isEx)
+                    name << rocblas_datatype2string(arg.b_type)
+                         << rocblas_datatype2string(arg.c_type)
+                         << rocblas_datatype2string(arg.d_type)
+                         << rocblas_datatype2string(arg.compute_type);
 
-            name << '_' << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_'
-                 << arg.lda << '_' << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
+                name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB);
 
-            if(isEx)
-                name << '_' << arg.ldd;
+                name << '_' << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_'
+                     << arg.lda << '_' << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
 
-            if(isBatched)
-                name << '_' << arg.batch_count;
+                if(isEx)
+                    name << '_' << arg.ldd;
 
-            if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
-                name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
+                if(isBatched)
+                    name << '_' << arg.batch_count;
+
+                if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+                    name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
+            }
 
             if(arg.fortran)
+            {
                 name << "_F";
+            }
 
             return std::move(name);
         }
@@ -164,6 +177,8 @@ namespace
                 testing_gemm_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "gemm_strided_batched"))
                 testing_gemm_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "gemm_strided_batched_bad_arg"))
+                testing_gemm_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -234,7 +249,7 @@ namespace
             else if(!strcmp(arg.function, "gemm_ext2"))
                 testing_gemm_ext2<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_ext2_bad_arg"))
-                testing_gemm_ext2<Ti, To, Tc>(arg);
+                testing_gemm_ext2_bad_arg<Ti, To, Tc>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

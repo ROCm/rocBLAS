@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -34,8 +34,8 @@
 
 int main()
 {
-    rocblas_int N     = 102400;
-    float       alpha = 10.0;
+    constexpr rocblas_int N     = 102400;
+    float                 alpha = 10.0;
 
     omp_set_num_threads(NUM_THREADS);
     int thread_id;
@@ -43,8 +43,12 @@ int main()
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     std::vector<float> hx(N * NUM_THREADS);
+
+#if 0
     std::vector<float> hz(N * NUM_THREADS);
-    float *            dx, *dy;
+#endif
+
+    float *dx, *dy;
 
     double gpu_time_used;
 
@@ -66,8 +70,10 @@ int main()
     srand(1);
     rocblas_init<float>(hx, 1, N * NUM_THREADS, 1);
 
+#if 0
     // copy vector is easy in STL; hz = hx: save a copy in hz which will be output of CPU BLAS
     hz = hx;
+#endif
 
     hipMemcpy(dx, hx.data(), sizeof(float) * N * NUM_THREADS, hipMemcpyHostToDevice);
 
@@ -80,7 +86,7 @@ int main()
 #pragma omp parallel private(thread_id)
     {
 
-        int thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1
+        thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1
         // associate each handle with a stream
         rocblas_set_stream(handles[thread_id], streams[thread_id]);
 
@@ -98,7 +104,7 @@ int main()
 #pragma omp parallel private(thread_id)
     {
 
-        int thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1
+        thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1
         // associate each handle with a stream
         rocblas_set_stream(handles[thread_id], streams[thread_id]);
 

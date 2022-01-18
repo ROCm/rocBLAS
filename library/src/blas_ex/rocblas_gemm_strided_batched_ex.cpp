@@ -239,11 +239,19 @@ try
                                   ldb,
                                   beta,
                                   c,
+                                  c_type,
                                   ldc,
                                   d,
+                                  d_type,
                                   ldd,
                                   compute_type,
                                   batch_count);
+
+    if(validArgs == rocblas_status_continue)
+    {
+        if(c == d && stride_c != stride_d)
+            validArgs = rocblas_status_invalid_size;
+    }
 
     if(validArgs != rocblas_status_continue)
     {

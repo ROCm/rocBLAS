@@ -36,7 +36,7 @@ public:
     //! @param inc         The increment.
     //! @param batch_count The batch count.
     //!
-    explicit host_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count)
+    explicit host_batch_vector(size_t n, rocblas_int inc, rocblas_int batch_count)
         : m_n(n)
         , m_inc(inc)
         , m_batch_count(batch_count)
@@ -54,7 +54,7 @@ public:
     //! @param stride      (UNUSED) The stride.
     //! @param batch_count The batch count.
     //!
-    explicit host_batch_vector(rocblas_int    n,
+    explicit host_batch_vector(size_t         n,
                                rocblas_int    inc,
                                rocblas_stride stride,
                                rocblas_int    batch_count)
@@ -73,7 +73,7 @@ public:
     //!
     //! @brief Returns the length of the vector.
     //!
-    rocblas_int n() const
+    size_t n() const
     {
         return this->m_n;
     }
@@ -177,10 +177,6 @@ public:
         if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
             return hip_err;
 
-#ifdef WIN32
-// TODO remove, this allows batched tests to pass
-//hipDeviceSynchronize();
-#endif
         hipMemcpyKind kind = that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost;
 
         for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
@@ -204,7 +200,7 @@ public:
     }
 
 private:
-    rocblas_int m_n{};
+    size_t      m_n{}; // This may hold a matrix so using size_t.
     rocblas_int m_inc{};
     rocblas_int m_batch_count{};
     T**         m_data{};
@@ -262,7 +258,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const host_ba
     {
         auto batch_data = that[batch_index];
         os << "[" << batch_index << "] = { " << batch_data[0];
-        for(rocblas_int i = 1; i < n; ++i)
+        for(size_t i = 1; i < n; ++i)
         {
             os << ", " << batch_data[i * inc];
         }

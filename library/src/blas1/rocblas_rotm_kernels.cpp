@@ -35,17 +35,23 @@ __device__ void rotm_kernel_calc(rocblas_int    n,
         auto z  = y[iy];
         if(flag < 0)
         {
+            //cppcheck-suppress unreadVariable # The variables 'x' and 'y' will be copied back to host(CPU)
             x[ix] = w * h11 + z * h12;
+            //cppcheck-suppress unreadVariable # The variables 'x' and 'y' will be copied back to host(CPU)
             y[iy] = w * h21 + z * h22;
         }
         else if(flag == 0)
         {
+            //cppcheck-suppress unreadVariable # The variables 'x' and 'y' will be copied back to host(CPU)
             x[ix] = w + z * h12;
+            //cppcheck-suppress unreadVariable # The variables 'x' and 'y' will be copied back to host(CPU)
             y[iy] = w * h21 + z;
         }
         else
         {
+            //cppcheck-suppress unreadVariable # The variables 'x' and 'y' will be copied back to host(CPU)
             x[ix] = w * h11 + z;
+            //cppcheck-suppress unreadVariable # The variables 'x' and 'y' will be copied back to host(CPU)
             y[iy] = -w + z * h22;
         }
     }

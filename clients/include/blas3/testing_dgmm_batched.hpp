@@ -122,11 +122,10 @@ void testing_dgmm_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hC_1.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hX);
-    rocblas_init<T>(hC);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hX, arg, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hC, arg, rocblas_client_never_set_nan);
 
     hA_copy.copy_from(hA);
     hX_copy.copy_from(hX);

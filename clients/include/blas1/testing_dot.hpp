@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -80,14 +80,23 @@ void testing_dot(const Arguments& arg)
         device_vector<T> d_rocblas_result(1);
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
+        host_vector<T> h_rocblas_result(1);
+        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
             (rocblas_dot_fn)(handle, N, nullptr, incx, nullptr, incy, d_rocblas_result));
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_dot_fn)(handle, N, nullptr, incx, nullptr, incy, h_rocblas_result));
+
         T cpu_0 = T(0);
-        T gpu_0;
+        T gpu_0, gpu_1;
         CHECK_HIP_ERROR(hipMemcpy(&gpu_0, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
+        gpu_1 = h_rocblas_result[0];
         unit_check_general<T>(1, 1, 1, &cpu_0, &gpu_0);
+        unit_check_general<T>(1, 1, 1, &cpu_0, &gpu_1);
 
         return;
     }
@@ -113,18 +122,9 @@ void testing_dot(const Arguments& arg)
     host_vector<T> hx(size_x);
     host_vector<T> hy(size_y);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, N, abs_incx);
-        rocblas_init<T>(hy, 1, N, abs_incy);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(dx.transfer_from(hx));

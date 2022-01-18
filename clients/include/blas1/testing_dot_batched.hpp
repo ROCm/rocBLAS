@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -103,8 +103,10 @@ void testing_dot_batched(const Arguments& arg)
         device_vector<T> d_rocblas_result(std::max(batch_count, 1));
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        host_vector<T> h_rocblas_result(std::max(batch_count, 1));
+        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(handle,
                                                      N,
                                                      nullptr,
@@ -114,13 +116,25 @@ void testing_dot_batched(const Arguments& arg)
                                                      batch_count,
                                                      d_rocblas_result));
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(handle,
+                                                     N,
+                                                     nullptr,
+                                                     incx,
+                                                     nullptr,
+                                                     incy,
+                                                     batch_count,
+                                                     h_rocblas_result));
+
         if(batch_count > 0)
         {
             host_vector<T> cpu_0(batch_count);
             host_vector<T> gpu_0(batch_count);
             CHECK_HIP_ERROR(gpu_0.transfer_from(d_rocblas_result));
             unit_check_general<T>(1, 1, 1, 1, cpu_0, gpu_0, batch_count);
+            unit_check_general<T>(1, 1, 1, 1, cpu_0, h_rocblas_result, batch_count);
         }
+
         return;
     }
 
@@ -144,17 +158,9 @@ void testing_dot_batched(const Arguments& arg)
     host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
     host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
 
-    // Initial Data on CPU
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan(hx, true);
-        rocblas_init_nan(hy, false);
-    }
-    else
-    {
-        rocblas_init(hx, true);
-        rocblas_init(hy, false);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));

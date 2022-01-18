@@ -459,6 +459,7 @@ template <rocblas_int DIM_X,
           bool        CONJ,
           bool        UNIT,
           typename T,
+          typename ALPHATYPE,
           typename ATYPE,
           typename XTYPE>
 ROCBLAS_KERNEL
@@ -467,6 +468,7 @@ ROCBLAS_KERNEL
                                                              ptrdiff_t      offset_A,
                                                              rocblas_int    lda,
                                                              rocblas_stride stride_A,
+                                                             ALPHATYPE      alpha_device_host,
                                                              XTYPE          dx,
                                                              ptrdiff_t      offset_x,
                                                              rocblas_int    incx,
@@ -480,6 +482,7 @@ ROCBLAS_KERNEL
     const rocblas_int batchid = blockIdx.y;
     auto* __restrict__ A      = load_ptr_batch(dA, batchid, offset_A, stride_A);
     auto* __restrict__ x      = load_ptr_batch(dx, batchid, offset_x, stride_x);
+    T alpha                   = load_scalar(alpha_device_host);
 
     // Storing the updated sum of x values, so we can have more than 1 thread working on each val
     T __shared__ sum[DIM_X * DIM_Y];
@@ -611,7 +614,8 @@ ROCBLAS_KERNEL
     {
         if(!row_is_remainder || tx < remainder)
         {
-            val = -x[(block_row * DIM_X + tx) * incx];
+            // multiply by alpha when reading from device memory x
+            val = -alpha * x[(block_row * DIM_X + tx) * incx];
         }
     }
 
@@ -650,7 +654,10 @@ ROCBLAS_KERNEL
             if(block_col * DIM_X + tid >= m)
                 sx[tid] = 0.0;
             else
+            {
+                // Don't multiply by alpha here as this is a solved value
                 sx[tid] = x[x_idx + tid * incx];
+            }
         }
 
         __syncthreads();
@@ -758,6 +765,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                 ptrdiff_t         offset_A,
                                                 rocblas_int       lda,
                                                 rocblas_stride    stride_A,
+                                                T const*          alpha,
                                                 XTYPE             dx,
                                                 ptrdiff_t         offset_x,
                                                 rocblas_int       incx,
@@ -768,9 +776,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(batch_count == 0)
         return rocblas_status_success;
 
-    rocblas_status status = rocblas_status_success;
-
     // Temporarily change the thread's default device ID to the handle's device ID
+    // cppcheck-suppress unreadVariable
     auto saved_device_id = handle->push_device_id();
 
     offset_x = incx < 0 ? offset_x + ptrdiff_t(incx) * (1 - m) : offset_x;
@@ -784,69 +791,163 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     hipLaunchKernelGGL(
         rocblas_trsv_init, dim3(batch_count), dim3(1), 0, handle->get_stream(), w_completed_sec);
 
-#define TRSV_TEMPLATE_PARAMS                                                                    \
-    grid, threads, 0, handle->get_stream(), m, dA, offset_A, lda, stride_A, dx, offset_x, incx, \
-        stride_x, w_completed_sec
-
-    // Template Parameters: DIM_X, DIM_Y, LOWER, TRANSPOSE, CONJUGATE, UNIT_DIAG, T
-    if(uplo == rocblas_fill_upper)
+    // trsv doesn't need alpha, but trsm using this kernel and does.
+    // if alpha is passed as a nullptr, set to 1.0, else use as expected.
+    bool alpha_exists = false;
+    T    alpha_local  = 1.0;
+    if(alpha != nullptr)
     {
-        if(diag == rocblas_diagonal_unit)
+        alpha_exists = true;
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+            alpha_local = *alpha;
+    }
+
+#define TRSV_TEMPLATE_PARAMS(alpha_)                                                              \
+    grid, threads, 0, handle->get_stream(), m, dA, offset_A, lda, stride_A, alpha_, dx, offset_x, \
+        incx, stride_x, w_completed_sec
+
+    if(handle->pointer_mode == rocblas_pointer_mode_device && alpha_exists)
+    {
+        // Template Parameters: DIM_X, DIM_Y, LOWER, TRANSPOSE, CONJUGATE, UNIT_DIAG, T
+        if(uplo == rocblas_fill_upper)
         {
-            if(transA == rocblas_operation_none)
-                hipLaunchKernelGGL(
-                    (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, true, T>),
-                    TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_transpose)
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, true, T>),
-                                   TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_conjugate_transpose)
+            if(diag == rocblas_diagonal_unit)
             {
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, true, T>),
-                                   TRSV_TEMPLATE_PARAMS);
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                {
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                }
+            }
+            else
+            {
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
             }
         }
         else
         {
-            if(transA == rocblas_operation_none)
-                hipLaunchKernelGGL(
-                    (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, false, T>),
-                    TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_transpose)
-                hipLaunchKernelGGL(
-                    (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, false, T>),
-                    TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_conjugate_transpose)
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, false, T>),
-                                   TRSV_TEMPLATE_PARAMS);
+            if(diag == rocblas_diagonal_unit)
+            {
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+            }
+            else
+            {
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha));
+            }
         }
     }
     else
     {
-        if(diag == rocblas_diagonal_unit)
+        // Template Parameters: DIM_X, DIM_Y, LOWER, TRANSPOSE, CONJUGATE, UNIT_DIAG, T
+        if(uplo == rocblas_fill_upper)
         {
-            if(transA == rocblas_operation_none)
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, true, T>),
-                                   TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_transpose)
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, true, T>),
-                                   TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_conjugate_transpose)
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, true, T>),
-                                   TRSV_TEMPLATE_PARAMS);
+            if(diag == rocblas_diagonal_unit)
+            {
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                {
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                }
+            }
+            else
+            {
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+            }
         }
         else
         {
-            if(transA == rocblas_operation_none)
-                hipLaunchKernelGGL(
-                    (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, false, T>),
-                    TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_transpose)
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, false, T>),
-                                   TRSV_TEMPLATE_PARAMS);
-            else if(transA == rocblas_operation_conjugate_transpose)
-                hipLaunchKernelGGL((rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, false, T>),
-                                   TRSV_TEMPLATE_PARAMS);
+            if(diag == rocblas_diagonal_unit)
+            {
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, true, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+            }
+            else
+            {
+                if(transA == rocblas_operation_none)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+                else if(transA == rocblas_operation_conjugate_transpose)
+                    hipLaunchKernelGGL(
+                        (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, false, T>),
+                        TRSV_TEMPLATE_PARAMS(alpha_local));
+            }
         }
     }
 #undef TRSV_TEMPLATE_PARAMS
@@ -895,8 +996,8 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
 #error INSTANTIATE_TRSV_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_TRSV_NUMERICS(T_, U_)                                             \
-template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>                 \
+#define INSTANTIATE_TRSV_NUMERICS(T_, U_)                                         \
+template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>             \
                                                    (const char*       function_name,  \
                                                     rocblas_handle    handle,         \
                                                     rocblas_int       m,              \
@@ -939,6 +1040,7 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_s
                                                 ptrdiff_t         offset_A,                          \
                                                 rocblas_int       lda,                               \
                                                 rocblas_stride    stride_A,                          \
+                                                T_ const*         alpha,                             \
                                                 XTYPE_             dx,                               \
                                                 ptrdiff_t         offset_x,                          \
                                                 rocblas_int       incx,                              \

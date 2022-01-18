@@ -44,7 +44,7 @@ public:
     //! @param batch_count The batch count.
     //! @param stg The storage format to use.
     //!
-    explicit host_strided_batch_vector(rocblas_int    n,
+    explicit host_strided_batch_vector(size_t         n,
                                        rocblas_int    inc,
                                        rocblas_stride stride,
                                        rocblas_int    batch_count,
@@ -118,7 +118,7 @@ public:
     //!
     //! @brief Returns the length.
     //!
-    rocblas_int n() const
+    size_t n() const
     {
         return this->m_n;
     }
@@ -247,7 +247,7 @@ public:
 
 private:
     storage        m_storage{storage::block};
-    rocblas_int    m_n{};
+    size_t         m_n{};
     rocblas_int    m_inc{};
     rocblas_stride m_stride{};
     rocblas_int    m_batch_count{};
@@ -255,14 +255,14 @@ private:
     T*             m_data{};
 
     static size_t calculate_nmemb(
-        rocblas_int n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
+        size_t n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
     {
         switch(st)
         {
         case storage::block:
             return size_t(std::abs(stride)) * batch_count;
         case storage::interleave:
-            return size_t(n) * std::abs(inc);
+            return n * std::abs(inc);
         }
         return 0;
     }
@@ -285,7 +285,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream&           os,
     {
         auto batch_data = that[batch_index];
         os << "[" << batch_index << "] = { " << batch_data[0];
-        for(rocblas_int i = 1; i < n; ++i)
+        for(size_t i = 1; i < n; ++i)
         {
             os << ", " << batch_data[i * inc];
         }

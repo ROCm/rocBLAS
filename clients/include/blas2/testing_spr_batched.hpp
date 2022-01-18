@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -110,9 +110,9 @@ void testing_spr_batched(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    // Initial Data on CPU
-    rocblas_init(hA_1, true);
-    rocblas_init(hx, false);
+    // Initialize data on host memory
+    rocblas_init_vector(hA_1, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
 
     hA_2.copy_from(hA_1);
     hA_gold.copy_from(hA_1);

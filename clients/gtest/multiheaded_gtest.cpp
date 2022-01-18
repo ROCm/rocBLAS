@@ -7,6 +7,7 @@
 #include "rocblas_data.hpp"
 #include "rocblas_test.hpp"
 #include "type_dispatch.hpp"
+#include "utility.hpp"
 
 namespace
 {
@@ -46,6 +47,9 @@ namespace
     void thread_function(int id, const Arguments& arg)
     {
         CHECK_HIP_ERROR(hipSetDevice(id));
+
+        //Initialize rocblas
+        rocblas_client_initialize();
 
         rocblas_operation transa = rocblas_operation_none, transb = rocblas_operation_transpose;
         float             alpha = 1.1, beta = 0.9;

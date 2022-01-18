@@ -24,9 +24,10 @@ __device__ T gbmvn_kernel_helper(rocblas_int ty,
                                  rocblas_int incx)
 {
     T           res_A = 0.0;
-    rocblas_int col   = ty; // ty defines the column of banded & regular matrix
+    rocblas_int col;
 
     // Since the column is consistent, we can iterate up the diagonal
+    // ty defines the column of banded & regular matrix
     for(col = ty; col < n; col += DIM_Y)
     {
         // We have to convert ind to banded matrix row
@@ -71,8 +72,9 @@ __device__ T gbmvt_kernel_helper(bool        CONJ,
                                  rocblas_int incx)
 {
     T           res_A = 0.0;
-    rocblas_int row   = ty; // for transpose case, ty defines the row
+    rocblas_int row;
 
+    // for transpose case, ty defines the row
     for(row = ty; row < lda; row += DIM_Y)
     {
         // We have to convert ind to banded matrix row
@@ -129,7 +131,7 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
 
     __shared__ T sdata[DIM_X * DIM_Y];
 
-    T res_A = 0.0;
+    T res_A;
 
     if(alpha)
     {
@@ -160,15 +162,12 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
             for(rocblas_int i = 1; i < DIM_Y; i++)
                 sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
-        if(ind < max_ind)
-        {
-            // Update y.
-            if(beta != 0)
-                y[ind * incy] = alpha ? alpha * sdata[thread_id] + beta * y[ind * incy]
-                                      : beta * y[ind * incy];
-            else
-                y[ind * incy] = alpha ? alpha * sdata[thread_id] : 0;
-        }
+        // Update y.
+        if(beta != 0)
+            y[ind * incy]
+                = alpha ? alpha * sdata[thread_id] + beta * y[ind * incy] : beta * y[ind * incy];
+        else
+            y[ind * incy] = alpha ? alpha * sdata[thread_id] : 0;
     }
 }
 

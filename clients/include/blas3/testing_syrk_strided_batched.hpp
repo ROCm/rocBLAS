@@ -225,9 +225,10 @@ void testing_syrk_strided_batched(const Arguments& arg)
         return;
     }
 
-    strideA = std::max(strideA,
-                       rocblas_stride(size_t(lda) * (transA == rocblas_operation_none ? K : N)));
-    strideC = std::max(strideC, rocblas_stride(size_t(ldc) * N));
+    size_t cols = (transA == rocblas_operation_none ? K : N);
+    size_t rows = (transA == rocblas_operation_none ? N : K);
+    strideA     = std::max(strideA, rocblas_stride(size_t(lda) * cols));
+    strideC     = std::max(strideC, rocblas_stride(size_t(ldc) * N));
 
     size_t size_A = strideA * batch_count;
     size_t size_C = strideC * batch_count;
@@ -260,9 +261,11 @@ void testing_syrk_strided_batched(const Arguments& arg)
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
-    rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hC_1);
+
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, rows, cols, lda, strideA, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hC_1, arg, N, N, ldc, strideC, batch_count, rocblas_client_beta_sets_nan);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

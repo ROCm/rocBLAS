@@ -1,6 +1,6 @@
-============
-Contributing
-============
+===================
+Contributor's Guide
+===================
 
 License Agreement
 =================
@@ -398,7 +398,7 @@ Coding Guidelines
     differentiable. If ``rocblas_half`` were simply a ``struct`` with a
     ``uint16_t`` member, then it would be a distinct type.
 
-    It is legal to convert a pointer to a `standard-layout
+    It is legal to convert a pointer to a standard-layout
     ``class``/``struct``
     to a pointer to its first element, and vice-versa, so the C API is
     unaffected by whether the type is enclosed in a ``struct`` or not.
@@ -753,49 +753,47 @@ Coding Guidelines
 22. C++ templates, including variadic templates, are preferred to macros or runtime interpreting of values, although it is understood that sometimes macros are necessary.
 
     For example, when creating a class which models zero or more rocBLAS kernel arguments, it is preferable to use:
+
     .. code:: cpp
 
         template<rocblas_argument... Args>
         class ArgumentModel
         {
-    public:
-            void func()
-            {
-                for (auto arg: { Args... })
+            public:
+                void func()
                 {
-                    // do something with argument arg
+                    for(auto arg: { Args... })
+                    {
+                        //do something with argument arg
+                    }
                 }
-            }
         };
-
         ArgumentModel<e_A, e_B>{}.func();
 
-   instead of:
+    instead of:
 
-   .. code:: cpp
+    .. code:: cpp
 
-       class ArgumentModel
-       {
+        class ArgumentModel
+        {
             std::vector<rocblas_argument> args;
-    public:
-            ArgumentModel(const std::vector<rocblas_argument>& args)
-            : args(args)
-            {
-            }
-
-            void func()
-            {
-                for (auto arg: args)
+            public:
+                ArgumentModel(const std::vector<rocblas_argument>& args): args(args)
                 {
-                    // do something with argument arg
                 }
-            }
-        };
 
+                void func()
+                {
+                    for(auto arg: args)
+                    {
+                        //do something with argument arg
+                    }
+                }
+        };
         ArgumentModel model({e_A, e_B});
         model.func();
 
-  The former denotes the rocBLAS arguments as a list which is passed as a variadic template argument, and whose properties are known and can be optimized at compile-time, and which can be passed on as arguments to other templates, while the latter requires creating a dynamically-allocated runtime object which must be interpreted at runtime, such as by using ``switch`` statements on the arguments. The ``switch`` statement will need to list out and handle every possible argument, while the template solution simply passes the argument as another template argument, and hence can be resolved at compile-time.
+    The former denotes the rocBLAS arguments as a list which is passed as a variadic template argument, and whose properties are known and can be optimized at compile-time, and which can be passed on as arguments to other templates, while the latter requires creating a dynamically-allocated runtime object which must be interpreted at runtime, such as by using ``switch`` statements on the arguments. The ``switch`` statement will need to list out and handle every possible argument, while the template solution simply passes the argument as another template argument, and hence can be resolved at compile-time.
 
 
 23. Automatically-generated files should always go into ``build/`` directories, and should not go into source directories (even if marked ``.gitignore``). The CMake philosophy is such that you can create any ``build/`` directory, run ``cmake`` from there, and then have a self-contained build environment which will not touch any files outside of it.
@@ -806,9 +804,9 @@ Coding Guidelines
 
 25. Macro parameters should only be evaluated once when practical, and should be parenthesized if there is a chance of ambiguous precedence. They should be stored in a local temporary variable if needed more than once.
 
-Macros which expand to code with local variables, should use double-underscore suffixes in the local variable names, to prevent their conflict with variables passed in macro parameters. However, if they are in a completely separate block scope than the macro parameter is expanded in, or if they are only passed to another macro/function, then they do not need to use trailing underscores.
+    Macros which expand to code with local variables, should use double-underscore suffixes in the local variable names, to prevent their conflict with variables passed in macro parameters. However, if they are in a completely separate block scope than the macro parameter is expanded in, or if they are only passed to another macro/function, then they do not need to use trailing underscores.
 
-    ..code:: cpp
+    .. code:: cpp
 
         #define CHECK_DEVICE_ALLOCATION(ERROR)                   \
             do                                                   \
@@ -825,6 +823,7 @@ Macros which expand to code with local variables, should use double-underscore s
                 }                                                \
             } while(0)
 
+
 The ``ERROR`` macro parameter is evaluated only once, and is stored in the temporary variable ``error__``, for use multiple times later.
 
 The ``ERROR`` macro parameter is parenthesized when initializing ``error__``, to avoid ambiguous precedence, such as if ``ERROR`` contains a comma expression.
@@ -834,7 +833,7 @@ The ``error__`` variable name is used, to prevent it from conflicting with varia
 
 26. Do not use variable-length arrays (VLA), which allocate on the stack, for arrays of unknown size.
 
-    ..code:: cpp
+    .. code:: cpp
 
         Ti* hostA[batch_count];
         Ti* hostB[batch_count];
@@ -843,9 +842,9 @@ The ``error__`` variable name is used, to prevent it from conflicting with varia
 
         func(hostA, hostB, hostC, hostD);
 
- Instead, allocate on the heap, using smart pointers to avoid memory leaks:
+    Instead, allocate on the heap, using smart pointers to avoid memory leaks:
 
-    ..code:: cpp
+    .. code:: cpp
 
         auto hostA = std::make_unique<Ti*[]>(batch_count);
         auto hostB = std::make_unique<Ti*[]>(batch_count);
@@ -859,9 +858,9 @@ The ``error__`` variable name is used, to prevent it from conflicting with varia
 
 If the reason for using an unnamed namespace in a header file is to prevent multiple definitions, keep in mind that the following are allowed to be defined in multiple compilation units, such as if they all come from the same header file, as long as they are defined with identical token sequences in each compilation unit:
 
-  -  ``class``es
-  -  ``typedef``s or type aliases
-  -  ``enum``s
+  -  ``classes``
+  -  ``typedefs`` or type aliases
+  -  ``enums``
   -  ``template`` functions
   -  ``inline`` functions
   -  ``constexpr`` functions (implies ``inline``)
@@ -869,14 +868,37 @@ If the reason for using an unnamed namespace in a header file is to prevent mult
 
 If functions defined in header files are declared ``template``, then multiple instantiations with the same ``template`` arguments are automatically merged, something which cannot happen if the ``template`` functions are declared ``static``, or appear in unnamed namespaces, in which case the instantiations are local to each compilation unit, and are not combined.
 
-If a function defined in a header file at ``namespace`` scope (outside of a ``class``) contains ``static`` _local variables_ which are expected to be singletons holding state throughout the entire library, then the function cannot be marked ``static`` or be part of an unnamed ``namespace``, because then each compilation unit will have its own separate copy of that function and its local ``static`` variables. (``static`` member functions of classes always have external linkage, and it is okay to define ``static`` ``class`` member functions in-place inside of header files, because all in-place ``static`` member function definitions, including their ``static`` local variables, will be automatically merged.)
+If a function defined in a header file at ``namespace`` scope (outside of a ``class``) contains ``static`` _local variables which are expected to be singletons holding state throughout the entire library, then the function cannot be marked ``static`` or be part of an unnamed ``namespace``, because then each compilation unit will have its own separate copy of that function and its local ``static`` variables. (``static`` member functions of classes always have external linkage, and it is okay to define ``static`` ``class`` member functions in-place inside of header files, because all in-place ``static`` member function definitions, including their ``static`` local variables, will be automatically merged.)
 
 Guidelines:
 
--  Do not use unnamed ``namespace``s inside of header files.
+-  Do not use unnamed ``namespaces`` inside of header files.
 
--  Use either ``template`` or ``inline`` (or both) for functions defined outside of classes in header files.
+    -  Use either ``template`` or ``inline`` (or both) for functions defined outside of classes in header files.
 
--  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
+    -  Do not declare namespace-scope (not ``class``-scope) functions ``static`` inside of header files unless there is a very good reason, that the function does not have any non-``const`` ``static`` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its ``static`` local variables. (``static`` ``class`` member functions defined in header files are okay.)
 
--  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
+    -  Use ``static`` for ``constexpr`` ``template`` variables until C++17, after which ``constexpr`` variables become ``inline`` variables, and thus can be defined in multiple compilation units. It is okay if the ``constexpr`` variables remain ``static`` in C++17; it just means there might be a little bit of redundancy between compilation units.
+
+
+
+Static Code Analysis
+=====================
+
+``cppcheck`` is an open-source static analysis tool. This project uses this tool for performing static code analysis.
+
+Users can use the following command to run cppcheck locally to generate the report for all files.
+
+.. code:: bash
+
+   $ cd rocBLAS-internal
+   $ cppcheck --enable=all --inconclusive --library=googletest --inline-suppr -i./build --suppressions-list=./CppCheckSuppressions.txt --template="{file}:{line}: {severity}: {id} :{message}" . 2> cppcheck_report.txt
+
+
+Also, githooks can be installed to perform static analysis on new/modified files using pre-commit:
+
+::
+
+    ./.githooks/install
+
+For more information on the command line options, refer to the cppcheck manual on the web.

@@ -80,18 +80,9 @@ void testing_copy(const Arguments& arg)
     host_vector<T> hy(size_y);
     host_vector<T> hy_gold(size_y);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy);
-    }
-    else
-    {
-        rocblas_init<T>(hx, 1, N, abs_incx);
-        rocblas_init<T>(hy, 1, N, abs_incy);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

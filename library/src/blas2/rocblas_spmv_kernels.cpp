@@ -43,7 +43,7 @@ __device__ void spmv_kernel_calc(bool        upper,
 
     __shared__ T sdata[DIM_X * DIM_Y];
     T            res_A = 0.0;
-    rocblas_int  col   = ty;
+    rocblas_int  col;
 
     for(col = ty; col < n; col += DIM_Y)
     {

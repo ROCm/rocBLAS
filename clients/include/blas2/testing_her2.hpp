@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -127,19 +127,10 @@ void testing_her2(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    // Initial Data on CPU
-    rocblas_init(hA_1, true);
-
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hx, 1, N, abs_incx);
-        rocblas_init_nan<T>(hy, 1, N, abs_incy);
-    }
-    else
-    {
-        rocblas_init<T>(hx, false);
-        rocblas_init<T>(hy, false);
-    }
+    // Initialize data on host memory
+    rocblas_init_matrix(hA_1, arg, N, N, lda, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan);
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS

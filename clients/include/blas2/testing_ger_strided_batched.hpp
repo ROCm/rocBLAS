@@ -194,14 +194,12 @@ void testing_ger_strided_batched(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(lda >= M)
-    {
-        rocblas_init<T>(hA_1, M, N, lda, stride_a, batch_count);
-    }
-    rocblas_init<T>(hx, 1, M, abs_incx, stride_x, batch_count);
-    rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA_1, arg, M, N, lda, stride_a, batch_count, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(
+        hx, arg, M, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan);
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS
