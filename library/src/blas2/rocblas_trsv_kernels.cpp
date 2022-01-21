@@ -1,11 +1,11 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
 #include "rocblas_trsv.hpp"
 
-// Copyright 2014-2021, The Science and Technology Facilities Council (STFC)
+// Copyright 2014-6, The Science and Technology Facilities Council (STFC)
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -782,7 +782,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     offset_x = incx < 0 ? offset_x + ptrdiff_t(incx) * (1 - m) : offset_x;
 
-    constexpr rocblas_int DIM_Y  = 4;
+    constexpr rocblas_int DIM_Y  = 16;
     rocblas_int           blocks = (m + DIM_X - 1) / DIM_X;
     dim3                  threads(DIM_X, DIM_Y, 1);
     dim3                  grid(blocks, batch_count);
