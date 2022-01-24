@@ -83,7 +83,7 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *size_t_index
   incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 0.0 ]
+  alpha: [ -0.5 ]
 
 # Regular ger
 - name: ger_fortran
