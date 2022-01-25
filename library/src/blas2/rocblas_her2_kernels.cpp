@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -9,6 +9,7 @@
 template <typename T>
 __device__ void her2_kernel_calc(bool        upper,
                                  rocblas_int n,
+                                 size_t      area,
                                  T           alpha,
                                  const T*    x,
                                  rocblas_int incx,
@@ -17,42 +18,55 @@ __device__ void her2_kernel_calc(bool        upper,
                                  T*          A,
                                  rocblas_int lda)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    size_t i = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x; // linear area index
+    if(i >= area)
+        return;
 
-    if(upper ? ty < n && tx < ty : tx < n && ty < tx)
+    size_t ri = !upper ? area - 1 - i : i;
+
+    // linearized triangle with diagonal to col, row
+    int         k  = (int)((sqrt(8 * ri + 1) - 1) / 2);
+    rocblas_int ty = k;
+    rocblas_int tx = ri - k * (k + 1) / 2;
+
+    if(!upper)
     {
-        A[tx + lda * ty] += alpha * x[tx * incx] * conj(y[ty * incy])
-                            + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
+        int maxIdx = n - 1;
+        tx         = maxIdx - tx;
+        ty         = maxIdx - ty;
     }
-    else if(tx == ty && tx < n)
+
+    if(upper ? tx < ty : ty < tx)
     {
-        A[tx + lda * ty] = std::real(A[tx + lda * ty]) + alpha * x[tx * incx] * conj(y[ty * incy])
-                           + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
+        A[tx + size_t(lda) * ty] += alpha * x[tx * incx] * conj(y[ty * incy])
+                                    + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
+    }
+    else if(tx == ty)
+    {
+        A[tx + size_t(lda) * ty] = std::real(A[tx + size_t(lda) * ty])
+                                   + alpha * x[tx * incx] * conj(y[ty * incy])
+                                   + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
     }
 }
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void rocblas_her2_kernel(bool           upper,
-                                                                        rocblas_int    n,
-                                                                        TScal          alphaa,
-                                                                        TConstPtr      xa,
-                                                                        ptrdiff_t      shift_x,
-                                                                        rocblas_int    incx,
-                                                                        rocblas_stride stride_x,
-                                                                        TConstPtr      ya,
-                                                                        ptrdiff_t      shift_y,
-                                                                        rocblas_int    incy,
-                                                                        rocblas_stride stride_y,
-                                                                        TPtr           Aa,
-                                                                        rocblas_int    lda,
-                                                                        ptrdiff_t      shift_A,
-                                                                        rocblas_stride stride_A)
+template <rocblas_int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
+ROCBLAS_KERNEL __launch_bounds__(DIM_X) void rocblas_her2_kernel(bool           upper,
+                                                                 rocblas_int    n,
+                                                                 size_t         area,
+                                                                 TScal          alphaa,
+                                                                 TConstPtr      xa,
+                                                                 ptrdiff_t      shift_x,
+                                                                 rocblas_int    incx,
+                                                                 rocblas_stride stride_x,
+                                                                 TConstPtr      ya,
+                                                                 ptrdiff_t      shift_y,
+                                                                 rocblas_int    incy,
+                                                                 rocblas_stride stride_y,
+                                                                 TPtr           Aa,
+                                                                 rocblas_int    lda,
+                                                                 ptrdiff_t      shift_A,
+                                                                 rocblas_stride stride_A)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
-    if(DIM_X * DIM_Y != num_threads)
-        return; // need to launch exactly the number of threads as template parameters indicate.
-
     auto alpha = load_scalar(alphaa);
     if(!alpha)
         return;
@@ -61,7 +75,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void rocblas_her2_kernel(bool    
     const auto* x = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
     const auto* y = load_ptr_batch(ya, hipBlockIdx_z, shift_y, stride_y);
 
-    her2_kernel_calc(upper, n, alpha, x, incx, y, incy, A, lda);
+    her2_kernel_calc(upper, n, area, alpha, x, incx, y, incy, A, lda);
 }
 
 /**
@@ -98,23 +112,25 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
     ptrdiff_t shift_y = incy < 0 ? offset_y - ptrdiff_t(incy) * (n - 1) : offset_y;
 
-    static constexpr int HER2_DIM_X = 128;
-    static constexpr int HER2_DIM_Y = 8;
-    rocblas_int          blocksX    = (n - 1) / HER2_DIM_X + 1;
-    rocblas_int          blocksY    = (n - 1) / HER2_DIM_Y + 1;
+    static constexpr int HER2_DIM_X = 512;
 
-    dim3 her2_grid(blocksX, blocksY, batch_count);
-    dim3 her2_threads(HER2_DIM_X, HER2_DIM_Y);
+    size_t nitems = (size_t)n * (n + 1) / 2;
+
+    rocblas_int blocksX = (nitems - 1) / (HER2_DIM_X) + 1;
+
+    dim3 her2_grid(blocksX, 1, batch_count);
+    dim3 her2_threads(HER2_DIM_X);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL((rocblas_her2_kernel<HER2_DIM_X, HER2_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_her2_kernel<HER2_DIM_X>),
                            her2_grid,
                            her2_threads,
                            0,
                            handle->get_stream(),
                            uplo == rocblas_fill_upper,
                            n,
+                           nitems,
                            alpha,
                            x,
                            shift_x,
@@ -130,13 +146,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            stride_A);
     }
     else
-        hipLaunchKernelGGL((rocblas_her2_kernel<HER2_DIM_X, HER2_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_her2_kernel<HER2_DIM_X>),
                            her2_grid,
                            her2_threads,
                            0,
                            handle->get_stream(),
                            uplo == rocblas_fill_upper,
                            n,
+                           nitems,
                            *alpha,
                            x,
                            shift_x,
