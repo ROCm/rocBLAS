@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -67,8 +67,8 @@ public:
         T* d = nullptr;
         if(use_HMM ? hipMallocManaged(&d, m_bytes) : (hipMalloc)(&d, m_bytes) != hipSuccess)
         {
-            rocblas_cerr << "Error allocating " << m_bytes << " m_bytes (" << (m_bytes >> 30)
-                         << " GB)" << std::endl;
+            rocblas_cerr << "Warning: hip can't allocate " << m_bytes << " bytes ("
+                         << (m_bytes >> 30) << " GB)" << std::endl;
 
             d = nullptr;
         }
