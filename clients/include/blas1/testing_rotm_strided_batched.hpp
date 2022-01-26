@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -140,13 +140,16 @@ void testing_rotm_strided_batched(const Arguments& arg)
         hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
     rocblas_init_vector(hdata, arg, 4, 1, 4, batch_count, rocblas_client_alpha_sets_nan, false);
 
-    // CPU BLAS reference data
     for(int b = 0; b < batch_count; b++)
-        cblas_rotmg<T>(hdata + b * 4,
-                       hdata + b * 4 + 1,
-                       hdata + b * 4 + 2,
-                       hdata + b * 4 + 3,
-                       hparam + b * stride_param);
+    {
+        T* hparam_ptr = hparam.data() + b * stride_param;
+
+        // generate parameters H matrix valid for all flags
+        *hparam_ptr = T(-1.0);
+
+        cblas_rotmg<T>(
+            hdata + b * 4, hdata + b * 4 + 1, hdata + b * 4 + 2, hdata + b * 4 + 3, hparam_ptr);
+    }
 
     constexpr int FLAG_COUNT        = 4;
     const T       FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
@@ -156,6 +159,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
         for(int b = 0; b < batch_count; b++)
             (hparam + b * stride_param)[0] = FLAGS[i];
 
+        // CPU BLAS reference data
         host_vector<T> cx = hx;
         host_vector<T> cy = hy;
         cpu_time_used     = get_time_us_no_sync();
