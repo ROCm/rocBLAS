@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -91,13 +91,18 @@ void testing_rotm(const Arguments& arg)
     rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
     rocblas_init_vector(hdata, arg, 4, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
-    // CPU BLAS reference data
+    // generate parameters H matrix valid for all flags
+    hparam[0] = T(-1.0);
+
     cblas_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);
+
     const int FLAG_COUNT        = 4;
     const T   FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
     for(int i = 0; i < FLAG_COUNT; ++i)
     {
-        hparam[0]         = FLAGS[i];
+        hparam[0] = FLAGS[i];
+
+        // CPU BLAS reference data
         host_vector<T> cx = hx;
         host_vector<T> cy = hy;
         cpu_time_used     = get_time_us_no_sync();

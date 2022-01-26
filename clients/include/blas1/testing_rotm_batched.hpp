@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -121,7 +121,9 @@ void testing_rotm_batched(const Arguments& arg)
 
     for(int b = 0; b < batch_count; b++)
     {
-        // CPU BLAS reference data
+        // generate parameters H matrix valid for all flags
+        hparam[b][0] = T(-1.0);
+
         cblas_rotmg<T>(&hdata[b][0], &hdata[b][1], &hdata[b][2], &hdata[b][3], hparam[b]);
     }
 
@@ -133,6 +135,7 @@ void testing_rotm_batched(const Arguments& arg)
         for(int b = 0; b < batch_count; b++)
             hparam[b][0] = FLAGS[i];
 
+        // CPU BLAS reference data
         host_batch_vector<T> cx(N, incx, batch_count);
         host_batch_vector<T> cy(N, incy, batch_count);
         cx.copy_from(hx);
