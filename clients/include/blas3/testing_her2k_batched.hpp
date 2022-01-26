@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -238,7 +238,7 @@ void testing_her2k_batched(const Arguments& arg)
     }
     else
     { // require symmetric A*B^H so testing with B = A
-        hB.copy_from(hA);
+        rocblas_copy_matrix((const T* const*)hA, (T**)hB, rows, cols, lda, ldb, batch_count);
     }
     rocblas_init_vector(hC_1, arg, rocblas_client_beta_sets_nan);
 
