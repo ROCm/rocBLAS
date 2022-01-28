@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -35,7 +35,7 @@ int main()
 
     // Initial Data on CPU
     srand(1);
-    rocblas_init<float>(hx, 1, N, 1);
+    rocblas_init(hx.data(), 1, N, 1);
 
     // copy vector is easy in STL; hz = hx: save a copy in hz which will be output of CPU BLAS
     hz = hx;

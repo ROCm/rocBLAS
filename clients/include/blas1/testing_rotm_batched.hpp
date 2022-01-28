@@ -121,8 +121,9 @@ void testing_rotm_batched(const Arguments& arg)
 
     for(int b = 0; b < batch_count; b++)
     {
-        // generate parameters H matrix valid for all flags
-        hparam[b][0] = T(-1.0);
+        // generating simply one set of hparam which will not be appropriate for testing
+        // that it zeros out the second element of the rotm vector parameter
+        memset(hparam[b], 0, 5 * sizeof(T));
 
         cblas_rotmg<T>(&hdata[b][0], &hdata[b][1], &hdata[b][2], &hdata[b][3], hparam[b]);
     }
@@ -130,16 +131,18 @@ void testing_rotm_batched(const Arguments& arg)
     constexpr int FLAG_COUNT        = 4;
     const T       FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
 
+    // CPU BLAS reference data
+    host_batch_vector<T> cx(N, incx, batch_count);
+    host_batch_vector<T> cy(N, incy, batch_count);
+
     for(int i = 0; i < FLAG_COUNT; i++)
     {
         for(int b = 0; b < batch_count; b++)
             hparam[b][0] = FLAGS[i];
 
-        // CPU BLAS reference data
-        host_batch_vector<T> cx(N, incx, batch_count);
-        host_batch_vector<T> cy(N, incy, batch_count);
         cx.copy_from(hx);
         cy.copy_from(hy);
+
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {

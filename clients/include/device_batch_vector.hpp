@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -285,7 +285,12 @@ private:
                 }
             }
 
-            free(this->m_data);
+            if(!this->use_HMM)
+            {
+                free(this->m_data);
+            }
+            // else this is just a copy of m_device_data
+
             this->m_data = nullptr;
         }
 

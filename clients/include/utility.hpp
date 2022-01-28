@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -60,16 +60,19 @@
 #undef hipFree
 #endif
 
-#define LIMITED_MEMORY_STRING "Error: Attempting to allocate more memory than available."
-#define TOO_MANY_DEVICES_STRING "Error: Too many devices requested."
-#define HMM_NOT_SUPPORTED "Error: HMM not supported."
+#define LIMITED_RAM_STRING "Warning: Attempting to allocate more host memory than available."
+#define LIMITED_MEMORY_STRING "Warning: Attempting to allocate more gpu memory than available."
+#define TOO_MANY_DEVICES_STRING "Warning: Too many devices requested."
+#define HMM_NOT_SUPPORTED "Warning: HMM not supported."
 
 // TODO: This is dependent on internal gtest behaviour.
-// Compared with result.message() when a test ended. Note that "Succeeded\n" is
+// Comparing against result.message() when a test ended. With SUCCEED() that "Succeeded\n" is
 // added to the beginning of the message automatically by gtest, so this must be compared.
-#define LIMITED_MEMORY_STRING_GTEST "Succeeded\n" LIMITED_MEMORY_STRING
-#define TOO_MANY_DEVICES_STRING_GTEST "Succeeded\n" TOO_MANY_DEVICES_STRING
-#define HMM_NOT_SUPPORTED_GTEST "Succeeded\n" HMM_NOT_SUPPORTED
+// For GTEST_SKIP() "Skipped\n" is added at the beginning of the message.
+#define LIMITED_RAM_STRING_GTEST "Skipped\n" LIMITED_RAM_STRING
+#define LIMITED_MEMORY_STRING_GTEST "Skipped\n" LIMITED_MEMORY_STRING
+#define TOO_MANY_DEVICES_STRING_GTEST "Skipped\n" TOO_MANY_DEVICES_STRING
+#define HMM_NOT_SUPPORTED_GTEST "Skipped\n" HMM_NOT_SUPPORTED
 
 /*!
  * Initialize rocBLAS for the current HIP device and report
@@ -328,7 +331,7 @@ void print_batched_matrix(const char*           name,
 {
     // n1, n2 are matrix dimensions, sometimes called m, n
     // s1, s2 are matrix strides, sometimes called 1, lda
-    int max_size = 8;
+    int max_size = 1025;
 
     for(int i3 = 0; i3 < A.batch_count() && i3 < max_size; i3++)
     {

@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2021 Advanced Micro Devices, Inc.
+# Copyright 2016-2022 Advanced Micro Devices, Inc.
 # ########################################################################
 
 cmake_minimum_required( VERSION 3.16.8 )
@@ -126,6 +126,7 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
       ../common/argument_model.cpp
       ../common/rocblas_random.cpp
       ../common/rocblas_parse_data.cpp
+      ../common/host_alloc.cpp
       ${BLIS_CPP}
     )
 
