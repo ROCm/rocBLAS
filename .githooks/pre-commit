@@ -4,7 +4,7 @@
 # are installed, and if so, uses the installed version to format
 # the staged changes.
 
-export PATH=/opt/rocm/llvm/bin:/opt/rocm/hcc/bin:/usr/bin:/bin
+export PATH=$PATH:/opt/rocm/llvm/bin:/opt/rocm/hcc/bin:/usr/bin:/bin
 
 # Redirect stdout to stderr.
 exec >&2
