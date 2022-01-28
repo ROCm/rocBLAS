@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -47,7 +47,7 @@ typedef long long ssize_t; /* x64 only supported */
         if(error__ != hipSuccess)                        \
         {                                                \
             if(error__ == hipErrorOutOfMemory)           \
-                SUCCEED() << LIMITED_MEMORY_STRING;      \
+                GTEST_SKIP() << LIMITED_MEMORY_STRING;   \
             else                                         \
                 FAIL() << hipGetErrorString(error__);    \
             return;                                      \
@@ -211,7 +211,7 @@ void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_
         hipGetDeviceCount(&availDevices);                                                    \
         if(devices > availDevices)                                                           \
         {                                                                                    \
-            SUCCEED() << TOO_MANY_DEVICES_STRING;                                            \
+            GTEST_SKIP() << TOO_MANY_DEVICES_STRING;                                         \
             return;                                                                          \
         }                                                                                    \
         else if(HMM)                                                                         \
@@ -223,7 +223,7 @@ void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_
                     &flag, hipDeviceAttribute_t(hipDeviceAttributeManagedMemory), devices)); \
                 if(!flag)                                                                    \
                 {                                                                            \
-                    SUCCEED() << HMM_NOT_SUPPORTED;                                          \
+                    GTEST_SKIP() << HMM_NOT_SUPPORTED;                                       \
                     return;                                                                  \
                 }                                                                            \
             }                                                                                \

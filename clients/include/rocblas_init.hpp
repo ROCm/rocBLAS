@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../library/src/include/rocblas_ostream.hpp"
+#include "host_vector.hpp"
 #include "rocblas.h"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
@@ -42,7 +43,7 @@ void rocblas_init(T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_
 // Initialize matrices with random values
 template <typename T>
 inline void rocblas_init(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init(A.data(), M, N, lda, stride, batch_count);
 }
@@ -63,7 +64,7 @@ void rocblas_init_sin(
 
 template <typename T>
 inline void rocblas_init_sin(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init_sin(A.data(), M, N, lda, stride, batch_count);
 }
@@ -94,7 +95,7 @@ void rocblas_init_alternating_sign(
 
 template <typename T>
 void rocblas_init_alternating_sign(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init_alternating_sign(A.data(), M, N, lda, stride, batch_count);
 }
@@ -119,7 +120,7 @@ void rocblas_init_hpl_alternating_sign(
 
 template <typename T>
 void rocblas_init_hpl_alternating_sign(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init_hpl_alternating_sign(A.data(), M, N, lda, stride, batch_count);
 }
@@ -140,7 +141,7 @@ void rocblas_init_cos(
 
 template <typename T>
 inline void rocblas_init_cos(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init_cos(A.data(), M, N, lda, stride, batch_count);
 }
@@ -148,7 +149,7 @@ inline void rocblas_init_cos(
 /*! \brief  symmetric matrix initialization: */
 // for real matrix only
 template <typename T>
-void rocblas_init_symmetric(std::vector<T>& A, size_t N, size_t lda)
+void rocblas_init_symmetric(host_vector<T>& A, size_t N, size_t lda)
 {
     for(size_t i = 0; i < N; ++i)
         for(size_t j = 0; j <= i; ++j)
@@ -201,7 +202,7 @@ void rocblas_clear_symmetric(
 // for complex matrix only, the real/imag part would be initialized with the same value
 // except the diagonal elment must be real
 template <typename T>
-void rocblas_init_hermitian(std::vector<T>& A, size_t N, size_t lda)
+void rocblas_init_hermitian(host_vector<T>& A, size_t N, size_t lda)
 {
     for(size_t i = 0; i < N; ++i)
         for(size_t j = 0; j <= i; ++j)
@@ -216,7 +217,7 @@ void rocblas_init_hermitian(std::vector<T>& A, size_t N, size_t lda)
 // Initialize vector with HPL-like random values
 template <typename T>
 void rocblas_init_hpl(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
@@ -277,7 +278,7 @@ void rocblas_init_nan(
 
 template <typename T>
 void rocblas_init_nan(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init_nan(A.data(), M, N, lda, stride, batch_count);
 }
@@ -311,7 +312,7 @@ void rocblas_init_inf(
 
 template <typename T>
 void rocblas_init_inf(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init_inf(A.data(), M, N, lda, stride, batch_count);
 }
@@ -338,7 +339,7 @@ void rocblas_init_zero(T* A, size_t start_offset, size_t end_offset)
 
 template <typename T>
 void rocblas_init_alt_impl_big(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     const rocblas_half ieee_half_max(65280.0);
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
@@ -360,7 +361,7 @@ inline void rocblas_init_alt_impl_big(
 
 template <typename T>
 void rocblas_init_alt_impl_small(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     const rocblas_half ieee_half_small(0.0000607967376708984375);
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
@@ -397,12 +398,12 @@ void rocblas_packInt8(T* A, const T* temp, size_t M, size_t N, size_t lda)
 
 template <typename T>
 void rocblas_packInt8(
-    std::vector<T>& A, size_t M, size_t N, size_t batch_count, size_t lda, size_t stride_a)
+    host_vector<T>& A, size_t M, size_t N, size_t batch_count, size_t lda, size_t stride_a)
 {
     if(N % 4 != 0)
         rocblas_cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
 
-    std::vector<T> temp(A);
+    host_vector<T> temp(A);
     for(size_t count = 0; count < batch_count; count++)
         for(size_t colBase = 0; colBase < N; colBase += 4)
             for(size_t row = 0; row < lda; row++)
@@ -414,7 +415,7 @@ void rocblas_packInt8(
 /* ============================================================================================ */
 /*! \brief  Packs matricies into groups of 4 in N */
 template <typename T>
-void rocblas_packInt8(std::vector<T>& A, size_t M, size_t N, size_t lda)
+void rocblas_packInt8(host_vector<T>& A, size_t M, size_t N, size_t lda)
 {
     /* Assumes original matrix provided in column major order, where N is a multiple of 4
 

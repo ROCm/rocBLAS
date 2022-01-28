@@ -1,4 +1,6 @@
 #include "rocblas_test.hpp"
+#include "utility.hpp"
+
 #include <cerrno>
 #include <csetjmp>
 #include <csignal>
@@ -217,6 +219,10 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
         try
         {
             test();
+        }
+        catch(const std::bad_alloc& e)
+        {
+            GTEST_SKIP() << LIMITED_RAM_STRING;
         }
         catch(const std::exception& e)
         {

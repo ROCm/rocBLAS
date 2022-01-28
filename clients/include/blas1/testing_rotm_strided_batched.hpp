@@ -144,8 +144,9 @@ void testing_rotm_strided_batched(const Arguments& arg)
     {
         T* hparam_ptr = hparam.data() + b * stride_param;
 
-        // generate parameters H matrix valid for all flags
-        *hparam_ptr = T(-1.0);
+        // generating simply one set of hparam which will not be appropriate for testing
+        // that it zeros out the second element of the rotm vector parameter
+        memset(hparam_ptr, 0, 5 * sizeof(T));
 
         cblas_rotmg<T>(
             hdata + b * 4, hdata + b * 4 + 1, hdata + b * 4 + 2, hdata + b * 4 + 3, hparam_ptr);

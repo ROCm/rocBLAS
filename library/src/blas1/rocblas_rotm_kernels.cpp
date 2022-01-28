@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -57,19 +57,19 @@ __device__ void rotm_kernel_calc(rocblas_int    n,
     }
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rotm_kernel_batched(rocblas_int    n,
-                                        T              x_in,
-                                        rocblas_int    offset_x,
-                                        rocblas_int    incx,
-                                        rocblas_stride stride_x,
-                                        T              y_in,
-                                        rocblas_int    offset_y,
-                                        rocblas_int    incy,
-                                        rocblas_stride stride_y,
-                                        U              param,
-                                        rocblas_int    offset_param,
-                                        rocblas_stride stride_param)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL __launch_bounds__(NB) void rotm_kernel_batched(rocblas_int    n,
+                                                              T              x_in,
+                                                              rocblas_int    offset_x,
+                                                              rocblas_int    incx,
+                                                              rocblas_stride stride_x,
+                                                              T              y_in,
+                                                              rocblas_int    offset_y,
+                                                              rocblas_int    incy,
+                                                              rocblas_stride stride_y,
+                                                              U              param,
+                                                              rocblas_int    offset_param,
+                                                              rocblas_stride stride_param)
 {
     auto p    = load_ptr_batch(param, hipBlockIdx_y, offset_param, stride_param);
     auto flag = p[0];
@@ -93,21 +93,21 @@ ROCBLAS_KERNEL void rotm_kernel_batched(rocblas_int    n,
                      h22);
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rotm_kernel_regular(rocblas_int    n,
-                                        T*             x_in,
-                                        rocblas_int    offset_x,
-                                        rocblas_int    incx,
-                                        rocblas_stride stride_x,
-                                        T*             y_in,
-                                        rocblas_int    offset_y,
-                                        rocblas_int    incy,
-                                        rocblas_stride stride_y,
-                                        U              flag,
-                                        U              h11,
-                                        U              h21,
-                                        U              h12,
-                                        U              h22)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL __launch_bounds__(NB) void rotm_kernel_regular(rocblas_int    n,
+                                                              T*             x_in,
+                                                              rocblas_int    offset_x,
+                                                              rocblas_int    incx,
+                                                              rocblas_stride stride_x,
+                                                              T*             y_in,
+                                                              rocblas_int    offset_y,
+                                                              rocblas_int    incy,
+                                                              rocblas_stride stride_y,
+                                                              U              flag,
+                                                              U              h11,
+                                                              U              h21,
+                                                              U              h12,
+                                                              U              h22)
 {
     rotm_kernel_calc(n,
                      x_in,
@@ -172,7 +172,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(rotm_kernel_batched,
+        hipLaunchKernelGGL((rotm_kernel_batched<NB>),
                            blocks,
                            threads,
                            0,
@@ -190,7 +190,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            offset_param,
                            stride_param);
     else if(!BATCHED_OR_STRIDED)
-        hipLaunchKernelGGL(rotm_kernel_regular,
+        hipLaunchKernelGGL((rotm_kernel_regular<NB>),
                            blocks,
                            threads,
                            0,

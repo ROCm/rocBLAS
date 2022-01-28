@@ -91,8 +91,9 @@ void testing_rotm(const Arguments& arg)
     rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
     rocblas_init_vector(hdata, arg, 4, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
-    // generate parameters H matrix valid for all flags
-    hparam[0] = T(-1.0);
+    // generating simply one set of hparam which will not be appropriate for testing
+    // that it zeros out the second element of the rotm vector parameter
+    memset(hparam.data(), 0, 5 * sizeof(T));
 
     cblas_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);
 
