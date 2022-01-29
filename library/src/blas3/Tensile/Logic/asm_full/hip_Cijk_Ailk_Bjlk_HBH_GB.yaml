@@ -2202,7 +2202,7 @@
       StridedBatched: False
       ComplexConjugateA: false
       ComplexConjugateB: false
-      ComputeDataType: 4
+      ComputeDataType: 0
       ConvolutionConfig: []
       DataType: 4
       DestDataType: 4
@@ -2413,7 +2413,7 @@
       StridedBatched: False
       ComplexConjugateA: false
       ComplexConjugateB: false
-      ComputeDataType: 4
+      ComputeDataType: 0
       ConvolutionConfig: []
       DataType: 4
       DestDataType: 4
@@ -2624,7 +2624,7 @@
       StridedBatched: False
       ComplexConjugateA: false
       ComplexConjugateB: false
-      ComputeDataType: 4
+      ComputeDataType: 0
       ConvolutionConfig: []
       DataType: 4
       DestDataType: 4
@@ -2835,7 +2835,7 @@
       StridedBatched: False
       ComplexConjugateA: false
       ComplexConjugateB: false
-      ComputeDataType: 4
+      ComputeDataType: 0
       ConvolutionConfig: []
       DataType: 4
       DestDataType: 4
@@ -3046,7 +3046,7 @@
       StridedBatched: False
       ComplexConjugateA: false
       ComplexConjugateB: false
-      ComputeDataType: 4
+      ComputeDataType: 0
       ConvolutionConfig: []
       DataType: 4
       DestDataType: 4
@@ -3257,7 +3257,7 @@
       StridedBatched: False
       ComplexConjugateA: false
       ComplexConjugateB: false
-      ComputeDataType: 4
+      ComputeDataType: 0
       ConvolutionConfig: []
       DataType: 4
       DestDataType: 4
