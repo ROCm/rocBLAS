@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************/
 
 // The implementation of the rocBLAS<->Tensile interface layer.
@@ -195,23 +195,6 @@ namespace
         }
     };
 
-    /**************************************************************
-     * Tensile does not support float alpha and beta for HPA half *
-     * We must convert alpha and beta from float to half          *
-     * TODO- Tensile supports HHS HPA now                         *
-     * We could plan to use HHS+HPA instead of this workaround    *
-     **************************************************************/
-    template <>
-    struct AlphaBeta<rocblas_half, rocblas_half, float>
-    {
-        using tensile_type = Tensile::Half;
-        static void copy(tensile_type* dst, const float* float_src)
-        {
-            rocblas_half src(*float_src);
-            AlphaBeta<rocblas_half>::copy(dst, &src);
-        }
-    };
-
     /****************************************************************
      * Construct a Tensile Problem from a RocblasContractionProblem *
      ****************************************************************/
@@ -339,9 +322,12 @@ namespace
                                                    value_category(*prob.beta),
                                                    workspace_size};
 
-        // Open these two when we're ready to migrate from <HHH+HPA> to <HHS+HPA>
-        // tensileProblem.setAlphaType(Tensile_Tc);
-        // tensileProblem.setBetaType(Tensile_Tc);
+        if(Tensile_Ti == Tensile::DataType::Half && Tensile_To == Tensile::DataType::Half
+           && Tensile_Tc == Tensile::DataType::Float)
+        {
+            tensileProblem.setAlphaType(Tensile_Tc);
+            tensileProblem.setBetaType(Tensile_Tc);
+        }
 
         // HPA is active iff sizeof(compute type) > sizeof(input type)
         // but when Ti=int8x4 (32-byte),we still need to use HPA since the primitive data is int8
