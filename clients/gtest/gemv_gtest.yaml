@@ -58,6 +58,9 @@ Definitions:
     - { M:  16010, N: 16010, lda: 16010, stride_a: 256320100 }
     - { M:  25020, N: 25020, lda: 25020, stride_a: 625000400 }
 
+  - &size_t_index
+    - { M: 46431, N: 46431, lda: 46431, stride_a: 2147488281 }
+
   - &incx_incy_range
     - { incx:   2, incy:   1, stride_scale: 1   }
     - { incx:  -1, incy:   2, stride_scale: 1   }
@@ -396,4 +399,17 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
+
+- name: gemv_size_t_M
+  category: nightly
+  function:
+  - gemv
+  # shared code for size_t with non-batched
+  #- gemv_batched
+  #- gemv_strided_batched
+  precision: *single_precision
+  transA: [ T ]
+  matrix_size: *size_t_index
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
 ...
