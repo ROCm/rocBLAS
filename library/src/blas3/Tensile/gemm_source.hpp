@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -25,7 +25,8 @@ namespace
               char TRANS_B,
               typename TConstPtr,
               typename TPtr>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
+    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N)))
+    ROCBLAS_KERNEL_NO_BOUNDS
         gemm_batched_general_kernel(rocblas_int    M,
                                     rocblas_int    N,
                                     rocblas_int    K,
@@ -178,7 +179,8 @@ namespace
               char TRANS_B,
               typename TConstPtr,
               typename TPtr>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
+    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N)))
+    ROCBLAS_KERNEL_NO_BOUNDS
         gemm_batched_kernel(rocblas_int    M,
                             rocblas_int    N,
                             rocblas_int    K,
@@ -320,7 +322,8 @@ namespace
               char TRANS_B,
               typename TConstPtr,
               typename TPtr>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
+    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N)))
+    ROCBLAS_KERNEL_NO_BOUNDS
         gemm_batched_kernel(rocblas_int    M,
                             rocblas_int    N,
                             rocblas_int    K,

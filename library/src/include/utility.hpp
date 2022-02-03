@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -160,8 +160,9 @@ __forceinline__ __device__ __host__ T*
 
 // Helper for batched functions with temporary memory, currently just trsm and trsv.
 // Copys addresses to array of pointers for batched versions.
-template <typename T>
-ROCBLAS_KERNEL void setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
+template <rocblas_int NB, typename T>
+ROCBLAS_KERNEL(NB)
+setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
 {
     dst[hipBlockIdx_x] = src + hipBlockIdx_x * src_stride;
 }
@@ -174,14 +175,15 @@ void setup_batched_array(
     dim3 threads(BLOCK);
 
     hipLaunchKernelGGL(
-        setup_batched_array_kernel<T>, grid, threads, 0, stream, src, src_stride, dst);
+        (setup_batched_array_kernel<BLOCK, T>), grid, threads, 0, stream, src, src_stride, dst);
 }
 
-template <typename T>
-ROCBLAS_KERNEL void setup_device_pointer_array_kernel(T*             src,
-                                                      rocblas_stride src_stride,
-                                                      T*             dst[],
-                                                      rocblas_int    batch_count)
+template <rocblas_int NB, typename T>
+ROCBLAS_KERNEL(NB)
+setup_device_pointer_array_kernel(T*             src,
+                                  rocblas_stride src_stride,
+                                  T*             dst[],
+                                  rocblas_int    batch_count)
 {
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < batch_count)
@@ -195,7 +197,7 @@ void setup_device_pointer_array(
     int  NB = 256;
     dim3 grid((batch_count - 1) / NB + 1);
     dim3 threads(NB);
-    hipLaunchKernelGGL(setup_device_pointer_array_kernel<T>,
+    hipLaunchKernelGGL((setup_device_pointer_array_kernel<NB, T>),
                        grid,
                        threads,
                        0,

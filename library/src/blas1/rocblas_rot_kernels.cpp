@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -50,20 +50,21 @@ __device__ void
     }
 }
 
-template <typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
-ROCBLAS_KERNEL void rot_kernel(rocblas_int    n,
-                               Tx             x_in,
-                               rocblas_int    offset_x,
-                               rocblas_int    incx,
-                               rocblas_stride stride_x,
-                               Ty             y_in,
-                               rocblas_int    offset_y,
-                               rocblas_int    incy,
-                               rocblas_stride stride_y,
-                               Tc             c_in,
-                               rocblas_stride c_stride,
-                               Ts             s_in,
-                               rocblas_stride s_stride)
+template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
+ROCBLAS_KERNEL(NB)
+rot_kernel(rocblas_int    n,
+           Tx             x_in,
+           rocblas_int    offset_x,
+           rocblas_int    incx,
+           rocblas_stride stride_x,
+           Ty             y_in,
+           rocblas_int    offset_y,
+           rocblas_int    incy,
+           rocblas_stride stride_y,
+           Tc             c_in,
+           rocblas_stride c_stride,
+           Ts             s_in,
+           rocblas_stride s_stride)
 {
     auto c = std::real(load_scalar(c_in, hipBlockIdx_y, c_stride));
     auto s = load_scalar(s_in, hipBlockIdx_y, s_stride);
@@ -102,7 +103,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(rot_kernel<Tex>,
+        hipLaunchKernelGGL((rot_kernel<NB, Tex>),
                            blocks,
                            threads,
                            0,
@@ -121,7 +122,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
                            s,
                            s_stride);
     else // c and s are on host
-        hipLaunchKernelGGL(rot_kernel<Tex>,
+        hipLaunchKernelGGL((rot_kernel<NB, Tex>),
                            blocks,
                            threads,
                            0,

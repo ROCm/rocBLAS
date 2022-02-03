@@ -5,7 +5,7 @@
 #include "check_numerics_vector.hpp"
 #include "rocblas_trsv.hpp"
 
-// Copyright 2014-6, The Science and Technology Facilities Council (STFC)
+// Copyright 2014-2022, The Science and Technology Facilities Council (STFC)
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
@@ -439,7 +439,7 @@ void ROCBLAS_KERNEL_ILF rocblas_trsv_block_solve_upper(const T* __restrict__ A,
     }
 }
 
-ROCBLAS_KERNEL static __launch_bounds__(1) void rocblas_trsv_init(rocblas_int* w_completed_sec)
+static ROCBLAS_KERNEL(1) rocblas_trsv_init(rocblas_int* w_completed_sec)
 {
     // The last block section which has been completed (for each batch)
     w_completed_sec[blockIdx.x] = -1;
@@ -462,18 +462,18 @@ template <rocblas_int DIM_X,
           typename ALPHATYPE,
           typename ATYPE,
           typename XTYPE>
-ROCBLAS_KERNEL
-    __launch_bounds__(DIM_X* DIM_Y) void rocblas_trsv_device(rocblas_int    m,
-                                                             ATYPE          dA,
-                                                             ptrdiff_t      offset_A,
-                                                             rocblas_int    lda,
-                                                             rocblas_stride stride_A,
-                                                             ALPHATYPE      alpha_device_host,
-                                                             XTYPE          dx,
-                                                             ptrdiff_t      offset_x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stride_x,
-                                                             rocblas_int*   w_completed_sec)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+rocblas_trsv_device(rocblas_int    m,
+                    ATYPE          dA,
+                    ptrdiff_t      offset_A,
+                    rocblas_int    lda,
+                    rocblas_stride stride_A,
+                    ALPHATYPE      alpha_device_host,
+                    XTYPE          dx,
+                    ptrdiff_t      offset_x,
+                    rocblas_int    incx,
+                    rocblas_stride stride_x,
+                    rocblas_int*   w_completed_sec)
 {
     // If we need to start at the bottom and work upwards (backwards substitution)
     constexpr bool backwards_sub = (!LOWER && !TRANS) || (LOWER && TRANS);

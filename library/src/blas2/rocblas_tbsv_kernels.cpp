@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "../blas1/rocblas_copy.hpp"
@@ -192,7 +192,7 @@ ROCBLAS_KERNEL_ILF void tbsv_backward_substitution_calc(
      *  multiplication kernel) so we can use multiple blocks instead of a single one.
      */
 template <bool CONJ, rocblas_int BLK_SIZE, typename TConstPtr, typename TPtr>
-__attribute__((amdgpu_flat_work_group_size(64, 1024))) ROCBLAS_KERNEL void
+__attribute__((amdgpu_flat_work_group_size(64, 1024))) ROCBLAS_KERNEL_NO_BOUNDS
     rocblas_tbsv_kernel(rocblas_fill      uplo,
                         rocblas_operation transA,
                         rocblas_diagonal  diag,

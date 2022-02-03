@@ -494,14 +494,15 @@ ROCBLAS_KERNEL_ILF void gemvt_sn_kernel_calc(rocblas_int m,
 }
 
 template <rocblas_int NB, rocblas_int WIN, typename T, typename U, typename W>
-ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_gemvt_sn_reduce(rocblas_int    n_sums,
-                                                                  U              beta_device_host,
-                                                                  rocblas_stride stride_beta,
-                                                                  W* __restrict__ ya,
-                                                                  ptrdiff_t      shifty,
-                                                                  rocblas_int    incy,
-                                                                  rocblas_stride stridey,
-                                                                  T* __restrict__ workspace)
+ROCBLAS_KERNEL(NB)
+rocblas_gemvt_sn_reduce(rocblas_int    n_sums,
+                        U              beta_device_host,
+                        rocblas_stride stride_beta,
+                        W* __restrict__ ya,
+                        ptrdiff_t      shifty,
+                        rocblas_int    incy,
+                        rocblas_stride stridey,
+                        T* __restrict__ workspace)
 {
     T*   y    = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
     auto beta = load_scalar(beta_device_host, hipBlockIdx_z, stride_beta);
@@ -596,24 +597,25 @@ template <rocblas_int DIM_X,
           typename U,
           typename V,
           typename W>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void gemvn_kernel(rocblas_int    m,
-                                                                 rocblas_int    n,
-                                                                 U              alpha_device_host,
-                                                                 rocblas_stride stride_alpha,
-                                                                 const V*       Aa,
-                                                                 ptrdiff_t      shifta,
-                                                                 T_lda          lda,
-                                                                 rocblas_stride strideA,
-                                                                 const V*       xa,
-                                                                 ptrdiff_t      shiftx,
-                                                                 rocblas_int    incx,
-                                                                 rocblas_stride stridex,
-                                                                 U              beta_device_host,
-                                                                 rocblas_stride stride_beta,
-                                                                 W*             ya,
-                                                                 ptrdiff_t      shifty,
-                                                                 rocblas_int    incy,
-                                                                 rocblas_stride stridey)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+gemvn_kernel(rocblas_int    m,
+             rocblas_int    n,
+             U              alpha_device_host,
+             rocblas_stride stride_alpha,
+             const V*       Aa,
+             ptrdiff_t      shifta,
+             T_lda          lda,
+             rocblas_stride strideA,
+             const V*       xa,
+             ptrdiff_t      shiftx,
+             rocblas_int    incx,
+             rocblas_stride stridex,
+             U              beta_device_host,
+             rocblas_stride stride_beta,
+             W*             ya,
+             ptrdiff_t      shifty,
+             rocblas_int    incy,
+             rocblas_stride stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
@@ -635,24 +637,25 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void gemvn_kernel(rocblas_int    
 
 // lda always cast to size_t so single kernel
 template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
-ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvt_kernel(rocblas_int    m,
-                                                         rocblas_int    n,
-                                                         U              alpha_device_host,
-                                                         rocblas_stride stride_alpha,
-                                                         const V*       Aa,
-                                                         ptrdiff_t      shifta,
-                                                         rocblas_int    lda,
-                                                         rocblas_stride strideA,
-                                                         const V*       xa,
-                                                         ptrdiff_t      shiftx,
-                                                         rocblas_int    incx,
-                                                         rocblas_stride stridex,
-                                                         U              beta_device_host,
-                                                         rocblas_stride stride_beta,
-                                                         W*             ya,
-                                                         ptrdiff_t      shifty,
-                                                         rocblas_int    incy,
-                                                         rocblas_stride stridey)
+ROCBLAS_KERNEL(NB_X)
+gemvt_kernel(rocblas_int    m,
+             rocblas_int    n,
+             U              alpha_device_host,
+             rocblas_stride stride_alpha,
+             const V*       Aa,
+             ptrdiff_t      shifta,
+             rocblas_int    lda,
+             rocblas_stride strideA,
+             const V*       xa,
+             ptrdiff_t      shiftx,
+             rocblas_int    incx,
+             rocblas_stride stridex,
+             U              beta_device_host,
+             rocblas_stride stride_beta,
+             W*             ya,
+             ptrdiff_t      shifty,
+             rocblas_int    incy,
+             rocblas_stride stridey)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
@@ -670,24 +673,25 @@ ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvt_kernel(rocblas_int    m,
 
 //Optimized kernel for GEMV transpose case when m or n is less than 6000
 template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
-ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvt_warp_reduce_kernel(rocblas_int m,
-                                                                     rocblas_int n,
-                                                                     U           alpha_device_host,
-                                                                     rocblas_stride stride_alpha,
-                                                                     const V*       Aa,
-                                                                     ptrdiff_t      shifta,
-                                                                     rocblas_int    lda,
-                                                                     rocblas_stride strideA,
-                                                                     const V*       xa,
-                                                                     ptrdiff_t      shiftx,
-                                                                     rocblas_int    incx,
-                                                                     rocblas_stride stridex,
-                                                                     U beta_device_host,
-                                                                     rocblas_stride stride_beta,
-                                                                     W*             ya,
-                                                                     ptrdiff_t      shifty,
-                                                                     rocblas_int    incy,
-                                                                     rocblas_stride stridey)
+ROCBLAS_KERNEL(NB_X)
+gemvt_warp_reduce_kernel(rocblas_int    m,
+                         rocblas_int    n,
+                         U              alpha_device_host,
+                         rocblas_stride stride_alpha,
+                         const V*       Aa,
+                         ptrdiff_t      shifta,
+                         rocblas_int    lda,
+                         rocblas_stride strideA,
+                         const V*       xa,
+                         ptrdiff_t      shiftx,
+                         rocblas_int    incx,
+                         rocblas_stride stridex,
+                         U              beta_device_host,
+                         rocblas_stride stride_beta,
+                         W*             ya,
+                         ptrdiff_t      shifty,
+                         rocblas_int    incy,
+                         rocblas_stride stridey)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
@@ -710,19 +714,20 @@ template <bool        CONJ,
           typename T,
           typename U,
           typename V>
-ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvt_sn_kernel(rocblas_int    m,
-                                                            rocblas_int    n,
-                                                            U              alpha_device_host,
-                                                            rocblas_stride stride_alpha,
-                                                            const V*       Aa,
-                                                            ptrdiff_t      shifta,
-                                                            T_lda          lda,
-                                                            rocblas_stride strideA,
-                                                            const V*       xa,
-                                                            ptrdiff_t      shiftx,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            T*             workspace)
+ROCBLAS_KERNEL(NB_X)
+gemvt_sn_kernel(rocblas_int    m,
+                rocblas_int    n,
+                U              alpha_device_host,
+                rocblas_stride stride_alpha,
+                const V*       Aa,
+                ptrdiff_t      shifta,
+                T_lda          lda,
+                rocblas_stride strideA,
+                const V*       xa,
+                ptrdiff_t      shiftx,
+                rocblas_int    incx,
+                rocblas_stride stridex,
+                T*             workspace)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
 
@@ -733,24 +738,25 @@ ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvt_sn_kernel(rocblas_int    m,
 }
 
 template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
-ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvtsm_kernel(rocblas_int    m,
-                                                           rocblas_int    n,
-                                                           U              alpha_device_host,
-                                                           rocblas_stride stride_alpha,
-                                                           const V*       Aa,
-                                                           ptrdiff_t      shifta,
-                                                           rocblas_int    lda,
-                                                           rocblas_stride strideA,
-                                                           const V*       xa,
-                                                           ptrdiff_t      shiftx,
-                                                           rocblas_int    incx,
-                                                           rocblas_stride stridex,
-                                                           U              beta_device_host,
-                                                           rocblas_stride stride_beta,
-                                                           W*             ya,
-                                                           ptrdiff_t      shifty,
-                                                           rocblas_int    incy,
-                                                           rocblas_stride stridey)
+ROCBLAS_KERNEL(NB_X)
+gemvtsm_kernel(rocblas_int    m,
+               rocblas_int    n,
+               U              alpha_device_host,
+               rocblas_stride stride_alpha,
+               const V*       Aa,
+               ptrdiff_t      shifta,
+               rocblas_int    lda,
+               rocblas_stride strideA,
+               const V*       xa,
+               ptrdiff_t      shiftx,
+               rocblas_int    incx,
+               rocblas_stride stridex,
+               U              beta_device_host,
+               rocblas_stride stride_beta,
+               W*             ya,
+               ptrdiff_t      shifty,
+               rocblas_int    incy,
+               rocblas_stride stridey)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_x, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_x, stride_beta);

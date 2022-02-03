@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -59,19 +59,20 @@ __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
     }
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotg_kernel(T              a_in,
-                                        rocblas_int    offset_a,
-                                        rocblas_stride stride_a,
-                                        T              b_in,
-                                        rocblas_int    offset_b,
-                                        rocblas_stride stride_b,
-                                        U              c_in,
-                                        rocblas_int    offset_c,
-                                        rocblas_stride stride_c,
-                                        T              s_in,
-                                        rocblas_int    offset_s,
-                                        rocblas_stride stride_s)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL(NB)
+rocblas_rotg_kernel(T              a_in,
+                    rocblas_int    offset_a,
+                    rocblas_stride stride_a,
+                    T              b_in,
+                    rocblas_int    offset_b,
+                    rocblas_stride stride_b,
+                    U              c_in,
+                    rocblas_int    offset_c,
+                    rocblas_stride stride_c,
+                    T              s_in,
+                    rocblas_int    offset_s,
+                    rocblas_stride stride_s)
 {
     auto a = load_ptr_batch(a_in, hipBlockIdx_x, offset_a, stride_a);
     auto b = load_ptr_batch(b_in, hipBlockIdx_x, offset_b, stride_b);
@@ -103,7 +104,7 @@ rocblas_status rocblas_rotg_template(rocblas_handle handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL(rocblas_rotg_kernel,
+        hipLaunchKernelGGL(rocblas_rotg_kernel<1>,
                            batch_count,
                            1,
                            0,
@@ -140,19 +141,20 @@ rocblas_status rocblas_rotg_template(rocblas_handle handle,
 }
 
 template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotg_check_numerics_vector_kernel(T                         a_in,
-                                                              rocblas_int               offset_a,
-                                                              rocblas_stride            stride_a,
-                                                              T                         b_in,
-                                                              rocblas_int               offset_b,
-                                                              rocblas_stride            stride_b,
-                                                              U                         c_in,
-                                                              rocblas_int               offset_c,
-                                                              rocblas_stride            stride_c,
-                                                              T                         s_in,
-                                                              rocblas_int               offset_s,
-                                                              rocblas_stride            stride_s,
-                                                              rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL_NO_BOUNDS
+    rocblas_rotg_check_numerics_vector_kernel(T                         a_in,
+                                              rocblas_int               offset_a,
+                                              rocblas_stride            stride_a,
+                                              T                         b_in,
+                                              rocblas_int               offset_b,
+                                              rocblas_stride            stride_b,
+                                              U                         c_in,
+                                              rocblas_int               offset_c,
+                                              rocblas_stride            stride_c,
+                                              T                         s_in,
+                                              rocblas_int               offset_s,
+                                              rocblas_stride            stride_s,
+                                              rocblas_check_numerics_t* abnormal)
 {
     auto a = load_ptr_batch(a_in, hipBlockIdx_x, offset_a, stride_a);
     auto b = load_ptr_batch(b_in, hipBlockIdx_x, offset_b, stride_b);

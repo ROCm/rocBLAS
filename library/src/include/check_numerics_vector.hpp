@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -28,12 +28,12 @@
 **/
 
 template <typename T>
-ROCBLAS_KERNEL void rocblas_check_numerics_vector_kernel(rocblas_int               n,
-                                                         T                         xa,
-                                                         ptrdiff_t                 offset_x,
-                                                         rocblas_int               inc_x,
-                                                         rocblas_stride            stride_x,
-                                                         rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_vector_kernel(rocblas_int               n,
+                                                              T                         xa,
+                                                              ptrdiff_t                 offset_x,
+                                                              rocblas_int               inc_x,
+                                                              rocblas_stride            stride_x,
+                                                              rocblas_check_numerics_t* abnormal)
 {
     auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offset_x, stride_x);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;

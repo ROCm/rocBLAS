@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -30,13 +30,13 @@
 **/
 
 template <typename T>
-ROCBLAS_KERNEL void rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
-                                                            rocblas_int               n,
-                                                            T                         Aa,
-                                                            ptrdiff_t                 offset_a,
-                                                            rocblas_int               lda,
-                                                            rocblas_stride            stride_a,
-                                                            rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
+                                                                 rocblas_int               n,
+                                                                 T                         Aa,
+                                                                 ptrdiff_t                 offset_a,
+                                                                 rocblas_int               lda,
+                                                                 rocblas_stride            stride_a,
+                                                                 rocblas_check_numerics_t* abnormal)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

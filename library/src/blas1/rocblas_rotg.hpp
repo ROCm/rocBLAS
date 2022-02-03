@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -9,19 +9,20 @@
 #include "logging.hpp"
 
 template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotg_check_numerics_vector_kernel(T                         a_in,
-                                                              rocblas_int               offset_a,
-                                                              rocblas_stride            stride_a,
-                                                              T                         b_in,
-                                                              rocblas_int               offset_b,
-                                                              rocblas_stride            stride_b,
-                                                              U                         c_in,
-                                                              rocblas_int               offset_c,
-                                                              rocblas_stride            stride_c,
-                                                              T                         s_in,
-                                                              rocblas_int               offset_s,
-                                                              rocblas_stride            stride_s,
-                                                              rocblas_check_numerics_t* abnormal);
+ROCBLAS_KERNEL_NO_BOUNDS
+    rocblas_rotg_check_numerics_vector_kernel(T                         a_in,
+                                              rocblas_int               offset_a,
+                                              rocblas_stride            stride_a,
+                                              T                         b_in,
+                                              rocblas_int               offset_b,
+                                              rocblas_stride            stride_b,
+                                              U                         c_in,
+                                              rocblas_int               offset_c,
+                                              rocblas_stride            stride_c,
+                                              T                         s_in,
+                                              rocblas_int               offset_s,
+                                              rocblas_stride            stride_s,
+                                              rocblas_check_numerics_t* abnormal);
 
 template <typename T, typename U>
 rocblas_status rocblas_rotg_check_numerics_template(const char*    function_name,

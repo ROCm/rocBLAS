@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -147,23 +147,24 @@ __device__ __host__ void rocblas_rotmg_calc(T& d1, T& d2, T& x1, const T& y1, T*
     param[0] = flag;
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotmg_kernel(T              d1_in,
-                                         rocblas_int    offset_d1,
-                                         rocblas_stride stride_d1,
-                                         T              d2_in,
-                                         rocblas_int    offset_d2,
-                                         rocblas_stride stride_d2,
-                                         T              x1_in,
-                                         rocblas_int    offset_x1,
-                                         rocblas_stride stride_x1,
-                                         U              y1_in,
-                                         rocblas_int    offset_y1,
-                                         rocblas_stride stride_y1,
-                                         T              param,
-                                         rocblas_int    offset_param,
-                                         rocblas_stride stride_param,
-                                         rocblas_int    batch_count)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL(NB)
+rocblas_rotmg_kernel(T              d1_in,
+                     rocblas_int    offset_d1,
+                     rocblas_stride stride_d1,
+                     T              d2_in,
+                     rocblas_int    offset_d2,
+                     rocblas_stride stride_d2,
+                     T              x1_in,
+                     rocblas_int    offset_x1,
+                     rocblas_stride stride_x1,
+                     U              y1_in,
+                     rocblas_int    offset_y1,
+                     rocblas_stride stride_y1,
+                     T              param,
+                     rocblas_int    offset_param,
+                     rocblas_stride stride_param,
+                     rocblas_int    batch_count)
 {
     auto d1 = load_ptr_batch(d1_in, hipBlockIdx_x, offset_d1, stride_d1);
     auto d2 = load_ptr_batch(d2_in, hipBlockIdx_x, offset_d2, stride_d2);
@@ -198,7 +199,7 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL(rocblas_rotmg_kernel,
+        hipLaunchKernelGGL(rocblas_rotmg_kernel<1>,
                            batch_count,
                            1,
                            0,
@@ -239,19 +240,20 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
 }
 
 template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotmg_check_numerics_vector_kernel(T                         d1_in,
-                                                               rocblas_int               offset_d1,
-                                                               rocblas_stride            stride_d1,
-                                                               T                         d2_in,
-                                                               rocblas_int               offset_d2,
-                                                               rocblas_stride            stride_d2,
-                                                               T                         x1_in,
-                                                               rocblas_int               offset_x1,
-                                                               rocblas_stride            stride_x1,
-                                                               U                         y1_in,
-                                                               rocblas_int               offset_y1,
-                                                               rocblas_stride            stride_y1,
-                                                               rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL_NO_BOUNDS
+    rocblas_rotmg_check_numerics_vector_kernel(T                         d1_in,
+                                               rocblas_int               offset_d1,
+                                               rocblas_stride            stride_d1,
+                                               T                         d2_in,
+                                               rocblas_int               offset_d2,
+                                               rocblas_stride            stride_d2,
+                                               T                         x1_in,
+                                               rocblas_int               offset_x1,
+                                               rocblas_stride            stride_x1,
+                                               U                         y1_in,
+                                               rocblas_int               offset_y1,
+                                               rocblas_stride            stride_y1,
+                                               rocblas_check_numerics_t* abnormal)
 {
     auto d1 = load_ptr_batch(d1_in, hipBlockIdx_x, offset_d1, stride_d1);
     auto d2 = load_ptr_batch(d2_in, hipBlockIdx_x, offset_d2, stride_d2);

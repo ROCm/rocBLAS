@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "handle.hpp"
@@ -22,13 +22,14 @@ ROCBLAS_KERNEL_ILF void
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <int DIM_X, int DIM_Y, typename T, typename U>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void symm_scale_kernel(rocblas_int m,
-                                                                      rocblas_int n,
-                                                                      T           beta_host_device,
-                                                                      U           CP_array,
-                                                                      ptrdiff_t   shift_c,
-                                                                      rocblas_int ldc,
-                                                                      rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+symm_scale_kernel(rocblas_int    m,
+                  rocblas_int    n,
+                  T              beta_host_device,
+                  U              CP_array,
+                  ptrdiff_t      shift_c,
+                  rocblas_int    ldc,
+                  rocblas_stride stride_c)
 {
     auto beta = load_scalar(beta_host_device);
     if(beta == 1)
@@ -180,22 +181,23 @@ template <bool        HERM,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_XYT* DIM_XYT) void symm_hemm_kernel(bool        upper,
-                                                                         rocblas_int m,
-                                                                         rocblas_int n,
-                                                                         TScal alpha_host_device,
-                                                                         TConstPtr      AP_array,
-                                                                         ptrdiff_t      shift_a,
-                                                                         rocblas_int    lda,
-                                                                         rocblas_stride stride_a,
-                                                                         TConstPtr      BP_array,
-                                                                         ptrdiff_t      shift_b,
-                                                                         rocblas_int    ldb,
-                                                                         rocblas_stride stride_b,
-                                                                         TPtr           CP_array,
-                                                                         ptrdiff_t      shift_c,
-                                                                         rocblas_int    ldc,
-                                                                         rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_XYT* DIM_XYT)
+symm_hemm_kernel(bool           upper,
+                 rocblas_int    m,
+                 rocblas_int    n,
+                 TScal          alpha_host_device,
+                 TConstPtr      AP_array,
+                 ptrdiff_t      shift_a,
+                 rocblas_int    lda,
+                 rocblas_stride stride_a,
+                 TConstPtr      BP_array,
+                 ptrdiff_t      shift_b,
+                 rocblas_int    ldb,
+                 rocblas_stride stride_b,
+                 TPtr           CP_array,
+                 ptrdiff_t      shift_c,
+                 rocblas_int    ldc,
+                 rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)

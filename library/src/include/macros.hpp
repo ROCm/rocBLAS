@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2021 Advanced Micro Devices, Inc.
+ * Copyright 2021-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -9,9 +9,11 @@
  ******************************************************************************/
 
 #ifdef WIN32
-#define ROCBLAS_KERNEL __global__ static
+#define ROCBLAS_KERNEL(lb_) __global__ __launch_bounds__((lb_)) static void
+#define ROCBLAS_KERNEL_NO_BOUNDS __global__ static void
 #else
-#define ROCBLAS_KERNEL __global__
+#define ROCBLAS_KERNEL(lb_) __global__ __launch_bounds__((lb_)) void
+#define ROCBLAS_KERNEL_NO_BOUNDS __global__ void
 #endif
 
 // A storage-class-specifier other than thread_local shall not be specified in an explicit specialization.
