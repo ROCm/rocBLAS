@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "../blas1/rocblas_copy.hpp"
@@ -100,17 +100,18 @@ template <rocblas_int DIM_X,
           typename A,
           typename X,
           typename W>
-ROCBLAS_KERNEL void trmvn_kernel(rocblas_int    m,
-                                 A              a,
-                                 ptrdiff_t      shifta,
-                                 rocblas_int    lda,
-                                 rocblas_stride stridea,
-                                 X              x,
-                                 ptrdiff_t      shiftx,
-                                 rocblas_int    incx,
-                                 rocblas_stride stridex,
-                                 W              workspace,
-                                 rocblas_stride stridew)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+trmvn_kernel(rocblas_int    m,
+             A              a,
+             ptrdiff_t      shifta,
+             rocblas_int    lda,
+             rocblas_stride stridea,
+             X              x,
+             ptrdiff_t      shiftx,
+             rocblas_int    incx,
+             rocblas_stride stridex,
+             W              workspace,
+             rocblas_stride stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
     trmvn_kernel_calc<DIM_X, DIM_Y, LOWER, UNIT>(
@@ -123,17 +124,18 @@ ROCBLAS_KERNEL void trmvn_kernel(rocblas_int    m,
 }
 
 template <rocblas_int NB, bool LOWER, bool CONJ, bool UNIT, typename A, typename X, typename W>
-ROCBLAS_KERNEL void trmvt_kernel(rocblas_int    m,
-                                 A              a,
-                                 ptrdiff_t      shifta,
-                                 rocblas_int    lda,
-                                 rocblas_stride stridea,
-                                 X              x,
-                                 ptrdiff_t      shiftx,
-                                 rocblas_int    incx,
-                                 rocblas_stride stridex,
-                                 W              workspace,
-                                 rocblas_stride stridew)
+ROCBLAS_KERNEL(NB)
+trmvt_kernel(rocblas_int    m,
+             A              a,
+             ptrdiff_t      shifta,
+             rocblas_int    lda,
+             rocblas_stride stridea,
+             X              x,
+             ptrdiff_t      shiftx,
+             rocblas_int    incx,
+             rocblas_stride stridex,
+             W              workspace,
+             rocblas_stride stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
     trmvt_kernel_calc<NB, LOWER, CONJ, UNIT>(

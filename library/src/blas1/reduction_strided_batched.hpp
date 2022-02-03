@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -228,7 +228,7 @@ template <rocblas_int NB,
           typename TPtrX,
           typename To>
 __attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-ROCBLAS_KERNEL void
+ROCBLAS_KERNEL_NO_BOUNDS
     rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
                                                    rocblas_int    nblocks,
                                                    TPtrX          xvec,
@@ -264,7 +264,7 @@ template <rocblas_int NB,
           typename To,
           typename Tr>
 __attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-ROCBLAS_KERNEL void
+ROCBLAS_KERNEL_NO_BOUNDS
     rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
     rocblas_int   tx = hipThreadIdx_x;

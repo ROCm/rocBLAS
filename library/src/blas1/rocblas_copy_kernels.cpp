@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -7,15 +7,15 @@
 #include "rocblas_copy.hpp"
 
 template <bool CONJ, typename T, typename U>
-ROCBLAS_KERNEL void copy_kernel(rocblas_int    n,
-                                const T        xa,
-                                ptrdiff_t      shiftx,
-                                rocblas_int    incx,
-                                rocblas_stride stridex,
-                                U              ya,
-                                ptrdiff_t      shifty,
-                                rocblas_int    incy,
-                                rocblas_stride stridey)
+ROCBLAS_KERNEL_NO_BOUNDS copy_kernel(rocblas_int    n,
+                                     const T        xa,
+                                     ptrdiff_t      shiftx,
+                                     rocblas_int    incx,
+                                     rocblas_stride stridex,
+                                     U              ya,
+                                     ptrdiff_t      shifty,
+                                     rocblas_int    incy,
+                                     rocblas_stride stridey)
 {
     ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     const auto* x   = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
@@ -30,13 +30,14 @@ ROCBLAS_KERNEL void copy_kernel(rocblas_int    n,
 //! @brief Optimized kernel for the floating points.
 //!
 template <rocblas_int NB, typename T, typename U>
-ROCBLAS_KERNEL __launch_bounds__(NB) void scopy_2_kernel(rocblas_int n,
-                                                         const T __restrict xa,
-                                                         ptrdiff_t      shiftx,
-                                                         rocblas_stride stridex,
-                                                         U __restrict ya,
-                                                         ptrdiff_t      shifty,
-                                                         rocblas_stride stridey)
+ROCBLAS_KERNEL(NB)
+scopy_2_kernel(rocblas_int n,
+               const T __restrict xa,
+               ptrdiff_t      shiftx,
+               rocblas_stride stridex,
+               U __restrict ya,
+               ptrdiff_t      shifty,
+               rocblas_stride stridey)
 {
     ptrdiff_t   tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
     const auto* x   = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);

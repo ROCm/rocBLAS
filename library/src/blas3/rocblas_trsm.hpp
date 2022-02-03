@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -15,18 +15,19 @@ static const T zero = T(0);
 template <typename T>
 static const T one = T(1);
 
-template <typename T, typename U, typename V>
-ROCBLAS_KERNEL void copy_matrix_trsm(rocblas_int    rows,
-                                     rocblas_int    cols,
-                                     rocblas_int    elem_size,
-                                     U              a,
-                                     rocblas_int    lda,
-                                     rocblas_stride stride_a,
-                                     V              b,
-                                     rocblas_int    ldb,
-                                     rocblas_stride stride_b,
-                                     rocblas_int    offset_a,
-                                     rocblas_int    offset_b)
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+copy_matrix_trsm(rocblas_int    rows,
+                 rocblas_int    cols,
+                 rocblas_int    elem_size,
+                 U              a,
+                 rocblas_int    lda,
+                 rocblas_stride stride_a,
+                 V              b,
+                 rocblas_int    ldb,
+                 rocblas_stride stride_b,
+                 rocblas_int    offset_a,
+                 rocblas_int    offset_b)
 {
     const T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
     T*       xb = load_ptr_batch(b, hipBlockIdx_z, offset_b, stride_b);
@@ -58,7 +59,7 @@ void copy_block_unit(rocblas_handle handle,
     dim3        grid(blocksX, blocksY, batch_count);
     dim3        threads(128, 8);
 
-    hipLaunchKernelGGL(copy_matrix_trsm<T>,
+    hipLaunchKernelGGL((copy_matrix_trsm<128, 8, T>),
                        grid,
                        threads,
                        0,
@@ -76,15 +77,16 @@ void copy_block_unit(rocblas_handle handle,
                        offset_dst);
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void set_matrix_trsm(rocblas_int    rows,
-                                    rocblas_int    cols,
-                                    rocblas_int    elem_size,
-                                    U              a,
-                                    rocblas_int    lda,
-                                    rocblas_stride stride_a,
-                                    T              val,
-                                    rocblas_int    offset_a)
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+set_matrix_trsm(rocblas_int    rows,
+                rocblas_int    cols,
+                rocblas_int    elem_size,
+                U              a,
+                rocblas_int    lda,
+                rocblas_stride stride_a,
+                T              val,
+                rocblas_int    offset_a)
 {
     T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
 
@@ -112,7 +114,7 @@ void set_block_unit(rocblas_handle handle,
     dim3        grid(blocksX, blocksY, batch_count);
     dim3        threads(128, 8);
 
-    hipLaunchKernelGGL(set_matrix_trsm<T>,
+    hipLaunchKernelGGL((set_matrix_trsm<128, 8, T>),
                        grid,
                        threads,
                        0,
@@ -1634,20 +1636,21 @@ rocblas_status rocblas_internal_trsm_template_mem(rocblas_handle              ha
  *  Uses the substitution method to solve a small problem AX = B.
  */
 template <typename T, typename SCAL, typename ATYPE, typename BTYPE, const int NB>
-ROCBLAS_KERNEL void rocblas_trsm_small_right_device(rocblas_fill      uplo,
-                                                    rocblas_operation transA,
-                                                    rocblas_diagonal  diag,
-                                                    int               m,
-                                                    int               n,
-                                                    SCAL              alpha_dev_host,
-                                                    ATYPE             Aa,
-                                                    ptrdiff_t         offset_A,
-                                                    int               lda,
-                                                    rocblas_stride    stride_A,
-                                                    BTYPE             Ba,
-                                                    ptrdiff_t         offset_B,
-                                                    int               ldb,
-                                                    rocblas_stride    stride_B)
+ROCBLAS_KERNEL(NB)
+rocblas_trsm_small_right_device(rocblas_fill      uplo,
+                                rocblas_operation transA,
+                                rocblas_diagonal  diag,
+                                int               m,
+                                int               n,
+                                SCAL              alpha_dev_host,
+                                ATYPE             Aa,
+                                ptrdiff_t         offset_A,
+                                int               lda,
+                                rocblas_stride    stride_A,
+                                BTYPE             Ba,
+                                ptrdiff_t         offset_B,
+                                int               ldb,
+                                rocblas_stride    stride_B)
 {
     const int batchid = blockIdx.y;
     auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
@@ -1905,20 +1908,21 @@ ROCBLAS_KERNEL void rocblas_trsm_small_right_device(rocblas_fill      uplo,
  *  shared memory for A).
  */
 template <typename T, typename SCAL, typename ATYPE, typename BTYPE, const int NB>
-ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
-                                                       rocblas_operation transA,
-                                                       rocblas_diagonal  diag,
-                                                       int               m,
-                                                       int               n,
-                                                       SCAL              alpha_dev_host,
-                                                       ATYPE             Aa,
-                                                       ptrdiff_t         offset_A,
-                                                       int               lda,
-                                                       rocblas_stride    stride_A,
-                                                       BTYPE             Ba,
-                                                       ptrdiff_t         offset_B,
-                                                       int               ldb,
-                                                       rocblas_stride    stride_B)
+ROCBLAS_KERNEL(NB)
+rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
+                                   rocblas_operation transA,
+                                   rocblas_diagonal  diag,
+                                   int               m,
+                                   int               n,
+                                   SCAL              alpha_dev_host,
+                                   ATYPE             Aa,
+                                   ptrdiff_t         offset_A,
+                                   int               lda,
+                                   rocblas_stride    stride_A,
+                                   BTYPE             Ba,
+                                   ptrdiff_t         offset_B,
+                                   int               ldb,
+                                   rocblas_stride    stride_B)
 {
     const int batchid = blockIdx.y;
     auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
@@ -2029,20 +2033,21 @@ ROCBLAS_KERNEL void rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
  * Uses the substitution method to solve a small problem XA = B.
  */
 template <typename T, typename SCAL, typename ATYPE, typename BTYPE, const int NB>
-ROCBLAS_KERNEL void rocblas_trsm_small_left_device(rocblas_fill      uplo,
-                                                   rocblas_operation transA,
-                                                   rocblas_diagonal  diag,
-                                                   int               m,
-                                                   int               n,
-                                                   SCAL              alpha_dev_host,
-                                                   ATYPE             Aa,
-                                                   ptrdiff_t         offset_A,
-                                                   int               lda,
-                                                   rocblas_stride    stride_A,
-                                                   BTYPE             Ba,
-                                                   ptrdiff_t         offset_B,
-                                                   int               ldb,
-                                                   rocblas_stride    stride_B)
+ROCBLAS_KERNEL(NB)
+rocblas_trsm_small_left_device(rocblas_fill      uplo,
+                               rocblas_operation transA,
+                               rocblas_diagonal  diag,
+                               int               m,
+                               int               n,
+                               SCAL              alpha_dev_host,
+                               ATYPE             Aa,
+                               ptrdiff_t         offset_A,
+                               int               lda,
+                               rocblas_stride    stride_A,
+                               BTYPE             Ba,
+                               ptrdiff_t         offset_B,
+                               int               ldb,
+                               rocblas_stride    stride_B)
 {
     const int batchid = blockIdx.y;
     auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
@@ -2301,20 +2306,21 @@ ROCBLAS_KERNEL void rocblas_trsm_small_left_device(rocblas_fill      uplo,
  *  shared memory for A).
  */
 template <typename T, typename SCAL, typename ATYPE, typename BTYPE, const int NB>
-ROCBLAS_KERNEL void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
-                                                      rocblas_operation transA,
-                                                      rocblas_diagonal  diag,
-                                                      int               m,
-                                                      int               n,
-                                                      SCAL              alpha_dev_host,
-                                                      ATYPE             Aa,
-                                                      ptrdiff_t         offset_A,
-                                                      int               lda,
-                                                      rocblas_stride    stride_A,
-                                                      BTYPE             Ba,
-                                                      ptrdiff_t         offset_B,
-                                                      int               ldb,
-                                                      rocblas_stride    stride_B)
+ROCBLAS_KERNEL(NB)
+rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
+                                  rocblas_operation transA,
+                                  rocblas_diagonal  diag,
+                                  int               m,
+                                  int               n,
+                                  SCAL              alpha_dev_host,
+                                  ATYPE             Aa,
+                                  ptrdiff_t         offset_A,
+                                  int               lda,
+                                  rocblas_stride    stride_A,
+                                  BTYPE             Ba,
+                                  ptrdiff_t         offset_B,
+                                  int               ldb,
+                                  rocblas_stride    stride_B)
 {
     const int batchid = blockIdx.y;
     auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);

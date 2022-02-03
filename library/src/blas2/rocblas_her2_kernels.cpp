@@ -50,22 +50,23 @@ __device__ void her2_kernel_calc(bool        upper,
 }
 
 template <rocblas_int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X) void rocblas_her2_kernel(bool           upper,
-                                                                 rocblas_int    n,
-                                                                 size_t         area,
-                                                                 TScal          alphaa,
-                                                                 TConstPtr      xa,
-                                                                 ptrdiff_t      shift_x,
-                                                                 rocblas_int    incx,
-                                                                 rocblas_stride stride_x,
-                                                                 TConstPtr      ya,
-                                                                 ptrdiff_t      shift_y,
-                                                                 rocblas_int    incy,
-                                                                 rocblas_stride stride_y,
-                                                                 TPtr           Aa,
-                                                                 rocblas_int    lda,
-                                                                 ptrdiff_t      shift_A,
-                                                                 rocblas_stride stride_A)
+ROCBLAS_KERNEL(DIM_X)
+rocblas_her2_kernel(bool           upper,
+                    rocblas_int    n,
+                    size_t         area,
+                    TScal          alphaa,
+                    TConstPtr      xa,
+                    ptrdiff_t      shift_x,
+                    rocblas_int    incx,
+                    rocblas_stride stride_x,
+                    TConstPtr      ya,
+                    ptrdiff_t      shift_y,
+                    rocblas_int    incy,
+                    rocblas_stride stride_y,
+                    TPtr           Aa,
+                    rocblas_int    lda,
+                    ptrdiff_t      shift_A,
+                    rocblas_stride stride_A)
 {
     auto alpha = load_scalar(alphaa);
     if(!alpha)

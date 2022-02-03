@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "../blas1/rocblas_copy.hpp"
@@ -149,18 +149,19 @@ ROCBLAS_KERNEL_ILF void tpmvt_kernel_calc(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename A, typename X, typename W>
-ROCBLAS_KERNEL void tpmvn_kernel(rocblas_fill     uplo,
-                                 rocblas_diagonal diag,
-                                 rocblas_int      m,
-                                 A                a,
-                                 ptrdiff_t        shifta,
-                                 rocblas_stride   stridea,
-                                 X                x,
-                                 ptrdiff_t        shiftx,
-                                 rocblas_int      incx,
-                                 rocblas_stride   stridex,
-                                 W                workspace,
-                                 rocblas_stride   stridew)
+ROCBLAS_KERNEL(NB)
+tpmvn_kernel(rocblas_fill     uplo,
+             rocblas_diagonal diag,
+             rocblas_int      m,
+             A                a,
+             ptrdiff_t        shifta,
+             rocblas_stride   stridea,
+             X                x,
+             ptrdiff_t        shiftx,
+             rocblas_int      incx,
+             rocblas_stride   stridex,
+             W                workspace,
+             rocblas_stride   stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
     tpmvn_kernel_calc<NB>(uplo,
@@ -173,18 +174,19 @@ ROCBLAS_KERNEL void tpmvn_kernel(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename A, typename X, typename W>
-ROCBLAS_KERNEL void tpmvt_kernel(rocblas_fill     uplo,
-                                 rocblas_diagonal diag,
-                                 rocblas_int      m,
-                                 A                a,
-                                 ptrdiff_t        shifta,
-                                 rocblas_stride   stridea,
-                                 X                x,
-                                 ptrdiff_t        shiftx,
-                                 rocblas_int      incx,
-                                 rocblas_stride   stridex,
-                                 W                workspace,
-                                 rocblas_stride   stridew)
+ROCBLAS_KERNEL(NB)
+tpmvt_kernel(rocblas_fill     uplo,
+             rocblas_diagonal diag,
+             rocblas_int      m,
+             A                a,
+             ptrdiff_t        shifta,
+             rocblas_stride   stridea,
+             X                x,
+             ptrdiff_t        shiftx,
+             rocblas_int      incx,
+             rocblas_stride   stridex,
+             W                workspace,
+             rocblas_stride   stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
     tpmvt_kernel_calc<NB>(uplo,
@@ -197,18 +199,19 @@ ROCBLAS_KERNEL void tpmvt_kernel(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename A, typename X, typename W>
-ROCBLAS_KERNEL void tpmvc_kernel(rocblas_fill     uplo,
-                                 rocblas_diagonal diag,
-                                 rocblas_int      m,
-                                 A                a,
-                                 ptrdiff_t        shifta,
-                                 rocblas_stride   stridea,
-                                 X                x,
-                                 ptrdiff_t        shiftx,
-                                 rocblas_int      incx,
-                                 rocblas_stride   stridex,
-                                 W                workspace,
-                                 rocblas_stride   stridew)
+ROCBLAS_KERNEL(NB)
+tpmvc_kernel(rocblas_fill     uplo,
+             rocblas_diagonal diag,
+             rocblas_int      m,
+             A                a,
+             ptrdiff_t        shifta,
+             rocblas_stride   stridea,
+             X                x,
+             ptrdiff_t        shiftx,
+             rocblas_int      incx,
+             rocblas_stride   stridex,
+             W                workspace,
+             rocblas_stride   stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
     tpmvc_kernel_calc<NB>(uplo,
