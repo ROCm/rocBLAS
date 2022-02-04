@@ -604,6 +604,27 @@ Tests:
   transB: N
   batch_count: 1
 
+- name: gemm_strided_batched_ex_hpa_fp16
+  category: quick
+  function:
+    gemm_strided_batched_ex: *hpa_half_precision
+  M: 128
+  N: 128
+  K: 1000
+  transA: N
+  transB: N
+  alpha: 0.001
+  beta: 1
+  batch_count: [ 1, 10, 12 ]
+  lda: 128
+  ldb: 1000
+  ldc: 128
+  ldd: 128
+  stride_a: 128000
+  stride_b: 128000
+  stride_c: 16384
+  stride_d: 16384
+
 - name: gemm_strided_batched_xx_zerok
   category: quick
   function:

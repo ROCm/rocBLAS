@@ -3424,6 +3424,18 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *complex_alpha_beta_range
 
+- name: gemm_ex_hpa_fp16
+  category: quick
+  function:
+    gemm_ex: *hpa_half_precision
+  M: 128
+  N: 128
+  K: 1000
+  transA: N
+  transB: N
+  alpha: 0.001
+  beta: 1
+
 - name: gemm_ext2_small
   category: pre_checkin
   transA: N
