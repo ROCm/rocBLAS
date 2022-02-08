@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*
@@ -18,12 +18,12 @@ __device__ __host__ inline auto fetch_asum(T A)
     return A < 0 ? -A : A;
 }
 
-__device__ __host__ inline auto fetch_asum(rocblas_float_complex A)
+__device__ __host__ inline auto fetch_asum(const rocblas_float_complex& A)
 {
     return asum(A);
 }
 
-__device__ __host__ inline auto fetch_asum(rocblas_double_complex A)
+__device__ __host__ inline auto fetch_asum(const rocblas_double_complex& A)
 {
     return asum(A);
 }

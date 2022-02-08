@@ -5,7 +5,9 @@
 #pragma once
 
 // uses dot shuffle reductions
-#include "../blas1/rocblas_dot.hpp"
+#include "../blas1/rocblas_reduction.hpp"
+// uses recursive folding reduction
+#include "../blas1/reduction.hpp"
 
 template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
