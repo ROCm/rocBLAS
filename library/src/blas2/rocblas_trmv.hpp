@@ -1,13 +1,10 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
-#include "../blas1/rocblas_copy.hpp"
-#include "../blas1/rocblas_dot.hpp"
 #include "rocblas.h"
-#include <cstddef>
 
 template <typename A, typename X, typename W>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status

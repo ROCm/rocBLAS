@@ -1,16 +1,27 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
 #include "rocblas_reduction_template.hpp"
 
+template <typename T, std::enable_if_t<!std::is_same<T, rocblas_half>{}, int> = 0>
+__device__ __host__ inline auto fetch_abs2(T A)
+{
+    return std::norm(A);
+}
+
+template <typename T, std::enable_if_t<std::is_same<T, rocblas_half>{}, int> = 0>
+__device__ __host__ inline auto fetch_abs2(T A)
+{
+    return A * A;
+}
 template <class To>
 struct rocblas_fetch_nrm2
 {
     template <class Ti>
-    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid) const
+    __forceinline__ __device__ To operator()(Ti x) const
     {
         return {fetch_abs2(x)};
     }

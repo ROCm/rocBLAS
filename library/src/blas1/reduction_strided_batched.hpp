@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../blas1/reduction.hpp"
+#include "../blas1/rocblas_reduction.hpp"
 #include "handle.hpp"
 #include "rocblas.h"
 #include "utility.hpp"
@@ -23,9 +25,11 @@
 // type is different, the core algorithm is the same: scan all element of the
 // vector(s) and reduce to one single result.
 //
-// The reduction algorithm on GPU is called [parallel
+// The primary reduction algorithm now uses shuffle instructions that use a binary
+// tree like reduction of masked out channels, but follows almost the
+// same pattern as the recursive reduction algorithm on GPU that is called [parallel
 // reduction](https://raw.githubusercontent.com/mateuszbuda/GPUExample/master/reduce3.png)
-// which is adopted in rocBLAS. At the beginning, all the threads in the thread
+// which is also adopted in rocBLAS. At the beginning, all the threads in the thread
 // block participate. After each step of reduction (like a tree), the number of
 // participating threads decrease by half. At the end of the parallel reduction,
 // only one thread (usually thread 0) owns the result in its thread block.
@@ -54,260 +58,70 @@
 // atomic operation. However, atomic operation is new and is not used in rocBLAS
 // yet. rocBLAS still use the classic standard parallel reduction right now.
 
-// Recursively compute reduction
-template <rocblas_int k, typename REDUCE, typename T>
-struct rocblas_reduction_s
-{
-    __forceinline__ __device__ void operator()(rocblas_int tx, T* x) const
-    {
-        // Reduce the lower half with the upper half
-        if(tx < k)
-            REDUCE{}(x[tx], x[tx + k]);
-        __syncthreads();
-
-        // Recurse down with k / 2
-        rocblas_reduction_s<k / 2, REDUCE, T>{}(tx, x);
-    }
-};
-
-// leaf node for terminating recursion
-template <typename REDUCE, typename T>
-struct rocblas_reduction_s<0, REDUCE, T>
-{
-    __forceinline__ __device__ void operator()(rocblas_int tx, T* x) const {}
-};
-
-/*! \brief general parallel reduction
-
-    \details
-
-    @param[in]
-    n         rocblas_int. assume a power of 2
-    @param[in]
-    T         element type of vector x
-    @param[in]
-    REDUCE    reduction functor
-    @param[in]
-    tx        rocblas_int. thread id
-    @param[inout]
-    x         pointer storing vector x on the GPU.
-              usually x is stored in shared memory;
-              x[0] store the final result.
-    ********************************************************************/
-template <rocblas_int NB, typename REDUCE, typename T>
-__attribute__((flatten)) __device__ void rocblas_reduction(rocblas_int tx, T* x)
-{
-    static_assert(NB > 1 && !(NB & (NB - 1)), "NB must be a power of 2");
-    __syncthreads();
-    rocblas_reduction_s<NB / 2, REDUCE, T>{}(tx, x);
-}
-
-/*! \brief parallel reduction: sum
-
-    \details
-
-    @param[in]
-    n         rocblas_int. assume a power of 2
-    @param[in]
-    tx        rocblas_int. thread id
-    @param[inout]
-    x         pointer storing vector x on the GPU.
-              usually x is stored in shared memory;
-              x[0] store the final result.
-    ********************************************************************/
-struct rocblas_reduce_sum
-{
-    template <typename T>
-    __forceinline__ __device__ void operator()(T& __restrict__ a, const T& __restrict__ b) const
-    {
-        a += b;
-    }
-};
-
-template <rocblas_int NB, typename T>
-__attribute__((flatten)) __device__ void rocblas_sum_reduce(rocblas_int tx, T* x)
-{
-    rocblas_reduction<NB, rocblas_reduce_sum>(tx, x);
-}
-// end sum_reduce
-
-// Identity finalizer
-struct rocblas_finalize_identity
-{
-    template <typename T>
-    __forceinline__ __host__ __device__ T&& operator()(T&& x)
-    {
-        return std::forward<T>(x); // Perfect identity, preserving valueness
-    }
-};
-
-// Emulates value initialization T{}. Allows specialization for certain types.
-template <typename T>
-struct rocblas_default_value
-{
-    __forceinline__ __host__ __device__ constexpr T operator()() const
-    {
-        return {};
-    }
-};
-
-inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
-{
-    if(n <= 0)
-        n = 1; // avoid sign loss issues
-    return size_t(n - 1) / NB + 1;
-}
-
-/*! \brief rocblas_reduction_batched_kernel_workspace_size
-    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
-
-    @param[in]
-    outputType To*
-        Type of output values
-    @param[in]
-    batch_count rocblas_int
-        Number of batches
-    ********************************************************************/
-template <rocblas_int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
-{
-    if(n <= 0)
-        n = 1; // allow for return value of empty set
-    if(batch_count <= 0)
-        batch_count = 1;
-    auto blocks = rocblas_reduction_kernel_block_count(n, NB);
-    return sizeof(To) * (blocks + 1) * batch_count;
-}
-
-/*! \brief rocblas_reduction_batched_kernel_workspace_size
-    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
-
-    @param[in]
-    outputType To*
-        Type of output values
-    @param[in]
-    batch_count rocblas_int
-        Number of batches
-    ********************************************************************/
-template <rocblas_int NB, typename To>
-size_t
-    rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count, To* output_type)
-{
-    return rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
-}
-
-template <rocblas_int NB>
-size_t rocblas_reduction_kernel_workspace_size(rocblas_int      n,
-                                               rocblas_int      batch_count,
-                                               rocblas_datatype type)
-{
-    switch(type)
-    {
-    case rocblas_datatype_f16_r:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_half>(n, batch_count);
-    case rocblas_datatype_bf16_r:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_bfloat16>(n, batch_count);
-    case rocblas_datatype_f32_r:
-        return rocblas_reduction_kernel_workspace_size<NB, float>(n, batch_count);
-    case rocblas_datatype_f64_r:
-        return rocblas_reduction_kernel_workspace_size<NB, double>(n, batch_count);
-    case rocblas_datatype_f32_c:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_float_complex>(n, batch_count);
-    case rocblas_datatype_f64_c:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_double_complex>(n, batch_count);
-    default:
-        return 0;
-    }
-}
-
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
-template <rocblas_int NB,
-          typename FETCH,
-          typename REDUCE = rocblas_reduce_sum,
-          typename TPtrX,
-          typename To>
-__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-ROCBLAS_KERNEL_NO_BOUNDS
-    rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
-                                                   rocblas_int    nblocks,
-                                                   TPtrX          xvec,
-                                                   rocblas_int    shiftx,
-                                                   rocblas_int    incx,
-                                                   rocblas_stride stridex,
-                                                   To*            workspace)
+template <rocblas_int NB, typename FETCH, typename TPtrX, typename To>
+ROCBLAS_KERNEL(NB)
+rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
+                                               rocblas_int    nblocks,
+                                               TPtrX          xvec,
+                                               rocblas_int    shiftx,
+                                               rocblas_int    incx,
+                                               rocblas_stride stridex,
+                                               To*            workspace)
 {
-    ptrdiff_t     tx  = hipThreadIdx_x;
-    ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
-    __shared__ To tmp[NB];
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    To        sum;
 
     const auto* x = load_ptr_batch(xvec, hipBlockIdx_y, shiftx, stridex);
 
     // bound
     if(tid < n)
-        tmp[tx] = FETCH{}(x[tid * incx], tid);
+        sum = FETCH{}(x[tid * incx]);
     else
-        tmp[tx] = rocblas_default_value<To>{}(); // pad with default value
+        sum = rocblas_default_value<To>{}(); // pad with default value
 
-    rocblas_reduction<NB, REDUCE>(tx, tmp);
+    sum = rocblas_dot_block_reduce<NB, To>(sum); // sum reduction only
 
-    if(tx == 0)
-        workspace[hipBlockIdx_y * nblocks + hipBlockIdx_x] = tmp[0];
+    if(hipThreadIdx_x == 0)
+        workspace[hipBlockIdx_y * nblocks + hipBlockIdx_x] = sum;
 }
 
 // kernel 2 is used from non-strided reduction_batched see include file
 // kernel 2 gathers all the partial results in workspace and finishes the final reduction;
 // number of threads (NB) loop blocks
-template <rocblas_int NB,
-          typename REDUCE   = rocblas_reduce_sum,
-          typename FINALIZE = rocblas_finalize_identity,
-          typename To,
-          typename Tr>
-__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-ROCBLAS_KERNEL_NO_BOUNDS
-    rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
+template <rocblas_int NB, typename FINALIZE = rocblas_finalize_identity, typename To, typename Tr>
+ROCBLAS_KERNEL(NB)
+rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
-    rocblas_int   tx = hipThreadIdx_x;
-    __shared__ To tmp[NB];
+    rocblas_int tx = hipThreadIdx_x;
+    To          sum;
 
     if(tx < nblocks)
     {
         To* work = workspace + hipBlockIdx_y * nblocks;
-        tmp[tx]  = work[tx];
+        sum      = work[tx];
 
         // bound, loop
         for(rocblas_int i = tx + NB; i < nblocks; i += NB)
-            REDUCE{}(tmp[tx], work[i]);
+            sum += work[i];
     }
     else
     { // pad with default value
-        tmp[tx] = rocblas_default_value<To>{}();
+        sum = rocblas_default_value<To>{}();
     }
 
-    if(nblocks < 32)
-    {
-        // no need parallel reduction
-        __syncthreads();
-
-        if(tx == 0)
-            for(rocblas_int i = 1; i < nblocks; i++)
-                REDUCE{}(tmp[0], tmp[i]);
-    }
-    else
-    {
-        // parallel reduction
-        rocblas_reduction<NB, REDUCE>(tx, tmp);
-    }
+    sum = rocblas_dot_block_reduce<NB, To>(sum);
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[hipBlockIdx_y] = Tr(FINALIZE{}(tmp[0]));
+        result[hipBlockIdx_y] = Tr(FINALIZE{}(sum));
 }
 
 /*! \brief
 
     \details
-    rocblas_reduction_strided_batched_kernel computes a reduction over multiple vectors x_i
+    rocblas_reduction_strided_batched computes a reduction over multiple vectors x_i
               Template parameters allow threads per block, data, and specific phase kernel overrides
               At least two kernels are needed to finish the reduction
               kernel 1 write partial result per thread block in workspace, blocks partial results
@@ -349,19 +163,21 @@ template <rocblas_int NB,
           typename TPtrX,
           typename To,
           typename Tr>
-rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restrict__ handle,
-                                                        rocblas_int    n,
-                                                        TPtrX          x,
-                                                        rocblas_int    shiftx,
-                                                        rocblas_int    incx,
-                                                        rocblas_stride stridex,
-                                                        rocblas_int    batch_count,
-                                                        To*            workspace,
-                                                        Tr*            result)
+rocblas_status rocblas_reduction_strided_batched(rocblas_handle __restrict__ handle,
+                                                 rocblas_int    n,
+                                                 TPtrX          x,
+                                                 rocblas_int    shiftx,
+                                                 rocblas_int    incx,
+                                                 rocblas_stride stridex,
+                                                 rocblas_int    batch_count,
+                                                 To*            workspace,
+                                                 Tr*            result)
 {
+    // param REDUCE is always SUM for these kernels so not passed on
+
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, FETCH, REDUCE>),
+    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, FETCH>),
                        dim3(blocks, batch_count),
                        NB,
                        0,
@@ -376,7 +192,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part2<NB, REDUCE, FINALIZE>),
+        hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part2<NB, FINALIZE>),
                            dim3(1, batch_count),
                            NB,
                            0,
@@ -395,15 +211,14 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
         bool reduceKernel = blocks > 1 || batch_count > 1;
         if(reduceKernel)
         {
-            hipLaunchKernelGGL(
-                (rocblas_reduction_strided_batched_kernel_part2<NB, REDUCE, FINALIZE>),
-                dim3(1, batch_count),
-                NB,
-                0,
-                handle->get_stream(),
-                blocks,
-                workspace,
-                (Tr*)(workspace + size_t(batch_count) * blocks));
+            hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part2<NB, FINALIZE>),
+                               dim3(1, batch_count),
+                               NB,
+                               0,
+                               handle->get_stream(),
+                               blocks,
+                               workspace,
+                               (Tr*)(workspace + size_t(batch_count) * blocks));
         }
 
         if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || reduceKernel)
