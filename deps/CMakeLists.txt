@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2021 Advanced Micro Devices, Inc.
+# Copyright 2016-2022 Advanced Micro Devices, Inc.
 # ########################################################################
 # Helper cmake script to automate building dependencies for rocblas
 # This script can be invoked manually by the user with 'cmake -P'

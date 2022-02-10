@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Copyright 2021 Advanced Micro Devices, Inc.
+"""Copyright 2021-2022 Advanced Micro Devices, Inc.
 Run tests on build"""
 
 import re
@@ -30,13 +30,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description="""
     Checks build arguments
     """)
-    parser.add_argument('-t', '--test', required=True, 
+    parser.add_argument('-t', '--test', required=True,
                         help='Test set to run from rtest.xml (required, e.g. osdb)')
     parser.add_argument('-g', '--debug', required=False, default=False,  action='store_true',
                         help='Test Debug build (optional, default: false)')
-    parser.add_argument('-o', '--output', type=str, required=False, default="xml", 
+    parser.add_argument('-o', '--output', type=str, required=False, default="xml",
                         help='Test output file (optional, default: test_detail.xml)')
-    parser.add_argument(      '--install_dir', type=str, required=False, default="build", 
+    parser.add_argument(      '--install_dir', type=str, required=False, default="build",
                         help='Installation directory where build or release folders are (optional, default: build)')
     parser.add_argument(      '--fail_test', default=False, required=False, action='store_true',
                         help='Return as if test failed (optional, default: false)')
@@ -119,14 +119,14 @@ class TimerProcess(multiprocessing.Process):
                     cmd = ['TASKKILL', '/F', '/T', '/PID', str(self.kill_pid)]
                     proc = subprocess.Popen(cmd, stdout=sys.stdout, stderr=sys.stderr)
                 else:
-                    os.kill(self.kill_pid, signal.SIGKILL)  
+                    os.kill(self.kill_pid, signal.SIGKILL)
                 self.timed_out.set()
                 self.stop()
             pass
 
     def stop(self):
         self.quit.set()
-    
+
     def stopped(self):
         return self.timed_out.is_set()
 
@@ -162,7 +162,7 @@ def run_cmd(cmd, test = False, time_limit = 0):
     try:
         if not test:
             proc = subprocess.run(cmdline, check=True, stderr=subprocess.STDOUT, shell=True)
-            status = proc.returncode    
+            status = proc.returncode
         else:
             error = False
             timeout = False
@@ -186,12 +186,12 @@ def run_cmd(cmd, test = False, time_limit = 0):
                 p.join()
                 timeout = p.stopped()
                 print(f"timeout {timeout}")
-            if error: 
+            if error:
                 status = 1
             elif timeout:
                 status = 2
             else:
-                status = test_proc.returncode    
+                status = test_proc.returncode
     except:
         import traceback
         exc = traceback.format_exc()
@@ -202,12 +202,12 @@ def run_cmd(cmd, test = False, time_limit = 0):
 def batch(script, xml):
     global OS_info
     global args
-    # 
+    #
     cwd = pathlib.os.curdir
     rtest_cwd_path = os.path.abspath( os.path.join( cwd, 'rtest.xml') )
     if os.path.isfile(rtest_cwd_path) and os.path.dirname(rtest_cwd_path).endswith( "staging" ):
         # if in a staging directory then test locally
-        test_dir = cwd 
+        test_dir = cwd
     else:
         if args.debug: build_type = "debug"
         else: build_type = "release"
@@ -287,7 +287,7 @@ def run_tests():
             #print("Failure in script. ABORTING")
             if (os.curdir != cwd):
                 os.chdir( cwd )
-            return 1       
+            return 1
     if (os.curdir != cwd):
         os.chdir( cwd )
     return 0

@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2021 Advanced Micro Devices, Inc.
+# Copyright 2016-2022 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # The following helper functions wrap common cmake functions.  They are
