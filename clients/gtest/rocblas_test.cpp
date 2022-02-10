@@ -1,3 +1,7 @@
+/* ************************************************************************
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #include "rocblas_test.hpp"
 #include "utility.hpp"
 
@@ -197,7 +201,11 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
     // Set up the return point, and handle siglongjmp returning back to here
     if(sigsetjmp(t_handler.sigjmp_buf, true))
     {
+#if(__GLIBC__ < 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 32)
         FAIL() << "Received " << sys_siglist[t_handler.signal] << " signal";
+#else
+        FAIL() << "Received " << sigdescr_np(t_handler.signal) << " signal";
+#endif
     }
 #else
     if(setjmp(t_handler.sigjmp_buf))
