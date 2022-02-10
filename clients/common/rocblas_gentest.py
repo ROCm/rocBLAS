@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """Copyright 2018-2022 Advanced Micro Devices, Inc.
 Expand rocBLAS YAML test data file into binary Arguments records"""
 
