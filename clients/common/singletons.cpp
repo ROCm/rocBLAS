@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2021 Advanced Micro Devices, Inc.
+ * Copyright 2021-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "singletons.hpp"

@@ -5,7 +5,7 @@
 #include "check_numerics_vector.hpp"
 #include "rocblas_trsv.hpp"
 
-// Copyright 2014-2022, The Science and Technology Facilities Council (STFC)
+// Copyright 2014-6, The Science and Technology Facilities Council (STFC)
 // All rights reserved.
 
 // Redistribution and use in source and binary forms, with or without
