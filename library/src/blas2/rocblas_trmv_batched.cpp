@@ -158,21 +158,21 @@ namespace
         constexpr rocblas_int    offset_a = 0, offset_x = 0;
         constexpr rocblas_stride stride_a = 0, stride_x = 0;
         rocblas_status           status = rocblas_internal_trmv_template(handle,
-                                                                         uplo,
-                                                                         transa,
-                                                                         diag,
-                                                                         m,
-                                                                         a,
-                                                                         offset_a,
-                                                                         lda,
-                                                                         stride_a,
-                                                                         x,
-                                                                         offset_x,
-                                                                         incx,
-                                                                         stride_x,
-                                                                         (T*)workspace,
-                                                                         stride_w,
-                                                                         batch_count);
+                                                               uplo,
+                                                               transa,
+                                                               diag,
+                                                               m,
+                                                               a,
+                                                               offset_a,
+                                                               lda,
+                                                               stride_a,
+                                                               x,
+                                                               offset_x,
+                                                               incx,
+                                                               stride_x,
+                                                               (T*)workspace,
+                                                               stride_w,
+                                                               batch_count);
 
         if(status != rocblas_status_success)
             return status;
