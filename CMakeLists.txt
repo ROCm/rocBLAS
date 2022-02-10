@@ -20,7 +20,7 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
 endif()
 
 # disable this next option and test build whenever compiler changes to verify unused arguments are safe to ignore
-add_compile_options( -Wno-unused-command-line-argument )
+# add_compile_options( -Wno-unused-command-line-argument )
 
 # TODO: address [[nodiscard]] warnings
 add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
