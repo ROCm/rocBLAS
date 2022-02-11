@@ -27,6 +27,7 @@ extern "C" void rocblas_shutdown();
 #include <atomic>
 #include <complex>
 #include <exception>
+#include <future>
 #include <iomanip>
 #include <memory>
 #include <mutex>
@@ -529,6 +530,7 @@ namespace
         void initialize(Tensile::hip::SolutionAdapter& adapter, rocblas_int deviceId)
         {
             std::string path;
+            std::string tensileLibraryPath;
 #ifndef WIN32
             path.reserve(PATH_MAX);
 #endif
@@ -584,6 +586,25 @@ namespace
                     path += "/" + processor;
             }
 
+#ifdef TENSILE_YAML
+            tensileLibraryPath = path + "/TensileLibrary.yaml";
+#else
+            tensileLibraryPath = path + "/TensileLibrary.dat";
+#endif
+            if(!TestPath(tensileLibraryPath))
+            {
+                rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath << ": "
+                             << strerror(errno) << std::endl;
+                rocblas_abort();
+            }
+            // We initialize a local static variable with a lambda function call to avoid
+            // race conditions when multiple threads with different device IDs try to
+            // initialize library. This ensures that only one thread initializes library,
+            // and other threads trying to initialize library wait for it to complete.
+            static auto ftr_lib = std::async(std::launch::async,
+                                             Tensile::LoadLibraryFile<Tensile::ContractionProblem>,
+                                             tensileLibraryPath);
+
             // only load modules for the current architecture
             auto dir = path + "/*" + processor + "*co";
 
@@ -638,33 +659,19 @@ namespace
                                     << std::endl;
             }
 
-            // We initialize a local static variable with a lambda function call to avoid
-            // race conditions when multiple threads with different device IDs try to
-            // initialize library. This ensures that only one thread initializes library,
-            // and other threads trying to initialize library wait for it to complete.
-            static int once = [&] {
-#ifdef TENSILE_YAML
-                path += "/TensileLibrary.yaml";
-#else
-                path += "/TensileLibrary.dat";
-#endif
-                if(!TestPath(path))
-                {
-                    rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": "
-                                 << strerror(errno) << std::endl;
-                    rocblas_abort();
-                }
-
-                auto lib = Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path);
+            std::once_flag once_mtx;
+            std::call_once(once_mtx, [&] {
+                auto lib = ftr_lib.get();
                 if(!lib)
-                    rocblas_cerr << "\nrocBLAS error: Could not load " << path << std::endl;
+                    rocblas_cerr << "\nrocBLAS error: Could not load " << tensileLibraryPath
+                                 << std::endl;
                 else
                 {
                     using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
                     m_library = std::dynamic_pointer_cast<MSL>(lib);
                 }
                 return 0;
-            }();
+            });
 
             if(!m_library)
             {
