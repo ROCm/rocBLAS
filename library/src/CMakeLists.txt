@@ -531,11 +531,6 @@ rocm_install(FILES "../include/rocblas_module.f90"
         DESTINATION "rocblas/include"
 )
 
-# Force installation of LICENSE.md
-install(FILES "../../LICENSE.md"
-	DESTINATION "share/doc/rocBLAS"
-)
-
 rocm_install_targets(
   TARGETS ${package_targets}
   INCLUDE
