@@ -116,6 +116,68 @@ public:
 };
 
 /* ============================================================================================ */
+/*! \brief  Random number generator which generates denorm values */
+class rocblas_denorm_rng
+{
+    // Generate random value
+    static unsigned rand2()
+    {
+        return std::uniform_int_distribution<unsigned>(0, 1)(t_rocblas_rng);
+    }
+
+    // Generate random denorm values
+    template <typename T, typename UINT_T, int SIG, int EXP>
+    static T random_denorm_data()
+    {
+        static_assert(sizeof(UINT_T) == sizeof(T), "Type sizes do not match");
+        union
+        {
+            UINT_T u;
+            T      fp;
+        } x;
+        do
+            x.u = std::uniform_int_distribution<UINT_T>{}(t_rocblas_rng);
+        while(!(x.u &= (((UINT_T)1 << SIG) - 1))); // make exponent = 0 and random significand
+        return (rand2() ? -(x.fp) : x.fp); // denorm with random sign bits
+    }
+
+public:
+    // Random denorm double
+    explicit operator double()
+    {
+        return random_denorm_data<double, uint64_t, 52, 11>();
+    }
+
+    // Random denorm float
+    explicit operator float()
+    {
+        return random_denorm_data<float, uint32_t, 23, 8>();
+    }
+
+    // Random denorm half
+    explicit operator rocblas_half()
+    {
+        return random_denorm_data<rocblas_half, uint16_t, 10, 5>();
+    }
+
+    // Random denorm bfloat16
+    explicit operator rocblas_bfloat16()
+    {
+        return random_denorm_data<rocblas_bfloat16, uint16_t, 7, 8>();
+    }
+
+    explicit operator rocblas_float_complex()
+    {
+        return {float(*this), float(*this)};
+    }
+
+    explicit operator rocblas_double_complex()
+    {
+        return {double(*this), double(*this)};
+    }
+};
+
+/* ============================================================================================ */
 /*! \brief  Random number generator which generates Inf values */
 class rocblas_inf_rng
 {
@@ -188,6 +250,13 @@ template <typename T>
 inline T random_zero_generator()
 {
     return T(rocblas_zero_rng{});
+}
+
+/*! \brief  generate a random denorm number */
+template <typename T>
+inline T random_denorm_generator()
+{
+    return T(rocblas_denorm_rng{});
 }
 
 /*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */

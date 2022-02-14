@@ -161,13 +161,15 @@ ROCBLAS_KERNEL_NO_BOUNDS
     auto c = load_ptr_batch(c_in, hipBlockIdx_x, offset_c, stride_c);
     auto s = load_ptr_batch(s_in, hipBlockIdx_x, offset_s, stride_s);
 
-    //Check every element of the vectors a, b, c, s for a zero/NaN/Inf
+    //Check every element of the vectors a, b, c, s for a zero/NaN/Inf/denormal value
     if(rocblas_iszero(*a) || rocblas_iszero(*b) || rocblas_iszero(*c) || rocblas_iszero(*s))
         abnormal->has_zero = true;
     if(rocblas_isnan(*a) || rocblas_isnan(*b) || rocblas_isnan(*c) || rocblas_isnan(*s))
         abnormal->has_NaN = true;
     if(rocblas_isinf(*a) || rocblas_isinf(*b) || rocblas_isinf(*c) || rocblas_isinf(*s))
         abnormal->has_Inf = true;
+    if(rocblas_isdenorm(*a) || rocblas_isdenorm(*b) || rocblas_isdenorm(*c) || rocblas_isdenorm(*s))
+        abnormal->has_denorm = true;
 }
 
 template <typename T, typename U>
@@ -242,13 +244,16 @@ rocblas_status rocblas_rotg_check_numerics_template(const char*    function_name
             auto c = load_ptr_batch(c_in, i, offset_c, stride_c);
             auto s = load_ptr_batch(s_in, i, offset_s, stride_s);
 
-            //Check every element of the x vector for a NaN/zero/Inf
+            //Check every element of the x vector for a NaN/zero/Inf/denormal value
             if(rocblas_iszero(*a) || rocblas_iszero(*b) || rocblas_iszero(*c) || rocblas_iszero(*s))
                 h_abnormal.has_zero = true;
             if(rocblas_isnan(*a) || rocblas_isnan(*b) || rocblas_isnan(*c) || rocblas_isnan(*s))
                 h_abnormal.has_NaN = true;
             if(rocblas_isinf(*a) || rocblas_isinf(*b) || rocblas_isinf(*c) || rocblas_isinf(*s))
                 h_abnormal.has_Inf = true;
+            if(rocblas_isdenorm(*a) || rocblas_isdenorm(*b) || rocblas_isdenorm(*c)
+               || rocblas_isdenorm(*s))
+                h_abnormal.has_denorm = true;
         }
     }
     return rocblas_check_numerics_abnormal_struct(
