@@ -405,9 +405,9 @@ constexpr rocblas_status get_rocblas_status_for_hip_status(hipError_t status)
     }
 }
 
-/*********************************************************************************************************
- * \brief The main structure for Numerical checking to detect numerical abnormalities such as NaN/zero/Inf
- *********************************************************************************************************/
+/*************************************************************************************************************************
+ * \brief The main structure for Numerical checking to detect numerical abnormalities such as NaN/zero/Inf/denormal values
+ ************************************************************************************************************************/
 typedef struct rocblas_check_numerics_s
 {
     // Set to true if there is a NaN in the vector/matrix
@@ -418,6 +418,10 @@ typedef struct rocblas_check_numerics_s
 
     // Set to true if there is an Infinity in the vector/matrix
     bool has_Inf = false;
+
+    // Set to true if there is an denormal/subnormal value in the vector/matrix
+    bool has_denorm = false;
+
 } rocblas_check_numerics_t;
 
 /*******************************************************************************
@@ -524,6 +528,55 @@ __device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
     } t = {x};
     t.data &= 0x7fff;
     return t.x;
+}
+
+/*******************************************************************************
+* \brief  returns true if arg is denormal/subnormal
+********************************************************************************/
+
+template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
+__host__ __device__ inline bool rocblas_isdenorm(T)
+{
+    return false;
+}
+
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+__host__ __device__ inline bool rocblas_isdenorm(T arg)
+{
+    return ((rocblas_abs(arg) >= std::numeric_limits<T>::denorm_min())
+            && (rocblas_abs(arg) < std::numeric_limits<T>::min()));
+}
+
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+__host__ __device__ inline bool rocblas_isdenorm(const T& arg)
+{
+    return rocblas_isdenorm(std::real(arg)) || rocblas_isdenorm(std::imag(arg));
+}
+
+__host__ __device__ inline bool rocblas_isdenorm(rocblas_half arg)
+{
+    union
+    {
+        rocblas_half fp;
+        uint16_t     data;
+    } x = {rocblas_abs(arg)};
+    return (
+        (x.data >= 0x0001)
+        && (x.data
+            < 0x0400)); //0x0001 is the smallest positive subnormal number and 0x0400 is the smallest positive normal number represented by rocblas_half
+}
+
+__host__ __device__ inline bool rocblas_isdenorm(rocblas_bfloat16 arg)
+{
+    union
+    {
+        rocblas_bfloat16 fp;
+        uint16_t         data;
+    } x = {rocblas_abs(arg)};
+    return (
+        (x.data >= 0x0001)
+        && (x.data
+            < 0x0080)); //0x0001 is the smallest positive subnormal number and 0x0080 is the smallest positive normal number represented by rocblas_bfloat16
 }
 
 // Is power of two

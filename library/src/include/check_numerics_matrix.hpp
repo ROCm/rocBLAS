@@ -14,7 +14,7 @@
   *
   * Info about rocblas_check_numerics_ge_matrix_kernel function:
   *
-  *    It is the kernel function which checks a matrix for numerical abnormalities such as NaN/zero/Inf and updates the structure.
+  *    It is the kernel function which checks a matrix for numerical abnormalities such as NaN/zero/Inf/denormal values and updates the rocblas_check_numerics_t structure.
   *    ge in rocblas_check_numerics_ge_matrix_kernel refers to general.
   *
   * Parameters   : m            : number of rows of matrix 'A'
@@ -41,6 +41,7 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_ge_matrix_kernel(rocblas_int    
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
+    //Check every element of the A matrix for a NaN/zero/Inf/denormal value
     if(tx < m && ty < n)
     {
         auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offset_a, stride_a);
@@ -53,6 +54,8 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_ge_matrix_kernel(rocblas_int    
             abnormal->has_NaN = true;
         if(!abnormal->has_Inf && rocblas_isinf(value))
             abnormal->has_Inf = true;
+        if(!abnormal->has_denorm && rocblas_isdenorm(value))
+            abnormal->has_denorm = true;
     }
 }
 template <typename T>

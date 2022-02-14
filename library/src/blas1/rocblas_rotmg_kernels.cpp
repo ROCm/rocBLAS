@@ -260,13 +260,16 @@ ROCBLAS_KERNEL_NO_BOUNDS
     auto x1 = load_ptr_batch(x1_in, hipBlockIdx_x, offset_x1, stride_x1);
     auto y1 = load_ptr_batch(y1_in, hipBlockIdx_x, offset_y1, stride_y1);
 
-    //Check every element of the x vector for a NaN/zero/Inf
+    //Check every element of the x vector for a NaN/zero/Inf/denormal value
     if(rocblas_iszero(*d1) || rocblas_iszero(*d2) || rocblas_iszero(*x1) || rocblas_iszero(*y1))
         abnormal->has_zero = true;
     if(rocblas_isnan(*d1) || rocblas_isnan(*d2) || rocblas_isnan(*x1) || rocblas_isnan(*y1))
         abnormal->has_NaN = true;
     if(rocblas_isinf(*d1) || rocblas_isinf(*d2) || rocblas_isinf(*x1) || rocblas_isinf(*y1))
         abnormal->has_Inf = true;
+    if(rocblas_isdenorm(*d1) || rocblas_isdenorm(*d2) || rocblas_isdenorm(*x1)
+       || rocblas_isdenorm(*y1))
+        abnormal->has_denorm = true;
 }
 
 template <typename T, typename U>
@@ -340,7 +343,7 @@ rocblas_status rocblas_rotmg_check_numerics_template(const char*    function_nam
             auto x1 = load_ptr_batch(x1_in, i, offset_x1, stride_x1);
             auto y1 = load_ptr_batch(y1_in, i, offset_y1, stride_y1);
 
-            //Check every element of the vectors d1, d2, x1, y1 for a zero/NaN/Inf
+            //Check every element of the vectors d1, d2, x1, y1 for a zero/NaN/Inf/denormal value
             if(rocblas_iszero(*d1) || rocblas_iszero(*d2) || rocblas_iszero(*x1)
                || rocblas_iszero(*y1))
                 h_abnormal.has_zero = true;
@@ -348,6 +351,9 @@ rocblas_status rocblas_rotmg_check_numerics_template(const char*    function_nam
                 h_abnormal.has_NaN = true;
             if(rocblas_isinf(*d1) || rocblas_isinf(*d2) || rocblas_isinf(*x1) || rocblas_isinf(*y1))
                 h_abnormal.has_Inf = true;
+            if(rocblas_isdenorm(*d1) || rocblas_isdenorm(*d2) || rocblas_isdenorm(*x1)
+               || rocblas_isdenorm(*y1))
+                h_abnormal.has_denorm = true;
         }
     }
     return rocblas_check_numerics_abnormal_struct(

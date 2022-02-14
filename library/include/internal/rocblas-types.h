@@ -171,7 +171,7 @@ typedef enum rocblas_status_
     rocblas_status_invalid_value       = 11, /**< passed argument not valid */
     rocblas_status_continue            = 12, /**< nothing preventing function to proceed */
     rocblas_status_check_numerics_fail
-    = 13, /**< will be set if the vector/matrix has a NaN or an Infinity */
+    = 13, /**< will be set if the vector/matrix has a NaN/Infinity/denormal value */
 } rocblas_status;
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
@@ -279,7 +279,7 @@ typedef union rocblas_union_u
     rocblas_double_complex z;
 } rocblas_union_t;
 
-/*! \brief Numerical checking for verifying the Input and Output vector/matrix of the rocBLAS functions for a NaN, zero and infinity */
+/*! \brief Numerical checking for verifying the Input and Output vector/matrix of the rocBLAS functions for a NaN, zero, infinity and denormal value*/
 typedef enum rocblas_check_numerics_mode_
 {
     //No numeric checks
@@ -288,10 +288,10 @@ typedef enum rocblas_check_numerics_mode_
     //Fully informative, prints results from all checks to console
     rocblas_check_numerics_mode_info = 0x1,
 
-    //Prints result only if has_NaN==true||has_Inf==true
+    //Prints result only if has_NaN==true||has_Inf==true||has_denorm==true
     rocblas_check_numerics_mode_warn = 0x2,
 
-    //Return 'rocblas_status_check_numeric_fail' status if there is NaN or Inf
+    //Return 'rocblas_status_check_numeric_fail' status if there is NaN/Inf/denormal value
     rocblas_check_numerics_mode_fail = 0x4,
 
 } rocblas_check_numerics_mode;

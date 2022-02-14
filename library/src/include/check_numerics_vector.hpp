@@ -14,7 +14,7 @@
   *
   * Info about rocblas_check_numerics_vector_kernel function:
   *
-  *    It is the kernel function which checks a vector for numerical abnormalities such as NaN/zero/Inf and updates the structure.
+  *    It is the kernel function which checks a vector for numerical abnormalities such as NaN/zero/Inf/denormal values and updates the rocblas_check_numerics_t structure.
   *
   * Parameters   : n            : Total number of elements in the vector
   *                xa           : Pointer to the vector which is under consideration for numerical abnormalities
@@ -38,7 +38,7 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_vector_kernel(rocblas_int       
     auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offset_x, stride_x);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
-    //Check every element of the x vector for a NaN/zero/Inf
+    //Check every element of the x vector for a NaN/zero/Inf/denormal value
     if(tid < n)
     {
         auto value = x[tid * inc_x];
@@ -48,6 +48,8 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_vector_kernel(rocblas_int       
             abnormal->has_NaN = true;
         if(!abnormal->has_Inf && rocblas_isinf(value))
             abnormal->has_Inf = true;
+        if(!abnormal->has_denorm && rocblas_isdenorm(value))
+            abnormal->has_denorm = true;
     }
 }
 

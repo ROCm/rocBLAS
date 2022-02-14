@@ -185,7 +185,7 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(complex_operators);
 
-    //Testing a vector for NaN/zero/Inf
+    //Testing a vector for NaN/zero/Inf/denormal values
     template <typename T>
     void testing_check_numerics_vector(const Arguments& arg)
     {
@@ -199,7 +199,7 @@ namespace
         rocblas_handle handle;
         CHECK_ROCBLAS_ERROR(rocblas_create_handle(&handle));
 
-        //Hard-code the enum `check_numerics` to `rocblas_check_numerics_mode_fail` which will return `rocblas_status_check_numerics_fail` if the vector contains a NaN/Inf
+        //Hard-code the enum `check_numerics` to `rocblas_check_numerics_mode_fail` which will return `rocblas_status_check_numerics_fail` if the vector contains a NaN/Inf/denormal value
         rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_fail;
 
         //Argument sanity check before allocating invalid memory
@@ -212,6 +212,7 @@ namespace
 
         //Allocating memory for the host vector
         host_vector<T> h_x(size_x);
+
         //==============================================================================================
         // Initializing random values in the vector
         //==============================================================================================
@@ -238,6 +239,7 @@ namespace
                                                                  check_numerics,
                                                                  is_input);
         EXPECT_EQ(status, rocblas_status_success);
+
         //==============================================================================================
         // Initializing and testing for zero in the vector
         //==============================================================================================
@@ -257,6 +259,7 @@ namespace
                                                                  check_numerics,
                                                                  is_input);
         EXPECT_EQ(status, rocblas_status_success);
+
         //==============================================================================================
         // Initializing and testing for Inf in the vector
         //==============================================================================================
@@ -279,12 +282,35 @@ namespace
                                                                  is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
         //==============================================================================================
         // Initializing and testing for NaN in the vector
         //==============================================================================================
         rocblas_seedrand();
         rocblas_init<T>(h_x, 1, N, inc_x);
         rocblas_init_nan<T>((T*)h_x, 0, N - 3);
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 (T*)d_x,
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        //==============================================================================================
+        // Initializing and testing for denorm values in the vector
+        //==============================================================================================
+        rocblas_seedrand();
+        rocblas_init<T>(h_x, 1, N, inc_x);
+        rocblas_init_denorm<T>((T*)h_x, 0, N - 4);
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
@@ -406,6 +432,32 @@ namespace
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
+        //==============================================================================================
+        // Initializing and testing for denorm values in batched vectors
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_x_batch, true);
+        for(int i = 4; i < batch_count; i++)
+            for(size_t j = 0; j < N; j++)
+                h_x_batch[i][j * inc_x] = T(rocblas_denorm_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
+
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 d_x_batch.const_batch_ptr(),
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
         CHECK_ROCBLAS_ERROR(rocblas_destroy_handle(handle));
     };
 
@@ -464,7 +516,7 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(check_numerics_vector);
 
-    //Testing a matrix for NaN/zero/Inf
+    //Testing a matrix for NaN/zero/Inf/denormal values
     template <typename T>
     void testing_check_numerics_matrix(const Arguments& arg)
     {
@@ -479,7 +531,7 @@ namespace
         rocblas_handle handle;
         CHECK_ROCBLAS_ERROR(rocblas_create_handle(&handle));
 
-        //Hard-code the enum `check_numerics` to `rocblas_check_numerics_mode_fail` which will return `rocblas_status_check_numerics_fail` if the matrix contains a NaN/Inf
+        //Hard-code the enum `check_numerics` to `rocblas_check_numerics_mode_fail` which will return `rocblas_status_check_numerics_fail` if the matrix contains a NaN/Inf/denormal value
         rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_fail;
 
         //Argument sanity check before allocating invalid memory
@@ -518,6 +570,7 @@ namespace
                                                                     check_numerics,
                                                                     is_input);
         EXPECT_EQ(status, rocblas_status_success);
+
         //==============================================================================================
         // Initializing and testing for zero in the matrix
         //==============================================================================================
@@ -539,6 +592,7 @@ namespace
                                                                     check_numerics,
                                                                     is_input);
         EXPECT_EQ(status, rocblas_status_success);
+
         //==============================================================================================
         // Initializing and testing for Inf in the matrix
         //==============================================================================================
@@ -563,12 +617,38 @@ namespace
                                                                     is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
         //==============================================================================================
         // Initializing and testing for NaN in the matrix
         //==============================================================================================
         rocblas_seedrand();
         rocblas_init<T>((T*)h_A, M, N, lda);
         rocblas_init_nan<T>((T*)h_A, M, N, lda);
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_none,
+                                                                    M,
+                                                                    N,
+                                                                    (T*)d_A,
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    1,
+                                                                    check_numerics,
+                                                                    is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        //==============================================================================================
+        // Initializing and testing for denorm values in the matrix
+        //==============================================================================================
+        rocblas_seedrand();
+        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_denorm<T>((T*)h_A, M, N, lda);
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
@@ -685,6 +765,35 @@ namespace
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
                     h_A_batch[i_batch][i + j * lda] = T(rocblas_nan_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_transpose,
+                                                                    M,
+                                                                    N,
+                                                                    d_A_batch.const_batch_ptr(),
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    batch_count,
+                                                                    check_numerics,
+                                                                    is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        //==============================================================================================
+        // Initializing and testing for denorm values in batched matrices
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_A_batch, true);
+        for(size_t i_batch = 1; i_batch < batch_count; i_batch++)
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    h_A_batch[i_batch][i + j * lda] = T(rocblas_denorm_rng());
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
