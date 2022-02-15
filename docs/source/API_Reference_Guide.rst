@@ -314,7 +314,7 @@ hardware feature is used in all GEMM and GEMM based functions in
 rocBLAS with 64-bit floating-point datatype, namely DGEMM, ZGEMM,
 DTRSM, ZTRSM, DTRMM, ZTRMM, DSYRKX and ZSYRKX.
 
-The MI200 MFMA_F16, MFMA_BF16, MFMA_BF16_1K and MFMA_F32 instructions
+The MI200 MFMA_F16, MFMA_BF16 and MFMA_BF16_1K instructions
 flush subnormal input/output data ("denorms") to zero. It is observed that
 certain use cases utilizing the HPA (High Precision Accumulate) HGEMM
 kernels where a_type=b_type=c_type=d_type=f16_r and compute_type=f32_r
