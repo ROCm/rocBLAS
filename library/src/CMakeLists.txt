@@ -531,11 +531,6 @@ rocm_install(FILES "../include/rocblas_module.f90"
         DESTINATION "rocblas/include"
 )
 
-# Force installation of LICENSE.md
-install(FILES "../../LICENSE.md"
-	DESTINATION "share/doc/rocBLAS"
-)
-
 rocm_install_targets(
   TARGETS ${package_targets}
   INCLUDE
@@ -553,7 +548,7 @@ if( BUILD_WITH_TENSILE )
   rocm_install(
     DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
     DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
-    COMPONENT runtime)
+    COMPONENT ${CMAKE_INSTALL_DEFAULT_COMPONENT_NAME}) # Use this cmake variable to be compatible with rocm-cmake 0.6 and 0.7
 endif()
 
 #         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
