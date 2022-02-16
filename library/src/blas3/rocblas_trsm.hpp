@@ -2708,7 +2708,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         if(alpha_h == T(0.0))
         {
-            set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, offset_B);
+            set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, 0.0, offset_B);
             return rocblas_status_success;
         }
 

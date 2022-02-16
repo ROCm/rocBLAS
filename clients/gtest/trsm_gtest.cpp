@@ -46,15 +46,17 @@ namespace
             switch(TRSM_TYPE)
             {
             case TRSM:
-                return !strcmp(arg.function, "trsm");
+                return !strcmp(arg.function, "trsm") || !strcmp(arg.function, "trsm_bad_arg");
             case TRSM_EX:
                 return !strcmp(arg.function, "trsm_ex");
             case TRSM_BATCHED:
-                return !strcmp(arg.function, "trsm_batched");
+                return !strcmp(arg.function, "trsm_batched")
+                       || !strcmp(arg.function, "trsm_batched_bad_arg");
             case TRSM_BATCHED_EX:
                 return !strcmp(arg.function, "trsm_batched_ex");
             case TRSM_STRIDED_BATCHED:
-                return !strcmp(arg.function, "trsm_strided_batched");
+                return !strcmp(arg.function, "trsm_strided_batched")
+                       || !strcmp(arg.function, "trsm_strided_batched_bad_arg");
             case TRSM_STRIDED_BATCHED_EX:
                 return !strcmp(arg.function, "trsm_strided_batched_ex");
             }
@@ -66,21 +68,29 @@ namespace
         {
             RocBLAS_TestName<trsm_template> name(arg.name);
 
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.side)
-                 << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
-                 << (char)std::toupper(arg.diag) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha
-                 << '_' << arg.lda << '_';
+            name << rocblas_datatype2string(arg.a_type);
 
-            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX)
-                name << arg.stride_a << '_';
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+            else
+            {
+                name << '_' << (char)std::toupper(arg.side) << (char)std::toupper(arg.uplo)
+                     << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_'
+                     << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda << '_';
 
-            name << arg.ldb;
+                if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX)
+                    name << arg.stride_a << '_';
 
-            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX)
-                name << '_' << arg.stride_b;
-            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX
-               || TRSM_TYPE == TRSM_BATCHED || TRSM_TYPE == TRSM_BATCHED_EX)
-                name << '_' << arg.batch_count;
+                name << arg.ldb;
+
+                if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX)
+                    name << '_' << arg.stride_b;
+                if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX
+                   || TRSM_TYPE == TRSM_BATCHED || TRSM_TYPE == TRSM_BATCHED_EX)
+                    name << '_' << arg.batch_count;
+            }
 
             if(arg.fortran)
             {
@@ -111,16 +121,28 @@ namespace
         {
             if(!strcmp(arg.function, "trsm"))
                 testing_trsm<T>(arg);
+            else if(!strcmp(arg.function, "trsm_bad_arg"))
+                testing_trsm_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "trsm_ex"))
                 testing_trsm_ex<T>(arg);
+            else if(!strcmp(arg.function, "trsm_ex_bad_arg"))
+                testing_trsm_ex_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "trsm_batched"))
                 testing_trsm_batched<T>(arg);
+            else if(!strcmp(arg.function, "trsm_batched_bad_arg"))
+                testing_trsm_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "trsm_batched_ex"))
                 testing_trsm_batched_ex<T>(arg);
+            else if(!strcmp(arg.function, "trsm_batched_ex_bad_arg"))
+                testing_trsm_batched_ex_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "trsm_strided_batched"))
                 testing_trsm_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "trsm_strided_batched_bad_arg"))
+                testing_trsm_strided_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "trsm_strided_batched_ex"))
                 testing_trsm_strided_batched_ex<T>(arg);
+            else if(!strcmp(arg.function, "trsm_strided_batched_ex_bad_arg"))
+                testing_trsm_strided_batched_ex_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
