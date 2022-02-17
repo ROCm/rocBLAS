@@ -79,11 +79,8 @@ void testing_rotmg(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_rotgm_fn(
                 handle, &hparams[0], &hparams[1], &hparams[2], &hparams[3], &hparams[4]));
 
-            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-            if(!rocblas_isnan(arg.alpha))
-                if(arg.unit_check)
-                    near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
+            if(arg.unit_check)
+                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_host = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
@@ -100,9 +97,8 @@ void testing_rotmg(const Arguments& arg)
             host_vector<T> hparams(9);
             CHECK_HIP_ERROR(hipMemcpy(hparams, dparams, 9 * sizeof(T), hipMemcpyDeviceToHost));
 
-            if(!rocblas_isnan(arg.alpha))
-                if(arg.unit_check)
-                    near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
+            if(arg.unit_check)
+                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_device = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);

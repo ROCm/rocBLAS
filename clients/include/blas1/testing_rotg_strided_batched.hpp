@@ -112,6 +112,16 @@ void testing_rotg_strided_batched(const Arguments& arg)
     host_vector<U> hc(size_c);
     host_vector<T> hs(size_s);
 
+    bool enable_near_check_general = true;
+
+#ifdef WIN32
+    // During explicit NaN initialization (i.e., when arg.alpha=NaN), the host side computation results of OpenBLAS differs from the result of kernel computation in rocBLAS.
+    // The output value of `cb` is NaN in OpenBLAS and, the output value of `cb` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
+    // Therefore, using the bool enable_near_check_general to skip unit check for WIN32 during NaN initialization.
+
+    enable_near_check_general = !rocblas_isnan(arg.alpha);
+#endif
+
     for(int i = 0; i < TEST_COUNT; i++)
     {
         // Initialize data on host memory
@@ -147,11 +157,9 @@ void testing_rotg_strided_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, ra, stride_a, rb, stride_b, rc, stride_c, rs, stride_s, batch_count)));
 
-            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-            if(!rocblas_isnan(arg.alpha))
+            if(arg.unit_check)
             {
-                if(arg.unit_check)
+                if(enable_near_check_general)
                 {
                     near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
                     near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
@@ -199,9 +207,9 @@ void testing_rotg_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(rc, dc, sizeof(U) * size_c, hipMemcpyDeviceToHost));
             CHECK_HIP_ERROR(hipMemcpy(rs, ds, sizeof(T) * size_s, hipMemcpyDeviceToHost));
 
-            if(!rocblas_isnan(arg.alpha))
+            if(arg.unit_check)
             {
-                if(arg.unit_check)
+                if(enable_near_check_general)
                 {
                     near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
                     near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);

@@ -123,15 +123,10 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
-                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-                if(!rocblas_isnan(arg.alpha))
+                if(arg.unit_check)
                 {
-                    if(arg.unit_check)
-                    {
-                        near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                        near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
-                    }
+                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
                 }
 
                 if(arg.norm_check)
@@ -153,15 +148,10 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
-                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-                if(!rocblas_isnan(arg.alpha))
+                if(arg.unit_check)
                 {
-                    if(arg.unit_check)
-                    {
-                        near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                        near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
-                    }
+                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
                 }
 
                 if(arg.norm_check)

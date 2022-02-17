@@ -215,15 +215,10 @@ void testing_rotm_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(rx.transfer_from(dx));
                 CHECK_HIP_ERROR(ry.transfer_from(dy));
 
-                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-                if(!rocblas_isnan(arg.alpha))
+                if(arg.unit_check)
                 {
-                    if(arg.unit_check)
-                    {
-                        near_check_general<T>(1, N, abs_incx, cx, rx, batch_count, rel_error);
-                        near_check_general<T>(1, N, abs_incy, cy, ry, batch_count, rel_error);
-                    }
+                    near_check_general<T>(1, N, abs_incx, cx, rx, batch_count, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, batch_count, rel_error);
                 }
 
                 if(arg.norm_check)
