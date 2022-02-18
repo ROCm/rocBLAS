@@ -659,20 +659,20 @@ namespace
                                     << std::endl;
             }
 
-            std::once_flag once_mtx;
-            std::call_once(once_mtx, [&] {
-                auto lib = ftr_lib.get();
-                if(!lib)
-                    rocblas_cerr << "\nrocBLAS error: Could not load " << tensileLibraryPath
-                                 << std::endl;
-                else
-                {
-                    using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
-                    m_library = std::dynamic_pointer_cast<MSL>(lib);
-                }
-                return 0;
-            });
-
+            {
+                static int once = [&] {
+                    auto lib = ftr_lib.get();
+                    if(!lib)
+                        rocblas_cerr << "\nrocBLAS error: Could not load " << tensileLibraryPath
+                                     << std::endl;
+                    else
+                    {
+                        using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
+                        m_library = std::dynamic_pointer_cast<MSL>(lib);
+                    }
+                    return 0;
+                }();
+            }
             if(!m_library)
             {
                 rocblas_cerr << "\nrocBLAS error: Could not initialize Tensile library"
