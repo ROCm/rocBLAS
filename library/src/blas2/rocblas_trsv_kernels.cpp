@@ -523,6 +523,7 @@ rocblas_trsv_device(rocblas_int    m,
         {
             const size_t i_idx = TRANS ? i : i * size_t(lda);
 
+            __syncthreads();
             if(TRANS ? (local_row + i < m && local_col < m) : (local_row < m && local_col + i < m))
                 sAoff[i / DIM_Y] = A[A_idx + i_idx];
             else
@@ -670,6 +671,7 @@ rocblas_trsv_device(rocblas_int    m,
             const bool   cached
                 = !first_row
                   && (backwards_sub ? block_col == block_row + 1 : block_col == block_row - 1);
+
             if(TRANS ? (local_row + i < m && local_col < m) : (local_row < m && local_col + i < m))
             {
                 auto A_val = cached ? sAoff[i / DIM_Y] : A[A_idx + i_idx];
