@@ -4,14 +4,6 @@
 
 cmake_minimum_required( VERSION 3.16.8 )
 
-# This will add compile option: -std=c++17
-set( CMAKE_CXX_STANDARD 17 )
-# Without this line, it will add -std=gnu++17 instead, which may have issues.
-set( CMAKE_CXX_EXTENSIONS OFF )
-
-if (NOT python)
-  set(python "python3") # default for linux
-endif()
 
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
@@ -19,90 +11,23 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
-# disable this next option and test build whenever compiler changes to verify unused arguments are safe to ignore
-# add_compile_options( -Wno-unused-command-line-argument )
-
-# TODO: address [[nodiscard]] warnings
-add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
-
-
-# CMake v3.21.0 can identify ROCMClang, but there are some issues with feature detection.
-# For now, disable ROCMClang detection to make it work the same as CMake v3.20 and earlier.
-set(__skip_rocmclang ON)
-
+# ROCM_BUILD_ID is added to the package name by rocm-cmake ROCMSetupVersion
 unset(ENV{ROCM_BUILD_ID})
+
 project( rocblas LANGUAGES CXX )
+
+# Append our library helper cmake path and the cmake path for hip (for convenience)
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
+include(build-options) # library and client
+include(toolchain-options)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# ########################################################################
-# NOTE:  CUDA compiling path
-# ########################################################################
-# I have tried compiling rocBLAS library source with multiple methods,
-# and ended up using the approach where we set the CXX compiler to hipcc.
-# I didn't like using the HIP_ADD_LIBRARY or CUDA_ADD_LIBRARY approaches,
-# for the reasons I list here.
-# 1.  Adding header include directories is through HIP_INCLUDE_DIRECTORIES(), which
-# is global to a directory and affects all targets
-# 2.  You must add HIP_SOURCE_PROPERTY_FORMAT OBJ properties to .cpp files
-# to get HIP_ADD_LIBRARY to recognize the file
-# 3.  HIP_ADD_LIBRARY invokes a call to add_custom_command() to compile files,
-# and rocBLAS does the same.  The order in which custom commands execute is
-# undefined, and sometimes a file is attempted to be compiled before it has
-# been generated.  The fix for this is to create 'PHONY' targets, which I
-# don't desire.
-
-# Using hipcc allows us to avoid the above problems, with two primary costs:
-# 1.  The cmake logic to detect compiler features fails with nvcc backend
-# 2.  Upfront cost to figure out all the strange compiler/linker flags I define
-# below.
-
-# Hopefully, cost #2 is already paid.  All in all, I want to get rid of the
-# need for hipcc, and hope that at some point of time in the future we
-# can use the export config files from hip for both ROCm & nvcc backends.
-# ########################################################################
 
 # ########################################################################
 # Main
 # ########################################################################
-
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
-  # Determine if CXX Compiler is hip-clang or nvcc
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--version" OUTPUT_VARIABLE CXX_OUTPUT
-                  OUTPUT_STRIP_TRAILING_WHITESPACE
-                  ERROR_STRIP_TRAILING_WHITESPACE)
-  string(REGEX MATCH "[A-Za-z]* ?clang version" TMP_CXX_VERSION ${CXX_OUTPUT})
-  string(REGEX MATCH "[A-Za-z]+" CXX_VERSION_STRING ${TMP_CXX_VERSION})
-endif()
-
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  message( STATUS "Use hip-clang to build for amdgpu backend" )
-# set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fallow-half-arguments-and-returns" )
-  set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
-  if ( CMAKE_BUILD_TYPE MATCHES "Debug" AND NOT WIN32)
-    set ( CMAKE_CXX_FLAGS_DEBUG "-O1 ${CMAKE_CXX_FLAGS_DEBUG} -gsplit-dwarf -ggdb" )
-  endif()
-elseif( CXX_VERSION_STRING MATCHES "nvcc" )
-  message( STATUS "HIPCC nvcc compiler detected; CUDA backend selected" )
-
-  set( CMAKE_C_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_PIC}" )
-  set( CMAKE_CXX_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_PIC}" )
-  set( CMAKE_SHARED_LIBRARY_C_FLAGS "-Xlinker ${CMAKE_SHARED_LIBRARY_C_FLAGS}" )
-  set( CMAKE_SHARED_LIBRARY_CXX_FLAGS "-Xlinker ${CMAKE_SHARED_LIBRARY_CXX_FLAGS}" )
-  set( CMAKE_SHARED_LIBRARY_SONAME_C_FLAG "-Xlinker -soname," )
-  set( CMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG "-Xlinker -soname," )
-  set( CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "-Xlinker -rpath," )
-  set( CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG "-Xlinker -rpath," )
-  set( CMAKE_EXECUTABLE_RUNTIME_C_FLAG "-Xlinker -rpath," )
-  set( CMAKE_EXECUTABLE_RUNTIME_CXX_FLAG "-Xlinker -rpath," )
-  set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY}" )
-  set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY}" )
-  set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
-  set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
-elseif( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  message( STATUS "ERROR: HCC compiler is no longer supported!" )
-endif( )
 
 # This finds the rocm-cmake project, and installs it if not found
 # rocm-cmake contains common cmake code for rocm projects to help setup and install
@@ -137,6 +62,7 @@ if( NOT ROCM_FOUND )
   find_package( ROCM 0.7 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
 endif( )
 
+# rocm-cmake helpers
 include( ROCMSetupVersion )
 include( ROCMCreatePackage )
 include( ROCMInstallTargets )
@@ -145,7 +71,7 @@ include( ROCMInstallSymlinks )
 include( ROCMCheckTargetIds OPTIONAL )
 
 
-include (cmake/os-detection.cmake)
+include (os-detection)
 get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
@@ -153,39 +79,9 @@ message (STATUS "OS detected is ${OS_ID}")
 set ( VERSION_STRING "2.44.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
-# Append our library helper cmake path and the cmake path for hip (for convenience)
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
-list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
-
 # NOTE:  workaround until llvm & hip cmake modules fixes symlink logic in their config files; remove when fixed
 list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm/hip )
-
-option( BUILD_VERBOSE "Output additional build information" OFF )
-
-# BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
-option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
-
-option( BUILD_TESTING "Build tests for rocBLAS" ON )
-
-# FOR OPTIONAL CODE COVERAGE
-option(BUILD_CODE_COVERAGE "Build rocBLAS with code coverage enabled" OFF)
-if(BUILD_CODE_COVERAGE)
-  add_compile_options(-fprofile-arcs -ftest-coverage)
-  add_link_options(--coverage)
-endif()
-
-include( clients/cmake/build-options.cmake )
-
-# FOR OPTIONAL ADDRESS SANITIZER
-option(BUILD_ADDRESS_SANITIZER "Build with address sanitizer enabled" OFF)
-if(BUILD_ADDRESS_SANITIZER AND BUILD_SHARED_LIBS)
-  # Fortran not supported, add_link_options below invalid for fortran linking
-  set(BUILD_FORTRAN_CLIENTS OFF)
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -shared-libasan")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -shared-libasan")
-  add_link_options(-fuse-ld=lld)
-endif()
 
 # force library install path to lib (CentOS 7 defaults to lib64)
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
@@ -237,42 +133,18 @@ if (AMDGPU_TARGETS)
 endif()
 
 if(NOT SKIP_LIBRARY)
-  option( BUILD_WITH_TENSILE "Build full functionality which requires tensile?" ON )
-
   if( BUILD_WITH_TENSILE )
     # we will have expanded "all" for tensile to ensure consistency as we have local rules
     set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
-
-    set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
-    set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
-    set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")
-    set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
-    set( Tensile_CPU_THREADS "" CACHE STRING "Number of threads for Tensile parallel build")
-
-    option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
-    option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
-    option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
-
-    set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
-
-    set_property( CACHE Tensile_LOGIC PROPERTY STRINGS aldebaran asm_full asm_lite asm_miopen hip_lite other )
-    set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
-    set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
-    set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
-
-    if(Tensile_LIBRARY_FORMAT MATCHES "yaml")
-      option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." ON)
-      option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." OFF)
-    else()
-      option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." OFF)
-      option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
-    endif()
 
     if (WIN32)
       set( Tensile_ROOT "${CMAKE_BINARY_DIR}/virtualenv/Lib/site-packages/Tensile" )
     endif()
 
+    set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
+
     include(virtualenv)
+
     if (Tensile_TEST_LOCAL_PATH)
       virtualenv_install(${Tensile_TEST_LOCAL_PATH})
       message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
@@ -332,7 +204,6 @@ if(BUILD_CODE_COVERAGE)
   #  > make coverage_output (generate html documentation)
   #
   #
-
 
   #
   # Run coverage analysis

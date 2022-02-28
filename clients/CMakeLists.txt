@@ -71,7 +71,7 @@ message(STATUS "CLIENT COMMON LINK: ${COMMON_LINK_LIBS}")
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
-include( build-options )
+include( client-build-options )
 
 # This option only works for make/nmake and the ninja generators, but no reason it shouldn't be on all the time
 # This tells cmake to create a compile_commands.json file that can be used with clang tooling or vim
