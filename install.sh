@@ -747,7 +747,7 @@ pushd .
     tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=yaml"
   fi
 
-  cmake_common_options="${cmake_common_options} ${tensile_opt}"
+  cmake_common_options="-DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake ${cmake_common_options} ${tensile_opt}"
 
 
   if [[ "${build_clients}" == true ]]; then
