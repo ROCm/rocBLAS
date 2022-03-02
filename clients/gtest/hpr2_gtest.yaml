@@ -44,7 +44,7 @@ Definitions:
     - { alpha: 4.0, alphai: 2.0 }
 
   - &alpha_nan
-    - { alpha: 4.0, alphai: .NaN }
+    - { alpha: .NaN }
 
 Tests:
 
@@ -123,6 +123,16 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   fortran: true
 
+- name: hpr2_batched_NaN
+  category: quick
+  function: hpr2_batched
+  precision: *double_precision_complex
+  uplo: [ L ]
+  N: [ 32 ]
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+
 - name: hpr2_batched_small
   category: quick
   function: hpr2_batched
@@ -165,6 +175,17 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
   fortran: true
+
+- name: hpr2_strided_batched_NaN
+  category: quick
+  function: hpr2_strided_batched
+  precision: *single_precision_complex
+  uplo: [ U ]
+  N: [ 32 ]
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: hpr2_strided_batched_small
   category: quick

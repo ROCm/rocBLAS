@@ -184,8 +184,8 @@ void testing_symv_strided_batched(const Arguments& arg)
 
     host_vector<T> alpha(1);
     host_vector<T> beta(1);
-    alpha[0] = arg.alpha;
-    beta[0]  = arg.beta;
+    alpha[0] = arg.get_alpha<T>();
+    beta[0]  = arg.get_beta<T>();
 
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;

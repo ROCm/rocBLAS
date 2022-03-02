@@ -114,6 +114,16 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   fortran: true
 
+- name: hpr_batched_NaN
+  category: quick
+  function: hpr_batched
+  precision: *double_precision_complex
+  uplo: [ U ]
+  N: [ 32 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+
 - name: hpr_batched_small
   category: quick
   function: hpr_batched
@@ -156,6 +166,17 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
   fortran: true
+
+- name: hpr_strided_batched_NaN
+  category: quick
+  function: hpr_strided_batched
+  precision: *single_precision_complex
+  uplo: [ L ]
+  N: [ 32 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: hpr_strided_batched_small
   category: quick

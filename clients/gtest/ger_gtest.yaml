@@ -139,6 +139,15 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   fortran: [ true ]
 
+- name: ger_batched_NaN
+  category: quick
+  function: ger_batched
+  precision: *double_precision
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+  batch_count: [ 2 ]
+
 - name: ger_batched_small
   category: quick
   function: ger_batched
@@ -177,6 +186,16 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
   fortran: [ true ]
+
+- name: ger_strided_batched_NaN
+  category: quick
+  function: ger_strided_batched
+  precision: *single_precision
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: ger_strided_batched_small
   category: quick
