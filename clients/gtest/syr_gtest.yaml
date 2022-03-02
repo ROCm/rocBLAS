@@ -119,6 +119,17 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   fortran: true
 
+- name: syr_batched_NaN
+  category: quick
+  function: syr_batched
+  precision: *double_precision
+  uplo: [ L ]
+  N: [ 32 ]
+  lda: [ 32 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+
 - name: syr_batched_small
   category: quick
   function: syr_batched
@@ -160,6 +171,17 @@ Tests:
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
   fortran: true
+
+- name: syr_strided_batched_NaN
+  category: quick
+  function: syr_strided_batched
+  precision: *single_precision
+  uplo: [ U ]
+  N: [ 32 ]
+  lda: [ 32 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
 
 - name: syr_strided_batched_small
   category: quick

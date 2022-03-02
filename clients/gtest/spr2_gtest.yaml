@@ -123,6 +123,16 @@ Tests:
   alpha: [ -0.5, 2.0, 0.0 ]
   batch_count: [ 1, 5 ]
 
+- name: spr2_batched_NaN
+  category: quick
+  function: spr2_batched
+  precision: *double_precision
+  uplo: [ U ]
+  N: [ 33 ]
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+  batch_count: [ 2 ]
+
 - name: spr2_batched_medium
   category: pre_checkin
   function: spr2_batched
@@ -166,6 +176,17 @@ Tests:
   alpha: [ -0.5, 2.0, 0.0 ]
   stride_scale: [ 1.0, 2.5 ]
   batch_count: [ 1, 5 ]
+
+- name: spr2_strided_batched_NaN
+  category: quick
+  function: spr2_strided_batched
+  precision: *single_precision
+  uplo: [ L ]
+  N: [ 33 ]
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: spr2_strided_batched_medium
   category: pre_checkin

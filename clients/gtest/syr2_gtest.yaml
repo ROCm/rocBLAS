@@ -83,11 +83,11 @@ Tests:
 - name: syr2_NaN
   category: quick
   function: syr2
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions
   uplo: [ U ]
   N: [ 32 ]
   lda: [ 32 ]
-  incx: [ 1 ]
+  incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_nan
 
 - name: syr2_small
@@ -128,6 +128,17 @@ Tests:
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
   fortran: true
+
+- name: syr2_batched_NaN
+  category: quick
+  function: syr2_batched
+  precision: *double_precision
+  uplo: [ U ]
+  N: [ 32 ]
+  lda: [ 32 ]
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
 
 - name: syr2_batched_small
   category: quick
@@ -171,6 +182,18 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
   fortran: true
+
+- name: syr2_strided_batched_NaN
+  category: quick
+  function: syr2_strided_batched
+  precision: *single_precision
+  uplo: [ U ]
+  N: [ 32 ]
+  lda: [ 32 ]
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: syr2_strided_batched_small
   category: quick
