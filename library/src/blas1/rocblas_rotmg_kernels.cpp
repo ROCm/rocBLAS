@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -147,23 +147,24 @@ __device__ __host__ void rocblas_rotmg_calc(T& d1, T& d2, T& x1, const T& y1, T*
     param[0] = flag;
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotmg_kernel(T              d1_in,
-                                         rocblas_int    offset_d1,
-                                         rocblas_stride stride_d1,
-                                         T              d2_in,
-                                         rocblas_int    offset_d2,
-                                         rocblas_stride stride_d2,
-                                         T              x1_in,
-                                         rocblas_int    offset_x1,
-                                         rocblas_stride stride_x1,
-                                         U              y1_in,
-                                         rocblas_int    offset_y1,
-                                         rocblas_stride stride_y1,
-                                         T              param,
-                                         rocblas_int    offset_param,
-                                         rocblas_stride stride_param,
-                                         rocblas_int    batch_count)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL(NB)
+rocblas_rotmg_kernel(T              d1_in,
+                     rocblas_int    offset_d1,
+                     rocblas_stride stride_d1,
+                     T              d2_in,
+                     rocblas_int    offset_d2,
+                     rocblas_stride stride_d2,
+                     T              x1_in,
+                     rocblas_int    offset_x1,
+                     rocblas_stride stride_x1,
+                     U              y1_in,
+                     rocblas_int    offset_y1,
+                     rocblas_stride stride_y1,
+                     T              param,
+                     rocblas_int    offset_param,
+                     rocblas_stride stride_param,
+                     rocblas_int    batch_count)
 {
     auto d1 = load_ptr_batch(d1_in, hipBlockIdx_x, offset_d1, stride_d1);
     auto d2 = load_ptr_batch(d2_in, hipBlockIdx_x, offset_d2, stride_d2);
@@ -198,7 +199,7 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL(rocblas_rotmg_kernel,
+        hipLaunchKernelGGL(rocblas_rotmg_kernel<1>,
                            batch_count,
                            1,
                            0,
@@ -239,32 +240,36 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
 }
 
 template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotmg_check_numerics_vector_kernel(T                         d1_in,
-                                                               rocblas_int               offset_d1,
-                                                               rocblas_stride            stride_d1,
-                                                               T                         d2_in,
-                                                               rocblas_int               offset_d2,
-                                                               rocblas_stride            stride_d2,
-                                                               T                         x1_in,
-                                                               rocblas_int               offset_x1,
-                                                               rocblas_stride            stride_x1,
-                                                               U                         y1_in,
-                                                               rocblas_int               offset_y1,
-                                                               rocblas_stride            stride_y1,
-                                                               rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL_NO_BOUNDS
+    rocblas_rotmg_check_numerics_vector_kernel(T                         d1_in,
+                                               rocblas_int               offset_d1,
+                                               rocblas_stride            stride_d1,
+                                               T                         d2_in,
+                                               rocblas_int               offset_d2,
+                                               rocblas_stride            stride_d2,
+                                               T                         x1_in,
+                                               rocblas_int               offset_x1,
+                                               rocblas_stride            stride_x1,
+                                               U                         y1_in,
+                                               rocblas_int               offset_y1,
+                                               rocblas_stride            stride_y1,
+                                               rocblas_check_numerics_t* abnormal)
 {
     auto d1 = load_ptr_batch(d1_in, hipBlockIdx_x, offset_d1, stride_d1);
     auto d2 = load_ptr_batch(d2_in, hipBlockIdx_x, offset_d2, stride_d2);
     auto x1 = load_ptr_batch(x1_in, hipBlockIdx_x, offset_x1, stride_x1);
     auto y1 = load_ptr_batch(y1_in, hipBlockIdx_x, offset_y1, stride_y1);
 
-    //Check every element of the x vector for a NaN/zero/Inf
+    //Check every element of the x vector for a NaN/zero/Inf/denormal value
     if(rocblas_iszero(*d1) || rocblas_iszero(*d2) || rocblas_iszero(*x1) || rocblas_iszero(*y1))
         abnormal->has_zero = true;
     if(rocblas_isnan(*d1) || rocblas_isnan(*d2) || rocblas_isnan(*x1) || rocblas_isnan(*y1))
         abnormal->has_NaN = true;
     if(rocblas_isinf(*d1) || rocblas_isinf(*d2) || rocblas_isinf(*x1) || rocblas_isinf(*y1))
         abnormal->has_Inf = true;
+    if(rocblas_isdenorm(*d1) || rocblas_isdenorm(*d2) || rocblas_isdenorm(*x1)
+       || rocblas_isdenorm(*y1))
+        abnormal->has_denorm = true;
 }
 
 template <typename T, typename U>
@@ -338,7 +343,7 @@ rocblas_status rocblas_rotmg_check_numerics_template(const char*    function_nam
             auto x1 = load_ptr_batch(x1_in, i, offset_x1, stride_x1);
             auto y1 = load_ptr_batch(y1_in, i, offset_y1, stride_y1);
 
-            //Check every element of the vectors d1, d2, x1, y1 for a zero/NaN/Inf
+            //Check every element of the vectors d1, d2, x1, y1 for a zero/NaN/Inf/denormal value
             if(rocblas_iszero(*d1) || rocblas_iszero(*d2) || rocblas_iszero(*x1)
                || rocblas_iszero(*y1))
                 h_abnormal.has_zero = true;
@@ -346,6 +351,9 @@ rocblas_status rocblas_rotmg_check_numerics_template(const char*    function_nam
                 h_abnormal.has_NaN = true;
             if(rocblas_isinf(*d1) || rocblas_isinf(*d2) || rocblas_isinf(*x1) || rocblas_isinf(*y1))
                 h_abnormal.has_Inf = true;
+            if(rocblas_isdenorm(*d1) || rocblas_isdenorm(*d2) || rocblas_isdenorm(*x1)
+               || rocblas_isdenorm(*y1))
+                h_abnormal.has_denorm = true;
         }
     }
     return rocblas_check_numerics_abnormal_struct(

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -15,13 +15,14 @@ static const T zero = T(0);
 template <typename T>
 static const T one = T(1);
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_internal_flip_vector_kernel(U* __restrict__ data,
-                                                        rocblas_int    m,
-                                                        rocblas_int    size,
-                                                        rocblas_int    abs_incx,
-                                                        rocblas_int    offset,
-                                                        rocblas_stride stride)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL(NB)
+rocblas_internal_flip_vector_kernel(U* __restrict__ data,
+                                    rocblas_int    m,
+                                    rocblas_int    size,
+                                    rocblas_int    abs_incx,
+                                    rocblas_int    offset,
+                                    rocblas_stride stride)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tx < size)
@@ -49,7 +50,7 @@ void rocblas_internal_flip_vector(rocblas_handle handle,
     dim3        grid(blocksX, batch_count, 1);
     dim3        threads(NB_X, 1, 1);
 
-    hipLaunchKernelGGL(rocblas_internal_flip_vector_kernel<T>,
+    hipLaunchKernelGGL((rocblas_internal_flip_vector_kernel<NB_X, T>),
                        grid,
                        threads,
                        0,
@@ -62,16 +63,17 @@ void rocblas_internal_flip_vector(rocblas_handle handle,
                        stride);
 }
 
-template <typename T, typename U, typename V>
-ROCBLAS_KERNEL void rocblas_internal_strided_vector_copy_kernel(U __restrict__ dst,
-                                                                rocblas_int    dst_incx,
-                                                                rocblas_stride dst_stride,
-                                                                V __restrict__ src,
-                                                                rocblas_int    src_incx,
-                                                                rocblas_stride src_stride,
-                                                                rocblas_int    size,
-                                                                rocblas_int    offset_dst = 0,
-                                                                rocblas_int    offset_src = 0)
+template <rocblas_int NB, typename T, typename U, typename V>
+ROCBLAS_KERNEL(NB)
+rocblas_internal_strided_vector_copy_kernel(U __restrict__ dst,
+                                            rocblas_int    dst_incx,
+                                            rocblas_stride dst_stride,
+                                            V __restrict__ src,
+                                            rocblas_int    src_incx,
+                                            rocblas_stride src_stride,
+                                            rocblas_int    size,
+                                            rocblas_int    offset_dst = 0,
+                                            rocblas_int    offset_src = 0)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tx < size)
@@ -99,7 +101,7 @@ void rocblas_internal_strided_vector_copy(rocblas_handle handle,
     dim3        grid(blocksX, batch_count, 1);
     dim3        threads(NB_X, 1, 1);
 
-    hipLaunchKernelGGL(rocblas_internal_strided_vector_copy_kernel<T>,
+    hipLaunchKernelGGL((rocblas_internal_strided_vector_copy_kernel<NB_X, T>),
                        grid,
                        threads,
                        0,

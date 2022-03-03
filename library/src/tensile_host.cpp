@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************/
 
 // The implementation of the rocBLAS<->Tensile interface layer.
@@ -27,6 +27,7 @@ extern "C" void rocblas_shutdown();
 #include <atomic>
 #include <complex>
 #include <exception>
+#include <future>
 #include <iomanip>
 #include <memory>
 #include <mutex>
@@ -195,23 +196,6 @@ namespace
         }
     };
 
-    /**************************************************************
-     * Tensile does not support float alpha and beta for HPA half *
-     * We must convert alpha and beta from float to half          *
-     * TODO- Tensile supports HHS HPA now                         *
-     * We could plan to use HHS+HPA instead of this workaround    *
-     **************************************************************/
-    template <>
-    struct AlphaBeta<rocblas_half, rocblas_half, float>
-    {
-        using tensile_type = Tensile::Half;
-        static void copy(tensile_type* dst, const float* float_src)
-        {
-            rocblas_half src(*float_src);
-            AlphaBeta<rocblas_half>::copy(dst, &src);
-        }
-    };
-
     /****************************************************************
      * Construct a Tensile Problem from a RocblasContractionProblem *
      ****************************************************************/
@@ -339,9 +323,16 @@ namespace
                                                    value_category(*prob.beta),
                                                    workspace_size};
 
-        // Open these two when we're ready to migrate from <HHH+HPA> to <HHS+HPA>
-        // tensileProblem.setAlphaType(Tensile_Tc);
-        // tensileProblem.setBetaType(Tensile_Tc);
+        // TODO: Remove this condition once we migrate HBH and BBH cases to the new naming convention.
+        // The alpha/beta data types for all cases, except HBH, remain as DataType::None here
+        // and will be defined in ContractionSolution::solve. The data types cannot be defined here now
+        // due to some naming conflicts for HBH/BBH.
+        if(Tensile_Ti == Tensile::DataType::Half && Tensile_To == Tensile::DataType::Half
+           && Tensile_Tc == Tensile::DataType::Float)
+        {
+            tensileProblem.setAlphaType(Tensile_Tc);
+            tensileProblem.setBetaType(Tensile_Tc);
+        }
 
         // HPA is active iff sizeof(compute type) > sizeof(input type)
         // but when Ti=int8x4 (32-byte),we still need to use HPA since the primitive data is int8
@@ -539,6 +530,7 @@ namespace
         void initialize(Tensile::hip::SolutionAdapter& adapter, rocblas_int deviceId)
         {
             std::string path;
+            std::string tensileLibraryPath;
 #ifndef WIN32
             path.reserve(PATH_MAX);
 #endif
@@ -594,6 +586,25 @@ namespace
                     path += "/" + processor;
             }
 
+#ifdef TENSILE_YAML
+            tensileLibraryPath = path + "/TensileLibrary.yaml";
+#else
+            tensileLibraryPath = path + "/TensileLibrary.dat";
+#endif
+            if(!TestPath(tensileLibraryPath))
+            {
+                rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath << ": "
+                             << strerror(errno) << std::endl;
+                rocblas_abort();
+            }
+            // We initialize a local static variable with a lambda function call to avoid
+            // race conditions when multiple threads with different device IDs try to
+            // initialize library. This ensures that only one thread initializes library,
+            // and other threads trying to initialize library wait for it to complete.
+            static auto ftr_lib = std::async(std::launch::async,
+                                             Tensile::LoadLibraryFile<Tensile::ContractionProblem>,
+                                             tensileLibraryPath);
+
             // only load modules for the current architecture
             auto dir = path + "/*" + processor + "*co";
 
@@ -648,34 +659,20 @@ namespace
                                     << std::endl;
             }
 
-            // We initialize a local static variable with a lambda function call to avoid
-            // race conditions when multiple threads with different device IDs try to
-            // initialize library. This ensures that only one thread initializes library,
-            // and other threads trying to initialize library wait for it to complete.
-            static int once = [&] {
-#ifdef TENSILE_YAML
-                path += "/TensileLibrary.yaml";
-#else
-                path += "/TensileLibrary.dat";
-#endif
-                if(!TestPath(path))
-                {
-                    rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": "
-                                 << strerror(errno) << std::endl;
-                    rocblas_abort();
-                }
-
-                auto lib = Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path);
-                if(!lib)
-                    rocblas_cerr << "\nrocBLAS error: Could not load " << path << std::endl;
-                else
-                {
-                    using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
-                    m_library = std::dynamic_pointer_cast<MSL>(lib);
-                }
-                return 0;
-            }();
-
+            {
+                static int once = [&] {
+                    auto lib = ftr_lib.get();
+                    if(!lib)
+                        rocblas_cerr << "\nrocBLAS error: Could not load " << tensileLibraryPath
+                                     << std::endl;
+                    else
+                    {
+                        using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
+                        m_library = std::dynamic_pointer_cast<MSL>(lib);
+                    }
+                    return 0;
+                }();
+            }
             if(!m_library)
             {
                 rocblas_cerr << "\nrocBLAS error: Could not initialize Tensile library"

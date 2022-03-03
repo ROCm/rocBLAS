@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -59,19 +59,20 @@ __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
     }
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotg_kernel(T              a_in,
-                                        rocblas_int    offset_a,
-                                        rocblas_stride stride_a,
-                                        T              b_in,
-                                        rocblas_int    offset_b,
-                                        rocblas_stride stride_b,
-                                        U              c_in,
-                                        rocblas_int    offset_c,
-                                        rocblas_stride stride_c,
-                                        T              s_in,
-                                        rocblas_int    offset_s,
-                                        rocblas_stride stride_s)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL(NB)
+rocblas_rotg_kernel(T              a_in,
+                    rocblas_int    offset_a,
+                    rocblas_stride stride_a,
+                    T              b_in,
+                    rocblas_int    offset_b,
+                    rocblas_stride stride_b,
+                    U              c_in,
+                    rocblas_int    offset_c,
+                    rocblas_stride stride_c,
+                    T              s_in,
+                    rocblas_int    offset_s,
+                    rocblas_stride stride_s)
 {
     auto a = load_ptr_batch(a_in, hipBlockIdx_x, offset_a, stride_a);
     auto b = load_ptr_batch(b_in, hipBlockIdx_x, offset_b, stride_b);
@@ -103,7 +104,7 @@ rocblas_status rocblas_rotg_template(rocblas_handle handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL(rocblas_rotg_kernel,
+        hipLaunchKernelGGL(rocblas_rotg_kernel<1>,
                            batch_count,
                            1,
                            0,
@@ -140,32 +141,35 @@ rocblas_status rocblas_rotg_template(rocblas_handle handle,
 }
 
 template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_rotg_check_numerics_vector_kernel(T                         a_in,
-                                                              rocblas_int               offset_a,
-                                                              rocblas_stride            stride_a,
-                                                              T                         b_in,
-                                                              rocblas_int               offset_b,
-                                                              rocblas_stride            stride_b,
-                                                              U                         c_in,
-                                                              rocblas_int               offset_c,
-                                                              rocblas_stride            stride_c,
-                                                              T                         s_in,
-                                                              rocblas_int               offset_s,
-                                                              rocblas_stride            stride_s,
-                                                              rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL_NO_BOUNDS
+    rocblas_rotg_check_numerics_vector_kernel(T                         a_in,
+                                              rocblas_int               offset_a,
+                                              rocblas_stride            stride_a,
+                                              T                         b_in,
+                                              rocblas_int               offset_b,
+                                              rocblas_stride            stride_b,
+                                              U                         c_in,
+                                              rocblas_int               offset_c,
+                                              rocblas_stride            stride_c,
+                                              T                         s_in,
+                                              rocblas_int               offset_s,
+                                              rocblas_stride            stride_s,
+                                              rocblas_check_numerics_t* abnormal)
 {
     auto a = load_ptr_batch(a_in, hipBlockIdx_x, offset_a, stride_a);
     auto b = load_ptr_batch(b_in, hipBlockIdx_x, offset_b, stride_b);
     auto c = load_ptr_batch(c_in, hipBlockIdx_x, offset_c, stride_c);
     auto s = load_ptr_batch(s_in, hipBlockIdx_x, offset_s, stride_s);
 
-    //Check every element of the vectors a, b, c, s for a zero/NaN/Inf
+    //Check every element of the vectors a, b, c, s for a zero/NaN/Inf/denormal value
     if(rocblas_iszero(*a) || rocblas_iszero(*b) || rocblas_iszero(*c) || rocblas_iszero(*s))
         abnormal->has_zero = true;
     if(rocblas_isnan(*a) || rocblas_isnan(*b) || rocblas_isnan(*c) || rocblas_isnan(*s))
         abnormal->has_NaN = true;
     if(rocblas_isinf(*a) || rocblas_isinf(*b) || rocblas_isinf(*c) || rocblas_isinf(*s))
         abnormal->has_Inf = true;
+    if(rocblas_isdenorm(*a) || rocblas_isdenorm(*b) || rocblas_isdenorm(*c) || rocblas_isdenorm(*s))
+        abnormal->has_denorm = true;
 }
 
 template <typename T, typename U>
@@ -240,13 +244,16 @@ rocblas_status rocblas_rotg_check_numerics_template(const char*    function_name
             auto c = load_ptr_batch(c_in, i, offset_c, stride_c);
             auto s = load_ptr_batch(s_in, i, offset_s, stride_s);
 
-            //Check every element of the x vector for a NaN/zero/Inf
+            //Check every element of the x vector for a NaN/zero/Inf/denormal value
             if(rocblas_iszero(*a) || rocblas_iszero(*b) || rocblas_iszero(*c) || rocblas_iszero(*s))
                 h_abnormal.has_zero = true;
             if(rocblas_isnan(*a) || rocblas_isnan(*b) || rocblas_isnan(*c) || rocblas_isnan(*s))
                 h_abnormal.has_NaN = true;
             if(rocblas_isinf(*a) || rocblas_isinf(*b) || rocblas_isinf(*c) || rocblas_isinf(*s))
                 h_abnormal.has_Inf = true;
+            if(rocblas_isdenorm(*a) || rocblas_isdenorm(*b) || rocblas_isdenorm(*c)
+               || rocblas_isdenorm(*s))
+                h_abnormal.has_denorm = true;
         }
     }
     return rocblas_check_numerics_abnormal_struct(

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "Tensile/gemm.hpp"
@@ -38,14 +38,15 @@
 
 rocblas_int rocblas_get_trmm_recursive_nb(rocblas_int n);
 
-template <typename TScal, typename TPtr>
-ROCBLAS_KERNEL void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
-                                                         rocblas_int    n,
-                                                         TScal          alpha_device_host,
-                                                         rocblas_stride stride_alpha,
-                                                         TPtr           Aa,
-                                                         rocblas_int    lda,
-                                                         rocblas_stride a_st_or_of)
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TPtr>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
+                                     rocblas_int    n,
+                                     TScal          alpha_device_host,
+                                     rocblas_stride stride_alpha,
+                                     TPtr           Aa,
+                                     rocblas_int    lda,
+                                     rocblas_stride a_st_or_of)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     ptrdiff_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -86,7 +87,7 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
     dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL(set_matrix_zero_if_alpha_zero_kernel,
+        hipLaunchKernelGGL((set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
                            grid,
                            threads,
                            0,
@@ -99,7 +100,7 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
                            lda,
                            a_st_or_of);
     else
-        hipLaunchKernelGGL(set_matrix_zero_if_alpha_zero_kernel,
+        hipLaunchKernelGGL((set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
                            grid,
                            threads,
                            0,
@@ -116,18 +117,19 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
 
 // left, NoTrans
 template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
-                                                                      rocblas_diagonal diag,
-                                                                      int              m,
-                                                                      int   n, // m must be <= NB
-                                                                      TScal alpha_device_host,
-                                                                      rocblas_stride stride_alpha,
-                                                                      TConstPtr*     A_arg,
-                                                                      rocblas_int    lda,
-                                                                      rocblas_stride a_st_or_of,
-                                                                      TPtr*          B_arg,
-                                                                      rocblas_int    ldb,
-                                                                      rocblas_stride b_st_or_of)
+ROCBLAS_KERNEL(NB* NB)
+rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
+                        rocblas_diagonal diag,
+                        int              m,
+                        int              n, // m must be <= NB
+                        TScal            alpha_device_host,
+                        rocblas_stride   stride_alpha,
+                        TConstPtr*       A_arg,
+                        rocblas_int      lda,
+                        rocblas_stride   a_st_or_of,
+                        TPtr*            B_arg,
+                        rocblas_int      ldb,
+                        rocblas_stride   b_st_or_of)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -187,18 +189,19 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fi
 
 // left, Trans|ConjTrans
 template <const int NB, bool CONJA, typename T, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
-                                                                      rocblas_diagonal diag,
-                                                                      int              m,
-                                                                      int   n, // m must be <= NB
-                                                                      TScal alpha_device_host,
-                                                                      rocblas_stride stride_alpha,
-                                                                      TConstPtr*     A_arg,
-                                                                      rocblas_int    lda,
-                                                                      rocblas_stride a_st_or_of,
-                                                                      TPtr*          B_arg,
-                                                                      rocblas_int    ldb,
-                                                                      rocblas_stride b_st_or_of)
+ROCBLAS_KERNEL(NB* NB)
+rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
+                        rocblas_diagonal diag,
+                        int              m,
+                        int              n, // m must be <= NB
+                        TScal            alpha_device_host,
+                        rocblas_stride   stride_alpha,
+                        TConstPtr*       A_arg,
+                        rocblas_int      lda,
+                        rocblas_stride   a_st_or_of,
+                        TPtr*            B_arg,
+                        rocblas_int      ldb,
+                        rocblas_stride   b_st_or_of)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -271,18 +274,19 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fi
 
 // right NoTrans
 template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
-                                                                      rocblas_diagonal diag,
-                                                                      int              m,
-                                                                      int   n, // m must be <= NB
-                                                                      TScal alpha_device_host,
-                                                                      rocblas_stride stride_alpha,
-                                                                      TConstPtr*     A_arg,
-                                                                      rocblas_int    lda,
-                                                                      rocblas_stride a_st_or_of,
-                                                                      TPtr*          B_arg,
-                                                                      rocblas_int    ldb,
-                                                                      rocblas_stride b_st_or_of)
+ROCBLAS_KERNEL(NB* NB)
+rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
+                        rocblas_diagonal diag,
+                        int              m,
+                        int              n, // m must be <= NB
+                        TScal            alpha_device_host,
+                        rocblas_stride   stride_alpha,
+                        TConstPtr*       A_arg,
+                        rocblas_int      lda,
+                        rocblas_stride   a_st_or_of,
+                        TPtr*            B_arg,
+                        rocblas_int      ldb,
+                        rocblas_stride   b_st_or_of)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -343,18 +347,19 @@ ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fi
 
 // right, transpose_and_conjugate_transpose
 template <const int NB, bool CONJA, typename T, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
-                                                                      rocblas_diagonal diag,
-                                                                      int              m,
-                                                                      int   n, // m must be <= NB
-                                                                      TScal alpha_device_host,
-                                                                      rocblas_stride stride_alpha,
-                                                                      TConstPtr*     A_arg,
-                                                                      rocblas_int    lda,
-                                                                      rocblas_stride a_st_or_of,
-                                                                      TPtr*          B_arg,
-                                                                      rocblas_int    ldb,
-                                                                      rocblas_stride b_st_or_of)
+ROCBLAS_KERNEL(NB* NB)
+rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
+                        rocblas_diagonal diag,
+                        int              m,
+                        int              n, // m must be <= NB
+                        TScal            alpha_device_host,
+                        rocblas_stride   stride_alpha,
+                        TConstPtr*       A_arg,
+                        rocblas_int      lda,
+                        rocblas_stride   a_st_or_of,
+                        TPtr*            B_arg,
+                        rocblas_int      ldb,
+                        rocblas_stride   b_st_or_of)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -681,7 +686,7 @@ template <typename T,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
+ROCBLAS_KERNEL(NB* NB) rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
                                                                              int              m,
                                                                              int              n,
                                                                              TScal            alpha_device_host,

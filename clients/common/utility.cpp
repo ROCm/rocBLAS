@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifdef WIN32
@@ -25,13 +25,10 @@
 
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
+namespace fs = std::filesystem;
 #else
 #include <experimental/filesystem>
-
-namespace std
-{
-    namespace filesystem = experimental::filesystem;
-}
+namespace fs = std::experimental::filesystem;
 #endif
 
 /* ============================================================================================ */
@@ -59,9 +56,9 @@ std::string rocblas_exepath()
     }
 
     // std::wstring          wspath(result.data());
-    // std::filesystem::path exepath(wspath.begin(), wspath.end());
+    // fs::path exepath(wspath.begin(), wspath.end());
 
-    std::filesystem::path exepath(result.begin(), result.end());
+    fs::path exepath(result.begin(), result.end());
     exepath = exepath.remove_filename();
     // Add trailing "/" to exepath if required
     exepath += exepath.empty() ? "" : "/";
@@ -96,7 +93,7 @@ std::string rocblas_tempname()
     for(auto n : {0, 1, 2, 3, 4, 5})
         uniquestr += alphanum.at(rand() % stringlength);
 
-    std::filesystem::path tmpname = std::filesystem::temp_directory_path() / uniquestr;
+    fs::path tmpname = fs::temp_directory_path() / uniquestr;
 
     return tmpname.string();
 #else

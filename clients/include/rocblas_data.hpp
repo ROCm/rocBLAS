@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -19,13 +19,10 @@
 
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
+namespace fs = std::filesystem;
 #else
 #include <experimental/filesystem>
-
-namespace std
-{
-    namespace filesystem = experimental::filesystem;
-}
+namespace fs = std::experimental::filesystem;
 #endif
 
 // Class used to read Arguments data into the tests
@@ -86,7 +83,7 @@ public:
         filename() = std::move(name);
         if(remove_atexit)
         {
-            auto cleanup = [] { std::filesystem::remove(filename().c_str()); };
+            auto cleanup = [] { fs::remove(filename().c_str()); };
             atexit(cleanup);
             at_quick_exit(cleanup);
         }

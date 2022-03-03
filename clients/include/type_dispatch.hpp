@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -74,48 +74,126 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
 {
     const auto Ti = arg.a_type, Tb = arg.b_type, To = arg.d_type;
     const auto Tc = arg.c_type;
-    if(Ti == To)
+
+    if(strstr(arg.function, "iamax") || strstr(arg.function, "iamin")
+       || strstr(arg.function, "asum") || strstr(arg.function, "nrm2")
+       || strstr(arg.function, "swap"))
     {
-        if(Tb == Ti)
-            return rocblas_simple_dispatch<TEST>(arg);
-        else
-        { // for csscal and zdscal and complex rot/rotg only
-            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
-               && Tc == rocblas_datatype_f32_r)
-                return TEST<rocblas_float_complex, float>{}(arg);
-            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
-                    && Tc == rocblas_datatype_f64_r)
-                return TEST<rocblas_double_complex, double>{}(arg);
-            else if(strstr(arg.function, "scal"))
-            {
-                // for csscal and zdscal
-                if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
-                   && Tc == rocblas_datatype_f32_c)
-                    return TEST<rocblas_float_complex, float>{}(arg);
-                else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
-                        && Tc == rocblas_datatype_f64_c)
-                    return TEST<rocblas_double_complex, double>{}(arg);
-            }
-            else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
-                    && Tc == rocblas_datatype_f32_c)
-                return TEST<rocblas_float_complex, float, rocblas_float_complex>{}(arg);
-            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
-                    && Tc == rocblas_datatype_f64_c)
-                return TEST<rocblas_double_complex, double, rocblas_double_complex>{}(arg);
+        // s, d, c, z precisions
+        if(Ti == To && Ti == Tb && Ti == Tc)
+            if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r
+               || Ti == rocblas_datatype_f32_c || Ti == rocblas_datatype_f64_c)
+                return rocblas_simple_dispatch<TEST>(arg);
+    }
+    else if(strstr(arg.function, "rotm") || strstr(arg.function, "rotmg"))
+    {
+        // s, d precisions
+        if(Ti == To && Ti == Tb && Ti == Tc)
+            if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r)
+                return rocblas_simple_dispatch<TEST>(arg);
+    }
+    else if(strstr(arg.function, "axpy") || strstr(arg.function, "copy"))
+    {
+        // h, s, d, c, z precisions
+        if(Ti == To && Ti == Tb && Ti == Tc)
+            if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r
+               || Ti == rocblas_datatype_f32_c || Ti == rocblas_datatype_f64_c
+               || Ti == rocblas_datatype_f16_r)
+                return rocblas_simple_dispatch<TEST>(arg);
+    }
+    else if(strstr(arg.function, "dot"))
+    {
+        // h, bf, s, d, c, z precisions
+        if(Ti == To && Ti == Tb && Ti == Tc)
+        {
+            // h, s, d, c, z
+            if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r
+               || Ti == rocblas_datatype_f32_c || Ti == rocblas_datatype_f64_c
+               || Ti == rocblas_datatype_f16_r || Ti == rocblas_datatype_bf16_r)
+                return rocblas_simple_dispatch<TEST>(arg);
+        }
+        else if(Ti == To && Ti == Tb)
+        {
+            // bf
+            if(Ti == rocblas_datatype_bf16_r && Tc == rocblas_datatype_f32_r)
+                return rocblas_simple_dispatch<TEST>(arg);
         }
     }
-    //
-    else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
-        return TEST<rocblas_float_complex, float>{}(arg);
-    else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
-        return TEST<rocblas_double_complex, double>{}(arg);
-    else if(Ti == rocblas_datatype_f32_r && Tb == rocblas_datatype_f32_r)
-        return TEST<float, float>{}(arg);
-    else if(Ti == rocblas_datatype_f64_r && Tb == rocblas_datatype_f64_r)
-        return TEST<double, double>{}(arg);
-
-    //  else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
-    //      return TEST<rocblas_half_complex, rocblas_half>{}(arg);
+    else if(strstr(arg.function, "rotg"))
+    {
+        // s, d, c, z precisions
+        if(Ti == To && Ti == Tb && Ti == Tc)
+        {
+            // s, d
+            if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r)
+                return rocblas_simple_dispatch<TEST>(arg);
+        }
+        else if(Ti == To && Tb == Tc)
+        {
+            // c, z
+            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
+                return TEST<rocblas_float_complex, float>{}(arg);
+            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
+                return TEST<rocblas_double_complex, double>{}(arg);
+        }
+    }
+    else if(strstr(arg.function, "rot"))
+    {
+        // s, d, c, z, cs, zd precisions
+        if(Ti == To && Ti == Tb && Ti == Tc)
+        {
+            // s, d
+            if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r)
+                return rocblas_simple_dispatch<TEST>(arg);
+        }
+        else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+                && Tc == rocblas_datatype_f32_c)
+        {
+            // c
+            return TEST<rocblas_float_complex, float, rocblas_float_complex>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                && Tc == rocblas_datatype_f64_c)
+        {
+            // z
+            return TEST<rocblas_double_complex, double, rocblas_double_complex>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+                && Tc == rocblas_datatype_f32_r)
+        {
+            // cs
+            return TEST<rocblas_float_complex, float>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                && Tc == rocblas_datatype_f64_r)
+        {
+            // zd
+            return TEST<rocblas_double_complex, double>{}(arg);
+        }
+    }
+    else if(strstr(arg.function, "scal"))
+    {
+        // s, d, c, cs, z, zd
+        if(Ti == To && Ti == Tb && Ti == Tc)
+        {
+            // z, d, c, z
+            if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r
+               || Ti == rocblas_datatype_f32_c || Ti == rocblas_datatype_f64_c)
+                return rocblas_simple_dispatch<TEST>(arg);
+        }
+        else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+                && Tc == rocblas_datatype_f32_r)
+        {
+            // cs
+            return TEST<rocblas_float_complex, float>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                && Tc == rocblas_datatype_f64_r)
+        {
+            // zd
+            return TEST<rocblas_double_complex, double>{}(arg);
+        }
+    }
 
     return TEST<void>{}(arg);
 }

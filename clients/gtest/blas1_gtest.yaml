@@ -47,7 +47,7 @@ Definitions:
 
   - &incx_incy_range_small
     - { incx: 1, incy: 1 }
-    - { incx: -2, incy: -2 }
+    - { incx: -1, incy: -1 }
 
   - &alpha_beta_range
     - { alpha:  1.0, beta:  0.0 }
