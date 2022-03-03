@@ -1,10 +1,9 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
-#include "fetch_template.hpp"
 #include "handle.hpp"
 #include "reduction_strided_batched.hpp"
 
@@ -26,6 +25,6 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
                                           Tr*            results,
                                           Tw*            workspace)
 {
-    return rocblas_reduction_strided_batched_kernel<NB, FETCH, REDUCE, FINALIZE>(
+    return rocblas_reduction_strided_batched<NB, FETCH, REDUCE, FINALIZE>(
         handle, n, x, shiftx, incx, stridex, batch_count, workspace, results);
 }

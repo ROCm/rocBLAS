@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -20,6 +20,205 @@
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
 #define TRSM_BLOCK 128
+
+template <typename T>
+void testing_trsm_batched_ex_bad_arg(const Arguments& arg)
+{
+    auto rocblas_trsm_batched_ex_fn
+        = arg.fortran ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
+
+    rocblas_local_handle handle{arg};
+    const rocblas_int    M           = 100;
+    const rocblas_int    N           = 100;
+    const rocblas_int    lda         = 100;
+    const rocblas_int    ldb         = 100;
+    const rocblas_int    batch_count = 2;
+    const T              alpha       = 1.0;
+    const T              zero        = 0.0;
+
+    const rocblas_side      side   = rocblas_side_left;
+    const rocblas_fill      uplo   = rocblas_fill_upper;
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+
+    // allocate memory on device
+    const size_t           safe_size = 100;
+    device_batch_vector<T> dA(safe_size, 1, batch_count);
+    device_batch_vector<T> dB(safe_size * safe_size, 1, batch_count);
+    device_batch_vector<T> dinvA(safe_size, 1, batch_count);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+
+    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     &alpha,
+                                                     nullptr,
+                                                     lda,
+                                                     dB,
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     &alpha,
+                                                     dA,
+                                                     lda,
+                                                     nullptr,
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     nullptr,
+                                                     dA,
+                                                     lda,
+                                                     dB,
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(nullptr,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     &alpha,
+                                                     dA,
+                                                     lda,
+                                                     dB,
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_invalid_handle);
+
+    // When batch_count==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     nullptr,
+                                                     nullptr,
+                                                     lda,
+                                                     nullptr,
+                                                     ldb,
+                                                     0,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_success);
+
+    // When M==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     0,
+                                                     N,
+                                                     nullptr,
+                                                     nullptr,
+                                                     lda,
+                                                     nullptr,
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_success);
+
+    // When N==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     0,
+                                                     nullptr,
+                                                     nullptr,
+                                                     lda,
+                                                     nullptr,
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_success);
+
+    // If alpha==0, then A can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     &zero,
+                                                     nullptr,
+                                                     lda,
+                                                     dB.ptr_on_device(),
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_f32_r),
+                          rocblas_status_success);
+
+    // Unsupported datatype
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     &alpha,
+                                                     dA,
+                                                     lda,
+                                                     dB,
+                                                     ldb,
+                                                     batch_count,
+                                                     dinvA,
+                                                     safe_size,
+                                                     rocblas_datatype_bf16_r),
+                          rocblas_status_not_implemented);
+}
 
 template <typename T>
 void testing_trsm_batched_ex(const Arguments& arg)

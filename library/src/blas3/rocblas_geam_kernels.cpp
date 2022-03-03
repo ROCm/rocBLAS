@@ -1,17 +1,18 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "handle.hpp"
 #include "rocblas_geam.hpp"
 
 template <int DIM_X, int DIM_Y, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_zero_matrix_device(rocblas_int    m,
-                                                                            rocblas_int    n,
-                                                                            TPtr           Ca,
-                                                                            rocblas_int    offset_c,
-                                                                            rocblas_int    ldc,
-                                                                            rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+geam_zero_matrix_device(rocblas_int    m,
+                        rocblas_int    n,
+                        TPtr           Ca,
+                        rocblas_int    offset_c,
+                        rocblas_int    ldc,
+                        rocblas_stride stride_c)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -26,24 +27,25 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_zero_matrix_device(rocb
 
 // general case for any alpha, beta, lda, ldb, ldc
 template <int DIM_X, int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_device(rocblas_operation transA,
-                                                                rocblas_operation transB,
-                                                                rocblas_int       m,
-                                                                rocblas_int       n,
-                                                                TScal             alpha_device_host,
-                                                                TConstPtr         Aa,
-                                                                rocblas_int       offset_a,
-                                                                rocblas_int       lda,
-                                                                rocblas_stride    stride_a,
-                                                                TScal             beta_device_host,
-                                                                TConstPtr         Ba,
-                                                                rocblas_int       offset_b,
-                                                                rocblas_int       ldb,
-                                                                rocblas_stride    stride_b,
-                                                                TPtr              Ca,
-                                                                rocblas_int       offset_c,
-                                                                rocblas_int       ldc,
-                                                                rocblas_stride    stride_c)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+geam_device(rocblas_operation transA,
+            rocblas_operation transB,
+            rocblas_int       m,
+            rocblas_int       n,
+            TScal             alpha_device_host,
+            TConstPtr         Aa,
+            rocblas_int       offset_a,
+            rocblas_int       lda,
+            rocblas_stride    stride_a,
+            TScal             beta_device_host,
+            TConstPtr         Ba,
+            rocblas_int       offset_b,
+            rocblas_int       ldb,
+            rocblas_stride    stride_b,
+            TPtr              Ca,
+            rocblas_int       offset_c,
+            rocblas_int       ldc,
+            rocblas_stride    stride_c)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -93,18 +95,19 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_device(rocblas_operatio
 //  special case:
 //  only one matrix contributes because   0 == alpha || 0 == beta
 template <int DIM_X, int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_2matrix_device(rocblas_operation transA,
-                                                                        rocblas_int       m,
-                                                                        rocblas_int       n,
-                                                                        TScal     alpha_device_host,
-                                                                        TConstPtr Aa,
-                                                                        rocblas_int    offset_a,
-                                                                        rocblas_int    lda,
-                                                                        rocblas_stride stride_a,
-                                                                        TPtr           Ca,
-                                                                        rocblas_int    offset_c,
-                                                                        rocblas_int    ldc,
-                                                                        rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+geam_2matrix_device(rocblas_operation transA,
+                    rocblas_int       m,
+                    rocblas_int       n,
+                    TScal             alpha_device_host,
+                    TConstPtr         Aa,
+                    rocblas_int       offset_a,
+                    rocblas_int       lda,
+                    rocblas_stride    stride_a,
+                    TPtr              Ca,
+                    rocblas_int       offset_c,
+                    rocblas_int       ldc,
+                    rocblas_stride    stride_c)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -147,18 +150,19 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_2matrix_device(rocblas_
 // are contiguous, there are no transposes, and therefore matrices
 // can be treated as contiguous vectors
 template <int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_device(size_t         size,
-                                                            TScal          alpha_device_host,
-                                                            TConstPtr      Aa,
-                                                            rocblas_int    offset_a,
-                                                            rocblas_stride stride_a,
-                                                            TScal          beta_device_host,
-                                                            TConstPtr      Ba,
-                                                            rocblas_int    offset_b,
-                                                            rocblas_stride stride_b,
-                                                            TPtr           Ca,
-                                                            rocblas_int    offset_c,
-                                                            rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X)
+geam_1D_device(size_t         size,
+               TScal          alpha_device_host,
+               TConstPtr      Aa,
+               rocblas_int    offset_a,
+               rocblas_stride stride_a,
+               TScal          beta_device_host,
+               TConstPtr      Ba,
+               rocblas_int    offset_b,
+               rocblas_stride stride_b,
+               TPtr           Ca,
+               rocblas_int    offset_c,
+               rocblas_stride stride_c)
 {
     size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
 
@@ -188,14 +192,15 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_device(size_t         size,
 // can be treated as contiguous vectors.
 // Also, alpha == 0  ||  beta == 0  so only one matrix contributes
 template <int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_2matrix_device(size_t      size,
-                                                                    TScal       alpha_device_host,
-                                                                    TConstPtr   Aa,
-                                                                    rocblas_int offset_a,
-                                                                    rocblas_stride stride_a,
-                                                                    TPtr           Ca,
-                                                                    rocblas_int    offset_c,
-                                                                    rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X)
+geam_1D_2matrix_device(size_t         size,
+                       TScal          alpha_device_host,
+                       TConstPtr      Aa,
+                       rocblas_int    offset_a,
+                       rocblas_stride stride_a,
+                       TPtr           Ca,
+                       rocblas_int    offset_c,
+                       rocblas_stride stride_c)
 {
     size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
 
@@ -220,19 +225,20 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_2matrix_device(size_t      
 // special cases where: A == C && lda == ldc && transA == none
 // this is in place case C <- alpha*C + beta*B
 template <int DIM_X, int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_inplace_device(rocblas_operation transB,
-                                                                        rocblas_int       m,
-                                                                        rocblas_int       n,
-                                                                        TScal     alpha_device_host,
-                                                                        TScal     beta_device_host,
-                                                                        TConstPtr Ba,
-                                                                        rocblas_int    offset_b,
-                                                                        rocblas_int    ldb,
-                                                                        rocblas_stride stride_b,
-                                                                        TPtr           Ca,
-                                                                        rocblas_int    offset_c,
-                                                                        rocblas_int    ldc,
-                                                                        rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+geam_inplace_device(rocblas_operation transB,
+                    rocblas_int       m,
+                    rocblas_int       n,
+                    TScal             alpha_device_host,
+                    TScal             beta_device_host,
+                    TConstPtr         Ba,
+                    rocblas_int       offset_b,
+                    rocblas_int       ldb,
+                    rocblas_stride    stride_b,
+                    TPtr              Ca,
+                    rocblas_int       offset_c,
+                    rocblas_int       ldc,
+                    rocblas_stride    stride_c)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

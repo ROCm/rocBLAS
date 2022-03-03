@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -27,21 +27,22 @@ __device__ void syr2_kernel_calc(bool        upper,
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void rocblas_syr2_kernel(bool           upper,
-                                                                        rocblas_int    n,
-                                                                        TScal          alphaa,
-                                                                        TConstPtr      xa,
-                                                                        ptrdiff_t      shift_x,
-                                                                        rocblas_int    incx,
-                                                                        rocblas_stride stride_x,
-                                                                        TConstPtr      ya,
-                                                                        ptrdiff_t      shift_y,
-                                                                        rocblas_int    incy,
-                                                                        rocblas_stride stride_y,
-                                                                        TPtr           Aa,
-                                                                        rocblas_int    lda,
-                                                                        ptrdiff_t      shift_A,
-                                                                        rocblas_stride stride_A)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+rocblas_syr2_kernel(bool           upper,
+                    rocblas_int    n,
+                    TScal          alphaa,
+                    TConstPtr      xa,
+                    ptrdiff_t      shift_x,
+                    rocblas_int    incx,
+                    rocblas_stride stride_x,
+                    TConstPtr      ya,
+                    ptrdiff_t      shift_y,
+                    rocblas_int    incy,
+                    rocblas_stride stride_y,
+                    TPtr           Aa,
+                    rocblas_int    lda,
+                    ptrdiff_t      shift_A,
+                    rocblas_stride stride_A)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -19,6 +19,73 @@
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
+
+template <typename T>
+void testing_trsm_bad_arg(const Arguments& arg)
+{
+    auto rocblas_trsm_fn = arg.fortran ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+
+    const rocblas_int M   = 100;
+    const rocblas_int N   = 100;
+    const rocblas_int lda = 100;
+    const rocblas_int ldb = 100;
+
+    const T alpha = 1.0;
+    const T zero  = 0.0;
+
+    const rocblas_side      side   = rocblas_side_left;
+    const rocblas_fill      uplo   = rocblas_fill_upper;
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+
+    rocblas_local_handle handle{arg};
+
+    rocblas_int K      = side == rocblas_side_left ? M : N;
+    size_t      size_A = lda * size_t(K);
+    size_t      size_B = ldb * size_t(N);
+
+    // allocate memory on device
+    device_vector<T> dA(size_A);
+    device_vector<T> dB(size_B);
+
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+
+    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, nullptr, ldb),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
+        rocblas_status_invalid_handle);
+
+    // If M==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(
+            handle, side, uplo, transA, diag, 0, N, nullptr, nullptr, lda, nullptr, ldb),
+        rocblas_status_success);
+
+    // If N==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(
+            handle, side, uplo, transA, diag, M, 0, nullptr, nullptr, lda, nullptr, ldb),
+        rocblas_status_success);
+
+    // If alpha==0, then A can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, dB, ldb),
+        rocblas_status_success);
+}
 
 template <typename T>
 void testing_trsm(const Arguments& arg)
@@ -211,25 +278,47 @@ void testing_trsm(const Arguments& arg)
 
         CHECK_HIP_ERROR(hXorB_2.transfer_from(dXorB));
 
-        //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
-        // calculate vector-induced-norm 1 of matrix E
-        max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
-        max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_2));
+        if(alpha_h == 0)
+        {
+            // expecting 0 output, set hX == 0
+            for(rocblas_int i = 0; i < M; i++)
+                for(rocblas_int j = 0; j < N; j++)
+                    hX[i + j * ldb] = 0.0;
 
-        //unit test
-        trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
-        trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(M, N, ldb, hX, hXorB_1);
+                unit_check_general<T>(M, N, ldb, hX, hXorB_2);
+            }
 
-        // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_2, ldb);
+            if(arg.norm_check)
+            {
+                max_err_1 = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1));
+                max_err_2 = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_2));
+            }
+        }
+        else
+        {
+            //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+            // calculate vector-induced-norm 1 of matrix E
+            max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
+            max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_2));
 
-        max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
-        max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_2, hB));
+            //unit test
+            trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
 
-        //unit test
-        trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);
-        trsm_err_res_check<T>(max_err_2, M, residual_eps_multiplier, eps);
+            // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
+            cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
+            cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_2, ldb);
+
+            max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
+            max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_2, hB));
+
+            //unit test
+            trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);
+            trsm_err_res_check<T>(max_err_2, M, residual_eps_multiplier, eps);
+        }
     }
 
     if(arg.timing)

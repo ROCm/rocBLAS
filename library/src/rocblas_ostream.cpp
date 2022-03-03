@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 // Predeclare rocblas_abort_once() for friend declaration in rocblas_ostream.hpp
