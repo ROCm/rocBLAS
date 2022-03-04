@@ -1,25 +1,26 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "handle.hpp"
 #include "rocblas_dgmm.hpp"
 
 template <int DIM_X, int DIM_Y, bool side_right, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void dgmm_device(rocblas_int    m,
-                                                                rocblas_int    n,
-                                                                TConstPtr      Aa,
-                                                                rocblas_int    offset_a,
-                                                                rocblas_int    lda,
-                                                                rocblas_stride stride_a,
-                                                                TConstPtr      Xa,
-                                                                rocblas_int    shift_x,
-                                                                rocblas_int    incx,
-                                                                rocblas_stride stride_x,
-                                                                TPtr           Ca,
-                                                                rocblas_int    offset_c,
-                                                                rocblas_int    ldc,
-                                                                rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+dgmm_device(rocblas_int    m,
+            rocblas_int    n,
+            TConstPtr      Aa,
+            rocblas_int    offset_a,
+            rocblas_int    lda,
+            rocblas_stride stride_a,
+            TConstPtr      Xa,
+            rocblas_int    shift_x,
+            rocblas_int    incx,
+            rocblas_stride stride_x,
+            TPtr           Ca,
+            rocblas_int    offset_c,
+            rocblas_int    ldc,
+            rocblas_stride stride_c)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

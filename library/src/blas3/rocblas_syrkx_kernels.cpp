@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "Tensile/gemm.hpp"
@@ -13,20 +13,21 @@ template <typename T,
           char UPLO,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int    N,
-                                                                   rocblas_int    K,
-                                                                   const T        alpha,
-                                                                   TConstPtr*     dA_array,
-                                                                   rocblas_int    lda,
-                                                                   rocblas_stride stride_a,
-                                                                   TConstPtr*     dB_array,
-                                                                   rocblas_int    ldb,
-                                                                   rocblas_stride stride_b,
-                                                                   const T        beta,
-                                                                   TPtr*          dC_array,
-                                                                   rocblas_int    ldc,
-                                                                   rocblas_stride stride_c,
-                                                                   rocblas_int    batch_count)
+ROCBLAS_KERNEL(DIM* DIM)
+syrkx_small_kernel(rocblas_int    N,
+                   rocblas_int    K,
+                   const T        alpha,
+                   TConstPtr*     dA_array,
+                   rocblas_int    lda,
+                   rocblas_stride stride_a,
+                   TConstPtr*     dB_array,
+                   rocblas_int    ldb,
+                   rocblas_stride stride_b,
+                   const T        beta,
+                   TPtr*          dC_array,
+                   rocblas_int    ldc,
+                   rocblas_stride stride_c,
+                   rocblas_int    batch_count)
 {
     int thx = threadIdx.x; // thread's m position
     int thy = threadIdx.y; // thread's n position
@@ -100,20 +101,21 @@ template <typename T,
           char UPLO,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_restrict_kernel(rocblas_int    N,
-                                                                            rocblas_int    K,
-                                                                            const T        alpha,
-                                                                            TConstPtr*     dA_array,
-                                                                            rocblas_int    lda,
-                                                                            rocblas_stride stride_a,
-                                                                            TConstPtr*     dB_array,
-                                                                            rocblas_int    ldb,
-                                                                            rocblas_stride stride_b,
-                                                                            const T        beta,
-                                                                            TPtr*          dC_array,
-                                                                            rocblas_int    ldc,
-                                                                            rocblas_stride stride_c,
-                                                                            rocblas_int batch_count)
+ROCBLAS_KERNEL(DIM* DIM)
+syrkx_small_restrict_kernel(rocblas_int    N,
+                            rocblas_int    K,
+                            const T        alpha,
+                            TConstPtr*     dA_array,
+                            rocblas_int    lda,
+                            rocblas_stride stride_a,
+                            TConstPtr*     dB_array,
+                            rocblas_int    ldb,
+                            rocblas_stride stride_b,
+                            const T        beta,
+                            TPtr*          dC_array,
+                            rocblas_int    ldc,
+                            rocblas_stride stride_c,
+                            rocblas_int    batch_count)
 {
     int thx = threadIdx.x; // thread's m position
     int thy = threadIdx.y; // thread's n position
@@ -176,20 +178,21 @@ template <typename T,
           char UPLO,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas_int    N,
-                                                                         rocblas_int    K,
-                                                                         const T        alpha,
-                                                                         TConstPtr*     dA_array,
-                                                                         rocblas_int    lda,
-                                                                         rocblas_stride stride_a,
-                                                                         TConstPtr*     dB_array,
-                                                                         rocblas_int    ldb,
-                                                                         rocblas_stride stride_b,
-                                                                         const T        beta,
-                                                                         TPtr*          dC_array,
-                                                                         rocblas_int    ldc,
-                                                                         rocblas_stride stride_c,
-                                                                         rocblas_int    batch_count)
+ROCBLAS_KERNEL(DIM_N* DIM_N)
+syrkx_general_kernel(rocblas_int    N,
+                     rocblas_int    K,
+                     const T        alpha,
+                     TConstPtr*     dA_array,
+                     rocblas_int    lda,
+                     rocblas_stride stride_a,
+                     TConstPtr*     dB_array,
+                     rocblas_int    ldb,
+                     rocblas_stride stride_b,
+                     const T        beta,
+                     TPtr*          dC_array,
+                     rocblas_int    ldc,
+                     rocblas_stride stride_c,
+                     rocblas_int    batch_count)
 {
     int thx  = threadIdx.x; // thread's m position in C
     int thy  = threadIdx.y; // thread's n position in C
@@ -289,20 +292,21 @@ template <typename T,
           char UPLO,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocblas_int    N,
-                                                                            rocblas_int    K,
-                                                                            const T        alpha,
-                                                                            TConstPtr*     dA_array,
-                                                                            rocblas_int    lda,
-                                                                            rocblas_stride stride_a,
-                                                                            TConstPtr*     dB_array,
-                                                                            rocblas_int    ldb,
-                                                                            rocblas_stride stride_b,
-                                                                            const T        beta,
-                                                                            TPtr*          dC_array,
-                                                                            rocblas_int    ldc,
-                                                                            rocblas_stride stride_c,
-                                                                            rocblas_int batch_count)
+ROCBLAS_KERNEL(DIM_N* DIM_N)
+syrkx_restricted_kernel(rocblas_int    N,
+                        rocblas_int    K,
+                        const T        alpha,
+                        TConstPtr*     dA_array,
+                        rocblas_int    lda,
+                        rocblas_stride stride_a,
+                        TConstPtr*     dB_array,
+                        rocblas_int    ldb,
+                        rocblas_stride stride_b,
+                        const T        beta,
+                        TPtr*          dC_array,
+                        rocblas_int    ldc,
+                        rocblas_stride stride_c,
+                        rocblas_int    batch_count)
 {
     int thx  = threadIdx.x; // thread's m position in C
     int thy  = threadIdx.y; // thread's n position in C
@@ -394,18 +398,19 @@ template <typename T,
           char UPLO,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocblas_int    N,
-                                                                            rocblas_int    K,
-                                                                            TConstPtr*     dA_array,
-                                                                            rocblas_int    lda,
-                                                                            rocblas_stride stride_a,
-                                                                            TConstPtr*     dB_array,
-                                                                            rocblas_int    ldb,
-                                                                            rocblas_stride stride_b,
-                                                                            TPtr*          dC_array,
-                                                                            rocblas_int    ldc,
-                                                                            rocblas_stride stride_c,
-                                                                            rocblas_int batch_count)
+ROCBLAS_KERNEL(DIM_N* DIM_N)
+syrkx_restricted_kernel(rocblas_int    N,
+                        rocblas_int    K,
+                        TConstPtr*     dA_array,
+                        rocblas_int    lda,
+                        rocblas_stride stride_a,
+                        TConstPtr*     dB_array,
+                        rocblas_int    ldb,
+                        rocblas_stride stride_b,
+                        TPtr*          dC_array,
+                        rocblas_int    ldc,
+                        rocblas_stride stride_c,
+                        rocblas_int    batch_count)
 {
     int thx  = threadIdx.x; // thread's m position in C
     int thy  = threadIdx.y; // thread's n position in C

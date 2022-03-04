@@ -71,10 +71,16 @@ public:
 
     void OnTestPartResult(const TestPartResult& result) override
     {
-        if(!strcmp(result.message(), LIMITED_MEMORY_STRING_GTEST))
+        if(!strcmp(result.message(), LIMITED_RAM_STRING_GTEST))
         {
             if(showInlineSkips)
-                rocblas_cout << "Skipped test due to limited memory environment." << std::endl;
+                rocblas_cout << "Skipped test due to limited RAM environment." << std::endl;
+            ++skipped_tests;
+        }
+        else if(!strcmp(result.message(), LIMITED_MEMORY_STRING_GTEST))
+        {
+            if(showInlineSkips)
+                rocblas_cout << "Skipped test due to limited GPU memory environment." << std::endl;
             ++skipped_tests;
         }
         else if(!strcmp(result.message(), TOO_MANY_DEVICES_STRING_GTEST))

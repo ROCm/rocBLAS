@@ -15,22 +15,23 @@ template <rocblas_int DIM_X,
           typename V,
           typename U,
           typename W>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
-                                                               rocblas_int    n,
-                                                               V              alpha_device_host,
-                                                               rocblas_stride stride_alpha,
-                                                               const U __restrict__ xa,
-                                                               ptrdiff_t      shiftx,
-                                                               rocblas_int    incx,
-                                                               rocblas_stride stridex,
-                                                               const U __restrict__ ya,
-                                                               ptrdiff_t      shifty,
-                                                               rocblas_int    incy,
-                                                               rocblas_stride stridey,
-                                                               W __restrict__ Aa,
-                                                               ptrdiff_t      shifta,
-                                                               rocblas_int    lda,
-                                                               rocblas_stride strideA)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+ger_kernel(rocblas_int    m,
+           rocblas_int    n,
+           V              alpha_device_host,
+           rocblas_stride stride_alpha,
+           const U __restrict__ xa,
+           ptrdiff_t      shiftx,
+           rocblas_int    incx,
+           rocblas_stride stridex,
+           const U __restrict__ ya,
+           ptrdiff_t      shifty,
+           rocblas_int    incy,
+           rocblas_stride stridey,
+           W __restrict__ Aa,
+           ptrdiff_t      shifta,
+           rocblas_int    lda,
+           rocblas_stride strideA)
 {
     __shared__ T xdata[DIM_X];
     __shared__ T ydata[DIM_Y * WIN];
@@ -80,22 +81,23 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
 
 //optimized kernel for SGER
 template <rocblas_int DIM_X, typename T, typename V, typename U, typename W>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X) void sger_kernel(rocblas_int    m,
-                                                         rocblas_int    n,
-                                                         V              alpha_device_host,
-                                                         rocblas_stride stride_alpha,
-                                                         const U __restrict__ xa,
-                                                         ptrdiff_t      shiftx,
-                                                         rocblas_int    incx,
-                                                         rocblas_stride stridex,
-                                                         const U __restrict__ ya,
-                                                         ptrdiff_t      shifty,
-                                                         rocblas_int    incy,
-                                                         rocblas_stride stridey,
-                                                         W __restrict__ Aa,
-                                                         ptrdiff_t      shifta,
-                                                         rocblas_int    lda,
-                                                         rocblas_stride strideA)
+ROCBLAS_KERNEL(DIM_X)
+sger_kernel(rocblas_int    m,
+            rocblas_int    n,
+            V              alpha_device_host,
+            rocblas_stride stride_alpha,
+            const U __restrict__ xa,
+            ptrdiff_t      shiftx,
+            rocblas_int    incx,
+            rocblas_stride stridex,
+            const U __restrict__ ya,
+            ptrdiff_t      shifty,
+            rocblas_int    incy,
+            rocblas_stride stridey,
+            W __restrict__ Aa,
+            ptrdiff_t      shifta,
+            rocblas_int    lda,
+            rocblas_stride strideA)
 {
     rocblas_int tx  = hipThreadIdx_x;
     rocblas_int col = hipBlockIdx_x;

@@ -1,29 +1,11 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
+#include "reduction_iaminmax_strided_batched.hpp"
 #include "rocblas_amax_amin.hpp"
-
-// Replaces x with y if y.value < x.value or y.value == x.value and y.index < x.index
-struct rocblas_reduce_amin
-{
-    template <typename To>
-    __forceinline__ __host__ __device__ void
-        operator()(rocblas_index_value_t<To>& __restrict__ x,
-                   const rocblas_index_value_t<To>& __restrict__ y) const
-    {
-        // If y.index == -1 then y.value is invalid and should not be compared
-        if(y.index != -1)
-        {
-            if(x.index == -1 || y.value < x.value)
-                x = y; // if larger or smaller, update max/min and index
-            else if(y.index < x.index && x.value == y.value)
-                x.index = y.index; // if equal, choose smaller index
-        }
-    }
-};
 
 template <rocblas_int NB, bool ISBATCHED, typename T, typename S>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -37,10 +19,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int*              result,
                                     rocblas_index_value_t<S>* workspace)
 {
-    return rocblas_reduction_template<NB,
-                                      ISBATCHED,
-                                      rocblas_fetch_amax_amin<S>,
-                                      rocblas_reduce_amin,
-                                      rocblas_finalize_amax_amin>(
-        handle, n, x, shiftx, incx, stridex, batch_count, result, workspace);
+    return rocblas_iaminmax_reduction_strided_batched<NB,
+                                                      rocblas_fetch_amax_amin<S>,
+                                                      rocblas_reduce_amin,
+                                                      rocblas_finalize_amax_amin>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
 }

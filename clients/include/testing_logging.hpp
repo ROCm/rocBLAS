@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -24,13 +24,10 @@
 
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
+namespace fs = std::filesystem;
 #else
 #include <experimental/filesystem>
-
-namespace std
-{
-    namespace filesystem = experimental::filesystem;
-}
+namespace fs = std::experimental::filesystem;
 #endif
 
 template <typename T>
@@ -94,16 +91,14 @@ void testing_logging(const Arguments& arg)
     // open files
     static std::string tmp_dir = rocblas_tempname();
 
-    const std::filesystem::path trace_fspath1
+    const fs::path trace_fspath1
         = tmp_dir + std::string("trace_") + std::string(precision_letter<T>) + std::string(".csv");
-    const std::filesystem::path trace_fspath2 = tmp_dir + std::string("trace_")
-                                                + std::string(precision_letter<T>)
-                                                + std::string("_gold.csv");
-    const std::filesystem::path bench_fspath1
+    const fs::path trace_fspath2 = tmp_dir + std::string("trace_")
+                                   + std::string(precision_letter<T>) + std::string("_gold.csv");
+    const fs::path bench_fspath1
         = tmp_dir + std::string("bench_") + std::string(precision_letter<T>) + std::string(".txt");
-    const std::filesystem::path bench_fspath2 = tmp_dir + std::string("bench_")
-                                                + std::string(precision_letter<T>)
-                                                + std::string("_gold.txt");
+    const fs::path bench_fspath2 = tmp_dir + std::string("bench_")
+                                   + std::string(precision_letter<T>) + std::string("_gold.txt");
 
     std::string trace_path1 = trace_fspath1.generic_string();
     std::string trace_path2 = trace_fspath2.generic_string();
@@ -1159,8 +1154,8 @@ void testing_logging(const Arguments& arg)
 
     if(!trace_cmp)
     {
-        std::filesystem::remove(trace_fspath1);
-        std::filesystem::remove(trace_fspath2);
+        fs::remove(trace_fspath1);
+        fs::remove(trace_fspath2);
     }
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
@@ -1178,8 +1173,8 @@ void testing_logging(const Arguments& arg)
 
         if(!bench_cmp)
         {
-            std::filesystem::remove(bench_fspath1);
-            std::filesystem::remove(bench_fspath2);
+            fs::remove(bench_fspath1);
+            fs::remove(bench_fspath2);
         }
     }
 }

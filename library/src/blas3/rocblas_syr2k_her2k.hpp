@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -15,23 +15,24 @@ template <bool        BATCHED,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_XYT* DIM_XYT) void syr2k_her2k_kernel(bool              upper,
-                                                                           rocblas_operation trans,
-                                                                           rocblas_int       n,
-                                                                           rocblas_int       k,
-                                                                           TScal alpha_host_device,
-                                                                           TConstPtr      AP_array,
-                                                                           rocblas_stride shift_a,
-                                                                           rocblas_int    lda,
-                                                                           rocblas_stride stride_a,
-                                                                           TConstPtr      BP_array,
-                                                                           rocblas_stride shift_b,
-                                                                           rocblas_int    ldb,
-                                                                           rocblas_stride stride_b,
-                                                                           TPtr           CP_array,
-                                                                           rocblas_stride shift_c,
-                                                                           rocblas_int    ldc,
-                                                                           rocblas_stride stride_c);
+ROCBLAS_KERNEL(DIM_XYT* DIM_XYT)
+syr2k_her2k_kernel(bool              upper,
+                   rocblas_operation trans,
+                   rocblas_int       n,
+                   rocblas_int       k,
+                   TScal             alpha_host_device,
+                   TConstPtr         AP_array,
+                   rocblas_stride    shift_a,
+                   rocblas_int       lda,
+                   rocblas_stride    stride_a,
+                   TConstPtr         BP_array,
+                   rocblas_stride    shift_b,
+                   rocblas_int       ldb,
+                   rocblas_stride    stride_b,
+                   TPtr              CP_array,
+                   rocblas_stride    shift_c,
+                   rocblas_int       ldc,
+                   rocblas_stride    stride_c);
 
 template <typename TScal, typename TConstPtr, typename TPtr>
 inline rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,

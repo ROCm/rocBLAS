@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "../blas1/rocblas_copy.hpp"
@@ -192,20 +192,20 @@ ROCBLAS_KERNEL_ILF void tbsv_backward_substitution_calc(
      *  multiplication kernel) so we can use multiple blocks instead of a single one.
      */
 template <bool CONJ, rocblas_int BLK_SIZE, typename TConstPtr, typename TPtr>
-__attribute__((amdgpu_flat_work_group_size(64, 1024))) ROCBLAS_KERNEL void
-    rocblas_tbsv_kernel(rocblas_fill      uplo,
-                        rocblas_operation transA,
-                        rocblas_diagonal  diag,
-                        rocblas_int       n,
-                        rocblas_int       k,
-                        TConstPtr         Aa,
-                        ptrdiff_t         shift_A,
-                        rocblas_int       lda,
-                        rocblas_stride    stride_A,
-                        TPtr              xa,
-                        ptrdiff_t         shift_x,
-                        rocblas_int       incx,
-                        rocblas_stride    stride_x)
+ROCBLAS_KERNEL(BLK_SIZE)
+rocblas_tbsv_kernel(rocblas_fill      uplo,
+                    rocblas_operation transA,
+                    rocblas_diagonal  diag,
+                    rocblas_int       n,
+                    rocblas_int       k,
+                    TConstPtr         Aa,
+                    ptrdiff_t         shift_A,
+                    rocblas_int       lda,
+                    rocblas_stride    stride_A,
+                    TPtr              xa,
+                    ptrdiff_t         shift_x,
+                    rocblas_int       incx,
+                    rocblas_stride    stride_x)
 {
     const auto* A = load_ptr_batch(Aa, hipBlockIdx_x, shift_A, stride_A);
     auto*       x = load_ptr_batch(xa, hipBlockIdx_x, shift_x, stride_x);

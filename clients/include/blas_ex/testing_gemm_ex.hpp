@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -24,6 +24,7 @@
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex_bad_arg(const Arguments& arg)
 {
+
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         auto rocblas_gemm_ex_fn = arg.fortran ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
@@ -941,7 +942,7 @@ void testing_gemm_ex(const Arguments& arg)
                       e_ldc,
                       e_ldd,
                       e_batch_count>{}
-            .log_args<To>(rocblas_cout,
+            .log_args<Tc>(rocblas_cout,
                           arg,
                           gpu_time_used,
                           gemm_gflop_count<Tc>(M, N, K),

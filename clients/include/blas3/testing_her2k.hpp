@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -204,7 +204,7 @@ void testing_her2k(const Arguments& arg)
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb);
     }
 
-    if(arg.beta_isnan<T>())
+    if(arg.beta_isnan<U>())
     {
         rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, rows, N, ldc);
     }

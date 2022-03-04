@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "handle.hpp"
@@ -147,7 +147,16 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
 
-        if(!alpha || !A || !B)
+        if(!alpha || !B)
+            return rocblas_status_invalid_pointer;
+
+        if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
+        {
+            set_block_unit<T>(handle, m, n, B, ldb, 0, batch_count, 0);
+            return rocblas_status_success;
+        }
+
+        if(!A)
             return rocblas_status_invalid_pointer;
 
         //////////////////////

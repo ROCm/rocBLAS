@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_matrix.hpp"
@@ -410,24 +410,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(alpha, beta));
-                else
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(alpha, beta));
+                hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, T>),
+                                   gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(*alpha, *beta));
-                else
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(*alpha, *beta));
+                hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, T>),
+                                   gemvt_KARGS(*alpha, *beta));
             }
         }
         //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000 and for complex double in gfx1030.
@@ -441,24 +433,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(alpha, beta));
-                else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(alpha, beta));
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>), gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(*alpha, *beta));
-                else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(*alpha, *beta));
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>), gemvt_KARGS(*alpha, *beta));
             }
         }
 
@@ -473,24 +455,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(alpha, beta));
-                else
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(alpha, beta));
+                hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, T>),
+                                   gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(*alpha, *beta));
-                else
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(*alpha, *beta));
+                hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, T>),
+                                   gemvt_KARGS(*alpha, *beta));
             }
         }
 #undef gemvt_KARGS
@@ -638,24 +612,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(alpha, beta));
-                else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(alpha, beta));
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>), gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(*alpha, *beta));
-                else
-                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(*alpha, *beta));
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>), gemvt_KARGS(*alpha, *beta));
             }
         }
         //Using kernel code with warp reduction.
@@ -668,24 +632,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(alpha, beta));
-                else
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(alpha, beta));
+                hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, T>),
+                                   gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                if(!i64_indices)
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, rocblas_int, T>),
-                                       gemvt_KARGS(*alpha, *beta));
-                else
-                    hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, size_t, T>),
-                                       gemvt_KARGS(*alpha, *beta));
+                hipLaunchKernelGGL((gemvt_warp_reduce_kernel<CONJ, NB, T>),
+                                   gemvt_KARGS(*alpha, *beta));
             }
         }
 #undef gemvt_KARGS

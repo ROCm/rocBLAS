@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -25,22 +25,22 @@ namespace
               char TRANS_B,
               typename TConstPtr,
               typename TPtr>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
-        gemm_batched_general_kernel(rocblas_int    M,
-                                    rocblas_int    N,
-                                    rocblas_int    K,
-                                    const T        alpha,
-                                    TConstPtr*     dA_input,
-                                    rocblas_int    lda,
-                                    rocblas_stride a_st_or_of,
-                                    TConstPtr*     dB_input,
-                                    rocblas_int    ldb,
-                                    rocblas_stride b_st_or_of,
-                                    const T        beta,
-                                    TPtr*          dC_input,
-                                    rocblas_int    ldc,
-                                    rocblas_stride c_st_or_of,
-                                    rocblas_int    batch_count)
+    ROCBLAS_KERNEL(DIM_M* DIM_N)
+    gemm_batched_general_kernel(rocblas_int    M,
+                                rocblas_int    N,
+                                rocblas_int    K,
+                                const T        alpha,
+                                TConstPtr*     dA_input,
+                                rocblas_int    lda,
+                                rocblas_stride a_st_or_of,
+                                TConstPtr*     dB_input,
+                                rocblas_int    ldb,
+                                rocblas_stride b_st_or_of,
+                                const T        beta,
+                                TPtr*          dC_input,
+                                rocblas_int    ldc,
+                                rocblas_stride c_st_or_of,
+                                rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
         int thy  = threadIdx.y; // thread's n position in C
@@ -178,22 +178,22 @@ namespace
               char TRANS_B,
               typename TConstPtr,
               typename TPtr>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
-        gemm_batched_kernel(rocblas_int    M,
-                            rocblas_int    N,
-                            rocblas_int    K,
-                            const T        alpha,
-                            TConstPtr*     dA_input,
-                            rocblas_int    lda,
-                            rocblas_stride a_st_or_of,
-                            TConstPtr*     dB_input,
-                            rocblas_int    ldb,
-                            rocblas_stride b_st_or_of,
-                            const T        beta,
-                            TPtr*          dC_input,
-                            rocblas_int    ldc,
-                            rocblas_stride c_st_or_of,
-                            rocblas_int    batch_count)
+    ROCBLAS_KERNEL(DIM_M* DIM_N)
+    gemm_batched_kernel(rocblas_int    M,
+                        rocblas_int    N,
+                        rocblas_int    K,
+                        const T        alpha,
+                        TConstPtr*     dA_input,
+                        rocblas_int    lda,
+                        rocblas_stride a_st_or_of,
+                        TConstPtr*     dB_input,
+                        rocblas_int    ldb,
+                        rocblas_stride b_st_or_of,
+                        const T        beta,
+                        TPtr*          dC_input,
+                        rocblas_int    ldc,
+                        rocblas_stride c_st_or_of,
+                        rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
         int thy  = threadIdx.y; // thread's n position in C
@@ -320,20 +320,20 @@ namespace
               char TRANS_B,
               typename TConstPtr,
               typename TPtr>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
-        gemm_batched_kernel(rocblas_int    M,
-                            rocblas_int    N,
-                            rocblas_int    K,
-                            TConstPtr*     dA_input,
-                            rocblas_int    lda,
-                            rocblas_stride a_st_or_of,
-                            TConstPtr*     dB_input,
-                            rocblas_int    ldb,
-                            rocblas_stride b_st_or_of,
-                            TPtr*          dC_input,
-                            rocblas_int    ldc,
-                            rocblas_stride c_st_or_of,
-                            rocblas_int    batch_count)
+    ROCBLAS_KERNEL(DIM_M* DIM_N)
+    gemm_batched_kernel(rocblas_int    M,
+                        rocblas_int    N,
+                        rocblas_int    K,
+                        TConstPtr*     dA_input,
+                        rocblas_int    lda,
+                        rocblas_stride a_st_or_of,
+                        TConstPtr*     dB_input,
+                        rocblas_int    ldb,
+                        rocblas_stride b_st_or_of,
+                        TPtr*          dC_input,
+                        rocblas_int    ldc,
+                        rocblas_stride c_st_or_of,
+                        rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
         int thy  = threadIdx.y; // thread's n position in C

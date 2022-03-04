@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -14,7 +14,7 @@
   *
   * Info about rocblas_check_numerics_ge_matrix_kernel function:
   *
-  *    It is the kernel function which checks a matrix for numerical abnormalities such as NaN/zero/Inf and updates the structure.
+  *    It is the kernel function which checks a matrix for numerical abnormalities such as NaN/zero/Inf/denormal values and updates the rocblas_check_numerics_t structure.
   *    ge in rocblas_check_numerics_ge_matrix_kernel refers to general.
   *
   * Parameters   : m            : number of rows of matrix 'A'
@@ -30,17 +30,18 @@
 **/
 
 template <typename T>
-ROCBLAS_KERNEL void rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
-                                                            rocblas_int               n,
-                                                            T                         Aa,
-                                                            ptrdiff_t                 offset_a,
-                                                            rocblas_int               lda,
-                                                            rocblas_stride            stride_a,
-                                                            rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
+                                                                 rocblas_int               n,
+                                                                 T                         Aa,
+                                                                 ptrdiff_t                 offset_a,
+                                                                 rocblas_int               lda,
+                                                                 rocblas_stride            stride_a,
+                                                                 rocblas_check_numerics_t* abnormal)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
+    //Check every element of the A matrix for a NaN/zero/Inf/denormal value
     if(tx < m && ty < n)
     {
         auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offset_a, stride_a);
@@ -53,6 +54,8 @@ ROCBLAS_KERNEL void rocblas_check_numerics_ge_matrix_kernel(rocblas_int         
             abnormal->has_NaN = true;
         if(!abnormal->has_Inf && rocblas_isinf(value))
             abnormal->has_Inf = true;
+        if(!abnormal->has_denorm && rocblas_isdenorm(value))
+            abnormal->has_denorm = true;
     }
 }
 template <typename T>

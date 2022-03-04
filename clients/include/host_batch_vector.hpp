@@ -1,11 +1,13 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
-#include "rocblas_init.hpp"
 #include <string.h>
+
+#include "host_alloc.hpp"
+#include "rocblas_init.hpp"
 
 //
 // Local declaration of the device batch vector.
@@ -207,13 +209,16 @@ private:
 
     bool try_initialize_memory()
     {
-        bool success = (nullptr != (this->m_data = (T**)calloc(this->m_batch_count, sizeof(T*))));
+        bool success
+            = (nullptr != (this->m_data = (T**)host_calloc_throw(this->m_batch_count, sizeof(T*))));
         if(success)
         {
             size_t nmemb = size_t(this->m_n) * std::abs(this->m_inc);
             for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
             {
-                success = (nullptr != (this->m_data[batch_index] = (T*)calloc(nmemb, sizeof(T))));
+                success
+                    = (nullptr
+                       != (this->m_data[batch_index] = (T*)host_malloc_throw(nmemb, sizeof(T))));
                 if(false == success)
                 {
                     break;
