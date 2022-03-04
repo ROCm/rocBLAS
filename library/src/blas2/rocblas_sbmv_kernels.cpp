@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -117,24 +117,25 @@ inline __device__ void sbmv_kernel_calc(rocblas_int n,
   *  W is either:       T* OR       T* const*
   */
 template <bool UPPER, rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void sbmv_kernel(rocblas_int    n,
-                                                                rocblas_int    k,
-                                                                U              alpha_device_host,
-                                                                rocblas_stride stride_alpha,
-                                                                V              Aa,
-                                                                ptrdiff_t      shifta,
-                                                                rocblas_int    lda,
-                                                                rocblas_stride strideA,
-                                                                V              xa,
-                                                                ptrdiff_t      shiftx,
-                                                                rocblas_int    incx,
-                                                                rocblas_stride stridex,
-                                                                U              beta_device_host,
-                                                                rocblas_stride stride_beta,
-                                                                W              ya,
-                                                                ptrdiff_t      shifty,
-                                                                rocblas_int    incy,
-                                                                rocblas_stride stridey)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+sbmv_kernel(rocblas_int    n,
+            rocblas_int    k,
+            U              alpha_device_host,
+            rocblas_stride stride_alpha,
+            V              Aa,
+            ptrdiff_t      shifta,
+            rocblas_int    lda,
+            rocblas_stride strideA,
+            V              xa,
+            ptrdiff_t      shiftx,
+            rocblas_int    incx,
+            rocblas_stride stridex,
+            U              beta_device_host,
+            rocblas_stride stride_beta,
+            W              ya,
+            ptrdiff_t      shifty,
+            rocblas_int    incy,
+            rocblas_stride stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)

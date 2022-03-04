@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Copyright 2020-2021 Advanced Micro Devices, Inc.
+"""Copyright 2020-2022 Advanced Micro Devices, Inc.
 Manage build and installation"""
 
 import re

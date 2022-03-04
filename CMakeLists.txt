@@ -20,7 +20,7 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
 endif()
 
 # disable this next option and test build whenever compiler changes to verify unused arguments are safe to ignore
-add_compile_options( -Wno-unused-command-line-argument )
+# add_compile_options( -Wno-unused-command-line-argument )
 
 # TODO: address [[nodiscard]] warnings
 add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
@@ -150,7 +150,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.43.0" )
+set ( VERSION_STRING "2.44.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -289,7 +289,7 @@ if(NOT SKIP_LIBRARY)
     if (TENSILE_VERSION)
       find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     else()
-      find_package(Tensile 4.32.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+      find_package(Tensile 4.32.1 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     endif()
   endif()
 endif()

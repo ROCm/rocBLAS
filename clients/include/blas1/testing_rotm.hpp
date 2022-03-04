@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -91,13 +91,19 @@ void testing_rotm(const Arguments& arg)
     rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
     rocblas_init_vector(hdata, arg, 4, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
-    // CPU BLAS reference data
+    // generating simply one set of hparam which will not be appropriate for testing
+    // that it zeros out the second element of the rotm vector parameter
+    memset(hparam.data(), 0, 5 * sizeof(T));
+
     cblas_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);
+
     const int FLAG_COUNT        = 4;
     const T   FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
     for(int i = 0; i < FLAG_COUNT; ++i)
     {
-        hparam[0]         = FLAGS[i];
+        hparam[0] = FLAGS[i];
+
+        // CPU BLAS reference data
         host_vector<T> cx = hx;
         host_vector<T> cy = hy;
         cpu_time_used     = get_time_us_no_sync();
@@ -117,15 +123,10 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
-                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-                if(!rocblas_isnan(arg.alpha))
+                if(arg.unit_check)
                 {
-                    if(arg.unit_check)
-                    {
-                        near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                        near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
-                    }
+                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
                 }
 
                 if(arg.norm_check)
@@ -147,15 +148,10 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
-                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-                if(!rocblas_isnan(arg.alpha))
+                if(arg.unit_check)
                 {
-                    if(arg.unit_check)
-                    {
-                        near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                        near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
-                    }
+                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
                 }
 
                 if(arg.norm_check)

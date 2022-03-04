@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -7,14 +7,15 @@
 #include "Tensile/gemm.hpp"
 #include "definitions.hpp"
 
-template <typename TScal, typename TPtr>
-ROCBLAS_KERNEL void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
-                                                         rocblas_int    n,
-                                                         TScal          alpha_device_host,
-                                                         rocblas_stride stride_alpha,
-                                                         TPtr           Aa,
-                                                         rocblas_int    lda,
-                                                         rocblas_stride a_st_or_of);
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TPtr>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
+                                     rocblas_int    n,
+                                     TScal          alpha_device_host,
+                                     rocblas_stride stride_alpha,
+                                     TPtr           Aa,
+                                     rocblas_int    lda,
+                                     rocblas_stride a_st_or_of);
 
 template <typename TScal, typename TPtr>
 rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,

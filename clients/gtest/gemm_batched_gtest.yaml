@@ -441,6 +441,19 @@ Tests:
   transB: N
   batch_count: 1
 
+- name: gemm_batched_ex_hpa_fp16
+  category: quick
+  function:
+    gemm_batched_ex: *hpa_half_precision
+  M: 128
+  N: 128
+  K: 1000
+  transA: N
+  transB: N
+  alpha: 0.001
+  beta: 1
+  batch_count: [ 1, 5, 10, 12 ]
+
 - name: gemm_batched_zerok
   category: quick
   function:

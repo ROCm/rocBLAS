@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2021 Advanced Micro Devices, Inc.
+ * Copyright 2019-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -570,17 +570,17 @@ ROCBLAS_KERNEL_ILF void hemvn_kernel_upper_calc(rocblas_int n,
               [ (A13^H*x1) + (A23^H*x2) + (A33*x3) ]
 *******************************************************************************/
 template <rocblas_int NB_X, typename U, typename TPtr, typename W>
-__launch_bounds__(NB_X) ROCBLAS_KERNEL
-    void hemvn_kernel_upper_block_sum(rocblas_int    n,
-                                      U              alpha_device_host,
-                                      rocblas_stride stride_alpha,
-                                      U              beta_device_host,
-                                      rocblas_stride stride_beta,
-                                      TPtr __restrict__ ya,
-                                      ptrdiff_t      shifty,
-                                      rocblas_int    incy,
-                                      rocblas_stride stridey,
-                                      W* __restrict__ workspace)
+ROCBLAS_KERNEL(NB_X)
+hemvn_kernel_upper_block_sum(rocblas_int    n,
+                             U              alpha_device_host,
+                             rocblas_stride stride_alpha,
+                             U              beta_device_host,
+                             rocblas_stride stride_beta,
+                             TPtr __restrict__ ya,
+                             ptrdiff_t      shifty,
+                             rocblas_int    incy,
+                             rocblas_stride stridey,
+                             W* __restrict__ workspace)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
@@ -1092,17 +1092,17 @@ ROCBLAS_KERNEL_ILF void hemvn_kernel_lower_calc(rocblas_int n,
               [ (A21*x1 + A22*x2 + A33*x3)         ]
 *******************************************************************************/
 template <rocblas_int NB_X, typename U, typename TPtr, typename W>
-__launch_bounds__(NB_X) ROCBLAS_KERNEL
-    void hemvn_kernel_lower_block_sum(rocblas_int    n,
-                                      U              alpha_device_host,
-                                      rocblas_stride stride_alpha,
-                                      U              beta_device_host,
-                                      rocblas_stride stride_beta,
-                                      TPtr __restrict__ ya,
-                                      ptrdiff_t      shifty,
-                                      rocblas_int    incy,
-                                      rocblas_stride stridey,
-                                      W* __restrict__ workspace)
+ROCBLAS_KERNEL(NB_X)
+hemvn_kernel_lower_block_sum(rocblas_int    n,
+                             U              alpha_device_host,
+                             rocblas_stride stride_alpha,
+                             U              beta_device_host,
+                             rocblas_stride stride_beta,
+                             TPtr __restrict__ ya,
+                             ptrdiff_t      shifty,
+                             rocblas_int    incy,
+                             rocblas_stride stridey,
+                             W* __restrict__ workspace)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
@@ -1152,20 +1152,21 @@ template <bool        IS_HEMV,
           typename U,
           typename V,
           typename W>
-__launch_bounds__(NB_X* NB_Y) ROCBLAS_KERNEL void hemvn_kernel_upper(rocblas_int n,
-                                                                     U           alpha_device_host,
-                                                                     rocblas_stride stride_alpha,
-                                                                     V              Aa,
-                                                                     ptrdiff_t      shifta,
-                                                                     T_lda          lda,
-                                                                     rocblas_stride strideA,
-                                                                     V              xa,
-                                                                     ptrdiff_t      shiftx,
-                                                                     rocblas_int    incx,
-                                                                     rocblas_stride stridex,
-                                                                     U beta_device_host,
-                                                                     rocblas_stride stride_beta,
-                                                                     W              workspace)
+ROCBLAS_KERNEL(NB_X* NB_Y)
+hemvn_kernel_upper(rocblas_int    n,
+                   U              alpha_device_host,
+                   rocblas_stride stride_alpha,
+                   V              Aa,
+                   ptrdiff_t      shifta,
+                   T_lda          lda,
+                   rocblas_stride strideA,
+                   V              xa,
+                   ptrdiff_t      shiftx,
+                   rocblas_int    incx,
+                   rocblas_stride stridex,
+                   U              beta_device_host,
+                   rocblas_stride stride_beta,
+                   W              workspace)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
 
@@ -1195,20 +1196,21 @@ template <bool        IS_HEMV,
           typename U,
           typename V,
           typename W>
-__launch_bounds__(NB_X* NB_Y) ROCBLAS_KERNEL void hemvn_kernel_lower(rocblas_int n,
-                                                                     U           alpha_device_host,
-                                                                     rocblas_stride stride_alpha,
-                                                                     V              Aa,
-                                                                     ptrdiff_t      shifta,
-                                                                     T_lda          lda,
-                                                                     rocblas_stride strideA,
-                                                                     V              xa,
-                                                                     ptrdiff_t      shiftx,
-                                                                     rocblas_int    incx,
-                                                                     rocblas_stride stridex,
-                                                                     U beta_device_host,
-                                                                     rocblas_stride stride_beta,
-                                                                     W              workspace)
+ROCBLAS_KERNEL(NB_X* NB_Y)
+hemvn_kernel_lower(rocblas_int    n,
+                   U              alpha_device_host,
+                   rocblas_stride stride_alpha,
+                   V              Aa,
+                   ptrdiff_t      shifta,
+                   T_lda          lda,
+                   rocblas_stride strideA,
+                   V              xa,
+                   ptrdiff_t      shiftx,
+                   rocblas_int    incx,
+                   rocblas_stride stridex,
+                   U              beta_device_host,
+                   rocblas_stride stride_beta,
+                   W              workspace)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
 

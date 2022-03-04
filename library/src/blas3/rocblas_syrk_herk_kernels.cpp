@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "handle.hpp"
@@ -25,13 +25,14 @@ ROCBLAS_KERNEL_ILF void syrk_scale_device(bool upper, rocblas_int n, T beta, U* 
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <int DIM_X, int DIM_Y, typename U, typename V>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void syrk_scale_kernel(bool        upper,
-                                                                      rocblas_int n,
-                                                                      U           beta_host_device,
-                                                                      V           CP_array,
-                                                                      ptrdiff_t   shift_c,
-                                                                      rocblas_int ldc,
-                                                                      rocblas_stride stride_c)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+syrk_scale_kernel(bool           upper,
+                  rocblas_int    n,
+                  U              beta_host_device,
+                  V              CP_array,
+                  ptrdiff_t      shift_c,
+                  rocblas_int    ldc,
+                  rocblas_stride stride_c)
 {
     auto beta = load_scalar(beta_host_device);
 
@@ -45,16 +46,17 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void syrk_scale_kernel(bool      
 /**
   *  Loads pointers and launches the actual calculation kernel.
   */
-template <typename U, typename V>
-ROCBLAS_KERNEL void herk_scale_kernel(bool           upper,
-                                      rocblas_int    n,
-                                      rocblas_int    k,
-                                      U              alpha_host_device,
-                                      U              beta_host_device,
-                                      V              CP_array,
-                                      ptrdiff_t      shift_c,
-                                      rocblas_int    ldc,
-                                      rocblas_stride stride_c)
+template <int DIM_X, int DIM_Y, typename U, typename V>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+herk_scale_kernel(bool           upper,
+                  rocblas_int    n,
+                  rocblas_int    k,
+                  U              alpha_host_device,
+                  U              beta_host_device,
+                  V              CP_array,
+                  ptrdiff_t      shift_c,
+                  rocblas_int    ldc,
+                  rocblas_stride stride_c)
 {
 
     auto C     = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
@@ -165,20 +167,20 @@ template <bool        HERM,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL_INSTANTIATE
-    __launch_bounds__(DIM_XYT* DIM_XYT) void syrk_herk_kernel(bool              upper,
-                                                              rocblas_operation transA,
-                                                              rocblas_int       n,
-                                                              rocblas_int       k,
-                                                              TScal             alpha_host_device,
-                                                              TConstPtr         AP_array,
-                                                              ptrdiff_t         shift_a,
-                                                              rocblas_int       lda,
-                                                              rocblas_stride    stride_a,
-                                                              TPtr              CP_array,
-                                                              ptrdiff_t         shift_c,
-                                                              rocblas_int       ldc,
-                                                              rocblas_stride    stride_c)
+ROCBLAS_KERNEL(DIM_XYT* DIM_XYT)
+syrk_herk_kernel(bool              upper,
+                 rocblas_operation transA,
+                 rocblas_int       n,
+                 rocblas_int       k,
+                 TScal             alpha_host_device,
+                 TConstPtr         AP_array,
+                 ptrdiff_t         shift_a,
+                 rocblas_int       lda,
+                 rocblas_stride    stride_a,
+                 TPtr              CP_array,
+                 ptrdiff_t         shift_c,
+                 rocblas_int       ldc,
+                 rocblas_stride    stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)
@@ -405,7 +407,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
-        hipLaunchKernelGGL((herk_scale_kernel),
+        hipLaunchKernelGGL((herk_scale_kernel<HERK_SCALE_DIM_X, HERK_SCALE_DIM_Y>),
                            herk_scale_grid,
                            herk_scale_threads,
                            0,
@@ -469,7 +471,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             return rocblas_status_success;
 
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
-        hipLaunchKernelGGL((herk_scale_kernel),
+        hipLaunchKernelGGL((herk_scale_kernel<HERK_SCALE_DIM_X, HERK_SCALE_DIM_Y>),
                            herk_scale_grid,
                            herk_scale_threads,
                            0,

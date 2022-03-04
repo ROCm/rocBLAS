@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "handle.hpp"
@@ -22,12 +22,13 @@ ROCBLAS_KERNEL_ILF void syr2k_scale_device(bool upper, rocblas_int n, T beta, U*
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <int DIM_X, int DIM_Y, typename U, typename V>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void syr2k_scale_kernel(bool        upper,
-                                                                       rocblas_int n,
-                                                                       U           beta_host_device,
-                                                                       V           CP_array,
-                                                                       rocblas_int ldc,
-                                                                       rocblas_stride c_st_or_of)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+syr2k_scale_kernel(bool           upper,
+                   rocblas_int    n,
+                   U              beta_host_device,
+                   V              CP_array,
+                   rocblas_int    ldc,
+                   rocblas_stride c_st_or_of)
 {
     auto beta = load_scalar(beta_host_device);
     if(beta == 1)
@@ -41,14 +42,15 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void syr2k_scale_kernel(bool     
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <int DIM_X, int DIM_Y, typename U, typename V, typename W>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void her2k_scale_kernel(bool        upper,
-                                                                       rocblas_int n,
-                                                                       rocblas_int k,
-                                                                       U alpha_host_device,
-                                                                       V beta_host_device,
-                                                                       W CP_array,
-                                                                       rocblas_int    ldc,
-                                                                       rocblas_stride c_st_or_of)
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+her2k_scale_kernel(bool           upper,
+                   rocblas_int    n,
+                   rocblas_int    k,
+                   U              alpha_host_device,
+                   V              beta_host_device,
+                   W              CP_array,
+                   rocblas_int    ldc,
+                   rocblas_stride c_st_or_of)
 {
     auto alpha = load_scalar(alpha_host_device);
     auto beta  = load_scalar(beta_host_device);
@@ -219,21 +221,21 @@ template <bool        TWOK,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-ROCBLAS_KERNEL_INSTANTIATE
-    __launch_bounds__(DIM_XYT* DIM_XYT) void syr2k_her2k_kernel(bool              upper,
-                                                                rocblas_operation trans,
-                                                                rocblas_int       n,
-                                                                rocblas_int       k,
-                                                                TScal             alpha_host_device,
-                                                                TConstPtr         AP_array,
-                                                                rocblas_int       lda,
-                                                                rocblas_stride    a_st_or_of,
-                                                                TConstPtr         BP_array,
-                                                                rocblas_int       ldb,
-                                                                rocblas_stride    b_st_or_of,
-                                                                TPtr              CP_array,
-                                                                rocblas_int       ldc,
-                                                                rocblas_stride    c_st_or_of)
+ROCBLAS_KERNEL(DIM_XYT* DIM_XYT)
+syr2k_her2k_kernel(bool              upper,
+                   rocblas_operation trans,
+                   rocblas_int       n,
+                   rocblas_int       k,
+                   TScal             alpha_host_device,
+                   TConstPtr         AP_array,
+                   rocblas_int       lda,
+                   rocblas_stride    a_st_or_of,
+                   TConstPtr         BP_array,
+                   rocblas_int       ldb,
+                   rocblas_stride    b_st_or_of,
+                   TPtr              CP_array,
+                   rocblas_int       ldc,
+                   rocblas_stride    c_st_or_of)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)

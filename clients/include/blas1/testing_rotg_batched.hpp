@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -101,6 +101,16 @@ void testing_rotg_batched(const Arguments& arg)
     host_batch_vector<U> hc(1, 1, batch_count);
     host_batch_vector<T> hs(1, 1, batch_count);
 
+    bool enable_near_check_general = true;
+
+#ifdef WIN32
+    // During explicit NaN initialization (i.e., when arg.alpha=NaN), the host side computation results of OpenBLAS differs from the result of kernel computation in rocBLAS.
+    // The output value of `cb` is NaN in OpenBLAS and, the output value of `cb` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
+    // Therefore, using the bool enable_near_check_general to skip unit check for WIN32 during NaN initialization.
+
+    enable_near_check_general = !rocblas_isnan(arg.alpha);
+#endif
+
     for(int i = 0; i < TEST_COUNT; i++)
     {
         host_batch_vector<T> ca(1, 1, batch_count);
@@ -141,11 +151,9 @@ void testing_rotg_batched(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR((rocblas_rotg_batched_fn(handle, ra, rb, rc, rs, batch_count)));
 
-            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-            if(!rocblas_isnan(arg.alpha))
+            if(arg.unit_check)
             {
-                if(arg.unit_check)
+                if(enable_near_check_general)
                 {
                     near_check_general<T>(1, 1, 1, ra, ca, rel_error, batch_count);
                     near_check_general<T>(1, 1, 1, rb, cb, rel_error, batch_count);
@@ -192,9 +200,9 @@ void testing_rotg_batched(const Arguments& arg)
             CHECK_HIP_ERROR(rc.transfer_from(dc));
             CHECK_HIP_ERROR(rs.transfer_from(ds));
 
-            if(!rocblas_isnan(arg.alpha))
+            if(arg.unit_check)
             {
-                if(arg.unit_check)
+                if(enable_near_check_general)
                 {
                     near_check_general<T>(1, 1, 1, ra, ca, batch_count, rel_error);
                     near_check_general<T>(1, 1, 1, rb, cb, batch_count, rel_error);

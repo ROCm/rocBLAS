@@ -1,8 +1,10 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
+
+#include "host_alloc.hpp"
 
 //
 // Local declaration of the device strided batch vector.
@@ -82,7 +84,7 @@ public:
 
             if(valid_parameters)
             {
-                this->m_data = new T[this->m_nmemb];
+                this->m_data = (T*)host_malloc_throw(this->m_nmemb, sizeof(T));
             }
         }
     }
@@ -94,7 +96,7 @@ public:
     {
         if(nullptr != this->m_data)
         {
-            delete[] this->m_data;
+            free(this->m_data);
             this->m_data = nullptr;
         }
     }

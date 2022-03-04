@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -22,15 +22,16 @@ static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
 
 */
 template <rocblas_int NB, rocblas_int IB, rocblas_int IBD, typename T, typename U, typename V>
-ROCBLAS_KERNEL void trtri_trsm_kernel(rocblas_fill     uplo,
-                                      rocblas_diagonal diag,
-                                      U                A,
-                                      rocblas_int      offset_A,
-                                      rocblas_int      lda,
-                                      rocblas_stride   stride_A,
-                                      V                invA,
-                                      rocblas_int      offset_invA,
-                                      rocblas_stride   stride_invA)
+ROCBLAS_KERNEL(IB* IB)
+trtri_trsm_kernel(rocblas_fill     uplo,
+                  rocblas_diagonal diag,
+                  U                A,
+                  rocblas_int      offset_A,
+                  rocblas_int      lda,
+                  rocblas_stride   stride_A,
+                  V                invA,
+                  rocblas_int      offset_invA,
+                  rocblas_stride   stride_invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -167,10 +168,10 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            offset_invAin,
                            stride_invA);
 
-        size_t sub_blockSize        = 128;
-        size_t tri_elements_to_zero = num_non_tri_elements(NB) * sub_blocks;
-        size_t num_sub_blocks       = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
-        hipLaunchKernelGGL(rocblas_trtri_fill<T>,
+        static constexpr size_t sub_blockSize        = 128;
+        size_t                  tri_elements_to_zero = num_non_tri_elements(NB) * sub_blocks;
+        size_t num_sub_blocks = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
+        hipLaunchKernelGGL((rocblas_trtri_fill<sub_blockSize, T>),
                            dim3(num_sub_blocks, batch_count),
                            dim3(sub_blockSize),
                            0,
@@ -286,11 +287,11 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
     rocblas_int rem = n - sub_blocks * NB;
     if(rem)
     {
-        size_t sub_blockSize        = 128;
-        size_t tri_elements_to_zero = num_non_tri_elements(rem);
-        size_t num_sub_blocks       = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
+        static constexpr size_t sub_blockSize        = 128;
+        size_t                  tri_elements_to_zero = num_non_tri_elements(rem);
+        size_t num_sub_blocks = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
 
-        hipLaunchKernelGGL(rocblas_trtri_fill<T>,
+        hipLaunchKernelGGL((rocblas_trtri_fill<sub_blockSize, T>),
                            dim3(num_sub_blocks, batch_count),
                            dim3(sub_blockSize),
                            0,

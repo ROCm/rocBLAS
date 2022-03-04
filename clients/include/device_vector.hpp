@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -7,7 +7,7 @@
 #include "d_vector.hpp"
 
 //
-// Local declaration of the host vector.
+// Forward declaration of the host vector.
 //
 template <typename T>
 class host_vector;

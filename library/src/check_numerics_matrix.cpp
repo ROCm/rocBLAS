@@ -8,8 +8,8 @@
   * Info about rocblas_internal_check_numerics_ge_matrix_template function:
   *
   *    It is the host function which accepts a matrix and calls the 'rocblas_check_numerics_ge_matrix_kernel' kernel function
-  *    to check for numerical abnormalities such as NaN/zero/Infinity in that matrix.
-  *    It also helps in debugging based on the different types of flags in rocblas_check_numerics_mode that users set to debug potential NaN/zero/Infinity.
+  *    to check for numerical abnormalities such as NaN/zero/Inf/denormal in that matrix.
+  *    It also helps in debugging based on the different types of flags in rocblas_check_numerics_mode that users set to debug potential NaN/zero/Inf/denormal value.
   *    ge in rocblas_internal_check_numerics_ge_matrix_template refers to general.
   *
   * Parameters   : function_name         : Name of the rocBLAS math function
@@ -24,8 +24,8 @@
   *                is_input              : To check if the matrix under consideration is an Input or an Output matrix
   *
   * Return Value : rocblas_status
-  *        rocblas_status_success        : Return status if the matrix does not have a NaN/Inf
-  *   rocblas_status_check_numerics_fail : Return status if the matrix contains a NaN/Inf and 'check_numerics' enum is set to 'rocblas_check_numerics_mode_fail'
+  *        rocblas_status_success        : Return status if the matrix does not have a NaN/Inf/denormal value
+  *   rocblas_status_check_numerics_fail : Return status if the matrix contains a NaN/Inf/denormal value and 'check_numerics' enum is set to 'rocblas_check_numerics_mode_fail'
   *
 **/
 

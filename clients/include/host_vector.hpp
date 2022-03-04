@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -8,20 +8,23 @@
 #include <type_traits>
 #include <vector>
 
+#include "device_vector.hpp"
+#include "host_alloc.hpp"
+
 //!
 //! @brief  Pseudo-vector subclass which uses host memory.
 //!
 template <typename T>
-struct host_vector : std::vector<T>
+struct host_vector : std::vector<T, host_memory_allocator<T>>
 {
     // Inherit constructors
-    using std::vector<T>::vector;
+    using std::vector<T, host_memory_allocator<T>>::vector;
 
     //!
     //! @brief Constructor.
     //!
-    host_vector(size_t n, ptrdiff_t inc)
-        : std::vector<T>(n * std::abs(inc))
+    host_vector(size_t n, ptrdiff_t inc = 1)
+        : std::vector<T, host_memory_allocator<T>>(n * std::abs(inc))
         , m_n(n)
         , m_inc(inc)
     {
@@ -32,7 +35,7 @@ struct host_vector : std::vector<T>
     //!
     template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     host_vector(const host_vector<U>& x)
-        : std::vector<T>(x.size())
+        : std::vector<T, host_memory_allocator<T>>(x.size())
         , m_n(x.size())
         , m_inc(1)
     {

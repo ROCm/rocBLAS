@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020-2021 Advanced Micro Devices, Inc.
+ * Copyright 2020-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -32,13 +32,10 @@
 
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
+namespace fs = std::filesystem;
 #else
 #include <experimental/filesystem>
-
-namespace std
-{
-    namespace filesystem = experimental::filesystem;
-}
+namespace fs = std::experimental::filesystem;
 #endif
 
 inline void testing_ostream_threadsafety(const Arguments& arg)
@@ -79,14 +76,14 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
     {
         // Open a file in /tmp
         //char path[] = "/tmp/rocblas-XXXXXX";
-        std::filesystem::path path;
-        std::string           uniquestr;
+        fs::path          path;
+        std::string       uniquestr;
         const std::string alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
         int               stringlength = alphanum.length() - 1;
         uniquestr                      = "rocblas-";
         for(auto n : {0, 1, 2, 3, 4, 5})
             uniquestr += alphanum.at(rand() % stringlength);
-        path   = std::filesystem::temp_directory_path() / uniquestr;
+        path   = fs::temp_directory_path() / uniquestr;
         int fd = OPEN(path.generic_string().c_str());
         if(fd == -1)
         {
@@ -133,6 +130,6 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
         rocblas_internal_ostream::clear_workers();
 #endif
         // If there were no failures, erase the temporary file
-        std::filesystem::remove(path);
+        fs::remove(path);
     }
 }

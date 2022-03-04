@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -121,22 +121,28 @@ void testing_rotm_batched(const Arguments& arg)
 
     for(int b = 0; b < batch_count; b++)
     {
-        // CPU BLAS reference data
+        // generating simply one set of hparam which will not be appropriate for testing
+        // that it zeros out the second element of the rotm vector parameter
+        memset(hparam[b], 0, 5 * sizeof(T));
+
         cblas_rotmg<T>(&hdata[b][0], &hdata[b][1], &hdata[b][2], &hdata[b][3], hparam[b]);
     }
 
     constexpr int FLAG_COUNT        = 4;
     const T       FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
 
+    // CPU BLAS reference data
+    host_batch_vector<T> cx(N, incx, batch_count);
+    host_batch_vector<T> cy(N, incy, batch_count);
+
     for(int i = 0; i < FLAG_COUNT; i++)
     {
         for(int b = 0; b < batch_count; b++)
             hparam[b][0] = FLAGS[i];
 
-        host_batch_vector<T> cx(N, incx, batch_count);
-        host_batch_vector<T> cy(N, incy, batch_count);
         cx.copy_from(hx);
         cy.copy_from(hy);
+
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
@@ -209,15 +215,10 @@ void testing_rotm_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(rx.transfer_from(dx));
                 CHECK_HIP_ERROR(ry.transfer_from(dy));
 
-                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-                if(!rocblas_isnan(arg.alpha))
+                if(arg.unit_check)
                 {
-                    if(arg.unit_check)
-                    {
-                        near_check_general<T>(1, N, abs_incx, cx, rx, batch_count, rel_error);
-                        near_check_general<T>(1, N, abs_incy, cy, ry, batch_count, rel_error);
-                    }
+                    near_check_general<T>(1, N, abs_incx, cx, rx, batch_count, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, batch_count, rel_error);
                 }
 
                 if(arg.norm_check)

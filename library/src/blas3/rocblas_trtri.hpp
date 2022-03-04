@@ -1,5 +1,5 @@
 /* ************************************************************************
-* Copyright 2016-2021 Advanced Micro Devices, Inc.
+* Copyright 2016-2022 Advanced Micro Devices, Inc.
 * ************************************************************************ */
 
 #pragma once
@@ -331,17 +331,18 @@ ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_lower(
     A[final_offset] = value;
 }
 
-template <typename T, typename U>
-ROCBLAS_KERNEL void rocblas_trtri_fill(rocblas_handle handle,
-                                       rocblas_fill   uplo,
-                                       rocblas_int    n,
-                                       rocblas_stride num_zero_elem,
-                                       rocblas_int    lda,
-                                       rocblas_stride sub_stride_A,
-                                       U              A,
-                                       rocblas_int    offset_A,
-                                       rocblas_stride stride_A,
-                                       rocblas_int    sub_batch_count)
+template <rocblas_int NB, typename T, typename U>
+ROCBLAS_KERNEL(NB)
+rocblas_trtri_fill(rocblas_handle handle,
+                   rocblas_fill   uplo,
+                   rocblas_int    n,
+                   rocblas_stride num_zero_elem,
+                   rocblas_int    lda,
+                   rocblas_stride sub_stride_A,
+                   U              A,
+                   rocblas_int    offset_A,
+                   rocblas_stride stride_A,
+                   rocblas_int    sub_batch_count)
 {
     // number of elements in a given matrix that will be zeroed
     size_t num_elements_total_to_zero = num_zero_elem * sub_batch_count;
@@ -367,19 +368,20 @@ ROCBLAS_KERNEL void rocblas_trtri_fill(rocblas_handle handle,
 
 // flag indicate whether write into A or invA
 template <rocblas_int NB, typename T, typename U, typename V>
-ROCBLAS_KERNEL void trtri_small_kernel(rocblas_fill     uplo,
-                                       rocblas_diagonal diag,
-                                       rocblas_int      n,
-                                       U                A,
-                                       rocblas_int      offset_A,
-                                       rocblas_int      lda,
-                                       rocblas_stride   stride_A,
-                                       rocblas_stride   sub_stride_A,
-                                       V                invA,
-                                       rocblas_int      offset_invA,
-                                       rocblas_int      ldinvA,
-                                       rocblas_stride   stride_invA,
-                                       rocblas_stride   sub_stride_invA)
+ROCBLAS_KERNEL(NB)
+trtri_small_kernel(rocblas_fill     uplo,
+                   rocblas_diagonal diag,
+                   rocblas_int      n,
+                   U                A,
+                   rocblas_int      offset_A,
+                   rocblas_int      lda,
+                   rocblas_stride   stride_A,
+                   rocblas_stride   sub_stride_A,
+                   V                invA,
+                   rocblas_int      offset_invA,
+                   rocblas_int      ldinvA,
+                   rocblas_stride   stride_invA,
+                   rocblas_stride   sub_stride_invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -392,19 +394,19 @@ ROCBLAS_KERNEL void trtri_small_kernel(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename T, typename U, typename V>
-ROCBLAS_KERNEL void trtri_remainder_kernel(rocblas_fill     uplo,
-                                           rocblas_diagonal diag,
-                                           rocblas_int      n,
-                                           U                A,
-                                           rocblas_int      offset_A,
-                                           rocblas_int      lda,
-                                           rocblas_stride   stride_A,
-                                           rocblas_stride   sub_stride_A,
-                                           V                invA,
-                                           rocblas_int      offset_invA,
-                                           rocblas_int      ldinvA,
-                                           rocblas_stride   stride_invA,
-                                           rocblas_stride   sub_stride_invA)
+ROCBLAS_KERNEL_NO_BOUNDS trtri_remainder_kernel(rocblas_fill     uplo,
+                                                rocblas_diagonal diag,
+                                                rocblas_int      n,
+                                                U                A,
+                                                rocblas_int      offset_A,
+                                                rocblas_int      lda,
+                                                rocblas_stride   stride_A,
+                                                rocblas_stride   sub_stride_A,
+                                                V                invA,
+                                                rocblas_int      offset_invA,
+                                                rocblas_int      ldinvA,
+                                                rocblas_stride   stride_invA,
+                                                rocblas_stride   sub_stride_invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -437,13 +439,13 @@ rocblas_status rocblas_trtri_small(rocblas_handle   handle,
     if(n > NB)
         return rocblas_status_not_implemented;
 
-    size_t blockSize            = 128;
-    size_t tri_elements_to_zero = num_non_tri_elements(n) * sub_batch_count;
-    size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
+    static constexpr size_t blockSize            = 128;
+    size_t                  tri_elements_to_zero = num_non_tri_elements(n) * sub_batch_count;
+    size_t                  numBlocks = (tri_elements_to_zero + blockSize - 1) / blockSize;
 
-    hipLaunchKernelGGL(rocblas_trtri_fill<T>,
+    hipLaunchKernelGGL((rocblas_trtri_fill<blockSize, T>),
                        dim3(numBlocks, batch_count, 1),
-                       dim3(blockSize, 1, 1),
+                       dim3(blockSize),
                        0,
                        handle->get_stream(),
                        handle,
@@ -483,19 +485,20 @@ rocblas_status rocblas_trtri_small(rocblas_handle   handle,
 }
 
 template <rocblas_int IB, typename T, typename U, typename V>
-ROCBLAS_KERNEL void trtri_diagonal_kernel(rocblas_fill     uplo,
-                                          rocblas_diagonal diag,
-                                          rocblas_int      n,
-                                          U                A,
-                                          rocblas_int      offset_A,
-                                          rocblas_int      lda,
-                                          rocblas_stride   stride_A,
-                                          rocblas_stride   sub_stride_A,
-                                          V                invA,
-                                          rocblas_int      offset_invA,
-                                          rocblas_int      ldinvA,
-                                          rocblas_stride   stride_invA,
-                                          rocblas_stride   sub_stride_invA)
+ROCBLAS_KERNEL(IB* IB)
+trtri_diagonal_kernel(rocblas_fill     uplo,
+                      rocblas_diagonal diag,
+                      rocblas_int      n,
+                      U                A,
+                      rocblas_int      offset_A,
+                      rocblas_int      lda,
+                      rocblas_stride   stride_A,
+                      rocblas_stride   sub_stride_A,
+                      V                invA,
+                      rocblas_int      offset_invA,
+                      rocblas_int      ldinvA,
+                      rocblas_stride   stride_invA,
+                      rocblas_stride   sub_stride_invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -732,13 +735,13 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         return rocblas_status_success;
     }
 
-    size_t sub_block_size       = 128;
-    size_t tri_elements_to_zero = num_non_tri_elements(n) * sub_batch_count;
-    size_t num_sub_blocks       = (tri_elements_to_zero + sub_block_size - 1) / sub_block_size;
+    static constexpr size_t sub_block_size       = 128;
+    size_t                  tri_elements_to_zero = num_non_tri_elements(n) * sub_batch_count;
+    size_t num_sub_blocks = (tri_elements_to_zero + sub_block_size - 1) / sub_block_size;
 
-    hipLaunchKernelGGL(rocblas_trtri_fill<T>,
+    hipLaunchKernelGGL((rocblas_trtri_fill<sub_block_size, T>),
                        dim3(num_sub_blocks, batch_count, 1),
-                       dim3(sub_block_size, 1, 1),
+                       dim3(sub_block_size),
                        0,
                        handle->get_stream(),
                        handle,
@@ -877,9 +880,9 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         }
     }
 
-    hipLaunchKernelGGL(rocblas_trtri_fill<T>,
+    hipLaunchKernelGGL((rocblas_trtri_fill<sub_block_size, T>),
                        dim3(num_sub_blocks, batch_count, 1),
-                       dim3(sub_block_size, 1, 1),
+                       dim3(sub_block_size),
                        0,
                        handle->get_stream(),
                        handle,

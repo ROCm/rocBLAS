@@ -59,17 +59,18 @@ ROCBLAS_KERNEL_ILF void her_kernel_calc(bool        upper,
 }
 
 template <rocblas_int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X) void rocblas_her_kernel(bool           upper,
-                                                                rocblas_int    n,
-                                                                TScal          alpha_device_host,
-                                                                TConstPtr      xa,
-                                                                ptrdiff_t      shift_x,
-                                                                rocblas_int    incx,
-                                                                rocblas_stride stride_x,
-                                                                TPtr           Aa,
-                                                                rocblas_int    lda,
-                                                                ptrdiff_t      shift_A,
-                                                                rocblas_stride stride_A)
+ROCBLAS_KERNEL(DIM_X)
+rocblas_her_kernel(bool           upper,
+                   rocblas_int    n,
+                   TScal          alpha_device_host,
+                   TConstPtr      xa,
+                   ptrdiff_t      shift_x,
+                   rocblas_int    incx,
+                   rocblas_stride stride_x,
+                   TPtr           Aa,
+                   rocblas_int    lda,
+                   ptrdiff_t      shift_A,
+                   rocblas_stride stride_A)
 {
     auto alpha = load_scalar(alpha_device_host);
     if(!alpha)

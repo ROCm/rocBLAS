@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -7,128 +7,7 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
-#include "reduction_strided_batched.hpp"
-#include "utility.hpp"
-#include <hip/hip_runtime.h>
-
-static constexpr int rocblas_log2ui(int x)
-{
-    unsigned int ax = (unsigned int)x;
-    int          v  = 0;
-    while(ax >>= 1)
-    {
-        v++;
-    }
-    return v;
-}
-
-template <int N, typename T>
-__inline__ __device__ T wavefront_reduce(T val)
-{
-    constexpr int WFBITS = rocblas_log2ui(N);
-    int           offset = 1 << (WFBITS - 1);
-    for(int i = 0; i < WFBITS; i++)
-    {
-        val += __shfl_down(val, offset);
-        offset >>= 1;
-    }
-    return val;
-}
-
-template <int N>
-__inline__ __device__ rocblas_float_complex wavefront_reduce(rocblas_float_complex val)
-{
-    constexpr int WFBITS = rocblas_log2ui(N);
-    int           offset = 1 << (WFBITS - 1);
-    for(int i = 0; i < WFBITS; i++)
-    {
-        val.real(val.real() + __shfl_down(val.real(), offset));
-        val.imag(val.imag() + __shfl_down(val.imag(), offset));
-        offset >>= 1;
-    }
-    return val;
-}
-
-template <int N>
-__inline__ __device__ rocblas_double_complex wavefront_reduce(rocblas_double_complex val)
-{
-    constexpr int WFBITS = rocblas_log2ui(N);
-    int           offset = 1 << (WFBITS - 1);
-    for(int i = 0; i < WFBITS; i++)
-    {
-        val.real(val.real() + __shfl_down(val.real(), offset));
-        val.imag(val.imag() + __shfl_down(val.imag(), offset));
-        offset >>= 1;
-    }
-    return val;
-}
-
-template <int N>
-__inline__ __device__ rocblas_bfloat16 wavefront_reduce(rocblas_bfloat16 val)
-{
-    union
-    {
-        int              i;
-        rocblas_bfloat16 h;
-    } tmp;
-    constexpr int WFBITS = rocblas_log2ui(N);
-    int           offset = 1 << (WFBITS - 1);
-    for(int i = 0; i < WFBITS; i++)
-    {
-        tmp.h = val;
-        tmp.i = __shfl_down(tmp.i, offset);
-        val += tmp.h;
-        offset >>= 1;
-    }
-    return val;
-}
-
-template <int N>
-__inline__ __device__ rocblas_half wavefront_reduce(rocblas_half val)
-{
-    union
-    {
-        int          i;
-        rocblas_half h;
-    } tmp;
-    constexpr int WFBITS = rocblas_log2ui(N);
-    int           offset = 1 << (WFBITS - 1);
-    for(int i = 0; i < WFBITS; i++)
-    {
-        tmp.h = val;
-        tmp.i = __shfl_down(tmp.i, offset);
-        val += tmp.h;
-        offset >>= 1;
-    }
-    return val;
-}
-
-template <rocblas_int NB, typename T>
-__inline__ __device__ T rocblas_dot_block_reduce(T val)
-{
-    __shared__ T psums[warpSize];
-
-    rocblas_int wavefront = hipThreadIdx_x / warpSize;
-    rocblas_int wavelet   = hipThreadIdx_x % warpSize;
-
-    if(wavefront == 0)
-        psums[wavelet] = 0;
-    __syncthreads();
-
-    val = wavefront_reduce<warpSize>(val); // sum over wavefront
-    if(wavelet == 0)
-        psums[wavefront] = val; // store sum for wavefront
-
-    __syncthreads(); // Wait for all wavefront reductions
-
-    // ensure wavefront was run
-    static constexpr rocblas_int num_wavefronts = NB / warpSize;
-    val = (hipThreadIdx_x < num_wavefronts) ? psums[wavelet] : 0;
-    if(wavefront == 0)
-        val = wavefront_reduce<num_wavefronts>(val); // sum wavefront sums
-
-    return val;
-}
+#include "rocblas_reduction.hpp"
 
 template <bool ONE_BLOCK, typename V, typename T>
 __inline__ __device__ void
@@ -150,15 +29,16 @@ template <bool        ONE_BLOCK,
           typename T,
           typename U,
           typename V>
-ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel_inc1(rocblas_int n,
-                                                                  const U __restrict__ xa,
-                                                                  ptrdiff_t      shiftx,
-                                                                  rocblas_stride stridex,
-                                                                  const U __restrict__ ya,
-                                                                  ptrdiff_t   shifty,
-                                                                  rocblas_int stridey,
-                                                                  V* __restrict__ workspace,
-                                                                  T* __restrict__ out)
+ROCBLAS_KERNEL(NB)
+rocblas_dot_kernel_inc1(rocblas_int n,
+                        const U __restrict__ xa,
+                        ptrdiff_t      shiftx,
+                        rocblas_stride stridex,
+                        const U __restrict__ ya,
+                        ptrdiff_t   shifty,
+                        rocblas_int stridey,
+                        V* __restrict__ workspace,
+                        T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
@@ -189,15 +69,16 @@ template <bool        ONE_BLOCK,
           std::enable_if_t<!std::is_same<T, rocblas_half>{} && !std::is_same<T, rocblas_bfloat16>{}
                                && !std::is_same<T, rocblas_float>{},
                            int> = 0>
-ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel_inc1by2(rocblas_int n,
-                                                                     const U __restrict__ xa,
-                                                                     ptrdiff_t      shiftx,
-                                                                     rocblas_stride stridex,
-                                                                     const U __restrict__ ya,
-                                                                     ptrdiff_t   shifty,
-                                                                     rocblas_int stridey,
-                                                                     V* __restrict__ workspace,
-                                                                     T* __restrict__ out)
+ROCBLAS_KERNEL(NB)
+rocblas_dot_kernel_inc1by2(rocblas_int n,
+                           const U __restrict__ xa,
+                           ptrdiff_t      shiftx,
+                           rocblas_stride stridex,
+                           const U __restrict__ ya,
+                           ptrdiff_t   shifty,
+                           rocblas_int stridey,
+                           V* __restrict__ workspace,
+                           T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
@@ -228,15 +109,16 @@ template <bool        ONE_BLOCK,
           std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}
                                || std::is_same<T, rocblas_float>{},
                            int> = 0>
-ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel_inc1by2(rocblas_int n,
-                                                                     const U __restrict__ xa,
-                                                                     ptrdiff_t      shiftx,
-                                                                     rocblas_stride stridex,
-                                                                     const U __restrict__ ya,
-                                                                     ptrdiff_t   shifty,
-                                                                     rocblas_int stridey,
-                                                                     V* __restrict__ workspace,
-                                                                     T* __restrict__ out)
+ROCBLAS_KERNEL(NB)
+rocblas_dot_kernel_inc1by2(rocblas_int n,
+                           const U __restrict__ xa,
+                           ptrdiff_t      shiftx,
+                           rocblas_stride stridex,
+                           const U __restrict__ ya,
+                           ptrdiff_t   shifty,
+                           rocblas_int stridey,
+                           V* __restrict__ workspace,
+                           T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
@@ -275,17 +157,18 @@ template <bool        ONE_BLOCK,
           typename T,
           typename U,
           typename V = T>
-ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel(rocblas_int n,
-                                                             const U __restrict__ xa,
-                                                             ptrdiff_t      shiftx,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             const U __restrict__ ya,
-                                                             ptrdiff_t   shifty,
-                                                             rocblas_int incy,
-                                                             rocblas_int stridey,
-                                                             V* __restrict__ workspace,
-                                                             T* __restrict__ out)
+ROCBLAS_KERNEL(NB)
+rocblas_dot_kernel(rocblas_int n,
+                   const U __restrict__ xa,
+                   ptrdiff_t      shiftx,
+                   rocblas_int    incx,
+                   rocblas_stride stridex,
+                   const U __restrict__ ya,
+                   ptrdiff_t   shifty,
+                   rocblas_int incy,
+                   rocblas_int stridey,
+                   V* __restrict__ workspace,
+                   T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
@@ -312,13 +195,14 @@ template <bool        ONE_BLOCK,
           typename T,
           typename U,
           typename V = T>
-ROCBLAS_KERNEL void __launch_bounds__(NB) rocblas_dot_kernel_magsq(rocblas_int n,
-                                                                   const U __restrict__ xa,
-                                                                   ptrdiff_t      shiftx,
-                                                                   rocblas_int    incx,
-                                                                   rocblas_stride stridex,
-                                                                   V* __restrict__ workspace,
-                                                                   T* __restrict__ out)
+ROCBLAS_KERNEL(NB)
+rocblas_dot_kernel_magsq(rocblas_int n,
+                         const U __restrict__ xa,
+                         ptrdiff_t      shiftx,
+                         rocblas_int    incx,
+                         rocblas_stride stridex,
+                         V* __restrict__ workspace,
+                         T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
@@ -338,9 +222,8 @@ ROCBLAS_KERNEL void __launch_bounds__(NB) rocblas_dot_kernel_magsq(rocblas_int n
 }
 
 template <rocblas_int NB, rocblas_int WIN, typename V, typename T = V>
-ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel_reduce(rocblas_int n_sums,
-                                                                    V* __restrict__ in,
-                                                                    T* __restrict__ out)
+ROCBLAS_KERNEL(NB)
+rocblas_dot_kernel_reduce(rocblas_int n_sums, V* __restrict__ in, T* __restrict__ out)
 {
     V sum = 0;
 

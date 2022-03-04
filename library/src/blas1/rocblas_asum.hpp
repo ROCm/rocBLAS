@@ -1,16 +1,17 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
+#include "fetch_template.hpp"
 #include "rocblas_reduction_template.hpp"
 
 template <class To>
 struct rocblas_fetch_asum
 {
     template <typename Ti>
-    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t) const
+    __forceinline__ __device__ To operator()(Ti x) const
     {
         return {fetch_asum(x)};
     }

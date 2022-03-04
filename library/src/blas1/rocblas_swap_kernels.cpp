@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2021 Advanced Micro Devices, Inc.
+ * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -14,16 +14,17 @@ __forceinline__ __device__ __host__ void rocblas_swap_vals(T* __restrict__ x, T*
     *x    = tmp;
 }
 
-template <typename UPtr>
-ROCBLAS_KERNEL void rocblas_swap_kernel(rocblas_int    n,
-                                        UPtr           xa,
-                                        ptrdiff_t      offsetx,
-                                        rocblas_int    incx,
-                                        rocblas_stride stridex,
-                                        UPtr           ya,
-                                        ptrdiff_t      offsety,
-                                        rocblas_int    incy,
-                                        rocblas_stride stridey)
+template <rocblas_int NB, typename UPtr>
+ROCBLAS_KERNEL(NB)
+rocblas_swap_kernel(rocblas_int    n,
+                    UPtr           xa,
+                    ptrdiff_t      offsetx,
+                    rocblas_int    incx,
+                    rocblas_stride stridex,
+                    UPtr           ya,
+                    ptrdiff_t      offsety,
+                    rocblas_int    incy,
+                    rocblas_stride stridey)
 {
     auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
     auto*     y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
@@ -38,13 +39,14 @@ ROCBLAS_KERNEL void rocblas_swap_kernel(rocblas_int    n,
 //! @brief Optimized kernel for the floating points.
 //!
 template <rocblas_int NB, typename UPtr>
-ROCBLAS_KERNEL __launch_bounds__(NB) void sswap_2_kernel(rocblas_int n,
-                                                         UPtr __restrict__ xa,
-                                                         ptrdiff_t      offsetx,
-                                                         rocblas_stride stridex,
-                                                         UPtr __restrict__ ya,
-                                                         ptrdiff_t      offsety,
-                                                         rocblas_stride stridey)
+ROCBLAS_KERNEL(NB)
+sswap_2_kernel(rocblas_int n,
+               UPtr __restrict__ xa,
+               ptrdiff_t      offsetx,
+               rocblas_stride stridex,
+               UPtr __restrict__ ya,
+               ptrdiff_t      offsety,
+               rocblas_stride stridey)
 {
     ptrdiff_t tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
     auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
@@ -91,7 +93,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
         dim3 blocks((n - 1) / NB + 1, batch_count);
         dim3 threads(NB);
 
-        hipLaunchKernelGGL(rocblas_swap_kernel,
+        hipLaunchKernelGGL((rocblas_swap_kernel<NB>),
                            blocks,
                            threads,
                            0,
@@ -116,7 +118,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
         dim3 grid(blocks, batch_count);
         dim3 threads(NB);
 
-        hipLaunchKernelGGL(sswap_2_kernel<NB>,
+        hipLaunchKernelGGL((sswap_2_kernel<NB>),
                            grid,
                            threads,
                            0,

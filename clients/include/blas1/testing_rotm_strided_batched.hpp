@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2021 Advanced Micro Devices, Inc.
+ * Copyright 2018-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -140,13 +140,17 @@ void testing_rotm_strided_batched(const Arguments& arg)
         hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
     rocblas_init_vector(hdata, arg, 4, 1, 4, batch_count, rocblas_client_alpha_sets_nan, false);
 
-    // CPU BLAS reference data
     for(int b = 0; b < batch_count; b++)
-        cblas_rotmg<T>(hdata + b * 4,
-                       hdata + b * 4 + 1,
-                       hdata + b * 4 + 2,
-                       hdata + b * 4 + 3,
-                       hparam + b * stride_param);
+    {
+        T* hparam_ptr = hparam.data() + b * stride_param;
+
+        // generating simply one set of hparam which will not be appropriate for testing
+        // that it zeros out the second element of the rotm vector parameter
+        memset(hparam_ptr, 0, 5 * sizeof(T));
+
+        cblas_rotmg<T>(
+            hdata + b * 4, hdata + b * 4 + 1, hdata + b * 4 + 2, hdata + b * 4 + 3, hparam_ptr);
+    }
 
     constexpr int FLAG_COUNT        = 4;
     const T       FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
@@ -156,6 +160,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
         for(int b = 0; b < batch_count; b++)
             (hparam + b * stride_param)[0] = FLAGS[i];
 
+        // CPU BLAS reference data
         host_vector<T> cx = hx;
         host_vector<T> cy = hy;
         cpu_time_used     = get_time_us_no_sync();
@@ -218,17 +223,10 @@ void testing_rotm_strided_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
-                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
-                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
-                if(!rocblas_isnan(arg.alpha))
+                if(arg.unit_check)
                 {
-                    if(arg.unit_check)
-                    {
-                        near_check_general<T>(
-                            1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
-                        near_check_general<T>(
-                            1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
-                    }
+                    near_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
+                    near_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
                 }
 
                 if(arg.norm_check)
