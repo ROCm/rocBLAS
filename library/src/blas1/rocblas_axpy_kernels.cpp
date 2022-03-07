@@ -409,11 +409,11 @@ rocblas_status rocblas_axpy_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_int    n,
                                            T              x,
-                                           ptrdiff_t      offset_x,
+                                           rocblas_stride offset_x,
                                            rocblas_int    inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
-                                           ptrdiff_t      offset_y,
+                                           rocblas_stride offset_y,
                                            rocblas_int    inc_y,
                                            rocblas_stride stride_y,
                                            rocblas_int    batch_count,
@@ -469,11 +469,11 @@ rocblas_status rocblas_internal_axpy_template<NB_, Tex_, Ta_, Tx_, Ty_>     \
                                                const Ta_*           alpha,  \
                                                rocblas_stride stride_alpha, \
                                                Tx_             x,           \
-                                               ptrdiff_t      offset_x,     \
+                                               rocblas_stride      offset_x,     \
                                                rocblas_int    incx,         \
                                                rocblas_stride stride_x,     \
                                                Ty_             y,           \
-                                               ptrdiff_t      offset_y,     \
+                                               rocblas_stride      offset_y,     \
                                                rocblas_int    incy,         \
                                                rocblas_stride stride_y,     \
                                                rocblas_int    batch_count);

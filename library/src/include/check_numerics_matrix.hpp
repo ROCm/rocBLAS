@@ -33,7 +33,7 @@ template <typename T>
 ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
                                                                  rocblas_int               n,
                                                                  T                         Aa,
-                                                                 ptrdiff_t                 offset_a,
+                                                                 rocblas_stride            offset_a,
                                                                  rocblas_int               lda,
                                                                  rocblas_stride            stride_a,
                                                                  rocblas_check_numerics_t* abnormal)
@@ -66,7 +66,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                        rocblas_int       m,
                                                        rocblas_int       n,
                                                        T                 A,
-                                                       rocblas_int       offset_a,
+                                                       rocblas_stride    offset_a,
                                                        rocblas_int       lda,
                                                        rocblas_stride    stride_a,
                                                        rocblas_int       batch_count,

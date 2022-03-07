@@ -278,15 +278,15 @@ rocblas_status rocblas_hbmv_check_numerics(const char*    function_name,
                                            rocblas_int    n,
                                            rocblas_int    k,
                                            T              A,
-                                           rocblas_int    offset_a,
+                                           rocblas_stride offset_a,
                                            rocblas_int    lda,
                                            rocblas_stride stride_a,
                                            T              x,
-                                           rocblas_int    offset_x,
+                                           rocblas_stride offset_x,
                                            rocblas_int    inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
-                                           rocblas_int    offset_y,
+                                           rocblas_stride offset_y,
                                            rocblas_int    inc_y,
                                            rocblas_stride stride_y,
                                            rocblas_int    batch_count,
@@ -369,16 +369,16 @@ template rocblas_status rocblas_hbmv_check_numerics<T_, U_>               \
                                            rocblas_handle handle,         \
                                            rocblas_int    n,              \
                                            rocblas_int    k,              \
-                                           T_              A,             \
-                                           rocblas_int    offset_a,       \
+                                           T_             A,              \
+                                           rocblas_stride offset_a,       \
                                            rocblas_int    lda,            \
                                            rocblas_stride stride_a,       \
-                                           T_              x,             \
-                                           rocblas_int    offset_x,       \
+                                           T_             x,              \
+                                           rocblas_stride offset_x,       \
                                            rocblas_int    inc_x,          \
                                            rocblas_stride stride_x,       \
                                            U_              y,             \
-                                           rocblas_int    offset_y,       \
+                                           rocblas_stride  offset_y,      \
                                            rocblas_int    inc_y,          \
                                            rocblas_stride stride_y,       \
                                            rocblas_int    batch_count,    \
