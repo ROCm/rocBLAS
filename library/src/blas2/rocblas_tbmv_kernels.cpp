@@ -340,11 +340,11 @@ rocblas_status rocblas_tbmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_int    m,
                                            T              A,
-                                           rocblas_int    offset_a,
+                                           rocblas_stride offset_a,
                                            rocblas_int    lda,
                                            rocblas_stride stride_a,
                                            U              x,
-                                           rocblas_int    offset_x,
+                                           rocblas_stride offset_x,
                                            rocblas_int    inc_x,
                                            rocblas_stride stride_x,
                                            rocblas_int    batch_count,
@@ -411,11 +411,11 @@ template rocblas_status rocblas_tbmv_check_numerics<T, U_>                \
                                            rocblas_handle handle,         \
                                            rocblas_int    m,              \
                                            T              A,              \
-                                           rocblas_int    offset_a,       \
+                                           rocblas_stride    offset_a,       \
                                            rocblas_int    lda,            \
                                            rocblas_stride stride_a,       \
                                            U_              x,             \
-                                           rocblas_int    offset_x,       \
+                                           rocblas_stride    offset_x,       \
                                            rocblas_int    inc_x,          \
                                            rocblas_stride stride_x,       \
                                            rocblas_int    batch_count,    \

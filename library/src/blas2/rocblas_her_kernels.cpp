@@ -64,12 +64,12 @@ rocblas_her_kernel(bool           upper,
                    rocblas_int    n,
                    TScal          alpha_device_host,
                    TConstPtr      xa,
-                   ptrdiff_t      shift_x,
+                   rocblas_stride shift_x,
                    rocblas_int    incx,
                    rocblas_stride stride_x,
                    TPtr           Aa,
                    rocblas_int    lda,
-                   ptrdiff_t      shift_A,
+                   rocblas_stride shift_A,
                    rocblas_stride stride_A)
 {
     auto alpha = load_scalar(alpha_device_host);
@@ -140,11 +140,11 @@ rocblas_status rocblas_her_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
                                           rocblas_int    n,
                                           T              A,
-                                          rocblas_int    offset_a,
+                                          rocblas_stride offset_a,
                                           rocblas_int    lda,
                                           rocblas_stride stride_a,
                                           U              x,
-                                          rocblas_int    offset_x,
+                                          rocblas_stride offset_x,
                                           rocblas_int    inc_x,
                                           rocblas_stride stride_x,
                                           rocblas_int    batch_count,
@@ -202,17 +202,17 @@ INSTANTIATE_HER_TEMPLATE(double const*, rocblas_double_complex const* const*, ro
 #error INSTANTIATE_HER_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_HER_NUMERICS(T_,  U_)                                                              \
+#define INSTANTIATE_HER_NUMERICS(T_,  U_)                                 \
 template rocblas_status rocblas_her_check_numerics<T_,  U_>               \
                                          (const char*    function_name,   \
                                           rocblas_handle handle,          \
                                           rocblas_int    n,               \
                                           T_             A,               \
-                                          rocblas_int    offset_a,        \
+                                          rocblas_stride offset_a,        \
                                           rocblas_int    lda,             \
                                           rocblas_stride stride_a,        \
                                           U_             x,               \
-                                          rocblas_int    offset_x,        \
+                                          rocblas_stride offset_x,        \
                                           rocblas_int    inc_x,           \
                                           rocblas_stride stride_x,        \
                                           rocblas_int    batch_count,     \

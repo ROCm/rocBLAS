@@ -37,7 +37,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                        rocblas_int       m,
                                                        rocblas_int       n,
                                                        T                 A,
-                                                       rocblas_int       offset_a,
+                                                       rocblas_stride    offset_a,
                                                        rocblas_int       lda,
                                                        rocblas_stride    stride_a,
                                                        rocblas_int       batch_count,
@@ -109,7 +109,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                            rocblas_int       m,              \
                                                            rocblas_int       n,              \
                                                            typet_            A,              \
-                                                           rocblas_int       offset_a,       \
+                                                           rocblas_stride    offset_a,       \
                                                            rocblas_int       lda,            \
                                                            rocblas_stride    stride_a,       \
                                                            rocblas_int       batch_count,    \

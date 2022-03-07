@@ -31,9 +31,9 @@ namespace
                                                       rocblas_int    batch_count,
                                                       rocblas_int*   result)
     {
-        static constexpr bool        isbatched = true;
-        static constexpr rocblas_int shiftx_0  = 0;
-        static constexpr int         NB        = 1024;
+        static constexpr bool           isbatched = true;
+        static constexpr rocblas_stride shiftx_0  = 0;
+        static constexpr int            NB        = 1024;
 
         size_t         dev_bytes = 0;
         rocblas_status checks_status
