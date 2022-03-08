@@ -868,7 +868,7 @@ There are two client executables that can be used with rocBLAS. They are,
 
 2. rocblas-test
 
-These two clients can be built by following the instructions at `Building and Installing rocBLAS github page <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/source/install.rst>`_. After building the rocBLAS clients, they can be found in the directory ``rocBLAS/build/release/clients/staging``.
+These two clients can be built by following the instructions in the Building and Installing section of the User Guide. After building the rocBLAS clients, they can be found in the directory ``rocBLAS/build/release/clients/staging``.
 
 The next two sections will cover a brief explanation and the usage of each rocBLAS client.
 
