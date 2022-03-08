@@ -57,6 +57,10 @@ Definitions:
     - { transA: C, transB: T }
     - { transA: C, transB: C }
 
+  - &tiny_transA_transB_range
+    - { transA: N, transB: N }
+
+
 Tests:
 - name: geam_bad_arg
   category: quick
@@ -121,6 +125,16 @@ Tests:
   alpha_beta: *small_alpha_beta_range
   fortran: [ false, true ]
 
+- name: geam_batched_NaN
+  category: quick
+  function: geam_batched
+  precision: *single_precision_complex
+  transA_transB: *tiny_transA_transB_range
+  matrix_size: *tiny_matrix_size
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.5, .NaN ]
+  batch_count: [ 2 ]
+
 - name: geam_batched_small
   category: quick
   function: geam_batched
@@ -128,8 +142,19 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
-  batch_count: [        1, 2 ]
+  batch_count: [ 1, 2 ]
   fortran: [ false, true ]
+
+- name: geam_strided_batched_NaN
+  category: quick
+  function: geam_strided_batched
+  precision: *double_precision_complex
+  transA_transB: *tiny_transA_transB_range
+  matrix_size: *tiny_matrix_size
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.5, .NaN ]
+  stride_scale: [ 2 ]
+  batch_count: [ 2 ]
 
 - name: geam_strided_batched_small
   category: quick
