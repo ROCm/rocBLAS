@@ -702,6 +702,78 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
+template <typename TConstPtr, typename TPtr>
+rocblas_status rocblas_geam_check_numerics(const char*       function_name,
+                                           rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_operation trans_b,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           TConstPtr         A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           TConstPtr         B,
+                                           rocblas_int       ldb,
+                                           rocblas_stride    stride_b,
+                                           TPtr              C,
+                                           rocblas_int       ldc,
+                                           rocblas_stride    stride_c,
+                                           rocblas_int       batch_count,
+                                           const int         check_numerics,
+                                           bool              is_input)
+{
+
+    rocblas_status check_numerics_status = rocblas_status_success;
+
+    if(is_input)
+    {
+        check_numerics_status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                                   handle,
+                                                                                   trans_a,
+                                                                                   m,
+                                                                                   n,
+                                                                                   A,
+                                                                                   0,
+                                                                                   lda,
+                                                                                   stride_a,
+                                                                                   batch_count,
+                                                                                   check_numerics,
+                                                                                   is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+
+        check_numerics_status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                                   handle,
+                                                                                   trans_b,
+                                                                                   m,
+                                                                                   n,
+                                                                                   B,
+                                                                                   0,
+                                                                                   ldb,
+                                                                                   stride_b,
+                                                                                   batch_count,
+                                                                                   check_numerics,
+                                                                                   is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+    check_numerics_status
+        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                             handle,
+                                                             rocblas_operation_none,
+                                                             m,
+                                                             n,
+                                                             C,
+                                                             0,
+                                                             ldc,
+                                                             stride_c,
+                                                             batch_count,
+                                                             check_numerics,
+                                                             is_input);
+
+    return check_numerics_status;
+}
+
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files geam*.cpp
 
@@ -746,4 +818,43 @@ INSTANTIATE_GEAM_TEMPLATE( rocblas_float_complex const*,  rocblas_float_complex 
 INSTANTIATE_GEAM_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_GEAM_TEMPLATE
+
+#ifdef INSTANTIATE_GEAM_NUMERICS
+#error INSTANTIATE_GEAM_NUMERICS already defined
+#endif
+
+#define INSTANTIATE_GEAM_NUMERICS(TConstPtr_, TPtr_)                         \
+template rocblas_status rocblas_geam_check_numerics<TConstPtr_, TPtr_>       \
+                                          (const char*       function_name,  \
+                                           rocblas_handle    handle,         \
+                                           rocblas_operation trans_a,        \
+                                           rocblas_operation trans_b,        \
+                                           rocblas_int       m,              \
+                                           rocblas_int       n,              \
+                                           TConstPtr_        A,              \
+                                           rocblas_int       lda,            \
+                                           rocblas_stride    stride_a,       \
+                                           TConstPtr_        B,              \
+                                           rocblas_int       ldb,            \
+                                           rocblas_stride    stride_b,       \
+                                           TPtr_             C,              \
+                                           rocblas_int       ldc,            \
+                                           rocblas_stride    stride_c,       \
+                                           rocblas_int       batch_count,    \
+                                           const int         check_numerics, \
+                                           bool              is_input);
+
+// instantiate for rocblas_Xgeam and rocblas_Xgeam_strided_batched
+INSTANTIATE_GEAM_NUMERICS(float const*,  float*)
+INSTANTIATE_GEAM_NUMERICS(double const*, double*)
+INSTANTIATE_GEAM_NUMERICS(rocblas_float_complex const*,  rocblas_float_complex*)
+INSTANTIATE_GEAM_NUMERICS(rocblas_double_complex const*, rocblas_double_complex*)
+
+// instantiate for rocblas_Xgeam_batched
+INSTANTIATE_GEAM_NUMERICS(float const* const*, float* const*)
+INSTANTIATE_GEAM_NUMERICS(double const* const*, double* const*)
+INSTANTIATE_GEAM_NUMERICS(rocblas_float_complex const* const*,  rocblas_float_complex* const*)
+INSTANTIATE_GEAM_NUMERICS(rocblas_double_complex const* const*, rocblas_double_complex* const*)
+
+#undef INSTANTIATE_GEAM_NUMERICS
 // clang-format on

@@ -42,7 +42,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
 
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -132,26 +133,82 @@ namespace
         static constexpr rocblas_int    offset_a = 0, offset_b = 0, offset_c = 0;
         static constexpr rocblas_stride stride_a = 0, stride_b = 0, stride_c = 0;
 
-        return rocblas_geam_template(handle,
-                                     transA,
-                                     transB,
-                                     m,
-                                     n,
-                                     alpha,
-                                     A,
-                                     offset_a,
-                                     lda,
-                                     stride_a,
-                                     beta,
-                                     B,
-                                     offset_b,
-                                     ldb,
-                                     stride_b,
-                                     C,
-                                     offset_c,
-                                     ldc,
-                                     stride_c,
-                                     batch_count);
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status geam_check_numerics_status
+                = rocblas_geam_check_numerics(rocblas_geam_batched_name<T>,
+                                              handle,
+                                              transA,
+                                              transB,
+                                              m,
+                                              n,
+                                              A,
+                                              lda,
+                                              stride_a,
+                                              B,
+                                              ldb,
+                                              stride_b,
+                                              C,
+                                              ldc,
+                                              stride_c,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(geam_check_numerics_status != rocblas_status_success)
+                return geam_check_numerics_status;
+        }
+        rocblas_status status = rocblas_status_success;
+
+        status = rocblas_geam_template(handle,
+                                       transA,
+                                       transB,
+                                       m,
+                                       n,
+                                       alpha,
+                                       A,
+                                       offset_a,
+                                       lda,
+                                       stride_a,
+                                       beta,
+                                       B,
+                                       offset_b,
+                                       ldb,
+                                       stride_b,
+                                       C,
+                                       offset_c,
+                                       ldc,
+                                       stride_c,
+                                       batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status geam_check_numerics_status
+                = rocblas_geam_check_numerics(rocblas_geam_batched_name<T>,
+                                              handle,
+                                              transA,
+                                              transB,
+                                              m,
+                                              n,
+                                              A,
+                                              lda,
+                                              stride_a,
+                                              B,
+                                              ldb,
+                                              stride_b,
+                                              C,
+                                              ldc,
+                                              stride_c,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(geam_check_numerics_status != rocblas_status_success)
+                return geam_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace
