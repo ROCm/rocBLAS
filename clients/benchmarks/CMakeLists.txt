@@ -78,3 +78,4 @@ add_dependencies( rocblas-bench rocblas-common )
 
 add_subdirectory ( ./perf_script )
 
+rocm_install(TARGETS rocblas-bench COMPONENT benchmarks)

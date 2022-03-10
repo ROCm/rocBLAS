@@ -65,7 +65,7 @@ def runTestCommand (platform, project, gfilter)
         runTests = """
                     pushd ${project.paths.project_build_prefix}
                     mv build build_BAK
-                    ROCBLAS_TEST=/opt/rocm/rocblas/bin/rocblas-test
+                    ROCBLAS_TEST=/opt/rocm/bin/rocblas-test
                     GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                     if (( \$? != 0 )); then
                         exit 1
@@ -109,7 +109,7 @@ def runTestCommand (platform, project, gfilter)
 
 def runPackageCommand(platform, project)
 {
-        def packageHelper = platform.makePackage(platform.jenkinsLabel,"${project.paths.project_build_prefix}/build/release",true)
+        def packageHelper = platform.makePackage(platform.jenkinsLabel,"${project.paths.project_build_prefix}/build/release")
         platform.runCommand(this, packageHelper[0])
         platform.archiveArtifacts(this, packageHelper[1])
         def cleanCommand = """#!/usr/bin/env bash
