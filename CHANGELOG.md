@@ -3,6 +3,8 @@
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
 ## (Unreleased) rocBLAS 2.44.0
+### Added
+- Packages for test and benchmark executables on all supported OSes using CPack.
 
 ### Changed
 - Modifying gemm_ex for HBH (High-precision F16). The alpha/beta data type remains as F32 without narrowing to F16 and expanding back to F32 in the kernel. This change prevents rounding errors due to alpha/beta conversion in situations where alpha/beta are not exactly represented as an F16.

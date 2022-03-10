@@ -7,7 +7,7 @@ include( ExternalProject )
 
 # set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package )
 set( PREFIX_LAPACK ${CMAKE_INSTALL_PREFIX} CACHE PATH "Location where lapack should install, defaults to /usr/local" )
-set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=${PREFIX_LAPACK} )
+set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=${PREFIX_LAPACK} -DBUILD_SHARED_LIBS=OFF )
 append_cmake_cli_arguments( lapack_cmake_args lapack_cmake_args )
 
 set( lapack_git_repository "https://github.com/Reference-LAPACK/lapack.git" CACHE STRING "URL to download lapack from" )

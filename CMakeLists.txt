@@ -32,7 +32,7 @@ find_package(Threads REQUIRED)
 # This finds the rocm-cmake project, and installs it if not found
 # rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM 0.7 CONFIG QUIET PATHS ${ROCM_PATH} /opt/rocm )
+find_package( ROCM 0.7.3 CONFIG QUIET PATHS ${ROCM_PATH} /opt/rocm )
 if( NOT ROCM_FOUND )
   set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
   file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
@@ -59,7 +59,7 @@ if( NOT ROCM_FOUND )
   execute_process( COMMAND ${CMAKE_COMMAND} --build rocm-cmake-${rocm_cmake_tag} --target install
     WORKING_DIRECTORY ${PROJECT_EXTERN_DIR})
 
-  find_package( ROCM 0.7 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
+  find_package( ROCM 0.7.3 REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake )
 endif( )
 
 # rocm-cmake helpers
@@ -68,7 +68,8 @@ include( ROCMCreatePackage )
 include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
-include( ROCMCheckTargetIds OPTIONAL )
+include( ROCMCheckTargetIds )
+include( ROCMClients )
 
 
 include (os-detection)
@@ -181,7 +182,49 @@ else()
 endif()
 
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
+  if(NOT CLIENTS_OS)
+    rocm_set_os_id(CLIENTS_OS)
+    string(TOLOWER "${CLIENTS_OS}" CLIENTS_OS)
+    rocm_read_os_release(CLIENTS_OS_VERSION VERSION_ID)
+  endif()
+  message(STATUS "OS: ${CLIENTS_OS} ${CLIENTS_OS_VERSION}")
+  set(OPENMP_PKG "libgomp")
+  set(GFORTRAN_PKG "gcc-gfortran")
+  if(CLIENTS_OS STREQUAL "sles")
+    set(OPENMP_PKG "libgomp1")
+    set(GFORTRAN_PKG "gcc-fortran")
+  endif()
+  if(CLIENTS_OS STREQUAL "centos" AND CLIENTS_OS_VERSION EQUAL 7)
+    set(GFORTRAN_PKG "devtoolset-7-gcc-gfortran")
+  endif()
+
   set( BUILD_CLIENTS ON )
+  rocm_package_setup_component(clients)
+  rocm_package_setup_client_component( clients-common )
+  if(BUILD_CLIENTS_TESTS)
+    rocm_package_setup_client_component(
+      tests
+      DEPENDS
+        COMPONENT clients-common
+        DEB "libomp-dev >= 5.0.1"
+        RPM "${OPENMP_PKG}"
+    )
+  endif()
+  if(BUILD_CLIENTS_BENCHMARKS)
+    rocm_package_setup_client_component(
+      benchmarks
+      DEPENDS
+        COMPONENT clients-common
+        DEB "libomp-dev >= 5.0.1"
+        RPM "${OPENMP_PKG}"
+    )
+  endif()
+  if(BUILD_FORTRAN_CLIENTS)
+    rocm_package_add_rpm_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_PKG}")
+    rocm_package_add_deb_dependencies(COMPONENT tests DEPENDS "gfortran >= 7.4.0")
+    rocm_package_add_rpm_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_PKG}")
+    rocm_package_add_deb_dependencies(COMPONENT benchmarks DEPENDS "gfortran >= 7.4.0")
+  endif()
 endif()
 
 if( NOT SKIP_LIBRARY )
@@ -192,6 +235,60 @@ endif()
 if( BUILD_CLIENTS )
   add_subdirectory( clients )
 endif( )
+
+# The following code is setting variables to control the behavior of CPack to generate our
+if( WIN32 )
+    set( CPACK_SOURCE_GENERATOR "ZIP" )
+    set( CPACK_GENERATOR "ZIP" )
+endif( )
+
+# Package specific CPACK vars
+# As of ROCm 3.8, HIP_RUNTIME has been changed from "ROCclr" to "rocclr"
+# As of ROCm 3.8, HIP_RUNTIME has been changed from "cuda" to "cudart"
+if( HIP_RUNTIME MATCHES ".*cuda.*" )
+  rocm_package_add_dependencies(DEPENDS "hip-nvcc >= 3.5.0")
+else()
+  rocm_package_add_dependencies(DEPENDS "hip-rocclr >= 4.0.0")
+endif()
+
+if( OS_ID_sles )
+  rocm_package_add_rpm_dependencies(DEPENDS "libLLVM7 >= 7.0.1")
+endif()
+
+set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md" )
+set( CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
+
+if (WIN32)
+  SET( CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path" FORCE )
+  SET( INSTALL_PREFIX "C:/hipSDK" )
+  SET( CPACK_SET_DESTDIR FALSE )
+  SET( CPACK_PACKAGE_INSTALL_DIRECTORY "C:/hipSDK" )
+  SET( CPACK_PACKAGING_INSTALL_PREFIX "" )
+  set( CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF )
+else()
+  if( NOT CPACK_PACKAGING_INSTALL_PREFIX )
+    set( CPACK_PACKAGING_INSTALL_PREFIX ${ROCM_PATH} )
+  endif()
+endif( )
+
+set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}" "\${CPACK_PACKAGING_INSTALL_PREFIX}/include" "\${CPACK_PACKAGING_INSTALL_PREFIX}/lib" )
+
+# Give rocblas compiled for CUDA backend a different name
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+    set( package_name rocblas )
+else( )
+    set( package_name rocblas-alt )
+endif( )
+
+set( ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path placed into ldconfig file" )
+
+rocm_create_package(
+    NAME ${package_name}
+    DESCRIPTION "rocBLAS is AMD's library for BLAS on ROCm. It is implemented in HIP and optimized for AMD GPUs."
+    MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
+    LDCONFIG
+    LDCONFIG_DIR ${ROCBLAS_CONFIG_DIR}
+)
 
 #
 # ADDITIONAL TARGETS FOR CODE COVERAGE

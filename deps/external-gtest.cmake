@@ -7,7 +7,7 @@ include( ExternalProject )
 
 # set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package )
 set( PREFIX_GTEST ${CMAKE_INSTALL_PREFIX} CACHE PATH "Location where GTest should install, defaults to /usr/local" )
-set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=${PREFIX_GTEST} )
+set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=${PREFIX_GTEST} -DBUILD_SHARED_LIBS=OFF )
 append_cmake_cli_arguments( gtest_cmake_args gtest_cmake_args )
 
 set( gtest_git_repository "https://github.com/google/googletest.git" CACHE STRING "URL to download gtest from" )

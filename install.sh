@@ -265,7 +265,7 @@ install_packages( )
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" )
 
   # wget is needed for blis
-  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
     client_dependencies_ubuntu+=("wget")
     client_dependencies_centos_rhel+=("wget")
     client_dependencies_centos_rhel_8+=("wget")
@@ -567,7 +567,7 @@ printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m
 install_blis()
 {
     #Download prebuilt AMD multithreaded blis
-    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.so" ]]; then
+    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.a" ]]; then
       case "${ID}" in
           centos|rhel|sles|opensuse-leap)
               wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
@@ -586,7 +586,7 @@ install_blis()
       mv amd-blis-mt blis
       rm blis.tar.gz
       cd blis/lib
-      ln -sf libblis-mt.so libblis.so
+      ln -sf libblis-mt.a libblis.a
     fi
 }
 
