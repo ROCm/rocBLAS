@@ -2,7 +2,7 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 2.43.0
+## rocBLAS 2.43.0 for ROCm 5.1.0
 ### Added
 - Option to install script for number of jobs to use for rocBLAS and Tensile compilation (-j, --jobs)
 - Option to install script to build clients without using any Fortran (--clients_no_fortran)
