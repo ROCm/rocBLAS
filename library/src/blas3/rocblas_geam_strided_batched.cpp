@@ -149,7 +149,7 @@ namespace
         if(!alpha || !beta)
             return rocblas_status_invalid_pointer;
 
-        static constexpr rocblas_int offset_a = 0, offset_b = 0, offset_c = 0;
+        static constexpr rocblas_stride offset_a = 0, offset_b = 0, offset_c = 0;
 
         if(check_numerics)
         {

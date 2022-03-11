@@ -10,7 +10,7 @@ ROCBLAS_KERNEL(DIM_X* DIM_Y)
 geam_zero_matrix_device(rocblas_int    m,
                         rocblas_int    n,
                         TPtr           Ca,
-                        rocblas_int    offset_c,
+                        rocblas_stride offset_c,
                         rocblas_int    ldc,
                         rocblas_stride stride_c)
 {
@@ -34,16 +34,16 @@ geam_device(rocblas_operation transA,
             rocblas_int       n,
             TScal             alpha_device_host,
             TConstPtr         Aa,
-            rocblas_int       offset_a,
+            rocblas_stride    offset_a,
             rocblas_int       lda,
             rocblas_stride    stride_a,
             TScal             beta_device_host,
             TConstPtr         Ba,
-            rocblas_int       offset_b,
+            rocblas_stride    offset_b,
             rocblas_int       ldb,
             rocblas_stride    stride_b,
             TPtr              Ca,
-            rocblas_int       offset_c,
+            rocblas_stride    offset_c,
             rocblas_int       ldc,
             rocblas_stride    stride_c)
 {
@@ -101,11 +101,11 @@ geam_2matrix_device(rocblas_operation transA,
                     rocblas_int       n,
                     TScal             alpha_device_host,
                     TConstPtr         Aa,
-                    rocblas_int       offset_a,
+                    rocblas_stride    offset_a,
                     rocblas_int       lda,
                     rocblas_stride    stride_a,
                     TPtr              Ca,
-                    rocblas_int       offset_c,
+                    rocblas_stride    offset_c,
                     rocblas_int       ldc,
                     rocblas_stride    stride_c)
 {
@@ -154,14 +154,14 @@ ROCBLAS_KERNEL(DIM_X)
 geam_1D_device(size_t         size,
                TScal          alpha_device_host,
                TConstPtr      Aa,
-               rocblas_int    offset_a,
+               rocblas_stride offset_a,
                rocblas_stride stride_a,
                TScal          beta_device_host,
                TConstPtr      Ba,
-               rocblas_int    offset_b,
+               rocblas_stride offset_b,
                rocblas_stride stride_b,
                TPtr           Ca,
-               rocblas_int    offset_c,
+               rocblas_stride offset_c,
                rocblas_stride stride_c)
 {
     size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
@@ -196,10 +196,10 @@ ROCBLAS_KERNEL(DIM_X)
 geam_1D_2matrix_device(size_t         size,
                        TScal          alpha_device_host,
                        TConstPtr      Aa,
-                       rocblas_int    offset_a,
+                       rocblas_stride offset_a,
                        rocblas_stride stride_a,
                        TPtr           Ca,
-                       rocblas_int    offset_c,
+                       rocblas_stride offset_c,
                        rocblas_stride stride_c)
 {
     size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
@@ -232,11 +232,11 @@ geam_inplace_device(rocblas_operation transB,
                     TScal             alpha_device_host,
                     TScal             beta_device_host,
                     TConstPtr         Ba,
-                    rocblas_int       offset_b,
+                    rocblas_stride    offset_b,
                     rocblas_int       ldb,
                     rocblas_stride    stride_b,
                     TPtr              Ca,
-                    rocblas_int       offset_c,
+                    rocblas_stride    offset_c,
                     rocblas_int       ldc,
                     rocblas_stride    stride_c)
 {
@@ -309,16 +309,16 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
                                      rocblas_int       n,
                                      TScal             alpha,
                                      TConstPtr         A,
-                                     rocblas_int       offset_a,
+                                     rocblas_stride    offset_a,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_a,
                                      TScal             beta,
                                      TConstPtr         B,
-                                     rocblas_int       offset_b,
+                                     rocblas_stride    offset_b,
                                      rocblas_int       ldb,
                                      rocblas_stride    stride_b,
                                      TPtr              C,
-                                     rocblas_int       offset_c,
+                                     rocblas_stride    offset_c,
                                      rocblas_int       ldc,
                                      rocblas_stride    stride_c,
                                      rocblas_int       batch_count)
@@ -791,16 +791,16 @@ template rocblas_status rocblas_geam_template<TScal_, TConstPtr_, TPtr_>  \
                                      rocblas_int       n,                 \
                                      TScal_            alpha,             \
                                      TConstPtr_        A,                 \
-                                     rocblas_int       offset_a,          \
+                                     rocblas_stride    offset_a,          \
                                      rocblas_int       lda,               \
                                      rocblas_stride    stride_a,          \
                                      TScal_            beta,              \
                                      TConstPtr_        B,                 \
-                                     rocblas_int       offset_b,          \
+                                     rocblas_stride    offset_b,          \
                                      rocblas_int       ldb,               \
                                      rocblas_stride    stride_b,          \
                                      TPtr_             C,                 \
-                                     rocblas_int       offset_c,          \
+                                     rocblas_stride    offset_c,          \
                                      rocblas_int       ldc,               \
                                      rocblas_stride    stride_c,          \
                                      rocblas_int       batch_count);
