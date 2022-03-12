@@ -9,6 +9,9 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Changed
 - Modifying gemm_ex for HBH (High-precision F16). The alpha/beta data type remains as F32 without narrowing to F16 and expanding back to F32 in the kernel. This change prevents rounding errors due to alpha/beta conversion in situations where alpha/beta are not exactly represented as an F16.
 
+### Removed
+- Remove Navi12 (gfx1011) from fat binary.
+
 ## rocBLAS 2.43.0 for ROCm 5.1.0
 ### Added
 - Option to install script for number of jobs to use for rocBLAS and Tensile compilation (-j, --jobs)
