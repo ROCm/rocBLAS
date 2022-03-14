@@ -92,8 +92,11 @@ if( BUILD_VERBOSE )
   message( STATUS "\t==>CMAKE_SHARED_LINKER_FLAGS_RELEASE: ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
 endif( )
 
+
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h" )
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h" )
+
 
 set( rocblas_headers_public
   include/rocblas.h
@@ -101,7 +104,7 @@ set( rocblas_headers_public
   include/internal/rocblas_bfloat16.h
   include/internal/rocblas-auxiliary.h
   include/internal/rocblas-functions.h
-  ${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h
+  ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
 )
 
 source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )

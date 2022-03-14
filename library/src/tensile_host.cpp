@@ -47,7 +47,7 @@ extern "C" void rocblas_shutdown();
 #include <libgen.h>
 #include <link.h>
 #include <unistd.h>
-#define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib"
+#define ROCBLAS_LIB_PATH "/opt/rocm/lib/rocblas"
 #endif
 
 #ifdef WIN32
@@ -579,8 +579,10 @@ namespace
                 // Find the location of the libraries
                 if(TestPath(path + "/../../Tensile/library"))
                     path += "/../../Tensile/library";
-                else
+                else if(TestPath(path + "library"))
                     path += "/library";
+                else
+                    path += "/rocblas/library";
 
                 if(TestPath(path + "/" + processor))
                     path += "/" + processor;

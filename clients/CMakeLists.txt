@@ -28,7 +28,7 @@ if ( BUILD_FORTRAN_CLIENTS )
   )
 
   # Set Fortran module output directory
-  set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include/internal)
+  set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include/rocblas/internal)
 
   # Create rocBLAS Fortran module
   add_library(rocblas_fortran OBJECT ../library/include/rocblas_module.f90)
@@ -46,8 +46,8 @@ if( SKIP_LIBRARY )
   include_directories(${ROCBLAS_LIBRARY_DIR}/include)
   include_directories(${ROCBLAS_LIBRARY_DIR}/include/internal)
 else()
-  include_directories(${CMAKE_BINARY_DIR}/include)
-  include_directories(${CMAKE_BINARY_DIR}/include/internal)
+  include_directories(${CMAKE_BINARY_DIR}/include/rocblas)
+  include_directories(${CMAKE_BINARY_DIR}/include/rocblas/internal)
 endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -78,7 +78,7 @@ include( client-build-options )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 if( NOT TARGET rocblas )
-  find_package( rocblas REQUIRED CONFIG PATHS ${ROCM_PATH}/rocblas /opt/rocm/rocblas ${ROCBLAS_LIBRARY_DIR})
+  find_package( rocblas REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm ${ROCM_PATH}/rocblas /opt/rocm/rocblas ${ROCBLAS_LIBRARY_DIR})
 endif( )
 
 # Hip headers required of all clients; clients use hip to allocate device memory
