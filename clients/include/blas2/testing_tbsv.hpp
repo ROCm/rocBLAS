@@ -114,7 +114,17 @@ void testing_tbsv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    //Matrix `hA` is initialized as a general matrix because the general matrix is converted into Banded matrix by the function regular_to_banded below
+    rocblas_init_matrix(hA,
+                        arg,
+                        size_A,
+                        1,
+                        1,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_general_matrix,
+                        true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
     // Make hA a banded matrix with k sub/super-diagonals

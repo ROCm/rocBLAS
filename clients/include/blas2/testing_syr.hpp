@@ -96,7 +96,16 @@ void testing_syr(const Arguments& arg)
     double rocblas_error_2;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA_1, arg, N, N, lda, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA_1,
+                        arg,
+                        N,
+                        N,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_symmetric_matrix,
+                        true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of

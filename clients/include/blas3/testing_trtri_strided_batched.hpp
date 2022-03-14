@@ -63,7 +63,16 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
     for(size_t b = 0; b < batch_count; b++)
     {
-        rocblas_init_symmetric<T>(hA_sub, N, lda);
+        rocblas_init_matrix(hA_sub,
+                            arg,
+                            N,
+                            N,
+                            lda,
+                            0,
+                            1,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_symmetric_matrix,
+                            true);
         for(size_t i = 0; i < N; i++)
         {
             for(size_t j = 0; j < N; j++)

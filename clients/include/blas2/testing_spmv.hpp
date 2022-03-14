@@ -127,7 +127,17 @@ void testing_spmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+    // Matrix `hA` is initialized as a triangular matrix because only the upper triangular or lower triangular portion of the matrix `hA` is referenced.
+    rocblas_init_matrix(hA,
+                        arg,
+                        N,
+                        (N + 1) / 2,
+                        1,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
     rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
 

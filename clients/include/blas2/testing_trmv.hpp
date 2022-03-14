@@ -102,7 +102,16 @@ void testing_trmv(const Arguments& arg)
     CHECK_HIP_ERROR(hres.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, M, M, lda, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        M,
+                        M,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, dim_x, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
     //

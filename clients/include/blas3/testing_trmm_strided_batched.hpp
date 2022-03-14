@@ -290,10 +290,27 @@ void testing_trmm_strided_batched(const Arguments& arg)
     h_alpha[0] = alpha;
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, K, K, lda, stride_a, batch_count, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_matrix(
-        hB, arg, M, N, ldb, stride_b, batch_count, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        K,
+                        K,
+                        lda,
+                        stride_a,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        M,
+                        N,
+                        ldb,
+                        stride_b,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
 
     hB_1 = hB; // hXorB <- B
     hB_2 = hB; // hXorB <- B

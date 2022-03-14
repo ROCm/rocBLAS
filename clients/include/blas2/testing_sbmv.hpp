@@ -77,11 +77,12 @@ void testing_sbmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_sbmv(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int lda  = arg.lda;
-    rocblas_int K    = arg.K;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
+    rocblas_int N                 = arg.N;
+    rocblas_int lda               = arg.lda;
+    rocblas_int K                 = arg.K;
+    rocblas_int incx              = arg.incx;
+    rocblas_int incy              = arg.incy;
+    rocblas_int banded_matrix_row = K + 1;
 
     host_vector<T> alpha(1);
     host_vector<T> beta(1);
@@ -100,7 +101,7 @@ void testing_sbmv(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || lda < K + 1 || K < 0 || !incx || !incy)
+    if(N < 0 || lda < banded_matrix_row || K < 0 || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_sbmv<T>(
@@ -130,7 +131,16 @@ void testing_sbmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, N, N, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        banded_matrix_row,
+                        N,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_symmetric_matrix,
+                        true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
     rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
 
