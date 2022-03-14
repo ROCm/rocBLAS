@@ -93,6 +93,7 @@ rocBLAS build & installation helper script.
     --use-cuda                       Use installed CUDA version instead of ROCm stack.
 
     -v, --rocm-dev <version>         Specify specific rocm-dev version (e.g. 4.5.0).
+        --rm-legacy-include-dir      Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -397,6 +398,7 @@ update_cmake=false
 build_codecoverage=false
 build_release_debug=false
 build_address_sanitizer=false
+build_freorg_bkwdcomp=true
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -412,7 +414,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,rm-legacy-include-dir --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -535,6 +537,9 @@ while true; do
         shift ;;
     --address-sanitizer)
         build_address_sanitizer=true
+        shift ;;
+    --rm-legacy-include-dir)
+        build_freorg_bkwdcomp=false
         shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
@@ -771,6 +776,11 @@ pushd .
 
   if [[ "${build_address_sanitizer}" == true ]]; then
     cmake_common_options="$cmake_common_options -DBUILD_ADDRESS_SANITIZER=ON"
+  fi
+  if [[ "${build_freorg_bkwdcomp}" == true ]]; then
+    cmake_common_options="${cmake_common_options} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON"
+  else
+    cmake_common_options="${cmake_common_options} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF"
   fi
 
   # Uncomment for cmake debugging

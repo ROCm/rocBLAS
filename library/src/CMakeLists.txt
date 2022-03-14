@@ -395,7 +395,9 @@ target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
           $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include/internal>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/internal>
+	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas/internal>
+	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas>
+	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${Tensile_INC}>
           $<INSTALL_INTERFACE:include>
           )
@@ -468,7 +470,7 @@ endif()
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
 set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
-generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/internal/rocblas-export.h )
+generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-export.h )
 
 # generate header with prototypes for export reuse
 file( GLOB rocblas_prototype_inputs
@@ -479,7 +481,7 @@ file( GLOB rocblas_prototype_inputs
   ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
 )
-set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/internal/rocblas-exported-proto.hpp" )
+set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
   COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
   #DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/
@@ -491,7 +493,7 @@ add_custom_target( rocblas_proto_templates DEPENDS ${ROCBLAS_PROTO_TEMPLATES} )
 add_dependencies( rocblas rocblas_proto_templates )
 
 # generate rocblas_device_malloc.hpp header for device memory allocation
-set( ROCBLAS_DEVICE_MALLOC "${PROJECT_BINARY_DIR}/include/internal/rocblas_device_malloc.hpp" )
+set( ROCBLAS_DEVICE_MALLOC "${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas_device_malloc.hpp" )
 add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp ${ROCBLAS_DEVICE_MALLOC}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp
@@ -500,6 +502,22 @@ add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
 )
 add_custom_target( rocblas_device_malloc DEPENDS ${ROCBLAS_DEVICE_MALLOC} )
 add_dependencies( rocblas rocblas_device_malloc )
+
+option(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY "Build with file/folder reorg with backward compatibility enabled" ON)
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+  rocm_wrap_header_dir(
+    ${CMAKE_SOURCE_DIR}/library/include
+    PATTERNS "*.h"
+    GUARDS SYMLINK WRAPPER
+    WRAPPER_LOCATIONS include
+  )
+  rocm_wrap_header_file(
+    internal/rocblas-version.h internal/rocblas-export.h internal/rocblas-exported-proto.hpp internal/rocblas_device_malloc.hpp
+    GUARDS SYMLINK WRAPPER
+    WRAPPER_LOCATIONS include rocblas/include
+  )
+endif( )
+
 
 if( NOT BUILD_SHARED_LIBS )
   # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
@@ -528,22 +546,21 @@ endif( )
 
 # Force installation of .f90 module file
 rocm_install(FILES "../include/rocblas_module.f90"
-        DESTINATION "rocblas/include"
+        DESTINATION "include/rocblas/"
 )
 
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/library/include ${PROJECT_BINARY_DIR}/include/rocblas)
 rocm_install_targets(
   TARGETS ${package_targets}
   INCLUDE
-    ${CMAKE_SOURCE_DIR}/library/include
     ${CMAKE_BINARY_DIR}/include
-  PREFIX rocblas
 )
 
 if( BUILD_WITH_TENSILE )
   if (WIN32)
     set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin" CACHE PATH "path to tensile library" )
   else()
-    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}lib/rocblas" CACHE PATH "path to tensile library" )
   endif()
   rocm_install(
     DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
@@ -556,7 +573,6 @@ endif()
 if( BUILD_SHARED_LIBS )
   rocm_export_targets(
     TARGETS roc::rocblas
-    PREFIX rocblas
     DEPENDS PACKAGE hip
     NAMESPACE roc::
     )
@@ -566,14 +582,12 @@ else()
     # header only tensile usage of msgpack
     rocm_export_targets(
       TARGETS roc::rocblas
-      PREFIX rocblas
       DEPENDS PACKAGE hip
       NAMESPACE roc::
       )
   else()
     rocm_export_targets(
       TARGETS roc::rocblas
-      PREFIX rocblas
       DEPENDS PACKAGE hip
       STATIC_DEPENDS PACKAGE LLVM
       NAMESPACE roc::
@@ -581,8 +595,29 @@ else()
   endif()
 endif()
 
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+  rocm_install(
+    DIRECTORY
+       "${PROJECT_BINARY_DIR}/rocblas"
+        DESTINATION "." )
 
-rocm_install_symlink_subdir( rocblas )
+  if ( NOT WIN32 )
+
+    #Create SymLink for Fortran Object Module for backward compatibility
+    rocm_install(
+      CODE "
+        set(PREFIX \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})
+        set(INPUT_FILE \${PREFIX}/include/rocblas/rocblas_module.f90)
+        set(SYMLINK_LOCATIONS \${PREFIX}/rocblas/include \${PREFIX}/include)
+        foreach(LOCATION IN LISTS SYMLINK_LOCATIONS)
+          file(MAKE_DIRECTORY \${LOCATION})
+          execute_process(COMMAND ln -sfr \${INPUT_FILE} \${LOCATION})
+          message(STATUS \"Created symlink in \${LOCATION} to \${INPUT_FILE}.\")
+        endforeach()
+        "
+    )
+  endif() #NOT WIN32
+endif()
 
 #Control for enabling or disabling header testing
 option (RUN_HEADER_TESTING "Enable or disable header testing" ${BUILD_TESTING})
