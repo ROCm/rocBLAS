@@ -136,12 +136,12 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     rocblas_int incx = arg.incx;
     rocblas_int ldc  = arg.ldc;
 
-    rocblas_int stride_a = arg.stride_a;
-    rocblas_int stride_x = arg.stride_x;
+    rocblas_stride stride_a = arg.stride_a;
+    rocblas_stride stride_x = arg.stride_x;
     if(!stride_x)
         stride_x = 1; // incx = 0 case
-    rocblas_int stride_c    = arg.stride_c;
-    rocblas_int batch_count = arg.batch_count;
+    rocblas_stride stride_c    = arg.stride_c;
+    rocblas_int    batch_count = arg.batch_count;
 
     rocblas_int abs_incx = incx > 0 ? incx : -incx;
 
@@ -149,13 +149,23 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     double rocblas_error = std::numeric_limits<double>::max();
 
-    if((stride_a > 0) && (stride_a < lda * N))
-        rocblas_cout << "WARNING: stride_a < lda * N" << std::endl;
-    if((stride_c > 0) && (stride_c < ldc * N))
-        rocblas_cout << "WARNING: stride_c < ldc * N" << std::endl;
-    if((stride_x > 0) && (stride_x < incx * K))
-        rocblas_cout << "WARNING: stride_x < incx * (rocblas_side_right == side ? N : M))"
+    if((stride_a > 0) && (stride_a < size_t(lda) * N))
+    {
+        rocblas_cout << "WARNING: stride_a < lda * N, setting stride_a = lda * N " << std::endl;
+        stride_a = N * size_t(lda);
+    }
+    if((stride_c > 0) && (stride_c < size_t(ldc) * N))
+    {
+        rocblas_cout << "WARNING: stride_c < ldc * N, setting stride_c = lda * N" << std::endl;
+        stride_c = N * size_t(ldc);
+    }
+    if((stride_x > 0) && (stride_x < size_t(abs_incx) * K))
+    {
+        rocblas_cout << "WARNING: stride_x < incx * (rocblas_side_right == side ? N : M)),\n"
+                        "setting stride_x = incx * (rocblas_side_right == side ? N : M))"
                      << std::endl;
+        stride_x = K * size_t(abs_incx);
+    }
 
     size_t size_A = batch_count * stride_a;
     size_t size_x = batch_count * stride_x;

@@ -10,7 +10,7 @@ ROCBLAS_KERNEL(DIM_X* DIM_Y)
 dgmm_device(rocblas_int    m,
             rocblas_int    n,
             TConstPtr      Aa,
-            rocblas_int    offset_a,
+            rocblas_stride offset_a,
             rocblas_int    lda,
             rocblas_stride stride_a,
             TConstPtr      Xa,
@@ -18,7 +18,7 @@ dgmm_device(rocblas_int    m,
             rocblas_int    incx,
             rocblas_stride stride_x,
             TPtr           Ca,
-            rocblas_int    offset_c,
+            rocblas_stride offset_c,
             rocblas_int    ldc,
             rocblas_stride stride_c)
 {
@@ -62,15 +62,15 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
                                      rocblas_int    m,
                                      rocblas_int    n,
                                      TConstPtr      A,
-                                     rocblas_int    offset_a,
+                                     rocblas_stride offset_a,
                                      rocblas_int    lda,
                                      rocblas_stride stride_a,
                                      TConstPtr      X,
-                                     rocblas_int    offset_x,
+                                     rocblas_stride offset_x,
                                      rocblas_int    incx,
                                      rocblas_stride stride_x,
                                      TPtr           C,
-                                     rocblas_int    offset_c,
+                                     rocblas_stride offset_c,
                                      rocblas_int    ldc,
                                      rocblas_stride stride_c,
                                      rocblas_int    batch_count)
@@ -155,15 +155,15 @@ template rocblas_status rocblas_dgmm_template<TConstPtr_, TPtr_>  \
                                      rocblas_int    m,            \
                                      rocblas_int    n,            \
                                      TConstPtr_     A,            \
-                                     rocblas_int    offset_a,     \
+                                     rocblas_stride offset_a,     \
                                      rocblas_int    lda,          \
                                      rocblas_stride stride_a,     \
                                      TConstPtr_     X,            \
-                                     rocblas_int    offset_x,     \
+                                     rocblas_stride offset_x,     \
                                      rocblas_int    incx,         \
                                      rocblas_stride stride_x,     \
                                      TPtr_          C,            \
-                                     rocblas_int    offset_c,     \
+                                     rocblas_stride offset_c,     \
                                      rocblas_int    ldc,          \
                                      rocblas_stride stride_c,     \
                                      rocblas_int    batch_count);
