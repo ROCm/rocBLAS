@@ -251,8 +251,16 @@ void testing_symv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, N, N, lda, strideA, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        N,
+                        N,
+                        lda,
+                        strideA,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_symmetric_matrix,
+                        true);
     rocblas_init_vector(
         hx, arg, N, abs_incx, stridex, batch_count, rocblas_client_alpha_sets_nan, false, false);
     rocblas_init_vector(hy, arg, N, abs_incy, stridey, batch_count, rocblas_client_beta_sets_nan);

@@ -345,32 +345,31 @@ inline void rocblas_init_vector(host_vector<T>&        hx,
 
     if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
     {
-        rocblas_init_nan(hx, 1, N, incx, stride_x, batch_count);
+        rocblas_init_vector(random_nan_generator<T>, hx, N, incx, stride_x, batch_count);
     }
     else if(nan_init == rocblas_client_beta_sets_nan && rocblas_isnan(arg.beta))
     {
-        rocblas_init_nan(hx, 1, N, incx, stride_x, batch_count);
+        rocblas_init_vector(random_nan_generator<T>, hx, N, incx, stride_x, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
         if(alternating_sign)
-            rocblas_init_hpl_alternating_sign(hx, 1, N, incx, stride_x, batch_count);
+            rocblas_init_vector_alternating_sign(
+                random_hpl_generator<T>, hx, N, incx, stride_x, batch_count);
         else
-            rocblas_init_hpl(hx, 1, N, incx, stride_x, batch_count);
+            rocblas_init_vector(random_hpl_generator<T>, hx, N, incx, stride_x, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::rand_int)
     {
         if(alternating_sign)
-            rocblas_init_alternating_sign(hx, 1, N, incx, stride_x, batch_count);
+            rocblas_init_vector_alternating_sign(
+                random_generator<T>, hx, N, incx, stride_x, batch_count);
         else
-            rocblas_init(hx, 1, N, incx, stride_x, batch_count);
+            rocblas_init_vector(random_generator<T>, hx, N, incx, stride_x, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
-        if(seedReset)
-            rocblas_init_cos(hx, 1, N, incx, stride_x, batch_count);
-        else
-            rocblas_init_sin(hx, 1, N, incx, stride_x, batch_count);
+        rocblas_init_vector_trig(hx, N, incx, stride_x, batch_count, seedReset);
     }
 }
 
@@ -384,51 +383,70 @@ inline void rocblas_init_vector(host_vector<T>&        hx,
 //! @param stride_A Incement between the host matrix.
 //! @param batch_count number of instances in the batch.
 //! @param nan_init Initialize matrix with Nan's depending upon the rocblas_check_nan_init enum value.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise. Use init_cos if seedReset is true else use init_sin.
+//! @param matrix_type Initialization of the matrix based upon the rocblas_check_matrix_type enum value.
 //! @param alternating_sign Initialize matrix so adjacent entries have alternating sign.
 //!
 template <typename T>
-inline void rocblas_init_matrix(host_vector<T>&        hA,
-                                const Arguments&       arg,
-                                size_t                 M,
-                                size_t                 N,
-                                size_t                 lda,
-                                rocblas_stride         stride_A,
-                                rocblas_int            batch_count,
-                                rocblas_check_nan_init nan_init,
-                                bool                   seedReset        = false,
-                                bool                   alternating_sign = false)
+inline void rocblas_init_matrix(host_vector<T>&           hA,
+                                const Arguments&          arg,
+                                size_t                    M,
+                                size_t                    N,
+                                size_t                    lda,
+                                rocblas_stride            stride_A,
+                                rocblas_int               batch_count,
+                                rocblas_check_nan_init    nan_init,
+                                rocblas_check_matrix_type matrix_type,
+                                bool                      seedReset        = false,
+                                bool                      alternating_sign = false)
 {
     if(seedReset)
         rocblas_seedrand();
 
     if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
     {
-        rocblas_init_nan(hA, M, N, lda, stride_A, batch_count);
+        rocblas_init_matrix(
+            matrix_type, arg.uplo, random_nan_generator<T>, hA, M, N, lda, stride_A, batch_count);
     }
     else if(nan_init == rocblas_client_beta_sets_nan && rocblas_isnan(arg.beta))
     {
-        rocblas_init_nan(hA, M, N, lda, stride_A, batch_count);
+        rocblas_init_matrix(
+            matrix_type, arg.uplo, random_nan_generator<T>, hA, M, N, lda, stride_A, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
         if(alternating_sign)
-            rocblas_init_hpl_alternating_sign(hA, M, N, lda, stride_A, batch_count);
+            rocblas_init_matrix_alternating_sign(matrix_type,
+                                                 arg.uplo,
+                                                 random_hpl_generator<T>,
+                                                 hA,
+                                                 M,
+                                                 N,
+                                                 lda,
+                                                 stride_A,
+                                                 batch_count);
         else
-            rocblas_init_hpl(hA, M, N, lda, stride_A, batch_count);
+            rocblas_init_matrix(matrix_type,
+                                arg.uplo,
+                                random_hpl_generator<T>,
+                                hA,
+                                M,
+                                N,
+                                lda,
+                                stride_A,
+                                batch_count);
     }
     else if(arg.initialization == rocblas_initialization::rand_int)
     {
         if(alternating_sign)
-            rocblas_init_alternating_sign(hA, M, N, lda, stride_A, batch_count);
+            rocblas_init_matrix_alternating_sign(
+                matrix_type, arg.uplo, random_generator<T>, hA, M, N, lda, stride_A, batch_count);
         else
-            rocblas_init(hA, M, N, lda, stride_A, batch_count);
+            rocblas_init_matrix(
+                matrix_type, arg.uplo, random_generator<T>, hA, M, N, lda, stride_A, batch_count);
     }
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
-        if(seedReset)
-            rocblas_init_cos(hA, M, N, lda, stride_A, batch_count);
-        else
-            rocblas_init_sin(hA, M, N, lda, stride_A, batch_count);
+        rocblas_init_matrix_trig(
+            matrix_type, arg.uplo, hA, M, N, lda, stride_A, batch_count, seedReset);
     }
 }

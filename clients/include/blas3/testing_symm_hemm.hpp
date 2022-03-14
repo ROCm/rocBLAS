@@ -171,9 +171,45 @@ void testing_symm_hemm(const Arguments& arg)
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
 
-    rocblas_init_matrix<T>(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
-    rocblas_init_matrix<T>(hB, arg, M, N, ldb, 0, 1, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_matrix<T>(hC_1, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan);
+    if(HERM)
+    {
+        rocblas_init_matrix<T>(hA,
+                               arg,
+                               cols,
+                               cols,
+                               lda,
+                               0,
+                               1,
+                               rocblas_client_never_set_nan,
+                               rocblas_client_hermitian_matrix,
+                               true);
+    }
+    else
+    {
+        rocblas_init_matrix<T>(hA,
+                               arg,
+                               cols,
+                               cols,
+                               lda,
+                               0,
+                               1,
+                               rocblas_client_never_set_nan,
+                               rocblas_client_symmetric_matrix,
+                               true);
+    }
+    rocblas_init_matrix<T>(hB,
+                           arg,
+                           M,
+                           N,
+                           ldb,
+                           0,
+                           1,
+                           rocblas_client_alpha_sets_nan,
+                           rocblas_client_general_matrix,
+                           false,
+                           true);
+    rocblas_init_matrix<T>(
+        hC_1, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

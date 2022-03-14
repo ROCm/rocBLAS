@@ -148,21 +148,23 @@ void testing_gbmv(const Arguments& arg)
 {
     auto rocblas_gbmv_fn = arg.fortran ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
 
-    rocblas_int       M       = arg.M;
-    rocblas_int       N       = arg.N;
-    rocblas_int       KL      = arg.KL;
-    rocblas_int       KU      = arg.KU;
-    rocblas_int       lda     = arg.lda;
-    rocblas_int       incx    = arg.incx;
-    rocblas_int       incy    = arg.incy;
-    T                 h_alpha = arg.get_alpha<T>();
-    T                 h_beta  = arg.get_beta<T>();
-    rocblas_operation transA  = char2rocblas_operation(arg.transA);
+    rocblas_int       M                 = arg.M;
+    rocblas_int       N                 = arg.N;
+    rocblas_int       KL                = arg.KL;
+    rocblas_int       KU                = arg.KU;
+    rocblas_int       lda               = arg.lda;
+    rocblas_int       incx              = arg.incx;
+    rocblas_int       incy              = arg.incy;
+    T                 h_alpha           = arg.get_alpha<T>();
+    T                 h_beta            = arg.get_beta<T>();
+    rocblas_operation transA            = char2rocblas_operation(arg.transA);
+    rocblas_int       banded_matrix_row = KL + KU + 1;
 
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0;
+    bool invalid_size
+        = M < 0 || N < 0 || lda < banded_matrix_row || !incx || !incy || KL < 0 || KU < 0;
     if(invalid_size || !M || !N)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gbmv_fn(handle,
@@ -230,7 +232,17 @@ void testing_gbmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, lda, N, lda, 0, 1, rocblas_client_alpha_sets_nan, true, false);
+    rocblas_init_matrix(hA,
+                        arg,
+                        banded_matrix_row,
+                        N,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        true,
+                        false);
     rocblas_init_vector(hx, arg, dim_x, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy_1, arg, dim_y, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
 

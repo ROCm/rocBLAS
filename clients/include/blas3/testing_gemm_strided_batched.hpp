@@ -425,8 +425,16 @@ void testing_gemm_strided_batched(const Arguments& arg)
     host_vector<T> hC_gold(size_c_copy);
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, A_row, A_col, lda, stride_a, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        A_row,
+                        A_col,
+                        lda,
+                        stride_a,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        true);
     rocblas_init_matrix(hB,
                         arg,
                         B_row,
@@ -435,9 +443,18 @@ void testing_gemm_strided_batched(const Arguments& arg)
                         stride_b,
                         batch_count,
                         rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
                         false,
                         true);
-    rocblas_init_matrix(hC_1, arg, M, N, ldc, stride_c, batch_count, rocblas_client_beta_sets_nan);
+    rocblas_init_matrix(hC_1,
+                        arg,
+                        M,
+                        N,
+                        ldc,
+                        stride_c,
+                        batch_count,
+                        rocblas_client_beta_sets_nan,
+                        rocblas_client_general_matrix);
 
     if(size_c_copy)
     {

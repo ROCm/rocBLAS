@@ -167,8 +167,27 @@ void testing_trsm(const Arguments& arg)
     //  the condition number of the original matrix A.
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, K, K, lda, 0, 1, rocblas_client_never_set_nan, true);
-    rocblas_init_matrix(hX, arg, M, N, ldb, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        K,
+                        K,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+    rocblas_init_matrix(hX,
+                        arg,
+                        M,
+                        N,
+                        ldb,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
 
     //  pad untouched area into zero
     for(int i = K; i < lda; i++)
