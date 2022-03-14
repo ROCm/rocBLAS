@@ -108,7 +108,7 @@ namespace
         if(!A || !x || !C)
             return rocblas_status_invalid_pointer;
 
-        static constexpr rocblas_int    offset_a = 0, offset_x = 0, offset_c = 0;
+        static constexpr rocblas_stride offset_a = 0, offset_x = 0, offset_c = 0;
         static constexpr rocblas_stride stride_a = 0, stride_x = 0, stride_c = 0;
 
         return rocblas_dgmm_template(handle,
