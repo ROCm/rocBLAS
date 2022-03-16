@@ -503,7 +503,6 @@ add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
 add_custom_target( rocblas_device_malloc DEPENDS ${ROCBLAS_DEVICE_MALLOC} )
 add_dependencies( rocblas rocblas_device_malloc )
 
-option(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY "Build with file/folder reorg with backward compatibility enabled" ON)
 if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
   rocm_wrap_header_dir(
     ${CMAKE_SOURCE_DIR}/library/include
