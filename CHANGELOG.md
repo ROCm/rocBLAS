@@ -6,8 +6,18 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Added
 - Packages for test and benchmark executables on all supported OSes using CPack.
 
+### Optimizations
+- Improved performance of non-batched and batched her2 for all sizes and data types
+- Improved performance of non-batched and batched amin for all data types using shuffle reductions
+- Improved performance of non-batched and batched amax for all data types using shuffle reductions
+
 ### Changed
 - Modifying gemm_ex for HBH (High-precision F16). The alpha/beta data type remains as F32 without narrowing to F16 and expanding back to F32 in the kernel. This change prevents rounding errors due to alpha/beta conversion in situations where alpha/beta are not exactly represented as an F16.
+- Modified non-batched and batched asum, nrm2 functions to use shuffle instruction based reductions
+- For gemm, gemm_ex, gemm_ex2 internal API use rocblas_stride datatype for offset
+
+### Fixed
+- For function her2 avoid overflow in offset calculation
 
 ### Removed
 - Remove Navi12 (gfx1011) from fat binary.
