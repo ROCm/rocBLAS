@@ -21,7 +21,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description="""Checks build arguments""")
 
-    parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx906", #:sramecc+:xnack-" ) #gfx1030" ) #gfx906" ) # gfx1030" )
+    parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx1030",
                         help='Set GPU architectures, e.g. all, gfx000, gfx803, gfx906:xnack-;gfx1030 (optional, default: all)')
 
     parser.add_argument('-b', '--branch', dest='tensile_tag', type=str, required=False, default="",
@@ -68,6 +68,9 @@ def parse_args():
 
     parser.add_argument(     '--no-msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_false',
                         help='Build Tensile backend not to use MessagePack and so use YAML (optional)')
+
+    parser.add_argument(      '--rm-legacy-include-dir', dest='rm_legacy_include_dir', required=False, default=False, action='store_true',
+                        help='Remove legacy include dir Packaging added for file/folder reorg backward compatibility.')
 
     parser.add_argument(      '--rocm_dev', type=str, required=False, default = "",
                         help='Specify specific rocm-dev version (e.g. 4.5.0).')
@@ -240,6 +243,11 @@ def config_cmd():
             cmake_options.append( f"-DTensile_LIBRARY_FORMAT=yaml" )
         if args.jobs != OS_info["NUM_PROC"]:
             cmake_options.append( f"-DTensile_CPU_THREADS={str(args.jobs)}" )
+
+    if args.rm_legacy_include_dir:
+        cmake_options.append( f"-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF" )
+    else:
+        cmake_options.append( f"-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON" )
 
     if args.cmake_dargs:
         for i in args.cmake_dargs:
