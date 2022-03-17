@@ -30,7 +30,7 @@ syrk_scale_kernel(bool           upper,
                   rocblas_int    n,
                   U              beta_host_device,
                   V              CP_array,
-                  ptrdiff_t      shift_c,
+                  rocblas_stride shift_c,
                   rocblas_int    ldc,
                   rocblas_stride stride_c)
 {
@@ -54,7 +54,7 @@ herk_scale_kernel(bool           upper,
                   U              alpha_host_device,
                   U              beta_host_device,
                   V              CP_array,
-                  ptrdiff_t      shift_c,
+                  rocblas_stride shift_c,
                   rocblas_int    ldc,
                   rocblas_stride stride_c)
 {
@@ -174,11 +174,11 @@ syrk_herk_kernel(bool              upper,
                  rocblas_int       k,
                  TScal             alpha_host_device,
                  TConstPtr         AP_array,
-                 ptrdiff_t         shift_a,
+                 rocblas_stride    shift_a,
                  rocblas_int       lda,
                  rocblas_stride    stride_a,
                  TPtr              CP_array,
-                 ptrdiff_t         shift_c,
+                 rocblas_stride    shift_c,
                  rocblas_int       ldc,
                  rocblas_stride    stride_c)
 {
@@ -208,12 +208,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int       k,
                                    TScal             alpha,
                                    TConstPtr         AP,
-                                   rocblas_int       offsetA,
+                                   rocblas_stride    offsetA,
                                    rocblas_int       lda,
                                    rocblas_stride    strideA,
                                    TScal             beta,
                                    TPtr              CP,
-                                   rocblas_int       offsetC,
+                                   rocblas_stride    offsetC,
                                    rocblas_int       ldc,
                                    rocblas_stride    strideC,
                                    rocblas_int       batch_count)
@@ -375,12 +375,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int       k,
                                    TScal             alpha,
                                    TConstPtr         AP,
-                                   rocblas_int       offsetA,
+                                   rocblas_stride    offsetA,
                                    rocblas_int       lda,
                                    rocblas_stride    strideA,
                                    TScal             beta,
                                    TPtr              CP,
-                                   rocblas_int       offsetC,
+                                   rocblas_stride    offsetC,
                                    rocblas_int       ldc,
                                    rocblas_stride    strideC,
                                    rocblas_int       batch_count)
@@ -552,12 +552,12 @@ rocblas_internal_syrk_template<TScal_, TConstPtr_, TPtr_>(rocblas_handle    hand
                                                           rocblas_int       k,           \
                                                           TScal_             alpha,      \
                                                           TConstPtr_         AP,         \
-                                                          rocblas_int       offsetA,     \
+                                                          rocblas_stride    offsetA,     \
                                                           rocblas_int       lda,         \
                                                           rocblas_stride    strideA,     \
                                                           TScal_             beta,       \
                                                           TPtr_              CP,         \
-                                                          rocblas_int       offsetC,     \
+                                                          rocblas_stride    offsetC,     \
                                                           rocblas_int       ldc,         \
                                                           rocblas_stride    strideC,     \
                                                           rocblas_int       batch_count);
@@ -586,12 +586,12 @@ rocblas_internal_herk_template<Tscal_, TConstPtr_, TPtr_>(rocblas_handle    hand
                                                           rocblas_int       k,           \
                                                           Tscal_            alpha,       \
                                                           TConstPtr_        AP,          \
-                                                          rocblas_int       offsetA,     \
+                                                          rocblas_stride    offsetA,     \
                                                           rocblas_int       lda,         \
                                                           rocblas_stride    strideA,     \
                                                           Tscal_            beta,        \
                                                           TPtr_             CP,          \
-                                                          rocblas_int       offsetC,     \
+                                                          rocblas_stride    offsetC,     \
                                                           rocblas_int       ldc,         \
                                                           rocblas_stride    strideC,     \
                                                           rocblas_int       batch_count);
