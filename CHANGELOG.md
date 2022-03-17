@@ -5,20 +5,33 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## (Unreleased) rocBLAS 2.44.0
 ### Added
 - Packages for test and benchmark executables on all supported OSes using CPack.
-
+- Added Denormal number detection to the Numerical checking helper function to detect denormal/subnormal numbers in the input and the output vectors of rocBLAS level 1 and 2 functions.
+- Added Denormal number detection to the Numerical checking helper function to detect denormal/subnormal numbers in the input and the output general matrices of rocBLAS level 2 and 3 functions.
+- Added NaN initialization tests to the yaml files of Level 2 rocBLAS batched and strided-batched functions for testing purposes.
+- Added memory allocation check to avoid disk swapping during rocblas-test runs by skipping tests.
+ 
 ### Optimizations
-- Improved performance of non-batched and batched her2 for all sizes and data types
-- Improved performance of non-batched and batched amin for all data types using shuffle reductions
-- Improved performance of non-batched and batched amax for all data types using shuffle reductions
-
+- Improved performance of non-batched and batched her2 for all sizes and data types.
+- Improved performance of non-batched and batched amin for all data types using shuffle reductions.
+- Improved performance of non-batched and batched amax for all data types using shuffle reductions.
+- Improved performance of trsv for all sizes and data types.
+ 
 ### Changed
 - Modifying gemm_ex for HBH (High-precision F16). The alpha/beta data type remains as F32 without narrowing to F16 and expanding back to F32 in the kernel. This change prevents rounding errors due to alpha/beta conversion in situations where alpha/beta are not exactly represented as an F16.
-- Modified non-batched and batched asum, nrm2 functions to use shuffle instruction based reductions
-- For gemm, gemm_ex, gemm_ex2 internal API use rocblas_stride datatype for offset
-
+- Modified non-batched and batched asum, nrm2 functions to use shuffle instruction based reductions.
+- For gemm, gemm_ex, gemm_ex2 internal API use rocblas_stride datatype for offset.
+- For symm, hemm, syrk, herk, dgmm, geam internal API use rocblas_stride datatype for offset. 
+-  AMD copyright year for all rocBLAS files.
+- For gemv (transpose-case), typecasted the 'lda'(offset) datatype to size_t during offset calculation to avoid overflow and remove duplicate template functions.
+ 
 ### Fixed
-- For function her2 avoid overflow in offset calculation
-
+- For function her2 avoid overflow in offset calculation.
+- For trsm when alpha == 0 and on host, allow A to be nullptr.
+- Fixed memory access issue in trsv.
+- Fixed git pre-commit script to update only AMD copyright year.
+- Fixed dgmm, geam test functions to set correct stride values. 
+- For functions ssyr2k and dsyr2k allow trans == rocblas_operation_conjugate_transpose
+ 
 ### Removed
 - Remove Navi12 (gfx1011) from fat binary.
 
