@@ -239,14 +239,29 @@ void testing_geam_strided_batched(const Arguments& arg)
         inc2_B = 1;
     }
 
-    if(stride_a < lda * (transA == rocblas_operation_none ? N : M))
-        rocblas_cout << "WARNING: stride_a < lda * (transA == rocblas_operation_none ? N : M)"
+    if(stride_a < size_t(lda) * (transA == rocblas_operation_none ? N : M))
+    {
+        rocblas_cout
+            << "WARNING: stride_a < lda * (transA == rocblas_operation_none ? N : M), \n"
+               "setting stride_a = size_t(lda) * (transA == rocblas_operation_none ? N : M)"
+            << std::endl;
+        stride_a = size_t(lda) * (transA == rocblas_operation_none ? N : M);
+    }
+    if(stride_b < size_t(ldb) * (transB == rocblas_operation_none ? N : M))
+    {
+        rocblas_cout
+            << "WARNING: stride_b < ldb * (transB == rocblas_operation_none ? N : M), \n"
+               "setting stride_b = size_t(ldb) * (transB == rocblas_operation_none ? N : M)"
+            << std::endl;
+        stride_b = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
+    }
+    if(stride_c < size_t(ldc) * N)
+    {
+        rocblas_cout << "WARNING: stride_c < ldc * N), setting stride_c = size_t(ldc) * N"
                      << std::endl;
-    if(stride_b < ldb * (transB == rocblas_operation_none ? N : M))
-        rocblas_cout << "WARNING: stride_b < ldb * (transB == rocblas_operation_none ? N : M)"
-                     << std::endl;
-    if(stride_c < ldc * N)
-        rocblas_cout << "WARNING: stride_c < ldc * N)" << std::endl;
+        stride_c = size_t(ldc) * N;
+    }
+
     size_t size_A = size_t(batch_count) * size_t(stride_a);
     size_t size_B = size_t(batch_count) * size_t(stride_b);
     size_t size_C = size_t(batch_count) * size_t(stride_c);
