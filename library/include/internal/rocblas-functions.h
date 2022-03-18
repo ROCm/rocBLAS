@@ -11844,7 +11844,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_strided_batched(rocblas_handle      
         C is a symmetric n x n matrix stored as either upper or lower.
 
         op( A ) = A, op( B ) = B, and A and B are n by k if trans == rocblas_operation_none
-        op( A ) = A^T, op( B ) = B^T,  and A and B are k by n if trans == rocblas_operation_transpose
+        op( A ) = A^T, op( B ) = B^T, and A and B are k by n if trans == rocblas_operation_transpose
+        or for ssyr2k and dsyr2k when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -11857,8 +11858,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_strided_batched(rocblas_handle      
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A ) = A^T, op( B ) = B^T
-            - rocblas_operation_none:           op( A ) = A, op( B ) = B
+            - rocblas_operation_transpose:           op( A ) = A^T, op( B ) = B^T
+            - rocblas_operation_none:                op( A ) = A, op( B ) = B
+            - rocblas_operation_conjugate_transpose: op( A ) = A^T, op( B ) = B^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyr2k and zsyr2k.
 
     @param[in]
     n       [rocblas_int]
@@ -11978,7 +11982,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k(rocblas_handle                handl
         C_i is a symmetric n x n matrix stored as either upper or lower.
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
-        op( A_i ) = A_i^T, op( B_i ) = B_i^T,  and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        op( A_i ) = A_i^T, op( B_i ) = B_i^T, and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        or for ssyr2k_batched and dsyr2k_batched when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -11991,8 +11996,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k(rocblas_handle                handl
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A_i ) = A_i^T, op( B_i ) = B_i^T
-            - rocblas_operation_none:           op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_transpose:           op( A_i ) = A_i^T, op( B_i ) = B_i^T
+            - rocblas_operation_none:                op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_conjugate_transpose: op( A_i ) = A_i^T, op( B_i ) = B_i^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyr2k_batched and zsyr2k_batched.
 
     @param[in]
     n       [rocblas_int]
@@ -12115,7 +12123,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
         C_i is a symmetric n x n matrix stored as either upper or lower.
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
-        op( A_i ) = A_i^T, op( B_i ) = B_i^T,  and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        op( A_i ) = A_i^T, op( B_i ) = B_i^T, and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        or for ssyr2k_strided_batched and dsyr2k_strided_batched when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -12128,8 +12137,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A_i ) = A_i^T, op( B_i ) = B_i^T
-            - rocblas_operation_none:           op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_transpose:           op( A_i ) = A_i^T, op( B_i ) = B_i^T
+            - rocblas_operation_none:                op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_conjugate_transpose: op( A_i ) = A_i^T, op( B_i ) = B_i^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyr2k_strided_batched and zsyr2k_strided_batched.
 
     @param[in]
     n       [rocblas_int]

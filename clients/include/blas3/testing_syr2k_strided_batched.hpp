@@ -90,24 +90,27 @@ void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          uplo,
-                                                          rocblas_operation_conjugate_transpose,
-                                                          N,
-                                                          K,
-                                                          &alpha,
-                                                          dA,
-                                                          lda,
-                                                          strideA,
-                                                          dB,
-                                                          ldb,
-                                                          strideB,
-                                                          &beta,
-                                                          dC,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_value);
+    if(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, rocblas_double_complex>{})
+    {
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              rocblas_operation_conjugate_transpose,
+                                                              N,
+                                                              K,
+                                                              &alpha,
+                                                              dA,
+                                                              lda,
+                                                              strideA,
+                                                              dB,
+                                                              ldb,
+                                                              strideB,
+                                                              &beta,
+                                                              dC,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_value);
+    }
 
     EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
                                                           uplo,
