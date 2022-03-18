@@ -823,7 +823,7 @@ void testing_gemm_ex(const Arguments& arg)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = sqrt(K) * sum_error_tolerance<Tc>;
+                const double tol = K * sum_error_tolerance<Tc>;
                 near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
             }
             else
