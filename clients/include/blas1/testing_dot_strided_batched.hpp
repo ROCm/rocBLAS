@@ -196,7 +196,7 @@ void testing_dot_strided_batched(const Arguments& arg)
     rocblas_init_vector(
         hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, true);
     rocblas_init_vector(
-        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
+        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
