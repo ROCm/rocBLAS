@@ -54,20 +54,23 @@ void testing_syr2k_bad_arg(const Arguments& arg)
             handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syrXX_fn(handle,
-                                           uplo,
-                                           rocblas_operation_conjugate_transpose,
-                                           N,
-                                           K,
-                                           &alpha,
-                                           dA,
-                                           lda,
-                                           dB,
-                                           ldb,
-                                           &beta,
-                                           dC,
-                                           ldc),
-                          rocblas_status_invalid_value);
+    if(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, rocblas_double_complex>{})
+    {
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_fn(handle,
+                                               uplo,
+                                               rocblas_operation_conjugate_transpose,
+                                               N,
+                                               K,
+                                               &alpha,
+                                               dA,
+                                               lda,
+                                               dB,
+                                               ldb,
+                                               &beta,
+                                               dC,
+                                               ldc),
+                              rocblas_status_invalid_value);
+    }
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrXX_fn(handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),

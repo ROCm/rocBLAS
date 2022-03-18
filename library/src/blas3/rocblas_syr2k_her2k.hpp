@@ -59,8 +59,18 @@ inline rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
 
-    if(trans != rocblas_operation_none && trans != rocblas_operation_transpose)
-        return rocblas_status_invalid_value;
+    if(std::is_same<TScal, const rocblas_float*>{} || std::is_same<TScal, const rocblas_double*>{})
+    {
+        // ssyr2k and dsyr2k all forms
+        if(trans != rocblas_operation_none && trans != rocblas_operation_transpose
+           && trans != rocblas_operation_conjugate_transpose)
+            return rocblas_status_invalid_value;
+    }
+    else
+    {
+        if(trans != rocblas_operation_none && trans != rocblas_operation_transpose)
+            return rocblas_status_invalid_value;
+    }
 
     if(n < 0 || k < 0 || batch_count < 0 || ldc < n
        || (trans == rocblas_operation_none && (lda < n || ldb < n))
