@@ -557,7 +557,7 @@ rocm_install_targets(
 
 if( BUILD_WITH_TENSILE )
   if (WIN32)
-    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/bin" CACHE PATH "path to tensile library" )
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/bin/rocblas" CACHE PATH "path to tensile library" )
   else()
     set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}lib/rocblas" CACHE PATH "path to tensile library" )
   endif()
