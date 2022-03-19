@@ -66,6 +66,12 @@ def parse_args():
     parser.add_argument(     '--no-merge-files', dest='merge_files', required=False, default=True, action='store_false',
                         help='Disable Tensile_MERGE_FILES (optional)')
 
+    parser.add_argument(     '--merge-architectures', dest='merge_architectures', required=False, default=False, action='store_true',
+                        help='Merge TensileLibrary files for different architectures into single file (optional, behavior in ROCm 5.1 and earlier)')
+
+    parser.add_argument(     '--no-merge-architectures', dest='merge_architectures', required=False, default=False, action='store_false',
+                        help='Keep TensileLibrary files separated by architecture (optional)')
+
     parser.add_argument(     '--no-msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_false',
                         help='Build Tensile backend not to use MessagePack and so use YAML (optional)')
 
@@ -237,6 +243,8 @@ def config_cmd():
             cmake_options.append( f"-DTENSILE_VERSION={args.tensile_version}" )
         if not args.merge_files:
             cmake_options.append( f"-DTensile_MERGE_FILES=OFF" )
+        if not args.merge_architectures:
+            cmake_options.append( f"-DTensile_SEPARATE_ARCHITECTURES=ON" )
         if args.tensile_msgpack_backend:
             cmake_options.append( f"-DTensile_LIBRARY_FORMAT=msgpack" )
         else:
