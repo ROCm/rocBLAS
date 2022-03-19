@@ -68,6 +68,8 @@ rocBLAS build & installation helper script.
 
     --merge-files                    Enable Tensilse_MERGE_FILES (Default is Enabled).
 
+    --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file (Default is disabled)
+
     --msgpack                        Build Tensile backend to use MessagePack.
 
     -n, --no-tensile                 Build a subset of rocBLAS library which does not require Tensile.
@@ -376,6 +378,7 @@ gpu_architecture=all
 tensile_cov=
 tensile_fork=
 tensile_merge_files=
+tensile_separate_architectures=true
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
@@ -414,7 +417,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,rm-legacy-include-dir --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -503,6 +506,12 @@ while true; do
         shift ;;
     --no-merge-files)
         tensile_merge_files=false
+        shift ;;
+    --merge-architectures)
+        tensile_separate_architectures=false
+        shift ;;
+    --no-merge-architectures)
+        tensile_separate_architectures=true
         shift ;;
     --skipldconf)
         skip_ld_conf_entry=true
@@ -744,6 +753,10 @@ pushd .
 
   if [[ "${tensile_merge_files}" == false ]]; then
     tensile_opt="${tensile_opt} -DTensile_MERGE_FILES=OFF"
+  fi
+
+  if [[ "${tensile_separate_architectures}" == true ]]; then
+    tensile_opt="${tensile_opt} -DTensile_SEPARATE_ARCHITECTURES=ON"
   fi
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
