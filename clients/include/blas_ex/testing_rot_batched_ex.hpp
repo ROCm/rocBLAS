@@ -174,19 +174,11 @@ void testing_rot_batched_ex(const Arguments& arg)
     host_vector<Tcs>      hc(1);
     host_vector<Tcs>      hs(1);
 
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan(hx, true);
-        rocblas_init_nan(hy, false);
-    }
-    else
-    {
-        rocblas_init(hx, true);
-        rocblas_init(hy, false);
-    }
-
-    rocblas_init<Tcs>(hc, 1, 1, 1);
-    rocblas_init<Tcs>(hs, 1, 1, 1);
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hc, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hs, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
     host_batch_vector<Tx> cx(N, incx, batch_count);

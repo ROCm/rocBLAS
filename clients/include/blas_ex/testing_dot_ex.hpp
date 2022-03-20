@@ -189,18 +189,9 @@ void testing_dot_ex(const Arguments& arg)
     host_vector<Tx> hx(size_x);
     host_vector<Ty> hy(size_y);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan<Tx>(hx, 1, N, abs_incx);
-        rocblas_init_nan<Ty>(hy, 1, N, abs_incy);
-    }
-    else
-    {
-        rocblas_init<Tx>(hx, 1, N, abs_incx);
-        rocblas_init<Ty>(hy, 1, N, abs_incy);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * size_x, hipMemcpyHostToDevice));

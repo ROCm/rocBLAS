@@ -357,20 +357,40 @@ void testing_trmm_outofplace_strided_batched(const Arguments& arg)
 
     //  initialize full random matrix hA and hB
     h_alpha[0] = alpha;
-    rocblas_seedrand();
 
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA, K, K, lda, stride_a, batch_count);
-        rocblas_init_nan<T>(hB, M, N, ldb, stride_b, batch_count);
-        rocblas_init_nan<T>(hC, M, N, ldc, stride_c, batch_count);
-    }
-    else
-    {
-        rocblas_init<T>(hA);
-        rocblas_init<T>(hB);
-        rocblas_init<T>(hC);
-    }
+    // Initialize data on host memory
+    rocblas_init_matrix(hA,
+                        arg,
+                        K,
+                        K,
+                        lda,
+                        stride_a,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+
+    rocblas_init_matrix(hB,
+                        arg,
+                        M,
+                        N,
+                        ldb,
+                        stride_b,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
+
+    rocblas_init_matrix(hC,
+                        arg,
+                        M,
+                        N,
+                        ldc,
+                        stride_c,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix);
 
     cpuB = hB;
     hC_1 = hC; // hXorB <- B

@@ -132,12 +132,9 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
     host_vector<Tx> hx_2(size_x);
     host_vector<Tx> hx_gold(size_x);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan<Tx>(hx_1, 1, N, incx, stridex, batch_count);
-    else
-        rocblas_init<Tx>(hx_1, 1, N, incx, stridex, batch_count);
+    // Initialize the host vector.
+    rocblas_init_vector(
+        hx_1, arg, N, incx, stridex, batch_count, rocblas_client_alpha_sets_nan, true);
 
     // copy vector is easy in STL; hx_gold = hx: save a copy in hx_gold which will be output of CPU
     // BLAS

@@ -482,15 +482,33 @@ void testing_gemm_ext2(const Arguments& arg)
     using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
     host_vector<To_hpa> hD_gold(size_D);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<Ti>(hA, A_row, A_col, lda);
-    rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb);
-    if(nantest)
-        rocblas_init_nan<To>(hC, M, N, ldc);
-    else
-        rocblas_init<To>(hC, M, N, ldc);
-    rocblas_init<To>(hD_1, M, N, ldd);
+    // Initialize data on host memory
+    rocblas_init_matrix(hA,
+                        arg,
+                        A_row,
+                        A_col,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        B_row,
+                        B_col,
+                        ldb,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
+    rocblas_init_matrix(
+        hC, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+
+    rocblas_init_matrix(
+        hD_1, arg, M, N, ldd, 0, 1, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {

@@ -712,63 +712,38 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     bool alt = (rocblas_gemm_flags_fp16_alt_impl & flags);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
+    // Initialize data on host memory
+    rocblas_init_matrix(hA,
+                        arg,
+                        A_row,
+                        A_col,
+                        lda,
+                        stride_a,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        B_row,
+                        B_col,
+                        ldb,
+                        stride_b,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
+    rocblas_init_matrix(hC,
+                        arg,
+                        M,
+                        N,
+                        ldc,
+                        stride_c,
+                        batch_count,
+                        rocblas_client_beta_sets_nan,
+                        rocblas_client_general_matrix);
 
-    if(alpha_isnan)
-    {
-        rocblas_init_nan<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
-        rocblas_init_nan<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-        {
-            rocblas_init<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
-            rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
-        }
-        else if(arg.initialization == rocblas_initialization::trig_float)
-        {
-            rocblas_init_sin<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
-            rocblas_init_cos<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
-        }
-        else if(arg.initialization == rocblas_initialization::hpl)
-        {
-            rocblas_init_hpl<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
-            rocblas_init_hpl<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
-        }
-        else if(arg.initialization == rocblas_initialization::special)
-        {
-            rocblas_init_alt_impl_big<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_alt_impl_small<Ti>(hB, B_row, B_col, ldb);
-        }
-        else
-        {
-#ifdef GOOGLE_TEST
-            FAIL() << "unknown initialization type";
-            return;
-#else
-            rocblas_cerr << "unknown initialization type" << std::endl;
-            rocblas_abort();
-#endif
-        }
-    }
-
-    if(beta_isnan)
-    {
-        rocblas_init_nan<To>(hC, M, N, ldc, stride_c, batch_count);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-            rocblas_init<To>(hC, M, N, ldc, stride_c, batch_count);
-        else if(arg.initialization == rocblas_initialization::trig_float)
-            rocblas_init_sin<To>(hC, M, N, ldc, stride_c, batch_count);
-        else if(arg.initialization == rocblas_initialization::hpl)
-            rocblas_init_hpl<To>(hC, M, N, ldc, stride_c, batch_count);
-        else if(arg.initialization == rocblas_initialization::special)
-            rocblas_init<To>(hC, M, N, ldc, stride_c, batch_count);
-    }
     rocblas_init_nan<To>(hD_1, M, N, ldd, stride_d, batch_count);
 
     hD_2    = hD_1;
