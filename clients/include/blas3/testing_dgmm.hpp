@@ -112,9 +112,19 @@ void testing_dgmm(const Arguments& arg)
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        M,
+                        N,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_general_matrix,
+                        true);
     rocblas_init_vector(hX, arg, K, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
-    rocblas_init_matrix(hC, arg, size_C, 1, 1, 0, 1, rocblas_client_never_set_nan);
+    rocblas_init_matrix(
+        hC, arg, M, N, ldc, 0, 1, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     hA_copy = hA;
     hX_copy = hX;

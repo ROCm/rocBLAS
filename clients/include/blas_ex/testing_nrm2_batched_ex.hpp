@@ -157,11 +157,8 @@ void testing_nrm2_batched_ex(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    // Initial Data on CPU
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan(hx, true);
-    else
-        rocblas_init(hx, true);
+    // Initialize memory on host.
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 

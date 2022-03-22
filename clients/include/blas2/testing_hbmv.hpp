@@ -97,19 +97,20 @@ void testing_hbmv(const Arguments& arg)
 {
     auto rocblas_hbmv_fn = arg.fortran ? rocblas_hbmv<T, true> : rocblas_hbmv<T, false>;
 
-    rocblas_int  N       = arg.N;
-    rocblas_int  K       = arg.K;
-    rocblas_int  lda     = arg.lda;
-    rocblas_int  incx    = arg.incx;
-    rocblas_int  incy    = arg.incy;
-    T            h_alpha = arg.get_alpha<T>();
-    T            h_beta  = arg.get_beta<T>();
-    rocblas_fill uplo    = char2rocblas_fill(arg.uplo);
+    rocblas_int  N                 = arg.N;
+    rocblas_int  K                 = arg.K;
+    rocblas_int  lda               = arg.lda;
+    rocblas_int  incx              = arg.incx;
+    rocblas_int  incy              = arg.incy;
+    T            h_alpha           = arg.get_alpha<T>();
+    T            h_beta            = arg.get_beta<T>();
+    rocblas_fill uplo              = char2rocblas_fill(arg.uplo);
+    rocblas_int  banded_matrix_row = K + 1;
 
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || K < 0 || lda <= K || !incx || !incy)
+    if(N < 0 || K < 0 || lda < banded_matrix_row || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_hbmv_fn(
@@ -135,6 +136,13 @@ void testing_hbmv(const Arguments& arg)
     host_vector<T> hbeta(1);
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy_1.memcheck());
+    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
+    CHECK_HIP_ERROR(halpha.memcheck());
+    CHECK_HIP_ERROR(hbeta.memcheck());
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
@@ -150,7 +158,17 @@ void testing_hbmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+    //Matrix `hA` is initialized as a triangular matrix because only the upper triangular or lower triangular portion of the matrix `hA` is referenced.
+    rocblas_init_matrix(hA,
+                        arg,
+                        banded_matrix_row,
+                        N,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
 

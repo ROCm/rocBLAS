@@ -160,7 +160,7 @@ void testing_dot_batched(const Arguments& arg)
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));

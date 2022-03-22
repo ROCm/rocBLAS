@@ -60,20 +60,21 @@ void testing_tbmv(const Arguments& arg)
 {
     auto rocblas_tbmv_fn = arg.fortran ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
 
-    rocblas_int       M         = arg.M;
-    rocblas_int       K         = arg.K;
-    rocblas_int       lda       = arg.lda;
-    rocblas_int       incx      = arg.incx;
-    char              char_uplo = arg.uplo;
-    char              char_diag = arg.diag;
-    rocblas_fill      uplo      = char2rocblas_fill(char_uplo);
-    rocblas_operation transA    = char2rocblas_operation(arg.transA);
-    rocblas_diagonal  diag      = char2rocblas_diagonal(char_diag);
+    rocblas_int       M                 = arg.M;
+    rocblas_int       K                 = arg.K;
+    rocblas_int       lda               = arg.lda;
+    rocblas_int       incx              = arg.incx;
+    char              char_uplo         = arg.uplo;
+    char              char_diag         = arg.diag;
+    rocblas_fill      uplo              = char2rocblas_fill(char_uplo);
+    rocblas_operation transA            = char2rocblas_operation(arg.transA);
+    rocblas_diagonal  diag              = char2rocblas_diagonal(char_diag);
+    rocblas_int       banded_matrix_row = K + 1;
 
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || K < 0 || lda < K + 1 || !incx;
+    bool invalid_size = M < 0 || K < 0 || lda < banded_matrix_row || !incx;
     if(invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(
@@ -101,7 +102,16 @@ void testing_tbmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        banded_matrix_row,
+                        M,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, M, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
     hx_gold = hx;

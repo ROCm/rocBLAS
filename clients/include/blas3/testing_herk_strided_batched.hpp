@@ -263,8 +263,27 @@ void testing_herk_strided_batched(const Arguments& arg)
     h_beta[0]  = beta;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_matrix(hC_1, arg, size_C, 1, 1, 0, 1, rocblas_client_beta_sets_nan, false, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        size_A,
+                        1,
+                        1,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+    rocblas_init_matrix(hC_1,
+                        arg,
+                        N,
+                        N,
+                        ldc,
+                        strideC,
+                        batch_count,
+                        rocblas_client_beta_sets_nan,
+                        rocblas_client_hermitian_matrix,
+                        false,
+                        true);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

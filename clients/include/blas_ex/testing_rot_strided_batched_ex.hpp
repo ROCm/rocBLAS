@@ -191,24 +191,14 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
     host_vector<Ty>  hy(size_y);
     host_vector<Tcs> hc(1);
     host_vector<Tcs> hs(1);
-    rocblas_seedrand();
 
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init<Tx>(hx, 1, N, abs_incx, stride_x, batch_count);
-        rocblas_init<Ty>(hy, 1, N, abs_incy, stride_y, batch_count);
-
-        rocblas_init<Tcs>(hc, 1, 1, 1);
-        rocblas_init<Tcs>(hs, 1, 1, 1);
-    }
-    else
-    {
-        rocblas_init<Tx>(hx, 1, N, abs_incx, stride_x, batch_count);
-        rocblas_init<Ty>(hy, 1, N, abs_incy, stride_y, batch_count);
-
-        rocblas_init<Tcs>(hc, 1, 1, 1);
-        rocblas_init<Tcs>(hs, 1, 1, 1);
-    }
+    // Initialize data on host memory
+    rocblas_init_vector(
+        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(
+        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hc, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hs, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
     host_vector<Tx> cx = hx;

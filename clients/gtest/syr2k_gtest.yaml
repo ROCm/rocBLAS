@@ -37,7 +37,7 @@ Tests:
 - name: syr2k_bad
   category: pre_checkin
   function: syr2k_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions_complex_real
   fortran: [ false, true ]
 
 - name: syr2k_size_t
@@ -71,6 +71,18 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   fortran: [ false, true ]
+
+- name: syr2k_xxx_medium_sd_ct
+  category: pre_checkin
+  function:
+    - syr2k
+    - syr2k_batched
+    - syr2k_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U ]
+  transA: [ C ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta
 
 - name: syr2k_large
   category: nightly

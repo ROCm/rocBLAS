@@ -68,6 +68,8 @@ rocBLAS build & installation helper script.
 
     --merge-files                    Enable Tensilse_MERGE_FILES (Default is Enabled).
 
+    --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file (Default is disabled)
+
     --msgpack                        Build Tensile backend to use MessagePack.
 
     -n, --no-tensile                 Build a subset of rocBLAS library which does not require Tensile.
@@ -93,6 +95,7 @@ rocBLAS build & installation helper script.
     --use-cuda                       Use installed CUDA version instead of ROCm stack.
 
     -v, --rocm-dev <version>         Specify specific rocm-dev version (e.g. 4.5.0).
+        --rm-legacy-include-dir      Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -265,7 +268,7 @@ install_packages( )
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" )
 
   # wget is needed for blis
-  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
     client_dependencies_ubuntu+=("wget")
     client_dependencies_centos_rhel+=("wget")
     client_dependencies_centos_rhel_8+=("wget")
@@ -375,6 +378,7 @@ gpu_architecture=all
 tensile_cov=
 tensile_fork=
 tensile_merge_files=
+tensile_separate_architectures=true
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
@@ -397,6 +401,7 @@ update_cmake=false
 build_codecoverage=false
 build_release_debug=false
 build_address_sanitizer=false
+build_freorg_bkwdcomp=true
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -412,7 +417,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -502,6 +507,12 @@ while true; do
     --no-merge-files)
         tensile_merge_files=false
         shift ;;
+    --merge-architectures)
+        tensile_separate_architectures=false
+        shift ;;
+    --no-merge-architectures)
+        tensile_separate_architectures=true
+        shift ;;
     --skipldconf)
         skip_ld_conf_entry=true
         shift ;;
@@ -536,6 +547,9 @@ while true; do
     --address-sanitizer)
         build_address_sanitizer=true
         shift ;;
+    --rm-legacy-include-dir)
+        build_freorg_bkwdcomp=false
+        shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
         exit 1
@@ -567,7 +581,7 @@ printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m
 install_blis()
 {
     #Download prebuilt AMD multithreaded blis
-    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.so" ]]; then
+    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.a" ]]; then
       case "${ID}" in
           centos|rhel|sles|opensuse-leap)
               wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
@@ -586,7 +600,7 @@ install_blis()
       mv amd-blis-mt blis
       rm blis.tar.gz
       cd blis/lib
-      ln -sf libblis-mt.so libblis.so
+      ln -sf libblis-mt.a libblis.a
     fi
 }
 
@@ -741,13 +755,17 @@ pushd .
     tensile_opt="${tensile_opt} -DTensile_MERGE_FILES=OFF"
   fi
 
+  if [[ "${tensile_separate_architectures}" == true ]]; then
+    tensile_opt="${tensile_opt} -DTensile_SEPARATE_ARCHITECTURES=ON"
+  fi
+
   if [[ "${tensile_msgpack_backend}" == true ]]; then
     tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=msgpack"
   else
     tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=yaml"
   fi
 
-  cmake_common_options="${cmake_common_options} ${tensile_opt}"
+  cmake_common_options="-DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake ${cmake_common_options} ${tensile_opt}"
 
 
   if [[ "${build_clients}" == true ]]; then
@@ -771,6 +789,11 @@ pushd .
 
   if [[ "${build_address_sanitizer}" == true ]]; then
     cmake_common_options="$cmake_common_options -DBUILD_ADDRESS_SANITIZER=ON"
+  fi
+  if [[ "${build_freorg_bkwdcomp}" == true ]]; then
+    cmake_common_options="${cmake_common_options} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON"
+  else
+    cmake_common_options="${cmake_common_options} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF"
   fi
 
   # Uncomment for cmake debugging

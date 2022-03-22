@@ -130,7 +130,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
     // Initialize data on host memory
     //
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
 
     //
     // Device memory.

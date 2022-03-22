@@ -3,6 +3,8 @@
  * ************************************************************************ */
 
 #pragma once
+#include "check_numerics_matrix.hpp"
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
 /**
@@ -20,16 +22,36 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
                                      rocblas_int       n,
                                      TScal             alpha,
                                      TConstPtr         A,
-                                     rocblas_int       offset_a,
+                                     rocblas_stride    offset_a,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_a,
                                      TScal             beta,
                                      TConstPtr         B,
-                                     rocblas_int       offset_b,
+                                     rocblas_stride    offset_b,
                                      rocblas_int       ldb,
                                      rocblas_stride    stride_b,
                                      TPtr              C,
-                                     rocblas_int       offset_c,
+                                     rocblas_stride    offset_c,
                                      rocblas_int       ldc,
                                      rocblas_stride    stride_c,
                                      rocblas_int       batch_count);
+
+template <typename T, typename U>
+rocblas_status rocblas_geam_check_numerics(const char*       function_name,
+                                           rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_operation trans_b,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           T                 A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           T                 B,
+                                           rocblas_int       ldb,
+                                           rocblas_stride    stride_b,
+                                           U                 C,
+                                           rocblas_int       ldc,
+                                           rocblas_stride    stride_c,
+                                           rocblas_int       batch_count,
+                                           const int         check_numerics,
+                                           bool              is_input);

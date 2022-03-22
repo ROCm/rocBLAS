@@ -123,17 +123,17 @@ sbmv_kernel(rocblas_int    n,
             U              alpha_device_host,
             rocblas_stride stride_alpha,
             V              Aa,
-            ptrdiff_t      shifta,
+            rocblas_stride shifta,
             rocblas_int    lda,
             rocblas_stride strideA,
             V              xa,
-            ptrdiff_t      shiftx,
+            rocblas_stride shiftx,
             rocblas_int    incx,
             rocblas_stride stridex,
             U              beta_device_host,
             rocblas_stride stride_beta,
             W              ya,
-            ptrdiff_t      shifty,
+            rocblas_stride shifty,
             rocblas_int    incy,
             rocblas_stride stridey)
 {
@@ -317,15 +317,15 @@ rocblas_status rocblas_sbmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_int    n,
                                            T              A,
-                                           rocblas_int    offset_a,
+                                           rocblas_stride offset_a,
                                            rocblas_int    lda,
                                            rocblas_stride stride_a,
                                            T              x,
-                                           rocblas_int    offset_x,
+                                           rocblas_stride offset_x,
                                            rocblas_int    inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
-                                           rocblas_int    offset_y,
+                                           rocblas_stride offset_y,
                                            rocblas_int    inc_y,
                                            rocblas_stride stride_y,
                                            rocblas_int    batch_count,
@@ -410,15 +410,15 @@ template rocblas_status rocblas_sbmv_check_numerics<T_, U_>               \
                                            rocblas_handle handle,         \
                                            rocblas_int    n,              \
                                            T_              A,             \
-                                           rocblas_int    offset_a,       \
+                                           rocblas_stride    offset_a,       \
                                            rocblas_int    lda,            \
                                            rocblas_stride stride_a,       \
                                            T_              x,             \
-                                           rocblas_int    offset_x,       \
+                                           rocblas_stride    offset_x,       \
                                            rocblas_int    inc_x,          \
                                            rocblas_stride stride_x,       \
                                            U_              y,             \
-                                           rocblas_int    offset_y,       \
+                                           rocblas_stride    offset_y,       \
                                            rocblas_int    inc_y,          \
                                            rocblas_stride stride_y,       \
                                            rocblas_int    batch_count,    \

@@ -354,16 +354,37 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
     //  should have condition number approximately equal to
     //  the condition number of the original matrix A.
 
-    //  initialize full random matrix hA with all entries in [1, 10]
+    // Initialize data on host memory
+    rocblas_init_matrix(hA,
+                        arg,
+                        K,
+                        K,
+                        lda,
+                        stride_A,
+                        batch_count,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+
+    rocblas_init_matrix(hX,
+                        arg,
+                        M,
+                        N,
+                        ldb,
+                        stride_B,
+                        batch_count,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
+    hB = hX;
+
+    //  Initialize full random matrix hA with all entries in [1, 10]
     rocblas_init<T>(hA, K, K, lda, stride_A, batch_count);
 
     //  pad untouched area into zero
     for(int b = 0; b < batch_count; b++)
     {
-        for(int i = K; i < lda; i++)
-            for(int j = 0; j < K; j++)
-                hA[b * stride_A + i + j * lda] = 0.0;
-
         //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
         cblas_gemm<T>(rocblas_operation_none,
                       rocblas_operation_conjugate_transpose,
@@ -419,15 +440,6 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
             }
         }
     }
-
-    // Initialize "exact" answer hx
-    rocblas_init<T>(hX, M, N, ldb, stride_B, batch_count);
-    // pad untouched area into zero
-    for(int b = 0; b < batch_count; b++)
-        for(int i = M; i < ldb; i++)
-            for(int j = 0; j < N; j++)
-                hX[b * stride_B + i + j * ldb] = 0.0;
-    hB = hX;
 
     // Calculate hB = hA*hX;
     for(int b = 0; b < batch_count; b++)

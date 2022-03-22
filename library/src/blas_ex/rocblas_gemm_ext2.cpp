@@ -366,7 +366,7 @@ namespace
             // If k != 0 and either A or B is nullptr, alpha must be zero
 
             rocblas_stride batch_stride = 1; // can be changed to 0 when Tensile bug is fixed
-            rocblas_int    offset       = 0;
+            rocblas_stride offset       = 0;
             rocblas_int    batch_count  = 1;
 
             auto status = rocblas_status_not_implemented;

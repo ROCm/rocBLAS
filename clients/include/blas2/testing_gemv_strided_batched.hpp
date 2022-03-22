@@ -347,8 +347,16 @@ void testing_gemv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, M, N, lda, stride_a, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        M,
+                        N,
+                        lda,
+                        stride_a,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        true);
     rocblas_init_vector(hx,
                         arg,
                         dim_x,

@@ -135,11 +135,11 @@ rocblas_status rocblas_copy_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_int    n,
                                            T              x,
-                                           rocblas_int    offset_x,
+                                           rocblas_stride offset_x,
                                            rocblas_int    inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
-                                           rocblas_int    offset_y,
+                                           rocblas_stride offset_y,
                                            rocblas_int    inc_y,
                                            rocblas_stride stride_y,
                                            rocblas_int    batch_count,
@@ -256,11 +256,11 @@ INSTANTIATE_COPY_TEMPLATE(false,
                                                                 rocblas_handle handle,         \
                                                                 rocblas_int    n,              \
                                                                 T_             x,              \
-                                                                rocblas_int    offset_x,       \
+                                                                rocblas_stride offset_x,       \
                                                                 rocblas_int    inc_x,          \
                                                                 rocblas_stride stride_x,       \
                                                                 U_             y,              \
-                                                                rocblas_int    offset_y,       \
+                                                                rocblas_stride offset_y,       \
                                                                 rocblas_int    inc_y,          \
                                                                 rocblas_stride stride_y,       \
                                                                 rocblas_int    batch_count,    \

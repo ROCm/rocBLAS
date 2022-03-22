@@ -648,58 +648,14 @@ void testing_gemm_batched_ex(const Arguments& arg)
     host_batch_vector<To>     hD_2(size_d, 1, batch_count);
     host_batch_vector<To_hpa> hD_gold(size_d, 1, batch_count);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hB, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hC, arg, rocblas_client_beta_sets_nan);
+
+    // Initialize data on host memory
     for(int b = 0; b < batch_count; b++)
     {
-        if(arg.alpha_isnan<Tc>())
-        {
-            rocblas_init_nan<Ti>(hA[b], A_row, A_col, lda);
-            rocblas_init_nan<Ti>(hB[b], B_row, B_col, ldb);
-        }
-        else
-        {
-            if(arg.initialization == rocblas_initialization::rand_int)
-            {
-                rocblas_init<Ti>(hA[b], A_row, A_col, lda);
-                rocblas_init_alternating_sign<Ti>(hB[b], B_row, B_col, ldb);
-            }
-            else if(arg.initialization == rocblas_initialization::trig_float)
-            {
-                rocblas_init_sin<Ti>(hA[b], A_row, A_col, lda);
-                rocblas_init_cos<Ti>(hB[b], B_row, B_col, ldb);
-            }
-            else if(arg.initialization == rocblas_initialization::hpl)
-            {
-                rocblas_init_hpl<Ti>(hA[b], A_row, A_col, lda);
-                rocblas_init_hpl<Ti>(hB[b], B_row, B_col, ldb);
-            }
-            else
-            {
-#ifdef GOOGLE_TEST
-                FAIL() << "unknown initialization type";
-                return;
-#else
-                rocblas_cerr << "unknown initialization type" << std::endl;
-                rocblas_abort();
-#endif
-            }
-        }
-
-        if(arg.beta_isnan<Tc>())
-        {
-            rocblas_init_nan<To>(hC[b], M, N, ldc);
-        }
-        else
-        {
-            if(arg.initialization == rocblas_initialization::rand_int)
-                rocblas_init<To>(hC[b], M, N, ldc);
-            else if(arg.initialization == rocblas_initialization::trig_float)
-                rocblas_init_sin<To>(hC[b], M, N, ldc);
-            else if(arg.initialization == rocblas_initialization::hpl)
-                rocblas_init_hpl<To>(hC[b], M, N, ldc);
-        }
-
         rocblas_init_nan<To>(hD_1[b], M, N, ldd);
     }
 

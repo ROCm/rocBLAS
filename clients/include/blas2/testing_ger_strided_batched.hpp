@@ -195,8 +195,16 @@ void testing_ger_strided_batched(const Arguments& arg)
     double rocblas_error_2;
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA_1, arg, M, N, lda, stride_a, batch_count, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA_1,
+                        arg,
+                        M,
+                        N,
+                        lda,
+                        stride_a,
+                        batch_count,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_general_matrix,
+                        true);
     rocblas_init_vector(
         hx, arg, M, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan);

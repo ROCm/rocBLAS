@@ -191,8 +191,25 @@ void testing_geam(const Arguments& arg)
     h_beta[0]  = beta;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, A_row, A_col, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_matrix(hB, arg, B_row, B_col, ldb, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_matrix(hA,
+                        arg,
+                        A_row,
+                        A_col,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        B_row,
+                        B_col,
+                        ldb,
+                        0,
+                        1,
+                        rocblas_client_beta_sets_nan,
+                        rocblas_client_general_matrix);
 
     // allocate memory on device
     device_vector<T> dA(size_A);

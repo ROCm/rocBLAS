@@ -180,3 +180,5 @@ add_custom_target( rocblas-test-data
 
 add_dependencies( rocblas-test rocblas-test-data rocblas-common )
 
+rocm_install(TARGETS rocblas-test COMPONENT tests)
+rocm_install(FILES ${ROCBLAS_TEST_DATA} DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT tests)

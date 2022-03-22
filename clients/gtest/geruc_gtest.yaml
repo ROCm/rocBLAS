@@ -3,6 +3,10 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+
+  - &tiny_matrix
+    - { M:   16, N:   16, lda:   16, stride_a:  256 }
+
   - &small_matrix_size_range
     - { M:   11, N:   12, lda:   13, stride_a:  156 }
     - { M:   16, N:   16, lda:   16, stride_a:  256 }
@@ -83,6 +87,16 @@ Tests:
   alphai: [ -2.0 ]
   fortran: true
 
+- name: geruc_NaN
+  category: quick
+  function:
+  - geru
+  - gerc
+  precision: *single_double_precisions_complex
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+
 - name: geruc_small
   category: quick
   function:
@@ -129,6 +143,18 @@ Tests:
   alphai: [ -2.0 ]
   batch_count: [ 3 ]
   fortran: true
+
+- name: geruc_batched_NaN
+  category: quick
+  function:
+  - geru_batched
+  - gerc_batched
+  precision: *double_precision_complex
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+  alphai: [ .NaN ]
+  batch_count: [ 2 ]
 
 - name: geruc_batched_small
   category: quick
@@ -180,6 +206,19 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
   fortran: true
+
+- name: geruc_strided_batched_NaN
+  category: quick
+  function:
+  - geru_strided_batched
+  - gerc_strided_batched
+  precision: *single_precision_complex
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+  alphai: [ .NaN ]
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: geruc_strided_batched_small
   category: quick

@@ -14,6 +14,313 @@
 #include <omp.h>
 #include <vector>
 
+//!
+//! @brief enum to check the type of matrix
+//!
+typedef enum rocblas_check_matrix_type_
+{
+    // General matrix
+    rocblas_client_general_matrix,
+
+    // Hermitian matrix
+    rocblas_client_hermitian_matrix,
+
+    // Symmetric matrix
+    rocblas_client_symmetric_matrix,
+
+    // Triangular matrix
+    rocblas_client_triangular_matrix,
+
+} rocblas_check_matrix_type;
+
+// Initialize matrix so adjacent entries have alternating sign.
+// In gemm if either A or B are initialized with alernating
+// sign the reduction sum will be summing positive
+// and negative numbers, so it should not get too large.
+// This helps reduce floating point inaccuracies for 16bit
+// arithmetic where the exponent has only 5 bits, and the
+// mantissa 10 bits.
+
+template <typename T>
+void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
+                                          const char                uplo,
+                                          T                         rand_gen(),
+                                          host_vector<T>&           A,
+                                          size_t                    M,
+                                          size_t                    N,
+                                          size_t                    lda,
+                                          rocblas_stride            stride      = 0,
+                                          rocblas_int               batch_count = 1)
+{
+    if(matrix_type == rocblas_client_general_matrix)
+    {
+        for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value                  = rand_gen();
+                    A[i + j * lda + b * stride] = (i ^ j) & 1 ? value : negate(value);
+                }
+    }
+    else if(matrix_type == rocblas_client_triangular_matrix)
+    {
+        for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value
+                        = uplo == 'U' ? (j >= i ? rand_gen() : 0) : (j <= i ? rand_gen() : 0);
+                    A[i + j * lda + b * stride] = (i ^ j) & 1 ? T(value) : T(negate(value));
+                }
+    }
+}
+
+// Initialize vector so adjacent entries have alternating sign.
+template <typename T>
+void rocblas_init_vector_alternating_sign(T               rand_gen(),
+                                          host_vector<T>& x,
+                                          size_t          N,
+                                          size_t          incx,
+                                          rocblas_stride  stride      = 0,
+                                          rocblas_int     batch_count = 1)
+{
+    for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+        {
+            auto value               = rand_gen();
+            x[j * incx + b * stride] = j & 1 ? value : negate(value);
+        }
+}
+
+/* ============================================================================================ */
+/*! \brief  matrix initialization: */
+// Initialize matrix with rand_int/hpl/NaN values
+
+template <typename T>
+void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+                         const char                uplo,
+                         T                         rand_gen(),
+                         host_vector<T>&           A,
+                         size_t                    M,
+                         size_t                    N,
+                         size_t                    lda,
+                         rocblas_stride            stride      = 0,
+                         rocblas_int               batch_count = 1)
+{
+    if(matrix_type == rocblas_client_general_matrix)
+    {
+        for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    A[i + j * lda + b * stride] = rand_gen();
+    }
+    else if(matrix_type == rocblas_client_hermitian_matrix)
+    {
+        for(size_t b = 0; b < batch_count; ++b)
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = rand_gen();
+                    if(i == j)
+                        A[b * stride + j + i * lda] = std::real(value);
+                    else if(uplo == 'U')
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = T(0);
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[b * stride + j + i * lda] = T(0);
+                        A[b * stride + i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = conjugate(value);
+                    }
+                }
+    }
+    else if(matrix_type == rocblas_client_symmetric_matrix)
+    {
+        for(size_t b = 0; b < batch_count; ++b)
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = rand_gen();
+                    if(i == j)
+                        A[b * stride + j + i * lda] = value;
+                    else if(uplo == 'U')
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = T(0);
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[b * stride + j + i * lda] = T(0);
+                        A[b * stride + i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = value;
+                    }
+                }
+    }
+    else if(matrix_type == rocblas_client_triangular_matrix)
+    {
+        for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value
+                        = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
+                    A[i + j * lda + b * stride] = value;
+                }
+    }
+}
+
+/*! \brief  vector initialization: */
+// Initialize vectors with rand_int/hpl/NaN values
+
+template <typename T>
+void rocblas_init_vector(T               rand_gen(),
+                         host_vector<T>& x,
+                         size_t          N,
+                         size_t          incx,
+                         rocblas_stride  stride      = 0,
+                         rocblas_int     batch_count = 1)
+{
+    for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+            x[j * incx + b * stride] = rand_gen();
+}
+
+/* ============================================================================================ */
+/*! \brief  Trigonometric matrix initialization: */
+// Initialize matrix with rand_int/hpl/NaN values
+
+template <typename T>
+void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+                              const char                uplo,
+                              host_vector<T>&           A,
+                              size_t                    M,
+                              size_t                    N,
+                              size_t                    lda,
+                              rocblas_stride            stride      = 0,
+                              rocblas_int               batch_count = 1,
+                              bool                      seedReset   = false)
+{
+    if(matrix_type == rocblas_client_general_matrix)
+    {
+        for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    A[i + j * lda + b * stride] = T(seedReset ? cos(i + j * lda + b * stride)
+                                                              : sin(i + j * lda + b * stride));
+    }
+    else if(matrix_type == rocblas_client_hermitian_matrix)
+    {
+        for(size_t b = 0; b < batch_count; ++b)
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = T(seedReset ? cos(i + j * lda + b * stride)
+                                             : sin(i + j * lda + b * stride));
+
+                    if(i == j)
+                        A[b * stride + j + i * lda] = std::real(value);
+                    else if(uplo == 'U')
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = T(0);
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[b * stride + j + i * lda] = T(0);
+                        A[b * stride + i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = conjugate(value);
+                    }
+                }
+    }
+    else if(matrix_type == rocblas_client_symmetric_matrix)
+    {
+        for(size_t b = 0; b < batch_count; ++b)
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = T(seedReset ? cos(i + j * lda + b * stride)
+                                             : sin(i + j * lda + b * stride));
+                    if(i == j)
+                        A[b * stride + j + i * lda] = value;
+                    else if(uplo == 'U')
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = T(0);
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[b * stride + j + i * lda] = T(0);
+                        A[b * stride + i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[b * stride + j + i * lda] = value;
+                        A[b * stride + i + j * lda] = value;
+                    }
+                }
+    }
+    else if(matrix_type == rocblas_client_triangular_matrix)
+    {
+        for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value                  = uplo == 'U'
+                                                      ? (j >= i ? T(seedReset ? cos(i + j * lda + b * stride)
+                                                                              : sin(i + j * lda + b * stride))
+                                                                : T(0))
+                                                      : (j <= i ? T(seedReset ? cos(i + j * lda + b * stride)
+                                                                              : sin(i + j * lda + b * stride))
+                                                                : T(0));
+                    A[i + j * lda + b * stride] = value;
+                }
+    }
+}
+
+/*! \brief  Trigonometric vector initialization: */
+// Initialize vector with rand_int/hpl/NaN values
+
+template <typename T>
+void rocblas_init_vector_trig(host_vector<T>& x,
+                              size_t          N,
+                              size_t          incx,
+                              rocblas_stride  stride      = 0,
+                              rocblas_int     batch_count = 1,
+                              bool            seedReset   = false)
+{
+    for(size_t b = 0; b < batch_count; b++)
+#pragma omp parallel for
+        for(size_t j = 0; j < N; ++j)
+            x[j * incx + b * stride]
+                = T(seedReset ? cos(j * incx + b * stride) : sin(j * incx + b * stride));
+}
+
 /* ============================================================================================ */
 /*! \brief  matrix/vector initialization: */
 // for vector x (M=1, N=lengthX, lda=incx);

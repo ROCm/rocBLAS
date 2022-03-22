@@ -190,18 +190,10 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
     halpha[0] = h_alpha;
 
     //
-    // Initialize host memory.
+    // Initialize data on host memory
     //
-    if(rocblas_isnan(arg.alpha))
-    {
-        rocblas_init_nan(hx, true);
-        rocblas_init_nan(hy, false);
-    }
-    else
-    {
-        rocblas_init(hx, true);
-        rocblas_init(hy, false);
-    }
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
     for(rocblas_int b = 0; b < batch_count; b++)
     {

@@ -125,6 +125,16 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   fortran: true
 
+- name: her_batched_NaN
+  category: quick
+  function: her_batched
+  precision: *double_precision_complex
+  uplo: [ L ]
+  matrix_size: *tiny_matrix
+  incx: [ 1 ]
+  alpha: [ .NaN ]
+  batch_count: [ 2 ]
+
 - name: her_batched_small
   category: quick
   function: her_batched
@@ -167,6 +177,17 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
   fortran: true
+
+- name: her_strided_batched_NaN
+  category: quick
+  function: her_strided_batched
+  precision: *single_precision_complex
+  uplo: [ U ]
+  matrix_size: *tiny_matrix
+  incx: [ 1 ]
+  alpha: [ .NaN ]
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: her_strided_batched_small
   category: quick

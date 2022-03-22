@@ -124,13 +124,13 @@ void testing_dot(const Arguments& arg)
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
 
     // arg.algo indicates to force optimized x dot x kernel algorithm with equal inc
     auto dy_ptr = (arg.algo) ? (T*)(dx) : (T*)(dy);
@@ -186,8 +186,9 @@ void testing_dot(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

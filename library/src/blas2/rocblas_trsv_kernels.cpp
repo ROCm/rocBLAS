@@ -523,6 +523,7 @@ rocblas_trsv_device(rocblas_int    m,
         {
             const size_t i_idx = TRANS ? i : i * size_t(lda);
 
+            __syncthreads();
             if(TRANS ? (local_row + i < m && local_col < m) : (local_row < m && local_col + i < m))
                 sAoff[i / DIM_Y] = A[A_idx + i_idx];
             else
@@ -670,6 +671,7 @@ rocblas_trsv_device(rocblas_int    m,
             const bool   cached
                 = !first_row
                   && (backwards_sub ? block_col == block_row + 1 : block_col == block_row - 1);
+
             if(TRANS ? (local_row + i < m && local_col < m) : (local_row < m && local_col + i < m))
             {
                 auto A_val = cached ? sAoff[i / DIM_Y] : A[A_idx + i_idx];
@@ -961,11 +963,11 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
                                                     rocblas_handle    handle,
                                                     rocblas_int       m,
                                                     T                 A,
-                                                    rocblas_int       offset_a,
+                                                    rocblas_stride    offset_a,
                                                     rocblas_int       lda,
                                                     rocblas_stride    stride_a,
                                                     U                 x,
-                                                    rocblas_int       offset_x,
+                                                    rocblas_stride    offset_x,
                                                     rocblas_int       inc_x,
                                                     rocblas_stride    stride_x,
                                                     rocblas_int       batch_count,
@@ -1002,11 +1004,11 @@ template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>           
                                                     rocblas_handle    handle,         \
                                                     rocblas_int       m,              \
                                                     T_                A,              \
-                                                    rocblas_int       offset_a,       \
+                                                    rocblas_stride       offset_a,       \
                                                     rocblas_int       lda,            \
                                                     rocblas_stride    stride_a,       \
                                                     U_                x,              \
-                                                    rocblas_int       offset_x,       \
+                                                    rocblas_stride       offset_x,       \
                                                     rocblas_int       inc_x,          \
                                                     rocblas_stride    stride_x,       \
                                                     rocblas_int       batch_count,    \
@@ -1037,12 +1039,12 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_s
                                                 rocblas_diagonal  diag,                              \
                                                 rocblas_int       m,                                 \
                                                 ATYPE_             dA,                               \
-                                                ptrdiff_t         offset_A,                          \
+                                                rocblas_stride         offset_A,                          \
                                                 rocblas_int       lda,                               \
                                                 rocblas_stride    stride_A,                          \
                                                 T_ const*         alpha,                             \
                                                 XTYPE_             dx,                               \
-                                                ptrdiff_t         offset_x,                          \
+                                                rocblas_stride         offset_x,                          \
                                                 rocblas_int       incx,                              \
                                                 rocblas_stride    stride_x,                          \
                                                 rocblas_int       batch_count,                       \
