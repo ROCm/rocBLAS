@@ -2,16 +2,6 @@
 Contributor's Guide
 ===================
 
-License Agreement
-=================
-
-1. The code I am contributing is mine, and I have the right to license
-   it.
-
-2. By submitting a pull request for this project I am granting you a
-   license to distribute said code under the MIT License for the
-   project.
-
 Pull-request guidelines
 =======================
 
