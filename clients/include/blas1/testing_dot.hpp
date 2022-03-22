@@ -130,7 +130,7 @@ void testing_dot(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
 
     // arg.algo indicates to force optimized x dot x kernel algorithm with equal inc
     auto dy_ptr = (arg.algo) ? (T*)(dx) : (T*)(dy);
@@ -186,8 +186,9 @@ void testing_dot(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
