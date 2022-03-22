@@ -141,8 +141,27 @@ void testing_trmm(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, K, K, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_matrix(hB, arg, M, N, ldb, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        K,
+                        K,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        M,
+                        N,
+                        ldb,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
 
     hB_1 = hB; // hXorB <- B
     hB_2 = hB; // hXorB <- B

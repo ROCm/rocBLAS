@@ -98,7 +98,8 @@ namespace
                             ldc);
         }
 
-        static constexpr rocblas_int    offset_C = 0, offset_A = 0, offset_B = 0, batch_count = 1;
+        static constexpr rocblas_stride offset_C = 0, offset_A = 0, offset_B = 0;
+        static constexpr rocblas_int    batch_count = 1;
         static constexpr rocblas_stride stride_C = 0, stride_A = 0, stride_B = 0;
 
         // equivalent argument constraints for symm and hemm

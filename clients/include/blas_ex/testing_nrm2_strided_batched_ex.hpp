@@ -166,12 +166,9 @@ void testing_nrm2_strided_batched_ex(const Arguments& arg)
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     host_vector<Tx> hx(batch_count * size_x);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    if(rocblas_isnan(arg.alpha))
-        rocblas_init_nan<Tx>(hx, 1, N, incx, stridex, batch_count);
-    else
-        rocblas_init<Tx>(hx, 1, N, incx, stridex, batch_count);
+    // Initialize data on host memory
+    rocblas_init_vector(
+        hx, arg, N, incx, stridex, batch_count, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * size_x * batch_count, hipMemcpyHostToDevice));

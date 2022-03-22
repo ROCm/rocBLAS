@@ -54,20 +54,23 @@ void testing_syr2k_bad_arg(const Arguments& arg)
             handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syrXX_fn(handle,
-                                           uplo,
-                                           rocblas_operation_conjugate_transpose,
-                                           N,
-                                           K,
-                                           &alpha,
-                                           dA,
-                                           lda,
-                                           dB,
-                                           ldb,
-                                           &beta,
-                                           dC,
-                                           ldc),
-                          rocblas_status_invalid_value);
+    if(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, rocblas_double_complex>{})
+    {
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_fn(handle,
+                                               uplo,
+                                               rocblas_operation_conjugate_transpose,
+                                               N,
+                                               K,
+                                               &alpha,
+                                               dA,
+                                               lda,
+                                               dB,
+                                               ldb,
+                                               &beta,
+                                               dC,
+                                               ldc),
+                              rocblas_status_invalid_value);
+    }
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrXX_fn(handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
@@ -181,18 +184,37 @@ void testing_syr2k(const Arguments& arg)
     h_beta[0]  = beta;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, rows, cols, lda, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        rows,
+                        cols,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+    rocblas_init_matrix(
+        hC_1, arg, N, N, ldc, 0, 1, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix);
 
     if(TWOK)
     {
-        rocblas_init_matrix(
-            hB, arg, rows, cols, ldb, 0, 1, rocblas_client_never_set_nan, false, true);
+        rocblas_init_matrix(hB,
+                            arg,
+                            rows,
+                            cols,
+                            ldb,
+                            0,
+                            1,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_triangular_matrix,
+                            false,
+                            true);
     }
     else
     { // using syrk as syrkx reference so testing with B = A
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb);
     }
-    rocblas_init_matrix(hC_1, arg, N, N, ldc, 0, 1, rocblas_client_never_set_nan);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

@@ -1052,7 +1052,7 @@
     SolutionNameMin: Cijk_Alik_Bljk_SB_MT128x64x16_MI32x32x2x1_SE_1LDSB0_EPS0_GRVW2_GSU1_LPA2_LPB2_PGR2_PLR9_SU0_SUS256_SRVW2_TT2_32_WG64_4_1_WGM15
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -1086,7 +1086,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -1794,7 +1794,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -1830,7 +1830,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -3034,7 +3034,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -3070,7 +3070,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -3282,7 +3282,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -3318,7 +3318,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -3778,7 +3778,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -3814,7 +3814,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -4274,7 +4274,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -4310,7 +4310,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -4522,7 +4522,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -4558,7 +4558,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -5018,7 +5018,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -5054,7 +5054,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -5762,7 +5762,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -5798,7 +5798,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -6258,7 +6258,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -6294,7 +6294,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -8242,7 +8242,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -8278,7 +8278,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -8490,7 +8490,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -8526,7 +8526,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -9234,7 +9234,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -9270,7 +9270,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -9964,7 +9964,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -10000,7 +10000,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -10956,7 +10956,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -10992,7 +10992,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -11204,7 +11204,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -11240,7 +11240,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -11700,7 +11700,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -11736,7 +11736,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -12940,7 +12940,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -12976,7 +12976,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -13188,7 +13188,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -13224,7 +13224,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -13684,7 +13684,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -13720,7 +13720,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -13932,7 +13932,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -13968,7 +13968,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -14911,7 +14911,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -14947,7 +14947,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -15159,7 +15159,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -15195,7 +15195,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -15407,7 +15407,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -15443,7 +15443,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -15903,7 +15903,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -15939,7 +15939,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -16151,7 +16151,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -16187,7 +16187,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -16647,7 +16647,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -16683,7 +16683,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -16895,7 +16895,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -16931,7 +16931,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -17143,7 +17143,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -17179,7 +17179,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -17391,7 +17391,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -17427,7 +17427,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -17887,7 +17887,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 128
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -18135,7 +18135,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -18171,7 +18171,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -18631,7 +18631,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -18667,7 +18667,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -19127,7 +19127,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -19163,7 +19163,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -19375,7 +19375,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -19411,7 +19411,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -20119,7 +20119,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -20155,7 +20155,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -21607,7 +21607,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -21643,7 +21643,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -22599,7 +22599,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 128
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -22635,7 +22635,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -22847,7 +22847,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -22883,7 +22883,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -23343,7 +23343,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -23379,7 +23379,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -25051,7 +25051,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -25087,7 +25087,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -26291,7 +26291,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -26327,7 +26327,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -26539,7 +26539,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -26575,7 +26575,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -26787,7 +26787,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -26823,7 +26823,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -27531,7 +27531,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -27567,7 +27567,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -28027,7 +28027,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -28063,7 +28063,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -28523,7 +28523,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -28559,7 +28559,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -29019,7 +29019,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -29055,7 +29055,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -29267,7 +29267,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -29303,7 +29303,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -30011,7 +30011,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -30047,7 +30047,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -31003,7 +31003,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -31039,7 +31039,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -31251,7 +31251,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -31287,7 +31287,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -31995,7 +31995,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -32031,7 +32031,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -32987,7 +32987,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -33023,7 +33023,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -33716,7 +33716,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -33752,7 +33752,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -33964,7 +33964,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -34000,7 +34000,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -34212,7 +34212,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -34248,7 +34248,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -34708,7 +34708,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -34744,7 +34744,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -35700,7 +35700,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -35736,7 +35736,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -36940,7 +36940,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -36976,7 +36976,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -37436,7 +37436,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -37472,7 +37472,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -37684,7 +37684,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -37720,7 +37720,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -38428,7 +38428,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -38464,7 +38464,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -38676,7 +38676,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -38712,7 +38712,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -39172,7 +39172,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -39208,7 +39208,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -40164,7 +40164,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -40200,7 +40200,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -40660,7 +40660,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -40696,7 +40696,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -41404,7 +41404,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -41440,7 +41440,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -41900,7 +41900,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -41936,7 +41936,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -42148,7 +42148,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -42184,7 +42184,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -42644,7 +42644,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -42680,7 +42680,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -43140,7 +43140,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -43176,7 +43176,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -44371,7 +44371,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -44407,7 +44407,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -45115,7 +45115,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -45151,7 +45151,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -45611,7 +45611,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -45647,7 +45647,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -47090,7 +47090,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -47126,7 +47126,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -47338,7 +47338,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -47374,7 +47374,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -47586,7 +47586,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -47622,7 +47622,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -47834,7 +47834,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -47870,7 +47870,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -48082,7 +48082,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -48118,7 +48118,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -49048,7 +49048,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -49084,7 +49084,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -49531,7 +49531,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -49567,7 +49567,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -50027,7 +50027,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -50063,7 +50063,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -51254,7 +51254,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -51290,7 +51290,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -51750,7 +51750,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -51786,7 +51786,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -51998,7 +51998,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -52034,7 +52034,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -52246,7 +52246,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -52282,7 +52282,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -52494,7 +52494,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 128
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -52742,7 +52742,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -52778,7 +52778,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -52990,7 +52990,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -53026,7 +53026,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -53486,7 +53486,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -53522,7 +53522,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -53734,7 +53734,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -53770,7 +53770,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -53982,7 +53982,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -54018,7 +54018,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -54230,7 +54230,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -54266,7 +54266,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -54974,7 +54974,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -55010,7 +55010,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -55222,7 +55222,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -55258,7 +55258,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -55470,7 +55470,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 128
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -55506,7 +55506,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -56214,7 +56214,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -56250,7 +56250,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -56697,7 +56697,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -56733,7 +56733,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -57689,7 +57689,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -57725,7 +57725,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -58185,7 +58185,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -58221,7 +58221,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -58681,7 +58681,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -58717,7 +58717,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -59921,7 +59921,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -59957,7 +59957,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -60169,7 +60169,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -60205,7 +60205,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -60652,7 +60652,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -60688,7 +60688,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -61879,7 +61879,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -61915,7 +61915,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -62610,7 +62610,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -62646,7 +62646,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -63341,7 +63341,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -63377,7 +63377,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -64058,7 +64058,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -64094,7 +64094,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -64554,7 +64554,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -64590,7 +64590,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -64802,7 +64802,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -64838,7 +64838,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -65298,7 +65298,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -65334,7 +65334,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -65546,7 +65546,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -65582,7 +65582,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -66773,7 +66773,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -66809,7 +66809,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -67751,7 +67751,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -67787,7 +67787,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -67999,7 +67999,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -68035,7 +68035,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -68495,7 +68495,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -68531,7 +68531,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -68743,7 +68743,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -68779,7 +68779,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -69226,7 +69226,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -69262,7 +69262,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -69709,7 +69709,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -69745,7 +69745,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -70437,7 +70437,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -70473,7 +70473,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -71429,7 +71429,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -71465,7 +71465,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -71677,7 +71677,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -71713,7 +71713,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -73400,7 +73400,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -73436,7 +73436,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -73648,7 +73648,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -73684,7 +73684,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -73896,7 +73896,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -73932,7 +73932,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -74144,7 +74144,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -74180,7 +74180,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -74640,7 +74640,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -74676,7 +74676,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -75384,7 +75384,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -75420,7 +75420,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -75632,7 +75632,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -75668,7 +75668,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -75880,7 +75880,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -75916,7 +75916,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -76376,7 +76376,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -76412,7 +76412,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -76624,7 +76624,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -76660,7 +76660,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -77355,7 +77355,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -77391,7 +77391,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -77851,7 +77851,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -77887,7 +77887,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -78347,7 +78347,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -78383,7 +78383,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -78843,7 +78843,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -78879,7 +78879,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -79587,7 +79587,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -79623,7 +79623,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -79835,7 +79835,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -79871,7 +79871,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -80083,7 +80083,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -80119,7 +80119,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -80331,7 +80331,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -80367,7 +80367,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -81791,7 +81791,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -81827,7 +81827,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -82274,7 +82274,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -82310,7 +82310,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -82522,7 +82522,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -82558,7 +82558,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -82770,7 +82770,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -82806,7 +82806,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -83266,7 +83266,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -83302,7 +83302,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -83514,7 +83514,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -83550,7 +83550,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -83996,7 +83996,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -84032,7 +84032,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -84975,7 +84975,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -85011,7 +85011,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -85705,7 +85705,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -85741,7 +85741,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -85953,7 +85953,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -85989,7 +85989,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -86201,7 +86201,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -86237,7 +86237,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -86449,7 +86449,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -86485,7 +86485,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -87421,7 +87421,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -87457,7 +87457,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -88661,7 +88661,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -88697,7 +88697,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -89625,7 +89625,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -89661,7 +89661,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -89873,7 +89873,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -89909,7 +89909,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -90617,7 +90617,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -90653,7 +90653,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -90865,7 +90865,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -90901,7 +90901,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -91113,7 +91113,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -91149,7 +91149,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -92601,7 +92601,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -92637,7 +92637,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -93097,7 +93097,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -93133,7 +93133,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -93593,7 +93593,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -93629,7 +93629,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -93841,7 +93841,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -93877,7 +93877,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -94089,7 +94089,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -94125,7 +94125,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -94337,7 +94337,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -94373,7 +94373,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -94833,7 +94833,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -94869,7 +94869,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -95309,7 +95309,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -95345,7 +95345,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -95557,7 +95557,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -95593,7 +95593,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -96053,7 +96053,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -96089,7 +96089,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -96549,7 +96549,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -96585,7 +96585,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -96797,7 +96797,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -96833,7 +96833,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -97293,7 +97293,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -97329,7 +97329,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -97772,7 +97772,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -97808,7 +97808,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -98020,7 +98020,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -98056,7 +98056,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -99716,7 +99716,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -99752,7 +99752,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -100919,7 +100919,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -100955,7 +100955,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -101630,7 +101630,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -101666,7 +101666,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -102126,7 +102126,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -102162,7 +102162,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -102605,7 +102605,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -102641,7 +102641,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -103549,7 +103549,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -103585,7 +103585,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -104769,7 +104769,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -104805,7 +104805,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -106686,7 +106686,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -106722,7 +106722,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -106934,7 +106934,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -106970,7 +106970,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -108373,7 +108373,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -108409,7 +108409,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -108621,7 +108621,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -108657,7 +108657,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -109117,7 +109117,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -109153,7 +109153,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -109365,7 +109365,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -109401,7 +109401,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -109861,7 +109861,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -109897,7 +109897,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -110357,7 +110357,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -110393,7 +110393,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -110605,7 +110605,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -110641,7 +110641,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -110853,7 +110853,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -110889,7 +110889,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -111349,7 +111349,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -111385,7 +111385,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -113686,7 +113686,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -113722,7 +113722,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -114169,7 +114169,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -114205,7 +114205,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -114417,7 +114417,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -114453,7 +114453,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -114665,7 +114665,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -114701,7 +114701,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -114913,7 +114913,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -114949,7 +114949,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -115161,7 +115161,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -115197,7 +115197,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -115409,7 +115409,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -115445,7 +115445,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -116653,7 +116653,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -116689,7 +116689,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -117397,7 +117397,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -117433,7 +117433,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -119133,7 +119133,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -119169,7 +119169,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -119381,7 +119381,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -119417,7 +119417,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -120869,7 +120869,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -120905,7 +120905,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -121861,7 +121861,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -121897,7 +121897,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -122109,7 +122109,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -122145,7 +122145,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -122357,7 +122357,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -122393,7 +122393,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -122605,7 +122605,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -122641,7 +122641,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -122853,7 +122853,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 2
@@ -122889,7 +122889,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -124079,7 +124079,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -124115,7 +124115,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -124327,7 +124327,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -124363,7 +124363,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -125299,7 +125299,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -125335,7 +125335,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -126012,7 +126012,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -126048,7 +126048,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -126975,7 +126975,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -127011,7 +127011,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -127458,7 +127458,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -127494,7 +127494,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -127706,7 +127706,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -127742,7 +127742,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -127954,7 +127954,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -127990,7 +127990,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -128202,7 +128202,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -128238,7 +128238,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -129660,7 +129660,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -129696,7 +129696,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -129908,7 +129908,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -129944,7 +129944,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -130404,7 +130404,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -130440,7 +130440,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -130900,7 +130900,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -130936,7 +130936,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -131148,7 +131148,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -131184,7 +131184,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -131396,7 +131396,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -131432,7 +131432,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -132140,7 +132140,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 8
@@ -132176,7 +132176,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 1
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -132636,7 +132636,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -132672,7 +132672,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -133380,7 +133380,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -133416,7 +133416,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -133862,7 +133862,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 16
@@ -133898,7 +133898,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -134606,7 +134606,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 2
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -134642,7 +134642,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 2
+    _staggerStrideShift: 0
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -135089,7 +135089,7 @@
     SourceSwap: false
     StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreRemapVectorWidth: 0
     StoreVectorWidth: 4
     SubGroup0: 4
@@ -135125,7 +135125,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
 - [2, 3, 0, 1]
 - - - [1024, 512, 1, 1600]
     - [5, 32.957]
@@ -140842,7 +140842,7 @@
   - - [192, 32, 1, 1225]
     - [235, 0.782]
   - - [1024, 256, 1, 196]
-    - [391, 5.446]
+    - [462, 9.714]
   - - [1120, 192, 1, 289]
     - [49, 6.56]
   - - [400, 48, 1, 196]
@@ -145498,9 +145498,9 @@
   - - [224, 224, 384, 64]
     - [41, 21.905]
   - - [64, 224, 384, 224]
-    - [48, 30.901]
+    - [334, 40.491]
   - - [768, 7168, 1, 768]
-    - [480, 62.766]
+    - [18, 76.088]
   - - [3072, 7168, 1, 768]
     - [147, 81.937]
   - - [768, 7168, 1, 3072]
@@ -145523,4 +145523,38 @@
     - [226, 14.71]
   - - [100, 32, 1, 1000]
     - [188, 0.312]
+  - - [1000, 32, 1, 1664]
+    - [95, 6.308]
+  - - [1000, 32, 1, 1920]
+    - [74, 7.371]
+  - - [1000, 32, 1, 2048]
+    - [74, 7.258]
+  - - [1000, 32, 1, 4096]
+    - [288, 10.462]
+  - - [100, 1792, 1, 1280]
+    - [162, 25.106]
+  - - [100, 224, 1, 1000]
+    - [74, 3.465]
+  - - [100, 32, 1, 768]
+    - [74, 0.438]
+  - - [1280, 1792, 1, 1280]
+    - [130, 72.497]
+  - - [1280, 1792, 1, 3840]
+    - [340, 78.898]
+  - - [4096, 32, 1, 25088]
+    - [536, 35.281]
+  - - [128, 128, 64, 11552]
+    - [384, 64.108]
+  - - [256, 128, 64, 3200]
+    - [194, 68.881]
+  - - [256, 256, 49, 288]
+    - [265, 51.826]
+  - - [512, 256, 64, 800]
+    - [285, 80.983]
+  - - [512, 512, 64, 800]
+    - [170, 85.33]
+  - - [64, 224, 160, 224]
+    - [334, 33.507]
+  - - [64, 224, 512, 224]
+    - [334, 41.586]
 - null

@@ -48,7 +48,7 @@ Definitions:
 
   - &alpha_beta_range_nan
     - { alpha: .NaN, beta: 1.5 }
-    - { alpha: 1.2, beta: .NaN }
+    - { alpha: 1.5, beta: .NaN } # alpha value changed from 1.2 -> 1.5 to overcome the equality issue when comparing results of rocBLAS with the host
 
 Tests:
 - name: sbmv_bad
@@ -99,6 +99,16 @@ Tests:
   function: sbmv_batched_bad_arg
   precision: *single_precision
 
+- name: sbmv_batched_NaN
+  category: pre_checkin
+  function: sbmv_batched
+  precision: *double_precision
+  uplo: [ U ]
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_nan
+  batch_count: [ 2 ]
+
 - name: sbmv_batched_medium
   category: pre_checkin
   function: sbmv_batched
@@ -124,6 +134,17 @@ Tests:
   category: pre_checkin
   function: sbmv_strided_batched_bad_arg
   precision: *single_precision
+
+- name: sbmv_strided_batched_NaN
+  category: pre_checkin
+  function: sbmv_strided_batched
+  precision: *single_precision
+  uplo: [ L ]
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_nan
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: sbmv_strided_batched_medium
   category: pre_checkin

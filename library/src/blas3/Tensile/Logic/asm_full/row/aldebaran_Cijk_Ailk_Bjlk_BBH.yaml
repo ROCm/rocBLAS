@@ -1,4 +1,4 @@
-- {MinimumRequiredVersion: 4.31.0}
+- {MinimumRequiredVersion: 4.32.1}
 - aldebaran
 - {Architecture: gfx90a, CUCount: 104}
 - [Device 0050, Device 0051, Device 0052, Device 0054, Device 0062, Device 7400, Device
@@ -186,6 +186,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -455,6 +456,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -724,6 +726,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -993,6 +996,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -1259,6 +1263,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -1525,6 +1530,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -1791,6 +1797,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -2057,6 +2064,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -2323,6 +2331,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -2589,6 +2598,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -2855,6 +2865,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -3121,6 +3132,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -3387,6 +3399,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -3653,6 +3666,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -3919,6 +3933,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -4185,6 +4200,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -4451,6 +4467,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -4717,6 +4734,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -4983,6 +5001,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -5249,6 +5268,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -5515,6 +5535,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -5781,6 +5802,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -6047,6 +6069,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -6313,6 +6336,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -6579,6 +6603,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -6845,6 +6870,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -7111,6 +7137,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -7377,6 +7404,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -7643,6 +7671,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -7909,6 +7938,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -8175,6 +8205,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -8441,6 +8472,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -8707,6 +8739,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -8973,6 +9006,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -9239,6 +9273,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -9505,6 +9540,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -9771,6 +9807,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -10037,6 +10074,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -10303,6 +10341,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -10569,6 +10608,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -10835,6 +10875,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -11101,6 +11142,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -11367,6 +11409,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -11633,6 +11676,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -11899,6 +11943,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -12165,6 +12210,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -12431,6 +12477,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -12697,6 +12744,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -12963,6 +13011,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -13229,6 +13278,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -13495,6 +13545,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -13761,6 +13812,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -14027,6 +14079,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -14293,6 +14346,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -14559,6 +14613,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -14825,6 +14880,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -15091,6 +15147,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -15357,6 +15414,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -15623,6 +15681,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -15889,6 +15948,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -16155,6 +16215,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -16421,6 +16482,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -16687,6 +16749,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -16953,6 +17016,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -17219,6 +17283,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -17485,6 +17550,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -17751,6 +17817,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -18017,6 +18084,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -18283,6 +18351,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -18549,6 +18618,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -18815,6 +18885,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -19081,6 +19152,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -19347,6 +19419,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -19613,6 +19686,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -19879,6 +19953,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -20145,6 +20220,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -20411,6 +20487,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -20677,6 +20754,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -20943,6 +21021,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -21209,6 +21288,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -21475,6 +21555,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -21741,6 +21822,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -22007,6 +22089,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -22273,6 +22356,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -22539,6 +22623,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -22805,6 +22890,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -23071,6 +23157,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -23337,6 +23424,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -23603,6 +23691,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -23869,6 +23958,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -24135,6 +24225,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -24401,6 +24492,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -24667,6 +24759,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -24933,6 +25026,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -25199,6 +25293,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -25465,6 +25560,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -25731,6 +25827,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -25997,6 +26094,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -26263,6 +26361,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -26529,6 +26628,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -26795,6 +26895,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -27061,6 +27162,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -27327,6 +27429,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -27593,6 +27696,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -27859,6 +27963,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -28125,6 +28230,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -28391,6 +28497,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -28657,6 +28764,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -28923,6 +29031,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -29189,6 +29298,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -29455,6 +29565,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -29721,6 +29832,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -29987,6 +30099,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -30253,6 +30366,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -30519,6 +30633,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -30785,6 +30900,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -31051,6 +31167,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -31317,6 +31434,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -31583,6 +31701,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -31849,6 +31968,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -32115,6 +32235,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -32381,6 +32502,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -32647,6 +32769,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -32913,6 +33036,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -33179,6 +33303,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -33445,6 +33570,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -33711,6 +33837,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -33977,6 +34104,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -34243,6 +34371,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -34509,6 +34638,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -34775,6 +34905,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -35041,6 +35172,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -35307,6 +35439,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -35573,6 +35706,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -35839,6 +35973,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -36105,6 +36240,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -36371,6 +36507,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -36637,6 +36774,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -36903,6 +37041,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -37169,6 +37308,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -37435,6 +37575,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -37701,6 +37842,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -37967,6 +38109,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -38233,6 +38376,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -38499,6 +38643,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -38765,6 +38910,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -39031,6 +39177,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -39297,6 +39444,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -39563,6 +39711,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -39829,6 +39978,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -40095,6 +40245,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -40361,6 +40512,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -40627,6 +40779,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -40893,6 +41046,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -41159,6 +41313,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -41425,6 +41580,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -41691,6 +41847,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -41957,6 +42114,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -42223,6 +42381,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -42489,6 +42648,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -42579,272 +42739,6 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 159
-    SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT64x128x16_MI32x32x8x1_SE_1LDSB0_AF0EM8_EPS0_GRVW8_GSU1_NLCA1_NLCB1_PGR2_SU32_SUS256_SRVW4_TT1_64_VAW2_WG64_4_1_WGM2
-    SourceSwap: false
-    StaggerU: 32
-    StaggerUMapping: 0
-    StaggerUStride: 256
-    StoreCInUnroll: false
-    StoreCInUnrollExact: false
-    StoreCInUnrollInterval: 1
-    StoreCInUnrollPostLoop: false
-    StorePriorityOpt: false
-    StoreRemapVectorWidth: 4
-    StoreSyncOpt: 0
-    StoreVectorWidth: 4
-    SubGroup0: 4
-    SubGroup1: 64
-    SubGroupA: 4
-    SubGroupB: 64
-    SuppressNoLoadLoop: 0
-    ThreadTile: [1, 64]
-    ThreadTile0: 16
-    ThreadTile1: 2
-    ThreadTileA: 16
-    ThreadTileB: 2
-    TransposeLDS: 0
-    UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: 0
-    UnrollMajorLDSB: 0
-    UnrollMemFence: false
-    Use64bShadowLimit: 1
-    UseInstOffsetForGRO: 0
-    UseSgprForGRO: -1
-    Valid: false
-    VectorAtomicWidth: 2
-    VectorStore: -1
-    VectorWidth: 2
-    WaveSeparateGlobalReadA: 1
-    WaveSeparateGlobalReadB: 1
-    WavefrontSize: 64
-    WorkGroup: [64, 4, 1]
-    WorkGroupMapping: 2
-    WorkGroupMappingType: B
-    _DepthULds: 16
-    _GlobalAccumulation: null
-    _UseSgprForGRO: false
-    _VectorStore: 1
-    _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 3
-  - 1LDSBuffer: 0
-    AggressivePerfMode: 1
-    AssertAlphaValue: false
-    AssertBetaValue: false
-    AssertCEqualsD: false
-    AssertFree0ElementMultiple: 8
-    AssertFree1ElementMultiple: 1
-    AssertMinApproxSize: 3
-    AssertSizeEqual: {}
-    AssertSizeGreaterThan: {}
-    AssertSizeLessThan: {}
-    AssertSizeMultiple: {}
-    AssertStrideAEqual: {0: 1}
-    AssertStrideBEqual: {0: 1}
-    AssertStrideCEqual: {0: 1}
-    AssertStrideDEqual: {0: 1}
-    AssertSummationElementMultiple: 1
-    AssignedDerivedParameters: true
-    AssignedProblemIndependentDerivedParameters: true
-    AtomicAddC: false
-    BufferLoad: true
-    BufferStore: true
-    CheckDimOverflow: 0
-    CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
-    CustomKernelName: ''
-    DepthU: 16
-    DepthULdsDivisor: 1
-    DirectToLds: false
-    DirectToLdsA: false
-    DirectToLdsB: false
-    DirectToVgprA: false
-    DirectToVgprB: false
-    DisableAtomicFail: 0
-    DisableKernelPieces: 0
-    DisableVgprOverlapping: false
-    EdgeType: ShiftPtr
-    EnableMatrixInstruction: true
-    ExpandPointerSwap: 0
-    Fp16AltImpl: false
-    FractionalLoad: 0
-    GlobalLoadVectorWidthA: 4
-    GlobalLoadVectorWidthB: 8
-    GlobalRead2A: true
-    GlobalRead2B: true
-    GlobalReadCoalesceGroupA: true
-    GlobalReadCoalesceGroupB: true
-    GlobalReadCoalesceVectorA: true
-    GlobalReadCoalesceVectorB: true
-    GlobalReadPerMfma: 1
-    GlobalReadVectorWidth: 8
-    GlobalSplitU: 1
-    GlobalSplitUAlgorithm: MultipleBuffer
-    GlobalSplitUSummationAssignmentRoundRobin: true
-    GlobalSplitUWorkGroupMappingRoundRobin: false
-    GlobalWriteVectorWidth: 2
-    GroupLoadStore: false
-    GuaranteeNoPartialA: true
-    GuaranteeNoPartialB: false
-    ISA: [9, 0, 10]
-    InnerUnroll: 1
-    InterleaveAlpha: 0
-    KernelLanguage: Assembly
-    LSCA: 64
-    LSCB: 128
-    LSPA: 4
-    LSPB: 4
-    LVCA: 16
-    LVCB: 16
-    LVPA: 1
-    LVPB: 1
-    LdcEqualsLdd: true
-    LdsBlockSizePerPad: 0
-    LdsBlockSizePerPadA: 0
-    LdsBlockSizePerPadB: 0
-    LdsInitCVgprs: false
-    LdsNumElements: 7168
-    LdsNumElementsAlignedA: 1024
-    LdsNumElementsAlignedB: 2048
-    LdsOffsetA: 0
-    LdsOffsetA_Blk: 4096
-    LdsOffsetB: 1024
-    LdsOffsetB_Blk: 5120
-    LdsPadA: 0
-    LdsPadB: 0
-    LocalDotLayout: 1
-    LocalRead2A: true
-    LocalRead2B: true
-    LocalReadVectorWidth: 4
-    LocalSplitU: 1
-    LocalWrite2A: true
-    LocalWrite2B: true
-    LocalWritePerMfma: -1
-    LocalWriteUseSgprA: false
-    LocalWriteUseSgprB: false
-    LoopDoWhile: false
-    LoopIters: 2
-    LoopTail: true
-    LoopUnroll: 16
-    MACInstruction: MAC
-    MFMA_BF16_1K: true
-    MIArchVgpr: false
-    MIBlock: [32, 32, 8, 1, 1, 1]
-    MIInputPerThread: 4
-    MIOutputVectorWidth: 4
-    MIRegPerOut: 1
-    MIWaveGroup: [2, 2]
-    MIWaveTile: [1, 2]
-    MIWaveTileA: 1
-    MIWaveTileB: 2
-    MacroTile0: 64
-    MacroTile1: 128
-    MacroTileA: 64
-    MacroTileB: 128
-    MacroTileShapeMax: 64
-    MacroTileShapeMin: 1
-    MagicDivAlg: 2
-    MatrixInstB: 1
-    MatrixInstBM: 1
-    MatrixInstBN: 1
-    MatrixInstK: 8
-    MatrixInstM: 32
-    MatrixInstN: 32
-    MatrixInstruction: [32, 32, 8, 1]
-    MaxOccupancy: 40
-    MaxVgprNumber: 256
-    MinVgprNumber: 0
-    NoLdsWriteCode: false
-    NoReject: false
-    NonTemporalA: 0
-    NonTemporalB: 0
-    NonTemporalC: 0
-    NonTemporalD: 0
-    NumElementsPerBatchStore: 0
-    NumElementsPerThread: 32
-    NumGlobalWriteVectorsPerThread: 16
-    NumLoadsA: 1
-    NumLoadsB: 1
-    NumLoadsCoalescedA: 1
-    NumLoadsCoalescedB: 1
-    NumLoadsPerpendicularA: 1
-    NumLoadsPerpendicularB: 1
-    NumThreads: 256
-    OptNoLoadLoop: 1
-    OptPreLoopVmcnt: 0
-    PackBatchDims: 0
-    PackFreeDims: 1
-    PackGranularity: 2
-    PackSummationDims: 0
-    PackedC0IdxChars: [I]
-    PackedC0IndicesX: [0]
-    PackedC1IdxChars: [J]
-    PackedC1IndicesX: [1]
-    PerformanceSyncLocation: -1
-    PerformanceWaitCount: -1
-    PerformanceWaitLocation: -1
-    PersistentKernel: 0
-    PersistentKernelAlongBatch: false
-    PrefetchAcrossPersistent: 0
-    PrefetchAcrossPersistentMode: 0
-    PrefetchGlobalRead: 2
-    PrefetchLocalRead: 1
-    ProblemType:
-      AllowNoFreeDims: false
-      AssignedDerivedParameters: true
-      Batched: true
-      ComplexConjugateA: false
-      ComplexConjugateB: false
-      ComputeDataType: 0
-      ConvolutionConfig: []
-      DataType: 7
-      DestDataType: 7
-      Fp16AltImpl: false
-      HighPrecisionAccumulate: true
-      Index0: 0
-      Index01A: 0
-      Index01B: 1
-      Index1: 1
-      IndexAssignmentsA: [0, 3, 2]
-      IndexAssignmentsB: [1, 3, 2]
-      IndexAssignmentsLD: [4, 5, 6, 7]
-      IndexUnroll: 3
-      IndexUnrollA: 1
-      IndexUnrollB: 1
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
-      MirrorDimsA: []
-      MirrorDimsB: []
-      NumIndicesBatch: 1
-      NumIndicesC: 3
-      NumIndicesFree: 2
-      NumIndicesLD: 4
-      NumIndicesSummation: 1
-      OperationType: GEMM
-      SetConstStrideA: []
-      SetConstStrideB: []
-      SilentHighPrecisionAccumulate: false
-      StridedBatched: true
-      TLUA: true
-      TLUB: true
-      Tensor0: 0
-      Tensor1: 1
-      TileA: 0
-      TileAwareSelection: false
-      TileB: 1
-      TotalIndices: 4
-      TransposeA: false
-      TransposeB: true
-      UseBeta: true
-      UseInitialStridesAB: false
-      UseInitialStridesCD: false
-      ZeroPadA: []
-      ZeroPadB: []
-    ReplacementKernel: false
-    ScheduleGlobalRead: 1
-    ScheduleIterAlg: 3
-    ScheduleLocalWrite: 1
-    SolutionIndex: 160
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT64x128x16_MI32x32x8x1_SE_1LDSB0_AF0EM8_EPS0_GRVW8_GSU1_NLCA1_NLCB1_PGR2_SU32_SUS128_SRVW4_TT1_64_VAW2_WG64_4_1_WGM2
     SourceSwap: false
     StaggerU: 32
@@ -43021,6 +42915,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -43110,7 +43005,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 161
+    SolutionIndex: 160
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT64x32x16_MI16x16x16x1_SE_1LDSB0_AF0EM8_EPS0_GRVW2_GSU1_NLCA1_NLCB1_PGR2_SU32_SUS128_SRVW4_TT2_16_VAW2_WG32_8_1_WGM1
     SourceSwap: false
     StaggerU: 32
@@ -43287,6 +43182,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -43376,7 +43272,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 162
+    SolutionIndex: 161
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x128x32_MI32x32x8x1_SE_1LDSB0_AF0EM1_EPS0_GRVW8_GSU1_NLCA1_NLCB1_PGR2_SU0_SUS0_SRVW4_TT2_64_VAW2_WG64_4_1_WGM1
     SourceSwap: false
     StaggerU: 0
@@ -43553,6 +43449,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -43642,7 +43539,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 163
+    SolutionIndex: 162
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT64x64x32_MI32x32x8x1_SE_1LDSB0_AF0EM1_EPS0_GRVW4_GSU1_NLCA1_NLCB1_PGR2_SU0_SUS0_SRVW4_TT1_32_VAW2_WG64_4_1_WGM1
     SourceSwap: false
     StaggerU: 0
@@ -43819,6 +43716,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -43908,7 +43806,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 164
+    SolutionIndex: 163
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT32x32x16_MI16x16x16x1_SE_1LDSB0_AF0EM1_EPS0_GRVW4_GSU1_NLCA1_NLCB1_PGR2_SU0_SUS0_SRVW4_TT1_16_VAW2_WG32_8_1_WGM1
     SourceSwap: false
     StaggerU: 0
@@ -44085,6 +43983,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -44174,7 +44073,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 165
+    SolutionIndex: 164
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT32x32x16_MI16x16x16x1_SE_1LDSB0_AF0EM1_EPS1_GRVW2_GSU1_NLCA1_NLCB1_PGR1_SU0_SUS0_SRVW4_TT1_16_VAW2_WG32_8_1_WGM1
     SourceSwap: false
     StaggerU: 0
@@ -44351,6 +44250,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -44440,7 +44340,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 166
+    SolutionIndex: 165
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT64x128x32_MI32x32x8x1_SE_1LDSB0_AF0EM1_EPS0_GRVW4_GSU1_NLCA1_NLCB1_PGR2_SU0_SUS0_SRVW4_TT1_64_VAW2_WG64_4_1_WGM2
     SourceSwap: false
     StaggerU: 0
@@ -44617,6 +44517,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -44706,7 +44607,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 167
+    SolutionIndex: 166
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x128x16_MI32x32x8x1_SE_1LDSB0_AF0EM1_EPS0_GRVW8_GSU1_NLCA1_NLCB1_PGR2_SU32_SUS128_SRVW4_TT2_64_VAW2_WG64_4_1_WGM1
     SourceSwap: false
     StaggerU: 32
@@ -44754,272 +44655,6 @@
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
     _staggerStrideShift: 2
-  - 1LDSBuffer: 0
-    AggressivePerfMode: 1
-    AssertAlphaValue: false
-    AssertBetaValue: false
-    AssertCEqualsD: false
-    AssertFree0ElementMultiple: 1
-    AssertFree1ElementMultiple: 1
-    AssertMinApproxSize: 3
-    AssertSizeEqual: {}
-    AssertSizeGreaterThan: {}
-    AssertSizeLessThan: {}
-    AssertSizeMultiple: {}
-    AssertStrideAEqual: {0: 1}
-    AssertStrideBEqual: {0: 1}
-    AssertStrideCEqual: {0: 1}
-    AssertStrideDEqual: {0: 1}
-    AssertSummationElementMultiple: 1
-    AssignedDerivedParameters: true
-    AssignedProblemIndependentDerivedParameters: true
-    AtomicAddC: false
-    BufferLoad: true
-    BufferStore: true
-    CheckDimOverflow: 0
-    CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
-    CustomKernelName: ''
-    DepthU: 16
-    DepthULdsDivisor: 1
-    DirectToLds: false
-    DirectToLdsA: false
-    DirectToLdsB: false
-    DirectToVgprA: false
-    DirectToVgprB: false
-    DisableAtomicFail: 0
-    DisableKernelPieces: 0
-    DisableVgprOverlapping: false
-    EdgeType: ShiftPtr
-    EnableMatrixInstruction: true
-    ExpandPointerSwap: 0
-    Fp16AltImpl: false
-    FractionalLoad: 0
-    GlobalLoadVectorWidthA: 2
-    GlobalLoadVectorWidthB: 4
-    GlobalRead2A: true
-    GlobalRead2B: true
-    GlobalReadCoalesceGroupA: true
-    GlobalReadCoalesceGroupB: true
-    GlobalReadCoalesceVectorA: true
-    GlobalReadCoalesceVectorB: true
-    GlobalReadPerMfma: 1
-    GlobalReadVectorWidth: 8
-    GlobalSplitU: 1
-    GlobalSplitUAlgorithm: MultipleBuffer
-    GlobalSplitUSummationAssignmentRoundRobin: true
-    GlobalSplitUWorkGroupMappingRoundRobin: false
-    GlobalWriteVectorWidth: 2
-    GroupLoadStore: false
-    GuaranteeNoPartialA: false
-    GuaranteeNoPartialB: false
-    ISA: [9, 0, 10]
-    InnerUnroll: 1
-    InterleaveAlpha: 0
-    KernelLanguage: Assembly
-    LSCA: 32
-    LSCB: 64
-    LSPA: 4
-    LSPB: 4
-    LVCA: 16
-    LVCB: 16
-    LVPA: 2
-    LVPB: 1
-    LdcEqualsLdd: true
-    LdsBlockSizePerPad: 0
-    LdsBlockSizePerPadA: 0
-    LdsBlockSizePerPadB: 0
-    LdsInitCVgprs: false
-    LdsNumElements: 3584
-    LdsNumElementsAlignedA: 512
-    LdsNumElementsAlignedB: 1024
-    LdsOffsetA: 0
-    LdsOffsetA_Blk: 2048
-    LdsOffsetB: 512
-    LdsOffsetB_Blk: 2560
-    LdsPadA: 0
-    LdsPadB: 0
-    LocalDotLayout: 1
-    LocalRead2A: true
-    LocalRead2B: true
-    LocalReadVectorWidth: 4
-    LocalSplitU: 1
-    LocalWrite2A: true
-    LocalWrite2B: true
-    LocalWritePerMfma: -1
-    LocalWriteUseSgprA: false
-    LocalWriteUseSgprB: false
-    LoopDoWhile: false
-    LoopIters: 1
-    LoopTail: true
-    LoopUnroll: 16
-    MACInstruction: MAC
-    MFMA_BF16_1K: true
-    MIArchVgpr: false
-    MIBlock: [16, 16, 16, 1, 1, 1]
-    MIInputPerThread: 4
-    MIOutputVectorWidth: 4
-    MIRegPerOut: 1
-    MIWaveGroup: [2, 2]
-    MIWaveTile: [1, 2]
-    MIWaveTileA: 1
-    MIWaveTileB: 2
-    MacroTile0: 32
-    MacroTile1: 64
-    MacroTileA: 32
-    MacroTileB: 64
-    MacroTileShapeMax: 64
-    MacroTileShapeMin: 1
-    MagicDivAlg: 2
-    MatrixInstB: 1
-    MatrixInstBM: 1
-    MatrixInstBN: 1
-    MatrixInstK: 16
-    MatrixInstM: 16
-    MatrixInstN: 16
-    MatrixInstruction: [16, 16, 16, 1]
-    MaxOccupancy: 40
-    MaxVgprNumber: 256
-    MinVgprNumber: 0
-    NoLdsWriteCode: false
-    NoReject: false
-    NonTemporalA: 0
-    NonTemporalB: 0
-    NonTemporalC: 0
-    NonTemporalD: 0
-    NumElementsPerBatchStore: 0
-    NumElementsPerThread: 8
-    NumGlobalWriteVectorsPerThread: 4
-    NumLoadsA: 1
-    NumLoadsB: 1
-    NumLoadsCoalescedA: 1
-    NumLoadsCoalescedB: 1
-    NumLoadsPerpendicularA: 1
-    NumLoadsPerpendicularB: 1
-    NumThreads: 256
-    OptNoLoadLoop: 1
-    OptPreLoopVmcnt: 0
-    PackBatchDims: 0
-    PackFreeDims: 1
-    PackGranularity: 2
-    PackSummationDims: 0
-    PackedC0IdxChars: [I]
-    PackedC0IndicesX: [0]
-    PackedC1IdxChars: [J]
-    PackedC1IndicesX: [1]
-    PerformanceSyncLocation: -1
-    PerformanceWaitCount: -1
-    PerformanceWaitLocation: -1
-    PersistentKernel: 0
-    PersistentKernelAlongBatch: false
-    PrefetchAcrossPersistent: 0
-    PrefetchAcrossPersistentMode: 0
-    PrefetchGlobalRead: 2
-    PrefetchLocalRead: 1
-    ProblemType:
-      AllowNoFreeDims: false
-      AssignedDerivedParameters: true
-      Batched: true
-      ComplexConjugateA: false
-      ComplexConjugateB: false
-      ComputeDataType: 0
-      ConvolutionConfig: []
-      DataType: 7
-      DestDataType: 7
-      Fp16AltImpl: false
-      HighPrecisionAccumulate: true
-      Index0: 0
-      Index01A: 0
-      Index01B: 1
-      Index1: 1
-      IndexAssignmentsA: [0, 3, 2]
-      IndexAssignmentsB: [1, 3, 2]
-      IndexAssignmentsLD: [4, 5, 6, 7]
-      IndexUnroll: 3
-      IndexUnrollA: 1
-      IndexUnrollB: 1
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
-      MirrorDimsA: []
-      MirrorDimsB: []
-      NumIndicesBatch: 1
-      NumIndicesC: 3
-      NumIndicesFree: 2
-      NumIndicesLD: 4
-      NumIndicesSummation: 1
-      OperationType: GEMM
-      SetConstStrideA: []
-      SetConstStrideB: []
-      SilentHighPrecisionAccumulate: false
-      StridedBatched: true
-      TLUA: true
-      TLUB: true
-      Tensor0: 0
-      Tensor1: 1
-      TileA: 0
-      TileAwareSelection: false
-      TileB: 1
-      TotalIndices: 4
-      TransposeA: false
-      TransposeB: true
-      UseBeta: true
-      UseInitialStridesAB: false
-      UseInitialStridesCD: false
-      ZeroPadA: []
-      ZeroPadB: []
-    ReplacementKernel: false
-    ScheduleGlobalRead: 1
-    ScheduleIterAlg: 3
-    ScheduleLocalWrite: 1
-    SolutionIndex: 168
-    SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT32x64x16_MI16x16x16x1_SE_1LDSB0_AF0EM1_EPS0_GRVW8_GSU1_NLCA1_NLCB1_PGR2_SU32_SUS256_SRVW4_TT1_32_VAW2_WG32_8_1_WGM2
-    SourceSwap: false
-    StaggerU: 32
-    StaggerUMapping: 0
-    StaggerUStride: 256
-    StoreCInUnroll: false
-    StoreCInUnrollExact: false
-    StoreCInUnrollInterval: 1
-    StoreCInUnrollPostLoop: false
-    StorePriorityOpt: false
-    StoreRemapVectorWidth: 4
-    StoreSyncOpt: 0
-    StoreVectorWidth: 4
-    SubGroup0: 8
-    SubGroup1: 32
-    SubGroupA: 8
-    SubGroupB: 32
-    SuppressNoLoadLoop: 0
-    ThreadTile: [1, 32]
-    ThreadTile0: 4
-    ThreadTile1: 2
-    ThreadTileA: 4
-    ThreadTileB: 2
-    TransposeLDS: 0
-    UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: 0
-    UnrollMajorLDSB: 0
-    UnrollMemFence: false
-    Use64bShadowLimit: 1
-    UseInstOffsetForGRO: 0
-    UseSgprForGRO: -1
-    Valid: false
-    VectorAtomicWidth: 2
-    VectorStore: -1
-    VectorWidth: 2
-    WaveSeparateGlobalReadA: 1
-    WaveSeparateGlobalReadB: 1
-    WavefrontSize: 64
-    WorkGroup: [32, 8, 1]
-    WorkGroupMapping: 2
-    WorkGroupMappingType: B
-    _DepthULds: 16
-    _GlobalAccumulation: null
-    _UseSgprForGRO: false
-    _VectorStore: 1
-    _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 3
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -45149,6 +44784,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -45238,7 +44874,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 169
+    SolutionIndex: 167
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT16x16x16_MI16x16x16x1_SE_1LDSB0_AF0EM1_EPS1_GRVW2_GSU1_NLCA1_NLCB1_PGR1_SU32_SUS128_SRVW0_TT1_16_VAW2_WG16_4_1_WGM15
     SourceSwap: false
     StaggerU: 32
@@ -45415,6 +45051,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -45504,7 +45141,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 170
+    SolutionIndex: 168
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x128x32_MI32x32x8x1_SE_1LDSB0_EPS1_GRVW8_NLCA1_NLCB1_PGR1_SU16_SUS128_SRVW4_TT2_64_WG64_4_1_WGM15
     SourceSwap: false
     StaggerU: 16
@@ -45681,6 +45318,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -45770,7 +45408,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 171
+    SolutionIndex: 169
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x256x32_MI32x32x8x1_SE_1LDSB1_EPS1_GRVW8_NLCA1_NLCB1_PGR1_SU16_SUS128_SRVW4_TT2_128_WG64_4_1_WGM1
     SourceSwap: false
     StaggerU: 16
@@ -45947,6 +45585,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -46036,7 +45675,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 172
+    SolutionIndex: 170
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x256x32_MI32x32x8x1_SE_1LDSB1_EPS1_GRVW8_NLCA1_NLCB1_PGR1_SU0_SUS0_SRVW4_TT2_128_WG64_4_1_WGM2
     SourceSwap: false
     StaggerU: 0
@@ -46213,6 +45852,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -46302,7 +45942,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 173
+    SolutionIndex: 171
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x256x32_MI32x32x8x1_SE_1LDSB1_EPS1_GRVW8_NLCA1_NLCB1_PGR1_SU0_SUS0_SRVW4_TT2_128_WG64_4_1_WGM1
     SourceSwap: false
     StaggerU: 0
@@ -46479,6 +46119,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -46568,7 +46209,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 174
+    SolutionIndex: 172
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x256x32_MI32x32x8x1_SE_1LDSB1_EPS1_GRVW8_NLCA1_NLCB1_PGR1_SU0_SUS0_SRVW4_TT2_128_WG64_4_1_WGM2
     SourceSwap: false
     StaggerU: 0
@@ -46745,6 +46386,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -46834,7 +46476,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 175
+    SolutionIndex: 173
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT128x256x32_MI32x32x8x1_SE_1LDSB1_EPS1_GRVW8_NLCA1_NLCB1_PGR1_SU0_SUS0_SRVW4_TT2_128_WG64_4_1_WGM15
     SourceSwap: false
     StaggerU: 0
@@ -47011,6 +46653,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -47100,7 +46743,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 176
+    SolutionIndex: 174
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT256x192x32_MI32x32x8x1_SE_1LDSB1_EPS1_GRVW8_NLCA1_NLCB3_PGR1_SU0_SUS0_SRVW4_TT4_96_WG64_4_1_WGM2
     SourceSwap: false
     StaggerU: 0
@@ -47277,6 +46920,7 @@
     MinVgprNumber: 0
     NoLdsWriteCode: false
     NoReject: false
+    NoTailLoop: false
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -47366,7 +47010,7 @@
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
-    SolutionIndex: 177
+    SolutionIndex: 175
     SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT256x192x32_MI32x32x8x1_SE_1LDSB0_EPS1_GRVW8_NLCA1_NLCB3_PGR1_SU0_SUS0_SRVW4_TT4_96_WG64_4_1_WGM2
     SourceSwap: false
     StaggerU: 0
@@ -47414,15 +47058,282 @@
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
     _staggerStrideShift: 0
+  - 1LDSBuffer: 1
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 8
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: V3
+    CustomKernelName: ''
+    DepthU: 32
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 1
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: false
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 256
+    LSCB: 64
+    LSPA: 2
+    LSPB: 8
+    LVCA: 32
+    LVCB: 8
+    LVPA: 1
+    LVPB: 1
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 0
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 0
+    LdsInitCVgprs: false
+    LdsNumElements: 16640
+    LdsNumElementsAlignedA: 8192
+    LdsNumElementsAlignedB: 6144
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 16384
+    LdsOffsetB: 8192
+    LdsOffsetB_Blk: 24576
+    LdsPadA: 0
+    LdsPadB: 0
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 4
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 4
+    LoopTail: true
+    LoopUnroll: 32
+    MACInstruction: MAC
+    MFMA_BF16_1K: true
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [2, 2]
+    MIWaveTile: [4, 3]
+    MIWaveTileA: 4
+    MIWaveTileB: 3
+    MacroTile0: 256
+    MacroTile1: 192
+    MacroTileA: 256
+    MacroTileB: 192
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 192
+    NumGlobalWriteVectorsPerThread: 96
+    NumLoadsA: 4
+    NumLoadsB: 3
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 3
+    NumLoadsPerpendicularA: 4
+    NumLoadsPerpendicularB: 1
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 1
+    PrefetchLocalRead: 1
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 7
+      DestDataType: 7
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [1, 3, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 1
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: true
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: true
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 176
+    SolutionNameMin: Cijk_Ailk_Bjlk_BBH_MT256x192x32_MI32x32x8x1_SE_1LDSB1_AF0EM8_AF1EM1_EPS1_GRVW8_GSU1_GSUAMB_IU1_LRVW4_NLCA1_NLCB3_PGR1_PLR1_SU0_SUM0_SUS0_SCIUI1_SRVW4_TT4_96_VAW1_WSGRA1_WSGRB1_WG64_4_1_WGM15
+    SourceSwap: false
+    StaggerU: 0
+    StaggerUMapping: 0
+    StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 4
+    SubGroup1: 64
+    SubGroupA: 4
+    SubGroupB: 64
+    SuppressNoLoadLoop: 0
+    ThreadTile: [4, 96]
+    ThreadTile0: 64
+    ThreadTile1: 3
+    ThreadTileA: 64
+    ThreadTileB: 3
+    TransposeLDS: 0
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: 0
+    UnrollMajorLDSB: 0
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: true
+    VectorAtomicWidth: 1
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [64, 4, 1]
+    WorkGroupMapping: 15
+    WorkGroupMappingType: B
+    _DepthULds: 32
+    _GlobalAccumulation: null
+    _UseSgprForGRO: false
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 0
 - [2, 3, 0, 1]
 - - - [34, 64, 1, 34]
     - [8, 0.007]
   - - [32, 64, 1, 35]
     - [9, 0.007]
   - - [64, 21, 1, 17]
-    - [10, 0.002]
+    - [10, 0.001]
   - - [64, 32, 1, 35]
-    - [9, 0.007]
+    - [10, 0.003]
   - - [21, 64, 1, 21]
     - [11, 0.003]
   - - [64, 30, 1, 31]
@@ -47434,9 +47345,9 @@
   - - [17, 64, 1, 15]
     - [14, 0.002]
   - - [64, 35, 1, 35]
-    - [13, 0.008]
+    - [11, 0.004]
   - - [32, 64, 1, 32]
-    - [9, 0.007]
+    - [11, 0.003]
   - - [64, 34, 1, 24]
     - [10, 0.006]
   - - [64, 15, 1, 15]
@@ -47446,7 +47357,7 @@
   - - [30, 64, 1, 31]
     - [13, 0.006]
   - - [34, 64, 1, 24]
-    - [14, 0.005]
+    - [14, 0.003]
   - - [64, 30, 1, 30]
     - [15, 0.007]
   - - [14, 64, 1, 14]
@@ -47466,31 +47377,31 @@
   - - [35, 64, 1, 35]
     - [17, 0.008]
   - - [31, 64, 1, 31]
-    - [14, 0.006]
+    - [14, 0.003]
   - - [21, 64, 1, 17]
     - [13, 0.002]
   - - [64, 15, 1, 15]
     - [10, 0.002]
   - - [64, 17, 1, 17]
-    - [9, 0.002]
+    - [9, 0.001]
   - - [17, 64, 1, 17]
     - [11, 0.002]
   - - [64, 34, 1, 34]
-    - [9, 0.007]
+    - [167, 0.004]
   - - [15, 64, 1, 14]
     - [8, 0.002]
   - - [24, 64, 1, 24]
-    - [9, 0.004]
+    - [10, 0.002]
   - - [64, 14, 1, 14]
     - [18, 0.001]
   - - [15, 64, 1, 15]
-    - [11, 0.002]
+    - [79, 0.001]
   - - [64, 15, 1, 14]
     - [10, 0.001]
   - - [64, 128, 512, 128]
     - [19, 16.044]
   - - [64, 512, 1, 512]
-    - [20, 1.212]
+    - [60, 0.696]
   - - [64, 512, 64, 512]
     - [21, 29.011]
   - - [128, 64, 512, 128]
@@ -47500,15 +47411,15 @@
   - - [512, 64, 64, 512]
     - [23, 28.199]
   - - [1024, 2, 1, 4]
-    - [9, 0.001]
+    - [18, 0.0]
   - - [1024, 2, 1, 32]
-    - [24, 0.008]
+    - [13, 0.003]
   - - [1024, 2, 1, 2048]
-    - [13, 0.151]
+    - [107, 0.145]
   - - [1024, 1024, 1, 4]
     - [25, 0.342]
   - - [1024, 1024, 1, 32]
-    - [25, 2.681]
+    - [118, 1.382]
   - - [1024, 1024, 1, 2048]
     - [26, 35.373]
   - - [1024, 1024, 1, 4096]
@@ -47544,11 +47455,11 @@
   - - [67, 2048, 1, 512]
     - [35, 4.397]
   - - [74, 2048, 1, 512]
-    - [35, 4.751]
+    - [35, 2.809]
   - - [74, 2048, 1, 960]
-    - [35, 6.83]
+    - [35, 4.367]
   - - [100, 2048, 1, 512]
-    - [36, 5.521]
+    - [35, 3.632]
   - - [256, 128, 1, 32768]
     - [37, 15.63]
   - - [256, 1280, 1, 8976]
@@ -47556,7 +47467,7 @@
   - - [256, 2560, 1, 8976]
     - [39, 46.121]
   - - [256, 2816, 1, 8976]
-    - [39, 49.866]
+    - [40, 50.958]
   - - [256, 3328, 1, 8976]
     - [40, 52.955]
   - - [256, 3584, 1, 8976]
@@ -47570,7 +47481,7 @@
   - - [256, 4864, 1, 8976]
     - [43, 56.266]
   - - [256, 5120, 1, 8976]
-    - [43, 59.307]
+    - [39, 63.51]
   - - [256, 5632, 1, 8976]
     - [44, 59.271]
   - - [256, 5888, 1, 8976]
@@ -47588,9 +47499,9 @@
   - - [256, 9984, 1, 8976]
     - [47, 70.506]
   - - [256, 10240, 1, 8976]
-    - [47, 71.092]
+    - [44, 69.194]
   - - [256, 10496, 1, 8976]
-    - [47, 72.558]
+    - [44, 70.967]
   - - [256, 11008, 1, 8976]
     - [27, 62.511]
   - - [256, 11264, 1, 8976]
@@ -47604,27 +47515,27 @@
   - - [256, 12800, 1, 8976]
     - [50, 71.234]
   - - [256, 13312, 1, 8976]
-    - [31, 73.624]
+    - [120, 89.029]
   - - [256, 13568, 1, 8976]
-    - [31, 74.816]
+    - [51, 76.802]
   - - [256, 14336, 1, 8976]
-    - [51, 65.864]
+    - [51, 80.103]
   - - [256, 14848, 1, 8976]
     - [51, 67.855]
   - - [256, 15104, 1, 8976]
-    - [51, 68.916]
+    - [53, 78.241]
   - - [256, 15872, 1, 8976]
     - [28, 68.077]
   - - [256, 16128, 1, 8976]
     - [28, 68.787]
   - - [256, 17152, 1, 8976]
-    - [52, 72.866]
+    - [161, 78.162]
   - - [256, 17408, 1, 8976]
-    - [53, 73.64]
+    - [44, 80.031]
   - - [256, 18688, 1, 8976]
     - [50, 70.537]
   - - [256, 19968, 1, 8976]
-    - [27, 74.65]
+    - [176, 90.45]
   - - [256, 20480, 1, 8976]
     - [44, 76.234]
   - - [256, 20992, 1, 8976]
@@ -47652,7 +47563,7 @@
   - - [512, 32, 1, 1600]
     - [60, 1.284]
   - - [512, 256, 1, 32768]
-    - [37, 32.873]
+    - [134, 38.973]
   - - [512, 512, 1, 200]
     - [36, 3.669]
   - - [512, 512, 1, 1600]
@@ -47678,21 +47589,21 @@
   - - [1024, 256, 1, 2816]
     - [64, 17.696]
   - - [1024, 256, 1, 3072]
-    - [64, 18.63]
+    - [69, 19.229]
   - - [1024, 256, 1, 3328]
-    - [64, 19.198]
+    - [68, 21.654]
   - - [1024, 256, 1, 3584]
-    - [64, 19.639]
+    - [70, 21.573]
   - - [1024, 256, 1, 4096]
     - [64, 20.264]
   - - [1024, 256, 1, 4352]
-    - [64, 20.338]
+    - [68, 24.92]
   - - [1024, 256, 1, 4608]
-    - [67, 20.496]
+    - [68, 26.254]
   - - [1024, 256, 1, 5120]
     - [68, 21.633]
   - - [1024, 256, 1, 5376]
-    - [69, 22.176]
+    - [68, 26.28]
   - - [1024, 256, 1, 5632]
     - [68, 22.693]
   - - [1024, 256, 1, 6144]
@@ -47702,11 +47613,11 @@
   - - [1024, 256, 1, 7680]
     - [68, 26.812]
   - - [1024, 256, 1, 7936]
-    - [68, 27.254]
+    - [68, 35.5]
   - - [1024, 256, 1, 8192]
     - [68, 27.557]
   - - [1024, 256, 1, 8448]
-    - [70, 27.449]
+    - [68, 36.836]
   - - [1024, 256, 1, 9728]
     - [68, 30.085]
   - - [1024, 256, 1, 9984]
@@ -47758,17 +47669,17 @@
   - - [1024, 1024, 1, 960]
     - [61, 28.353]
   - - [1024, 1024, 1, 1600]
-    - [62, 32.534]
+    - [26, 32.095]
   - - [1024, 1024, 1, 32768]
     - [41, 60.781]
   - - [1600, 1024, 1, 512]
-    - [21, 30.785]
+    - [31, 24.18]
   - - [1600, 1024, 1, 960]
-    - [72, 39.205]
+    - [50, 40.183]
   - - [2048, 256, 1, 1024]
     - [64, 19.512]
   - - [2048, 960, 1, 1]
-    - [56, 0.118]
+    - [116, 0.073]
   - - [2048, 2048, 1, 512]
     - [73, 39.277]
   - - [2048, 2048, 1, 960]
@@ -47852,7 +47763,7 @@
   - - [64, 35, 4608, 35]
     - [85, 5.218]
   - - [1024, 1024, 1, 3840]
-    - [26, 42.677]
+    - [43, 46.286]
   - - [1024, 1024, 1, 3968]
     - [26, 43.567]
   - - [1024, 1024, 1, 6528]
@@ -47870,11 +47781,11 @@
   - - [1024, 1024, 1, 9520]
     - [42, 53.89]
   - - [1024, 1024, 1, 10064]
-    - [43, 49.914]
+    - [42, 66.525]
   - - [1024, 1024, 1, 10080]
-    - [43, 49.701]
+    - [41, 67.229]
   - - [1024, 1024, 1, 10200]
-    - [43, 49.753]
+    - [41, 64.47]
   - - [1024, 4096, 1, 3840]
     - [53, 62.508]
   - - [1024, 4096, 1, 3968]
@@ -47890,7 +47801,7 @@
   - - [1024, 4096, 1, 8160]
     - [28, 70.225]
   - - [1024, 4096, 1, 9216]
-    - [28, 71.184]
+    - [52, 87.529]
   - - [1024, 4096, 1, 9520]
     - [53, 70.128]
   - - [1024, 4096, 1, 10064]
@@ -48026,7 +47937,7 @@
   - - [1225, 256, 32, 64]
     - [99, 13.061]
   - - [1225, 288, 32, 48]
-    - [25, 9.279]
+    - [25, 8.608]
   - - [1225, 288, 32, 64]
     - [92, 11.596]
   - - [5329, 64, 32, 80]
@@ -48068,13 +47979,13 @@
   - - [196, 256, 32, 1024]
     - [103, 29.497]
   - - [196, 1024, 32, 256]
-    - [94, 25.8]
+    - [95, 25.087]
   - - [49, 512, 32, 2048]
     - [72, 22.238]
   - - [49, 2048, 32, 512]
     - [94, 23.448]
   - - [3136, 64, 64, 128]
-    - [22, 21.793]
+    - [66, 21.99]
   - - [3136, 128, 64, 256]
     - [104, 39.987]
   - - [784, 256, 64, 512]
@@ -48090,7 +48001,7 @@
   - - [784, 512, 64, 512]
     - [104, 54.886]
   - - [196, 1024, 64, 512]
-    - [94, 38.612]
+    - [94, 42.879]
   - - [196, 1024, 64, 1024]
     - [101, 46.354]
   - - [49, 1024, 64, 2048]
@@ -48110,11 +48021,11 @@
   - - [196, 512, 32, 1024]
     - [106, 34.951]
   - - [784, 512, 32, 256]
-    - [104, 38.713]
+    - [144, 41.688]
   - - [784, 512, 32, 512]
     - [104, 49.663]
   - - [196, 1024, 32, 512]
-    - [94, 34.754]
+    - [106, 35.223]
   - - [196, 1024, 32, 1024]
     - [106, 42.756]
   - - [49, 1024, 32, 2048]
@@ -48150,7 +48061,7 @@
   - - [1024, 1024, 1, 308]
     - [22, 15.036]
   - - [1024, 2, 1, 5]
-    - [9, 0.001]
+    - [155, 0.001]
   - - [1024, 1024, 1, 4992]
     - [43, 44.985]
   - - [4096, 3840, 1, 4096]
@@ -48158,7 +48069,7 @@
   - - [4096, 1024, 1, 3072]
     - [32, 60.211]
   - - [64, 512, 96, 512]
-    - [21, 33.855]
+    - [97, 32.356]
   - - [1024, 1024, 1, 5248]
     - [43, 45.891]
   - - [4096, 1024, 1, 4992]
@@ -48170,7 +48081,7 @@
   - - [4096, 1024, 1, 2560]
     - [31, 58.021]
   - - [1024, 33712, 1, 9600]
-    - [55, 79.673]
+    - [50, 93.525]
   - - [64, 128, 640, 128]
     - [96, 17.262]
   - - [1024, 1024, 1, 5]
@@ -48196,7 +48107,7 @@
   - - [2048, 512, 1, 1]
     - [82, 0.082]
   - - [1024, 4096, 1, 1152]
-    - [111, 50.313]
+    - [50, 55.701]
   - - [1024, 2, 1, 512]
     - [13, 0.072]
   - - [64, 4, 38400, 4]
@@ -48210,7 +48121,7 @@
   - - [4, 64, 38400, 4]
     - [15, 0.173]
   - - [1024, 2, 1, 9]
-    - [9, 0.002]
+    - [18, 0.001]
   - - [8192, 8192, 1, 8192]
     - [55, 81.541]
   - - [4096, 1024, 1, 1280]
@@ -48226,11 +48137,11 @@
   - - [1024, 4096, 1, 512]
     - [73, 39.47]
   - - [64, 512, 16, 512]
-    - [62, 14.825]
+    - [61, 13.207]
   - - [1024, 2, 1, 6]
     - [10, 0.001]
   - - [2048, 1920, 1, 2048]
-    - [26, 60.608]
+    - [52, 65.103]
   - - [1024, 30522, 1, 780]
     - [105, 62.551]
   - - [64, 128, 128, 128]
@@ -48254,7 +48165,7 @@
   - - [1024, 4096, 1, 8192]
     - [28, 70.487]
   - - [1024, 2, 1, 41]
-    - [9, 0.008]
+    - [18, 0.004]
   - - [128, 64, 1, 128]
     - [9, 0.098]
   - - [480, 512, 1, 512]
@@ -48296,7 +48207,7 @@
   - - [1024, 2, 1, 5120]
     - [109, 0.295]
   - - [1920, 2048, 1, 2048]
-    - [114, 58.423]
+    - [53, 61.22]
   - - [2048, 2048, 1, 2048]
     - [50, 56.169]
   - - [3840, 4096, 1, 4096]
@@ -48330,7 +48241,7 @@
   - - [4096, 1024, 1, 5120]
     - [32, 65.818]
   - - [1024, 4096, 1, 3072]
-    - [50, 59.204]
+    - [28, 73.075]
   - - [1024, 1024, 1, 1152]
     - [62, 29.977]
   - - [512, 480, 1, 512]
@@ -48372,11 +48283,11 @@
   - - [1024, 3072, 1, 16384]
     - [120, 71.618]
   - - [6144, 1536, 1, 4096]
-    - [114, 70.505]
+    - [30, 83.798]
   - - [1024, 1024, 1, 16]
     - [25, 1.421]
   - - [1536, 4608, 1, 8192]
-    - [30, 79.183]
+    - [48, 83.895]
   - - [640, 2560, 1, 2048]
     - [50, 51.087]
   - - [1024, 4096, 1, 16384]
@@ -48384,9 +48295,9 @@
   - - [64, 512, 40, 512]
     - [72, 24.469]
   - - [1024, 1024, 1, 16384]
-    - [43, 53.796]
+    - [41, 76.209]
   - - [1536, 6144, 1, 4096]
-    - [114, 70.585]
+    - [45, 83.804]
   - - [1024, 30592, 1, 4096]
     - [55, 78.075]
   - - [2560, 2560, 1, 4]
@@ -48420,7 +48331,7 @@
   - - [1024, 50304, 1, 4096]
     - [49, 78.376]
   - - [1536, 4608, 1, 4096]
-    - [125, 76.262]
+    - [151, 81.162]
   - - [512, 64, 128, 512]
     - [126, 33.886]
   - - [6144, 1536, 1, 8192]
@@ -48438,7 +48349,7 @@
   - - [64, 1024, 128, 1024]
     - [21, 49.963]
   - - [1024, 64, 64, 1024]
-    - [23, 45.055]
+    - [100, 46.105]
   - - [1024, 2, 1, 16]
     - [10, 0.004]
   - - [96, 1024, 128, 1024]
@@ -48448,7 +48359,7 @@
   - - [64, 512, 256, 512]
     - [88, 39.631]
   - - [1536, 6144, 1, 8192]
-    - [26, 72.998]
+    - [45, 87.158]
   - - [1024, 50304, 1, 2048]
     - [31, 75.131]
   - - [1024, 50304, 1, 8192]
@@ -48458,7 +48369,7 @@
   - - [1024, 64, 256, 1024]
     - [100, 50.99]
   - - [1024, 50304, 1, 16384]
-    - [49, 80.918]
+    - [50, 95.823]
   - - [512, 64, 40, 512]
     - [65, 24.548]
   - - [1024, 2, 1, 64]
@@ -48478,7 +48389,7 @@
   - - [1024, 1024, 1, 864]
     - [62, 27.512]
   - - [1024, 512, 1, 3456]
-    - [129, 28.08]
+    - [131, 32.656]
   - - [1024, 512, 1, 4096]
     - [130, 31.422]
   - - [1024, 512, 1, 6912]
@@ -48486,9 +48397,9 @@
   - - [1024, 512, 1, 864]
     - [62, 17.782]
   - - [256, 128, 1, 3456]
-    - [60, 3.525]
+    - [139, 3.094]
   - - [256, 128, 1, 4096]
-    - [60, 3.743]
+    - [37, 4.199]
   - - [256, 128, 1, 55296]
     - [37, 19.223]
   - - [256, 128, 1, 6912]
@@ -48528,13 +48439,13 @@
   - - [4096, 1024, 1, 10240]
     - [32, 71.498]
   - - [1024, 4096, 1, 10240]
-    - [28, 72.105]
+    - [53, 88.67]
   - - [30528, 1024, 1, 1600]
     - [27, 71.722]
   - - [1024, 2, 1, 80]
     - [9, 0.017]
   - - [1024, 1024, 1, 10240]
-    - [43, 51.304]
+    - [42, 68.576]
   - - [1024, 1024, 1, 80]
     - [135, 5.87]
   - - [64, 128, 1280, 128]
@@ -48548,7 +48459,7 @@
   - - [4096, 1024, 1, 10496]
     - [32, 70.544]
   - - [1024, 1024, 1, 10496]
-    - [43, 51.388]
+    - [58, 68.008]
   - - [1024, 1024, 1, 82]
     - [25, 5.504]
   - - [1024, 2, 1, 82]
@@ -48586,9 +48497,9 @@
   - - [13, 512, 1, 864]
     - [140, 0.345]
   - - [1024, 1024, 1, 10224]
-    - [43, 49.644]
+    - [41, 66.963]
   - - [1024, 1024, 1, 10192]
-    - [43, 49.837]
+    - [42, 65.445]
   - - [1024, 1024, 1, 10208]
     - [42, 53.432]
   - - [1024, 4096, 1, 10224]
@@ -48608,7 +48519,7 @@
   - - [1024, 3072, 1, 10200]
     - [49, 69.24]
   - - [1024, 1024, 1, 10184]
-    - [43, 50.298]
+    - [41, 66.932]
   - - [4096, 1024, 1, 10208]
     - [32, 70.226]
   - - [1024, 3072, 1, 10208]
@@ -48620,13 +48531,13 @@
   - - [1024, 2048, 1, 10240]
     - [141, 64.348]
   - - [1024, 1024, 1, 10120]
-    - [43, 50.255]
+    - [41, 67.72]
   - - [1024, 2048, 1, 10192]
     - [46, 63.59]
   - - [64, 24, 6816, 24]
     - [80, 3.987]
   - - [1024, 1024, 1, 10152]
-    - [43, 49.601]
+    - [41, 65.803]
   - - [1024, 3072, 1, 10080]
     - [31, 69.83]
   - - [64, 26, 6272, 26]
@@ -48664,7 +48575,7 @@
   - - [3136, 64, 128, 64]
     - [22, 15.373]
   - - [3136, 64, 256, 64]
-    - [22, 16.437]
+    - [100, 17.819]
   - - [784, 128, 128, 512]
     - [73, 45.795]
   - - [784, 128, 256, 512]
@@ -48698,7 +48609,7 @@
   - - [1024, 1024, 1, 96]
     - [63, 6.711]
   - - [1024, 1024, 1, 12288]
-    - [43, 52.294]
+    - [58, 69.194]
   - - [4096, 1024, 1, 12288]
     - [32, 72.143]
   - - [1024, 2, 1, 96]
@@ -48738,9 +48649,9 @@
   - - [64, 128, 192, 128]
     - [61, 11.814]
   - - [128, 64, 192, 128]
-    - [22, 11.572]
+    - [89, 7.213]
   - - [768, 2, 1, 2048]
-    - [146, 0.112]
+    - [107, 0.093]
   - - [3072, 768, 1, 2048]
     - [26, 54.167]
   - - [768, 3072, 1, 2048]
@@ -48758,7 +48669,7 @@
   - - [768, 3072, 1, 4608]
     - [48, 61.582]
   - - [768, 768, 1, 4608]
-    - [130, 36.541]
+    - [39, 36.947]
   - - [64, 512, 48, 512]
     - [21, 28.09]
   - - [512, 64, 48, 512]
@@ -48792,7 +48703,7 @@
   - - [196, 1024, 256, 512]
     - [101, 42.849]
   - - [196, 256, 128, 1024]
-    - [101, 40.892]
+    - [111, 46.712]
   - - [196, 256, 256, 1024]
     - [94, 44.583]
   - - [49, 2048, 128, 512]
@@ -48804,17 +48715,17 @@
   - - [49, 512, 256, 2048]
     - [102, 37.785]
   - - [3840, 4224, 1, 4096]
-    - [174, 88.616]
+    - [172, 88.616]
   - - [3840, 4224, 1, 4224]
-    - [175, 88.617]
+    - [173, 88.617]
   - - [3840, 4224, 1, 4320]
-    - [174, 88.942]
+    - [172, 88.942]
   - - [7680, 8448, 1, 8192]
-    - [176, 94.869]
+    - [174, 94.869]
   - - [7680, 8448, 1, 8448]
-    - [176, 94.966]
+    - [174, 94.966]
   - - [7680, 8448, 1, 8640]
-    - [177, 94.971]
+    - [175, 94.971]
   - - [3840, 4224, 1, 3712]
     - [4, 99.158]
   - - [3840, 4224, 1, 3840]
@@ -48830,9 +48741,9 @@
   - - [1024, 1024, 1, 10032]
     - [42, 53.652]
   - - [1024, 1024, 1, 11304]
-    - [43, 50.623]
+    - [42, 68.51]
   - - [1024, 1024, 1, 13200]
-    - [43, 51.722]
+    - [41, 69.824]
   - - [1024, 1024, 1, 1640]
     - [62, 31.71]
   - - [1024, 1024, 1, 1960]
@@ -48876,9 +48787,9 @@
   - - [1024, 1024, 1, 4896]
     - [26, 45.224]
   - - [1024, 1024, 1, 4968]
-    - [114, 43.8]
+    - [42, 52.773]
   - - [1024, 1024, 1, 5280]
-    - [26, 45.798]
+    - [42, 56.031]
   - - [1024, 1024, 1, 648]
     - [61, 23.059]
   - - [1024, 1024, 1, 7040]
@@ -48890,11 +48801,11 @@
   - - [1024, 1024, 1, 760]
     - [62, 24.398]
   - - [1024, 2048, 1, 1280]
-    - [114, 40.595]
+    - [46, 48.084]
   - - [1024, 2048, 1, 144]
     - [22, 15.465]
   - - [1024, 2048, 1, 1960]
-    - [114, 44.701]
+    - [46, 53.529]
   - - [1024, 2048, 1, 3400]
     - [46, 52.199]
   - - [1024, 2048, 1, 4176]
@@ -48930,11 +48841,11 @@
   - - [1024, 4096, 1, 10032]
     - [28, 70.979]
   - - [1024, 4096, 1, 1960]
-    - [50, 54.515]
+    - [53, 63.238]
   - - [1024, 4096, 1, 2320]
-    - [73, 55.907]
+    - [53, 65.0]
   - - [1024, 4096, 1, 2832]
-    - [44, 57.387]
+    - [52, 68.728]
   - - [1024, 4096, 1, 3304]
     - [53, 58.985]
   - - [1024, 4096, 1, 3584]
@@ -48984,7 +48895,7 @@
   - - [4096, 1024, 1, 864]
     - [73, 46.983]
   - - [64, 448, 1, 3328]
-    - [20, 3.063]
+    - [139, 3.247]
   - - [3584, 64, 1, 1280]
     - [64, 11.367]
   - - [64, 5888, 1, 1280]
@@ -48994,9 +48905,9 @@
   - - [3584, 64, 1, 3328]
     - [67, 16.765]
   - - [64, 1024, 1, 3328]
-    - [20, 6.845]
+    - [149, 6.518]
   - - [704, 64, 1, 3328]
-    - [20, 4.654]
+    - [149, 4.514]
   - - [64, 448, 1, 1280]
     - [20, 2.037]
   - - [64, 704, 1, 3328]
@@ -49026,7 +48937,7 @@
   - - [2368, 64, 1, 256]
     - [59, 3.078]
   - - [2368, 64, 1, 3328]
-    - [112, 11.365]
+    - [132, 13.45]
   - - [64, 1408, 1, 3328]
     - [60, 9.156]
   - - [1856, 64, 1, 1280]
@@ -49034,11 +48945,11 @@
   - - [64, 3584, 1, 1280]
     - [61, 11.29]
   - - [448, 64, 1, 3328]
-    - [20, 2.978]
+    - [139, 3.241]
   - - [5888, 64, 1, 3328]
     - [64, 26.71]
   - - [64, 256, 1, 3328]
-    - [20, 1.775]
+    - [139, 1.92]
   - - [4288, 64, 1, 3328]
     - [64, 19.942]
   - - [64, 2944, 1, 256]
@@ -49048,9 +48959,9 @@
   - - [64, 2368, 1, 1280]
     - [112, 8.035]
   - - [64, 3584, 1, 3328]
-    - [64, 16.798]
+    - [38, 19.751]
   - - [64, 6784, 1, 3328]
-    - [64, 30.543]
+    - [38, 24.062]
   - - [3584, 64, 1, 256]
     - [60, 4.411]
   - - [64, 1856, 1, 3328]
@@ -49070,7 +48981,7 @@
   - - [64, 1408, 1, 256]
     - [20, 1.911]
   - - [64, 2368, 1, 3328]
-    - [64, 11.457]
+    - [38, 13.252]
   - - [64, 448, 1, 256]
     - [59, 0.604]
   - - [64, 6784, 1, 1280]
@@ -49116,7 +49027,7 @@
   - - [1408, 64, 1, 1280]
     - [60, 6.016]
   - - [6784, 64, 1, 3328]
-    - [64, 30.486]
+    - [68, 22.124]
   - - [64, 2368, 1, 256]
     - [20, 3.1]
   - - [64, 3584, 1, 256]
@@ -49126,7 +49037,7 @@
   - - [2368, 64, 1, 1280]
     - [112, 8.186]
   - - [256, 64, 1, 3328]
-    - [20, 1.755]
+    - [139, 1.977]
   - - [64, 64, 1, 3328]
     - [139, 0.474]
   - - [64, 5888, 1, 256]
@@ -49146,13 +49057,13 @@
   - - [2048, 7133, 1, 2048]
     - [31, 66.999]
   - - [2560, 7133, 1, 2560]
-    - [151, 71.182]
+    - [31, 85.56]
   - - [3072, 7435, 1, 1024]
     - [105, 65.549]
   - - [1024, 32, 1, 512]
     - [20, 1.252]
   - - [1760, 7133, 1, 1760]
-    - [151, 64.642]
+    - [31, 76.998]
   - - [7680, 5481, 1, 2560]
     - [55, 75.957]
   - - [1024, 16, 1, 512]
@@ -49200,7 +49111,7 @@
   - - [12880, 128, 2, 512]
     - [27, 39.461]
   - - [768, 512, 2, 2048]
-    - [64, 34.498]
+    - [129, 34.953]
   - - [11408, 128, 2, 512]
     - [49, 37.604]
   - - [13824, 512, 2, 128]
@@ -49222,15 +49133,15 @@
   - - [11616, 128, 2, 512]
     - [49, 36.575]
   - - [14208, 512, 2, 128]
-    - [73, 25.935]
+    - [104, 25.381]
   - - [11408, 512, 2, 128]
     - [21, 25.219]
   - - [6912, 256, 36, 256]
     - [30, 48.046]
   - - [672, 512, 2, 2048]
-    - [64, 30.771]
+    - [147, 29.845]
   - - [13824, 512, 2, 256]
-    - [73, 40.747]
+    - [106, 40.94]
   - - [11616, 512, 2, 128]
     - [104, 25.795]
   - - [12288, 512, 2, 128]
@@ -49242,7 +49153,7 @@
   - - [864, 2048, 2, 512]
     - [116, 36.454]
   - - [1008, 512, 2, 2048]
-    - [121, 36.196]
+    - [114, 36.459]
   - - [10560, 512, 2, 128]
     - [87, 25.193]
   - - [672, 2048, 2, 512]
@@ -49276,11 +49187,11 @@
   - - [16128, 128, 2, 512]
     - [73, 38.853]
   - - [4032, 1024, 2, 256]
-    - [96, 36.032]
+    - [152, 36.079]
   - - [14000, 128, 2, 512]
     - [50, 44.847]
   - - [13440, 512, 2, 128]
-    - [73, 25.776]
+    - [145, 25.459]
   - - [864, 512, 2, 2048]
     - [121, 32.048]
   - - [768, 2048, 2, 256]
@@ -49360,31 +49271,31 @@
   - - [3072, 256, 2, 3]
     - [81, 0.318]
   - - [2520, 256, 2, 1024]
-    - [61, 34.457]
+    - [50, 29.104]
   - - [16128, 512, 2, 128]
     - [104, 26.317]
   - - [2400, 256, 2, 1024]
-    - [66, 33.515]
+    - [127, 32.342]
   - - [2352, 256, 2, 1024]
-    - [61, 32.767]
+    - [121, 31.024]
   - - [2944, 256, 2, 1024]
     - [65, 36.922]
   - - [2992, 1024, 2, 256]
-    - [96, 34.251]
+    - [104, 31.727]
   - - [2816, 256, 2, 1024]
     - [65, 35.391]
   - - [2904, 1024, 2, 256]
-    - [96, 33.569]
+    - [104, 31.917]
   - - [3456, 256, 2, 3]
     - [158, 0.344]
   - - [3400, 256, 2, 3]
     - [135, 0.357]
   - - [2816, 1024, 2, 256]
-    - [95, 30.298]
+    - [161, 30.046]
   - - [3456, 256, 2, 12]
     - [82, 1.344]
   - - [2944, 1024, 2, 256]
-    - [159, 31.221]
+    - [49, 31.136]
   - - [3168, 256, 2, 1024]
     - [65, 38.744]
   - - [2992, 256, 2, 1024]
@@ -49392,15 +49303,15 @@
   - - [51520, 256, 2, 12]
     - [85, 3.184]
   - - [3072, 256, 2, 1024]
-    - [65, 38.527]
+    - [161, 39.508]
   - - [2640, 1024, 2, 256]
     - [96, 32.087]
   - - [2688, 1024, 2, 256]
-    - [160, 29.568]
+    - [161, 28.726]
   - - [2904, 256, 2, 1024]
     - [123, 36.189]
   - - [3264, 256, 2, 1024]
-    - [65, 40.935]
+    - [50, 42.043]
   - - [54400, 256, 2, 12]
     - [80, 2.899]
   - - [55296, 256, 2, 3]
@@ -49410,9 +49321,9 @@
   - - [51520, 256, 2, 3]
     - [83, 0.843]
   - - [55296, 256, 2, 12]
-    - [161, 2.863]
+    - [160, 2.863]
   - - [3600, 1024, 2, 256]
-    - [116, 34.521]
+    - [31, 34.734]
   - - [60800, 256, 2, 3]
     - [80, 0.751]
   - - [952, 256, 64, 256]
@@ -49420,7 +49331,7 @@
   - - [49152, 256, 2, 12]
     - [80, 2.938]
   - - [3360, 256, 2, 1024]
-    - [65, 41.349]
+    - [103, 34.11]
   - - [736, 256, 64, 256]
     - [104, 39.748]
   - - [600, 256, 64, 256]
@@ -49440,7 +49351,7 @@
   - - [54400, 256, 2, 3]
     - [80, 0.735]
   - - [3072, 1024, 2, 256]
-    - [95, 32.346]
+    - [166, 31.987]
   - - [2640, 256, 2, 1024]
     - [65, 33.321]
   - - [616, 256, 64, 256]
@@ -49462,19 +49373,19 @@
   - - [2408, 256, 64, 256]
     - [104, 47.932]
   - - [3456, 256, 2, 1024]
-    - [65, 42.708]
+    - [26, 32.877]
   - - [672, 256, 64, 256]
     - [104, 37.36]
   - - [3456, 1024, 2, 256]
-    - [73, 35.442]
+    - [116, 31.913]
   - - [1064, 256, 49, 256]
     - [73, 38.611]
   - - [3400, 256, 2, 1024]
-    - [65, 41.239]
+    - [26, 34.1]
   - - [704, 256, 64, 256]
     - [104, 37.804]
   - - [3400, 1024, 2, 256]
-    - [160, 34.567]
+    - [159, 34.567]
   - - [3264, 256, 64, 256]
     - [104, 47.783]
   - - [3800, 1024, 2, 256]
@@ -49484,25 +49395,25 @@
   - - [6440, 512, 1, 256]
     - [88, 27.726]
   - - [6912, 512, 1, 256]
-    - [162, 30.469]
+    - [161, 30.469]
   - - [6800, 512, 1, 256]
     - [19, 29.192]
   - - [6800, 512, 1, 1024]
-    - [49, 53.699]
+    - [121, 45.03]
   - - [6440, 512, 1, 1024]
     - [44, 53.882]
   - - [6912, 512, 1, 1024]
     - [31, 57.344]
   - - [1728, 1024, 1, 512]
-    - [72, 31.998]
+    - [62, 24.093]
   - - [1536, 1024, 1, 512]
     - [72, 29.08]
   - - [7600, 512, 1, 1024]
-    - [121, 47.455]
+    - [49, 50.018]
   - - [6144, 512, 1, 1024]
     - [49, 52.069]
   - - [1728, 1024, 1, 2048]
-    - [148, 50.972]
+    - [46, 45.192]
   - - [1536, 1024, 1, 2048]
     - [50, 48.78]
   - - [1024, 320, 1, 1024]
@@ -49532,7 +49443,7 @@
   - - [660, 512, 2, 2048]
     - [57, 29.423]
   - - [726, 512, 2, 2048]
-    - [163, 30.852]
+    - [162, 30.852]
   - - [660, 2048, 2, 512]
     - [94, 30.163]
   - - [726, 2048, 2, 512]
@@ -49544,7 +49455,7 @@
   - - [1251, 256, 49, 256]
     - [91, 34.289]
   - - [805, 512, 2, 2048]
-    - [57, 33.844]
+    - [165, 32.826]
   - - [850, 512, 2, 2048]
     - [57, 28.367]
   - - [850, 256, 2, 3]
@@ -49558,19 +49469,19 @@
   - - [805, 256, 2, 3]
     - [14, 0.106]
   - - [850, 256, 2, 12]
-    - [164, 0.417]
+    - [163, 0.417]
   - - [187, 256, 2, 12]
     - [14, 0.1]
   - - [247, 256, 2, 12]
     - [13, 0.134]
   - - [950, 256, 2, 12]
-    - [165, 0.466]
+    - [164, 0.466]
   - - [950, 256, 2, 3]
-    - [164, 0.121]
+    - [163, 0.121]
   - - [1900, 1024, 1, 2048]
     - [103, 41.645]
   - - [1610, 1024, 1, 2048]
-    - [166, 44.912]
+    - [161, 49.165]
   - - [1900, 1024, 1, 512]
     - [95, 26.47]
   - - [3220, 256, 2, 12]
@@ -49588,7 +49499,7 @@
   - - [3036, 1024, 2, 256]
     - [94, 30.761]
   - - [3036, 256, 2, 1024]
-    - [166, 35.512]
+    - [165, 35.512]
   - - [850, 2048, 2, 256]
     - [95, 24.433]
   - - [2852, 1024, 2, 256]
@@ -49606,7 +49517,7 @@
   - - [1467, 256, 49, 256]
     - [101, 35.935]
   - - [3500, 256, 2, 1024]
-    - [72, 38.935]
+    - [103, 32.079]
   - - [1449, 256, 49, 256]
     - [101, 35.663]
   - - [1278, 256, 49, 256]
@@ -49626,7 +49537,7 @@
   - - [1323, 256, 49, 256]
     - [106, 34.387]
   - - [1404, 256, 49, 256]
-    - [167, 35.597]
+    - [91, 38.548]
   - - [1386, 256, 49, 256]
     - [106, 36.469]
   - - [1350, 256, 49, 256]
@@ -49634,7 +49545,7 @@
   - - [3500, 1024, 2, 256]
     - [95, 31.709]
   - - [3220, 256, 2, 1024]
-    - [148, 37.222]
+    - [45, 36.102]
   - - [690, 256, 64, 256]
     - [102, 31.873]
   - - [660, 256, 64, 256]
@@ -49648,13 +49559,13 @@
   - - [1700, 1024, 1, 512]
     - [57, 26.288]
   - - [1700, 1024, 1, 2048]
-    - [166, 47.311]
+    - [103, 39.853]
   - - [100, 512, 120, 128]
-    - [102, 13.695]
+    - [7, 15.827]
   - - [100, 512, 18, 128]
-    - [168, 6.097]
+    - [90, 4.066]
   - - [100, 512, 19, 128]
-    - [79, 6.348]
+    - [162, 4.304]
   - - [1444, 128, 120, 256]
     - [94, 35.285]
   - - [1444, 128, 18, 256]
@@ -49670,9 +49581,9 @@
   - - [25, 256, 120, 128]
     - [74, 5.128]
   - - [25, 256, 18, 128]
-    - [8, 1.204]
+    - [11, 0.709]
   - - [25, 256, 19, 128]
-    - [8, 1.28]
+    - [146, 0.75]
   - - [361, 512, 120, 256]
     - [102, 33.336]
   - - [361, 512, 18, 256]
@@ -49680,11 +49591,11 @@
   - - [361, 512, 19, 256]
     - [89, 21.83]
   - - [9, 256, 120, 128]
-    - [169, 2.088]
+    - [8, 1.423]
   - - [9, 256, 18, 128]
-    - [8, 0.457]
+    - [140, 0.271]
   - - [9, 256, 19, 128]
-    - [11, 0.471]
+    - [11, 0.28]
   - - [100, 2304, 1, 512]
     - [35, 5.987]
   - - [1444, 576, 1, 128]
@@ -49698,59 +49609,59 @@
   - - [9, 1152, 1, 256]
     - [13, 0.208]
   - - [3840, 4223, 1, 3712]
-    - [170, 89.228]
+    - [168, 89.228]
   - - [3840, 4225, 1, 3712]
-    - [171, 84.24]
+    - [169, 84.24]
   - - [3840, 4223, 1, 3840]
-    - [170, 89.252]
+    - [30, 86.76]
   - - [3840, 4225, 1, 3840]
-    - [172, 84.44]
+    - [170, 84.44]
   - - [3840, 4223, 1, 3968]
-    - [170, 89.639]
+    - [168, 89.639]
   - - [3840, 4225, 1, 3968]
-    - [172, 84.658]
+    - [170, 84.658]
   - - [7680, 8447, 1, 7424]
-    - [172, 98.336]
+    - [151, 93.572]
   - - [7680, 8449, 1, 7424]
-    - [173, 93.336]
+    - [171, 93.336]
   - - [7680, 8447, 1, 7680]
-    - [173, 98.413]
+    - [171, 98.413]
   - - [7680, 8449, 1, 7680]
-    - [173, 93.338]
+    - [171, 93.338]
   - - [7680, 8447, 1, 7936]
-    - [173, 98.414]
+    - [171, 98.414]
   - - [7680, 8449, 1, 7936]
-    - [173, 93.378]
+    - [171, 93.378]
   - - [3840, 4224, 1, 3711]
-    - [170, 89.143]
+    - [168, 89.143]
   - - [3840, 4224, 1, 3713]
-    - [170, 90.451]
+    - [168, 90.451]
   - - [3840, 4224, 1, 3839]
-    - [170, 89.092]
+    - [168, 89.092]
   - - [3840, 4224, 1, 3841]
-    - [170, 90.634]
+    - [168, 90.634]
   - - [3840, 4224, 1, 3967]
-    - [170, 89.516]
+    - [168, 89.516]
   - - [3840, 4224, 1, 3969]
-    - [170, 90.738]
+    - [168, 90.738]
   - - [7680, 8448, 1, 7423]
-    - [173, 98.274]
+    - [171, 98.274]
   - - [7680, 8448, 1, 7425]
-    - [173, 98.522]
+    - [171, 98.522]
   - - [7680, 8448, 1, 7679]
-    - [173, 98.312]
+    - [171, 98.312]
   - - [7680, 8448, 1, 7681]
-    - [173, 98.551]
+    - [171, 98.551]
   - - [7680, 8448, 1, 7935]
-    - [173, 98.35]
+    - [171, 98.35]
   - - [7680, 8448, 1, 7937]
-    - [173, 98.578]
+    - [171, 98.578]
   - - [64, 32, 16, 32]
-    - [9, 0.122]
+    - [59, 0.099]
   - - [64, 48, 16, 48]
     - [10, 0.261]
   - - [64, 80, 16, 80]
-    - [9, 0.631]
+    - [15, 0.329]
   - - [64, 96, 16, 96]
     - [13, 0.901]
   - - [64, 160, 16, 160]
@@ -49760,11 +49671,11 @@
   - - [64, 240, 16, 240]
     - [156, 4.206]
   - - [64, 304, 16, 304]
-    - [156, 6.128]
+    - [158, 3.621]
   - - [64, 320, 16, 320]
-    - [36, 7.671]
+    - [112, 4.33]
   - - [64, 384, 16, 384]
-    - [112, 9.666]
+    - [61, 8.592]
   - - [64, 416, 16, 416]
     - [62, 10.453]
   - - [64, 432, 16, 432]
@@ -49816,7 +49727,7 @@
   - - [1024, 1024, 1, 5488]
     - [42, 49.987]
   - - [1024, 1024, 1, 5456]
-    - [43, 50.199]
+    - [42, 55.898]
   - - [1024, 1024, 1, 6288]
     - [42, 52.647]
   - - [1024, 1024, 1, 6256]
@@ -49849,4 +49760,636 @@
     - [52, 76.813]
   - - [1024, 1024, 1, 11248]
     - [42, 63.007]
+  - - [1024, 1024, 1, 14080]
+    - [42, 63.706]
+  - - [1024, 1024, 1, 14400]
+    - [42, 63.834]
+  - - [1024, 1024, 1, 15168]
+    - [42, 64.527]
+  - - [1024, 1024, 1, 2088]
+    - [61, 34.403]
+  - - [4096, 1024, 1, 14192]
+    - [32, 76.4]
+  - - [4096, 1024, 1, 28672]
+    - [32, 79.7]
+  - - [1024, 1024, 1, 11984]
+    - [42, 61.582]
+  - - [1024, 1024, 1, 12064]
+    - [42, 61.671]
+  - - [1024, 1024, 1, 12112]
+    - [42, 61.489]
+  - - [1024, 1024, 1, 12192]
+    - [42, 61.343]
+  - - [1024, 1024, 1, 12272]
+    - [42, 61.667]
+  - - [1024, 1024, 1, 12304]
+    - [42, 60.793]
+  - - [1024, 1024, 1, 12368]
+    - [42, 62.176]
+  - - [1024, 1024, 1, 13024]
+    - [42, 62.495]
+  - - [1024, 1024, 1, 13056]
+    - [42, 62.598]
+  - - [1024, 1024, 1, 13072]
+    - [42, 62.37]
+  - - [1024, 1024, 1, 13088]
+    - [42, 62.776]
+  - - [1024, 1024, 1, 13168]
+    - [42, 62.601]
+  - - [1024, 1024, 1, 13184]
+    - [42, 62.93]
+  - - [1024, 1024, 1, 13216]
+    - [42, 62.728]
+  - - [1024, 1024, 1, 13232]
+    - [42, 62.779]
+  - - [1024, 1024, 1, 13248]
+    - [42, 62.628]
+  - - [1024, 1024, 1, 13280]
+    - [42, 62.755]
+  - - [1024, 1024, 1, 13296]
+    - [42, 62.931]
+  - - [1024, 1024, 1, 13312]
+    - [41, 62.705]
+  - - [1024, 1024, 1, 13328]
+    - [42, 62.705]
+  - - [1024, 1024, 1, 13344]
+    - [42, 62.756]
+  - - [1024, 1024, 1, 13360]
+    - [42, 62.781]
+  - - [1024, 1024, 1, 13376]
+    - [42, 62.932]
+  - - [1024, 1024, 1, 13392]
+    - [42, 62.957]
+  - - [1024, 1024, 1, 13408]
+    - [42, 62.907]
+  - - [1024, 1024, 1, 13424]
+    - [42, 62.907]
+  - - [1024, 1024, 1, 13440]
+    - [42, 62.982]
+  - - [1024, 1024, 1, 13456]
+    - [42, 63.032]
+  - - [1024, 1024, 1, 13472]
+    - [42, 63.157]
+  - - [1024, 1024, 1, 13504]
+    - [42, 63.131]
+  - - [1024, 1024, 1, 13520]
+    - [42, 62.957]
+  - - [1024, 1024, 1, 13536]
+    - [42, 62.685]
+  - - [1024, 1024, 1, 13552]
+    - [42, 63.106]
+  - - [1024, 1024, 1, 13568]
+    - [42, 63.131]
+  - - [1024, 1024, 1, 13584]
+    - [42, 63.031]
+  - - [1024, 1024, 1, 13600]
+    - [41, 62.982]
+  - - [1024, 1024, 1, 13632]
+    - [42, 63.279]
+  - - [1024, 1024, 1, 13648]
+    - [42, 62.859]
+  - - [1024, 1024, 1, 13664]
+    - [42, 63.155]
+  - - [1024, 1024, 1, 13680]
+    - [42, 63.007]
+  - - [1024, 1024, 1, 13696]
+    - [41, 63.501]
+  - - [1024, 1024, 1, 13712]
+    - [42, 61.476]
+  - - [1024, 1024, 1, 13728]
+    - [42, 63.302]
+  - - [1024, 1024, 1, 13744]
+    - [42, 63.302]
+  - - [1024, 1024, 1, 13760]
+    - [42, 63.598]
+  - - [1024, 1024, 1, 13776]
+    - [42, 63.104]
+  - - [1024, 1024, 1, 13792]
+    - [42, 63.153]
+  - - [1024, 1024, 1, 13808]
+    - [42, 63.275]
+  - - [1024, 1024, 1, 13824]
+    - [42, 63.423]
+  - - [1024, 1024, 1, 13840]
+    - [42, 63.373]
+  - - [1024, 1024, 1, 13856]
+    - [42, 63.08]
+  - - [1024, 1024, 1, 13872]
+    - [42, 63.128]
+  - - [1024, 1024, 1, 13888]
+    - [42, 63.667]
+  - - [1024, 1024, 1, 13904]
+    - [42, 63.322]
+  - - [1024, 1024, 1, 13920]
+    - [42, 63.42]
+  - - [1024, 1024, 1, 13936]
+    - [42, 63.542]
+  - - [1024, 1024, 1, 13952]
+    - [42, 63.738]
+  - - [1024, 1024, 1, 13968]
+    - [42, 63.54]
+  - - [1024, 1024, 1, 13984]
+    - [42, 63.711]
+  - - [1024, 1024, 1, 14016]
+    - [42, 63.685]
+  - - [1024, 1024, 1, 14032]
+    - [42, 63.562]
+  - - [1024, 1024, 1, 14048]
+    - [41, 63.367]
+  - - [1024, 1024, 1, 14064]
+    - [42, 63.683]
+  - - [1024, 1024, 1, 14096]
+    - [42, 63.657]
+  - - [1024, 1024, 1, 14112]
+    - [42, 63.535]
+  - - [1024, 1024, 1, 14128]
+    - [42, 63.438]
+  - - [1024, 1024, 1, 14144]
+    - [42, 63.728]
+  - - [1024, 1024, 1, 14160]
+    - [42, 63.581]
+  - - [1024, 1024, 1, 14192]
+    - [42, 63.993]
+  - - [1024, 1024, 1, 14224]
+    - [42, 63.579]
+  - - [1024, 1024, 1, 14240]
+    - [42, 63.626]
+  - - [1024, 1024, 1, 14256]
+    - [42, 63.867]
+  - - [1024, 1024, 1, 14272]
+    - [41, 63.842]
+  - - [1024, 1024, 1, 14288]
+    - [42, 63.696]
+  - - [1024, 1024, 1, 14304]
+    - [42, 63.623]
+  - - [1024, 1024, 1, 14320]
+    - [42, 63.551]
+  - - [1024, 1024, 1, 14336]
+    - [42, 63.838]
+  - - [1024, 1024, 1, 14352]
+    - [42, 63.789]
+  - - [1024, 1024, 1, 14368]
+    - [42, 63.884]
+  - - [1024, 1024, 1, 14384]
+    - [42, 63.787]
+  - - [1024, 1024, 1, 14416]
+    - [42, 63.857]
+  - - [1024, 1024, 1, 14432]
+    - [42, 63.761]
+  - - [1024, 1024, 1, 14448]
+    - [42, 63.736]
+  - - [1024, 1024, 1, 14464]
+    - [41, 63.878]
+  - - [1024, 1024, 1, 14480]
+    - [42, 63.901]
+  - - [1024, 1024, 1, 14496]
+    - [41, 63.474]
+  - - [1024, 1024, 1, 14512]
+    - [42, 63.804]
+  - - [1024, 1024, 1, 14528]
+    - [42, 64.089]
+  - - [1024, 1024, 1, 14544]
+    - [42, 63.778]
+  - - [1024, 1024, 1, 14560]
+    - [42, 63.801]
+  - - [1024, 1024, 1, 14576]
+    - [42, 63.682]
+  - - [1024, 1024, 1, 14592]
+    - [42, 64.037]
+  - - [1024, 1024, 1, 14608]
+    - [42, 64.107]
+  - - [1024, 1024, 1, 14624]
+    - [42, 63.963]
+  - - [1024, 1024, 1, 14640]
+    - [42, 63.82]
+  - - [1024, 1024, 1, 14656]
+    - [41, 63.961]
+  - - [1024, 1024, 1, 14672]
+    - [42, 64.126]
+  - - [1024, 1024, 1, 14688]
+    - [42, 63.935]
+  - - [1024, 1024, 1, 14704]
+    - [42, 64.029]
+  - - [1024, 1024, 1, 14720]
+    - [42, 64.027]
+  - - [1024, 1024, 1, 14752]
+    - [41, 64.214]
+  - - [1024, 1024, 1, 14768]
+    - [42, 64.142]
+  - - [1024, 1024, 1, 14784]
+    - [42, 64.14]
+  - - [1024, 1024, 1, 14800]
+    - [42, 63.326]
+  - - [1024, 1024, 1, 14816]
+    - [42, 64.232]
+  - - [1024, 1024, 1, 14832]
+    - [42, 63.903]
+  - - [1024, 1024, 1, 14848]
+    - [42, 64.159]
+  - - [1024, 1024, 1, 14864]
+    - [42, 64.299]
+  - - [1024, 1024, 1, 14880]
+    - [42, 64.063]
+  - - [1024, 1024, 1, 14896]
+    - [42, 64.062]
+  - - [1024, 1024, 1, 14912]
+    - [42, 64.154]
+  - - [1024, 1024, 1, 14928]
+    - [42, 63.943]
+  - - [1024, 1024, 1, 14944]
+    - [42, 64.409]
+  - - [1024, 1024, 1, 14960]
+    - [42, 64.011]
+  - - [1024, 1024, 1, 14976]
+    - [42, 64.01]
+  - - [1024, 1024, 1, 14992]
+    - [42, 64.194]
+  - - [1024, 1024, 1, 15008]
+    - [42, 64.403]
+  - - [1024, 1024, 1, 15024]
+    - [42, 64.262]
+  - - [1024, 1024, 1, 15056]
+    - [42, 64.212]
+  - - [1024, 1024, 1, 15072]
+    - [42, 64.28]
+  - - [1024, 1024, 1, 15088]
+    - [42, 64.326]
+  - - [1024, 1024, 1, 15104]
+    - [42, 64.51]
+  - - [1024, 1024, 1, 15136]
+    - [41, 64.553]
+  - - [1024, 1024, 1, 15152]
+    - [42, 64.482]
+  - - [1024, 1024, 1, 15184]
+    - [42, 64.317]
+  - - [1024, 1024, 1, 15200]
+    - [41, 64.316]
+  - - [1024, 1024, 1, 15216]
+    - [42, 64.36]
+  - - [1024, 1024, 1, 15248]
+    - [42, 64.403]
+  - - [1024, 1024, 1, 15264]
+    - [42, 64.379]
+  - - [1024, 1024, 1, 15280]
+    - [42, 64.354]
+  - - [1024, 1024, 1, 15296]
+    - [41, 64.422]
+  - - [1024, 1024, 1, 15312]
+    - [42, 64.581]
+  - - [1024, 1024, 1, 15328]
+    - [42, 64.488]
+  - - [1024, 1024, 1, 15344]
+    - [42, 64.303]
+  - - [1024, 1024, 1, 15360]
+    - [41, 64.324]
+  - - [1024, 1024, 1, 15376]
+    - [42, 64.391]
+  - - [1024, 1024, 1, 15392]
+    - [42, 64.504]
+  - - [1024, 1024, 1, 15408]
+    - [42, 64.617]
+  - - [1024, 1024, 1, 15424]
+    - [42, 64.684]
+  - - [1024, 1024, 1, 15440]
+    - [42, 64.751]
+  - - [1024, 1024, 1, 15456]
+    - [41, 64.452]
+  - - [1024, 1024, 1, 15472]
+    - [42, 64.337]
+  - - [1024, 1024, 1, 15488]
+    - [42, 64.609]
+  - - [1024, 1024, 1, 15504]
+    - [42, 64.357]
+  - - [1024, 1024, 1, 15520]
+    - [42, 65.018]
+  - - [1024, 1024, 1, 15536]
+    - [42, 64.49]
+  - - [1024, 1024, 1, 15552]
+    - [42, 64.967]
+  - - [1024, 1024, 1, 15568]
+    - [42, 64.555]
+  - - [1024, 1024, 1, 15584]
+    - [41, 64.576]
+  - - [1024, 1024, 1, 15600]
+    - [42, 64.778]
+  - - [1024, 1024, 1, 15616]
+    - [41, 64.868]
+  - - [1024, 1024, 1, 15632]
+    - [42, 64.957]
+  - - [1024, 1024, 1, 15648]
+    - [41, 64.727]
+  - - [1024, 1024, 1, 15664]
+    - [42, 64.884]
+  - - [1024, 1024, 1, 15680]
+    - [41, 64.814]
+  - - [1024, 1024, 1, 15696]
+    - [42, 64.632]
+  - - [1024, 1024, 1, 15712]
+    - [41, 64.901]
+  - - [1024, 1024, 1, 15728]
+    - [42, 65.036]
+  - - [1024, 1024, 1, 15744]
+    - [42, 64.875]
+  - - [1024, 1024, 1, 15760]
+    - [42, 64.335]
+  - - [1024, 1024, 1, 15776]
+    - [41, 64.826]
+  - - [1024, 1024, 1, 15808]
+    - [42, 64.89]
+  - - [1024, 1024, 1, 15840]
+    - [41, 64.594]
+  - - [1024, 1024, 1, 15856]
+    - [42, 63.563]
+  - - [1024, 1024, 1, 15872]
+    - [42, 65.288]
+  - - [1024, 1024, 1, 15888]
+    - [42, 64.947]
+  - - [1024, 1024, 1, 15904]
+    - [41, 65.035]
+  - - [1024, 1024, 1, 15920]
+    - [42, 64.409]
+  - - [1024, 1024, 1, 15936]
+    - [42, 64.896]
+  - - [1024, 1024, 1, 15968]
+    - [42, 65.027]
+  - - [1024, 1024, 1, 15984]
+    - [42, 64.58]
+  - - [1024, 1024, 1, 16000]
+    - [41, 64.911]
+  - - [1024, 1024, 1, 16016]
+    - [42, 64.62]
+  - - [1024, 1024, 1, 16032]
+    - [42, 65.108]
+  - - [1024, 1024, 1, 16048]
+    - [42, 65.016]
+  - - [1024, 1024, 1, 16064]
+    - [42, 65.081]
+  - - [1024, 1024, 1, 16080]
+    - [42, 64.439]
+  - - [1024, 1024, 1, 16112]
+    - [42, 65.298]
+  - - [1024, 1024, 1, 16144]
+    - [42, 65.048]
+  - - [1024, 1024, 1, 16160]
+    - [41, 64.869]
+  - - [1024, 1024, 1, 16176]
+    - [42, 64.452]
+  - - [1024, 1024, 1, 16208]
+    - [42, 65.173]
+  - - [1024, 1024, 1, 16224]
+    - [42, 64.928]
+  - - [1024, 1024, 1, 16240]
+    - [42, 65.036]
+  - - [1024, 1024, 1, 16256]
+    - [42, 65.144]
+  - - [1024, 1024, 1, 16272]
+    - [42, 64.834]
+  - - [1024, 1024, 1, 16288]
+    - [41, 65.294]
+  - - [1024, 1024, 1, 16304]
+    - [41, 63.927]
+  - - [1024, 1024, 1, 16320]
+    - [42, 64.938]
+  - - [1024, 1024, 1, 16336]
+    - [42, 64.958]
+  - - [1024, 1024, 1, 16352]
+    - [41, 65.329]
+  - - [1024, 1024, 1, 16368]
+    - [42, 65.151]
+  - - [1024, 1024, 1, 16400]
+    - [42, 64.41]
+  - - [1024, 1024, 1, 16432]
+    - [42, 64.859]
+  - - [1024, 1024, 1, 16464]
+    - [42, 64.877]
+  - - [1024, 1024, 1, 16480]
+    - [41, 65.597]
+  - - [1024, 1024, 1, 16496]
+    - [42, 65.286]
+  - - [1024, 1024, 1, 16544]
+    - [41, 65.192]
+  - - [1024, 1024, 1, 16576]
+    - [41, 65.384]
+  - - [1024, 1024, 1, 16608]
+    - [42, 65.554]
+  - - [1024, 1024, 1, 16656]
+    - [42, 65.026]
+  - - [1024, 1024, 1, 16704]
+    - [41, 65.192]
+  - - [1024, 1024, 1, 16736]
+    - [41, 65.317]
+  - - [1024, 1024, 1, 16768]
+    - [41, 65.464]
+  - - [1024, 1024, 1, 16880]
+    - [42, 65.792]
+  - - [1024, 1024, 1, 16928]
+    - [42, 65.525]
+  - - [1024, 1024, 1, 17024]
+    - [41, 65.703]
+  - - [1024, 1024, 1, 1906]
+    - [61, 33.064]
+  - - [1024, 1024, 1, 2009]
+    - [114, 33.381]
+  - - [1024, 30528, 1, 2088]
+    - [110, 78.433]
+  - - [1024, 30528, 1, 2215]
+    - [54, 78.903]
+  - - [1024, 30528, 1, 2250]
+    - [30, 78.631]
+  - - [1024, 3072, 1, 11984]
+    - [30, 74.331]
+  - - [1024, 3072, 1, 12064]
+    - [50, 74.644]
+  - - [1024, 3072, 1, 12112]
+    - [122, 74.319]
+  - - [1024, 3072, 1, 12192]
+    - [50, 74.719]
+  - - [1024, 3072, 1, 12304]
+    - [30, 74.402]
+  - - [1024, 3072, 1, 12368]
+    - [124, 74.332]
+  - - [1024, 3072, 1, 12416]
+    - [50, 74.798]
+  - - [1024, 3072, 1, 13024]
+    - [49, 74.921]
+  - - [1024, 3072, 1, 13056]
+    - [50, 74.91]
+  - - [1024, 3072, 1, 13072]
+    - [125, 74.568]
+  - - [1024, 3072, 1, 13088]
+    - [50, 74.973]
+  - - [1024, 3072, 1, 13168]
+    - [30, 74.802]
+  - - [1024, 3072, 1, 13184]
+    - [27, 74.929]
+  - - [1024, 3072, 1, 13232]
+    - [122, 74.854]
+  - - [1024, 3072, 1, 13248]
+    - [45, 74.956]
+  - - [1024, 3072, 1, 13280]
+    - [27, 74.934]
+  - - [1024, 3072, 1, 13296]
+    - [125, 74.573]
+  - - [1024, 3072, 1, 13312]
+    - [50, 74.936]
+  - - [1024, 3072, 1, 13328]
+    - [30, 74.835]
+  - - [1024, 3072, 1, 13344]
+    - [49, 74.937]
+  - - [1024, 3072, 1, 13360]
+    - [44, 74.507]
+  - - [1024, 3072, 1, 13376]
+    - [50, 74.974]
+  - - [1024, 3072, 1, 13392]
+    - [30, 74.957]
+  - - [1024, 3072, 1, 13408]
+    - [30, 74.976]
+  - - [1024, 3072, 1, 13424]
+    - [125, 74.665]
+  - - [1024, 3072, 1, 13440]
+    - [49, 75.107]
+  - - [1024, 3072, 1, 13456]
+    - [122, 75.031]
+  - - [1024, 3072, 1, 13472]
+    - [44, 75.061]
+  - - [1024, 3072, 1, 13488]
+    - [125, 74.716]
+  - - [1024, 3072, 1, 13504]
+    - [50, 75.004]
+  - - [1024, 3072, 1, 13520]
+    - [122, 74.881]
+  - - [1024, 3072, 1, 13536]
+    - [49, 74.982]
+  - - [1024, 3072, 1, 13552]
+    - [125, 74.616]
+  - - [1024, 3072, 1, 13568]
+    - [44, 75.144]
+  - - [1024, 3072, 1, 13584]
+    - [122, 75.013]
+  - - [1024, 3072, 1, 13600]
+    - [27, 74.938]
+  - - [1024, 3072, 1, 13616]
+    - [30, 74.933]
+  - - [1024, 3072, 1, 13632]
+    - [50, 74.974]
+  - - [1024, 3072, 1, 13648]
+    - [125, 74.923]
+  - - [1024, 3072, 1, 13664]
+    - [50, 75.08]
+  - - [1024, 3072, 1, 13680]
+    - [122, 75.168]
+  - - [1024, 3072, 1, 13696]
+    - [30, 75.047]
+  - - [1024, 3072, 1, 13712]
+    - [30, 74.995]
+  - - [1024, 3072, 1, 13728]
+    - [44, 75.083]
+  - - [1024, 3072, 1, 13744]
+    - [30, 74.985]
+  - - [1024, 3072, 1, 13760]
+    - [50, 75.096]
+  - - [1024, 3072, 1, 13776]
+    - [30, 74.689]
+  - - [1024, 3072, 1, 13792]
+    - [161, 75.016]
+  - - [1024, 3072, 1, 13808]
+    - [125, 74.851]
+  - - [1024, 3072, 1, 13824]
+    - [50, 75.064]
+  - - [1024, 3072, 1, 13840]
+    - [125, 74.875]
+  - - [1024, 3072, 1, 13856]
+    - [44, 75.18]
+  - - [1024, 3072, 1, 13872]
+    - [30, 75.117]
+  - - [1024, 3072, 1, 13888]
+    - [120, 75.181]
+  - - [1024, 3072, 1, 13904]
+    - [30, 75.244]
+  - - [1024, 3072, 1, 13920]
+    - [44, 75.113]
+  - - [1024, 3072, 1, 13936]
+    - [30, 75.062]
+  - - [1024, 3072, 1, 13968]
+    - [122, 74.814]
+  - - [1024, 3072, 1, 13984]
+    - [122, 75.115]
+  - - [1024, 3072, 1, 14000]
+    - [124, 74.827]
+  - - [1024, 3072, 1, 14016]
+    - [50, 75.071]
+  - - [1024, 3072, 1, 14032]
+    - [30, 75.009]
+  - - [1024, 3072, 1, 14048]
+    - [30, 75.368]
+  - - [1024, 3072, 1, 14064]
+    - [124, 74.797]
+  - - [1024, 3072, 1, 14080]
+    - [44, 75.119]
+  - - [1024, 3072, 1, 14096]
+    - [30, 75.035]
+  - - [1024, 3072, 1, 14112]
+    - [31, 75.075]
+  - - [1024, 3072, 1, 14128]
+    - [124, 74.868]
+  - - [1024, 3072, 1, 14144]
+    - [125, 75.2]
+  - - [1024, 3072, 1, 14160]
+    - [30, 74.925]
+  - - [1024, 3072, 1, 14176]
+    - [120, 75.122]
+  - - [1024, 3072, 1, 14192]
+    - [30, 75.173]
+  - - [1024, 3072, 1, 14208]
+    - [122, 75.213]
+  - - [1024, 3072, 1, 15088]
+    - [125, 75.368]
+  - - [1024, 3072, 1, 16192]
+    - [120, 75.588]
+  - - [1024, 3072, 1, 28672]
+    - [120, 77.499]
+  - - [1024, 4096, 1, 14320]
+    - [52, 77.353]
+  - - [1024, 4096, 1, 14528]
+    - [28, 78.406]
+  - - [1024, 4096, 1, 15008]
+    - [28, 77.781]
+  - - [1024, 4096, 1, 15040]
+    - [28, 78.066]
+  - - [1024, 4096, 1, 28672]
+    - [28, 80.639]
+  - - [4096, 1024, 1, 13360]
+    - [32, 76.349]
+  - - [4096, 1024, 1, 13536]
+    - [32, 76.806]
+  - - [4096, 1024, 1, 13632]
+    - [32, 76.325]
+  - - [4096, 1024, 1, 13680]
+    - [32, 75.458]
+  - - [4096, 1024, 1, 13760]
+    - [32, 76.282]
+  - - [4096, 1024, 1, 13856]
+    - [32, 76.26]
+  - - [4096, 1024, 1, 13968]
+    - [32, 76.644]
+  - - [4096, 1024, 1, 14432]
+    - [32, 76.456]
+  - - [4096, 1024, 1, 14592]
+    - [32, 76.855]
+  - - [4096, 1024, 1, 14656]
+    - [32, 76.35]
+  - - [4096, 1024, 1, 15424]
+    - [32, 77.128]
+  - - [64, 112, 16, 112]
+    - [9, 0.991]
+  - - [64, 128, 16, 128]
+    - [24, 1.322]
+  - - [64, 288, 16, 288]
+    - [36, 5.499]
+  - - [64, 336, 16, 336]
+    - [82, 6.292]
+  - - [64, 352, 16, 352]
+    - [62, 7.007]
+  - - [64, 400, 16, 400]
+    - [62, 7.956]
 - null

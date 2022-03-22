@@ -108,7 +108,7 @@ namespace
                             batch_count);
         }
 
-        static constexpr rocblas_int offset_C = 0, offset_A = 0;
+        static constexpr rocblas_stride offset_C = 0, offset_A = 0;
 
         rocblas_status arg_status = rocblas_herk_arg_check(handle,
                                                            uplo,

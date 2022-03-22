@@ -75,7 +75,16 @@ void testing_trsv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, M, M, lda, 0, 1, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        M,
+                        M,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, M, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
     //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex

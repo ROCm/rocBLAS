@@ -127,7 +127,7 @@ namespace
 
         static constexpr rocblas_int    batch_count_1 = 1;
         static constexpr rocblas_stride stride_0      = 0;
-        static constexpr ptrdiff_t      offset_0      = 0;
+        static constexpr rocblas_stride offset_0      = 0;
         return rocblas_axpy_ex_template<NB>(name,
                                             handle,
                                             n,

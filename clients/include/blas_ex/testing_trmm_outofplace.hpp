@@ -185,38 +185,30 @@ void testing_trmm_outofplace(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
-    //  initialize full random matrix hA with all entries in [1, 10]
-    rocblas_seedrand();
-    if(arg.alpha_isnan<T>())
-        rocblas_init_nan<T>(hA, K, K, lda);
-    else
-        rocblas_init<T>(hA, K, K, lda);
-
-    //  pad untouched area into zero
-    for(int i = K; i < lda; i++)
-        for(int j = 0; j < K; j++)
-            hA[i + j * lda] = 0.0;
-
-    // Initial hB
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hB, M, N, ldb);
-        rocblas_init_nan<T>(hC, M, N, ldc);
-    }
-    else
-    {
-        rocblas_init<T>(hB, M, N, ldb);
-        rocblas_init<T>(hC, M, N, ldc);
-    }
-
-    // pad untouched area into zero
-    for(int i = M; i < ldb; i++)
-        for(int j = 0; j < N; j++)
-            hB[i + j * ldb] = 0.0;
-
-    for(int i = M; i < ldc; i++)
-        for(int j = 0; j < N; j++)
-            hC[i + j * ldc] = 0.0;
+    // Initialize data on host memory
+    rocblas_init_matrix(hA,
+                        arg,
+                        K,
+                        K,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        M,
+                        N,
+                        ldb,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
+    rocblas_init_matrix(
+        hC, arg, M, N, ldc, 0, 1, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix);
 
     cpuB = hB;
     hC_1 = hC; // hXorC <- C

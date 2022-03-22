@@ -333,18 +333,45 @@ void testing_her2k_strided_batched(const Arguments& arg)
     h_beta[0]  = beta;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        rows,
+                        cols,
+                        lda,
+                        strideA,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
 
     if(TWOK)
     {
-        rocblas_init_matrix(hB, arg, size_B, 1, 1, 0, 1, rocblas_client_never_set_nan, false, true);
+        rocblas_init_matrix(hB,
+                            arg,
+                            rows,
+                            cols,
+                            ldb,
+                            strideB,
+                            batch_count,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_triangular_matrix,
+                            false,
+                            true);
     }
     else
     { // require symmetric A*B^H so testing with B = A
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb, strideA, strideB, batch_count);
     }
 
-    rocblas_init_matrix(hC_1, arg, size_C, 1, 1, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_matrix(hC_1,
+                        arg,
+                        N,
+                        N,
+                        ldc,
+                        strideC,
+                        batch_count,
+                        rocblas_client_beta_sets_nan,
+                        rocblas_client_hermitian_matrix);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

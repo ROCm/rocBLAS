@@ -600,62 +600,31 @@ void testing_gemm_ex(const Arguments& arg)
 
     bool alt = (rocblas_gemm_flags_fp16_alt_impl & flags);
 
-    rocblas_seedrand();
+    // Initialize data on host memory
+    rocblas_init_matrix(hA,
+                        arg,
+                        A_row,
+                        A_col,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        true);
+    rocblas_init_matrix(hB,
+                        arg,
+                        B_row,
+                        B_col,
+                        ldb,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_general_matrix,
+                        false,
+                        true);
+    rocblas_init_matrix(
+        hC, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
-    // Initial Data on CPU
-    if(alpha_isnan)
-    {
-        rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
-        rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-        {
-            rocblas_init<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb);
-        }
-        else if(arg.initialization == rocblas_initialization::trig_float)
-        {
-            rocblas_init_sin<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_cos<Ti>(hB, B_row, B_col, ldb);
-        }
-        else if(arg.initialization == rocblas_initialization::hpl)
-        {
-            rocblas_init_hpl<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_hpl<Ti>(hB, B_row, B_col, ldb);
-        }
-        else if(arg.initialization == rocblas_initialization::special)
-        {
-            rocblas_init_alt_impl_big<Ti>(hA, A_row, A_col, lda);
-            rocblas_init_alt_impl_small<Ti>(hB, B_row, B_col, ldb);
-        }
-        else
-        {
-#ifdef GOOGLE_TEST
-            FAIL() << "unknown initialization type";
-            return;
-#else
-            rocblas_cerr << "unknown initialization type" << std::endl;
-            rocblas_abort();
-#endif
-        }
-    }
-    if(beta_isnan)
-    {
-        rocblas_init_nan<To>(hC, M, N, ldc);
-    }
-    else
-    {
-        if(arg.initialization == rocblas_initialization::rand_int)
-            rocblas_init<To>(hC, M, N, ldc);
-        else if(arg.initialization == rocblas_initialization::trig_float)
-            rocblas_init_sin<To>(hC, M, N, ldc);
-        else if(arg.initialization == rocblas_initialization::hpl)
-            rocblas_init_hpl<To>(hC, M, N, ldc);
-        else if(arg.initialization == rocblas_initialization::special)
-            rocblas_init<To>(hC, M, N, ldc);
-    }
     if(size_D_copy)
     {
         rocblas_init_nan<To>(hD_1, M, N, ldd);
@@ -823,7 +792,7 @@ void testing_gemm_ex(const Arguments& arg)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = sqrt(K) * sum_error_tolerance<Tc>;
+                const double tol = K * sum_error_tolerance<Tc>;
                 near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
             }
             else

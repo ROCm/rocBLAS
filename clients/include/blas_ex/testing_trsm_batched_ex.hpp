@@ -314,14 +314,21 @@ void testing_trsm_batched_ex(const Arguments& arg)
     //  should have condition number approximately equal to
     //  the condition number of the original matrix A.
 
-    //  initialize full random matrix hA with all entries in [1, 10]
-    rocblas_init(hA, true);
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_vector(hX, arg, rocblas_client_never_set_nan, false, true);
+
     for(int b = 0; b < batch_count; b++)
     {
         //  pad untouched area into zero
         for(int i = K; i < lda; i++)
             for(int j = 0; j < K; j++)
                 hA[b][i + j * lda] = 0.0;
+
+        // pad untouched area into zero
+        for(int i = M; i < ldb; i++)
+            for(int j = 0; j < N; j++)
+                hX[b][i + j * ldb] = 0.0;
 
         //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
         cblas_gemm<T>(rocblas_operation_none,
@@ -371,14 +378,6 @@ void testing_trsm_batched_ex(const Arguments& arg)
                         hA[b][i + j * lda] = hA[b][i + j * lda] / diag;
                 }
         }
-
-        // Initialize "exact" answer hx
-        rocblas_init<T>(hX[b], M, N, ldb);
-        // pad untouched area into zero
-
-        for(int i = M; i < ldb; i++)
-            for(int j = 0; j < N; j++)
-                hX[b][i + j * ldb] = 0.0;
     }
 
     hB.copy_from(hX);

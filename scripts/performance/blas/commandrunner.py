@@ -133,6 +133,10 @@ class SystemMonitor(object):
         if smi is None:
             return 0.0
         elif metric == 'fan_speed_percent':
+            gfx = getspecs.getgfx(device, cuda)
+            # Not querying fan speed on 908 or 90a
+            if gfx == 'gfx908' or gfx == 'gfx90a' or gfx == 'N/A':
+                return 'N/A'
             return getspecs.getfanspeedpercent(device, cuda, smi)[1]
         elif metric.find('clk') >=0 and metric.split('_')[0] in getspecs.validclocknames(cuda, smi):
             return int(getspecs.getcurrentclockfreq(device, metric.split('_')[0], cuda, smi).strip('Mhz'))
@@ -637,7 +641,10 @@ class MachineSpecs(dict):
                 total_bytes_int = total_bytes.split()[0] if cuda else total_bytes
                 smi_info[key] = '{} / {}'.format(to_mem_units(used_bytes_int), to_mem_units(total_bytes_int))
             for component in getspecs.validversioncomponents(cuda, smi):
-                smi_info[component.capitalize() + ' Version'] = getspecs.getversion(device, component, cuda, smi)
+                if cuda:
+                    smi_info[component.capitalize() + ' Version'] = getspecs.getversion(device, component, cuda, smi)
+                else:
+                    smi_info[smi.component_str(component).capitalize() + ' Version'] = getspecs.getversion(device, component, cuda, smi)
             rv['Card' + str(device)] = smi_info
 
         return rv

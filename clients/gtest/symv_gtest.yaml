@@ -30,6 +30,9 @@ Definitions:
     - { incx:   2, incy:   1 }
     - { incx:  -1, incy:  -1 }
 
+  - &incx_incy_range_small
+    - { incx:   2, incy:   1 }
+
   - &complex_alpha_beta_range
     - { alpha:  0,    alphai:  0,   beta:  1,   betai:  0 } # quick success
     - { alpha:  1.5,  alphai:  0.5, beta:  2,   betai:  0.5 }
@@ -71,12 +74,12 @@ Tests:
   fortran: true
 
 - name: symv_NaN
-  category: pre_checkin
+  category: quick
   function: symv
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
   uplo: [ U ]
   matrix_size: *tiny_matrix_size
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_nan
 
 - name: symv_medium
@@ -115,6 +118,16 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   fortran: true
 
+- name: symv_batched_NaN
+  category: quick
+  function: symv_batched
+  precision: *single_double_precisions
+  uplo: [ U ]
+  matrix_size: *tiny_matrix_size
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_nan
+  batch_count: [ 2 ]
+
 - name: symv_batched_medium
   category: pre_checkin
   function: symv_batched
@@ -152,6 +165,16 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
   fortran: true
+
+- name: symv_strided_batched_NaN
+  category: quick
+  function: symv_strided_batched
+  precision: *single_precision
+  uplo: [ L ]
+  matrix_size: *tiny_matrix_size
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_nan
+  batch_count: [ 2 ]
 
 - name: symv_strided_batched_medium
   category: pre_checkin

@@ -90,6 +90,7 @@ foreach( exe ${sample_list_all} )
     target_compile_options( ${exe} PRIVATE -mf16c )
     target_compile_definitions( ${exe} PRIVATE ROCBLAS_INTERNAL_API )
   endif( )
+  rocm_install(TARGETS ${exe} COMPONENT samples)
 endforeach( )
 
 foreach( exe ${sample_list_hip_device} )

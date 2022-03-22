@@ -62,7 +62,16 @@ void testing_trtri(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init_symmetric<T>(hA, N, lda);
+    rocblas_init_matrix(hA,
+                        arg,
+                        N,
+                        N,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_symmetric_matrix,
+                        true);
 
     for(size_t i = 0; i < N; i++)
     {

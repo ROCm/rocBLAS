@@ -14,10 +14,10 @@ rocblas_syr_kernel_inc1(rocblas_int    n,
                         U              alpha_device_host,
                         rocblas_stride stride_alpha,
                         V              xa,
-                        ptrdiff_t      shiftx,
+                        rocblas_stride shiftx,
                         rocblas_stride stridex,
                         W              Aa,
-                        ptrdiff_t      shiftA,
+                        rocblas_stride shiftA,
                         rocblas_int    lda,
                         rocblas_stride strideA)
 {
@@ -298,11 +298,11 @@ rocblas_status rocblas_syr_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
                                           rocblas_int    n,
                                           T              A,
-                                          rocblas_int    offset_a,
+                                          rocblas_stride offset_a,
                                           rocblas_int    lda,
                                           rocblas_stride stride_a,
                                           U              x,
-                                          rocblas_int    offset_x,
+                                          rocblas_stride offset_x,
                                           rocblas_int    inc_x,
                                           rocblas_stride stride_x,
                                           rocblas_int    batch_count,
@@ -373,11 +373,11 @@ template rocblas_status rocblas_syr_check_numerics                       \
                                           rocblas_handle handle,         \
                                           rocblas_int    n,              \
                                           T_              A,             \
-                                          rocblas_int    offset_a,       \
+                                          rocblas_stride    offset_a,       \
                                           rocblas_int    lda,            \
                                           rocblas_stride stride_a,       \
                                           U_              x,             \
-                                          rocblas_int    offset_x,       \
+                                          rocblas_stride    offset_x,       \
                                           rocblas_int    inc_x,          \
                                           rocblas_stride stride_x,       \
                                           rocblas_int    batch_count,    \

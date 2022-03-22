@@ -89,8 +89,16 @@ void testing_trsv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, M, M, lda, stride_a, batch_count, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        M,
+                        M,
+                        lda,
+                        stride_a,
+                        batch_count,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(
         hx, arg, M, abs_incx, stride_x, batch_count, rocblas_client_never_set_nan, false, true);
 

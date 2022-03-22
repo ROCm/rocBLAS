@@ -157,15 +157,18 @@ void testing_syrk(const Arguments& arg)
     h_beta[0]  = beta;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, rows, cols, lda, 0, 1, rocblas_client_alpha_sets_nan, true);
-    if(arg.beta_isnan<T>())
-    {
-        rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, N, N, ldc);
-    }
-    else
-    {
-        rocblas_init_matrix(hC_1, arg, N, N, ldc, 0, 1, rocblas_client_never_set_nan);
-    }
+    rocblas_init_matrix(hA,
+                        arg,
+                        rows,
+                        cols,
+                        lda,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
+    rocblas_init_matrix(
+        hC_1, arg, N, N, ldc, 0, 1, rocblas_client_beta_sets_nan, rocblas_client_symmetric_matrix);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

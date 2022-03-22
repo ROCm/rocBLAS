@@ -92,8 +92,11 @@ if( BUILD_VERBOSE )
   message( STATUS "\t==>CMAKE_SHARED_LINKER_FLAGS_RELEASE: ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
 endif( )
 
+
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h" )
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in"
+	"${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h" )
+
 
 set( rocblas_headers_public
   include/rocblas.h
@@ -101,7 +104,7 @@ set( rocblas_headers_public
   include/internal/rocblas_bfloat16.h
   include/internal/rocblas-auxiliary.h
   include/internal/rocblas-functions.h
-  ${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h
+  ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
 )
 
 source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )
@@ -114,64 +117,3 @@ set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 
 # Build into subdirectories
 add_subdirectory( src )
-
-# The following code is setting variables to control the behavior of CPack to generate our
-if( WIN32 )
-    set( CPACK_SOURCE_GENERATOR "ZIP" )
-    set( CPACK_GENERATOR "ZIP" )
-# else( )
-#    set( CPACK_SOURCE_GENERATOR "TGZ" )
-#    set( CPACK_GENERATOR "DEB;RPM" CACHE STRING "cpack list: 7Z, DEB, IFW, NSIS, NSIS64, RPM, STGZ, TBZ2, TGZ, TXZ, TZ, ZIP" )
-#    set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
-endif( )
-
-# Package specific CPACK vars
-# As of ROCm 3.8, HIP_RUNTIME has been changed from "ROCclr" to "rocclr"
-# As of ROCm 3.8, HIP_RUNTIME has been changed from "cuda" to "cudart"
-if( HIP_RUNTIME MATCHES ".*cuda.*" )
-  set( RPM_REQUIREMENTS "hip-nvcc >= 3.5.0" )
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-nvcc (>= 3.5.0)" )
-else()
-  set( RPM_REQUIREMENTS "hip-rocclr >= 4.0.0" )
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-rocclr (>= 4.0.0)" )
-endif()
-
-if( OS_ID_sles )
-  set( RPM_REQUIREMENTS "${RPM_REQUIREMENTS}, libLLVM7 >= 7.0.1")
-endif()
-set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
-
-set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
-set( CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
-
-if (WIN32)
-  SET( CMAKE_INSTALL_PREFIX "C:/hipSDK" CACHE PATH "Install path" FORCE )
-  SET( INSTALL_PREFIX "C:/hipSDK" )
-  SET( CPACK_SET_DESTDIR FALSE )
-  SET( CPACK_PACKAGE_INSTALL_DIRECTORY "C:/hipSDK" )
-  SET( CPACK_PACKAGING_INSTALL_PREFIX "" )
-  set( CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF )
-else()
-  if( NOT CPACK_PACKAGING_INSTALL_PREFIX )
-    set( CPACK_PACKAGING_INSTALL_PREFIX ${ROCM_PATH} )
-  endif()
-endif( )
-
-set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}" "\${CPACK_PACKAGING_INSTALL_PREFIX}/include" "\${CPACK_PACKAGING_INSTALL_PREFIX}/lib" )
-
-# Give rocblas compiled for CUDA backend a different name
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
-    set( package_name rocblas )
-else( )
-    set( package_name rocblas-alt )
-endif( )
-
-set( ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path placed into ldconfig file" )
-
-rocm_create_package(
-    NAME ${package_name}
-    DESCRIPTION "rocBLAS is AMD's library for BLAS on ROCm. It is implemented in HIP and optimized for AMD GPUs."
-    MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
-    LDCONFIG
-    LDCONFIG_DIR ${ROCBLAS_CONFIG_DIR}
-)

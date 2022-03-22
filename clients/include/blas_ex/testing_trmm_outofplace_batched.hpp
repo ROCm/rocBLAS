@@ -284,19 +284,11 @@ void testing_trmm_outofplace_batched(const Arguments& arg)
 
     //  initialize data on CPU
     h_alpha[0] = alpha;
-    rocblas_seedrand();
-    if(arg.alpha_isnan<T>())
-    {
-        rocblas_init_nan<T>(hA);
-        rocblas_init_nan<T>(hB);
-        rocblas_init_nan<T>(hC);
-    }
-    else
-    {
-        rocblas_init<T>(hA);
-        rocblas_init<T>(hB);
-        rocblas_init<T>(hC);
-    }
+
+    // Initialize data on host memory
+    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hB, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hC, arg, rocblas_client_alpha_sets_nan);
 
     hB_gold.copy_from(hB);
     hC_1.copy_from(hC);

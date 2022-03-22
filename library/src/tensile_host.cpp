@@ -47,7 +47,7 @@ extern "C" void rocblas_shutdown();
 #include <libgen.h>
 #include <link.h>
 #include <unistd.h>
-#define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib"
+#define ROCBLAS_LIB_PATH "/opt/rocm/lib/rocblas"
 #endif
 
 #ifdef WIN32
@@ -579,23 +579,34 @@ namespace
                 // Find the location of the libraries
                 if(TestPath(path + "/../../Tensile/library"))
                     path += "/../../Tensile/library";
-                else
+                else if(TestPath(path + "library"))
                     path += "/library";
+                else
+                    path += "/rocblas/library";
 
                 if(TestPath(path + "/" + processor))
                     path += "/" + processor;
             }
 
 #ifdef TENSILE_YAML
-            tensileLibraryPath = path + "/TensileLibrary.yaml";
+            tensileLibraryPath = path + "/TensileLibrary_" + processor + ".yaml";
 #else
-            tensileLibraryPath = path + "/TensileLibrary.dat";
+            tensileLibraryPath = path + "/TensileLibrary_" + processor + ".dat";
 #endif
             if(!TestPath(tensileLibraryPath))
             {
-                rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath << ": "
-                             << strerror(errno) << std::endl;
-                rocblas_abort();
+#ifdef TENSILE_YAML
+                tensileLibraryPath = path + "/TensileLibrary.yaml";
+#else
+                tensileLibraryPath = path + "/TensileLibrary.dat";
+#endif
+
+                if(!TestPath(tensileLibraryPath))
+                {
+                    rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath << ": "
+                                 << strerror(errno) << std::endl;
+                    rocblas_abort();
+                }
             }
             // We initialize a local static variable with a lambda function call to avoid
             // race conditions when multiple threads with different device IDs try to

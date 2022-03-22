@@ -122,7 +122,17 @@ void testing_spr2(const Arguments& arg)
     double rocblas_error_2;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA_1, arg, size_A, 1, 1, 0, 1, rocblas_client_never_set_nan, true);
+    // Matrix `hA_1` is initialized as a triangular matrix because only the upper triangular or lower triangular portion of the matrix `hA_1` is referenced.
+    rocblas_init_matrix(hA_1,
+                        arg,
+                        N,
+                        (N + 1) / 2,
+                        1,
+                        0,
+                        1,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
     rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan);
 

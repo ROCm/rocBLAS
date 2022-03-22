@@ -721,10 +721,10 @@ Tests:
     incx_incy: *incx_incy_range_small
     algo: 1
     function:
-      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dot:   *single_double_precisions_complex
       - dotc:  *single_double_precisions_complex
-      - dot_ex:   *half_bfloat_single_double_complex_real_precisions
-      - dotc_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dot_ex:   *single_double_precisions_complex
+      - dotc_ex:   *single_double_precisions_complex
 
   - name: blas1_batched
     category: quick
@@ -733,10 +733,10 @@ Tests:
     batch_count: [-1, 0, 257]
     algo: 1
     function:
-      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_batched:   *single_double_precisions_complex
       - dotc_batched:  *single_double_precisions_complex
-      - dot_batched_ex:   *half_bfloat_single_double_complex_real_precisions
-      - dotc_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dot_batched_ex:   *single_double_precisions_complex
+      - dotc_batched_ex:   *single_double_precisions_complex
 
   - name: blas1_strided_batched
     category: quick
@@ -746,10 +746,10 @@ Tests:
     stride_scale: [ 1 ]
     algo: 1
     function:
-      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched:   *single_double_precisions_complex
       - dotc_strided_batched:  *single_double_precisions_complex
-      - dot_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
-      - dotc_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched_ex:   *single_double_precisions_complex
+      - dotc_strided_batched_ex:   *single_double_precisions_complex
 
 # pre_checkin
   - name: blas1

@@ -23,6 +23,17 @@ def get_smi_exec(cuda):
     else:
         return "/opt/rocm/bin/rocm-smi"
 
+def getgfx(devicenum, cuda):
+    if cuda:
+        return "N/A"
+    else:
+        cmd = ["/opt/rocm/bin/rocm_agent_enumerator"]
+        success, cout = _subprocess_helper(cmd)
+        if not success:
+            return "N/A"
+        # Add 1 to devicenum since rocm-agent-enum always prints gfx000 first
+        return cout.splitlines()[devicenum+1]
+
 # Get the hostname
 def gethostname():
     import socket
@@ -397,11 +408,13 @@ def getmeminfo(devicenum, mem_type, cuda, smi=None):
         return smi.getMemInfo(devicenum, mem_type)
 
 def validversioncomponents(cuda, smi=None):
+    # currently only driver according to /opt/rocm/bin/rocm_smi.py
+    # driver corresponds to 0 in /opt/rocm/bin/rocm_smi.py
     if cuda:
         return ['driver']
     else:
         # currently only driver according to /opt/rocm/bin/rocm_smi.py
-        return ['driver']
+        return [0]
 
 def getversion(devicenum, component, cuda, smi=None):
     if cuda:

@@ -37,7 +37,7 @@ Definitions:
     - { alpha: 2.0, alphai: 0.5 }
 
   - &alpha_nan
-    - { alpha: 4.0, alphai: .NaN }
+    - { alpha: .NaN, alphai: .NaN }
 
 Tests:
 
@@ -81,7 +81,7 @@ Tests:
 - name: spr_NaN
   category: quick
   function: spr
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions
   uplo: [ U, L ]
   N: [ 33 ]
   incx: [ 1 ]
@@ -127,6 +127,16 @@ Tests:
   alpha_beta: *alpha_range
   batch_count: [ 1, 5 ]
 
+- name: spr_batched_NaN
+  category: quick
+  function: spr_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  N: [ 33 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+
 - name: spr_batched_medium
   category: pre_checkin
   function: spr_batched
@@ -170,6 +180,17 @@ Tests:
   alpha_beta: *alpha_range
   stride_scale: [ 1.0, 2.0 ]
   batch_count: [ 1, 5 ]
+
+- name: spr_strided_batched_NaN
+  category: quick
+  function: spr_strided_batched
+  precision: *single_precision
+  uplo: [ L ]
+  N: [ 33 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
+  batch_count: [ 2 ]
+  stride_scale: [ 2 ]
 
 - name: spr_strided_batched_medium
   category: pre_checkin

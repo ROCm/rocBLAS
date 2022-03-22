@@ -60,7 +60,7 @@ def RunExporter():
 
 #pragma once
 
-#include "internal/rocblas-types.h"
+#include "rocblas/internal/rocblas-types.h"
 
 """)
 

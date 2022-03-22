@@ -126,6 +126,13 @@ void testing_hpmv(const Arguments& arg)
     host_vector<T> hbeta(1);
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy_1.memcheck());
+    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
+    CHECK_HIP_ERROR(halpha.memcheck());
+    CHECK_HIP_ERROR(hbeta.memcheck());
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
@@ -141,7 +148,17 @@ void testing_hpmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA, arg, size_A, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+    // Matrix `hA` is initialized as a triangular matrix because only the upper triangular or lower triangular portion of the matrix `hA` is referenced.
+    rocblas_init_matrix(hA,
+                        arg,
+                        N / 2,
+                        (N + 1) / 2,
+                        1,
+                        0,
+                        1,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
 

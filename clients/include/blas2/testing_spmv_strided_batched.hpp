@@ -175,8 +175,8 @@ void testing_spmv_strided_batched(const Arguments& arg)
 
     host_vector<T> alpha(1);
     host_vector<T> beta(1);
-    alpha[0] = arg.alpha;
-    beta[0]  = arg.beta;
+    alpha[0] = arg.get_alpha<T>();
+    beta[0]  = arg.get_beta<T>();
 
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
@@ -241,8 +241,17 @@ void testing_spmv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, tri_count(N), 1, 1, strideA, batch_count, rocblas_client_alpha_sets_nan, true);
+    // Matrix `hA` is initialized as a triangular matrix because only the upper triangular or lower triangular portion of the matrix `hA` is referenced.
+    rocblas_init_matrix(hA,
+                        arg,
+                        N,
+                        (N + 1) / 2,
+                        1,
+                        strideA,
+                        batch_count,
+                        rocblas_client_alpha_sets_nan,
+                        rocblas_client_triangular_matrix,
+                        true);
     rocblas_init_vector(
         hx, arg, N, abs_incx, stridex, batch_count, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy, arg, N, abs_incy, stridey, batch_count, rocblas_client_beta_sets_nan);

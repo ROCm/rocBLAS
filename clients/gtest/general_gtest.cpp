@@ -191,7 +191,7 @@ namespace
     {
         rocblas_int    N           = arg.N;
         rocblas_int    inc_x       = arg.incx;
-        rocblas_int    offset_x    = 0;
+        rocblas_stride offset_x    = 0;
         rocblas_stride stride_x    = arg.stride_x;
         rocblas_int    batch_count = arg.batch_count;
 
@@ -523,7 +523,7 @@ namespace
         rocblas_int    M           = arg.M;
         rocblas_int    N           = arg.N;
         rocblas_int    lda         = M;
-        rocblas_int    offset_a    = 0;
+        rocblas_stride offset_a    = 0;
         rocblas_stride stride_a    = arg.stride_a;
         rocblas_int    batch_count = arg.batch_count;
 
