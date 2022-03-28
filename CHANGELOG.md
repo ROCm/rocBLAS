@@ -2,6 +2,17 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+## (Unreleased) rocBLAS 2.45.0
+### Added
+
+### Optimizations
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## (Unreleased) rocBLAS 2.44.0
 ### Added
 - Packages for test and benchmark executables on all supported OSes using CPack.
