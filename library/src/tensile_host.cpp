@@ -323,19 +323,11 @@ namespace
                                                    value_category(*prob.beta),
                                                    workspace_size};
 
-        // TODO: Remove this condition once we migrate HBH and BBH cases to the new naming convention.
-        // The alpha/beta data types for all cases, except HBH, remain as DataType::None here
-        // and will be defined in ContractionSolution::solve. The data types cannot be defined here now
-        // due to some naming conflicts for HBH/BBH.
-        if(Tensile_Ti == Tensile::DataType::Half && Tensile_To == Tensile::DataType::Half
-           && Tensile_Tc == Tensile::DataType::Float)
-        {
-            tensileProblem.setAlphaType(Tensile_Tc);
-            tensileProblem.setBetaType(Tensile_Tc);
-        }
+        tensileProblem.setAlphaType(Tensile_Tc);
+        tensileProblem.setBetaType(Tensile_Tc);
 
         // HPA is active iff sizeof(compute type) > sizeof(input type)
-        // but when Ti=int8x4 (32-byte),we still need to use HPA since the primitive data is int8
+        // but when Ti=int8x4 (32-byte), we still need to use HPA since the primitive data is int8
         tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti)
                                                   || std::is_same<Ti, rocblas_int8x4>{});
 

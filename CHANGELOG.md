@@ -8,6 +8,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Optimizations
 
 ### Changed
+- Unifying library logic file names: affects HBH (->HHS_BH), BBH (->BBS_BH), 4xi8BH (->4xi8II_BH). All HPA types are using the new naming convention now. 
 
 ### Fixed
 
