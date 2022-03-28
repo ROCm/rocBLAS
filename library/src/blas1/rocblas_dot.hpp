@@ -36,7 +36,7 @@ rocblas_dot_kernel_inc1(rocblas_int n,
                         rocblas_stride stridex,
                         const U __restrict__ ya,
                         rocblas_stride shifty,
-                        rocblas_int    stridey,
+                        rocblas_stride stridey,
                         V* __restrict__ workspace,
                         T* __restrict__ out)
 {
@@ -76,7 +76,7 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
                            rocblas_stride stridex,
                            const U __restrict__ ya,
                            rocblas_stride shifty,
-                           rocblas_int    stridey,
+                           rocblas_stride stridey,
                            V* __restrict__ workspace,
                            T* __restrict__ out)
 {
@@ -116,7 +116,7 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
                            rocblas_stride stridex,
                            const U __restrict__ ya,
                            rocblas_stride shifty,
-                           rocblas_int    stridey,
+                           rocblas_stride stridey,
                            V* __restrict__ workspace,
                            T* __restrict__ out)
 {
@@ -166,7 +166,7 @@ rocblas_dot_kernel(rocblas_int n,
                    const U __restrict__ ya,
                    rocblas_stride shifty,
                    rocblas_int    incy,
-                   rocblas_int    stridey,
+                   rocblas_stride stridey,
                    V* __restrict__ workspace,
                    T* __restrict__ out)
 {
