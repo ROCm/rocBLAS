@@ -322,9 +322,9 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
 
     if(arg.b_type == Ti && arg.d_type == To)
     {
-        if(Ti != To)
+        if(Ti != To) // covers HPA: HSS, BSS, I8II, 4xi8II
         {
-            // TODO- Maybe we chould add a new datatype_enum such as rocblas_datatype_i8x4_r
+            // TODO- Maybe we could add a new datatype_enum such as rocblas_datatype_i8x4_r
             // So that we could go to the correct branch here.
             // So far, using whether int8_t or int8x4 is determined in TEST function (gemm_ex)
             if(Ti == rocblas_datatype_i8_r && To == rocblas_datatype_i32_r && Tc == To)
@@ -343,18 +343,18 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
                 }
             }
         }
-        else if(Tc != To)
+        else if(Tc != To) // covers HPA: HHS, BBS
         {
-            if(To == rocblas_datatype_f16_r && Tc == rocblas_datatype_f32_r)
+            if(To == rocblas_datatype_f16_r && Tc == rocblas_datatype_f32_r) // HHS
             {
                 return TEST<rocblas_half, rocblas_half, float>{}(arg);
             }
-            else if(To == rocblas_datatype_bf16_r && Tc == rocblas_datatype_f32_r)
+            else if(To == rocblas_datatype_bf16_r && Tc == rocblas_datatype_f32_r) // BBS
             {
                 return TEST<rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
             }
         }
-        else
+        else // covers non-HPA: dgemm, sgemm, zgemm, cgemm, hgemm
         {
             return rocblas_simple_dispatch<TEST>(arg); // Ti = To = Tc
         }
