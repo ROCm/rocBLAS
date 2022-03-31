@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -24,39 +25,38 @@ void testing_dgmm_bad_arg(const Arguments& arg)
     auto rocblas_dgmm_fn = arg.fortran ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
 
     const rocblas_int M = 100;
-    const rocblas_int N = 100;
+    const rocblas_int N = 101;
 
-    const rocblas_int lda      = 100;
-    const rocblas_int incx     = 1;
-    const rocblas_int ldc      = 100;
-    const rocblas_int abs_incx = incx > 0 ? incx : -incx;
+    const rocblas_int lda  = 100;
+    const rocblas_int incx = 1;
+    const rocblas_int ldc  = 100;
 
-    const rocblas_side side = rocblas_side_right;
+    const rocblas_side side = (rand() & 1) ? rocblas_side_right : rocblas_side_left;
 
     rocblas_local_handle handle{arg};
 
     size_t size_A = N * size_t(lda);
-    size_t size_x = (rocblas_side_right == side ? N : M) * size_t(abs_incx);
+    size_t size_x = (rocblas_side_right == side ? N : M) * size_t(incx);
     size_t size_C = N * size_t(ldc);
 
     // allocate memory on device
     device_vector<T> dA(size_A);
-    device_vector<T> dX(size_x);
+    device_vector<T> dx(size_x);
     device_vector<T> dC(size_C);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dX.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, nullptr, lda, dX, incx, dC, ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, nullptr, lda, dx, incx, dC, ldc),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, dA, lda, nullptr, incx, dC, ldc),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, nullptr, ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, nullptr, ldc),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(nullptr, side, M, N, dA, lda, dX, incx, dC, ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(nullptr, side, M, N, dA, lda, dx, incx, dC, ldc),
                           rocblas_status_invalid_handle);
 }
 
@@ -98,16 +98,14 @@ void testing_dgmm(const Arguments& arg)
         return;
     }
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A), hA_copy(size_A);
-    host_vector<T> hX(size_x), hX_copy(size_x);
+    // Naming: dx is in GPU (device) memory. hK is in CPU (host) memory
+    host_vector<T> hA(size_A);
+    host_vector<T> hx(size_x);
     host_vector<T> hC(size_C);
     host_vector<T> hC_1(size_C);
     host_vector<T> hC_gold(size_C);
     CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hA_copy.memcheck());
-    CHECK_HIP_ERROR(hX.memcheck());
-    CHECK_HIP_ERROR(hX_copy.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
@@ -122,50 +120,31 @@ void testing_dgmm(const Arguments& arg)
                         rocblas_client_never_set_nan,
                         rocblas_client_general_matrix,
                         true);
-    rocblas_init_vector(hX, arg, K, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, K, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
     rocblas_init_matrix(
         hC, arg, M, N, ldc, 0, 1, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
-    hA_copy = hA;
-    hX_copy = hX;
-
     // allocate memory on device
     device_vector<T> dA(size_A);
-    device_vector<T> dX(size_x);
+    device_vector<T> dx(size_x);
     device_vector<T> dC(size_C);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dX.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dX.transfer_from(hX));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
-        CHECK_ROCBLAS_ERROR(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, dC, ldc));
+        CHECK_ROCBLAS_ERROR(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, dC, ldc));
 
-        // reference calculation for golden result while GPU executes
-        ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (K - 1) : 0;
-        cpu_time_used     = get_time_us_no_sync();
-
-        for(size_t i1 = 0; i1 < M; i1++)
-        {
-            for(size_t i2 = 0; i2 < N; i2++)
-            {
-                if(rocblas_side_right == side)
-                {
-                    hC_gold[i1 + i2 * ldc] = hA_copy[i1 + i2 * lda] * hX_copy[shift_x + i2 * incx];
-                }
-                else
-                {
-                    hC_gold[i1 + i2 * ldc] = hA_copy[i1 + i2 * lda] * hX_copy[shift_x + i1 * incx];
-                }
-            }
-        }
-
+        // reference calculation for golden result
+        cpu_time_used = get_time_us_no_sync();
+        cblas_dgmm<T>(side, M, N, hA, lda, hx, incx, hC_gold, ldc);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // fecth from GPU
@@ -190,7 +169,7 @@ void testing_dgmm(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, dC, ldc);
+            rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, dC, ldc);
         }
 
         hipStream_t stream;
@@ -198,7 +177,7 @@ void testing_dgmm(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, dC, ldc);
+            rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, dC, ldc);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
