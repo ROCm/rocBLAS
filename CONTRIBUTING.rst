@@ -6,10 +6,10 @@ Pull-request guidelines
 =======================
 
 
-Our code contriubtion guidelines closely follows the model of `GitHub
+Our code contribution guidelines closely follows the model of `GitHub
 pull-requests <https://help.github.com/articles/using-pull-requests/>`__.
-The rocBLAS repository follows a workflow which dictates a /master branch where releases are cut, and a
-/develop branch which serves as an integration branch for new code. Pull requests should:
+The [rocBLAS repository](https://github.com/ROCmSoftwarePlatform/rocBLAS) follows a workflow which dictates a **master** branch where releases are cut, and a
+**develop** branch which serves as an integration branch for new code. Pull requests should:
 
 -  target the **develop** branch for integration
 -  ensure code builds successfully.
