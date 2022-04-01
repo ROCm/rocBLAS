@@ -692,15 +692,15 @@ ROCBLAS_KERNEL(NB* NB) rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
                                                                              TScal            alpha_device_host,
                                                                              rocblas_stride   stride_alpha,
                                                                              TConstPtr*       A_arg,
-                                                                             rocblas_int      offset_a,
+                                                                             rocblas_stride   offset_a,
                                                                              rocblas_int      lda,
                                                                              rocblas_stride   stride_a,
                                                                              TConstPtr*       B_arg,
-                                                                             rocblas_int      offset_b,
+                                                                             rocblas_stride   offset_b,
                                                                              rocblas_int      ldb,
                                                                              rocblas_stride   stride_b,
                                                                              TPtr*            C_arg,
-                                                                             rocblas_int      offset_c,
+                                                                             rocblas_stride   offset_c,
                                                                              rocblas_int      ldc,
                                                                              rocblas_stride   stride_c,
                                                                              rocblas_int      batch_count)
@@ -859,9 +859,9 @@ rocblas_status trmm_outofplace(rocblas_handle   handle,
                                  rocblas_int      n,
                                  TScal*           alpha,
                                  rocblas_stride   stride_alpha,
-                                 TConstPtr*       dA, rocblas_int offset_a, rocblas_int lda, rocblas_stride stride_a,
-                                 TConstPtr*       dB, rocblas_int offset_b, rocblas_int ldb, rocblas_stride stride_b,
-                                 TPtr*            dC, rocblas_int offset_c, rocblas_int lddc, rocblas_stride stride_c,
+                                 TConstPtr*       dA, rocblas_stride offset_a, rocblas_int lda, rocblas_stride stride_a,
+                                 TConstPtr*       dB, rocblas_stride offset_b, rocblas_int ldb, rocblas_stride stride_b,
+                                 TPtr*            dC, rocblas_stride offset_c, rocblas_int lddc, rocblas_stride stride_c,
                                  rocblas_int      batch_count)
 {
     hipStream_t rocblas_stream = handle->get_stream();
@@ -903,15 +903,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_outofplace
                                      TScal*            alpha,
                                      rocblas_stride    stride_alpha,
                                      TConstPtr*        dA,
-                                     rocblas_int       offset_a,
+                                     rocblas_stride    offset_a,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_a,
                                      TConstPtr*        dB,
-                                     rocblas_int       offset_b,
+                                     rocblas_stride    offset_b,
                                      rocblas_int       ldb,
                                      rocblas_stride    stride_b,
                                      TPtr*             dC,
-                                     rocblas_int       offset_c,
+                                     rocblas_stride    offset_c,
                                      rocblas_int       lddc,
                                      rocblas_stride    stride_c,
                                      rocblas_int       batch_count)
@@ -1209,15 +1209,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    TScal*            alpha,
                                    rocblas_stride    stride_alpha,
                                    TConstPtr*        dA,
-                                   rocblas_int       offset_a,
+                                   rocblas_stride    offset_a,
                                    rocblas_int       lda,
                                    rocblas_stride    stride_a,
                                    TConstPtr*        dB,
-                                   rocblas_int       offset_b,
+                                   rocblas_stride    offset_b,
                                    rocblas_int       ldb,
                                    rocblas_stride    stride_b,
                                    TPtr*             dC,
-                                   rocblas_int       offset_c,
+                                   rocblas_stride    offset_c,
                                    rocblas_int       lddc,
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count)
@@ -1320,15 +1320,15 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_t
                                    TScal_*           alpha,                              \
                                    rocblas_stride    stride_alpha,                       \
                                    TConstPtr_*       dA,                                 \
-                                   rocblas_int       offset_a,                           \
+                                   rocblas_stride    offset_a,                           \
                                    rocblas_int       lda,                                \
                                    rocblas_stride    stride_a,                           \
                                    TConstPtr_*       dB,                                 \
-                                   rocblas_int       offset_b,                           \
+                                   rocblas_stride    offset_b,                           \
                                    rocblas_int       ldb,                               \
                                    rocblas_stride    stride_b,                           \
                                    TPtr_*            dC,                                 \
-                                   rocblas_int       offset_c,                           \
+                                   rocblas_stride    offset_c,                           \
                                    rocblas_int       lddc,                               \
                                    rocblas_stride    stride_c,                           \
                                    rocblas_int       batch_count);
