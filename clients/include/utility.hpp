@@ -258,6 +258,40 @@ inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
 }
 
 /* ============================================================================================= */
+/*! \brief For testing purposes, to convert a regular matrix to a packed matrix.                  */
+template <typename U>
+inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
+{
+#pragma omp parallel for
+    for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
+    {
+        auto* AP    = h_AP[batch_index];
+        auto* A     = h_A[batch_index];
+        int   index = 0;
+        if(upper)
+        {
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j <= i; j++)
+                {
+                    AP[index++] = A[j + i * n];
+                }
+            }
+        }
+        else
+        {
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = i; j < n; j++)
+                {
+                    AP[index++] = A[j + i * n];
+                }
+            }
+        }
+    }
+}
+
+/* ============================================================================================= */
 /*! \brief For testing purposes, makes a matrix hA into a unit_diagonal matrix and               *
  *         randomly initialize the diagonal.                                                     */
 template <typename T>
@@ -267,7 +301,7 @@ void make_unit_diagonal(rocblas_fill uplo, T* hA, rocblas_int lda, rocblas_int N
     {
         for(int i = 0; i < N; i++)
         {
-            T diag = hA[i + i * N];
+            T diag = hA[i + i * lda];
             for(int j = 0; j <= i; j++)
                 hA[i + j * lda] = hA[i + j * lda] / diag;
         }
@@ -281,11 +315,27 @@ void make_unit_diagonal(rocblas_fill uplo, T* hA, rocblas_int lda, rocblas_int N
                 hA[i + j * lda] = hA[i + j * lda] / diag;
         }
     }
-
     // randomly initalize diagonal to ensure we aren't using it's values for tests.
     for(int i = 0; i < N; i++)
     {
         rocblas_init<T>(hA + i * lda + i, 1, 1, 1);
+    }
+}
+
+/* ============================================================================================= */
+/*! \brief For testing purposes, copy hAAT into hA, make hA strictly diagonal dominant,          */
+template <typename T>
+void copy_hAAT_to_hA(T* AAT, T* A, rocblas_int M, size_t lda)
+{
+    for(int i = 0; i < M; i++)
+    {
+        T t = 0.0;
+        for(int j = 0; j < M; j++)
+        {
+            A[i + j * lda] = AAT[i + j * lda];
+            t += rocblas_abs(AAT[i + j * lda]);
+        }
+        A[i + i * lda] = t;
     }
 }
 

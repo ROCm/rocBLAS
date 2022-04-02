@@ -14,6 +14,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -38,15 +39,16 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
 
-    size_t size_A = size_t(N);
     size_t size_x = N * size_t(incx);
     size_t size_y = N * size_t(incy);
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
@@ -67,7 +69,7 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
                                                   uplo,
                                                   N,
                                                   &alpha,
-                                                  dA.ptr_on_device(),
+                                                  dAp.ptr_on_device(),
                                                   nullptr,
                                                   incx,
                                                   &beta,
@@ -80,7 +82,7 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
                                                   uplo,
                                                   N,
                                                   &alpha,
-                                                  dA.ptr_on_device(),
+                                                  dAp.ptr_on_device(),
                                                   dx.ptr_on_device(),
                                                   incx,
                                                   &beta,
@@ -93,7 +95,7 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
                                                   uplo,
                                                   N,
                                                   nullptr,
-                                                  dA.ptr_on_device(),
+                                                  dAp.ptr_on_device(),
                                                   dx.ptr_on_device(),
                                                   incx,
                                                   &beta,
@@ -106,7 +108,7 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
                                                   uplo,
                                                   N,
                                                   &alpha,
-                                                  dA.ptr_on_device(),
+                                                  dAp.ptr_on_device(),
                                                   dx.ptr_on_device(),
                                                   incx,
                                                   nullptr,
@@ -119,7 +121,7 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
                                                   uplo,
                                                   N,
                                                   &alpha,
-                                                  dA.ptr_on_device(),
+                                                  dAp.ptr_on_device(),
                                                   dx.ptr_on_device(),
                                                   incx,
                                                   &beta,
@@ -197,37 +199,42 @@ void testing_hpmv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = size_t(N * (N + 1)) / 2;
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
     size_t size_x   = N * abs_incx;
     size_t size_y   = N * abs_incy;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
+    // Allocate host memory
+    host_batch_matrix<T> hA(N, N, N, batch_count);
+    host_batch_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
     host_batch_vector<T> hy_1(N, incy, batch_count);
     host_batch_vector<T> hy_2(N, incy, batch_count);
     host_batch_vector<T> hy_gold(N, incy, batch_count);
     host_vector<T>       halpha(1);
     host_vector<T>       hbeta(1);
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hy_1.memcheck());
     CHECK_HIP_ERROR(hy_2.memcheck());
     CHECK_HIP_ERROR(hy_gold.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
-    CHECK_HIP_ERROR(hbeta.memcheck());
 
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(N, N, N, batch_count);
+    device_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy_1(N, incy, batch_count);
     device_batch_vector<T> dy_2(N, incy, batch_count);
     device_vector<T>       d_alpha(1);
     device_vector<T>       d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
@@ -236,13 +243,19 @@ void testing_hpmv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_hermitian_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
+    // helper function to convert Regular matrix `hA` to packed matrix `hAp`
+    regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, N);
+
     hy_gold.copy_from(hy_1);
     hy_2.copy_from(hy_1);
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
+
+    // Copy data from CPU to device
+    CHECK_HIP_ERROR(dAp.transfer_from(hAp));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
@@ -255,15 +268,16 @@ void testing_hpmv_batched(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
         CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_hpmv_batched_fn(handle,
                                                     uplo,
                                                     N,
                                                     &h_alpha,
-                                                    dA.ptr_on_device(),
+                                                    dAp.ptr_on_device(),
                                                     dx.ptr_on_device(),
                                                     incx,
                                                     &h_beta,
@@ -271,14 +285,12 @@ void testing_hpmv_batched(const Arguments& arg)
                                                     incy,
                                                     batch_count));
 
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_hpmv_batched_fn(handle,
                                                     uplo,
                                                     N,
                                                     d_alpha,
-                                                    dA.ptr_on_device(),
+                                                    dAp.ptr_on_device(),
                                                     dx.ptr_on_device(),
                                                     incx,
                                                     d_beta,
@@ -290,7 +302,7 @@ void testing_hpmv_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_hpmv<T>(uplo, N, h_alpha, hA[b], hx[b], incx, h_beta, hy_gold[b], incy);
+            cblas_hpmv<T>(uplo, N, h_alpha, hAp[b], hx[b], incx, h_beta, hy_gold[b], incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -325,7 +337,7 @@ void testing_hpmv_batched(const Arguments& arg)
                                     uplo,
                                     N,
                                     &h_alpha,
-                                    dA.ptr_on_device(),
+                                    dAp.ptr_on_device(),
                                     dx.ptr_on_device(),
                                     incx,
                                     &h_beta,
@@ -344,7 +356,7 @@ void testing_hpmv_batched(const Arguments& arg)
                                     uplo,
                                     N,
                                     &h_alpha,
-                                    dA.ptr_on_device(),
+                                    dAp.ptr_on_device(),
                                     dx.ptr_on_device(),
                                     incx,
                                     &h_beta,

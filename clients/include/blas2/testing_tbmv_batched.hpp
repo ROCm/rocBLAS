@@ -14,6 +14,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -26,25 +27,27 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
     auto rocblas_tbmv_batched_fn
         = arg.fortran ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
 
-    const rocblas_int M           = 100;
-    const rocblas_int K           = 5;
-    const rocblas_int lda         = 100;
-    const rocblas_int incx        = 1;
-    const rocblas_int batch_count = 5;
-
-    const rocblas_fill      uplo   = rocblas_fill_upper;
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+    const rocblas_int       M                 = 100;
+    const rocblas_int       K                 = 5;
+    const rocblas_int       lda               = 100;
+    const rocblas_int       incx              = 1;
+    const rocblas_int       batch_count       = 5;
+    const rocblas_int       banded_matrix_row = K + 1;
+    const rocblas_fill      uplo              = rocblas_fill_upper;
+    const rocblas_operation transA            = rocblas_operation_none;
+    const rocblas_diagonal  diag              = rocblas_diagonal_non_unit;
 
     rocblas_local_handle handle{arg};
 
     size_t size_A = lda * size_t(M);
     size_t size_x = M * size_t(incx);
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dAb(banded_matrix_row, M, lda, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
@@ -54,7 +57,7 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbmv_batched_fn(
-            handle, uplo, transA, diag, M, K, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
+            handle, uplo, transA, diag, M, K, dAb.ptr_on_device(), lda, nullptr, incx, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv_batched_fn(nullptr,
@@ -63,7 +66,7 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
                                                   diag,
                                                   M,
                                                   K,
-                                                  dA.ptr_on_device(),
+                                                  dAb.ptr_on_device(),
                                                   lda,
                                                   dx.ptr_on_device(),
                                                   incx,
@@ -82,21 +85,22 @@ void testing_tbmv_batched(const Arguments& arg)
     auto rocblas_tbmv_batched_fn
         = arg.fortran ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
 
-    rocblas_int       M           = arg.M;
-    rocblas_int       K           = arg.K;
-    rocblas_int       lda         = arg.lda;
-    rocblas_int       incx        = arg.incx;
-    char              char_uplo   = arg.uplo;
-    char              char_diag   = arg.diag;
-    rocblas_fill      uplo        = char2rocblas_fill(char_uplo);
-    rocblas_operation transA      = char2rocblas_operation(arg.transA);
-    rocblas_diagonal  diag        = char2rocblas_diagonal(char_diag);
-    rocblas_int       batch_count = arg.batch_count;
+    rocblas_int       M                 = arg.M;
+    rocblas_int       K                 = arg.K;
+    rocblas_int       lda               = arg.lda;
+    rocblas_int       incx              = arg.incx;
+    char              char_uplo         = arg.uplo;
+    char              char_diag         = arg.diag;
+    rocblas_fill      uplo              = char2rocblas_fill(char_uplo);
+    rocblas_operation transA            = char2rocblas_operation(arg.transA);
+    rocblas_diagonal  diag              = char2rocblas_diagonal(char_diag);
+    rocblas_int       batch_count       = arg.batch_count;
+    const rocblas_int banded_matrix_row = K + 1;
 
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    bool invalid_size = M < 0 || K < 0 || lda < banded_matrix_row || !incx || batch_count < 0;
     if(invalid_size || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
@@ -107,34 +111,43 @@ void testing_tbmv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A = lda * size_t(M);
     size_t size_x, abs_incx;
 
     abs_incx = incx >= 0 ? incx : -incx;
     size_x   = M * abs_incx;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    host_batch_vector<T> hx(M, incx, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
+    // Allocate host memory
+    host_batch_matrix<T> hAb(banded_matrix_row, M, lda, batch_count);
     host_batch_vector<T> hx_1(M, incx, batch_count);
+    host_batch_vector<T> hx_2(M, incx, batch_count);
     host_batch_vector<T> hx_gold(M, incx, batch_count);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hAb.memcheck());
     CHECK_HIP_ERROR(hx_1.memcheck());
+    CHECK_HIP_ERROR(hx_2.memcheck());
     CHECK_HIP_ERROR(hx_gold.memcheck());
 
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dAb(banded_matrix_row, M, lda, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
-    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
+    // Initializing the banded-matrix 'hAb' as a general matrix as the banded matrix is not triangular
+    rocblas_init_matrix(
+        hAb, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+    rocblas_init_vector(hx_1, arg, rocblas_client_never_set_nan, false, true);
 
-    hx_gold.copy_from(hx);
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    hx_gold.copy_from(hx_1);
+
+    // Copy data from CPU to device
+    CHECK_HIP_ERROR(dAb.transfer_from(hAb));
+    CHECK_HIP_ERROR(dx.transfer_from(hx_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1;
@@ -154,7 +167,7 @@ void testing_tbmv_batched(const Arguments& arg)
                                                     diag,
                                                     M,
                                                     K,
-                                                    dA.ptr_on_device(),
+                                                    dAb.ptr_on_device(),
                                                     lda,
                                                     dx.ptr_on_device(),
                                                     incx,
@@ -163,21 +176,22 @@ void testing_tbmv_batched(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
-            cblas_tbmv<T>(uplo, transA, diag, M, K, hA[b], lda, hx_gold[b], incx);
+            cblas_tbmv<T>(uplo, transA, diag, M, K, hAb[b], lda, hx_gold[b], incx);
+
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hx_1.transfer_from(dx));
+        CHECK_HIP_ERROR(hx_2.transfer_from(dx));
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, hx_gold, hx_1, batch_count);
+            unit_check_general<T>(1, M, abs_incx, hx_gold, hx_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, M, abs_incx, hx_gold, hx_1, batch_count);
+                = norm_check_general<T>('F', 1, M, abs_incx, hx_gold, hx_2, batch_count);
         }
     }
 
@@ -194,7 +208,7 @@ void testing_tbmv_batched(const Arguments& arg)
                                     diag,
                                     M,
                                     K,
-                                    dA.ptr_on_device(),
+                                    dAb.ptr_on_device(),
                                     lda,
                                     dx.ptr_on_device(),
                                     incx,
@@ -213,7 +227,7 @@ void testing_tbmv_batched(const Arguments& arg)
                                     diag,
                                     M,
                                     K,
-                                    dA.ptr_on_device(),
+                                    dAb.ptr_on_device(),
                                     lda,
                                     dx.ptr_on_device(),
                                     incx,

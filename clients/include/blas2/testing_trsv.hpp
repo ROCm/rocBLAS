@@ -11,6 +11,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -50,44 +51,33 @@ void testing_trsv(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = size_t(lda) * size_t(M);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = M * abs_incx;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> AAT(size_A);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(M, M, lda);
+    host_matrix<T> hAAT(M, M, lda);
     host_vector<T> hb(size_x);
     host_vector<T> hx(size_x);
     host_vector<T> hx_or_b_1(size_x);
     host_vector<T> hx_or_b_2(size_x);
     host_vector<T> cpu_x_or_b(size_x);
 
-    double gpu_time_used, cpu_time_used;
-    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
-
-    // allocate memory on device
-    device_vector<T> dA(size_A);
+    // Allocate device memory
+    device_matrix<T> dA(M, M, lda);
     device_vector<T> dx_or_b(size_x);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        M,
-                        M,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_triangular_matrix,
-                        true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
     rocblas_init_vector(hx, arg, M, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
-    //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
+    //  calculate hAAT = hA * hA ^ T or hAAT = hA * hA ^ H if complex
     cblas_gemm<T>(rocblas_operation_none,
                   rocblas_operation_conjugate_transpose,
                   M,
@@ -99,42 +89,21 @@ void testing_trsv(const Arguments& arg)
                   hA,
                   lda,
                   T(0.0),
-                  AAT,
+                  hAAT,
                   lda);
 
-    //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-    for(int i = 0; i < M; i++)
-    {
-        T t = 0.0;
-        for(int j = 0; j < M; j++)
-        {
-            hA[i + j * lda] = AAT[i + j * lda];
-            t += rocblas_abs(AAT[i + j * lda]);
-        }
-        hA[i + i * lda] = t;
-    }
+    //  copy hAAT into hA, make hA strictly diagonal dominant, and therefore SPD
+    copy_hAAT_to_hA<T>((T*)hAAT, (T*)hA, M, size_t(lda));
 
     //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
     cblas_potrf<T>(char_uplo, M, hA, lda);
 
     //  make hA unit diagonal if diag == rocblas_diagonal_unit
-    if(char_diag == 'U' || char_diag == 'u')
+    if(diag == rocblas_diagonal_unit)
     {
-        if('L' == char_uplo || 'l' == char_uplo)
-            for(int i = 0; i < M; i++)
-            {
-                T diag = hA[i + i * lda];
-                for(int j = 0; j <= i; j++)
-                    hA[i + j * lda] = hA[i + j * lda] / diag;
-            }
-        else
-            for(int j = 0; j < M; j++)
-            {
-                T diag = hA[j + j * lda];
-                for(int i = 0; i <= j; i++)
-                    hA[i + j * lda] = hA[i + j * lda] / diag;
-            }
+        make_unit_diagonal(uplo, (T*)hA, lda, M);
     }
+
     hb = hx;
 
     // Calculate hb = hA*hx;
@@ -144,10 +113,14 @@ void testing_trsv(const Arguments& arg)
     hx_or_b_2  = hb;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
 
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
+    double gpu_time_used, cpu_time_used;
+    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {

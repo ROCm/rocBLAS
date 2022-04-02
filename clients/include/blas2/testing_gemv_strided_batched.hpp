@@ -13,6 +13,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -43,10 +44,8 @@ void testing_gemv_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = lda * static_cast<size_t>(N);
-
     // allocate memory on device
-    device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
+    device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
     device_strided_batch_vector<T> dy(M, incy, stride_y, batch_count);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -277,19 +276,22 @@ void testing_gemv_strided_batched(const Arguments& arg)
     rocblas_int       batch_count = arg.batch_count;
 
     rocblas_local_handle handle{arg};
-    size_t               size_A = lda * static_cast<size_t>(N);
-    size_t               size_x, dim_x, abs_incx;
-    size_t               size_y, dim_y, abs_incy;
+    size_t               size_x, dim_x, abs_incx, row_A;
+    size_t               size_y, dim_y, abs_incy, col_A;
 
     if(transA == rocblas_operation_none)
     {
         dim_x = N;
         dim_y = M;
+        row_A = M;
+        col_A = N;
     }
     else
     {
         dim_x = M;
         dim_y = N;
+        row_A = N;
+        col_A = M;
     }
 
     abs_incx = incx >= 0 ? incx : -incx;
@@ -322,23 +324,29 @@ void testing_gemv_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_A = size_A + static_cast<size_t>(stride_a) * static_cast<size_t>(batch_count - 1);
     size_x = size_x + static_cast<size_t>(stride_x) * static_cast<size_t>(batch_count - 1);
     size_y = size_y + static_cast<size_t>(stride_y) * static_cast<size_t>(batch_count - 1);
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hx(size_x);
-    host_vector<T> hy_1(size_y);
-    host_vector<T> hy_2(size_y);
-    host_vector<T> hy_gold(size_y);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(M, N, lda, stride_a, batch_count);
+    host_vector<T>               hx(size_x);
+    host_vector<T>               hy_1(size_y);
+    host_vector<T>               hy_2(size_y);
+    host_vector<T>               hy_gold(size_y);
 
-    device_vector<T> dA(size_A);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy_1(size_y);
-    device_vector<T> dy_2(size_y);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
+    device_vector<T>               dx(size_x);
+    device_vector<T>               dy_1(size_y);
+    device_vector<T>               dy_2(size_y);
+    device_vector<T>               d_alpha(1);
+    device_vector<T>               d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
@@ -347,16 +355,8 @@ void testing_gemv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        M,
-                        N,
-                        lda,
-                        stride_a,
-                        batch_count,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_vector(hx,
                         arg,
                         dim_x,
@@ -375,9 +375,9 @@ void testing_gemv_strided_batched(const Arguments& arg)
     hy_2    = hy_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1;
@@ -388,7 +388,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
 
@@ -436,7 +436,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
                           M,
                           N,
                           h_alpha,
-                          hA + b * stride_a,
+                          hA[b],
                           lda,
                           hx + b * stride_x,
                           incx,

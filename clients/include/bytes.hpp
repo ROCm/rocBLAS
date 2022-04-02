@@ -123,6 +123,11 @@ inline size_t tri_count(rocblas_int n)
     return size_t(n) * (1 + n) / 2;
 }
 
+inline size_t rocblas_packed_matrix_size(rocblas_int n)
+{
+    return (size_t(n) * (1 + n)) / 2;
+}
+
 /* \brief byte counts of GBMV */
 template <typename T>
 constexpr double gbmv_gbyte_count(
