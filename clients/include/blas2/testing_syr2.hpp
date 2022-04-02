@@ -12,6 +12,7 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -37,10 +38,12 @@ void testing_syr2_bad_arg(const Arguments& arg)
     size_t size_x   = size_t(N) * abs_incx;
     size_t size_y   = size_t(N) * abs_incy;
 
-    // allocate memory on device
-    device_vector<T> dA_1(size_A);
+    // Allocate device memory
+    device_matrix<T> dA_1(N, N, lda);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_x);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
@@ -93,55 +96,50 @@ void testing_syr2(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = size_t(lda) * N;
     size_t size_x   = N * abs_incx;
     size_t size_y   = N * abs_incy;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA_1(size_A);
-    host_vector<T> hA_2(size_A);
-    host_vector<T> hA_gold(size_A);
+    // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
+    // Allocate host memory
+    host_matrix<T> hA_1(N, N, lda);
+    host_matrix<T> hA_2(N, N, lda);
+    host_matrix<T> hA_gold(N, N, lda);
     host_vector<T> hx(size_x);
     host_vector<T> hy(size_y);
     host_vector<T> halpha(1);
     halpha[0] = h_alpha;
 
-    // allocate memory on device
-    device_vector<T> dA_1(size_A);
-    device_vector<T> dA_2(size_A);
+    // Allocate device memory
+    device_matrix<T> dA_1(N, N, lda);
+    device_matrix<T> dA_2(N, N, lda);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> d_alpha(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
-
     // Initialize data on host memory
-    rocblas_init_matrix(hA_1,
-                        arg,
-                        N,
-                        N,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_symmetric_matrix,
-                        true);
+    rocblas_init_matrix(
+        hA_1, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan);
 
     hA_2    = hA_1;
     hA_gold = hA_1;
 
+    // copy data from CPU to device
     CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
+
+    double gpu_time_used, cpu_time_used;
+    double rocblas_error_1;
+    double rocblas_error_2;
 
     if(arg.unit_check || arg.norm_check)
     {

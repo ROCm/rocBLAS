@@ -12,6 +12,7 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -37,12 +38,12 @@ void testing_her2_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = size_t(N) * lda;
-
-    // allocate memory on device
-    device_strided_batch_vector<T> dA_1(size_A, 1, stride_A, batch_count);
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA_1(N, N, lda, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
     device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
@@ -173,40 +174,41 @@ void testing_her2_strided_batched(const Arguments& arg)
     size_t abs_incy = incy >= 0 ? incy : -incy;
     size_t size_A   = size_t(N) * lda;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_strided_batch_vector<T> hA_1(size_A, 1, stride_A, batch_count);
-    host_strided_batch_vector<T> hA_2(size_A, 1, stride_A, batch_count);
-    host_strided_batch_vector<T> hA_gold(size_A, 1, stride_A, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA_1(N, N, lda, stride_A, batch_count);
+    host_strided_batch_matrix<T> hA_2(N, N, lda, stride_A, batch_count);
+    host_strided_batch_matrix<T> hA_gold(N, N, lda, stride_A, batch_count);
     host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
     host_strided_batch_vector<T> hy(N, incy, stride_y, batch_count);
     host_vector<T>               halpha(1);
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA_1.memcheck());
     CHECK_HIP_ERROR(hA_2.memcheck());
     CHECK_HIP_ERROR(hA_gold.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hy.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
 
     halpha[0] = h_alpha;
 
-    // allocate memory on device
-    device_strided_batch_vector<T> dA_1(size_A, 1, stride_A, batch_count);
-    device_strided_batch_vector<T> dA_2(size_A, 1, stride_A, batch_count);
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA_1(N, N, lda, stride_A, batch_count);
+    device_strided_batch_matrix<T> dA_2(N, N, lda, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
     device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
     device_vector<T>               d_alpha(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
-
     // Initialize data on host memory
-    rocblas_init_vector(hA_1, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hA_1, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan);
 
@@ -215,13 +217,18 @@ void testing_her2_strided_batched(const Arguments& arg)
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
-    CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
-    CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+
+    double gpu_time_used, cpu_time_used;
+    double rocblas_error_1;
+    double rocblas_error_2;
 
     if(arg.unit_check || arg.norm_check)
     {
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR((rocblas_her2_strided_batched<T>)(handle,
                                                               uplo,
@@ -256,9 +263,9 @@ void testing_her2_strided_batched(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
-            cblas_her2<T>(uplo, N, h_alpha, hx[i], incx, hy[i], incy, hA_gold[i], lda);
+            cblas_her2<T>(uplo, N, h_alpha, hx[b], incx, hy[b], incy, hA_gold[b], lda);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

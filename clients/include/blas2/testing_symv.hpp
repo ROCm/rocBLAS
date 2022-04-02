@@ -12,6 +12,7 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -34,14 +35,15 @@ void testing_symv_bad_arg(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = lda * N;
     size_t size_x   = N * abs_incx;
     size_t size_y   = N * abs_incy;
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
+    // Allocate device memory
+    device_matrix<T> dA(N, N, lda);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
@@ -111,50 +113,45 @@ void testing_symv(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
-    host_vector<T> hA(size_A);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(N, N, lda);
     host_vector<T> hx(size_X);
-    host_vector<T> hy(size_Y);
-    host_vector<T> hy2(size_Y);
-    host_vector<T> hg(size_Y); // gold standard
+    host_vector<T> hy_1(size_Y);
+    host_vector<T> hy_2(size_Y);
+    host_vector<T> hy_gold(size_Y); // gold standard
 
-    double gpu_time_used, cpu_time_used;
-    double h_error, d_error;
-
-    device_vector<T> dA(size_A);
+    // Allocate device memory
+    device_matrix<T> dA(N, N, lda);
     device_vector<T> dx(size_X);
     device_vector<T> dy(size_Y);
+    device_vector<T> d_alpha(1);
+    device_vector<T> d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        N,
-                        N,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_symmetric_matrix,
-                        true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_symmetric_matrix, true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
-    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
 
-    // make copy in hg which will later be used with CPU BLAS
-    hg  = hy;
-    hy2 = hy; // device memory re-test
+    // Make copy in hy_gold which will later be used with CPU BLAS
+    hy_gold = hy_1;
+    hy_2    = hy_1; // device memory re-test
 
     // copy data from CPU to device
-    dx.transfer_from(hx);
-    dy.transfer_from(hy);
-    dA.transfer_from(hA);
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+
+    double gpu_time_used, cpu_time_used;
+    double h_error, d_error;
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -167,7 +164,7 @@ void testing_symv(const Arguments& arg)
             rocblas_symv_fn(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hy.transfer_from(dy));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
         //
         // rocblas_pointer_mode_device test
@@ -176,7 +173,7 @@ void testing_symv(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(beta));
 
-        dy.transfer_from(hy2);
+        dy.transfer_from(hy_2);
 
         CHECK_ROCBLAS_ERROR(
             rocblas_symv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
@@ -184,32 +181,32 @@ void testing_symv(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         // cpu reference
-        cblas_symv<T>(uplo, N, alpha[0], hA, lda, hx, incx, beta[0], hg, incy);
+        cblas_symv<T>(uplo, N, alpha[0], hA, lda, hx, incx, beta[0], hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hy2.transfer_from(dy));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy));
 
         if(arg.unit_check)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(1, N, abs_incy, hg, hy);
-                unit_check_general<T>(1, N, abs_incy, hg, hy2);
+                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
+                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, N, abs_incy, hg, hy, tol);
-                near_check_general<T>(1, N, abs_incy, hg, hy2, tol);
+                near_check_general<T>(1, N, abs_incy, hy_gold, hy_1, tol);
+                near_check_general<T>(1, N, abs_incy, hy_gold, hy_2, tol);
             }
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, hg, hy);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, hg, hy2);
+            h_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1);
+            d_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2);
         }
     }
 

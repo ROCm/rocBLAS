@@ -12,6 +12,7 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -37,14 +38,15 @@ void testing_symv_batched_bad_arg(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = lda * N;
     size_t size_x   = N * abs_incx * batch_count;
     size_t size_y   = N * abs_incy * batch_count;
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(N, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
@@ -194,50 +196,52 @@ void testing_symv_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
-    host_batch_vector<T> hA(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(N, N, lda, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
-    host_batch_vector<T> hy(N, incy, batch_count);
-    host_batch_vector<T> hy2(N, incy, batch_count);
-    host_batch_vector<T> hg(N, incy, batch_count);
+    host_batch_vector<T> hy_1(N, incy, batch_count);
+    host_batch_vector<T> hy_2(N, incy, batch_count);
+    host_batch_vector<T> hy_gold(N, incy, batch_count);
 
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy.memcheck());
-    CHECK_HIP_ERROR(hy2.memcheck());
-    CHECK_HIP_ERROR(hg.memcheck());
+    CHECK_HIP_ERROR(hy_1.memcheck());
+    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
 
-    double gpu_time_used, cpu_time_used;
-    double h_error, d_error;
-
-    char char_fill = arg.uplo;
-
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(N, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
+    device_vector<T>       d_alpha(1);
+    device_vector<T>       d_beta(1);
 
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_symmetric_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, false);
-    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
-    // save a copy in hg which will later get output of CPU BLAS
-    hg.copy_from(hy);
-    hy2.copy_from(hy);
+    // save a copy in hy_gold which will later get output of CPU BLAS
+    hy_gold.copy_from(hy_1);
+    hy_2.copy_from(hy_1);
 
     // copy data from CPU to device
-    dx.transfer_from(hx);
-    dy.transfer_from(hy);
-    dA.transfer_from(hA);
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+
+    double gpu_time_used, cpu_time_used;
+    double h_error, d_error;
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -261,7 +265,7 @@ void testing_symv_batched(const Arguments& arg)
                                                     batch_count));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hy.transfer_from(dy));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
         //
         // rocblas_pointer_mode_device test
@@ -270,7 +274,7 @@ void testing_symv_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(beta));
 
-        dy.transfer_from(hy2);
+        dy.transfer_from(hy_2);
 
         CHECK_ROCBLAS_ERROR(rocblas_symv_batched_fn(handle,
                                                     uplo,
@@ -288,34 +292,34 @@ void testing_symv_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         // cpu reference
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
-            cblas_symv<T>(uplo, N, alpha[0], hA[i], lda, hx[i], incx, beta[0], hg[i], incy);
+            cblas_symv<T>(uplo, N, alpha[0], hA[b], lda, hx[b], incx, beta[0], hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hy2.transfer_from(dy));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy));
 
         if(arg.unit_check)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(1, N, abs_incy, hg, hy, batch_count);
-                unit_check_general<T>(1, N, abs_incy, hg, hy2, batch_count);
+                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1, batch_count);
+                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2, batch_count);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, N, abs_incy, hg, hy, batch_count, tol);
-                near_check_general<T>(1, N, abs_incy, hg, hy2, batch_count, tol);
+                near_check_general<T>(1, N, abs_incy, hy_gold, hy_1, batch_count, tol);
+                near_check_general<T>(1, N, abs_incy, hy_gold, hy_2, batch_count, tol);
             }
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, hg, hy, batch_count);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, hg, hy2, batch_count);
+            h_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1, batch_count);
+            d_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2, batch_count);
         }
     }
 

@@ -14,6 +14,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -34,16 +35,14 @@ void testing_trmv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = lda * size_t(M);
     size_t size_x = M * size_t(incx);
 
-    host_vector<T> hA(size_A);
-    CHECK_HIP_ERROR(hA.memcheck());
-    host_vector<T> hx(size_x);
-    CHECK_HIP_ERROR(hx.memcheck());
-    device_vector<T> dA(size_A);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    // Allocate device memory
+    device_matrix<T> dA(M, M, lda);
     device_vector<T> dx(size_x);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
@@ -83,40 +82,32 @@ void testing_trmv(const Arguments& arg)
         return;
     }
 
-    size_t size_A = lda * size_t(M);
     size_t size_x, dim_x, abs_incx;
     dim_x = M;
 
     abs_incx = incx >= 0 ? incx : -incx;
     size_x   = dim_x * abs_incx;
 
-    host_vector<T> hA(size_A);
-    CHECK_HIP_ERROR(hA.memcheck());
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(M, M, lda);
     host_vector<T> hx(size_x);
-    CHECK_HIP_ERROR(hx.memcheck());
-    device_vector<T> dA(size_A);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    device_vector<T> dx(size_x);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     host_vector<T> hres(size_x);
-    CHECK_HIP_ERROR(hres.memcheck());
+
+    // Allocate device memory
+    device_matrix<T> dA(M, M, lda);
+    device_vector<T> dx(size_x);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        M,
-                        M,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_triangular_matrix,
-                        true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
     rocblas_init_vector(hx, arg, dim_x, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
 
-    //
-    // Transfer.
-    //
+    // Copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 

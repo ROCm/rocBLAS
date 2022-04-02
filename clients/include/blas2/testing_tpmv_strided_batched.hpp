@@ -13,6 +13,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -36,18 +37,12 @@ void testing_tpmv_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = (M * (M + 1)) / 2;
-
-    host_strided_batch_vector<T> hA(size_A, 1, stride_a, batch_count);
-    CHECK_DEVICE_ALLOCATION(hA.memcheck());
-
-    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
-    CHECK_DEVICE_ALLOCATION(hx.memcheck());
-
-    device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(M), 1, stride_a, batch_count);
     device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
@@ -60,12 +55,12 @@ void testing_tpmv_strided_batched_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpmv_strided_batched_fn(
-            handle, uplo, transA, diag, M, dA, stride_a, nullptr, incx, stride_x, batch_count),
+            handle, uplo, transA, diag, M, dAp, stride_a, nullptr, incx, stride_x, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpmv_strided_batched_fn(
-            nullptr, uplo, transA, diag, M, dA, stride_a, dx, incx, stride_x, batch_count),
+            nullptr, uplo, transA, diag, M, dAp, stride_a, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_handle);
 }
 
@@ -106,32 +101,39 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = (M * (M + 1)) / 2;
     size_t abs_incx = incx >= 0 ? incx : -incx;
 
-    host_strided_batch_vector<T> hA(size_A, 1, stride_a, batch_count);
-    CHECK_HIP_ERROR(hA.memcheck());
-
+    // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(M, M, M, stride_a, batch_count);
+    host_strided_batch_matrix<T> hAp(1, rocblas_packed_matrix_size(M), 1, stride_a, batch_count);
     host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(hx.memcheck());
-
     host_strided_batch_vector<T> hres(M, incx, stride_x, batch_count);
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hAp.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hres.memcheck());
 
-    device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(M), 1, stride_a, batch_count);
     device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
-    //
-    // Transfer.
-    //
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    // Helper function to convert Regular matrix `hA` to packed matrix `hAp`
+    regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, M);
+
+    // copy data from CPU to device
+    CHECK_HIP_ERROR(dAp.transfer_from(hAp));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used, rocblas_error;
@@ -145,16 +147,16 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         // GPU BLAS
         //
         CHECK_ROCBLAS_ERROR(rocblas_tpmv_strided_batched_fn(
-            handle, uplo, transA, diag, M, dA, stride_a, dx, incx, stride_x, batch_count));
+            handle, uplo, transA, diag, M, dAp, stride_a, dx, incx, stride_x, batch_count));
 
         //
         // CPU BLAS
         //
         {
             cpu_time_used = get_time_us_no_sync();
-            for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
+            for(rocblas_int b = 0; b < batch_count; ++b)
             {
-                cblas_tpmv<T>(uplo, transA, diag, M, hA[batch_index], hx[batch_index], incx);
+                cblas_tpmv<T>(uplo, transA, diag, M, hAp[b], hx[b], incx);
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
@@ -191,7 +193,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
                 rocblas_tpmv_strided_batched_fn(
-                    handle, uplo, transA, diag, M, dA, stride_a, dx, incx, stride_x, batch_count);
+                    handle, uplo, transA, diag, M, dAp, stride_a, dx, incx, stride_x, batch_count);
             }
         }
 
@@ -206,7 +208,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
                 rocblas_tpmv_strided_batched_fn(
-                    handle, uplo, transA, diag, M, dA, stride_a, dx, incx, stride_x, batch_count);
+                    handle, uplo, transA, diag, M, dAp, stride_a, dx, incx, stride_x, batch_count);
             }
             gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         }

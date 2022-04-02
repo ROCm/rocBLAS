@@ -14,6 +14,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -36,15 +37,16 @@ void testing_hpmv_bad_arg(const Arguments& arg)
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
 
-    size_t size_A = size_t(N);
     size_t size_x = N * size_t(incx);
     size_t size_y = N * size_t(incy);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
+    // Allocate device memory
+    device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
@@ -53,20 +55,21 @@ void testing_hpmv_bad_arg(const Arguments& arg)
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hpmv_fn(handle, uplo, N, &alpha, dA, nullptr, incx, &beta, dy, incy),
+        rocblas_hpmv_fn(handle, uplo, N, &alpha, dAp, nullptr, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hpmv_fn(handle, uplo, N, &alpha, dA, dx, incx, &beta, nullptr, incy),
+        rocblas_hpmv_fn(handle, uplo, N, &alpha, dAp, dx, incx, &beta, nullptr, incy),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(handle, uplo, N, nullptr, dA, dx, incx, &beta, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(handle, uplo, N, nullptr, dAp, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(handle, uplo, N, &alpha, dA, dx, incx, nullptr, dy, incy),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hpmv_fn(handle, uplo, N, &alpha, dAp, dx, incx, nullptr, dy, incy),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(nullptr, uplo, N, &alpha, dAp, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_handle);
 
     // If N==0, all pointers can be nullptr without error
@@ -81,7 +84,7 @@ void testing_hpmv_bad_arg(const Arguments& arg)
 
     // If alpha==0 && beta==1, then A, x and y may be nullptr without error
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hpmv_fn(handle, uplo, N, &zero, dA, dx, incx, &one, nullptr, incy),
+        rocblas_hpmv_fn(handle, uplo, N, &zero, dAp, dx, incx, &one, nullptr, incy),
         rocblas_status_success);
 }
 
@@ -90,13 +93,12 @@ void testing_hpmv(const Arguments& arg)
 {
     auto rocblas_hpmv_fn = arg.fortran ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
 
-    rocblas_int  N       = arg.N;
-    rocblas_int  incx    = arg.incx;
-    rocblas_int  incy    = arg.incy;
-    T            h_alpha = arg.get_alpha<T>();
-    T            h_beta  = arg.get_beta<T>();
-    rocblas_fill uplo    = char2rocblas_fill(arg.uplo);
-
+    rocblas_int          N       = arg.N;
+    rocblas_int          incx    = arg.incx;
+    rocblas_int          incy    = arg.incy;
+    T                    h_alpha = arg.get_alpha<T>();
+    T                    h_beta  = arg.get_beta<T>();
+    rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
@@ -110,14 +112,15 @@ void testing_hpmv(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = size_t(N * (N + 1)) / 2;
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
     size_t size_x   = N * abs_incx;
     size_t size_y   = N * abs_incy;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
+    // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
+    // Allocate host memory
+    host_matrix<T> hA(N, N, N);
+    host_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1);
     host_vector<T> hx(size_x);
     host_vector<T> hy_1(size_y);
     host_vector<T> hy_2(size_y);
@@ -126,20 +129,17 @@ void testing_hpmv(const Arguments& arg)
     host_vector<T> hbeta(1);
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy_1.memcheck());
-    CHECK_HIP_ERROR(hy_2.memcheck());
-    CHECK_HIP_ERROR(hy_gold.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
-    CHECK_HIP_ERROR(hbeta.memcheck());
 
-    device_vector<T> dA(size_A);
+    // Allocate device memory
+    device_matrix<T> dA(N, N, N);
+    device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
     device_vector<T> dx(size_x);
     device_vector<T> dy_1(size_y);
     device_vector<T> dy_2(size_y);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
@@ -148,19 +148,13 @@ void testing_hpmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    // Matrix `hA` is initialized as a triangular matrix because only the upper triangular or lower triangular portion of the matrix `hA` is referenced.
-    rocblas_init_matrix(hA,
-                        arg,
-                        N / 2,
-                        (N + 1) / 2,
-                        1,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_triangular_matrix,
-                        true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_hermitian_matrix, true);
     rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+
+    // helper function to convert Regular matrix `hA` to packed matrix `hAp`
+    regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, N);
 
     // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
     // CPU BLAS
@@ -168,7 +162,7 @@ void testing_hpmv(const Arguments& arg)
     hy_2    = hy_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dAp.transfer_from(hAp));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
@@ -181,23 +175,22 @@ void testing_hpmv(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
         CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy));
+            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy_1, incy));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hpmv_fn(handle, uplo, N, d_alpha, dA, dx, incx, d_beta, dy_2, incy));
+            rocblas_hpmv_fn(handle, uplo, N, d_alpha, dAp, dx, incx, d_beta, dy_2, incy));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_hpmv<T>(uplo, N, h_alpha, hA, hx, incx, h_beta, hy_gold, incy);
+        cblas_hpmv<T>(uplo, N, h_alpha, hAp, hx, incx, h_beta, hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -226,7 +219,7 @@ void testing_hpmv(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy_1, incy);
         }
 
         hipStream_t stream;
@@ -235,7 +228,7 @@ void testing_hpmv(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

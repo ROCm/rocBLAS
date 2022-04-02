@@ -53,37 +53,44 @@ void testing_trsv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = lda * size_t(M);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = M * abs_incx;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    host_batch_vector<T> AAT(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(M, M, lda, batch_count);
+    host_batch_matrix<T> hAAT(M, M, lda, batch_count);
     host_batch_vector<T> hb(size_x, 1, batch_count);
     host_batch_vector<T> hx(size_x, 1, batch_count);
     host_batch_vector<T> hx_or_b_1(size_x, 1, batch_count);
     host_batch_vector<T> hx_or_b_2(size_x, 1, batch_count);
     host_batch_vector<T> cpu_x_or_b(size_x, 1, batch_count);
 
-    double gpu_time_used, cpu_time_used;
-    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hAAT.memcheck());
+    CHECK_HIP_ERROR(hb.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hx_or_b_1.memcheck());
+    CHECK_HIP_ERROR(hx_or_b_2.memcheck());
+    CHECK_HIP_ERROR(cpu_x_or_b.memcheck());
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(M, M, lda, batch_count);
     device_batch_vector<T> dx_or_b(M, incx, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     for(int b = 0; b < batch_count; b++)
     {
-        //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
+        //  calculate hAAT = hA * hA ^ T or hAAT = hA * hA ^ H if complex
         cblas_gemm<T>(rocblas_operation_none,
                       rocblas_operation_conjugate_transpose,
                       M,
@@ -95,46 +102,19 @@ void testing_trsv_batched(const Arguments& arg)
                       hA[b],
                       lda,
                       T(0.0),
-                      AAT[b],
+                      hAAT[b],
                       lda);
 
-        //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-        for(int i = 0; i < M; i++)
-        {
-            T t = 0.0;
-            for(int j = 0; j < M; j++)
-            {
-                int idx    = i + j * lda;
-                hA[b][idx] = AAT[b][idx];
-                t += rocblas_abs(AAT[b][idx]);
-            }
-            hA[b][i + i * lda] = t;
-        }
+        //  copy hAAT into hA, make hA strictly diagonal dominant, and therefore SPD
+        copy_hAAT_to_hA<T>((T*)hAAT[b], (T*)hA[b], M, size_t(lda));
 
         //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, M, hA[b], lda);
 
         //  make hA unit diagonal if diag == rocblas_diagonal_unit
-        if(char_diag == 'U' || char_diag == 'u')
+        if(diag == rocblas_diagonal_unit)
         {
-            if('L' == char_uplo || 'l' == char_uplo)
-            {
-                for(int i = 0; i < M; i++)
-                {
-                    T diag = hA[b][i + i * lda];
-                    for(int j = 0; j <= i; j++)
-                        hA[b][i + j * lda] = hA[b][i + j * lda] / diag;
-                }
-            }
-            else
-            {
-                for(int j = 0; j < M; j++)
-                {
-                    T diag = hA[b][j + j * lda];
-                    for(int i = 0; i <= j; i++)
-                        hA[b][i + j * lda] = hA[b][i + j * lda] / diag;
-                }
-            }
+            make_unit_diagonal(uplo, (T*)hA[b], lda, M);
         }
     }
     hb.copy_from(hx);
@@ -149,6 +129,7 @@ void testing_trsv_batched(const Arguments& arg)
     hx_or_b_1.copy_from(hb);
     hx_or_b_2.copy_from(hb);
 
+    // copy data from CPU to device
     CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
     CHECK_HIP_ERROR(dA.transfer_from(hA));
 
@@ -156,7 +137,10 @@ void testing_trsv_batched(const Arguments& arg)
     double error_device     = 0.0;
     double max_error_host   = 0.0;
     double max_error_device = 0.0;
-
+    double gpu_time_used, cpu_time_used;
+    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
         // Compute size

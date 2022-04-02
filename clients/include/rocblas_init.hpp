@@ -77,6 +77,43 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
     }
 }
 
+template <typename U, typename T>
+void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
+                                          const char                uplo,
+                                          T                         rand_gen(),
+                                          U&                        hA)
+{
+    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+
+        if(matrix_type == rocblas_client_general_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value     = rand_gen();
+                    A[i + j * lda] = (i ^ j) & 1 ? value : negate(value);
+                }
+        }
+        else if(matrix_type == rocblas_client_triangular_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value
+                        = uplo == 'U' ? (j >= i ? rand_gen() : 0) : (j <= i ? rand_gen() : 0);
+                    A[i + j * lda] = (i ^ j) & 1 ? value : negate(value);
+                }
+        }
+    }
+}
+
 // Initialize vector so adjacent entries have alternating sign.
 template <typename T>
 void rocblas_init_vector_alternating_sign(T               rand_gen(),
@@ -183,6 +220,91 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                         = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
                     A[i + j * lda + b * stride] = value;
                 }
+    }
+}
+
+template <typename U, typename T>
+void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
+                         const char                uplo,
+                         T                         rand_gen(),
+                         U&                        hA)
+{
+    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+        if(matrix_type == rocblas_client_general_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    A[i + j * lda] = rand_gen();
+        }
+        else if(matrix_type == rocblas_client_hermitian_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = rand_gen();
+                    if(i == j)
+                        A[j + i * lda] = std::real(value);
+                    else if(uplo == 'U')
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = 0;
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[j + i * lda] = 0;
+                        A[i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = conjugate(value);
+                    }
+                }
+        }
+        else if(matrix_type == rocblas_client_symmetric_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = rand_gen();
+                    if(i == j)
+                        A[j + i * lda] = value;
+                    else if(uplo == 'U')
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = 0;
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[j + i * lda] = 0;
+                        A[i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = value;
+                    }
+                }
+        }
+        else if(matrix_type == rocblas_client_triangular_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value
+                        = uplo == 'U' ? (j >= i ? rand_gen() : 0) : (j <= i ? rand_gen() : 0);
+                    A[i + j * lda] = value;
+                }
+        }
     }
 }
 
@@ -300,6 +422,95 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
                                                                 : T(0));
                     A[i + j * lda + b * stride] = value;
                 }
+    }
+}
+
+template <typename T, typename U>
+void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
+                              const char                uplo,
+                              U&                        hA,
+                              bool                      seedReset = false)
+{
+    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+
+        if(matrix_type == rocblas_client_general_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    A[i + j * lda] = T(seedReset ? cos(i + j * lda) : sin(i + j * lda));
+        }
+        else if(matrix_type == rocblas_client_hermitian_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = T(seedReset ? cos(i + j * lda) : sin(i + j * lda));
+
+                    if(i == j)
+                        A[j + i * lda] = std::real(value);
+                    else if(uplo == 'U')
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = 0;
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[j + i * lda] = 0;
+                        A[i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = conjugate(value);
+                    }
+                }
+        }
+        else if(matrix_type == rocblas_client_symmetric_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < N; ++i)
+                for(size_t j = 0; j <= i; ++j)
+                {
+                    auto value = T(seedReset ? cos(i + j * lda) : sin(i + j * lda));
+                    if(i == j)
+                        A[j + i * lda] = value;
+                    else if(uplo == 'U')
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = 0;
+                    }
+                    else if(uplo == 'L')
+                    {
+                        A[j + i * lda] = 0;
+                        A[i + j * lda] = value;
+                    }
+                    else
+                    {
+                        A[j + i * lda] = value;
+                        A[i + j * lda] = value;
+                    }
+                }
+        }
+        else if(matrix_type == rocblas_client_triangular_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value
+                        = uplo == 'U'
+                              ? (j >= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda)) : 0)
+                              : (j <= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda)) : 0);
+                    A[i + j * lda] = value;
+                }
+        }
     }
 }
 
