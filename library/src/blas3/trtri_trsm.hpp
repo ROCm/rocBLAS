@@ -26,11 +26,11 @@ ROCBLAS_KERNEL(IB* IB)
 trtri_trsm_kernel(rocblas_fill     uplo,
                   rocblas_diagonal diag,
                   U                A,
-                  rocblas_int      offset_A,
+                  rocblas_stride   offset_A,
                   rocblas_int      lda,
                   rocblas_stride   stride_A,
                   V                invA,
-                  rocblas_int      offset_invA,
+                  rocblas_stride   offset_invA,
                   rocblas_stride   stride_invA)
 {
     // get the individual matrix which is processed by device function
@@ -97,11 +97,11 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                                            rocblas_diagonal diag,
                                            rocblas_int      n,
                                            U                A,
-                                           rocblas_int      offset_Ain,
+                                           rocblas_stride   offset_Ain,
                                            rocblas_int      lda,
                                            rocblas_stride   stride_A,
                                            V                invA,
-                                           rocblas_int      offset_invAin,
+                                           rocblas_stride   offset_invAin,
                                            rocblas_stride   stride_invA,
                                            rocblas_int      batch_count)
 {
