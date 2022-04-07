@@ -118,24 +118,11 @@ namespace
             }
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-
-        if(m < 0 || !incx || batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        if(!m || !batch_count)
-        {
-            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-            return rocblas_status_success;
-        }
-
-        size_t dev_bytes = m * batch_count * sizeof(T);
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(dev_bytes);
-
-        if(!a || !x)
-            return rocblas_status_invalid_pointer;
+        size_t         dev_bytes;
+        rocblas_status arg_status = rocblas_tpmv_arg_check<T>(
+            handle, uplo, transa, diag, m, a, x, incx, batch_count, dev_bytes);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         auto w_mem = handle->device_malloc(dev_bytes);
         if(!w_mem)

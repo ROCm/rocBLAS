@@ -51,6 +51,22 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched_fn(handle,
+                                                          rocblas_fill_full,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          K,
+                                                          dAb,
+                                                          lda,
+                                                          stride_A,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
+
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched_fn(handle,
                                                           uplo,
                                                           transA,
                                                           diag,

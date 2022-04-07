@@ -47,6 +47,20 @@ void testing_tbmv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbmv_fn(handle, rocblas_fill_full, transA, diag, M, K, dAb, lda, dx, incx),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbmv_fn(
+            handle, uplo, (rocblas_operation)rocblas_fill_full, diag, M, K, dAb, lda, dx, incx),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbmv_fn(
+            handle, uplo, transA, (rocblas_diagonal)rocblas_fill_full, M, K, dAb, lda, dx, incx),
+        rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
 

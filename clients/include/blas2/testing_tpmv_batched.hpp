@@ -46,6 +46,18 @@ void testing_tpmv_batched_bad_arg(const Arguments& arg)
     //
     // Checks.
     //
+    EXPECT_ROCBLAS_STATUS(rocblas_tpmv_batched_fn(handle,
+                                                  rocblas_fill_full,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  dAp.ptr_on_device(),
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpmv_batched_fn(
             handle, uplo, transA, diag, M, nullptr, dx.ptr_on_device(), incx, batch_count),

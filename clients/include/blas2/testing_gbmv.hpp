@@ -55,6 +55,22 @@ void testing_gbmv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_fn(handle,
+                                          (rocblas_operation)rocblas_fill_full,
+                                          M,
+                                          N,
+                                          KL,
+                                          KU,
+                                          &alpha,
+                                          dAb,
+                                          lda,
+                                          dx,
+                                          incx,
+                                          &beta,
+                                          dy,
+                                          incy),
+                          rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),

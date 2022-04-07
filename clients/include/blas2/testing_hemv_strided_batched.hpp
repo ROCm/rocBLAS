@@ -54,6 +54,23 @@ void testing_hemv_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_hemv_strided_batched_fn(handle,
+                                                          rocblas_fill_full,
+                                                          N,
+                                                          &alpha,
+                                                          dA,
+                                                          lda,
+                                                          stride_A,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          &beta,
+                                                          dy,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_hemv_strided_batched_fn(handle,
                                                           uplo,
                                                           N,
                                                           &alpha,

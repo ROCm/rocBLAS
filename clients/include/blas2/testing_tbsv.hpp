@@ -51,6 +51,15 @@ void testing_tbsv_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbsv_fn(handle, rocblas_fill_full, transA, diag, N, K, dA, lda, dx, incx),
         rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbsv_fn(
+            handle, uplo, (rocblas_operation)rocblas_fill_full, diag, N, K, dA, lda, dx, incx),
+        rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbsv_fn(
+            handle, uplo, transA, (rocblas_diagonal)rocblas_fill_full, N, K, dA, lda, dx, incx),
+        rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dA, lda, nullptr, incx),

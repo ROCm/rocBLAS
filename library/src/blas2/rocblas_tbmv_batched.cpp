@@ -103,13 +103,11 @@ namespace
             }
         }
 
-        if(m < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
-            return rocblas_status_invalid_size;
-        if(!m || !batch_count)
-        {
-            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-            return rocblas_status_success;
-        }
+        rocblas_status arg_status = rocblas_tbmv_arg_check<T>(
+            handle, uplo, transA, diag, m, k, A, lda, x, incx, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
+
         if(!A || !x)
             return rocblas_status_invalid_pointer;
 

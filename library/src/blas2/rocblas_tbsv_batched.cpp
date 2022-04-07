@@ -109,14 +109,10 @@ namespace
                             batch_count);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
-            return rocblas_status_invalid_size;
-        if(!n || !batch_count)
-            return rocblas_status_success;
-        if(!A || !x)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status = rocblas_tbsv_arg_check(
+            handle, uplo, transA, diag, n, k, A, lda, x, incx, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {

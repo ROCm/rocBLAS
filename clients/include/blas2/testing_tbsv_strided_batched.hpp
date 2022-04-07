@@ -62,6 +62,7 @@ void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
                                                           stride_x,
                                                           batch_count),
                           rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched_fn(handle,
                                                           uplo,
                                                           transA,

@@ -58,6 +58,23 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
     auto dy_dev = dy.ptr_on_device();
 
     EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                  (rocblas_operation)rocblas_fill_full,
+                                                  M,
+                                                  N,
+                                                  KL,
+                                                  KU,
+                                                  &alpha,
+                                                  dA_dev,
+                                                  lda,
+                                                  dx_dev,
+                                                  incx,
+                                                  &beta,
+                                                  dy_dev,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
                                                   transA,
                                                   M,
                                                   N,

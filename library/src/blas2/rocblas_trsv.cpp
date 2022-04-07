@@ -91,29 +91,13 @@ namespace
             }
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
-        if(m < 0 || lda < m || lda < 1 || !incx)
-            return rocblas_status_invalid_size;
+        size_t         dev_bytes;
+        rocblas_status arg_status
+            = rocblas_trsv_arg_check(handle, uplo, transA, diag, m, A, lda, B, incx, 1, dev_bytes);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
-        // quick return if possible.
-        if(!m)
-        {
-            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-            return rocblas_status_success;
-        }
-
-        if(!A || !B)
-            return rocblas_status_invalid_pointer;
-
-        // Need one int worth of global memory to keep track of completed sections
-        size_t dev_bytes_completed_sec = sizeof(rocblas_int);
-        if(handle->is_device_memory_size_query())
-        {
-            return handle->set_optimal_device_memory_size(dev_bytes_completed_sec);
-        }
-        auto w_mem = handle->device_malloc(dev_bytes_completed_sec);
-
+        auto w_mem = handle->device_malloc(dev_bytes);
         if(!w_mem)
             return rocblas_status_memory_error;
 

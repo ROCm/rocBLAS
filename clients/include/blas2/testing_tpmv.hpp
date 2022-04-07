@@ -47,6 +47,20 @@ void testing_tpmv_bad_arg(const Arguments& arg)
     //
     // Checks.
     //
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tpmv_fn(handle, rocblas_fill_full, transA, diag, M, dAp, dx, incx),
+        rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tpmv_fn(handle, uplo, (rocblas_operation)rocblas_fill_full, diag, M, dAp, dx, incx),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tpmv_fn(
+            handle, uplo, transA, (rocblas_diagonal)rocblas_fill_full, M, dAp, dx, incx),
+        rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_tpmv_fn(handle, uplo, transA, diag, M, nullptr, dx, incx),
                           rocblas_status_invalid_pointer);
 

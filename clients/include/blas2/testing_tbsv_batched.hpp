@@ -62,6 +62,7 @@ void testing_tbsv_batched_bad_arg(const Arguments& arg)
                                                   incx,
                                                   batch_count),
                           rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbsv_batched_fn(
             handle, uplo, transA, diag, N, K, nullptr, lda, dx.ptr_on_device(), incx, batch_count),

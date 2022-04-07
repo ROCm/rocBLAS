@@ -17,6 +17,74 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+template <typename T>
+void testing_trsv_batched_bad_arg(const Arguments& arg)
+{
+    auto rocblas_trsv_batched_fn
+        = arg.fortran ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+
+    const rocblas_int       M           = 100;
+    const rocblas_int       lda         = 100;
+    const rocblas_int       incx        = 1;
+    const rocblas_int       batch_count = 1;
+    const rocblas_operation transA      = rocblas_operation_none;
+    const rocblas_fill      uplo        = rocblas_fill_lower;
+    const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
+
+    rocblas_local_handle handle{arg};
+
+    size_t size_A = lda * size_t(M);
+
+    host_batch_vector<T> hA(size_A, 1, batch_count);
+    CHECK_HIP_ERROR(hA.memcheck());
+    host_batch_vector<T> hx(M, incx, batch_count);
+    CHECK_HIP_ERROR(hx.memcheck());
+
+    device_batch_vector<T> dA(size_A, 1, batch_count);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    device_batch_vector<T> dx(M, incx, batch_count);
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+    //
+    // Checks.
+    //
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsv_batched_fn(handle,
+                                                  rocblas_fill_full,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsv_batched_fn(
+            handle, uplo, transA, diag, M, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsv_batched_fn(
+            handle, uplo, transA, diag, M, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsv_batched_fn(nullptr,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  batch_count),
+                          rocblas_status_invalid_handle);
+}
+
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
 

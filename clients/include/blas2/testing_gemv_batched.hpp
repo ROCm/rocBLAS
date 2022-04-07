@@ -52,6 +52,21 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                  (rocblas_operation)rocblas_fill_full,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
                                                   transA,
                                                   M,
                                                   N,
