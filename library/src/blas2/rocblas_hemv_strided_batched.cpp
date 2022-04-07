@@ -111,6 +111,9 @@ namespace
             }
         }
 
+        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+            return rocblas_status_invalid_value;
+
         if(n < 0 || lda < n || lda < 1 || !incx || !incy || batch_count < 0)
             return rocblas_status_invalid_size;
 

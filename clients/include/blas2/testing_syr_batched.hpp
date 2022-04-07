@@ -44,6 +44,17 @@ void testing_syr_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(rocblas_syr_batched_fn(handle,
+                                                 rocblas_fill_full,
+                                                 N,
+                                                 &alpha,
+                                                 dx.ptr_on_device(),
+                                                 incx,
+                                                 dA_1.ptr_on_device(),
+                                                 lda,
+                                                 batch_count),
+                          rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr_batched_fn(
             handle, uplo, N, &alpha, nullptr, incx, dA_1.ptr_on_device(), lda, batch_count),

@@ -48,6 +48,19 @@ void testing_syr_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(rocblas_syr_strided_batched_fn(handle,
+                                                         rocblas_fill_full,
+                                                         N,
+                                                         &alpha,
+                                                         dx,
+                                                         incx,
+                                                         stride_x,
+                                                         dA_1,
+                                                         lda,
+                                                         stride_A,
+                                                         batch_count),
+                          rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr_strided_batched_fn(
             handle, uplo, N, &alpha, nullptr, incx, stride_x, dA_1, lda, stride_A, batch_count),

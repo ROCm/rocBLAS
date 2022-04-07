@@ -86,6 +86,20 @@ void testing_gemv_bad_arg(const Arguments& arg)
         CHECK_HIP_ERROR(dx.transfer_from(hx));
         CHECK_HIP_ERROR(dy.transfer_from(hy));
 
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_fn(handle,
+                                              (rocblas_operation)rocblas_fill_full,
+                                              M,
+                                              N,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              dx,
+                                              incx,
+                                              beta,
+                                              dy,
+                                              incy),
+                              rocblas_status_invalid_value);
+
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemv_fn(handle, transA, M, N, alpha, nullptr, lda, dx, incx, beta, dy, incy),
             rocblas_status_invalid_pointer);

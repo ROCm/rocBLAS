@@ -18,6 +18,72 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+template <typename T>
+void testing_trsv_strided_batched_bad_arg(const Arguments& arg)
+{
+    auto rocblas_trsv_strided_batched_fn = arg.fortran ? rocblas_trsv_strided_batched<T, true>
+                                                       : rocblas_trsv_strided_batched<T, false>;
+
+    const rocblas_int       M           = 100;
+    const rocblas_int       lda         = 100;
+    const rocblas_int       incx        = 1;
+    const rocblas_int       batch_count = 1;
+    const rocblas_stride    stride_a    = M * lda;
+    const rocblas_stride    stride_x    = M;
+    const rocblas_operation transA      = rocblas_operation_none;
+    const rocblas_fill      uplo        = rocblas_fill_lower;
+    const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
+
+    rocblas_local_handle handle{arg};
+
+    size_t size_A = lda * size_t(M);
+
+    host_strided_batch_vector<T> hA(size_A, 1, stride_a, batch_count);
+    CHECK_DEVICE_ALLOCATION(hA.memcheck());
+
+    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
+    CHECK_DEVICE_ALLOCATION(hx.memcheck());
+
+    device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+
+    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+    //
+    // Checks.
+    //
+    EXPECT_ROCBLAS_STATUS(rocblas_trsv_strided_batched_fn(handle,
+                                                          rocblas_fill_full,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          dA,
+                                                          lda,
+                                                          stride_a,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsv_strided_batched_fn(
+            handle, uplo, transA, diag, M, nullptr, lda, stride_a, dx, incx, stride_x, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsv_strided_batched_fn(
+            handle, uplo, transA, diag, M, dA, lda, stride_a, nullptr, incx, stride_x, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsv_strided_batched_fn(
+            nullptr, uplo, transA, diag, M, dA, lda, stride_a, dx, incx, stride_x, batch_count),
+        rocblas_status_invalid_handle);
+}
+
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
 

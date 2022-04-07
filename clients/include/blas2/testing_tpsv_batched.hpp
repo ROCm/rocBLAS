@@ -50,6 +50,8 @@ void testing_tpsv_batched_bad_arg(const Arguments& arg)
         rocblas_tpsv_batched_fn(
             handle, rocblas_fill_full, transA, diag, N, dAp, dx, incx, batch_count),
         rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpsv_batched_fn(handle, uplo, transA, diag, N, nullptr, dx, incx, batch_count),
         rocblas_status_invalid_pointer);

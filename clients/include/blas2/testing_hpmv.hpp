@@ -51,6 +51,10 @@ void testing_hpmv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
+        rocblas_hpmv_fn(handle, rocblas_fill_full, N, &alpha, dAp, dx, incx, &beta, dy, incy),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
         rocblas_hpmv_fn(handle, uplo, N, &alpha, nullptr, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 

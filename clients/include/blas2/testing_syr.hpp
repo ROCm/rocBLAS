@@ -42,6 +42,9 @@ void testing_syr_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(rocblas_syr_fn(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1, lda),
+                          rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_syr_fn(handle, uplo, N, &alpha, nullptr, incx, dA_1, lda),
                           rocblas_status_invalid_pointer);
 

@@ -112,6 +112,10 @@ namespace
                             batch_count);
         }
 
+        if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+           && transA != rocblas_operation_conjugate_transpose)
+            return rocblas_status_invalid_value;
+
         if(m < 0 || n < 0 || lda < ku + kl + 1 || !incx || !incy || kl < 0 || ku < 0
            || batch_count < 0)
             return rocblas_status_invalid_size;

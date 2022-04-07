@@ -108,14 +108,10 @@ namespace
                             batch_count);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || !incx || batch_count < 0)
-            return rocblas_status_invalid_size;
-        if(!n || !batch_count)
-            return rocblas_status_success;
-        if(!AP || !x)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status
+            = rocblas_tpsv_arg_check(handle, uplo, transA, diag, n, AP, x, incx, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         auto check_numerics = handle->check_numerics;
         if(check_numerics)
