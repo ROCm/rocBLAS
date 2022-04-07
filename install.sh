@@ -230,9 +230,13 @@ install_packages( )
                                       "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
-  local library_dependencies_centos_rhel_8=( "epel-release" "openssl-devel"
+  local library_dependencies_centos_8=( "epel-release" "openssl-devel"
                                       "make" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" )
+  local library_dependencies_rhel_8=( "epel-release" "openssl-devel"
+                                      "make" "rpm-build"
+                                      "python36" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_fedora=( "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
@@ -257,7 +261,8 @@ install_packages( )
     if $update_cmake == true; then
       library_dependencies_ubuntu+=("wget")
       library_dependencies_centos_rhel+=("wget")
-      library_dependencies_centos_rhel_8+=("wget")
+      library_dependencies_centos_8+=("wget")
+      library_dependencies_rhel_8+=("wget")
       library_dependencies_fedora+=("wget")
       library_dependencies_sles+=("wget")
     fi
@@ -289,9 +294,28 @@ install_packages( )
       fi
       ;;
 
-    centos|rhel)
-      if [[ ( "${VERSION_ID}" -ge 8 ) ]]; then
-        install_yum_packages "${library_dependencies_centos_rhel_8[@]}"
+    centos)
+      if [[ ( "${MAJORVERSION}" -ge 8 ) ]]; then
+        install_yum_packages "${library_dependencies_centos_8[@]}"
+
+        if [[ "${build_clients}" == true ]]; then
+          install_yum_packages "${client_dependencies_centos_rhel_8[@]}"
+        fi
+      else
+  #     yum -y update brings *all* installed packages up to date
+  #     without seeking user approval
+  #     elevate_if_not_root yum -y update
+        install_yum_packages "${library_dependencies_centos_rhel[@]}"
+
+        if [[ "${build_clients}" == true ]]; then
+          install_yum_packages "${client_dependencies_centos_rhel[@]}"
+        fi
+      fi
+      ;;
+
+    rhel)
+      if [[ ( "${MAJORVERSION}" -ge 8 ) ]]; then
+        install_yum_packages "${library_dependencies_rhel_8[@]}"
 
         if [[ "${build_clients}" == true ]]; then
           install_yum_packages "${client_dependencies_centos_rhel_8[@]}"
@@ -366,6 +390,7 @@ else
   echo "This script depends on the /etc/*-release files"
   exit 2
 fi
+MAJORVERSION=$(echo $VERSION_ID | cut -f1 -d.)
 
 # The following function exits script if an unsupported distro is detected
 supported_distro
@@ -422,7 +447,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -489,6 +514,9 @@ while true; do
         shift 2 ;;
     -n|--no_tensile|--no-tensile)
         build_tensile=false
+        shift ;;
+    --upgrade_tensile_venv_pip)
+        upgrade_tensile_pip=true
         shift ;;
     --build_dir)
 #use readlink rather than realpath for CentOS 6.10 support
@@ -760,6 +788,10 @@ pushd .
     if [[ ${build_jobs} != $(nproc) ]]; then
       cmake_common_options+=("-DTensile_CPU_THREADS=${build_jobs}")
     fi
+  fi
+
+  if [[ "${upgrade_tensile_pip}" == true ]]; then
+    tensile_opt="${tensile_opt} -DTENSILE_VENV_UPGRADE_PIP=ON"
   fi
 
   if [[ "${tensile_merge_files}" == false ]]; then
