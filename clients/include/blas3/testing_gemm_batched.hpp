@@ -37,9 +37,7 @@ void testing_gemm_batched(const Arguments& arg)
     rocblas_operation    transA      = char2rocblas_operation(arg.transA);
     rocblas_operation    transB      = char2rocblas_operation(arg.transB);
     rocblas_int          A_row       = transA == rocblas_operation_none ? M : K;
-    rocblas_int          A_col       = transA == rocblas_operation_none ? K : M;
     rocblas_int          B_row       = transB == rocblas_operation_none ? K : N;
-    rocblas_int          B_col       = transB == rocblas_operation_none ? N : K;
 
     // check here to prevent undefined memory allocation error
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta.
@@ -326,11 +324,13 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        device_vector<T> alpha_d(1), beta_d(1), zero_d(1);
-        const T          alpha_h(1), beta_h(1), zero_h(0);
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
         const T* alpha = &alpha_h;
         const T* beta  = &beta_h;
+        const T* one   = &one_h;
         const T* zero  = &zero_h;
 
         if(pointer_mode == rocblas_pointer_mode_device)
@@ -339,6 +339,8 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
             alpha = alpha_d;
             CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
             beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
             CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
             zero = zero_d;
         }
@@ -454,12 +456,97 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                       ldc,
                                                       batch_count),
                               rocblas_status_invalid_handle);
-    }
 
-    /* TODO: LWPMLSE-171
+        // If M==0, then all pointers can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      0,
+                                                      N,
+                                                      K,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      ldb,
+                                                      nullptr,
+                                                      nullptr,
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // If N==0, then A and B can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      0,
+                                                      K,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      ldb,
+                                                      nullptr,
+                                                      nullptr,
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+
         // the following tests still output to C
 
-        // If K==0, then A and B can be nullptr without issue.
+        // If K==0, then alpha, A and B can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      0,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      ldb,
+                                                      beta,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+
         // If alpha==0, then A and B can be nullptr without issue
-    */
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      K,
+                                                      zero,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      ldb,
+                                                      beta,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // If alpha==0 and beta==1, then A, B and C can be nullptr without issue
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      K,
+                                                      zero,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      ldb,
+                                                      one,
+                                                      nullptr,
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+    }
 }

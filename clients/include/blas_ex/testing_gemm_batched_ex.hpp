@@ -51,7 +51,8 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
         const rocblas_datatype compute_type = rocblas_type2datatype<Tc>();
 
         device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
-        const Tc          alpha_h(1), beta_h(1), zero_h(0);
+
+        const Tc alpha_h(1), beta_h(1), zero_h(0);
 
         const Tc* alpha = &alpha_h;
         const Tc* beta  = &beta_h;
@@ -368,21 +369,21 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
                                                          transA,
                                                          transB,
+                                                         M,
                                                          0,
-                                                         N,
                                                          K,
-                                                         alpha,
-                                                         dA.ptr_on_device(),
+                                                         nullptr,
+                                                         nullptr,
                                                          a_type,
                                                          lda,
-                                                         dB.ptr_on_device(),
+                                                         nullptr,
                                                          b_type,
                                                          ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
+                                                         nullptr,
+                                                         nullptr,
                                                          c_type,
                                                          ldc,
-                                                         dD.ptr_on_device(),
+                                                         nullptr,
                                                          d_type,
                                                          ldd,
                                                          batch_count,
@@ -392,17 +393,16 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
                                                          flags),
                               rocblas_status_success);
 
-        /* TODO: LWPMLSE-171
         // the following tests still output to D
 
-        // If K==0, then A and B can be nullptr without issue.
+        // If K==0, then alpha, A and B can be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
                                                          transA,
                                                          transB,
                                                          M,
                                                          N,
                                                          0,
-                                                         alpha,
+                                                         nullptr,
                                                          nullptr,
                                                          a_type,
                                                          lda,
@@ -422,7 +422,6 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
                                                          solution_index,
                                                          flags),
                               rocblas_status_success);
-
 
         // If alpha==0, then A and B can be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
@@ -451,7 +450,36 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
                                                          solution_index,
                                                          flags),
                               rocblas_status_success);
-*/
+
+        // alpha==0 && beta==1 must still copy C to D so no quick return
+
+        // If alpha==0 && beta==0 then A, B and C can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         zero,
+                                                         nullptr,
+                                                         a_type,
+                                                         lda,
+                                                         nullptr,
+                                                         b_type,
+                                                         ldb,
+                                                         zero,
+                                                         nullptr,
+                                                         c_type,
+                                                         ldc,
+                                                         dD.ptr_on_device(),
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_success);
     }
 }
 

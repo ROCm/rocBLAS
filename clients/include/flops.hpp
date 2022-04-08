@@ -553,6 +553,8 @@ constexpr double syr2_gflop_count<rocblas_double_complex>(rocblas_int n)
 template <typename T>
 constexpr double gemm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
 {
+    if(k == 0)
+        k = 1;
     return (2.0 * m * n * k) / 1e9;
 }
 
@@ -560,6 +562,8 @@ template <>
 constexpr double
     gemm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
 {
+    if(k == 0)
+        k = 1;
     return (8.0 * m * n * k) / 1e9;
 }
 
@@ -567,7 +571,7 @@ template <>
 constexpr double
     gemm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
 {
-    return (8.0 * m * n * k) / 1e9;
+    return gemm_gflop_count<rocblas_float_complex>(m, n, k);
 }
 
 /* \brief floating point counts of GEAM */

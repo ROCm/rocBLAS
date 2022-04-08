@@ -12,6 +12,9 @@ Definitions:
 
   - &small_matrix_size_range
     - { M:    -1, N:    -1, K:    -1, lda:    -1, ldb:     1, ldc:     1, ldd:     1 }
+    - { M:     0, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # m==0
+    - { M:     8, N:     0, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # n==0
+    - { M:     8, N:     8, K:     0, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # k==0
     - { M:     8, N:     9, K:    10, lda:     8, ldb:    10, ldc:     8, ldd:     8 }
     - { M:     4, N:     3, K:     4, lda:     4, ldb:     4, ldc:     4, ldd:     4 }
     - { M:     3, N:     3, K:     3, lda:     3, ldb:     3, ldc:     3, ldd:     3 }
