@@ -4,11 +4,12 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ## (Unreleased) rocBLAS 2.45.0
 ### Added
+- install.sh option --upgrade_tensile_venv_pip to upgrade Pip in Tensile Virtual Environment. The corresponding CMake option is TENSILE_VENV_UPGRADE_PIP.
 
 ### Optimizations
 
 ### Changed
-- Unifying library logic file names: affects HBH (->HHS_BH), BBH (->BBS_BH), 4xi8BH (->4xi8II_BH). All HPA types are using the new naming convention now. 
+- Unifying library logic file names: affects HBH (->HHS_BH), BBH (->BBS_BH), 4xi8BH (->4xi8II_BH). All HPA types are using the new naming convention now.
 
 ### Fixed
 
