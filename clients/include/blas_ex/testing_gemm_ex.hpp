@@ -48,7 +48,8 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         const rocblas_datatype compute_type = rocblas_type2datatype<Tc>();
 
         device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
-        const Tc          alpha_h(1), beta_h(1), zero_h(0);
+
+        const Tc alpha_h(1), beta_h(2), zero_h(0);
 
         const Tc* alpha = &alpha_h;
         const Tc* beta  = &beta_h;
@@ -66,7 +67,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 
         const rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
         // we still have to copy C to D for some quick returns
-        static const size_t safe_size = 100 * ldd;
+        static const size_t safe_size = N * ldd;
 
         int32_t     solution_index = 0;
         rocblas_int flags          = 0;
@@ -353,16 +354,43 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  flags),
                               rocblas_status_success);
 
+        // If alpha==0 then A, B can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
+                                                 transA,
+                                                 transB,
+                                                 M,
+                                                 N,
+                                                 K,
+                                                 zero,
+                                                 nullptr,
+                                                 a_type,
+                                                 lda,
+                                                 nullptr,
+                                                 b_type,
+                                                 ldb,
+                                                 beta,
+                                                 dC,
+                                                 c_type,
+                                                 ldc,
+                                                 dD,
+                                                 d_type,
+                                                 ldd,
+                                                 compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags),
+                              rocblas_status_success);
+
         // the following tests still output to D
 
-        // If K==0, then A and B can both be nullptr without issue.
+        // If K==0, then alpha, A and B can both be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
                                                  transA,
                                                  transB,
                                                  M,
                                                  N,
                                                  0,
-                                                 alpha,
+                                                 nullptr,
                                                  nullptr,
                                                  a_type,
                                                  lda,
@@ -398,6 +426,35 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  ldb,
                                                  beta,
                                                  dC,
+                                                 c_type,
+                                                 ldc,
+                                                 dD,
+                                                 d_type,
+                                                 ldd,
+                                                 compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags),
+                              rocblas_status_success);
+
+        // alpha==0 && beta==1 must still copy C to D so no quick return
+
+        // If alpha==0 && beta==0 then A, B and C can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
+                                                 transA,
+                                                 transB,
+                                                 M,
+                                                 N,
+                                                 K,
+                                                 zero,
+                                                 nullptr,
+                                                 a_type,
+                                                 lda,
+                                                 nullptr,
+                                                 b_type,
+                                                 ldb,
+                                                 zero,
+                                                 nullptr,
                                                  c_type,
                                                  ldc,
                                                  dD,

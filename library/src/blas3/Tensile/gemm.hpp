@@ -85,21 +85,29 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!beta)
         return rocblas_status_invalid_pointer;
 
-    if(handle->pointer_mode == rocblas_pointer_mode_host && *beta == 1)
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        if(!k)
-            return rocblas_status_success;
+        if(*beta == 1)
+        {
+            if(!k)
+                return rocblas_status_success;
 
-        if(!alpha)
+            if(!alpha)
+                return rocblas_status_invalid_pointer;
+
+            if(!*alpha)
+                return rocblas_status_success;
+        }
+        // all early return success now handled so
+        // pointers must be valid
+        bool ab_calc_invalid = !alpha || (*alpha != 0 && (!a || !b));
+        if(!c || (k && ab_calc_invalid))
             return rocblas_status_invalid_pointer;
-
-        if(!*alpha)
-            return rocblas_status_success;
     }
-
-    // pointers must be valid
-    if((k && (!a || !b || !alpha)) || !c)
-        return rocblas_status_invalid_pointer;
+    else
+    {
+        return rocblas_status_internal_error; // always pushed host_mode prevalidation
+    }
 
     return rocblas_status_continue;
 }

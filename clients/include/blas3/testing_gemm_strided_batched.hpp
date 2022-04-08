@@ -44,11 +44,13 @@ void testing_gemm_strided_batched_bad_arg(const Arguments& arg)
 
         const rocblas_int batch_count = 1;
 
-        device_vector<T> alpha_d(1), beta_d(1), zero_d(1);
-        const T          alpha_h(1), beta_h(1), zero_h(0);
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
         const T* alpha = &alpha_h;
         const T* beta  = &beta_h;
+        const T* one   = &one_h;
         const T* zero  = &zero_h;
 
         if(pointer_mode == rocblas_pointer_mode_device)
@@ -57,6 +59,8 @@ void testing_gemm_strided_batched_bad_arg(const Arguments& arg)
             alpha = alpha_d;
             CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
             beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
             CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
             zero = zero_d;
         }
@@ -227,7 +231,7 @@ void testing_gemm_strided_batched_bad_arg(const Arguments& arg)
                                                               N,
                                                               K,
                                                               nullptr,
-                                                              dA,
+                                                              nullptr,
                                                               lda,
                                                               stride_a,
                                                               nullptr,
@@ -261,20 +265,41 @@ void testing_gemm_strided_batched_bad_arg(const Arguments& arg)
                                                               batch_count),
                               rocblas_status_success);
 
+        // If alpha==0 and beta==1, then A, B and C can be nullptr without issue
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              zero,
+                                                              nullptr,
+                                                              lda,
+                                                              stride_a,
+                                                              nullptr,
+                                                              ldb,
+                                                              stride_b,
+                                                              one,
+                                                              nullptr,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              rocblas_status_success);
+
         // the following tests still output to C
 
-        // If K==0, then A and B can both be nullptr without issue.
+        // If K==0, then alpha, A and B can both be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
                                                               transA,
                                                               transB,
                                                               M,
                                                               N,
                                                               0,
-                                                              alpha,
-                                                              dA,
+                                                              nullptr,
+                                                              nullptr,
                                                               lda,
                                                               stride_a,
-                                                              dB,
+                                                              nullptr,
                                                               ldb,
                                                               stride_b,
                                                               beta,
@@ -292,10 +317,10 @@ void testing_gemm_strided_batched_bad_arg(const Arguments& arg)
                                                               N,
                                                               K,
                                                               zero,
-                                                              dA,
+                                                              nullptr,
                                                               lda,
                                                               stride_a,
-                                                              dB,
+                                                              nullptr,
                                                               ldb,
                                                               stride_b,
                                                               beta,

@@ -66,7 +66,8 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         device_vector<Tc> alpha_d(1), beta_d(1), zero_d(1);
-        const Tc          alpha_h(1), beta_h(1), zero_h(0);
+
+        const Tc alpha_h(1), beta_h(2), zero_h(0);
 
         const Tc* alpha = &alpha_h;
         const Tc* beta  = &beta_h;
@@ -438,19 +439,19 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
 
         // the following tests still output to D
 
-        // If K==0, then A and B can both be nullptr without issue.
+        // If K==0, then alpha, A and B can both be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex_fn(handle,
                                                                  transA,
                                                                  transB,
                                                                  M,
                                                                  N,
                                                                  0,
-                                                                 alpha,
-                                                                 dA,
+                                                                 nullptr,
+                                                                 nullptr,
                                                                  a_type,
                                                                  lda,
                                                                  stride_a,
-                                                                 dB,
+                                                                 nullptr,
                                                                  b_type,
                                                                  ldb,
                                                                  stride_b,
@@ -478,16 +479,50 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                                  N,
                                                                  K,
                                                                  zero,
-                                                                 dA,
+                                                                 nullptr,
                                                                  a_type,
                                                                  lda,
                                                                  stride_a,
-                                                                 dB,
+                                                                 nullptr,
                                                                  b_type,
                                                                  ldb,
                                                                  stride_b,
                                                                  beta,
                                                                  dC,
+                                                                 c_type,
+                                                                 ldc,
+                                                                 stride_c,
+                                                                 dD,
+                                                                 d_type,
+                                                                 ldd,
+                                                                 stride_d,
+                                                                 batch_count,
+                                                                 compute_type,
+                                                                 algo,
+                                                                 solution_index,
+                                                                 flags),
+                              rocblas_status_success);
+
+        // alpha==0 && beta==1 must still copy C to D so no quick return
+
+        // If alpha==0 && beta==0 then A, B and C can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex_fn(handle,
+                                                                 transA,
+                                                                 transB,
+                                                                 M,
+                                                                 N,
+                                                                 K,
+                                                                 zero,
+                                                                 nullptr,
+                                                                 a_type,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 nullptr,
+                                                                 b_type,
+                                                                 ldb,
+                                                                 stride_b,
+                                                                 zero,
+                                                                 nullptr,
                                                                  c_type,
                                                                  ldc,
                                                                  stride_c,

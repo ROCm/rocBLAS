@@ -11,6 +11,8 @@
 
 #include "tensile_host.hpp"
 
+#include "../../blas_ex/rocblas_gemm_ex.hpp"
+
 /*******************************************************************************
  * Tensile Function call
  ******************************************************************************/
@@ -37,6 +39,26 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
                                    rocblas_int       k,
                                    rocblas_int       batch_count = 1)
 {
+#if 0
+    // if tensile supports we can remove special case handling here
+    if(k == 0 || (alpha && !*alpha))
+    {
+        // !beta early return and beta always on host here so can dereference
+        return rocblas_gemm_ex_scale_template(handle,
+                                              m,
+                                              n,
+                                              *beta,
+                                              batchC,
+                                              offset_c,
+                                              ld_c,
+                                              stride_c,
+                                              batchC,
+                                              offset_c,
+                                              ld_c,
+                                              stride_c,
+                                              batch_count);
+    }
+#endif
 
     RocblasContractionProblem<T> problem{handle,   trans_a,
                                          trans_b,  m,
@@ -78,6 +100,26 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
                                    rocblas_int       k,
                                    rocblas_int       batch_count = 1)
 {
+#if 0
+    // if tensile supports we can remove special case handling here
+    if(k == 0 || (alpha && !*alpha))
+    {
+        // !beta early return and beta always on host here so can dereference
+        return rocblas_gemm_ex_scale_template(handle,
+                                              m,
+                                              n,
+                                              *beta,
+                                              C,
+                                              offset_c,
+                                              ld_c,
+                                              stride_c,
+                                              C,
+                                              offset_c,
+                                              ld_c,
+                                              stride_c,
+                                              batch_count);
+    }
+#endif
 
     RocblasContractionProblem<T> problem{handle,   trans_a,
                                          trans_b,  m,

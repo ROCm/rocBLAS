@@ -15,6 +15,90 @@
 /////////////////
 // Device Side //
 /////////////////
+
+template <typename T, typename U, typename V>
+ROCBLAS_KERNEL_ILF void gemm_ex_scale_device(
+    rocblas_int m, rocblas_int n, T beta, U* C, rocblas_int ldc, V* D, rocblas_int ldd)
+{
+    auto tx = blockIdx.x * blockDim.x + threadIdx.x;
+    auto ty = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if(tx < m && ty < n)
+    {
+        D[ty * size_t(ldd) + tx] = beta ? V(beta * C[ty * size_t(ldc) + tx]) : V(0);
+    }
+}
+
+/**
+  *  Loads pointers and launches the actual calculation kernel.
+  */
+template <int DIM_X, int DIM_Y, typename T, typename U, typename V>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+gemm_ex_scale_kernel(rocblas_int    m,
+                     rocblas_int    n,
+                     T              beta_host_device,
+                     U              CP_array,
+                     rocblas_stride shift_c,
+                     rocblas_int    ldc,
+                     rocblas_stride stride_c,
+                     V              DP_array,
+                     rocblas_stride shift_d,
+                     rocblas_int    ldd,
+                     rocblas_stride stride_d)
+{
+    auto beta = load_scalar(beta_host_device);
+
+    auto C = cond_load_ptr_batch(beta != 0, CP_array, hipBlockIdx_z, shift_c, stride_c);
+    auto D = load_ptr_batch(DP_array, hipBlockIdx_z, shift_d, stride_d);
+    gemm_ex_scale_device(m, n, beta, C, ldc, D, ldd);
+}
+
+template <typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_gemm_ex_scale_template(rocblas_handle handle,
+                                              rocblas_int    m,
+                                              rocblas_int    n,
+                                              TScal          beta,
+                                              TConstPtr      C,
+                                              rocblas_stride offset_c,
+                                              rocblas_int    ldc,
+                                              rocblas_stride stride_c,
+                                              TPtr           D,
+                                              rocblas_stride offset_d,
+                                              rocblas_int    ldd,
+                                              rocblas_stride stride_d,
+                                              rocblas_int    batch_count)
+{
+    hipStream_t rocblas_stream = handle->get_stream();
+
+    static constexpr int GEMM_DIM_X = 32;
+    static constexpr int GEMM_DIM_Y = 32;
+
+    rocblas_int blocksX = (m - 1) / GEMM_DIM_X + 1;
+    rocblas_int blocksY = (n - 1) / GEMM_DIM_Y + 1;
+
+    dim3 gemm_grid(blocksX, blocksY, batch_count);
+    dim3 gemm_threads(GEMM_DIM_X, GEMM_DIM_Y);
+
+    hipLaunchKernelGGL((gemm_ex_scale_kernel<GEMM_DIM_X, GEMM_DIM_Y>),
+                       gemm_grid,
+                       gemm_threads,
+                       0,
+                       rocblas_stream,
+                       m,
+                       n,
+                       beta,
+                       C,
+                       offset_c,
+                       ldc,
+                       stride_c,
+                       D,
+                       offset_d,
+                       ldd,
+                       stride_d);
+
+    return rocblas_status_success;
+}
+
 template <typename To>
 rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                                   const To*      src,
@@ -99,6 +183,27 @@ rocblas_status gemm_ex_batched_template(rocblas_handle     handle,
                                         rocblas_int        batch_count,
                                         rocblas_gemm_flags flags)
 {
+#if 0
+    // if tensile supports we can remove special case handling here, this does not support int8x4
+    if(!std::is_same<Ti, rocblas_int8x4>{} && (k == 0 || (alpha && !*alpha)))
+    {
+        // null beta earlier return and always on host here so can dereference
+        return rocblas_gemm_ex_scale_template(handle,
+                                              m,
+                                              n,
+                                              *beta,
+                                              c,
+                                              offset_c,
+                                              ldc,
+                                              stride_c,
+                                              d,
+                                              offset_d,
+                                              ldd,
+                                              stride_d,
+                                              batch_count);
+    }
+#endif
+
     RocblasContractionProblem<Ti, To, Tc> problem{
         handle,   trans_a, trans_b,  m,        n,           k,        alpha,    nullptr,
         a,        lda,     stride_a, offset_a, nullptr,     b,        ldb,      stride_b,
