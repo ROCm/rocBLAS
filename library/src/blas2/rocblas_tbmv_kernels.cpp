@@ -238,12 +238,12 @@ tbmvx_kernel(rocblas_operation transA,
              rocblas_int       m,
              rocblas_int       k,
              U                 Aa,
-             ptrdiff_t         shifta,
+             rocblas_stride    shifta,
              rocblas_int       lda,
              rocblas_stride    strideA,
              U                 w_xa_copy,
              V                 xa,
-             ptrdiff_t         shiftx,
+             rocblas_stride    shiftx,
              rocblas_int       incx,
              rocblas_stride    stridex)
 {
@@ -274,11 +274,11 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_int       m,
                                      rocblas_int       k,
                                      U                 A,
-                                     rocblas_int       offseta,
+                                     rocblas_stride    offseta,
                                      rocblas_int       lda,
                                      rocblas_stride    strideA,
                                      V                 x,
-                                     rocblas_int       offsetx,
+                                     rocblas_stride    offsetx,
                                      rocblas_int       incx,
                                      rocblas_stride    stridex,
                                      rocblas_int       batch_count,
@@ -384,11 +384,11 @@ template rocblas_status rocblas_tbmv_template<U_, V_>               \
                                      rocblas_int       m,           \
                                      rocblas_int       k,           \
                                      U_                 A,          \
-                                     rocblas_int       offseta,     \
+                                     rocblas_stride    offseta,     \
                                      rocblas_int       lda,         \
                                      rocblas_stride    strideA,     \
                                      V_                 x,          \
-                                     rocblas_int       offsetx,     \
+                                     rocblas_stride    offsetx,     \
                                      rocblas_int       incx,        \
                                      rocblas_stride    stridex,     \
                                      rocblas_int       batch_count, \

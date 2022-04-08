@@ -145,15 +145,15 @@ rocblas_status rocblas_hpmv_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      TScal          alpha,
                                      TConstPtr      AP,
-                                     rocblas_int    offseta,
+                                     rocblas_stride offseta,
                                      rocblas_stride strideA,
                                      TConstPtr      x,
-                                     rocblas_int    offsetx,
+                                     rocblas_stride offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
                                      TScal          beta,
                                      TPtr           y,
-                                     rocblas_int    offsety,
+                                     rocblas_stride offsety,
                                      rocblas_int    incy,
                                      rocblas_stride stridey,
                                      rocblas_int    batch_count)
@@ -291,15 +291,15 @@ template rocblas_status rocblas_hpmv_template<TScal_, TConstPtr_, TPtr_> \
                                      rocblas_int    n,                   \
                                      TScal_         alpha,               \
                                      TConstPtr_     AP,                  \
-                                     rocblas_int    offseta,             \
+                                     rocblas_stride offseta,             \
                                      rocblas_stride strideA,             \
                                      TConstPtr_     x,                   \
-                                     rocblas_int    offsetx,             \
+                                     rocblas_stride offsetx,             \
                                      rocblas_int    incx,                \
                                      rocblas_stride stridex,             \
                                      TScal_         beta,                \
                                      TPtr_          y,                   \
-                                     rocblas_int    offsety,             \
+                                     rocblas_stride offsety,             \
                                      rocblas_int    incy,                \
                                      rocblas_stride stridey,             \
                                      rocblas_int    batch_count);

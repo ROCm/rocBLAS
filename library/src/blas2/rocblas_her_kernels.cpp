@@ -95,12 +95,12 @@ rocblas_status rocblas_her_template(rocblas_handle handle,
                                     rocblas_int    n,
                                     TScal          alpha,
                                     TConstPtr      x,
-                                    rocblas_int    offset_x,
+                                    rocblas_stride offset_x,
                                     rocblas_int    incx,
                                     rocblas_stride stride_x,
                                     TPtr           A,
                                     rocblas_int    lda,
-                                    rocblas_int    offset_A,
+                                    rocblas_stride offset_A,
                                     rocblas_stride stride_A,
                                     rocblas_int    batch_count)
 {
@@ -182,12 +182,12 @@ template rocblas_status rocblas_her_template<Tscal_,  TConstPtr_,  TPtr_> \
                                     rocblas_int    n,                     \
                                     Tscal_         alpha,                 \
                                     TConstPtr_     x,                     \
-                                    rocblas_int    offset_x,              \
+                                    rocblas_stride offset_x,              \
                                     rocblas_int    incx,                  \
                                     rocblas_stride stride_x,              \
                                     TPtr_          A,                     \
                                     rocblas_int    lda,                   \
-                                    rocblas_int    offset_A,              \
+                                    rocblas_stride offset_A,              \
                                     rocblas_stride stride_A,              \
                                     rocblas_int    batch_count);
 

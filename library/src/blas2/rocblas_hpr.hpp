@@ -20,11 +20,11 @@ rocblas_status rocblas_hpr_template(rocblas_handle handle,
                                     rocblas_int    n,
                                     TScal          alpha,
                                     TConstPtr      x,
-                                    rocblas_int    offset_x,
+                                    rocblas_stride offset_x,
                                     rocblas_int    incx,
                                     rocblas_stride stride_x,
                                     TPtr           AP,
-                                    rocblas_int    offset_A,
+                                    rocblas_stride offset_A,
                                     rocblas_stride stride_A,
                                     rocblas_int    batch_count);
 

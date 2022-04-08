@@ -92,16 +92,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int    n,
                                    TScal          alpha,
                                    TConstPtr      x,
-                                   rocblas_int    offset_x,
+                                   rocblas_stride offset_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
                                    TConstPtr      y,
-                                   rocblas_int    offset_y,
+                                   rocblas_stride offset_y,
                                    rocblas_int    incy,
                                    rocblas_stride stride_y,
                                    TPtr           A,
                                    rocblas_int    lda,
-                                   rocblas_int    offset_A,
+                                   rocblas_stride offset_A,
                                    rocblas_stride stride_A,
                                    rocblas_int    batch_count)
 {
@@ -271,16 +271,16 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_her2_t
                                    rocblas_int    n,                                    \
                                    TScal_         alpha,                                \
                                    TConstPtr_     x,                                    \
-                                   rocblas_int    offset_x,                             \
+                                   rocblas_stride offset_x,                             \
                                    rocblas_int    incx,                                 \
                                    rocblas_stride stride_x,                             \
                                    TConstPtr_     y,                                    \
-                                   rocblas_int    offset_y,                             \
+                                   rocblas_stride offset_y,                             \
                                    rocblas_int    incy,                                 \
                                    rocblas_stride stride_y,                             \
                                    TPtr_          A,                                    \
                                    rocblas_int    lda,                                  \
-                                   rocblas_int    offset_A,                             \
+                                   rocblas_stride offset_A,                             \
                                    rocblas_stride stride_A,                             \
                                    rocblas_int    batch_count);
 

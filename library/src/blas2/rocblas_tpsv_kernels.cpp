@@ -188,10 +188,10 @@ rocblas_tpsv_kernel(rocblas_fill      uplo,
                     rocblas_diagonal  diag,
                     rocblas_int       n,
                     TConstPtr __restrict__ APa,
-                    ptrdiff_t      shift_A,
+                    rocblas_stride shift_A,
                     rocblas_stride stride_A,
                     TPtr __restrict__ xa,
-                    ptrdiff_t      shift_x,
+                    rocblas_stride shift_x,
                     rocblas_int    incx,
                     rocblas_stride stride_x)
 {
@@ -220,10 +220,10 @@ rocblas_status rocblas_tpsv_template(rocblas_handle    handle,
                                      rocblas_diagonal  diag,
                                      rocblas_int       n,
                                      TConstPtr         A,
-                                     rocblas_int       offset_A,
+                                     rocblas_stride    offset_A,
                                      rocblas_stride    stride_A,
                                      TPtr              x,
-                                     rocblas_int       offset_x,
+                                     rocblas_stride    offset_x,
                                      rocblas_int       incx,
                                      rocblas_stride    stride_x,
                                      rocblas_int       batch_count)
@@ -331,10 +331,10 @@ template rocblas_status rocblas_tpsv_template<BLOCK_, TConstPtr_, TPtr_> \
                                      rocblas_diagonal  diag,             \
                                      rocblas_int       n,                \
                                      TConstPtr_        A,                \
-                                     rocblas_int       offset_A,         \
+                                     rocblas_stride       offset_A,         \
                                      rocblas_stride    stride_A,         \
                                      TPtr_             x,                \
-                                     rocblas_int       offset_x,         \
+                                     rocblas_stride       offset_x,         \
                                      rocblas_int       incx,             \
                                      rocblas_stride    stride_x,         \
                                      rocblas_int       batch_count);

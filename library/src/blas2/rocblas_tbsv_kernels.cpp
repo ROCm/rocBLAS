@@ -199,11 +199,11 @@ rocblas_tbsv_kernel(rocblas_fill      uplo,
                     rocblas_int       n,
                     rocblas_int       k,
                     TConstPtr         Aa,
-                    ptrdiff_t         shift_A,
+                    rocblas_stride    shift_A,
                     rocblas_int       lda,
                     rocblas_stride    stride_A,
                     TPtr              xa,
-                    ptrdiff_t         shift_x,
+                    rocblas_stride    shift_x,
                     rocblas_int       incx,
                     rocblas_stride    stride_x)
 {
@@ -233,11 +233,11 @@ rocblas_status rocblas_tbsv_template(rocblas_handle    handle,
                                      rocblas_int       n,
                                      rocblas_int       k,
                                      TConstPtr         A,
-                                     rocblas_int       offset_A,
+                                     rocblas_stride    offset_A,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_A,
                                      TPtr              x,
-                                     rocblas_int       offset_x,
+                                     rocblas_stride    offset_x,
                                      rocblas_int       incx,
                                      rocblas_stride    stride_x,
                                      rocblas_int       batch_count)
@@ -351,11 +351,11 @@ template rocblas_status rocblas_tbsv_template<BLOCK_, TConstPtr_, TPtr_> \
                                      rocblas_int       n,                \
                                      rocblas_int       k,                \
                                      TConstPtr_        A,                \
-                                     rocblas_int       offset_A,         \
+                                     rocblas_stride       offset_A,         \
                                      rocblas_int       lda,              \
                                      rocblas_stride    stride_A,         \
                                      TPtr_             x,                \
-                                     rocblas_int       offset_x,         \
+                                     rocblas_stride       offset_x,         \
                                      rocblas_int       incx,             \
                                      rocblas_stride    stride_x,         \
                                      rocblas_int       batch_count);

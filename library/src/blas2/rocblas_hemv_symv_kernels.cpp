@@ -577,7 +577,7 @@ hemvn_kernel_upper_block_sum(rocblas_int    n,
                              U              beta_device_host,
                              rocblas_stride stride_beta,
                              TPtr __restrict__ ya,
-                             ptrdiff_t      shifty,
+                             rocblas_stride shifty,
                              rocblas_int    incy,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
@@ -1099,7 +1099,7 @@ hemvn_kernel_lower_block_sum(rocblas_int    n,
                              U              beta_device_host,
                              rocblas_stride stride_beta,
                              TPtr __restrict__ ya,
-                             ptrdiff_t      shifty,
+                             rocblas_stride shifty,
                              rocblas_int    incy,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
@@ -1157,11 +1157,11 @@ hemvn_kernel_upper(rocblas_int    n,
                    U              alpha_device_host,
                    rocblas_stride stride_alpha,
                    V              Aa,
-                   ptrdiff_t      shifta,
+                   rocblas_stride shifta,
                    T_lda          lda,
                    rocblas_stride strideA,
                    V              xa,
-                   ptrdiff_t      shiftx,
+                   rocblas_stride shiftx,
                    rocblas_int    incx,
                    rocblas_stride stridex,
                    U              beta_device_host,
@@ -1201,11 +1201,11 @@ hemvn_kernel_lower(rocblas_int    n,
                    U              alpha_device_host,
                    rocblas_stride stride_alpha,
                    V              Aa,
-                   ptrdiff_t      shifta,
+                   rocblas_stride shifta,
                    T_lda          lda,
                    rocblas_stride strideA,
                    V              xa,
-                   ptrdiff_t      shiftx,
+                   rocblas_stride shiftx,
                    rocblas_int    incx,
                    rocblas_stride stridex,
                    U              beta_device_host,
@@ -1244,17 +1244,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                         const U*       alpha,
                                         rocblas_stride stride_alpha,
                                         V              A,
-                                        rocblas_int    offseta,
+                                        rocblas_stride offseta,
                                         rocblas_int    lda,
                                         rocblas_stride strideA,
                                         V              x,
-                                        rocblas_int    offsetx,
+                                        rocblas_stride offsetx,
                                         rocblas_int    incx,
                                         rocblas_stride stridex,
                                         const U*       beta,
                                         rocblas_stride stride_beta,
                                         TPtr           y,
-                                        rocblas_int    offsety,
+                                        rocblas_stride offsety,
                                         rocblas_int    incy,
                                         rocblas_stride stridey,
                                         rocblas_int    batch_count,
@@ -1440,17 +1440,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    const V*       alpha,
                                    rocblas_stride stride_alpha,
                                    const U*       A,
-                                   rocblas_int    offseta,
+                                   rocblas_stride offseta,
                                    rocblas_int    lda,
                                    rocblas_stride strideA,
                                    const U*       x,
-                                   rocblas_int    offsetx,
+                                   rocblas_stride offsetx,
                                    rocblas_int    incx,
                                    rocblas_stride stridex,
                                    const V*       beta,
                                    rocblas_stride stride_beta,
                                    TPtr*          y,
-                                   rocblas_int    offsety,
+                                   rocblas_stride offsety,
                                    rocblas_int    incy,
                                    rocblas_stride stridey,
                                    rocblas_int    batch_count,
@@ -1690,17 +1690,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symv_t
                                    V_ const*       alpha,                               \
                                    rocblas_stride stride_alpha,                         \
                                    U_ const*       A,                                   \
-                                   rocblas_int    offseta,                              \
+                                   rocblas_stride offseta,                              \
                                    rocblas_int    lda,                                  \
                                    rocblas_stride strideA,                              \
                                    U_ const*       x,                                   \
-                                   rocblas_int    offsetx,                              \
+                                   rocblas_stride offsetx,                              \
                                    rocblas_int    incx,                                 \
                                    rocblas_stride stridex,                              \
                                    V_ const*       beta,                                \
                                    rocblas_stride stride_beta,                          \
                                    TPtr_*          y,                                   \
-                                   rocblas_int    offsety,                              \
+                                   rocblas_stride offsety,                              \
                                    rocblas_int    incy,                                 \
                                    rocblas_stride stridey,                              \
                                    rocblas_int    batch_count,                          \
@@ -1732,17 +1732,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status             \
                                         U_ const*      alpha,        \
                                         rocblas_stride stride_alpha, \
                                         V_             A,            \
-                                        rocblas_int    offseta,      \
+                                        rocblas_stride offseta,      \
                                         rocblas_int    lda,          \
                                         rocblas_stride strideA,      \
                                         V_             x,            \
-                                        rocblas_int    offsetx,      \
+                                        rocblas_stride offsetx,      \
                                         rocblas_int    incx,         \
                                         rocblas_stride stridex,      \
                                         U_ const*      beta,         \
                                         rocblas_stride stride_beta,  \
                                         TPtr_          y,            \
-                                        rocblas_int    offsety,      \
+                                        rocblas_stride offsety,      \
                                         rocblas_int    incy,         \
                                         rocblas_stride stridey,      \
                                         rocblas_int    batch_count,  \

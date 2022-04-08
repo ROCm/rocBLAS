@@ -138,8 +138,8 @@ namespace
         static constexpr rocblas_int    NB      = 512;
         static constexpr rocblas_stride stridex = 0;
         static constexpr rocblas_stride stridea = 0;
-        static constexpr ptrdiff_t      offseta = 0;
-        static constexpr ptrdiff_t      offsetx = 0;
+        static constexpr rocblas_stride offseta = 0;
+        static constexpr rocblas_stride offsetx = 0;
 
         rocblas_status status = rocblas_tpmv_template<NB>(handle,
                                                           uplo,
