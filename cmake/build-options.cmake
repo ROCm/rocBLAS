@@ -63,6 +63,8 @@ if( BUILD_WITH_TENSILE )
     option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
   endif()
 
+  option( TENSILE_VENV_UPGRADE_PIP "Upgrade pip in Tensile virtuaal environment" OFF)
+
 endif()
 
 
