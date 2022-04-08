@@ -21,15 +21,15 @@ ger_kernel(rocblas_int    m,
            V              alpha_device_host,
            rocblas_stride stride_alpha,
            const U __restrict__ xa,
-           ptrdiff_t      shiftx,
+           rocblas_stride shiftx,
            rocblas_int    incx,
            rocblas_stride stridex,
            const U __restrict__ ya,
-           ptrdiff_t      shifty,
+           rocblas_stride shifty,
            rocblas_int    incy,
            rocblas_stride stridey,
            W __restrict__ Aa,
-           ptrdiff_t      shifta,
+           rocblas_stride shifta,
            rocblas_int    lda,
            rocblas_stride strideA)
 {
@@ -87,15 +87,15 @@ sger_kernel(rocblas_int    m,
             V              alpha_device_host,
             rocblas_stride stride_alpha,
             const U __restrict__ xa,
-            ptrdiff_t      shiftx,
+            rocblas_stride shiftx,
             rocblas_int    incx,
             rocblas_stride stridex,
             const U __restrict__ ya,
-            ptrdiff_t      shifty,
+            rocblas_stride shifty,
             rocblas_int    incy,
             rocblas_stride stridey,
             W __restrict__ Aa,
-            ptrdiff_t      shifta,
+            rocblas_stride shifta,
             rocblas_int    lda,
             rocblas_stride strideA)
 {
@@ -137,17 +137,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                   const V*       alpha,
                                   rocblas_stride stride_alpha,
                                   const U*       x,
-                                  rocblas_int    offsetx,
+                                  rocblas_stride offsetx,
                                   rocblas_int    incx,
-                                  rocblas_int    stridex,
+                                  rocblas_stride stridex,
                                   const U*       y,
-                                  rocblas_int    offsety,
+                                  rocblas_stride offsety,
                                   rocblas_int    incy,
-                                  rocblas_int    stridey,
+                                  rocblas_stride stridey,
                                   W*             A,
-                                  rocblas_int    offsetA,
+                                  rocblas_stride offsetA,
                                   rocblas_int    lda,
-                                  rocblas_int    strideA,
+                                  rocblas_stride strideA,
                                   rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
@@ -289,17 +289,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_ger_te
                                   V_ const *      alpha,                               \
                                   rocblas_stride stride_alpha,                         \
                                   U_ const *      x,                                   \
-                                  rocblas_int    offsetx,                              \
+                                  rocblas_stride    offsetx,                              \
                                   rocblas_int    incx,                                 \
-                                  rocblas_int    stridex,                              \
+                                  rocblas_stride    stridex,                              \
                                   U_ const *      y,                                   \
-                                  rocblas_int    offsety,                              \
+                                  rocblas_stride    offsety,                              \
                                   rocblas_int    incy,                                 \
-                                  rocblas_int    stridey,                              \
+                                  rocblas_stride    stridey,                              \
                                   W_*            A,                                    \
-                                  rocblas_int    offsetA,                              \
+                                  rocblas_stride    offsetA,                              \
                                   rocblas_int    lda,                                  \
-                                  rocblas_int    strideA,                              \
+                                  rocblas_stride    strideA,                              \
                                   rocblas_int    batch_count);
 
 INSTANTIATE_GER_TEMPLATE(false, float, float, float, float)

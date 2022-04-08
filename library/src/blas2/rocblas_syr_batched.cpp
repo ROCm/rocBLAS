@@ -24,10 +24,10 @@ namespace
                                             rocblas_int    n,
                                             const T*       alpha,
                                             const T* const x[],
-                                            rocblas_int    shiftx,
+                                            rocblas_stride shiftx,
                                             rocblas_int    incx,
                                             T* const       A[],
-                                            rocblas_int    shiftA,
+                                            rocblas_stride shiftA,
                                             rocblas_int    lda,
                                             rocblas_int    batch_count)
     {

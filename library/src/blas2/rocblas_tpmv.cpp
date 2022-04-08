@@ -120,8 +120,8 @@ namespace
 
         static constexpr rocblas_int    NB          = 512;
         static constexpr rocblas_int    batch_count = 1;
-        static constexpr ptrdiff_t      offset_a    = 0;
-        static constexpr ptrdiff_t      offset_x    = 0;
+        static constexpr rocblas_stride offset_a    = 0;
+        static constexpr rocblas_stride offset_x    = 0;
         static constexpr rocblas_stride stride_x    = 0;
         static constexpr rocblas_stride stride_a    = 0;
         static constexpr rocblas_stride stride_w    = 0;

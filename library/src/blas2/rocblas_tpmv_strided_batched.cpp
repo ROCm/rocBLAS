@@ -149,11 +149,11 @@ namespace
                 return tpmv_check_numerics_status;
         }
 
-        rocblas_stride               stridew = m;
-        static constexpr rocblas_int NB      = 512;
-        static constexpr ptrdiff_t   offseta = 0;
-        static constexpr ptrdiff_t   offsetx = 0;
-        rocblas_status               status  = rocblas_tpmv_template<NB>(handle,
+        rocblas_stride                  stridew = m;
+        static constexpr rocblas_int    NB      = 512;
+        static constexpr rocblas_stride offseta = 0;
+        static constexpr rocblas_stride offsetx = 0;
+        rocblas_status                  status  = rocblas_tpmv_template<NB>(handle,
                                                           uplo,
                                                           transa,
                                                           diag,

@@ -133,16 +133,16 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
                                      const V*       alpha,
                                      rocblas_stride stride_alpha,
                                      const U*       A,
-                                     rocblas_int    offseta,
+                                     rocblas_stride offseta,
                                      rocblas_stride strideA,
                                      const U*       x,
-                                     rocblas_int    offsetx,
+                                     rocblas_stride offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
                                      const V*       beta,
                                      rocblas_stride stride_beta,
                                      W*             y,
-                                     rocblas_int    offsety,
+                                     rocblas_stride offsety,
                                      rocblas_int    incy,
                                      rocblas_stride stridey,
                                      rocblas_int    batch_count)
@@ -287,16 +287,16 @@ template rocblas_status rocblas_spmv_template<T_, U_, V_, W_>         \
                                      V_ const*       alpha,           \
                                      rocblas_stride stride_alpha,     \
                                      U_ const*       A,               \
-                                     rocblas_int    offseta,          \
+                                     rocblas_stride offseta,          \
                                      rocblas_stride strideA,          \
                                      U_ const*       x,               \
-                                     rocblas_int    offsetx,          \
+                                     rocblas_stride offsetx,          \
                                      rocblas_int    incx,             \
                                      rocblas_stride stridex,          \
                                      V_ const*       beta,            \
                                      rocblas_stride stride_beta,      \
                                      W_*             y,               \
-                                     rocblas_int    offsety,          \
+                                     rocblas_stride offsety,          \
                                      rocblas_int    incy,             \
                                      rocblas_stride stridey,          \
                                      rocblas_int    batch_count);

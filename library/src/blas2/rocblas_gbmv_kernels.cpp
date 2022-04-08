@@ -204,16 +204,16 @@ gbmvx_kernel(rocblas_operation transA,
              rocblas_int       ku,
              U                 alphaa,
              V                 Aa,
-             ptrdiff_t         shifta,
+             rocblas_stride    shifta,
              rocblas_int       lda,
              rocblas_stride    strideA,
              V                 xa,
-             ptrdiff_t         shiftx,
+             rocblas_stride    shiftx,
              rocblas_int       incx,
              rocblas_stride    stridex,
              U                 betaa,
              W                 ya,
-             ptrdiff_t         shifty,
+             rocblas_stride    shifty,
              rocblas_int       incy,
              rocblas_stride    stridey)
 {
@@ -248,16 +248,16 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
                                      rocblas_int       ku,
                                      const T*          alpha,
                                      U                 A,
-                                     rocblas_int       offseta,
+                                     rocblas_stride    offseta,
                                      rocblas_int       lda,
                                      rocblas_stride    strideA,
                                      U                 x,
-                                     rocblas_int       offsetx,
+                                     rocblas_stride    offsetx,
                                      rocblas_int       incx,
                                      rocblas_stride    stridex,
                                      const T*          beta,
                                      V                 y,
-                                     rocblas_int       offsety,
+                                     rocblas_stride    offsety,
                                      rocblas_int       incy,
                                      rocblas_stride    stridey,
                                      rocblas_int       batch_count)
@@ -420,16 +420,16 @@ template rocblas_status rocblas_gbmv_template<T_,  U_,  V_>          \
                                      rocblas_int       ku,           \
                                      const T_*         alpha,        \
                                      U_                A,            \
-                                     rocblas_int       offseta,      \
+                                     rocblas_stride    offseta,      \
                                      rocblas_int       lda,          \
                                      rocblas_stride    strideA,      \
                                      U_                x,            \
-                                     rocblas_int       offsetx,      \
+                                     rocblas_stride    offsetx,      \
                                      rocblas_int       incx,         \
                                      rocblas_stride    stridex,      \
                                      const T_*         beta,         \
                                      V_                y,            \
-                                     rocblas_int       offsety,      \
+                                     rocblas_stride    offsety,      \
                                      rocblas_int       incy,         \
                                      rocblas_stride    stridey,      \
                                      rocblas_int       batch_count);

@@ -107,7 +107,7 @@ namespace
         if(!y)
             return rocblas_status_invalid_pointer;
 
-        constexpr rocblas_int    offset_A = 0, offset_x = 0, offset_y = 0;
+        constexpr rocblas_stride offset_A = 0, offset_x = 0, offset_y = 0;
         constexpr rocblas_stride stride_A = 0, stride_x = 0, stride_y = 0;
 
         if(check_numerics)

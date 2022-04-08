@@ -103,11 +103,11 @@ template <rocblas_int DIM_X,
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 trmvn_kernel(rocblas_int    m,
              A              a,
-             ptrdiff_t      shifta,
+             rocblas_stride shifta,
              rocblas_int    lda,
              rocblas_stride stridea,
              X              x,
-             ptrdiff_t      shiftx,
+             rocblas_stride shiftx,
              rocblas_int    incx,
              rocblas_stride stridex,
              W              workspace,
@@ -155,11 +155,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_diagonal  diag,
                                    rocblas_int       m,
                                    A                 a,
-                                   ptrdiff_t         offseta,
+                                   rocblas_stride    offseta,
                                    rocblas_int       lda,
                                    rocblas_stride    stridea,
                                    X                 x,
-                                   ptrdiff_t         offsetx,
+                                   rocblas_stride    offsetx,
                                    rocblas_int       incx,
                                    rocblas_stride    stridex,
                                    W                 workspace,
@@ -334,11 +334,11 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmv_t
                                    rocblas_diagonal  diag,                              \
                                    rocblas_int       m,                                 \
                                    A_                 a,                                \
-                                   ptrdiff_t         offseta,                           \
+                                   rocblas_stride         offseta,                           \
                                    rocblas_int       lda,                               \
                                    rocblas_stride    stridea,                           \
                                    X_                 x,                                \
-                                   ptrdiff_t         offsetx,                           \
+                                   rocblas_stride         offsetx,                           \
                                    rocblas_int       incx,                              \
                                    rocblas_stride    stridex,                           \
                                    W_                 workspace,                        \

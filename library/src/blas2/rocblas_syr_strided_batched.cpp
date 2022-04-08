@@ -26,11 +26,11 @@ namespace
                                                     rocblas_int    n,
                                                     const T*       alpha,
                                                     const T*       x,
-                                                    rocblas_int    shiftx,
+                                                    rocblas_stride shiftx,
                                                     rocblas_int    incx,
                                                     rocblas_stride stridex,
                                                     T*             A,
-                                                    rocblas_int    shiftA,
+                                                    rocblas_stride shiftA,
                                                     rocblas_int    lda,
                                                     rocblas_stride strideA,
                                                     rocblas_int    batch_count)

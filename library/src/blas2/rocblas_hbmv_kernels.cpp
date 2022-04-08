@@ -140,16 +140,16 @@ hbmvn_kernel(bool           upper,
              rocblas_int    k,
              U              alpha_device_host,
              V              Aa,
-             ptrdiff_t      shifta,
+             rocblas_stride shifta,
              rocblas_int    lda,
              rocblas_stride strideA,
              V              xa,
-             ptrdiff_t      shiftx,
+             rocblas_stride shiftx,
              rocblas_int    incx,
              rocblas_stride stridex,
              U              beta_device_host,
              W              ya,
-             ptrdiff_t      shifty,
+             rocblas_stride shifty,
              rocblas_int    incy,
              rocblas_stride stridey)
 {
@@ -183,16 +183,16 @@ rocblas_status rocblas_hbmv_template(rocblas_handle handle,
                                      rocblas_int    k,
                                      U              alpha,
                                      V              A,
-                                     rocblas_int    offseta,
+                                     rocblas_stride offseta,
                                      rocblas_int    lda,
                                      rocblas_stride strideA,
                                      V              x,
-                                     rocblas_int    offsetx,
+                                     rocblas_stride offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
                                      U              beta,
                                      W              y,
-                                     rocblas_int    offsety,
+                                     rocblas_stride offsety,
                                      rocblas_int    incy,
                                      rocblas_stride stridey,
                                      rocblas_int    batch_count)
@@ -338,16 +338,16 @@ template rocblas_status rocblas_hbmv_template<U_, V_, W_>        \
                                      rocblas_int    k,           \
                                      U_              alpha,      \
                                      V_              A,          \
-                                     rocblas_int    offseta,     \
+                                     rocblas_stride offseta,     \
                                      rocblas_int    lda,         \
                                      rocblas_stride strideA,     \
                                      V_              x,          \
-                                     rocblas_int    offsetx,     \
+                                     rocblas_stride offsetx,     \
                                      rocblas_int    incx,        \
                                      rocblas_stride stridex,     \
                                      U_              beta,       \
                                      W_              y,          \
-                                     rocblas_int    offsety,     \
+                                     rocblas_stride offsety,     \
                                      rocblas_int    incy,        \
                                      rocblas_stride stridey,     \
                                      rocblas_int    batch_count);

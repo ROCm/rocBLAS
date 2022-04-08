@@ -142,7 +142,7 @@ namespace
                 return trmv_check_numerics_status;
         }
 
-        constexpr rocblas_int    offset_a = 0, offset_x = 0;
+        constexpr rocblas_stride offset_a = 0, offset_x = 0;
         constexpr rocblas_stride stride_a = 0, stride_x = 0;
         rocblas_status           status = rocblas_internal_trmv_template(handle,
                                                                uplo,

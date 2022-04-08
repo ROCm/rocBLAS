@@ -154,10 +154,10 @@ tpmvn_kernel(rocblas_fill     uplo,
              rocblas_diagonal diag,
              rocblas_int      m,
              A                a,
-             ptrdiff_t        shifta,
+             rocblas_stride   shifta,
              rocblas_stride   stridea,
              X                x,
-             ptrdiff_t        shiftx,
+             rocblas_stride   shiftx,
              rocblas_int      incx,
              rocblas_stride   stridex,
              W                workspace,
@@ -179,10 +179,10 @@ tpmvt_kernel(rocblas_fill     uplo,
              rocblas_diagonal diag,
              rocblas_int      m,
              A                a,
-             ptrdiff_t        shifta,
+             rocblas_stride   shifta,
              rocblas_stride   stridea,
              X                x,
-             ptrdiff_t        shiftx,
+             rocblas_stride   shiftx,
              rocblas_int      incx,
              rocblas_stride   stridex,
              W                workspace,
@@ -204,10 +204,10 @@ tpmvc_kernel(rocblas_fill     uplo,
              rocblas_diagonal diag,
              rocblas_int      m,
              A                a,
-             ptrdiff_t        shifta,
+             rocblas_stride   shifta,
              rocblas_stride   stridea,
              X                x,
-             ptrdiff_t        shiftx,
+             rocblas_stride   shiftx,
              rocblas_int      incx,
              rocblas_stride   stridex,
              W                workspace,
@@ -233,10 +233,10 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                                      rocblas_diagonal  diag,
                                      rocblas_int       m,
                                      A                 a,
-                                     ptrdiff_t         offseta,
+                                     rocblas_stride    offseta,
                                      rocblas_stride    stridea,
                                      X                 x,
-                                     ptrdiff_t         offsetx,
+                                     rocblas_stride    offsetx,
                                      rocblas_int       incx,
                                      rocblas_stride    stridex,
                                      W                 workspace,
@@ -420,10 +420,10 @@ template rocblas_status rocblas_tpmv_template                \
                              rocblas_diagonal  diag,         \
                              rocblas_int       m,            \
                              A_                a,            \
-                             ptrdiff_t         offseta,      \
+                             rocblas_stride    offseta,      \
                              rocblas_stride    stridea,      \
                              X_                x,            \
-                             ptrdiff_t         offsetx,      \
+                             rocblas_stride    offsetx,      \
                              rocblas_int       incx,         \
                              rocblas_stride    stridex,      \
                              W_                workspace,    \
