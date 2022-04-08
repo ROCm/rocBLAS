@@ -50,6 +50,32 @@ void testing_syrk_bad_arg(const Arguments& arg)
         rocblas_syrk_fn(handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
         rocblas_status_invalid_value);
 
+    EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
+                                          (rocblas_fill)rocblas_operation_none,
+                                          transA,
+                                          N,
+                                          K,
+                                          &alpha,
+                                          dA,
+                                          lda,
+                                          &beta,
+                                          dC,
+                                          ldc),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
+                                          uplo,
+                                          (rocblas_operation)rocblas_fill_full,
+                                          N,
+                                          K,
+                                          &alpha,
+                                          dA,
+                                          lda,
+                                          &beta,
+                                          dC,
+                                          ldc),
+                          rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrk_fn(handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc),
         rocblas_status_invalid_pointer);

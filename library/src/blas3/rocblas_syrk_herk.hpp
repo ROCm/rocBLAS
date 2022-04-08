@@ -26,8 +26,18 @@ inline rocblas_status rocblas_syrk_arg_check(rocblas_handle    handle,
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
-    if(transA == rocblas_operation_conjugate_transpose && is_complex<TScal>)
-        return rocblas_status_invalid_value;
+
+    if(is_complex<TScal>)
+    {
+        if(transA != rocblas_operation_none && transA != rocblas_operation_transpose)
+            return rocblas_status_invalid_value;
+    }
+    else
+    {
+        if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+           && transA != rocblas_operation_conjugate_transpose)
+            return rocblas_status_invalid_value;
+    }
 
     if(n < 0 || k < 0 || batch_count < 0 || ldc < n || (transA == rocblas_operation_none && lda < n)
        || (transA != rocblas_operation_none && lda < k))
