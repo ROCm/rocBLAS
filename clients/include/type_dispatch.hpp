@@ -10,24 +10,42 @@
 template <typename T>
 constexpr auto rocblas_type2datatype()
 {
+    // rocblas_datatype_f16_r  = 150
     if(std::is_same<T, rocblas_half>{})
         return rocblas_datatype_f16_r;
-    if(std::is_same<T, rocblas_bfloat16>{})
-        return rocblas_datatype_bf16_r;
+    // rocblas_datatype_f32_r  = 151
     if(std::is_same<T, rocblas_float>{})
         return rocblas_datatype_f32_r;
+    // rocblas_datatype_f64_r  = 152
     if(std::is_same<T, rocblas_double>{})
         return rocblas_datatype_f64_r;
-    // if(std::is_same<T, rocblas_half_complex>{})
-    //     return rocblas_datatype_f16_c;
+    // rocblas_datatype_f16_c  = 153
+    // rocblas_datatype_f32_c  = 154
     if(std::is_same<T, rocblas_float_complex>{})
         return rocblas_datatype_f32_c;
+    // rocblas_datatype_f64_c  = 155
     if(std::is_same<T, rocblas_double_complex>{})
         return rocblas_datatype_f64_c;
-    if(std::is_same<T, char>{})
+    // rocblas_datatype_i8_r   = 160
+    if(std::is_same<T, int8_t>{})
         return rocblas_datatype_i8_r;
-    if(std::is_same<T, unsigned char>{})
+    // rocblas_datatype_u8_r   = 161
+    if(std::is_same<T, uint8_t>{})
         return rocblas_datatype_u8_r;
+    // rocblas_datatype_i32_r  = 162
+    if(std::is_same<T, int32_t>{})
+        return rocblas_datatype_i32_r;
+    // rocblas_datatype_u32_r  = 163
+    if(std::is_same<T, uint32_t>{})
+        return rocblas_datatype_u32_r;
+    // rocblas_datatype_i8_c   = 164
+    // rocblas_datatype_u8_c   = 165
+    // rocblas_datatype_i32_c  = 166
+    // rocblas_datatype_u32_c  = 167
+    // rocblas_datatype_bf16_r = 168
+    if(std::is_same<T, rocblas_bfloat16>{})
+        return rocblas_datatype_bf16_r;
+    // rocblas_datatype_bf16_c = 169
 
     return rocblas_datatype_f32_r; // testing purposes we default to f32 ex
 }
