@@ -25,7 +25,7 @@ rocblas_status rot_ex_typecasting(rocblas_handle handle,
                                   const void*    s,
                                   rocblas_int    batch_count)
 {
-    static constexpr rocblas_int    offset_0 = 0;
+    static constexpr rocblas_stride offset_0 = 0;
     static constexpr rocblas_stride stride_0 = 0;
     if(ISBATCHED)
     {

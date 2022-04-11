@@ -160,9 +160,9 @@ namespace
         if(!b || !c || !alpha)
             return rocblas_status_invalid_pointer;
 
-        rocblas_int    offset_a     = 0;
-        rocblas_int    offset_b     = 0;
-        rocblas_int    offset_c     = 0;
+        rocblas_stride offset_a     = 0;
+        rocblas_stride offset_b     = 0;
+        rocblas_stride offset_c     = 0;
         rocblas_stride stride_alpha = 0;
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)

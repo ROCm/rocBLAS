@@ -14,11 +14,11 @@ rocblas_status axpy_ex_typecasting(const char*    name,
                                    const void*    alpha,
                                    rocblas_stride stride_alpha,
                                    const void*    x,
-                                   ptrdiff_t      offset_x,
+                                   rocblas_stride offset_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
                                    void*          y,
-                                   ptrdiff_t      offset_y,
+                                   rocblas_stride offset_y,
                                    rocblas_int    incy,
                                    rocblas_stride stride_y,
                                    rocblas_int    batch_count)
@@ -177,12 +177,12 @@ rocblas_status rocblas_axpy_ex_template(const char*      name,
                                         rocblas_stride   stride_alpha,
                                         const void*      x,
                                         rocblas_datatype x_type,
-                                        ptrdiff_t        offset_x,
+                                        rocblas_stride   offset_x,
                                         rocblas_int      incx,
                                         rocblas_stride   stride_x,
                                         void*            y,
                                         rocblas_datatype y_type,
-                                        ptrdiff_t        offset_y,
+                                        rocblas_stride   offset_y,
                                         rocblas_int      incy,
                                         rocblas_stride   stride_y,
                                         rocblas_int      batch_count,
@@ -273,12 +273,12 @@ template rocblas_status rocblas_axpy_ex_template<NB, BATCHED>             \
                                         rocblas_stride   stride_alpha,    \
                                         const void*      x,               \
                                         rocblas_datatype x_type,          \
-                                        ptrdiff_t        offset_x,        \
+                                        rocblas_stride   offset_x,        \
                                         rocblas_int      incx,            \
                                         rocblas_stride   stride_x,        \
                                         void*            y,               \
                                         rocblas_datatype y_type,          \
-                                        ptrdiff_t        offset_y,        \
+                                        rocblas_stride   offset_y,        \
                                         rocblas_int      incy,            \
                                         rocblas_stride   stride_y,        \
                                         rocblas_int      batch_count,     \
