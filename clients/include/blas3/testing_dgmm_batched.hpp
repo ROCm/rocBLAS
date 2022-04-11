@@ -11,6 +11,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -38,14 +39,15 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = N * size_t(lda);
     size_t size_x = (rocblas_side_right == side ? N : M) * size_t(incx);
     size_t size_C = N * size_t(ldc);
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(M, N, lda, batch_count);
     device_batch_vector<T> dx(size_x, 1, batch_count);
-    device_batch_vector<T> dC(size_C, 1, batch_count);
+    device_batch_matrix<T> dC(M, N, ldc, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -92,8 +94,6 @@ void testing_dgmm_batched(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = size_t(lda) * size_t(N);
-    size_t size_C = size_t(ldc) * size_t(N);
     size_t size_x = size_t(abs_incx) * K;
     if(!size_x)
         size_x = 1;
@@ -109,34 +109,40 @@ void testing_dgmm_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dx is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(M, N, lda, batch_count);
     host_batch_vector<T> hx(size_x, 1, batch_count);
-    host_batch_vector<T> hC(size_C, 1, batch_count);
-    host_batch_vector<T> hC_1(size_C, 1, batch_count);
-    host_batch_vector<T> hC_gold(size_C, 1, batch_count);
+    host_batch_matrix<T> hC_1(M, N, ldc, batch_count);
+    host_batch_matrix<T> hC_2(M, N, ldc, batch_count);
+    host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
+    CHECK_HIP_ERROR(hC_2.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
-    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
-    rocblas_init_vector(hC, arg, rocblas_client_never_set_nan);
-
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(M, N, lda, batch_count);
     device_batch_vector<T> dx(size_x, 1, batch_count);
-    device_batch_vector<T> dC(size_C, 1, batch_count);
+    device_batch_matrix<T> dC(M, N, ldc, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
+
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dC.transfer_from(hC));
+    CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -162,16 +168,16 @@ void testing_dgmm_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // fetch GPU results
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count);
+            unit_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1, batch_count);
+            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2, batch_count);
         }
 
     } // end of if unit/norm check

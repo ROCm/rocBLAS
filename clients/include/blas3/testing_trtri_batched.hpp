@@ -11,6 +11,7 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -26,8 +27,6 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;
     rocblas_int batch_count = arg.batch_count;
-
-    size_t size_A = size_t(lda) * N;
 
     char char_uplo = arg.uplo;
     char char_diag = arg.diag;
@@ -48,35 +47,49 @@ void testing_trtri_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    host_batch_vector<T> hB(size_A, 1, batch_count);
-    host_batch_vector<T> hA_2(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(N, N, lda, batch_count);
+    host_batch_matrix<T> hB(N, N, lda, batch_count);
+    host_batch_matrix<T> hA_2(N, N, lda, batch_count);
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hA_2.memcheck());
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(N, N, lda, batch_count);
+    device_batch_matrix<T> dinvA(N, N, lda, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
+    //Explicitly set the unused side of matrix `hA` to 0 when using it for temp storage.
+    //Used rocblas_client_triangular_matrix type initialization, which will ensure the unused side is set to 0 or could be done manually
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true, true);
+
     for(size_t b = 0; b < batch_count; b++)
     {
-        rocblas_init_symmetric<T>(hA[b], N, lda);
         for(size_t i = 0; i < N; i++)
         {
             for(size_t j = 0; j < N; j++)
             {
-                hA[b][i + j * lda] *= 0.01;
+                T* A = hA[b];
+                A[i + j * lda] *= 0.01;
 
                 if(j % 2)
-                    hA[b][i + j * lda] *= -1;
-                if(uplo == rocblas_fill_lower
-                   && j > i) // need to explicitly set unsused side to 0 if using it for temp storage
-                    hA[b][i + j * lda] = 0.0f;
-                else if(uplo == rocblas_fill_upper && j < i)
-                    hA[b][i + j * lda] = 0.0f;
+                    A[i + j * lda] *= -1;
+
                 if(i == j)
                 {
                     if(diag == rocblas_diagonal_unit)
-                        hA[b][i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
+                        A[i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
                     else
-                        hA[b][i + j * lda] *= 100.0;
+                        A[i + j * lda] *= 100.0;
                 }
             }
         }
@@ -84,18 +97,13 @@ void testing_trtri_batched(const Arguments& arg)
 
     hB.copy_from(hA);
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error          = 0.0;
-
-    device_batch_vector<T> dA(size_A, 1, batch_count);
-    device_batch_vector<T> dinvA(size_A, 1, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
-
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dinvA.transfer_from(hA));
+
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
@@ -159,9 +167,9 @@ void testing_trtri_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
         }
 
-        for(size_t i = 0; i < batch_count; i++)
+        for(size_t b = 0; b < batch_count; b++)
         {
-            rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB[i], lda);
+            rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB[b], lda);
             if(info != 0)
             {
 #ifdef GOOGLE_TEST
@@ -189,16 +197,16 @@ void testing_trtri_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            for(size_t i = 0; i < batch_count; i++)
+            for(size_t b = 0; b < batch_count; b++)
             {
                 rocblas_error = fmax(rocblas_error,
-                                     norm_check_symmetric<T>('F', char_uplo, N, lda, hB[i], hA[i]));
+                                     norm_check_symmetric<T>('F', char_uplo, N, lda, hB[b], hA[b]));
             }
             rocblas_error = 0.0;
-            for(size_t i = 0; i < batch_count; i++)
+            for(size_t b = 0; b < batch_count; b++)
             {
                 rocblas_error = fmax(
-                    rocblas_error, norm_check_symmetric<T>('F', char_uplo, N, lda, hB[i], hA_2[i]));
+                    rocblas_error, norm_check_symmetric<T>('F', char_uplo, N, lda, hB[b], hA_2[b]));
             }
         }
     } // end of norm_check

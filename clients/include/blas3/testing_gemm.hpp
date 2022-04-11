@@ -12,6 +12,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -26,12 +27,12 @@ void testing_gemm_bad_arg(const Arguments& arg)
         auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
         const rocblas_int M = 100;
-        const rocblas_int N = 100;
-        const rocblas_int K = 100;
+        const rocblas_int N = 101;
+        const rocblas_int K = 102;
 
-        const rocblas_int lda = 100;
-        const rocblas_int ldb = 100;
-        const rocblas_int ldc = 100;
+        const rocblas_int lda = 103;
+        const rocblas_int ldb = 103;
+        const rocblas_int ldc = 103;
 
         device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
@@ -54,18 +55,23 @@ void testing_gemm_bad_arg(const Arguments& arg)
             zero = zero_d;
         }
 
-        const size_t safe_size = N * ldc;
-
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
+
+        rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
+        rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
+        rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
+        rocblas_int B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
 
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        // allocate memory on device
-        device_vector<T> dA(safe_size);
-        device_vector<T> dB(safe_size);
-        device_vector<T> dC(safe_size);
+        // Allocate device memory
+        device_matrix<T> dA(A_row, A_col, lda);
+        device_matrix<T> dB(B_row, B_col, ldb);
+        device_matrix<T> dC(M, N, ldc);
+
+        // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -203,10 +209,10 @@ void testing_gemm(const Arguments& arg)
     bool                 HMM           = arg.HMM;
     rocblas_local_handle handle{arg};
 
-    rocblas_int A_row = transA == rocblas_operation_none ? M : K;
-    rocblas_int A_col = transA == rocblas_operation_none ? K : M;
-    rocblas_int B_row = transB == rocblas_operation_none ? K : N;
-    rocblas_int B_col = transB == rocblas_operation_none ? N : K;
+    rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
+    rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
 
     // check here to prevent undefined memory allocation error
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
@@ -244,67 +250,43 @@ void testing_gemm(const Arguments& arg)
     }
 #endif
 
-    const size_t size_A      = size_t(lda) * A_col;
-    const size_t size_B      = size_t(ldb) * B_col;
-    const size_t size_C      = size_t(ldc) * N;
-    const size_t size_C_copy = arg.unit_check || arg.norm_check ? size_C : 0;
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(A_row, A_col, lda);
+    host_matrix<T> hB(B_row, B_col, ldb);
+    host_matrix<T> hC_1(M, N, ldc);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A, 1, HMM);
-    device_vector<T> dB(size_B, 1, HMM);
-    device_vector<T> dC(size_C, 1, HMM);
+    // Allocate device memory
+    device_matrix<T> dA(A_row, A_col, lda, HMM);
+    device_matrix<T> dB(B_row, B_col, ldb, HMM);
+    device_matrix<T> dC(M, N, ldc, HMM);
     device_vector<T> d_alpha(1, 1, HMM);
     device_vector<T> d_beta(1, 1, HMM);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_gold(size_C_copy);
-
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        A_row,
-                        A_col,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        true);
-    rocblas_init_matrix(hB,
-                        arg,
-                        B_row,
-                        B_col,
-                        ldb,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        false,
-                        true);
     rocblas_init_matrix(
-        hC_1, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
-
-    if(size_C_copy)
-    {
-        hC_gold = hC_1;
-    }
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+    rocblas_init_matrix(
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
-
     CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
     if(arg.unit_check || arg.norm_check)
     {
+        host_matrix<T> hC_gold(M, N, ldc);
+        hC_gold = hC_1;
+
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -338,8 +320,8 @@ void testing_gemm(const Arguments& arg)
         }
 
         //releasing already used host memory
-        hA = host_vector<T>();
-        hB = host_vector<T>();
+        hA = host_matrix<T>();
+        hB = host_matrix<T>();
 
         // check host error and norm
         if(arg.unit_check)
@@ -359,7 +341,7 @@ void testing_gemm(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
+            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
             rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
         }
 
@@ -383,7 +365,7 @@ void testing_gemm(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
+            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
             rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
         }
     }

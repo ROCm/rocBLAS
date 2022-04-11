@@ -11,6 +11,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -39,18 +40,17 @@ void testing_geam_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = N * size_t(lda);
-    size_t size_B = N * size_t(ldb);
-    size_t size_C = N * size_t(ldc);
+    rocblas_int A_row = transA == rocblas_operation_none ? M : N;
+    rocblas_int A_col = transA == rocblas_operation_none ? N : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? M : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> hC(size_C);
+    // Allocate device memory
+    device_matrix<T> dA(A_row, A_col, lda);
+    device_matrix<T> dB(B_row, B_col, ldb);
+    device_matrix<T> dC(M, N, ldc);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -104,8 +104,10 @@ void testing_geam(const Arguments& arg)
 
     T* dC_in_place;
 
-    rocblas_int A_row, A_col, B_row, B_col;
-    rocblas_int inc1_A, inc2_A, inc1_B, inc2_B;
+    rocblas_int A_row = transA == rocblas_operation_none ? M : N;
+    rocblas_int A_col = transA == rocblas_operation_none ? N : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? M : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
@@ -116,37 +118,6 @@ void testing_geam(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    if(transA == rocblas_operation_none)
-    {
-        A_row  = M;
-        A_col  = N;
-        inc1_A = 1;
-        inc2_A = lda;
-    }
-    else
-    {
-        A_row  = N;
-        A_col  = M;
-        inc1_A = lda;
-        inc2_A = 1;
-    }
-    if(transB == rocblas_operation_none)
-    {
-        B_row  = M;
-        B_col  = N;
-        inc1_B = 1;
-        inc2_B = ldb;
-    }
-    else
-    {
-        B_row  = N;
-        B_col  = M;
-        inc1_B = ldb;
-        inc2_B = 1;
-    }
-
-    size_t size_A = size_t(lda) * size_t(A_col);
-    size_t size_B = size_t(ldb) * size_t(B_col);
     size_t size_C = size_t(ldc) * size_t(N);
 
     // argument sanity check before allocating invalid memory
@@ -170,58 +141,49 @@ void testing_geam(const Arguments& arg)
         return;
     }
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(A_row, A_col, lda), hA_copy(A_row, A_col, lda);
+    host_matrix<T> hB(B_row, B_col, ldb), hB_copy(B_row, B_col, ldb);
+    host_matrix<T> hC_1(M, N, ldc);
+    host_matrix<T> hC_2(M, N, ldc);
+    host_matrix<T> hC_gold(M, N, ldc);
     host_vector<T> h_alpha(1);
     host_vector<T> h_beta(1);
-    host_vector<T> hA(size_A), hA_copy(size_A);
-    host_vector<T> hB(size_B), hB_copy(size_B);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> hC_gold(size_C);
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
+
+    h_alpha[0] = alpha;
+    h_beta[0]  = beta;
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hA_copy.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hB_copy.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
     CHECK_HIP_ERROR(hC_2.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    // Initial Data on CPU
-    h_alpha[0] = alpha;
-    h_beta[0]  = beta;
-
-    // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        A_row,
-                        A_col,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        true);
-    rocblas_init_matrix(hB,
-                        arg,
-                        B_row,
-                        B_col,
-                        ldb,
-                        0,
-                        1,
-                        rocblas_client_beta_sets_nan,
-                        rocblas_client_general_matrix);
-
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    // Allocate device memory
+    device_matrix<T> dA(A_row, A_col, lda);
+    device_matrix<T> dB(B_row, B_col, ldb);
+    device_matrix<T> dC(M, N, ldc);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+    rocblas_init_matrix(hB, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+
+    hA_copy = hA;
+    hB_copy = hB;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
@@ -278,15 +240,6 @@ void testing_geam(const Arguments& arg)
 
         // inplace check for dC == dA
         {
-
-            if(arg.alpha_isnan<T>()) // need no NaN A
-            {
-                rocblas_init<T>(hA_copy, A_row, A_col, lda);
-                CHECK_HIP_ERROR(dA.transfer_from(hA_copy));
-            }
-            else
-                hA_copy = hA;
-
             dC_in_place = dA;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -332,14 +285,6 @@ void testing_geam(const Arguments& arg)
 
         // inplace check for dC == dB
         {
-            if(arg.beta_isnan<T>()) // need no NaN B
-            {
-                rocblas_init<T>(hB_copy, B_row, B_col, ldb);
-                CHECK_HIP_ERROR(dB.transfer_from(hB_copy));
-            }
-            else
-                hB_copy = hB;
-
             dC_in_place = dB;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));

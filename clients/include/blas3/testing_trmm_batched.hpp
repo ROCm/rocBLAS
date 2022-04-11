@@ -12,6 +12,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -38,10 +39,13 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    // allocate memory on device
-    const size_t           safe_size = 100;
-    device_batch_vector<T> dA(safe_size, 1, batch_count);
-    device_batch_vector<T> dB(safe_size, 1, batch_count);
+    rocblas_int K = side == rocblas_side_left ? M : N;
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(K, K, lda, batch_count);
+    device_batch_matrix<T> dB(M, N, ldb, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
@@ -133,9 +137,7 @@ void testing_trmm_batched(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K      = side == rocblas_side_left ? M : N;
-    size_t      size_A = lda * size_t(K);
-    size_t      size_B = ldb * size_t(N);
+    rocblas_int K = side == rocblas_side_left ? M : N;
 
     // ensure invalid sizes and quick return checked before pointer check
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;
@@ -158,46 +160,49 @@ void testing_trmm_batched(const Arguments& arg)
         return;
     }
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error          = 0.0;
-
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(K, K, lda, batch_count);
+    host_batch_matrix<T> hB_1(M, N, ldb, batch_count);
+    host_batch_matrix<T> hB_2(M, N, ldb, batch_count);
+    host_batch_matrix<T> hB_gold(M, N, ldb, batch_count);
     host_vector<T>       h_alpha(1);
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    host_batch_vector<T> hB(size_B, 1, batch_count);
-    host_batch_vector<T> hB_1(size_B, 1, batch_count);
-    host_batch_vector<T> hB_2(size_B, 1, batch_count);
-    host_batch_vector<T> hB_gold(size_B, 1, batch_count);
 
-    CHECK_HIP_ERROR(h_alpha.memcheck());
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
     CHECK_HIP_ERROR(hB_1.memcheck());
     CHECK_HIP_ERROR(hB_2.memcheck());
     CHECK_HIP_ERROR(hB_gold.memcheck());
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
-    device_batch_vector<T> dB(size_B, 1, batch_count);
+    //  initialize data on CPU
+    h_alpha[0] = alpha;
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(K, K, lda, batch_count);
+    device_batch_matrix<T> dB(M, N, ldb, batch_count);
     device_vector<T>       d_alpha(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
-    //  initialize data on CPU
-    h_alpha[0] = alpha;
-
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hB, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(
+        hB_1, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
 
-    hB_1.copy_from(hB);
-    hB_2.copy_from(hB);
-    hB_gold.copy_from(hB);
+    hB_1.copy_from(hB_1);
+    hB_2.copy_from(hB_1);
+    hB_gold.copy_from(hB_1);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
+
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -246,9 +251,9 @@ void testing_trmm_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
         }
 
-        for(rocblas_int i = 0; i < batch_count; i++)
+        for(rocblas_int b = 0; b < batch_count; b++)
         {
-            cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[i], lda, hB_gold[i], ldb);
+            cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[b], lda, hB_gold[b], ldb);
         }
 
         if(arg.timing)

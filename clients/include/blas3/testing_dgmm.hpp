@@ -11,6 +11,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -35,14 +36,14 @@ void testing_dgmm_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = N * size_t(lda);
     size_t size_x = (rocblas_side_right == side ? N : M) * size_t(incx);
-    size_t size_C = N * size_t(ldc);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
+    // Allocate device memory
+    device_matrix<T> dA(M, N, lda);
     device_vector<T> dx(size_x);
-    device_vector<T> dC(size_C);
+    device_matrix<T> dC(M, N, ldc);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -82,8 +83,6 @@ void testing_dgmm(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = size_t(lda) * size_t(N);
-    size_t size_C = size_t(ldc) * size_t(N);
     size_t size_x = size_t(abs_incx) * K;
     if(!size_x)
         size_x = 1;
@@ -98,44 +97,33 @@ void testing_dgmm(const Arguments& arg)
         return;
     }
 
-    // Naming: dx is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(M, N, lda);
     host_vector<T> hx(size_x);
-    host_vector<T> hC(size_C);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_gold(size_C);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
+    host_matrix<T> hC_1(M, N, ldc);
+    host_matrix<T> hC_2(M, N, ldc);
+    host_matrix<T> hC_gold(M, N, ldc);
 
-    // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        M,
-                        N,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_general_matrix,
-                        true);
-    rocblas_init_vector(hx, arg, K, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
-    rocblas_init_matrix(
-        hC, arg, M, N, ldc, 0, 1, rocblas_client_never_set_nan, rocblas_client_general_matrix);
-
-    // allocate memory on device
-    device_vector<T> dA(size_A);
+    // Allocate device memory
+    device_matrix<T> dA(M, N, lda);
     device_vector<T> dx(size_x);
-    device_vector<T> dC(size_C);
+    device_matrix<T> dC(M, N, ldc);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+    rocblas_init_vector(hx, arg, K, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
+
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dC.transfer_from(hC));
+    CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -148,16 +136,16 @@ void testing_dgmm(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // fecth from GPU
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+            unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1);
+            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2);
         }
 
     } // end of if unit/norm check

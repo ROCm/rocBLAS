@@ -13,6 +13,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -47,11 +48,15 @@ void testing_her2k_batched_bad_arg(const Arguments& arg)
     const U     beta               = 1.0;
     rocblas_int batch_count        = 2;
 
-    const size_t safe_size = 100;
-    // allocate memory on device
-    device_batch_vector<T> dA(safe_size, 1, batch_count);
-    device_batch_vector<T> dB(safe_size, 1, batch_count);
-    device_batch_vector<T> dC(safe_size, 1, batch_count);
+    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+    size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(rows, cols, lda, batch_count);
+    device_batch_matrix<T> dB(rows, cols, ldb, batch_count);
+    device_batch_matrix<T> dC(N, N, ldc, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -192,55 +197,57 @@ void testing_her2k_batched(const Arguments& arg)
         return;
     }
 
-    size_t     cols   = (transA == rocblas_operation_none ? std::max(K, 1) : N);
-    size_t     rows   = (transA != rocblas_operation_none ? std::max(K, 1) : N);
-    const auto size_A = lda * cols;
-    const auto size_B = ldb * cols;
-    const auto size_C = size_t(ldc) * N;
+    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+    size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
-    device_batch_vector<T> dB(size_B, 1, batch_count);
-    device_batch_vector<T> dC(size_C, 1, batch_count);
-    device_vector<T>       d_alpha(1);
-    device_vector<U>       d_beta(1);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(rows, cols, lda, batch_count);
+    host_batch_matrix<T> hB(rows, cols, ldb, batch_count);
+    host_batch_matrix<T> hC_1(N, N, ldc, batch_count);
+    host_batch_matrix<T> hC_2(N, N, ldc, batch_count);
+    host_batch_matrix<T> hC_gold(N, N, ldc, batch_count);
     host_vector<T>       h_alpha(1);
     host_vector<U>       h_beta(1);
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    host_batch_vector<T> hB(size_B, 1, batch_count);
-    host_batch_vector<T> hC_1(size_C, 1, batch_count);
-    host_batch_vector<T> hC_2(size_C, 1, batch_count);
-    host_batch_vector<T> hC_gold(size_C, 1, batch_count);
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
     CHECK_HIP_ERROR(hC_2.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
+    // Allocate device memory
+    device_batch_matrix<T> dA(rows, cols, lda, batch_count);
+    device_batch_matrix<T> dB(rows, cols, ldb, batch_count);
+    device_batch_matrix<T> dC(N, N, ldc, batch_count);
+    device_vector<T>       d_alpha(1);
+    device_vector<U>       d_beta(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true);
     if(TWOK)
     {
-        rocblas_init_vector(hB, arg, rocblas_client_never_set_nan, false, true);
+        rocblas_init_matrix(
+            hB, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, false, true);
     }
     else
     { // require symmetric A*B^H so testing with B = A
         rocblas_copy_matrix((const T* const*)hA, (T**)hB, rows, cols, lda, ldb, batch_count);
     }
-    rocblas_init_vector(hC_1, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_hermitian_matrix);
 
     hC_2.copy_from(hC_1);
     hC_gold.copy_from(hC_1);
@@ -304,7 +311,7 @@ void testing_her2k_batched(const Arguments& arg)
         }
 
         // cpu reference
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
             // herkx: B equals A to ensure a symmetric result
             herXX_ref_fn(uplo,
@@ -312,12 +319,12 @@ void testing_her2k_batched(const Arguments& arg)
                          N,
                          K,
                          &h_alpha[0],
-                         hA[i],
+                         hA[b],
                          lda,
-                         hB[i],
+                         hB[b],
                          ldb,
                          &h_beta[0],
-                         hC_gold[i],
+                         hC_gold[b],
                          ldc);
         }
 
