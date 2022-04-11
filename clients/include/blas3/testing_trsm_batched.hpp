@@ -11,6 +11,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -40,10 +41,13 @@ void testing_trsm_batched_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    // allocate memory on device
-    const size_t           safe_size = 100;
-    device_batch_vector<T> dA(safe_size, 1, batch_count);
-    device_batch_vector<T> dB(safe_size * safe_size, 1, batch_count);
+    rocblas_int K = side == rocblas_side_left ? M : N;
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(K, K, lda, batch_count);
+    device_batch_matrix<T> dB(M, N, ldb, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
@@ -147,9 +151,7 @@ void testing_trsm_batched(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K      = side == rocblas_side_left ? M : N;
-    size_t      size_A = lda * size_t(K);
-    size_t      size_B = ldb * size_t(N);
+    rocblas_int K = side == rocblas_side_left ? M : N;
 
     rocblas_local_handle handle{arg};
     // check here to prevent undefined memory allocation error
@@ -174,27 +176,33 @@ void testing_trsm_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    host_batch_vector<T> AAT(size_A, 1, batch_count);
-    host_batch_vector<T> hB(size_B, 1, batch_count);
-    host_batch_vector<T> hX(size_B, 1, batch_count);
-    host_batch_vector<T> hXorB_1(size_B, 1, batch_count);
-    host_batch_vector<T> hXorB_2(size_B, 1, batch_count);
-    host_batch_vector<T> cpuXorB(size_B, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(K, K, lda, batch_count);
+    host_batch_matrix<T> hAAT(K, K, lda, batch_count);
+    host_batch_matrix<T> hB(M, N, ldb, batch_count);
+    host_batch_matrix<T> hX(M, N, ldb, batch_count);
+    host_batch_matrix<T> hXorB_1(M, N, ldb, batch_count);
+    host_batch_matrix<T> hXorB_2(M, N, ldb, batch_count);
+    host_batch_matrix<T> cpuXorB(M, N, ldb, batch_count);
     host_vector<T>       halpha(1);
     halpha[0] = alpha_h;
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used  = 0.0;
-    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hAAT.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hX.memcheck());
+    CHECK_HIP_ERROR(hXorB_1.memcheck());
+    CHECK_HIP_ERROR(hXorB_2.memcheck());
+    CHECK_HIP_ERROR(cpuXorB.memcheck());
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
-    device_batch_vector<T> dXorB(size_B, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(K, K, lda, batch_count);
+    device_batch_matrix<T> dXorB(M, N, ldb, batch_count);
     device_vector<T>       alpha_d(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
@@ -206,23 +214,21 @@ void testing_trsm_batched(const Arguments& arg)
     //
     //  We want a triangular matrix with condition number that grows
     //  lineary with matrix size. We start with full random matrix A.
-    //  Calculate symmetric AAT <- A A^T. Make AAT strictly diagonal
+    //  Calculate symmetric hAAT <- A A^T. Make hAAT strictly diagonal
     //  dominant. A strictly diagonal dominant matrix is SPD so we
-    //  can use Cholesky to calculate L L^T = AAT. These L factors
+    //  can use Cholesky to calculate L L^T = hAAT. These L factors
     //  should have condition number approximately equal to
     //  the condition number of the original matrix A.
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
-    rocblas_init_vector(hX, arg, rocblas_client_never_set_nan, false, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(
+        hX, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, false, true);
 
     for(int b = 0; b < batch_count; b++)
     {
-        for(int i = K; i < lda; i++)
-            for(int j = 0; j < K; j++)
-                hA[b][i + j * lda] = 0.0;
-
-        //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
+        //  calculate hAAT = hA * hA ^ T or hAAT = hA * hA ^ H if complex
         cblas_gemm<T>(rocblas_operation_none,
                       rocblas_operation_conjugate_transpose,
                       K,
@@ -234,61 +240,20 @@ void testing_trsm_batched(const Arguments& arg)
                       hA[b],
                       lda,
                       T(0.0),
-                      AAT[b],
+                      hAAT[b],
                       lda);
 
-        //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-        for(int i = 0; i < K; i++)
-        {
-            T t = 0.0;
-            for(int j = 0; j < K; j++)
-            {
-                int idx    = i + j * lda;
-                hA[b][idx] = AAT[b][idx];
-                t += rocblas_abs(AAT[b][idx]);
-            }
-            hA[b][i + i * lda] = t;
-        }
+        //  copy hAAT into hA, make hA strictly diagonal dominant, and therefore SPD
+        copy_hAAT_to_hA<T>((T*)hAAT[b], (T*)hA[b], K, size_t(lda));
 
         //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, K, hA[b], lda);
-    }
 
-    //  make hA unit diagonal if diag == rocblas_diagonal_unit
-    if(char_diag == 'U' || char_diag == 'u')
-    {
-        if('L' == char_uplo || 'l' == char_uplo)
+        //  make hA unit diagonal if diag == rocblas_diagonal_unit
+        if(diag == rocblas_diagonal_unit)
         {
-            for(int b = 0; b < batch_count; b++)
-            {
-                for(int i = 0; i < K; i++)
-                {
-                    T diag = hA[b][i + i * lda];
-                    for(int j = 0; j <= i; j++)
-                        hA[b][i + j * lda] = hA[b][i + j * lda] / diag;
-                }
-            }
+            make_unit_diagonal(uplo, (T*)hA[b], lda, K);
         }
-        else
-        {
-            for(int b = 0; b < batch_count; b++)
-            {
-                for(int j = 0; j < K; j++)
-                {
-                    T diag = hA[b][j + j * lda];
-                    for(int i = 0; i <= j; i++)
-                        hA[b][i + j * lda] = hA[b][i + j * lda] / diag;
-                }
-            }
-        }
-    }
-
-    // Initialize "exact" answer hx
-    for(int b = 0; b < batch_count; b++)
-    {
-        for(int i = M; i < ldb; i++)
-            for(int j = 0; j < N; j++)
-                hX[b][i + j * ldb] = 0.0;
     }
 
     hB.copy_from(hX);
@@ -306,8 +271,13 @@ void testing_trsm_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
-    double max_err_1 = 0.0;
-    double max_err_2 = 0.0;
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used  = 0.0;
+    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
+    double max_err_1               = 0.0;
+    double max_err_2               = 0.0;
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
@@ -380,9 +350,7 @@ void testing_trsm_batched(const Arguments& arg)
         {
             // expecting 0 output, set hX == 0
             for(rocblas_int b = 0; b < batch_count; b++)
-                for(rocblas_int i = 0; i < M; i++)
-                    for(rocblas_int j = 0; j < N; j++)
-                        hX[b][i + j * ldb] = 0.0;
+                rocblas_init_zero((T*)hX[b], M, N, ldb);
 
             if(arg.unit_check)
             {

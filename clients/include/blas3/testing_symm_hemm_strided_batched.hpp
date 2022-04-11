@@ -13,6 +13,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -42,11 +43,15 @@ void testing_symm_hemm_strided_batched_bad_arg(const Arguments& arg)
     rocblas_stride       strideC     = 1;
     rocblas_int          batch_count = 2;
 
-    const size_t safe_size = 100;
-    // allocate memory on device
-    device_strided_batch_vector<T> dA(1, 1, strideA, batch_count);
-    device_strided_batch_vector<T> dB(1, 1, strideB, batch_count);
-    device_strided_batch_vector<T> dC(1, 1, strideC, batch_count);
+    size_t rows = (side == rocblas_side_left ? N : M);
+    size_t cols = (side == rocblas_side_left ? M : N);
+
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(rows, cols, lda, strideA, batch_count);
+    device_strided_batch_matrix<T> dB(M, N, ldb, strideB, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, strideC, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -277,52 +282,62 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t cols = (side == rocblas_side_left ? std::max(M, 1) : std::max(N, 1));
-    strideA     = std::max(strideA, rocblas_stride(lda * cols));
-    strideB     = std::max(strideB, rocblas_stride(size_t(ldb) * N));
-    strideC     = std::max(strideC, rocblas_stride(size_t(ldc) * N));
+    size_t rows = (side == rocblas_side_left ? N : M);
+    size_t cols = (side == rocblas_side_left ? M : N);
 
-    size_t sizeA = strideA;
-    size_t sizeB = strideB;
-    size_t sizeC = strideC;
+    strideA = std::max(strideA, rocblas_stride(lda * cols));
+    strideB = std::max(strideB, rocblas_stride(size_t(ldb) * N));
+    strideC = std::max(strideC, rocblas_stride(size_t(ldc) * N));
 
-    // allocate memory on device
-    device_strided_batch_vector<T> dA(sizeA, 1, strideA, batch_count);
-    device_strided_batch_vector<T> dB(sizeB, 1, strideB, batch_count);
-    device_strided_batch_vector<T> dC(sizeC, 1, strideC, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(rows, cols, lda, strideA, batch_count);
+    host_strided_batch_matrix<T> hB(M, N, ldb, strideB, batch_count);
+    host_strided_batch_matrix<T> hC_1(M, N, ldc, strideC, batch_count);
+    host_strided_batch_matrix<T> hC_2(M, N, ldc, strideC, batch_count);
+    host_strided_batch_matrix<T> hC_gold(M, N, ldc, strideC, batch_count);
+    host_vector<T>               h_alpha(1);
+    host_vector<T>               h_beta(1);
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hC_1.memcheck());
+    CHECK_HIP_ERROR(hC_2.memcheck());
+    CHECK_HIP_ERROR(hC_gold.memcheck());
+
+    // Initial Data on CPU
+    h_alpha[0] = alpha;
+    h_beta[0]  = beta;
+
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(rows, cols, lda, strideA, batch_count);
+    device_strided_batch_matrix<T> dB(M, N, ldb, strideB, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, strideC, batch_count);
     device_vector<T>               d_alpha(1);
     device_vector<T>               d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-
-    host_strided_batch_vector<T> hA(sizeA, 1, strideA, batch_count);
-    host_strided_batch_vector<T> hB(sizeB, 1, strideB, batch_count);
-    host_strided_batch_vector<T> hC_1(sizeC, 1, strideC, batch_count);
-    host_strided_batch_vector<T> hC_2(sizeC, 1, strideC, batch_count);
-    host_strided_batch_vector<T> hC_gold(sizeC, 1, strideC, batch_count);
-    host_vector<T>               h_alpha(1);
-    host_vector<T>               h_beta(1);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_2.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
-
-    // Initial Data on CPU
-    h_alpha[0] = alpha;
-    h_beta[0]  = beta;
-
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
-    rocblas_init_vector(hB, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hC_1, arg, rocblas_client_beta_sets_nan);
+    if(HERM)
+    {
+        rocblas_init_matrix(
+            hA, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
+    }
+    else
+    {
+        rocblas_init_matrix(
+            hA, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
+    }
+    rocblas_init_matrix(
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     hC_2.copy_from(hC_1);
     hC_gold.copy_from(hC_1);
@@ -389,12 +404,12 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
         }
 
         // cpu reference
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
             if(HERM)
             {
                 cblas_hemm<T>(
-                    side, uplo, M, N, h_alpha, hA[i], lda, hB[i], ldb, h_beta, hC_gold[i], ldc);
+                    side, uplo, M, N, h_alpha, hA[b], lda, hB[b], ldb, h_beta, hC_gold[b], ldc);
             }
             else
             {
@@ -403,12 +418,12 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
                               M,
                               N,
                               h_alpha[0],
-                              hA[i],
+                              hA[b],
                               lda,
-                              hB[i],
+                              hB[b],
                               ldb,
                               h_beta[0],
-                              hC_gold[i],
+                              hC_gold[b],
                               ldc);
             }
         }
