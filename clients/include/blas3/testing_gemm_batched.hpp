@@ -28,8 +28,8 @@ void testing_gemm_batched(const Arguments& arg)
     rocblas_int          M           = arg.M;
     rocblas_int          N           = arg.N;
     rocblas_int          K           = arg.K;
-    T                    h_alpha     = arg.alpha;
-    T                    h_beta      = rocblas_isnan(arg.beta) ? 0 : arg.beta;
+    T                    h_alpha     = arg.get_alpha<T>();
+    T                    h_beta      = arg.get_beta<T>();
     rocblas_int          lda         = arg.lda;
     rocblas_int          ldb         = arg.ldb;
     rocblas_int          ldc         = arg.ldc;
@@ -224,7 +224,8 @@ void testing_gemm_batched(const Arguments& arg)
                 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1, batch_count));
             double error_dev_ptr
                 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2, batch_count));
-            rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
+            rocblas_error = error_hst_ptr > rocblas_error ? error_hst_ptr : rocblas_error;
+            rocblas_error = error_dev_ptr > rocblas_error ? error_dev_ptr : rocblas_error;
         }
     }
 

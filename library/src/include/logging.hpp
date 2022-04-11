@@ -366,6 +366,9 @@ inline rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
 template <typename T>
 auto value_category(const T* beta, rocblas_datatype compute_type)
 {
+    if(beta == nullptr)
+        return 0.0;
+
     switch(compute_type)
     {
     case rocblas_datatype_f16_r:
