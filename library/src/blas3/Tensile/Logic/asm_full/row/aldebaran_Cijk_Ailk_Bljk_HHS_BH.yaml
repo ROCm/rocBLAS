@@ -57891,7 +57891,7 @@
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
     SolutionIndex: 216
-    SolutionNameMin: Cijk_Ailk_Bljk_HBH_MT4x16x64_SN_LDL4_PGR0
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT4x16x64_SN_LDL4_PGR0
     SourceSwap: false
     StaggerU: 32
     StaggerUMapping: 0
@@ -58139,7 +58139,7 @@
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
     SolutionIndex: 217
-    SolutionNameMin: Cijk_Ailk_Bljk_HBH_MT4x16x64_SN_LDL1_PGR0
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT4x16x64_SN_LDL1_PGR0
     SourceSwap: false
     StaggerU: 32
     StaggerUMapping: 0
@@ -58387,7 +58387,7 @@
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
     SolutionIndex: 218
-    SolutionNameMin: Cijk_Ailk_Bljk_HBH_MT4x16x64_SN_ETSP_LDL4_PGR0
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT4x16x64_SN_ETSP_LDL4_PGR0
     SourceSwap: false
     StaggerU: 32
     StaggerUMapping: 0
