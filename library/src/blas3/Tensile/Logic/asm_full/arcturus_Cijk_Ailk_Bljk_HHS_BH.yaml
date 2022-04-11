@@ -155812,7 +155812,7 @@
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
     SolutionIndex: 624
-    SolutionNameMin: Cijk_Ailk_Bljk_HBH_MT4x16x32_SN_ETSP_PGR1
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT4x16x32_SN_ETSP_PGR1
     SourceSwap: false
     StaggerU: 32
     StaggerUMapping: 0
@@ -156064,7 +156064,7 @@
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
     SolutionIndex: 625
-    SolutionNameMin: Cijk_Ailk_Bljk_HBH_MT4x16x32_SN_ETSP_LDL4_PGR1
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT4x16x32_SN_ETSP_LDL4_PGR1
     SourceSwap: false
     StaggerU: 32
     StaggerUMapping: 0
