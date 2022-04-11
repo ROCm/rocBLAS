@@ -18,7 +18,7 @@ rocblas_status scal_ex_typecasting(rocblas_handle handle,
 {
     const Ta*            alpha        = (const Ta*)alpha_void;
     const rocblas_stride stride_alpha = 0;
-    const rocblas_int    offset_x     = 0;
+    const rocblas_stride offset_x     = 0;
 
     if(!alpha_void)
         return rocblas_status_invalid_pointer;

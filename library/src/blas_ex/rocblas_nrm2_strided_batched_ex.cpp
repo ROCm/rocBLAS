@@ -131,8 +131,8 @@ namespace
             return rocblas_status_memory_error;
         }
 
-        static constexpr bool        isbatched = false;
-        static constexpr rocblas_int shiftx_0  = 0;
+        static constexpr bool           isbatched = false;
+        static constexpr rocblas_stride shiftx_0  = 0;
 
         return rocblas_nrm2_ex_template<NB, isbatched>(handle,
                                                        n,

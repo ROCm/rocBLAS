@@ -27,7 +27,7 @@ rocblas_status dot_ex_typecasting(rocblas_handle __restrict__ handle,
                                   void* __restrict__ results,
                                   void* __restrict__ workspace)
 {
-    static constexpr rocblas_int offset_0 = 0;
+    static constexpr rocblas_stride offset_0 = 0;
     if(ISBATCHED)
     {
         return rocblas_internal_dot_template<NB, CONJ>(handle,

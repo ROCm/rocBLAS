@@ -21,7 +21,7 @@ rocblas_internal_flip_vector_kernel(U* __restrict__ data,
                                     rocblas_int    m,
                                     rocblas_int    size,
                                     rocblas_int    abs_incx,
-                                    rocblas_int    offset,
+                                    rocblas_stride offset,
                                     rocblas_stride stride)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -43,7 +43,7 @@ void rocblas_internal_flip_vector(rocblas_handle handle,
                                   rocblas_int    abs_incx,
                                   rocblas_stride stride,
                                   rocblas_int    batch_count,
-                                  rocblas_int    offset = 0)
+                                  rocblas_stride offset = 0)
 {
     rocblas_int size    = (m + 1) / 2;
     rocblas_int blocksX = (size - 1) / NB_X + 1;
@@ -72,8 +72,8 @@ rocblas_internal_strided_vector_copy_kernel(U __restrict__ dst,
                                             rocblas_int    src_incx,
                                             rocblas_stride src_stride,
                                             rocblas_int    size,
-                                            rocblas_int    offset_dst = 0,
-                                            rocblas_int    offset_src = 0)
+                                            rocblas_stride offset_dst = 0,
+                                            rocblas_stride offset_src = 0)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tx < size)
@@ -94,8 +94,8 @@ void rocblas_internal_strided_vector_copy(rocblas_handle handle,
                                           rocblas_stride src_stride,
                                           rocblas_int    size,
                                           rocblas_int    batch_count,
-                                          rocblas_int    offset_dst = 0,
-                                          rocblas_int    offset_src = 0)
+                                          rocblas_stride offset_dst = 0,
+                                          rocblas_stride offset_src = 0)
 {
     rocblas_int blocksX = (size - 1) / NB_X + 1;
     dim3        grid(blocksX, batch_count, 1);
@@ -123,15 +123,15 @@ rocblas_status rocblas_internal_trsv_left(rocblas_handle    handle,
                                           rocblas_operation transA,
                                           rocblas_int       m,
                                           U                 A,
-                                          rocblas_int       offset_Ain,
+                                          rocblas_stride    offset_Ain,
                                           rocblas_int       lda,
                                           rocblas_stride    stride_A,
                                           V                 B,
-                                          rocblas_int       offset_Bin,
+                                          rocblas_stride    offset_Bin,
                                           rocblas_int       incx,
                                           rocblas_stride    stride_B,
                                           U                 invA,
-                                          rocblas_int       offset_invAin,
+                                          rocblas_stride    offset_invAin,
                                           rocblas_stride    stride_invA,
                                           V                 X,
                                           rocblas_stride    stride_X,
@@ -564,15 +564,15 @@ rocblas_status rocblas_internal_special_trsv_template(rocblas_handle    handle,
                                                       rocblas_diagonal  diag,
                                                       rocblas_int       m,
                                                       U                 A,
-                                                      rocblas_int       offset_Ain,
+                                                      rocblas_stride    offset_Ain,
                                                       rocblas_int       lda,
                                                       rocblas_stride    stride_A,
                                                       V                 B,
-                                                      rocblas_int       offset_Bin,
+                                                      rocblas_stride    offset_Bin,
                                                       rocblas_int       incx,
                                                       rocblas_stride    stride_B,
                                                       U                 invA,
-                                                      rocblas_int       offset_invAin,
+                                                      rocblas_stride    offset_invAin,
                                                       rocblas_stride    stride_invA,
                                                       V                 x_temp,
                                                       rocblas_stride    stride_X,
@@ -601,10 +601,10 @@ rocblas_status rocblas_internal_special_trsv_template(rocblas_handle    handle,
 
         if(r)
         {
-            rocblas_int M       = BLOCK;
-            rocblas_int N       = BLOCK;
-            rocblas_int offsetA = 0;
-            rocblas_int offsetB = parity ? q * BLOCK * incx : 0;
+            rocblas_int    M       = BLOCK;
+            rocblas_int    N       = BLOCK;
+            rocblas_stride offsetA = 0;
+            rocblas_stride offsetB = parity ? q * BLOCK * incx : 0;
 
             if(transA == rocblas_operation_none)
             {
@@ -759,11 +759,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_diagonal  diag,
                                            rocblas_int       m,
                                            U                 A,
-                                           rocblas_int       offset_A,
+                                           rocblas_stride    offset_A,
                                            rocblas_int       lda,
                                            rocblas_stride    stride_A,
                                            V                 B,
-                                           rocblas_int       offset_B,
+                                           rocblas_stride    offset_B,
                                            rocblas_int       incx,
                                            rocblas_stride    stride_B,
                                            rocblas_int       batch_count,
@@ -773,7 +773,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            void*             invAarr            = nullptr,
                                            U                 supplied_invA      = nullptr,
                                            rocblas_int       supplied_invA_size = 0,
-                                           rocblas_int       offset_invA        = 0,
+                                           rocblas_stride    offset_invA        = 0,
                                            rocblas_stride    stride_invA        = 0)
 {
     if(batch_count == 0)
