@@ -84,7 +84,7 @@ rocBLAS build & installation helper script.
 
     -o, --cov <version>              Specify the Tesnile code_object version (e.g. V2 or V3.)
 
-    -r, --relocatable                Add RUNPATH(based on ROCM_RPATH) and remove ldconf entry.
+    -r, --relocatable                Add RUNPATH (based on ROCM_RPATH) and remove ldconf entry.
 
     -s, --static                     Build rocblas as a static library.
 
@@ -422,6 +422,7 @@ build_release=true
 build_hip_clang=true
 #use readlink rather than realpath for CentOS 6.10 support
 build_dir=$(readlink -m ./build)
+build_relocatable=false
 skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
@@ -447,7 +448,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -522,6 +523,10 @@ while true; do
 #use readlink rather than realpath for CentOS 6.10 support
         build_dir=$(readlink -m ${2})
         shift 2;;
+    -r|--relocatable)
+      skip_ld_conf_entry=true
+      build_relocatable=true
+      shift ;;
     --use-cuda)
         use_cuda=true
         shift ;;
@@ -826,6 +831,14 @@ pushd .
     cmake_client_options+=("-DSKIP_LIBRARY=ON" "-DROCBLAS_LIBRARY_DIR=${library_dir_installed}")
   fi
 
+  rocm_rpath=""
+  if [[ "${build_relocatable}" == true ]]; then
+      rocm_rpath=" -Wl,--enable-new-dtags -Wl,--rpath,/opt/rocm/lib:/opt/rocm/lib64"
+      if ! [ -z ${ROCM_RPATH+x} ]; then
+          rocm_rpath=" -Wl,--enable-new-dtags -Wl,--rpath,${ROCM_RPATH}"
+      fi
+  fi
+
   if [[ "${build_hip_clang}" == true ]]; then
       cmake_common_options+=("-DRUN_HEADER_TESTING=OFF")
   fi
@@ -848,9 +861,9 @@ pushd .
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_common_options[@]} ${cmake_client_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_common_options[@]} ${cmake_client_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} -DCMAKE_SHARED_LINKER_FLAGS="${rocm_rpath}" ${ROCBLAS_SRC_PATH}
   else
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} -DCMAKE_SHARED_LINKER_FLAGS="${rocm_rpath}" ${ROCBLAS_SRC_PATH}
   fi
   check_exit_code "$?"
 
