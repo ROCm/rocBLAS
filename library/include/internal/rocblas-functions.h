@@ -12296,6 +12296,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
 
         op( A ) = A, op( B ) = B, and A and B are n by k if trans == rocblas_operation_none
         op( A ) = A^T, op( B ) = B^T,  and A and B are k by n if trans == rocblas_operation_transpose
+        or for ssyrkx and dsyrkx when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -12308,8 +12309,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A ) = A^T, op( B ) = B^T
-            - rocblas_operation_none:           op( A ) = A, op( B ) = B
+            - rocblas_operation_transpose:           op( A ) = A^T, op( B ) = B^T
+            - rocblas_operation_none:                op( A ) = A, op( B ) = B
+            - rocblas_operation_conjugate_transpose: op( A ) = A^T, op( B ) = B^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyrkx and zsyrkx.
 
     @param[in]
     n       [rocblas_int]
@@ -12434,6 +12438,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
         op( A_i ) = A_i^T, op( B_i ) = B_i^T,  and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        or for ssyrkx_batched and dsyrkx_batched when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -12446,8 +12451,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A_i ) = A_i^T, op( B_i ) = B_i^T
-            - rocblas_operation_none:           op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_transpose:           op( A_i ) = A_i^T, op( B_i ) = B_i^T
+            - rocblas_operation_none:                op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_conjugate_transpose: op( A_i ) = A_i^T, op( B_i ) = B_i^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyrkx_batched and zsyrkx_batched.
 
     @param[in]
     n       [rocblas_int]
@@ -12578,6 +12586,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
         op( A_i ) = A_i^T, op( B_i ) = B_i^T,  and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        or for ssyrkx_strided_batched and dsyrkx_strided_batched when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -12590,8 +12599,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A_i ) = A_i^T, op( B_i ) = B_i^T
-            - rocblas_operation_none:           op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_transpose:           op( A_i ) = A_i^T, op( B_i ) = B_i^T
+            - rocblas_operation_none:                op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_conjugate_transpose: op( A_i ) = A_i^T, op( B_i ) = B_i^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyrkx_strided_batched and zsyrkx_strided_batched.
 
     @param[in]
     n       [rocblas_int]

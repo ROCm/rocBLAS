@@ -68,6 +68,21 @@ void testing_her2k_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(rocblas_herXX_fn(handle,
                                            uplo,
+                                           (rocblas_operation)rocblas_fill_full,
+                                           N,
+                                           K,
+                                           &alpha,
+                                           dA,
+                                           lda,
+                                           dB,
+                                           ldb,
+                                           &beta,
+                                           dC,
+                                           ldc),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_herXX_fn(handle,
+                                           uplo,
                                            rocblas_operation_transpose,
                                            N,
                                            K,
