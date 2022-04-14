@@ -62,7 +62,7 @@ Tests:
 - name: syrkx_bad
   category: pre_checkin
   function: syrkx_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions_complex_real
   fortran: [ false, true ]
 
 - name: syrkx_size_t_N
@@ -90,10 +90,20 @@ Tests:
     - { alpha:  1.0, beta:  1.0 }
   batch_count: [ 1 ]
 
-- name: syrkx_restricted_kernel_32_8
+- name: syrkx_restricted_kernel_32_8_real
   category: quick
   function: syrkx
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *restrict_size_range_32_8
+  alpha_beta: *alpha_beta_restrict_32_8
+  batch_count: [ 1 ]
+
+- name: syrkx_restricted_kernel_32_8_complex
+  category: quick
+  function: syrkx
+  precision: *single_double_precisions_complex
   uplo: [ U, L ]
   transA: [ N, T ]
   matrix_size: *restrict_size_range_32_8
