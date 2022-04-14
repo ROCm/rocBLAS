@@ -373,12 +373,6 @@ add_library( rocblas
 
 add_library( roc::rocblas ALIAS rocblas )
 
-# RUNPATH is set only when ROCM_RPATH is defined in the ENV
-if( DEFINED ENV{ROCM_RPATH} )
-  set ( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
-endif( )
-
-
 target_link_libraries( rocblas INTERFACE hip::host )
 if (WIN32)
   target_link_libraries( rocblas PRIVATE hip::device )
