@@ -12,6 +12,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -26,10 +27,10 @@ void testing_trmm_outofplace_strided_batched_bad_arg(const Arguments& arg)
                       : rocblas_trmm_outofplace_strided_batched<T, false>;
 
     const rocblas_int M           = 100;
-    const rocblas_int N           = 100;
-    const rocblas_int lda         = 100;
-    const rocblas_int ldb         = 100;
-    const rocblas_int ldc         = 100;
+    const rocblas_int N           = 101;
+    const rocblas_int lda         = 101;
+    const rocblas_int ldb         = 101;
+    const rocblas_int ldc         = 101;
     const rocblas_int batch_count = 5;
     const T           alpha       = 1.0;
     const T           zero        = 0.0;
@@ -45,14 +46,13 @@ void testing_trmm_outofplace_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_stride stride_a = lda * K;
     const rocblas_stride stride_b = ldb * N;
     const rocblas_stride stride_c = ldc * N;
-    size_t               size_A   = batch_count * stride_a;
-    size_t               size_B   = batch_count * stride_b;
-    size_t               size_C   = batch_count * stride_c;
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(K, K, lda, stride_a, batch_count);
+    device_strided_batch_matrix<T> dB(M, N, ldb, stride_b, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -321,35 +321,34 @@ void testing_trmm_outofplace_strided_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> h_alpha(1);
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> cpuB(size_B);
-    host_vector<T> hC(size_C);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> cpuC(size_C);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(K, K, lda, stride_a, batch_count);
+    host_strided_batch_matrix<T> hB(M, N, ldb, stride_b, batch_count);
+    host_strided_batch_matrix<T> hB_gold(M, N, ldb, stride_b, batch_count);
+    host_strided_batch_matrix<T> hC(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC_1(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC_2(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
+    host_vector<T>               h_alpha(1);
 
+    // Check host memory allocation
     CHECK_HIP_ERROR(h_alpha.memcheck());
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(cpuB.memcheck());
+    CHECK_HIP_ERROR(hB_gold.memcheck());
     CHECK_HIP_ERROR(hC.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
     CHECK_HIP_ERROR(hC_2.memcheck());
-    CHECK_HIP_ERROR(cpuC.memcheck());
+    CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error          = 0.0;
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(K, K, lda, stride_a, batch_count);
+    device_strided_batch_matrix<T> dB(M, N, ldb, stride_b, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
+    device_vector<T>               d_alpha(1);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
-    device_vector<T> d_alpha(1);
-
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -359,43 +358,20 @@ void testing_trmm_outofplace_strided_batched(const Arguments& arg)
     h_alpha[0] = alpha;
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        K,
-                        K,
-                        lda,
-                        stride_a,
-                        batch_count,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_triangular_matrix,
-                        true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix(hC, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix);
 
-    rocblas_init_matrix(hB,
-                        arg,
-                        M,
-                        N,
-                        ldb,
-                        stride_b,
-                        batch_count,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        false,
-                        true);
+    hB_gold.copy_from(hB);
+    hC_1.copy_from(hC);
+    hC_2.copy_from(hC);
+    hC_gold.copy_from(hC);
 
-    rocblas_init_matrix(hC,
-                        arg,
-                        M,
-                        N,
-                        ldc,
-                        stride_c,
-                        batch_count,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix);
-
-    cpuB = hB;
-    hC_1 = hC; // hXorB <- B
-    hC_2 = hC; // hXorB <- B
-    cpuC = hC;
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -461,17 +437,7 @@ void testing_trmm_outofplace_strided_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_trmm<T>(side,
-                          uplo,
-                          transA,
-                          diag,
-                          M,
-                          N,
-                          alpha,
-                          hA + b * stride_a,
-                          lda,
-                          cpuB + b * stride_b,
-                          ldb);
+            cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA[b], lda, hB_gold[b], ldb);
         }
 
         if(arg.timing)
@@ -479,10 +445,8 @@ void testing_trmm_outofplace_strided_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
 
-        for(int b = 0; b < batch_count; b++)
-            for(int i = 0; i < M; i++)
-                for(int j = 0; j < N; j++)
-                    cpuC[b * stride_c + i + j * ldc] = cpuB[b * stride_b + i + j * ldb];
+        // copy B matrix into C matrix
+        copy_matrix_with_different_leading_dimensions(hB_gold, hC_gold);
 
         if(arg.unit_check)
         {
@@ -491,22 +455,22 @@ void testing_trmm_outofplace_strided_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, ldc, stride_c, cpuC, hC_1, batch_count, tol);
-                near_check_general<T>(M, N, ldc, stride_c, cpuC, hC_2, batch_count, tol);
+                near_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count, tol);
+                near_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, ldc, stride_c, cpuC, hC_1, batch_count);
-                unit_check_general<T>(M, N, ldc, stride_c, cpuC, hC_2, batch_count);
+                unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+                unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
             auto err1 = std::abs(
-                norm_check_general<T>('F', M, N, ldc, stride_c, cpuC, hC_1, batch_count));
+                norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_1, batch_count));
             auto err2 = std::abs(
-                norm_check_general<T>('F', M, N, ldc, stride_c, cpuC, hC_2, batch_count));
+                norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }

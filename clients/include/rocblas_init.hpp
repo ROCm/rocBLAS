@@ -60,7 +60,7 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
                 for(size_t j = 0; j < N; ++j)
                 {
                     auto value                  = rand_gen();
-                    A[i + j * lda + b * stride] = (i ^ j) & 1 ? value : negate(value);
+                    A[i + j * lda + b * stride] = (i ^ j) & 1 ? T(value) : T(negate(value));
                 }
     }
     else if(matrix_type == rocblas_client_triangular_matrix)
@@ -97,7 +97,7 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
                 for(size_t j = 0; j < N; ++j)
                 {
                     auto value     = rand_gen();
-                    A[i + j * lda] = (i ^ j) & 1 ? value : negate(value);
+                    A[i + j * lda] = (i ^ j) & 1 ? T(value) : T(negate(value));
                 }
         }
         else if(matrix_type == rocblas_client_triangular_matrix)
@@ -108,7 +108,7 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
                 {
                     auto value
                         = uplo == 'U' ? (j >= i ? rand_gen() : 0) : (j <= i ? rand_gen() : 0);
-                    A[i + j * lda] = (i ^ j) & 1 ? value : negate(value);
+                    A[i + j * lda] = (i ^ j) & 1 ? T(value) : T(negate(value));
                 }
         }
     }
@@ -128,7 +128,7 @@ void rocblas_init_vector_alternating_sign(T               rand_gen(),
         for(size_t j = 0; j < N; ++j)
         {
             auto value               = rand_gen();
-            x[j * incx + b * stride] = j & 1 ? value : negate(value);
+            x[j * incx + b * stride] = j & 1 ? T(value) : T(negate(value));
         }
 }
 
@@ -254,11 +254,11 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                     else if(uplo == 'U')
                     {
                         A[j + i * lda] = value;
-                        A[i + j * lda] = 0;
+                        A[i + j * lda] = T(0);
                     }
                     else if(uplo == 'L')
                     {
-                        A[j + i * lda] = 0;
+                        A[j + i * lda] = T(0);
                         A[i + j * lda] = value;
                     }
                     else
@@ -280,11 +280,11 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                     else if(uplo == 'U')
                     {
                         A[j + i * lda] = value;
-                        A[i + j * lda] = 0;
+                        A[i + j * lda] = T(0);
                     }
                     else if(uplo == 'L')
                     {
-                        A[j + i * lda] = 0;
+                        A[j + i * lda] = T(0);
                         A[i + j * lda] = value;
                     }
                     else
@@ -301,7 +301,7 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                 for(size_t j = 0; j < N; ++j)
                 {
                     auto value
-                        = uplo == 'U' ? (j >= i ? rand_gen() : 0) : (j <= i ? rand_gen() : 0);
+                        = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
                     A[i + j * lda] = value;
                 }
         }
@@ -458,11 +458,11 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
                     else if(uplo == 'U')
                     {
                         A[j + i * lda] = value;
-                        A[i + j * lda] = 0;
+                        A[i + j * lda] = T(0);
                     }
                     else if(uplo == 'L')
                     {
-                        A[j + i * lda] = 0;
+                        A[j + i * lda] = T(0);
                         A[i + j * lda] = value;
                     }
                     else
@@ -484,11 +484,11 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
                     else if(uplo == 'U')
                     {
                         A[j + i * lda] = value;
-                        A[i + j * lda] = 0;
+                        A[i + j * lda] = T(0);
                     }
                     else if(uplo == 'L')
                     {
-                        A[j + i * lda] = 0;
+                        A[j + i * lda] = T(0);
                         A[i + j * lda] = value;
                     }
                     else
@@ -506,8 +506,9 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
                 {
                     auto value
                         = uplo == 'U'
-                              ? (j >= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda)) : 0)
-                              : (j <= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda)) : 0);
+                              ? (j >= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda)) : T(0))
+                              : (j <= i ? T(seedReset ? cos(i + j * lda) : sin(i + j * lda))
+                                        : T(0));
                     A[i + j * lda] = value;
                 }
         }

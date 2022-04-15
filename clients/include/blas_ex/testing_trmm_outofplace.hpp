@@ -12,6 +12,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -40,16 +41,14 @@ void testing_trmm_outofplace_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    rocblas_int K      = side == rocblas_side_left ? M : N;
-    size_t      size_A = lda * size_t(K);
-    size_t      size_B = ldb * size_t(N);
-    size_t      size_C = ldc * size_t(N);
+    rocblas_int K = side == rocblas_side_left ? M : N;
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    // Allocate device memory
+    device_matrix<T> dA(K, K, lda);
+    device_matrix<T> dB(M, N, ldb);
+    device_matrix<T> dC(M, N, ldc);
 
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -161,84 +160,68 @@ void testing_trmm_outofplace(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> hC(size_C);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> cpuB(size_B);
-    host_vector<T> cpuC(size_C);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(K, K, lda);
+    host_matrix<T> hB(M, N, ldb);
+    host_matrix<T> hB_gold(M, N, ldb);
+    host_matrix<T> hC(M, N, ldc);
+    host_matrix<T> hC_1(M, N, ldc);
+    host_matrix<T> hC_2(M, N, ldc);
+    host_matrix<T> hC_gold(M, N, ldc);
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error          = 0.0;
-
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    // Allocate device memory
+    device_matrix<T> dA(K, K, lda);
+    device_matrix<T> dB(M, N, ldb);
+    device_matrix<T> dC(M, N, ldc);
     device_vector<T> alpha_d(1);
 
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        K,
-                        K,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_triangular_matrix,
-                        true);
-    rocblas_init_matrix(hB,
-                        arg,
-                        M,
-                        N,
-                        ldb,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        false,
-                        true);
     rocblas_init_matrix(
-        hC, arg, M, N, ldc, 0, 1, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix);
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix(hC, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix);
 
-    cpuB = hB;
-    hC_1 = hC; // hXorC <- C
-    hC_2 = hC; // hXorC <- C
-    cpuC = hC; // cpuC <- C
+    hB_gold = hB;
+    hC_1    = hC; // hXorC <- C
+    hC_2    = hC; // hXorC <- C
+    hC_gold = hC; // hC_gold <- C
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
+
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
         // calculate dB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_C, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         // calculate dB <- A^(-1) B   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_C, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC_2));
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_trmm_outofplace_fn(
             handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         // CPU BLAS
         if(arg.timing)
@@ -246,16 +229,15 @@ void testing_trmm_outofplace(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
         }
 
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, h_alpha_T, hA, lda, cpuB, ldb);
+        cblas_trmm<T>(side, uplo, transA, diag, M, N, h_alpha_T, hA, lda, hB_gold, ldb);
 
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
 
-        for(int i = 0; i < M; i++)
-            for(int j = 0; j < N; j++)
-                cpuC[i + j * ldc] = cpuB[i + j * ldb];
+        // copy B matrix into C matrix
+        copy_matrix_with_different_leading_dimensions(hB_gold, hC_gold);
 
         if(arg.unit_check)
         {
@@ -264,20 +246,20 @@ void testing_trmm_outofplace(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, ldc, cpuC, hC_1, tol);
-                near_check_general<T>(M, N, ldc, cpuC, hC_2, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, ldc, cpuC, hC_1);
-                unit_check_general<T>(M, N, ldc, cpuC, hC_2);
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
             }
         }
 
         if(arg.norm_check)
         {
-            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, cpuC, hC_1));
-            auto err2     = std::abs(norm_check_general<T>('F', M, N, ldc, cpuC, hC_2));
+            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
+            auto err2     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }

@@ -12,6 +12,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -36,12 +37,12 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
-        const rocblas_int K = 100;
+        const rocblas_int K = 101;
 
-        const rocblas_int lda = 100;
-        const rocblas_int ldb = 100;
-        const rocblas_int ldc = 100;
-        const rocblas_int ldd = 100;
+        const rocblas_int lda = 101;
+        const rocblas_int ldb = 101;
+        const rocblas_int ldc = 101;
+        const rocblas_int ldd = 101;
 
         const rocblas_int stride_a = 100 * 100;
         const rocblas_int stride_b = 100 * 100;
@@ -59,8 +60,6 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
         rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
         int32_t           solution_index = 0;
         rocblas_int       flags          = 0;
-
-        const size_t safe_size = stride_d;
 
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
@@ -83,11 +82,18 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
             zero = zero_d;
         }
 
-        // allocate memory on device
-        device_vector<Ti> dA(safe_size);
-        device_vector<Ti> dB(safe_size);
-        device_vector<To> dC(safe_size);
-        device_vector<To> dD(safe_size);
+        rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
+        rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
+        rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
+        rocblas_int B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
+
+        // Allocate device memory
+        device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
+        device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);
+        device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
+        device_strided_batch_matrix<To> dD(M, N, ldd, stride_d, batch_count);
+
+        // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -566,13 +572,13 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     auto                 transB = char2rocblas_operation(arg.transB);
     auto                 M = arg.M, N = arg.N, K = arg.K;
     auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
-    // dropping sign bit as test strides are positive, and no int64 host_vector operator[]
+    // dropping sign bit as test strides are positive, and no int64 host_strided_batch_matrix operator[]
     size_t stride_a = arg.stride_a, stride_b = arg.stride_b;
     size_t stride_c = arg.stride_c, stride_d = arg.stride_d;
-    auto   A_row       = transA == rocblas_operation_none ? M : K;
-    auto   A_col       = transA == rocblas_operation_none ? K : M;
-    auto   B_row       = transB == rocblas_operation_none ? K : N;
-    auto   B_col       = transB == rocblas_operation_none ? N : K;
+    auto   A_row       = transA == rocblas_operation_none ? M : std::max(K, 1);
+    auto   A_col       = transA == rocblas_operation_none ? std::max(K, 1) : M;
+    auto   B_row       = transB == rocblas_operation_none ? std::max(K, 1) : N;
+    auto   B_col       = transB == rocblas_operation_none ? N : std::max(K, 1);
     auto   batch_count = arg.batch_count;
     auto   d_type      = arg.d_type;
 
@@ -623,11 +629,13 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     }
     if(int8_invalid)
     {
-        size_t            safe_size = 5;
-        device_vector<Ti> dA(safe_size);
-        device_vector<Ti> dB(safe_size);
-        device_vector<To> dC(safe_size);
-        device_vector<To> dD(safe_size);
+        // Allocate host memory
+        device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
+        device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);
+        device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
+        device_strided_batch_matrix<To> dD(M, N, ldd, stride_d, batch_count);
+
+        // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -668,10 +676,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
     {
-        device_vector<Ti> dA(1);
-        device_vector<Ti> dB(1);
-        device_vector<To> dC(1);
-        device_vector<To> dD(1);
+        device_strided_batch_matrix<Ti> dA(1, 1, 1, 1, 1);
+        device_strided_batch_matrix<Ti> dB(1, 1, 1, 1, 1);
+        device_strided_batch_matrix<To> dC(1, 1, 1, 1, 1);
+        device_strided_batch_matrix<To> dD(1, 1, 1, 1, 1);
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
                                                                transA,
                                                                transB,
@@ -712,23 +720,43 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         d_type   = arg.c_type;
     }
 
-    const size_t size_a = strided_batched_matrix_size(A_row, A_col, lda, stride_a, batch_count);
-    const size_t size_b = strided_batched_matrix_size(B_row, B_col, ldb, stride_b, batch_count);
-    const size_t size_c = strided_batched_matrix_size(M, N, ldc, stride_c, batch_count);
-    const size_t size_d = strided_batched_matrix_size(M, N, ldd, stride_d, batch_count);
+    const size_t size_a = A_col * size_t(lda) + size_t(batch_count - 1) * stride_a;
+    const size_t size_b = B_col * size_t(ldb) + size_t(batch_count - 1) * stride_b;
+    const size_t size_c = N * size_t(ldc) + size_t(batch_count - 1) * stride_c;
+    const size_t size_d = N * size_t(ldd) + size_t(batch_count - 1) * stride_d;
 
-    // allocate memory on device
-    device_vector<Ti> dA(size_a);
-    device_vector<Ti> dB(size_b);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
+    host_strided_batch_matrix<Ti>     hA(A_row, A_col, lda, stride_a, batch_count);
+    host_strided_batch_matrix<Ti>     hB(B_row, B_col, ldb, stride_b, batch_count);
+    host_strided_batch_matrix<To>     hC(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<To>     hD_1(M, N, ldd, stride_d, batch_count);
+    host_strided_batch_matrix<To>     hD_2(M, N, ldd, stride_d, batch_count);
+    host_strided_batch_matrix<To_hpa> hD_gold(M, N, ldd, stride_d, batch_count);
 
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hC.memcheck());
+    CHECK_HIP_ERROR(hD_1.memcheck());
+    CHECK_HIP_ERROR(hD_2.memcheck());
+    CHECK_HIP_ERROR(hD_gold.memcheck());
+
+    // Allocate device memory
+    device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
+    device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);
     // if C!=D, allocate C and D normally
     // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_vector<To>  dC    = device_vector<To>(size_c);
-    device_vector<To>  dD    = (arg.c_noalias_d) ? device_vector<To>(size_d) : device_vector<To>(0);
-    device_vector<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+    device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
+    device_strided_batch_matrix<To> dD
+        = (arg.c_noalias_d) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
+                            : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
+    device_strided_batch_matrix<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+    device_vector<Tc>                d_alpha_Tc(1);
+    device_vector<Tc>                d_beta_Tc(1);
 
-    device_vector<Tc> d_alpha_Tc(1);
-    device_vector<Tc> d_beta_Tc(1);
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -736,104 +764,19 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<Ti> hA(size_a);
-    host_vector<Ti> hB(size_b);
-    host_vector<To> hC(size_c);
-    host_vector<To> hD_1(size_d);
-    host_vector<To> hD_2(size_d);
-    using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
-    host_vector<To_hpa> hD_gold(size_d);
-
     bool alt = (rocblas_gemm_flags_fp16_alt_impl & flags);
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        A_row,
-                        A_col,
-                        lda,
-                        stride_a,
-                        batch_count,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        true);
-    rocblas_init_matrix(hB,
-                        arg,
-                        B_row,
-                        B_col,
-                        ldb,
-                        stride_b,
-                        batch_count,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        false,
-                        true);
-    rocblas_init_matrix(hC,
-                        arg,
-                        M,
-                        N,
-                        ldc,
-                        stride_c,
-                        batch_count,
-                        rocblas_client_beta_sets_nan,
-                        rocblas_client_general_matrix);
+    rocblas_init_matrix<Ti>(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+    rocblas_init_matrix<Ti>(
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix<To>(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     rocblas_init_nan<To>(hD_1, M, N, ldd, stride_d, batch_count);
+    rocblas_init_nan<To_hpa>(hD_gold, M, N, ldd, stride_d, batch_count);
 
-    hD_2    = hD_1;
-    hD_gold = hD_1;
-
-#if DEBUG_PRINT
-    if(std::is_same<To, rocblas_half>{})
-    {
-        rocblas_cout << "----A-----------------" << std::endl;
-        for(int i = 0; i < size_a; i++)
-        {
-            cout << float(hA[i]) << "  ";
-        }
-        rocblas_cout << std::endl << "-----B-----------------" << std::endl;
-        for(int i = 0; i < size_b; i++)
-        {
-            cout << float(hB[i]) << "  ";
-        }
-        rocblas_cout << std::endl << "-----C-----------------" << std::endl;
-        for(int i = 0; i < size_c; i++)
-        {
-            cout << float(hC[i]) << "  ";
-        }
-        rocblas_cout << std::endl << "-----D-----------------" << std::endl;
-        for(int i = 0; i < size_d; i++)
-        {
-            cout << float(hD_1[i]) << "  ";
-        }
-        rocblas_cout << std::endl << "-----------------------" << std::endl;
-    }
-    else
-    {
-        rocblas_cout << "----A-----------------" << std::endl;
-        for(int i = 0; i < size_a; i++)
-        {
-            cout << hA[i] << "  ";
-        }
-        rocblas_cout << std::endl << "-----B-----------------" << std::endl;
-        for(int i = 0; i < size_b; i++)
-        {
-            cout << hB[i] << "  ";
-        }
-        rocblas_cout << std::endl << "-----C-----------------" << std::endl;
-        for(int i = 0; i < size_c; i++)
-        {
-            cout << hC[i] << "  ";
-        }
-        rocblas_cout << std::endl << "-----D-----------------" << std::endl;
-        for(int i = 0; i < size_d; i++)
-        {
-            cout << hD_1[i] << "  ";
-        }
-        rocblas_cout << std::endl << "-----------------------" << std::endl;
-    }
-#endif
+    hD_2.copy_from(hD_1);
 
 #if 0 // Copied from testing_gemm_ex.hpp
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
@@ -852,16 +795,18 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         const rocblas_half ieee_half_near_max(65504.0 - 4.0);
         const rocblas_half positive_two      (2.0);
         const rocblas_half negative_two      (-2.0);
+        Ti* A = (Ti*)hA;
+        Ti* B = (Ti*)hB;
         if(M >= 2 && N >= 2 && K >= 2)
         {
-            hA[0]       = ieee_half_near_max;
-            hA[1]       = ieee_half_near_max;
-            hA[lda]     = ieee_half_near_max;
-            hA[lda + 1] = ieee_half_near_max;
-            hB[0]       = positive_two;
-            hB[1]       = negative_two;
-            hB[ldb]     = negative_two;
-            hB[ldb + 1] = positive_two;
+            A[0]       = ieee_half_near_max;
+            A[1]       = ieee_half_near_max;
+            A[lda]     = ieee_half_near_max;
+            A[lda + 1] = ieee_half_near_max;
+            B[0]       = positive_two;
+            B[1]       = negative_two;
+            B[ldb]     = negative_two;
+            B[ldb + 1] = positive_two;
         }
     }
 #endif
@@ -869,9 +814,12 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     // copy data from CPU to device
     if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none && pack_to_int8x4)
     {
-        host_vector<Ti> hA_packed(hA);
+        host_strided_batch_matrix<Ti> hA_packed(A_row, A_col, lda, stride_a, batch_count);
+        hA_packed.copy_from(hA);
 
-        rocblas_packInt8(hA_packed, M, K, batch_count, lda, stride_a);
+        for(int b = 0; b < batch_count; b++)
+            rocblas_packInt8(hA_packed[b], hA[b], M, K, lda);
+
         CHECK_HIP_ERROR(dA.transfer_from(hA_packed));
     }
     else
@@ -882,9 +830,11 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     // if int8 and B transposed and valid case, pack B
     if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none && pack_to_int8x4)
     {
-        host_vector<Ti> hB_packed(hB);
+        host_strided_batch_matrix<Ti> hB_packed(B_row, B_col, ldb, stride_b, batch_count);
+        hB_packed.copy_from(hB);
+        for(int b = 0; b < batch_count; b++)
+            rocblas_packInt8(hB_packed[b], hB[b], N, K, ldb);
 
-        rocblas_packInt8(hB_packed, N, K, batch_count, ldb, stride_b);
         CHECK_HIP_ERROR(dB.transfer_from(hB_packed));
     }
     else
@@ -931,18 +881,6 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         // copy output from device to CPU
         CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
 
-#if DEBUG_PRINT
-        rocblas_cout << std::endl
-                     << "-----hD_1---------------------------------------" << std::endl;
-        if(std::is_same<To, rocblas_half>{})
-            for(int i = 0; i < size_d; i++)
-                cout << float(hD_1[i]) << "  ";
-        else
-            for(int i = 0; i < size_d; i++)
-                cout << hD_1[i] << "  ";
-        rocblas_cout << std::endl;
-#endif
-
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(dC.transfer_from(hC));
@@ -980,31 +918,12 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
         CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
 
-#if DEBUG_PRINT
-        rocblas_cout << std::endl
-                     << "-----hD_2---------------------------------------" << std::endl;
-        if(std::is_same<To, rocblas_half>{})
-            for(int i = 0; i < size_d; i++)
-                cout << float(hD_2[i]) << "  ";
-        else
-            for(int i = 0; i < size_d; i++)
-                cout << hD_2[i] << "  ";
-        rocblas_cout << std::endl;
-#endif
-
-        // CPU BLAS
         // copy C matrix into D matrix
-        if(batch_count > 0 && N > 0 && M > 0)
-            for(int i3 = 0; i3 < batch_count; i3++)
-                for(size_t i2 = 0; i2 < N; i2++)
-                    for(int i1 = 0; i1 < M; i1++)
-                    {
-                        hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
-                            = hC[i1 + (i2 * ldc) + (i3 * stride_c)];
-                    }
+        copy_matrix_with_different_leading_dimensions(hC, hD_gold);
         cpu_time_used = get_time_us_no_sync();
 
-        for(rocblas_int i = 0; i < batch_count; i++)
+        // CPU BLAS
+        for(rocblas_int b = 0; b < batch_count; b++)
         {
             cblas_gemm<Ti, To_hpa>(transA,
                                    transB,
@@ -1012,57 +931,17 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                    N,
                                    K,
                                    h_alpha_Tc,
-                                   hA + stride_a * i,
+                                   hA[b],
                                    lda,
-                                   hB + stride_b * i,
+                                   hB[b],
                                    ldb,
                                    h_beta_Tc,
-                                   hD_gold + stride_d * i,
+                                   hD_gold[b],
                                    ldd,
                                    alt);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
-#if DEBUG_PRINT
-        rocblas_cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
-        if(std::is_same<To, rocblas_half>{})
-            for(int i = 0; i < size_d; i++)
-                rocblas_cout << float(hD_gold[i]) << "  ";
-        else
-            for(int i = 0; i < size_d; i++)
-                rocblas_cout << hD_gold[i] << "  ";
-
-        rocblas_cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
-        for(int i3 = 0; i3 < batch_count; i3++)
-        {
-            for(size_t i2 = 0; i2 < N; i2++)
-            {
-                for(int i1 = 0; i1 < M; i1++)
-                {
-                    if(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
-                       != hD_1[i1 + (i2 * ldd) + (i3 * stride_d)])
-                    {
-                        if(std::is_same<To, rocblas_half>{})
-                        {
-                            rocblas_cout
-                                << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1
-                                << ", " << float(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
-                                << float(hD_1[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
-                                << std::endl;
-                        }
-                        else
-                        {
-                            rocblas_cout
-                                << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1
-                                << ", " << hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)] << ", "
-                                << hD_1[i1 + (i2 * ldd) + (i3 * stride_d)] << ", " << std::endl;
-                        }
-                    }
-                }
-            }
-        }
-#endif
 
         if(arg.unit_check)
         {
@@ -1085,10 +964,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(
-                norm_check_general<To>('F', M, N, ldd, stride_d, hD_gold, hD_1, batch_count));
-            auto err2 = std::abs(
-                norm_check_general<To>('F', M, N, ldd, stride_d, hD_gold, hD_2, batch_count));
+            auto err1     = std::abs(norm_check_general('F', hD_gold, hD_1));
+            auto err2     = std::abs(norm_check_general('F', hD_gold, hD_2));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
