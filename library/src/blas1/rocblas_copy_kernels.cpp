@@ -9,11 +9,11 @@
 template <bool CONJ, typename T, typename U>
 ROCBLAS_KERNEL_NO_BOUNDS copy_kernel(rocblas_int    n,
                                      const T        xa,
-                                     ptrdiff_t      shiftx,
+                                     rocblas_stride shiftx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
                                      U              ya,
-                                     ptrdiff_t      shifty,
+                                     rocblas_stride shifty,
                                      rocblas_int    incy,
                                      rocblas_stride stridey)
 {
@@ -33,10 +33,10 @@ template <rocblas_int NB, typename T, typename U>
 ROCBLAS_KERNEL(NB)
 scopy_2_kernel(rocblas_int n,
                const T __restrict xa,
-               ptrdiff_t      shiftx,
+               rocblas_stride shiftx,
                rocblas_stride stridex,
                U __restrict ya,
-               ptrdiff_t      shifty,
+               rocblas_stride shifty,
                rocblas_stride stridey)
 {
     ptrdiff_t   tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
@@ -57,11 +57,11 @@ template <bool CONJ, rocblas_int NB, typename T, typename U>
 rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      T              x,
-                                     rocblas_int    offsetx,
+                                     rocblas_stride offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
                                      U              y,
-                                     rocblas_int    offsety,
+                                     rocblas_stride offsety,
                                      rocblas_int    incy,
                                      rocblas_stride stridey,
                                      rocblas_int    batch_count)
@@ -185,11 +185,11 @@ rocblas_status rocblas_copy_check_numerics(const char*    function_name,
     template rocblas_status rocblas_copy_template<CONJ_, NB_, T_, U_>(rocblas_handle handle,  \
                                                                       rocblas_int    n,       \
                                                                       T_             x,       \
-                                                                      rocblas_int    offsetx, \
+                                                                      rocblas_stride offsetx, \
                                                                       rocblas_int    incx,    \
                                                                       rocblas_stride stridex, \
                                                                       U_             y,       \
-                                                                      rocblas_int    offsety, \
+                                                                      rocblas_stride offsety, \
                                                                       rocblas_int    incy,    \
                                                                       rocblas_stride stridey, \
                                                                       rocblas_int    batch_count);

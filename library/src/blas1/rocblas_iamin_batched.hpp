@@ -11,7 +11,7 @@ template <rocblas_int NB, typename T, typename S>
 rocblas_status rocblas_iamin_batched_template(rocblas_handle            handle,
                                               rocblas_int               n,
                                               const T* const*           x,
-                                              rocblas_int               shiftx,
+                                              rocblas_stride            shiftx,
                                               rocblas_int               incx,
                                               rocblas_int               batch_count,
                                               rocblas_int*              result,

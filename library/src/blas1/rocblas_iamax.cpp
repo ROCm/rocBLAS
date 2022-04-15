@@ -25,7 +25,7 @@ namespace
         rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result)
     {
         static constexpr bool           isbatched     = false;
-        static constexpr rocblas_int    shiftx_0      = 0;
+        static constexpr rocblas_stride shiftx_0      = 0;
         static constexpr rocblas_stride stridex_0     = 0;
         static constexpr rocblas_int    batch_count_1 = 1;
         static constexpr int            NB            = 1024;

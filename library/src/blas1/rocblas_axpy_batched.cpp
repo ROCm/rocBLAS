@@ -88,7 +88,7 @@ namespace
             return rocblas_status_invalid_pointer;
 
         static constexpr rocblas_stride stride_0 = 0;
-        static constexpr ptrdiff_t      offset_0 = 0;
+        static constexpr rocblas_stride offset_0 = 0;
 
         if(check_numerics)
         {

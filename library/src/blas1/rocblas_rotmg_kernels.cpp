@@ -150,19 +150,19 @@ __device__ __host__ void rocblas_rotmg_calc(T& d1, T& d2, T& x1, const T& y1, T*
 template <rocblas_int NB, typename T, typename U>
 ROCBLAS_KERNEL(NB)
 rocblas_rotmg_kernel(T              d1_in,
-                     rocblas_int    offset_d1,
+                     rocblas_stride offset_d1,
                      rocblas_stride stride_d1,
                      T              d2_in,
-                     rocblas_int    offset_d2,
+                     rocblas_stride offset_d2,
                      rocblas_stride stride_d2,
                      T              x1_in,
-                     rocblas_int    offset_x1,
+                     rocblas_stride offset_x1,
                      rocblas_stride stride_x1,
                      U              y1_in,
-                     rocblas_int    offset_y1,
+                     rocblas_stride offset_y1,
                      rocblas_stride stride_y1,
                      T              param,
-                     rocblas_int    offset_param,
+                     rocblas_stride offset_param,
                      rocblas_stride stride_param,
                      rocblas_int    batch_count)
 {
@@ -177,19 +177,19 @@ rocblas_rotmg_kernel(T              d1_in,
 template <typename T, typename U>
 rocblas_status rocblas_rotmg_template(rocblas_handle handle,
                                       T              d1_in,
-                                      rocblas_int    offset_d1,
+                                      rocblas_stride offset_d1,
                                       rocblas_stride stride_d1,
                                       T              d2_in,
-                                      rocblas_int    offset_d2,
+                                      rocblas_stride offset_d2,
                                       rocblas_stride stride_d2,
                                       T              x1_in,
-                                      rocblas_int    offset_x1,
+                                      rocblas_stride offset_x1,
                                       rocblas_stride stride_x1,
                                       U              y1_in,
-                                      rocblas_int    offset_y1,
+                                      rocblas_stride offset_y1,
                                       rocblas_stride stride_y1,
                                       T              param,
-                                      rocblas_int    offset_param,
+                                      rocblas_stride offset_param,
                                       rocblas_stride stride_param,
                                       rocblas_int    batch_count)
 {
@@ -277,16 +277,16 @@ rocblas_status rocblas_rotmg_check_numerics_template(const char*    function_nam
                                                      rocblas_handle handle,
                                                      rocblas_int    n,
                                                      T              d1_in,
-                                                     rocblas_int    offset_d1,
+                                                     rocblas_stride offset_d1,
                                                      rocblas_stride stride_d1,
                                                      T              d2_in,
-                                                     rocblas_int    offset_d2,
+                                                     rocblas_stride offset_d2,
                                                      rocblas_stride stride_d2,
                                                      T              x1_in,
-                                                     rocblas_int    offset_x1,
+                                                     rocblas_stride offset_x1,
                                                      rocblas_stride stride_x1,
                                                      U              y1_in,
-                                                     rocblas_int    offset_y1,
+                                                     rocblas_stride offset_y1,
                                                      rocblas_stride stride_y1,
                                                      rocblas_int    batch_count,
                                                      const int      check_numerics,
@@ -373,19 +373,19 @@ rocblas_status rocblas_rotmg_check_numerics_template(const char*    function_nam
 template rocblas_status rocblas_rotmg_template<T_, U_>                      \
                                               (rocblas_handle handle,       \
                                                T_             d1_in,        \
-                                               rocblas_int    offset_d1,    \
+                                               rocblas_stride offset_d1,    \
                                                rocblas_stride stride_d1,    \
                                                T_             d2_in,        \
-                                               rocblas_int    offset_d2,    \
+                                               rocblas_stride offset_d2,    \
                                                rocblas_stride stride_d2,    \
                                                T_             x1_in,        \
-                                               rocblas_int    offset_x1,    \
+                                               rocblas_stride offset_x1,    \
                                                rocblas_stride stride_x1,    \
                                                U_             y1_in,        \
-                                               rocblas_int    offset_y1,    \
+                                               rocblas_stride offset_y1,    \
                                                rocblas_stride stride_y1,    \
                                                T_             param,        \
-                                               rocblas_int    offset_param, \
+                                               rocblas_stride offset_param, \
                                                rocblas_stride stride_param, \
                                                rocblas_int    batch_count);
 // instantiate for rocblas_Xrotg and rocblas_Xrotg_strided_batched
@@ -408,16 +408,16 @@ template rocblas_status rocblas_rotmg_check_numerics_template <T_, U_>         \
                                                 rocblas_handle handle,         \
                                                 rocblas_int    n,              \
                                                 T_             d1_in,          \
-                                                rocblas_int    offset_d1,      \
+                                                rocblas_stride offset_d1,      \
                                                 rocblas_stride stride_d1,      \
                                                 T_             d2_in,          \
-                                                rocblas_int    offset_d2,      \
+                                                rocblas_stride offset_d2,      \
                                                 rocblas_stride stride_d2,      \
                                                 T_             x1_in,          \
-                                                rocblas_int    offset_x1,      \
+                                                rocblas_stride offset_x1,      \
                                                 rocblas_stride stride_x1,      \
                                                 U_             y1_in,          \
-                                                rocblas_int    offset_y1,      \
+                                                rocblas_stride offset_y1,      \
                                                 rocblas_stride stride_y1,      \
                                                 rocblas_int    batch_count,    \
                                                 const int      check_numerics, \

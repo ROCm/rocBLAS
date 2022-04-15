@@ -263,7 +263,7 @@ rocblas_status rocblas_reduction_impl(rocblas_handle handle,
         return rocblas_status_memory_error;
     }
 
-    static constexpr rocblas_int shiftx_0 = 0;
+    static constexpr rocblas_stride shiftx_0 = 0;
     rocblas_status status = rocblas_reduction_template<NB, ISBATCHED, FETCH, REDUCE, FINALIZE>(
         handle, n, x, shiftx_0, incx, stridex, batch_count, results, (Tw*)w_mem);
     if(status != rocblas_status_success)

@@ -14,7 +14,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    const Ta*      alpha,
                                    rocblas_stride stride_alpha,
                                    Tx             x,
-                                   rocblas_int    offset_x,
+                                   rocblas_stride offset_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
                                    rocblas_int    batch_count);

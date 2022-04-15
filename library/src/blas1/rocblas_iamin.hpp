@@ -12,7 +12,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_iamin_template(rocblas_handle            handle,
                                     rocblas_int               n,
                                     const T                   x,
-                                    rocblas_int               shiftx,
+                                    rocblas_stride            shiftx,
                                     rocblas_int               incx,
                                     rocblas_stride            stridex,
                                     rocblas_int               batch_count,

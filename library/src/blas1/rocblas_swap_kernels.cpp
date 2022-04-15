@@ -18,11 +18,11 @@ template <rocblas_int NB, typename UPtr>
 ROCBLAS_KERNEL(NB)
 rocblas_swap_kernel(rocblas_int    n,
                     UPtr           xa,
-                    ptrdiff_t      offsetx,
+                    rocblas_stride offsetx,
                     rocblas_int    incx,
                     rocblas_stride stridex,
                     UPtr           ya,
-                    ptrdiff_t      offsety,
+                    rocblas_stride offsety,
                     rocblas_int    incy,
                     rocblas_stride stridey)
 {
@@ -42,10 +42,10 @@ template <rocblas_int NB, typename UPtr>
 ROCBLAS_KERNEL(NB)
 sswap_2_kernel(rocblas_int n,
                UPtr __restrict__ xa,
-               ptrdiff_t      offsetx,
+               rocblas_stride offsetx,
                rocblas_stride stridex,
                UPtr __restrict__ ya,
-               ptrdiff_t      offsety,
+               rocblas_stride offsety,
                rocblas_stride stridey)
 {
     ptrdiff_t tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
@@ -68,11 +68,11 @@ template <rocblas_int NB, typename T>
 rocblas_status rocblas_swap_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      T              x,
-                                     rocblas_int    offsetx,
+                                     rocblas_stride offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
                                      T              y,
-                                     rocblas_int    offsety,
+                                     rocblas_stride offsety,
                                      rocblas_int    incy,
                                      rocblas_stride stridey,
                                      rocblas_int    batch_count)
@@ -139,11 +139,11 @@ rocblas_status rocblas_swap_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_int    n,
                                            T              x,
-                                           rocblas_int    offset_x,
+                                           rocblas_stride offset_x,
                                            rocblas_int    inc_x,
                                            rocblas_stride stride_x,
                                            T              y,
-                                           rocblas_int    offset_y,
+                                           rocblas_stride offset_y,
                                            rocblas_int    inc_y,
                                            rocblas_stride stride_y,
                                            rocblas_int    batch_count,
@@ -190,11 +190,11 @@ rocblas_status rocblas_swap_check_numerics(const char*    function_name,
 template rocblas_status rocblas_swap_template<NB_, T_>(rocblas_handle handle,         \
                                                        rocblas_int    n,              \
                                                        T_             x,              \
-                                                       rocblas_int    offsetx,        \
+                                                       rocblas_stride offsetx,        \
                                                        rocblas_int    incx,           \
                                                        rocblas_stride stridex,        \
                                                        T_             y,              \
-                                                       rocblas_int    offsety,        \
+                                                       rocblas_stride offsety,        \
                                                        rocblas_int    incy,           \
                                                        rocblas_stride stridey,        \
                                                        rocblas_int    batch_count = 1);
@@ -219,11 +219,11 @@ template rocblas_status rocblas_swap_check_numerics<T_>(const char*    function_
                                                         rocblas_handle handle,         \
                                                         rocblas_int    n,              \
                                                         T_             x,              \
-                                                        rocblas_int    offset_x,       \
+                                                        rocblas_stride offset_x,       \
                                                         rocblas_int    inc_x,          \
                                                         rocblas_stride stride_x,       \
                                                         T_             y,              \
-                                                        rocblas_int    offset_y,       \
+                                                        rocblas_stride offset_y,       \
                                                         rocblas_int    inc_y,          \
                                                         rocblas_stride stride_y,       \
                                                         rocblas_int    batch_count,    \
