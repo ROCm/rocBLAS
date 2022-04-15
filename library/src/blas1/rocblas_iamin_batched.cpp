@@ -29,7 +29,7 @@ namespace
                                               rocblas_int*    result)
     {
         static constexpr bool           isbatched = true;
-        static constexpr rocblas_int    shiftx_0  = 0;
+        static constexpr rocblas_stride shiftx_0  = 0;
         static constexpr rocblas_stride stridex_0 = 0;
         static constexpr int            NB        = 1024;
 

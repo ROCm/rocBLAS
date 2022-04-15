@@ -16,11 +16,11 @@ axpy_kernel(rocblas_int    n,
             Ta             alpha_device_host,
             rocblas_stride stride_alpha,
             Tx __restrict__ x,
-            ptrdiff_t      offset_x,
+            rocblas_stride offset_x,
             rocblas_int    incx,
             rocblas_stride stride_x,
             Ty __restrict__ y,
-            ptrdiff_t      offset_y,
+            rocblas_stride offset_y,
             rocblas_int    incy,
             rocblas_stride stride_y)
 {
@@ -50,10 +50,10 @@ saxpy_2_kernel(rocblas_int    n,
                Ta             alpha_device_host,
                rocblas_stride stride_alpha,
                Tx __restrict__ x,
-               ptrdiff_t      offset_x,
+               rocblas_stride offset_x,
                rocblas_stride stride_x,
                Ty __restrict__ y,
-               ptrdiff_t      offset_y,
+               rocblas_stride offset_y,
                rocblas_stride stride_y)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
@@ -91,11 +91,11 @@ axpy_kernel_batched(rocblas_int    n,
                     Ta             alpha_device_host,
                     rocblas_stride stride_alpha,
                     Tx             x,
-                    ptrdiff_t      offset_x,
+                    rocblas_stride offset_x,
                     rocblas_int    incx,
                     rocblas_stride stride_x,
                     Ty             y,
-                    ptrdiff_t      offset_y,
+                    rocblas_stride offset_y,
                     rocblas_int    incy,
                     rocblas_stride stride_y,
                     rocblas_int    batch_count)
@@ -162,10 +162,10 @@ haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
                    Ta             alpha_device_host,
                    rocblas_stride stride_alpha,
                    Tx             x,
-                   ptrdiff_t      offset_x,
+                   rocblas_stride offset_x,
                    rocblas_stride stride_x,
                    Ty             y,
-                   ptrdiff_t      offset_y,
+                   rocblas_stride offset_y,
                    rocblas_stride stride_y)
 {
     // Load alpha into both sides of a rocblas_half2 for fma instructions.
@@ -246,11 +246,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    const Ta*      alpha,
                                    rocblas_stride stride_alpha,
                                    Tx             x,
-                                   ptrdiff_t      offset_x,
+                                   rocblas_stride offset_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
                                    Ty             y,
-                                   ptrdiff_t      offset_y,
+                                   rocblas_stride offset_y,
                                    rocblas_int    incy,
                                    rocblas_stride stride_y,
                                    rocblas_int    batch_count)
@@ -511,11 +511,11 @@ template rocblas_status rocblas_axpy_check_numerics<T_, U_>(const char*    funct
                                                             rocblas_handle handle,         \
                                                             rocblas_int    n,              \
                                                             T_             x,              \
-                                                            ptrdiff_t      offset_x,       \
+                                                            rocblas_stride offset_x,       \
                                                             rocblas_int    inc_x,          \
                                                             rocblas_stride stride_x,       \
                                                             U_             y,              \
-                                                            ptrdiff_t      offset_y,       \
+                                                            rocblas_stride offset_y,       \
                                                             rocblas_int    inc_y,          \
                                                             rocblas_stride stride_y,       \
                                                             rocblas_int    batch_count,    \

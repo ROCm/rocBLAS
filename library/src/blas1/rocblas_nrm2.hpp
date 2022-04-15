@@ -41,7 +41,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_nrm2_template(rocblas_handle handle,
                                    rocblas_int    n,
                                    const Ti*      x,
-                                   rocblas_int    shiftx,
+                                   rocblas_stride shiftx,
                                    rocblas_int    incx,
                                    rocblas_stride stridex,
                                    rocblas_int    batch_count,

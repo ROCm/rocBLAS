@@ -22,7 +22,7 @@ template <rocblas_int NB, typename Ti, typename To>
 rocblas_status rocblas_asum_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      const Ti*      x,
-                                     rocblas_int    shiftx,
+                                     rocblas_stride shiftx,
                                      rocblas_int    incx,
                                      To*            workspace,
                                      To*            result)

@@ -31,7 +31,7 @@ namespace
         static constexpr bool           isbatched = true;
         static constexpr int            NB        = 1024;
         static constexpr rocblas_stride stridex_0 = 0;
-        static constexpr rocblas_int    shiftx_0  = 0;
+        static constexpr rocblas_stride shiftx_0  = 0;
 
         size_t         dev_bytes = 0;
         rocblas_status checks_status
