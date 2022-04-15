@@ -339,6 +339,26 @@ void copy_hAAT_to_hA(T* AAT, T* A, rocblas_int M, size_t lda)
     }
 }
 
+/* ============================================================================================= */
+/*! \brief For testing purposes, copy one matrix into another with different leading dimensions  */
+template <typename T, typename U>
+void copy_matrix_with_different_leading_dimensions(T& hB, U& hC)
+{
+    rocblas_int M           = hB.m();
+    rocblas_int N           = hB.n();
+    size_t      ldb         = hB.lda();
+    size_t      ldc         = hC.lda();
+    rocblas_int batch_count = hB.batch_count();
+    for(int b = 0; b < batch_count; b++)
+    {
+        auto* B = hB[b];
+        auto* C = hC[b];
+        for(int i = 0; i < M; i++)
+            for(int j = 0; j < N; j++)
+                C[i + j * ldc] = B[i + j * ldb];
+    }
+}
+
 template <typename T>
 void print_strided_batched(const char* name,
                            T*          A,

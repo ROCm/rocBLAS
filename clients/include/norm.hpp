@@ -263,6 +263,41 @@ double norm_check_general(char           norm_type,
     return cumulative_error;
 }
 
+template <typename T, typename U>
+double norm_check_general(char norm_type, T& hCPU, U& hGPU)
+{
+    // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+    // one norm is max column sum
+    // infinity norm is max row sum
+    // Frobenius is l2 norm of matrix entries
+    //
+    // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
+    // of strided batched matrix
+    rocblas_int M                = hCPU.m();
+    rocblas_int N                = hCPU.n();
+    size_t      lda              = hCPU.lda();
+    rocblas_int batch_count      = hCPU.batch_count();
+    double      cumulative_error = 0.0;
+
+    for(rocblas_int b = 0; b < batch_count; b++)
+    {
+        auto* CPU   = hCPU[b];
+        auto* GPU   = hGPU[b];
+        auto  error = norm_check_general(norm_type, M, N, lda, CPU, GPU);
+
+        if(norm_type == 'F' || norm_type == 'f')
+        {
+            cumulative_error += error;
+        }
+        else if(norm_type == 'O' || norm_type == 'o' || norm_type == 'I' || norm_type == 'i')
+        {
+            cumulative_error = cumulative_error > error ? cumulative_error : error;
+        }
+    }
+
+    return cumulative_error;
+}
+
 /* ============== Norm Check for batched case ============= */
 
 template <typename T, typename T_hpa>
