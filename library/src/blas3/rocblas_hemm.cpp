@@ -1,8 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2022 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_hemm.hpp"
 #include "logging.hpp"
+#include "rocblas_symm_hemm.hpp"
 #include "utility.hpp"
 
 namespace
@@ -148,7 +148,6 @@ namespace
                                                          stride_C,
                                                          batch_count);
     }
-
 }
 /*
  * ===========================================================================
