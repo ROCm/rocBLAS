@@ -796,7 +796,7 @@ pushd .
   fi
 
   if [[ "${upgrade_tensile_pip}" == true ]]; then
-    tensile_opt="${tensile_opt} -DTENSILE_VENV_UPGRADE_PIP=ON"
+    cmake_common_options+=("-DTENSILE_VENV_UPGRADE_PIP=ON")
   fi
 
   if [[ "${tensile_merge_files}" == false ]]; then
