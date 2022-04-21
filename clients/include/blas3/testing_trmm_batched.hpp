@@ -49,6 +49,125 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
+    // check for invalid enum
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  rocblas_side_both,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA,
+                                                  lda,
+                                                  dB,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  (rocblas_fill)rocblas_side_both,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA,
+                                                  lda,
+                                                  dB,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  (rocblas_operation)rocblas_side_both,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA,
+                                                  lda,
+                                                  dB,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  (rocblas_diagonal)rocblas_side_both,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA,
+                                                  lda,
+                                                  dB,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+
+    // check for invalid size
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            handle, side, uplo, transA, diag, -1, N, &alpha, dA, lda, dB, ldb, batch_count),
+        rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            handle, side, uplo, transA, diag, M, -1, &alpha, dA, lda, dB, ldb, batch_count),
+        rocblas_status_invalid_size);
+
+    // check for invalid leading dimension
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, M - 1, batch_count),
+        rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  rocblas_side_left,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA,
+                                                  M - 1,
+                                                  dB,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  rocblas_side_right,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA,
+                                                  N - 1,
+                                                  dB,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_invalid_size);
+
+    // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, batch_count),
+        rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, batch_count),
+        rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm_batched_fn(
             handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb, batch_count),
@@ -59,23 +178,23 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
             handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, nullptr, ldb, batch_count),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_batched_fn(
-            handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, batch_count),
-        rocblas_status_invalid_pointer);
+    // If alpha==0, A may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  &zero,
+                                                  nullptr,
+                                                  lda,
+                                                  dB.ptr_on_device(),
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_success);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_batched_fn(
-            nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, batch_count),
-        rocblas_status_invalid_handle);
-
-    // When batch_count==0, all pointers may be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_batched_fn(
-            handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb, 0),
-        rocblas_status_success);
-
-    // When M==0, all pointers may be nullptr without error
+    // quick return: If M==0, all pointers may be nullptr without error
     EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
                                                   side,
                                                   uplo,
@@ -91,7 +210,7 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_success);
 
-    // When N==0, all pointers may be nullptr without error
+    // quick return: If N==0, all pointers may be nullptr without error
     EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
                                                   side,
                                                   uplo,
@@ -106,6 +225,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                   ldb,
                                                   batch_count),
                           rocblas_status_success);
+
+    // quick return: If batch_count==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb, 0),
+        rocblas_status_success);
 }
 
 template <typename T>

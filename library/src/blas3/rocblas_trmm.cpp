@@ -141,16 +141,11 @@ namespace
                             ldb);
         }
 
-        rocblas_int nrowa = rocblas_side_left == side ? m : n;
+        rocblas_status arg_status = rocblas_trmm_arg_check(
+            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, 1);
 
-        if(m < 0 || n < 0 || lda < nrowa || ldb < m)
-            return rocblas_status_invalid_size;
-
-        if(m == 0 || n == 0)
-            return rocblas_status_success;
-
-        if(!alpha || !b)
-            return rocblas_status_invalid_pointer;
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         rocblas_stride offset_a     = 0;
         rocblas_stride offset_b     = 0;
