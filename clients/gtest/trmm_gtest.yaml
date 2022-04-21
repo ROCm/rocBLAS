@@ -110,7 +110,7 @@ Tests:
   function:
     - trmm_bad_arg
     - trmm_outofplace_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions
   side: [L]
   uplo: [L]
   transA: [N]
@@ -122,7 +122,7 @@ Tests:
   function:
     - trmm_batched_bad_arg
     - trmm_outofplace_batched_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions_complex
   side: [L]
   uplo: [U]
   transA: [N]
@@ -134,7 +134,7 @@ Tests:
   function:
     - trmm_strided_batched_bad_arg
     - trmm_outofplace_strided_batched_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions_complex
   side: [L]
   uplo: [L]
   transA: [N]
@@ -160,7 +160,7 @@ Tests:
   function:
     - trmm_batched
     - trmm_outofplace_batched
-  precision: *single_double_precisions_complex
+  precision: *single_double_precisions
   side: [L   ]
   uplo: [   U]
   transA: [N      ]

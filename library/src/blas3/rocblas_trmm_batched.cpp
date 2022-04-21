@@ -127,16 +127,10 @@ namespace
                             batch_count);
         }
 
-        rocblas_int nrowa = rocblas_side_left == side ? m : n;
-
-        if(m < 0 || n < 0 || lda < nrowa || ldb < m || batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        if(m == 0 || n == 0 || batch_count == 0)
-            return rocblas_status_success;
-
-        if(!b || !alpha)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status = rocblas_trmm_arg_check(
+            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         rocblas_stride offset_a     = 0;
         rocblas_stride offset_b     = 0;

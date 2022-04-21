@@ -28,6 +28,91 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
                                                       rocblas_stride a_st_or_of,
                                                       rocblas_int    batch_count);
 
+template <typename TScal, typename TPtr, typename TConstPtr>
+rocblas_status rocblas_trmm_arg_check(rocblas_handle    handle,
+                                      rocblas_side      side,
+                                      rocblas_fill      uplo,
+                                      rocblas_operation trans,
+                                      rocblas_diagonal  diag,
+                                      rocblas_int       m,
+                                      rocblas_int       n,
+                                      const TScal*      alpha,
+                                      TConstPtr         a,
+                                      rocblas_int       lda,
+                                      TPtr              b,
+                                      rocblas_int       ldb,
+                                      rocblas_int       batch_count)
+{
+    if(side != rocblas_side_left && side != rocblas_side_right)
+        return rocblas_status_invalid_value;
+
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(trans != rocblas_operation_none && trans != rocblas_operation_transpose
+       && trans != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
+    if(diag != rocblas_diagonal_non_unit && diag != rocblas_diagonal_unit)
+        return rocblas_status_invalid_value;
+
+    if(batch_count < 0 || m < 0 || n < 0 || ldb < m || (side == rocblas_side_left && (lda < m))
+       || (side != rocblas_side_left && (lda < n)))
+        return rocblas_status_invalid_size;
+
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!b || !alpha || (handle->pointer_mode == rocblas_pointer_mode_host && *alpha != 0 && !a))
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
+template <typename TScal, typename TPtr, typename TConstPtr>
+rocblas_status rocblas_trmm_outofplace_arg_check(rocblas_handle    handle,
+                                                 rocblas_side      side,
+                                                 rocblas_fill      uplo,
+                                                 rocblas_operation trans,
+                                                 rocblas_diagonal  diag,
+                                                 rocblas_int       m,
+                                                 rocblas_int       n,
+                                                 const TScal*      alpha,
+                                                 TConstPtr         a,
+                                                 rocblas_int       lda,
+                                                 TConstPtr         b,
+                                                 rocblas_int       ldb,
+                                                 TPtr              c,
+                                                 rocblas_int       ldc,
+                                                 rocblas_int       batch_count)
+{
+    if(side != rocblas_side_left && side != rocblas_side_right)
+        return rocblas_status_invalid_value;
+
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(trans != rocblas_operation_none && trans != rocblas_operation_transpose
+       && trans != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
+    if(diag != rocblas_diagonal_non_unit && diag != rocblas_diagonal_unit)
+        return rocblas_status_invalid_value;
+
+    if(batch_count < 0 || m < 0 || n < 0 || ldc < m || ldb < m
+       || (side == rocblas_side_left && (lda < m)) || (side != rocblas_side_left && (lda < n)))
+        return rocblas_status_invalid_size;
+
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!c || !alpha
+       || (handle->pointer_mode == rocblas_pointer_mode_host && *alpha != 0 && (!a || !b)))
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
 template <int  NB,
           bool BATCHED,
           bool CONJ,
