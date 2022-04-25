@@ -53,6 +53,87 @@ void testing_trsm_bad_arg(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+    // check for invalid enum
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(
+            handle, rocblas_side_both, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_fn(handle,
+                                          side,
+                                          (rocblas_fill)rocblas_side_both,
+                                          transA,
+                                          diag,
+                                          M,
+                                          N,
+                                          &alpha,
+                                          dA,
+                                          lda,
+                                          dB,
+                                          ldb),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_fn(handle,
+                                          side,
+                                          uplo,
+                                          (rocblas_operation)rocblas_side_both,
+                                          diag,
+                                          M,
+                                          N,
+                                          &alpha,
+                                          dA,
+                                          lda,
+                                          dB,
+                                          ldb),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trsm_fn(handle,
+                                          side,
+                                          uplo,
+                                          transA,
+                                          (rocblas_diagonal)rocblas_side_both,
+                                          M,
+                                          N,
+                                          &alpha,
+                                          dA,
+                                          lda,
+                                          dB,
+                                          ldb),
+                          rocblas_status_invalid_value);
+
+    // check for invalid size
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, -1, N, &alpha, dA, lda, dB, ldb),
+        rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, -1, &alpha, dA, lda, dB, ldb),
+        rocblas_status_invalid_size);
+
+    /// check for invalid leading dimension
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, M - 1),
+        rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(
+            handle, rocblas_side_left, uplo, transA, diag, M, N, &alpha, dA, M - 1, dB, ldb),
+        rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(
+            handle, rocblas_side_right, uplo, transA, diag, M, N, &alpha, dA, N - 1, dB, ldb),
+        rocblas_status_invalid_size);
+
+    // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
+        rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb),
+        rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb),
         rocblas_status_invalid_pointer);
@@ -61,29 +142,21 @@ void testing_trsm_bad_arg(const Arguments& arg)
         rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, nullptr, ldb),
         rocblas_status_invalid_pointer);
 
+    // quick return: If alpha==0, then A can be nullptr without error
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb),
-        rocblas_status_invalid_pointer);
+        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, dB, ldb),
+        rocblas_status_success);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trsm_fn(nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
-        rocblas_status_invalid_handle);
-
-    // If M==0, then all pointers can be nullptr without error
+    // quick return: If M==0, then all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsm_fn(
             handle, side, uplo, transA, diag, 0, N, nullptr, nullptr, lda, nullptr, ldb),
         rocblas_status_success);
 
-    // If N==0, then all pointers can be nullptr without error
+    // quick return: If N==0, then all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsm_fn(
             handle, side, uplo, transA, diag, M, 0, nullptr, nullptr, lda, nullptr, ldb),
-        rocblas_status_success);
-
-    // If alpha==0, then A can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, dB, ldb),
         rocblas_status_success);
 }
 

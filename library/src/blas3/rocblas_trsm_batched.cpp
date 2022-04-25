@@ -134,30 +134,17 @@ namespace
             }
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
+        rocblas_status arg_status = rocblas_trsm_arg_check(
+            handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 
-        // A is of size lda*k
-        rocblas_int k = side == rocblas_side_left ? m : n;
-        if(batch_count < 0 || m < 0 || n < 0 || lda < k || ldb < m)
-            return rocblas_status_invalid_size;
-
-        // quick return if possible.
-        if(!m || !n || !batch_count)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
-
-        if(!alpha || !B)
-            return rocblas_status_invalid_pointer;
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
             set_block_unit<T>(handle, m, n, B, ldb, 0, batch_count, 0);
             return rocblas_status_success;
         }
-
-        if(!A)
-            return rocblas_status_invalid_pointer;
 
         //////////////////////
         // MEMORY MANAGEMENT//
