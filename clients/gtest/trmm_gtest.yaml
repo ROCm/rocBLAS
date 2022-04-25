@@ -13,12 +13,15 @@ Definitions:
 
   - &medium_matrix_size_range
     - { M:   192, N:   192, lda:   192, ldb:   192, ldc: 192 }
-    - { M:   600, N:   500, lda:   600, ldb:   600, ldc: 700 }
-    - { M:   800, N:   700, lda:   801, ldb:   701, ldc: 701 }
+    - { M:   600, N:   500, lda:   600, ldb:   601, ldc: 700 }
+    - { M:   800, N:   900, lda:   801, ldb:   901, ldc: 902 }
+    - { M:   700, N:     2, lda:  1000, ldb:   700, ldc: 800 }
+    - { M:    10, M:   700, lda:   700, ldb:  1000, ldc: 800 }
 
   - &large_matrix_size_range
     - { M:   641, N:   640, lda:   961, ldb:   960, ldc: 960  }
     - { M:  1000, N:  1001, lda:  1002, ldb:  1003, ldc: 1004 }
+#   - { M:  8000, N:  6000, lda: 10000, ldb:  9000, ldc: 8000 }
 #   - { M:  1024, N:  1024, lda:  1024, ldb:  1024, ldc: 1024 }
 #   - { M:  2000, N:  2000, lda:  2000, ldb:  2000, ldc: 2000 }
 
