@@ -46,6 +46,12 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        T        alpha_h, beta_h;
+        const T* beta = nullptr;
+        RETURN_IF_ROCBLAS_ERROR(
+            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, m && n));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -76,7 +82,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f trmm -r",
+                          "./rocblas-bench -f trmm_outofplace -r",
                           rocblas_precision_string<T>,
                           "--side",
                           side_letter,
