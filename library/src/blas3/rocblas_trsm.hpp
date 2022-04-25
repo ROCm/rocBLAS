@@ -15,6 +15,50 @@ static const T zero = T(0);
 template <typename T>
 static const T one = T(1);
 
+template <typename TScal, typename TPtr, typename TConstPtr>
+inline rocblas_status rocblas_trsm_arg_check(rocblas_handle    handle,
+                                             rocblas_side      side,
+                                             rocblas_fill      uplo,
+                                             rocblas_operation transA,
+                                             rocblas_diagonal  diag,
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             const TScal*      alpha,
+                                             TConstPtr         A,
+                                             rocblas_int       lda,
+                                             TPtr              B,
+                                             rocblas_int       ldb,
+                                             rocblas_int       batch_count)
+{
+    if(side != rocblas_side_left && side != rocblas_side_right)
+        return rocblas_status_invalid_value;
+
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+       && transA != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
+    if(diag != rocblas_diagonal_non_unit && diag != rocblas_diagonal_unit)
+        return rocblas_status_invalid_value;
+
+    // A is of size lda*k
+    rocblas_int k = side == rocblas_side_left ? m : n;
+    if(batch_count < 0 || m < 0 || n < 0 || lda < k || ldb < m)
+        return rocblas_status_invalid_size;
+
+    // quick return if possible.
+    if(!m || !n || !batch_count)
+        return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
+                                                     : rocblas_status_success;
+
+    if(!B || !alpha || (handle->pointer_mode == rocblas_pointer_mode_host && *alpha != 0 && !A))
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 copy_matrix_trsm(rocblas_int    rows,
