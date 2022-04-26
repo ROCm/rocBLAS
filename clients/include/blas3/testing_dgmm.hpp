@@ -36,11 +36,11 @@ void testing_dgmm_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = (rocblas_side_right == side ? N : M) * size_t(incx);
+    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
     // Allocate device memory
     device_matrix<T> dA(M, N, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(K, incx);
     device_matrix<T> dC(M, N, ldc);
 
     // Check device memory allocation
@@ -83,10 +83,6 @@ void testing_dgmm(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = size_t(abs_incx) * K;
-    if(!size_x)
-        size_x = 1;
-
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M;
     if(invalid_size || !M || !N)
@@ -100,14 +96,14 @@ void testing_dgmm(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(M, N, lda);
-    host_vector<T> hx(size_x);
+    host_vector<T> hx(K, incx ? incx : 1);
     host_matrix<T> hC_1(M, N, ldc);
     host_matrix<T> hC_2(M, N, ldc);
     host_matrix<T> hC_gold(M, N, ldc);
 
     // Allocate device memory
     device_matrix<T> dA(M, N, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(K, incx ? incx : 1);
     device_matrix<T> dC(M, N, ldc);
 
     // Check device memory allocation
@@ -117,7 +113,7 @@ void testing_dgmm(const Arguments& arg)
 
     // Initialize data on host memory
     rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(hx, arg, K, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
     rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     // copy data from CPU to device

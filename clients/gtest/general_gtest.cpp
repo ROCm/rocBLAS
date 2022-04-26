@@ -7,6 +7,7 @@
 #include "../../library/src/include/check_numerics_matrix.hpp"
 #include "../../library/src/include/check_numerics_vector.hpp"
 #include "rocblas_data.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_vector.hpp"
 #include "type_dispatch.hpp"
 
@@ -208,22 +209,19 @@ namespace
             return;
         }
 
-        size_t size_x = N * size_t(inc_x);
-
         //Allocating memory for the host vector
-        host_vector<T> h_x(size_x);
+        host_vector<T> h_x(N, inc_x);
+
+        // allocate memory on device
+        device_vector<T> d_x(N, inc_x);
 
         //==============================================================================================
         // Initializing random values in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
-
-        // allocate memory on device
-        device_vector<T> d_x(size_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
 
         rocblas_status status          = rocblas_status_success;
         const char     function_name[] = "testing_check_numerics_vector";
@@ -246,7 +244,7 @@ namespace
         rocblas_init_zero<T>((T*)h_x, N - 1, N);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
 
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
@@ -263,12 +261,11 @@ namespace
         //==============================================================================================
         // Initializing and testing for Inf in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
         rocblas_init_inf<T>((T*)h_x, N - 3, N - 1);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
 
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
@@ -286,12 +283,11 @@ namespace
         //==============================================================================================
         // Initializing and testing for NaN in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
         rocblas_init_nan<T>((T*)h_x, 0, N - 3);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
                                                                  N,
@@ -308,12 +304,11 @@ namespace
         //==============================================================================================
         // Initializing and testing for denorm values in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
         rocblas_init_denorm<T>((T*)h_x, 0, N - 4);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
                                                                  N,
@@ -335,8 +330,7 @@ namespace
         host_batch_vector<T>   h_x_batch(N, inc_x, batch_count);
 
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
@@ -358,8 +352,7 @@ namespace
         // Initializing and testing for zero in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 0; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_zero_rng());
@@ -384,8 +377,7 @@ namespace
         // Initializing and testing for Inf in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 3; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_inf_rng());
@@ -410,8 +402,7 @@ namespace
         // Initializing and testing for NaN in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 4; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_nan_rng());
@@ -436,8 +427,7 @@ namespace
         // Initializing and testing for denorm values in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 4; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_denorm_rng());
@@ -538,21 +528,19 @@ namespace
         if(!M || !N || !batch_count)
             return;
 
-        size_t size_a = N * size_t(lda);
-
         //Allocating memory for the host matrix
-        host_vector<T> h_A(size_a);
+        host_matrix<T> h_A(M, N, lda);
         //==============================================================================================
         // Initializing random values in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_A, M, N, lda);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
 
-        // allocate memory on device
-        device_vector<T> d_A(size_a);
+        // Allocate memory on device
+        device_matrix<T> d_A(M, N, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
 
         rocblas_status status          = rocblas_status_success;
         const char     function_name[] = "testing_check_numerics_matrix";
@@ -577,7 +565,7 @@ namespace
         rocblas_init_zero<T>((T*)h_A, M, N, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
 
         status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
                                                                     handle,
@@ -596,12 +584,12 @@ namespace
         //==============================================================================================
         // Initializing and testing for Inf in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         rocblas_init_inf<T>((T*)h_A, M - 1, N - 1, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
 
         status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
                                                                     handle,
@@ -621,12 +609,12 @@ namespace
         //==============================================================================================
         // Initializing and testing for NaN in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         rocblas_init_nan<T>((T*)h_A, M, N, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
 
         status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
                                                                     handle,
@@ -646,12 +634,12 @@ namespace
         //==============================================================================================
         // Initializing and testing for denorm values in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         rocblas_init_denorm<T>((T*)h_A, M, N, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
 
         status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
                                                                     handle,
@@ -672,12 +660,12 @@ namespace
         // Initializing random values in batched matrices
         //==============================================================================================
         //Allocate device and host batched matrices
-        device_batch_vector<T> d_A_batch(size_a, 1, batch_count);
-        host_batch_vector<T>   h_A_batch(size_a, 1, batch_count);
+        device_batch_matrix<T> d_A_batch(M, N, lda, batch_count);
+        host_batch_matrix<T>   h_A_batch(M, N, lda, batch_count);
 
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
@@ -701,8 +689,8 @@ namespace
         // Initializing and testing for zero in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
@@ -730,8 +718,8 @@ namespace
         // Initializing and testing for Inf in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         for(size_t i_batch = 4; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
@@ -759,8 +747,8 @@ namespace
         // Initializing and testing for NaN in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         for(size_t i_batch = 1; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
@@ -788,8 +776,8 @@ namespace
         // Initializing and testing for denorm values in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         for(size_t i_batch = 1; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)

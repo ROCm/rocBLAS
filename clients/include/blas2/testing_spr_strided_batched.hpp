@@ -34,10 +34,12 @@ void testing_spr_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    // allocate memory on device
+    // Allocate device memory
     device_strided_batch_matrix<T> dAp_1(
         1, rocblas_packed_matrix_size(N), 1, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAp_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
@@ -89,8 +91,7 @@ void testing_spr_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = rocblas_packed_matrix_size(N);
+    size_t size_A = rocblas_packed_matrix_size(N);
 
     // Naming: `h` is in CPU (host) memory(eg hAp_1), `d` is in GPU (device) memory (eg dAp_1).
     // Allocate host memory

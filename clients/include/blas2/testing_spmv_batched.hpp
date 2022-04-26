@@ -34,11 +34,6 @@ void testing_spmv_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = size_t(N) * abs_incx * batch_count;
-    size_t size_y   = size_t(N) * abs_incy * batch_count;
-
     // Allocate device memory
     device_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
@@ -159,10 +154,7 @@ void testing_spmv_batched(const Arguments& arg)
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-
-    size_t size_A = size_t(N) * N;
 
     rocblas_local_handle handle{arg};
 

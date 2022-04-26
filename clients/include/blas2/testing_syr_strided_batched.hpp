@@ -36,13 +36,9 @@ void testing_syr_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = size_t(lda) * N;
-    size_t size_x   = N * abs_incx;
-
     // Allocate device memory
     device_strided_batch_matrix<T> dA_1(N, N, lda, stride_A, batch_count);
-    device_vector<T>               dx(size_x);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
@@ -114,7 +110,6 @@ void testing_syr_strided_batched(const Arguments& arg)
     }
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_x   = size_t(N) * abs_incx * batch_count;
 
     stride_A = std::max(stride_A, rocblas_stride(size_t(lda) * N));
     stride_x = std::max(stride_x, rocblas_stride(size_t(N) * abs_incx));
@@ -124,7 +119,7 @@ void testing_syr_strided_batched(const Arguments& arg)
     host_strided_batch_matrix<T> hA_1(N, N, lda, stride_A, batch_count);
     host_strided_batch_matrix<T> hA_2(N, N, lda, stride_A, batch_count);
     host_strided_batch_matrix<T> hA_gold(N, N, lda, stride_A, batch_count);
-    host_vector<T>               hx(size_x);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
     host_vector<T>               halpha(1);
     halpha[0] = h_alpha;
 
@@ -137,7 +132,7 @@ void testing_syr_strided_batched(const Arguments& arg)
     // Allocate device memory
     device_strided_batch_matrix<T> dA_1(N, N, lda, stride_A, batch_count);
     device_strided_batch_matrix<T> dA_2(N, N, lda, stride_A, batch_count);
-    device_vector<T>               dx(size_x);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
     device_vector<T>               d_alpha(1);
 
     // Check device memory allocation
@@ -149,8 +144,7 @@ void testing_syr_strided_batched(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA_1, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
-    rocblas_init_vector(
-        hx, arg, N, abs_incx, 1, batch_count, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy matrix in hA_gold which will be output of CPU BLAS
     hA_gold.copy_from(hA_1);
@@ -183,7 +177,7 @@ void testing_syr_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_syr<T>(uplo, N, h_alpha, hx + b * stride_x, incx, hA_gold[b], lda);
+            cblas_syr<T>(uplo, N, h_alpha, hx[b], incx, hA_gold[b], lda);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

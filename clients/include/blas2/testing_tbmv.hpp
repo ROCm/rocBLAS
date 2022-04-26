@@ -37,11 +37,9 @@ void testing_tbmv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = M * size_t(incx);
-
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, M, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(M, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -101,21 +99,18 @@ void testing_tbmv(const Arguments& arg)
         return;
     }
 
-    size_t size_x, abs_incx;
-
-    abs_incx = incx >= 0 ? incx : -incx;
-    size_x   = M * abs_incx;
+    size_t abs_incx = incx >= 0 ? incx : -incx;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
     host_matrix<T> hAb(banded_matrix_row, M, lda);
-    host_vector<T> hx_1(size_x);
-    host_vector<T> hx_2(size_x);
-    host_vector<T> hx_gold(size_x);
+    host_vector<T> hx_1(M, incx);
+    host_vector<T> hx_2(M, incx);
+    host_vector<T> hx_gold(M, incx);
 
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, M, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(M, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -125,7 +120,7 @@ void testing_tbmv(const Arguments& arg)
     // Initializing the banded-matrix 'hAb' as a general matrix as the banded matrix is not triangular.
     rocblas_init_matrix(
         hAb, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(hx_1, arg, M, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx_1, arg, rocblas_client_never_set_nan, false, true);
 
     hx_gold = hx_1;
 

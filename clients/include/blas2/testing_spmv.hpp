@@ -31,15 +31,10 @@ void testing_spmv_bad_arg(const Arguments& arg)
     T                    beta  = 0.6;
     rocblas_local_handle handle{arg};
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * abs_incx;
-    size_t size_y   = N * abs_incy;
-
     // Allocate device memory
     device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAp.memcheck());
@@ -112,15 +107,15 @@ void testing_spmv(const Arguments& arg)
     // Allocate host memory
     host_matrix<T> hA(N, N, N);
     host_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1);
-    host_vector<T> hx(size_X);
-    host_vector<T> hy_1(size_Y);
-    host_vector<T> hy_2(size_Y);
-    host_vector<T> hy_gold(size_Y); // gold standard
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy_1(N, incy);
+    host_vector<T> hy_2(N, incy);
+    host_vector<T> hy_gold(N, incy); // gold standard
 
     // Allocate device memory
     device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx(size_X);
-    device_vector<T> dy(size_Y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
@@ -134,8 +129,8 @@ void testing_spmv(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_symmetric_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
-    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, false);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     // helper function to convert regular matrix `hA` to packed matrix `hAp`
     regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, N);
@@ -154,9 +149,7 @@ void testing_spmv(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        //
         // rocblas_pointer_mode_host test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_ROCBLAS_ERROR(rocblas_spmv_fn(handle, uplo, N, alpha, dAp, dx, incx, beta, dy, incy));
@@ -164,9 +157,7 @@ void testing_spmv(const Arguments& arg)
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
-        //
         // rocblas_pointer_mode_device test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(beta));

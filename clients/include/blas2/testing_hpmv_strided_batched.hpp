@@ -277,17 +277,15 @@ void testing_hpmv_strided_batched(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N;
-    size_t size_y   = N;
 
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(N, N, N, stride_A, batch_count);
     host_strided_batch_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1, stride_A, batch_count);
-    host_strided_batch_vector<T> hx(size_x, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> hy_1(size_y, incy, stride_y, batch_count);
-    host_strided_batch_vector<T> hy_2(size_y, incy, stride_y, batch_count);
-    host_strided_batch_vector<T> hy_gold(size_y, incy, stride_y, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy_1(N, incy, stride_y, batch_count);
+    host_strided_batch_vector<T> hy_2(N, incy, stride_y, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy, stride_y, batch_count);
     host_vector<T>               halpha(1);
     host_vector<T>               hbeta(1);
 
@@ -303,9 +301,9 @@ void testing_hpmv_strided_batched(const Arguments& arg)
     // Allocate device memory
     device_strided_batch_matrix<T> dA(N, N, N, stride_A, batch_count);
     device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, stride_A, batch_count);
-    device_strided_batch_vector<T> dx(size_x, incx, stride_x, batch_count);
-    device_strided_batch_vector<T> dy_1(size_y, incy, stride_y, batch_count);
-    device_strided_batch_vector<T> dy_2(size_y, incy, stride_y, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy_1(N, incy, stride_y, batch_count);
+    device_strided_batch_vector<T> dy_2(N, incy, stride_y, batch_count);
     device_vector<T>               d_alpha(1);
     device_vector<T>               d_beta(1);
 

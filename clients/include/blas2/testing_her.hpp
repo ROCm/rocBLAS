@@ -32,11 +32,10 @@ void testing_her_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_x   = size_t(N) * abs_incx;
 
     // Allocate device memory
     device_matrix<T> dA_1(N, N, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(N, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
@@ -77,21 +76,20 @@ void testing_her(const Arguments& arg)
     }
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_x   = size_t(N) * abs_incx;
 
     // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
     // Allocate host memory
     host_matrix<T>         hA_1(N, N, lda);
     host_matrix<T>         hA_2(N, N, lda);
     host_matrix<T>         hA_gold(N, N, lda);
-    host_vector<T>         hx(size_x);
+    host_vector<T>         hx(N, incx);
     host_vector<real_t<T>> halpha(1);
     halpha[0] = h_alpha;
 
     // Allocate device memory
     device_matrix<T>         dA_1(N, N, lda);
     device_matrix<T>         dA_2(N, N, lda);
-    device_vector<T>         dx(size_x);
+    device_vector<T>         dx(N, incx);
     device_vector<real_t<T>> d_alpha(1);
 
     // Check device memory allocation
@@ -103,7 +101,7 @@ void testing_her(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA_1, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS

@@ -43,9 +43,7 @@ void testing_tpmv_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
     // Checks.
-    //
     EXPECT_ROCBLAS_STATUS(rocblas_tpmv_batched_fn(handle,
                                                   rocblas_fill_full,
                                                   transA,
@@ -152,15 +150,11 @@ void testing_tpmv_batched(const Arguments& arg)
      =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        //
         // GPU BLAS
-        //
         CHECK_ROCBLAS_ERROR(rocblas_tpmv_batched_fn(
             handle, uplo, transA, diag, M, dAp_on_device, dx_on_device, incx, batch_count));
 
-        //
         // CPU BLAS
-        //
         {
             cpu_time_used = get_time_us_no_sync();
             for(rocblas_int b = 0; b < batch_count; ++b)
@@ -173,17 +167,13 @@ void testing_tpmv_batched(const Arguments& arg)
         // fetch GPU
         CHECK_HIP_ERROR(hres.transfer_from(dx));
 
-        //
         // Unit check.
-        //
         if(arg.unit_check)
         {
             unit_check_general<T>(1, M, abs_incx, hx, hres, batch_count);
         }
 
-        //
         // Norm check.
-        //
         if(arg.norm_check)
         {
             rocblas_error = norm_check_general<T>('F', 1, M, abs_incx, hx, hres, batch_count);
@@ -193,9 +183,7 @@ void testing_tpmv_batched(const Arguments& arg)
     if(arg.timing)
     {
 
-        //
         // Warmup
-        //
         {
             int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
@@ -205,9 +193,7 @@ void testing_tpmv_batched(const Arguments& arg)
             }
         }
 
-        //
         // Go !
-        //
         {
             hipStream_t stream;
             CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
@@ -221,9 +207,7 @@ void testing_tpmv_batched(const Arguments& arg)
             gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         }
 
-        //
         // Log performance.
-        //
         ArgumentModel<e_uplo, e_transA, e_diag, e_M, e_incx, e_batch_count>{}.log_args<T>(
             rocblas_cout,
             arg,

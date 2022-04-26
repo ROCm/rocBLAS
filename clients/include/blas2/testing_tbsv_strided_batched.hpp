@@ -38,10 +38,11 @@ void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_int       banded_matrix_row = K + 1;
     rocblas_local_handle    handle{arg};
 
-    size_t size_x = N * size_t(incx);
-
+    // Allocate device memory
     device_strided_batch_matrix<T> dA(banded_matrix_row, N, lda, stride_a, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 

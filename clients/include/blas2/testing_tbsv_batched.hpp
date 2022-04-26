@@ -37,8 +37,6 @@ void testing_tbsv_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = N * size_t(incx);
-
     // Allocate device memory
     device_batch_matrix<T> dA(banded_matrix_row, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);

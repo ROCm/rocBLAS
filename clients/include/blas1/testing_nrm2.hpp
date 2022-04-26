@@ -29,8 +29,11 @@ void testing_nrm2_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    device_vector<T>         dx(safe_size);
+    // Allocate device memory
+    device_vector<T>         dx(N, incx);
     device_vector<real_t<T>> d_rocblas_result(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
@@ -52,10 +55,6 @@ void testing_nrm2(const Arguments& arg)
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
-
-    real_t<T> rocblas_result_1;
-    real_t<T> rocblas_result_2;
-    real_t<T> cpu_result;
 
     double rocblas_error_1;
     double rocblas_error_2;
@@ -92,22 +91,26 @@ void testing_nrm2(const Arguments& arg)
         return;
     }
 
-    size_t size_x = N * size_t(incx);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<T>         hx(N, incx);
+    host_vector<real_t<T>> rocblas_result_1(1, 1);
+    host_vector<real_t<T>> rocblas_result_2(1, 1);
+    host_vector<real_t<T>> cpu_result(1, 1);
 
-    // allocate memory on device
-    device_vector<T>         dx(size_x);
+    // Allocate device memory
+    device_vector<T>         dx(N, incx);
     device_vector<real_t<T>> d_rocblas_result_2(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
-    // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx(size_x);
-
     // Initial Data on CPU
-    rocblas_init_vector(hx, arg, N, incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
-    // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * N * incx, hipMemcpyHostToDevice));
+    // copy data from CPU to device
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
 
@@ -115,20 +118,20 @@ void testing_nrm2(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, &rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2));
-        CHECK_HIP_ERROR(hipMemcpy(
-            &rocblas_result_2, d_rocblas_result_2, sizeof(real_t<T>), hipMemcpyDeviceToHost));
+
+        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_nrm2<T>(N, hx, incx, &cpu_result);
+        cblas_nrm2<T>(N, hx, incx, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        real_t<T> abs_result = cpu_result > 0 ? cpu_result : -cpu_result;
+        real_t<T> abs_result = cpu_result[0] > 0 ? cpu_result[0] : -cpu_result[0];
         real_t<T> abs_error;
         if(abs_result > 0)
         {
@@ -147,18 +150,16 @@ void testing_nrm2(const Arguments& arg)
             if(arg.unit_check)
             {
                 near_check_general<real_t<T>, real_t<T>>(
-                    1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
+                    1, 1, 1, cpu_result, rocblas_result_1, abs_error);
                 near_check_general<real_t<T>, real_t<T>>(
-                    1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+                    1, 1, 1, cpu_result, rocblas_result_2, abs_error);
             }
         }
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
-            rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
-            rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
+            rocblas_error_1 = rocblas_abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
+            rocblas_error_2 = rocblas_abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
         }
     }
 

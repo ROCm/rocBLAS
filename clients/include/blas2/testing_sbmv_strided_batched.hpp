@@ -33,18 +33,14 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int          banded_matrix_row = K + 1;
     rocblas_local_handle handle{arg};
 
-    size_t         abs_incx = incx >= 0 ? incx : -incx;
-    size_t         abs_incy = incy >= 0 ? incy : -incy;
-    size_t         size_A   = lda * N;
-    rocblas_stride strideA  = size_A;
-    rocblas_stride stridex  = N * abs_incx;
-    rocblas_stride stridey  = N * abs_incy;
+    rocblas_stride strideA = N * lda;
+    rocblas_stride stridex = N * incx;
+    rocblas_stride stridey = N * incy;
 
     // Allocate device memory
-    static const size_t            safe_size = 100;
     device_strided_batch_matrix<T> dAb(banded_matrix_row, N, 1, strideA, batch_count);
-    device_vector<T>               dx(safe_size);
-    device_vector<T>               dy(safe_size);
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stridey, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());

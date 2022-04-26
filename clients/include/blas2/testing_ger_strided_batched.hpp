@@ -42,13 +42,10 @@ void testing_ger_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = stride_x * batch_count;
-    size_t size_y = stride_y * batch_count;
-
     // Allocate device memory
     device_strided_batch_matrix<T> dA_1(M, N, lda, stride_a, batch_count);
-    device_vector<T>               dx(size_x);
-    device_vector<T>               dy(size_y);
+    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
@@ -177,8 +174,8 @@ void testing_ger_strided_batched(const Arguments& arg)
     host_strided_batch_matrix<T> hA_1(M, N, lda, stride_a, batch_count);
     host_strided_batch_matrix<T> hA_2(M, N, lda, stride_a, batch_count);
     host_strided_batch_matrix<T> hA_gold(M, N, lda, stride_a, batch_count);
-    host_vector<T>               hx(size_x);
-    host_vector<T>               hy(size_y);
+    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy(N, incy, stride_y, batch_count);
     host_vector<T>               halpha(1);
     halpha[0] = h_alpha;
 
@@ -190,8 +187,8 @@ void testing_ger_strided_batched(const Arguments& arg)
     // Allocate device memory
     device_strided_batch_matrix<T> dA_1(M, N, lda, stride_a, batch_count);
     device_strided_batch_matrix<T> dA_2(M, N, lda, stride_a, batch_count);
-    device_vector<T>               dx(size_x);
-    device_vector<T>               dy(size_y);
+    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
     device_vector<T>               d_alpha(1);
 
     // Check device memory allocation
@@ -204,9 +201,8 @@ void testing_ger_strided_batched(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(
-        hx, arg, M, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan);
 
     // Copy matrix
     hA_2.copy_from(hA_1);
@@ -262,8 +258,7 @@ void testing_ger_strided_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; ++b)
         {
-            cblas_ger<T, CONJ>(
-                M, N, h_alpha, hx + b * stride_x, incx, hy + b * stride_y, incy, hA_gold[b], lda);
+            cblas_ger<T, CONJ>(M, N, h_alpha, hx[b], incx, hy[b], incy, hA_gold[b], lda);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

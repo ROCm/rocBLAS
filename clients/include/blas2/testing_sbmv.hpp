@@ -32,15 +32,10 @@ void testing_sbmv_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
     rocblas_int          banded_matrix_row = K + 1;
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * abs_incx;
-    size_t size_y   = N * abs_incy;
-
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -94,11 +89,7 @@ void testing_sbmv(const Arguments& arg)
 
     rocblas_fill uplo = char2rocblas_fill(arg.uplo);
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-
-    size_t size_X = size_t(N) * abs_incx;
-    size_t size_Y = size_t(N) * abs_incy;
 
     rocblas_local_handle handle{arg};
 
@@ -115,19 +106,21 @@ void testing_sbmv(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
     host_matrix<T> hAb(banded_matrix_row, N, lda);
-    host_vector<T> hx(size_X);
-    host_vector<T> hy_1(size_Y);
-    host_vector<T> hy_2(size_Y);
-    host_vector<T> hy_gold(size_Y); // gold standard
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy_1(N, incy);
+    host_vector<T> hy_2(N, incy);
+    host_vector<T> hy_gold(N, incy); // gold standard
 
     // Allocate device memory
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
-    // Check device memory allocation
+    // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx(size_X);
-    device_vector<T> dy(size_Y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
@@ -135,8 +128,8 @@ void testing_sbmv(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hAb, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
-    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, false);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     // make copy in hy_gold which will later be used with CPU BLAS
     hy_gold = hy_1;
@@ -152,9 +145,7 @@ void testing_sbmv(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        //
         // rocblas_pointer_mode_host test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_ROCBLAS_ERROR(
@@ -163,9 +154,7 @@ void testing_sbmv(const Arguments& arg)
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
-        //
         // rocblas_pointer_mode_device test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(beta));

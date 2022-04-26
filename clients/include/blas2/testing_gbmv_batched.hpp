@@ -222,8 +222,8 @@ void testing_gbmv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_x, dim_x, abs_incx;
-    size_t size_y, dim_y, abs_incy;
+    size_t dim_x, abs_incx;
+    size_t dim_y, abs_incy;
 
     if(transA == rocblas_operation_none)
     {
@@ -238,9 +238,6 @@ void testing_gbmv_batched(const Arguments& arg)
 
     abs_incx = incx >= 0 ? incx : -incx;
     abs_incy = incy >= 0 ? incy : -incy;
-
-    size_x = dim_x * abs_incx;
-    size_y = dim_y * abs_incy;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory

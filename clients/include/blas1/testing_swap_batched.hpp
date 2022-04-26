@@ -28,20 +28,23 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    device_batch_vector<T> dxt(N, incx, batch_count);
-    device_batch_vector<T> dyt(N, incy, batch_count);
-    CHECK_DEVICE_ALLOCATION(dxt.memcheck());
-    CHECK_DEVICE_ALLOCATION(dyt.memcheck());
+    // Allocate device memory
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_swap_batched_fn(handle, N, nullptr, incx, dyt.ptr_on_device(), incy, batch_count),
+        rocblas_swap_batched_fn(handle, N, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_swap_batched_fn(handle, N, dxt.ptr_on_device(), incx, nullptr, incy, batch_count),
+        rocblas_swap_batched_fn(handle, N, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         rocblas_swap_batched_fn(
-            nullptr, N, dxt.ptr_on_device(), incx, dyt.ptr_on_device(), incy, batch_count),
+            nullptr, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_handle);
 }
 
@@ -70,38 +73,40 @@ void testing_swap_batched(const Arguments& arg)
     ssize_t abs_incx = incx >= 0 ? incx : -incx;
     ssize_t abs_incy = incy >= 0 ? incy : -incy;
 
-    size_t size_x = N * abs_incx;
-    size_t size_y = N * abs_incy;
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
+    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx_gold(N, incx ? incx : 1, batch_count);
+    host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_batch_vector<T> hx(N, incx, batch_count);
-    host_batch_vector<T> hy(N, incy, batch_count);
-    host_batch_vector<T> hx_gold(N, incx, batch_count);
-    host_batch_vector<T> hy_gold(N, incy, batch_count);
+    // Allocate device memory
+    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
+    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initialize memory on host.
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
-    for(int i = 0; i < batch_count; i++)
+    for(int b = 0; b < batch_count; b++)
     {
         // make hy different to hx
         for(size_t j = 0; j < N; j++)
         {
             if(rocblas_isnan(arg.alpha))
-                hy[i][j * abs_incy] = T(rocblas_nan_rng());
+                hy[b][j * abs_incy] = T(rocblas_nan_rng());
             else
-                hy[i][j * abs_incy] = hx[i][j * abs_incx] + 1.0;
+                hy[b][j * abs_incy] = hx[b][j * abs_incx] + 1.0;
         }
     }
 
     hx_gold.copy_from(hx); // swapped later by cblas_swap
     hy_gold.copy_from(hy);
 
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
+    // Transfer data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
@@ -114,15 +119,15 @@ void testing_swap_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_swap_batched_fn(
             handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
 
-        // copy data from device to CPU
+        // Transfer data from device to CPU
         CHECK_HIP_ERROR(hx.transfer_from(dx));
         CHECK_HIP_ERROR(hy.transfer_from(dy));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
-            cblas_swap<T>(N, hx_gold[i], incx, hy_gold[i], incy);
+            cblas_swap<T>(N, hx_gold[b], incx, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

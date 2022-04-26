@@ -24,23 +24,28 @@ void testing_rotg_bad_arg(const Arguments& arg)
     static const size_t safe_size = 1;
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     a(safe_size);
-    device_vector<T>     b(safe_size);
-    device_vector<U>     c(safe_size);
-    device_vector<T>     s(safe_size);
-    CHECK_DEVICE_ALLOCATION(a.memcheck());
-    CHECK_DEVICE_ALLOCATION(b.memcheck());
-    CHECK_DEVICE_ALLOCATION(c.memcheck());
-    CHECK_DEVICE_ALLOCATION(s.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(nullptr, a, b, c, s)), rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, nullptr, b, c, s)),
+    // Allocate device memory
+    device_vector<T> da(1, 1);
+    device_vector<T> db(1, 1);
+    device_vector<U> dc(1, 1);
+    device_vector<T> ds(1, 1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(da.memcheck());
+    CHECK_DEVICE_ALLOCATION(db.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
+
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(nullptr, da, db, dc, ds)),
+                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, nullptr, db, dc, ds)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, a, nullptr, c, s)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, da, nullptr, dc, ds)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, a, b, nullptr, s)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, da, db, nullptr, ds)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, a, b, c, nullptr)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, da, db, dc, nullptr)),
                           rocblas_status_invalid_pointer);
 }
 
@@ -56,16 +61,17 @@ void testing_rotg(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double               error_host, error_device;
     const U              rel_error = std::numeric_limits<U>::epsilon() * 1000;
-    host_vector<T>       a(1);
-    host_vector<T>       b(1);
-    host_vector<U>       c(1);
-    host_vector<T>       s(1);
+
+    host_vector<T> a(1, 1);
+    host_vector<T> b(1, 1);
+    host_vector<U> c(1, 1);
+    host_vector<T> s(1, 1);
 
     bool enable_near_check_general = true;
 
 #ifdef WIN32
     // During explicit NaN initialization (i.e., when arg.alpha=NaN), the host side computation results of OpenBLAS differs from the result of kernel computation in rocBLAS.
-    // The output value of `cb` is NaN in OpenBLAS and, the output value of `cb` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
+    // The output value of `hb_gold` is NaN in OpenBLAS and, the output value of `hb_gold` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
     // Therefore, using the bool enable_near_check_general to skip unit check for WIN32 during NaN initialization.
 
     enable_near_check_general = !rocblas_isnan(arg.alpha);
@@ -74,22 +80,24 @@ void testing_rotg(const Arguments& arg)
     for(int i = 0; i < TEST_COUNT; ++i)
     {
         // Initialize data on host memory
-        rocblas_init_vector(a, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
-        rocblas_init_vector(b, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
-        rocblas_init_vector(c, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
-        rocblas_init_vector(s, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(a, arg, rocblas_client_alpha_sets_nan, true);
+        rocblas_init_vector(b, arg, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(c, arg, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(s, arg, rocblas_client_alpha_sets_nan, false);
 
         // CPU BLAS
-        host_vector<T> ca = a;
-        host_vector<T> cb = b;
-        host_vector<U> cc = c;
-        host_vector<T> cs = s;
-        cpu_time_used     = get_time_us_no_sync();
-        cblas_rotg<T, U>(ca, cb, cc, cs);
+        host_vector<T> ha_gold = a;
+        host_vector<T> hb_gold = b;
+        host_vector<U> hc_gold = c;
+        host_vector<T> hs_gold = s;
+        cpu_time_used          = get_time_us_no_sync();
+        cblas_rotg<T, U>(ha_gold, hb_gold, hc_gold, hs_gold);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // Test rocblas_pointer_mode_host
         {
+            // Naming: `h` is in CPU (host) memory(eg ha), `d` is in GPU (device) memory (eg da).
+            // Allocate host memory
             host_vector<T> ha = a;
             host_vector<T> hb = b;
             host_vector<U> hc = c;
@@ -101,64 +109,73 @@ void testing_rotg(const Arguments& arg)
             {
                 if(enable_near_check_general)
                 {
-                    near_check_general<T>(1, 1, 1, ca, ha, rel_error);
-                    near_check_general<T>(1, 1, 1, cb, hb, rel_error);
-                    near_check_general<U>(1, 1, 1, cc, hc, rel_error);
-                    near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                    near_check_general<T>(1, 1, 1, ha_gold, ha, rel_error);
+                    near_check_general<T>(1, 1, 1, hb_gold, hb, rel_error);
+                    near_check_general<U>(1, 1, 1, hc_gold, hc, rel_error);
+                    near_check_general<T>(1, 1, 1, hs_gold, hs, rel_error);
                 }
             }
 
             if(arg.norm_check)
             {
-                error_host = norm_check_general<T>('F', 1, 1, 1, ca, ha);
-                error_host += norm_check_general<T>('F', 1, 1, 1, cb, hb);
-                error_host += norm_check_general<U>('F', 1, 1, 1, cc, hc);
-                error_host += norm_check_general<T>('F', 1, 1, 1, cs, hs);
+                error_host = norm_check_general<T>('F', 1, 1, 1, ha_gold, ha);
+                error_host += norm_check_general<T>('F', 1, 1, 1, hb_gold, hb);
+                error_host += norm_check_general<U>('F', 1, 1, 1, hc_gold, hc);
+                error_host += norm_check_general<T>('F', 1, 1, 1, hs_gold, hs);
             }
         }
 
         // Test rocblas_pointer_mode_device
         {
-            device_vector<T> da(1);
-            device_vector<T> db(1);
-            device_vector<U> dc(1);
-            device_vector<T> ds(1);
+            // Allocate device memory
+            device_vector<T> da(1, 1);
+            device_vector<T> db(1, 1);
+            device_vector<U> dc(1, 1);
+            device_vector<T> ds(1, 1);
+
+            // Check device memory allocation
             CHECK_DEVICE_ALLOCATION(da.memcheck());
             CHECK_DEVICE_ALLOCATION(db.memcheck());
             CHECK_DEVICE_ALLOCATION(dc.memcheck());
             CHECK_DEVICE_ALLOCATION(ds.memcheck());
-            CHECK_HIP_ERROR(hipMemcpy(da, a, sizeof(T), hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(db, b, sizeof(T), hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(dc, c, sizeof(U), hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(ds, s, sizeof(T), hipMemcpyHostToDevice));
+
+            // Transfer from CPU to GPU
+            CHECK_HIP_ERROR(da.transfer_from(a));
+            CHECK_HIP_ERROR(db.transfer_from(b));
+            CHECK_HIP_ERROR(dc.transfer_from(c));
+            CHECK_HIP_ERROR(ds.transfer_from(s));
+
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, da, db, dc, ds)));
+
             host_vector<T> ha(1);
             host_vector<T> hb(1);
             host_vector<U> hc(1);
             host_vector<T> hs(1);
-            CHECK_HIP_ERROR(hipMemcpy(ha, da, sizeof(T), hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(hb, db, sizeof(T), hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(hc, dc, sizeof(U), hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(hs, ds, sizeof(T), hipMemcpyDeviceToHost));
+
+            // Transfer from GPU to CPU
+            CHECK_HIP_ERROR(ha.transfer_from(da));
+            CHECK_HIP_ERROR(hb.transfer_from(db));
+            CHECK_HIP_ERROR(hc.transfer_from(dc));
+            CHECK_HIP_ERROR(hs.transfer_from(ds));
 
             if(arg.unit_check)
             {
                 if(enable_near_check_general)
                 {
-                    near_check_general<T>(1, 1, 1, ca, ha, rel_error);
-                    near_check_general<T>(1, 1, 1, cb, hb, rel_error);
-                    near_check_general<U>(1, 1, 1, cc, hc, rel_error);
-                    near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                    near_check_general<T>(1, 1, 1, ha_gold, ha, rel_error);
+                    near_check_general<T>(1, 1, 1, hb_gold, hb, rel_error);
+                    near_check_general<U>(1, 1, 1, hc_gold, hc, rel_error);
+                    near_check_general<T>(1, 1, 1, hs_gold, hs, rel_error);
                 }
             }
 
             if(arg.norm_check)
             {
-                error_device = norm_check_general<T>('F', 1, 1, 1, ca, ha);
-                error_device += norm_check_general<T>('F', 1, 1, 1, cb, hb);
-                error_device += norm_check_general<U>('F', 1, 1, 1, cc, hc);
-                error_device += norm_check_general<T>('F', 1, 1, 1, cs, hs);
+                error_device = norm_check_general<T>('F', 1, 1, 1, ha_gold, ha);
+                error_device += norm_check_general<T>('F', 1, 1, 1, hb_gold, hb);
+                error_device += norm_check_general<U>('F', 1, 1, 1, hc_gold, hc);
+                error_device += norm_check_general<T>('F', 1, 1, 1, hs_gold, hs);
             }
         }
     }

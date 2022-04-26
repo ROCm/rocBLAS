@@ -40,11 +40,9 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = stride_x * batch_count;
-
     // Allocate device memory
     device_strided_batch_matrix<T> dAb(banded_matrix_row, M, lda, stride_A, batch_count);
-    device_vector<T>               dx(size_x);
+    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -152,7 +150,6 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     }
 
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-    size_t size_x   = M * abs_incx + stride_x * (batch_count - 1);
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
@@ -204,8 +201,9 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
+
         for(int b = 0; b < batch_count; b++)
-            cblas_tbmv<T>(uplo, transA, diag, M, K, hAb[b], lda, hx_gold + b * stride_x, incx);
+            cblas_tbmv<T>(uplo, transA, diag, M, K, hAb[b], lda, hx_gold[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

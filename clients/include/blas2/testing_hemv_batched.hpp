@@ -39,9 +39,6 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
 
-    size_t size_x = N * size_t(incx);
-    size_t size_y = N * size_t(incy);
-
     // Allocate device memory
     device_batch_matrix<T> dA(N, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
@@ -233,8 +230,6 @@ void testing_hemv_batched(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * abs_incx;
-    size_t size_y   = N * abs_incy;
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory

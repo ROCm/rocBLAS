@@ -24,18 +24,21 @@ void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
                                                          : rocblas_rotg_strided_batched<T, U, false>;
     // clang-format on
 
-    static const size_t safe_size   = 1;
-    rocblas_int         batch_count = 5;
-    rocblas_stride      stride_a    = 10;
-    rocblas_stride      stride_b    = 10;
-    rocblas_stride      stride_c    = 10;
-    rocblas_stride      stride_s    = 10;
+    rocblas_int    batch_count = 5;
+    rocblas_stride stride_a    = 10;
+    rocblas_stride stride_b    = 10;
+    rocblas_stride stride_c    = 10;
+    rocblas_stride stride_s    = 10;
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     da(batch_count * stride_a);
-    device_vector<T>     db(batch_count * stride_b);
-    device_vector<U>     dc(batch_count * stride_c);
-    device_vector<T>     ds(batch_count * stride_s);
+
+    // Allocate device memory
+    device_strided_batch_vector<T> da(1, 1, stride_a, batch_count);
+    device_strided_batch_vector<T> db(1, 1, stride_b, batch_count);
+    device_strided_batch_vector<U> dc(1, 1, stride_c, batch_count);
+    device_strided_batch_vector<T> ds(1, 1, stride_s, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(da.memcheck());
     CHECK_DEVICE_ALLOCATION(db.memcheck());
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
@@ -102,21 +105,16 @@ void testing_rotg_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_a = size_t(stride_a) * size_t(batch_count);
-    size_t size_b = size_t(stride_b) * size_t(batch_count);
-    size_t size_c = size_t(stride_c) * size_t(batch_count);
-    size_t size_s = size_t(stride_s) * size_t(batch_count);
-
-    host_vector<T> ha(size_a);
-    host_vector<T> hb(size_b);
-    host_vector<U> hc(size_c);
-    host_vector<T> hs(size_s);
+    host_strided_batch_vector<T> ha(1, 1, stride_a, batch_count);
+    host_strided_batch_vector<T> hb(1, 1, stride_b, batch_count);
+    host_strided_batch_vector<U> hc(1, 1, stride_c, batch_count);
+    host_strided_batch_vector<T> hs(1, 1, stride_s, batch_count);
 
     bool enable_near_check_general = true;
 
 #ifdef WIN32
     // During explicit NaN initialization (i.e., when arg.alpha=NaN), the host side computation results of OpenBLAS differs from the result of kernel computation in rocBLAS.
-    // The output value of `cb` is NaN in OpenBLAS and, the output value of `cb` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
+    // The output value of `hb_gold` is NaN in OpenBLAS and, the output value of `hb_gold` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
     // Therefore, using the bool enable_near_check_general to skip unit check for WIN32 during NaN initialization.
 
     enable_near_check_general = !rocblas_isnan(arg.alpha);
@@ -125,34 +123,41 @@ void testing_rotg_strided_batched(const Arguments& arg)
     for(int i = 0; i < TEST_COUNT; i++)
     {
         // Initialize data on host memory
-        rocblas_init_vector(
-            ha, arg, 1, 1, stride_a, batch_count, rocblas_client_alpha_sets_nan, true);
-        rocblas_init_vector(
-            hb, arg, 1, 1, stride_b, batch_count, rocblas_client_alpha_sets_nan, false);
-        rocblas_init_vector(
-            hc, arg, 1, 1, stride_c, batch_count, rocblas_client_alpha_sets_nan, false);
-        rocblas_init_vector(
-            hs, arg, 1, 1, stride_s, batch_count, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(ha, arg, rocblas_client_alpha_sets_nan, true);
+        rocblas_init_vector(hb, arg, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(hc, arg, rocblas_client_alpha_sets_nan, false);
+        rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
         // CPU_BLAS
-        host_vector<T> ca = ha;
-        host_vector<T> cb = hb;
-        host_vector<U> cc = hc;
-        host_vector<T> cs = hs;
-        cpu_time_used     = get_time_us_no_sync();
+        host_strided_batch_vector<T> ha_gold(1, 1, stride_a, batch_count);
+        host_strided_batch_vector<T> hb_gold(1, 1, stride_b, batch_count);
+        host_strided_batch_vector<U> hc_gold(1, 1, stride_c, batch_count);
+        host_strided_batch_vector<T> hs_gold(1, 1, stride_s, batch_count);
+
+        ha_gold.copy_from(ha);
+        hb_gold.copy_from(hb);
+        hc_gold.copy_from(hc);
+        hs_gold.copy_from(hs);
+
+        cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_rotg<T, U>(
-                ca + b * stride_a, cb + b * stride_b, cc + b * stride_c, cs + b * stride_s);
+            cblas_rotg<T, U>(ha_gold[b], hb_gold[b], hc_gold[b], hs_gold[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // Test rocblas_pointer_mode_host
         {
-            host_vector<T> ra = ha;
-            host_vector<T> rb = hb;
-            host_vector<U> rc = hc;
-            host_vector<T> rs = hs;
+            host_strided_batch_vector<T> ra(1, 1, stride_a, batch_count);
+            host_strided_batch_vector<T> rb(1, 1, stride_b, batch_count);
+            host_strided_batch_vector<U> rc(1, 1, stride_c, batch_count);
+            host_strided_batch_vector<T> rs(1, 1, stride_s, batch_count);
+
+            ra.copy_from(ha);
+            rb.copy_from(hb);
+            rc.copy_from(hc);
+            rs.copy_from(hs);
+
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, ra, stride_a, rb, stride_b, rc, stride_c, rs, stride_s, batch_count)));
@@ -161,73 +166,82 @@ void testing_rotg_strided_batched(const Arguments& arg)
             {
                 if(enable_near_check_general)
                 {
-                    near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
-                    near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
-                    near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
-                    near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_a, ha_gold, ra, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_b, hb_gold, rb, batch_count, rel_error);
+                    near_check_general<U>(1, 1, 1, stride_c, hc_gold, rc, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_s, hs_gold, rs, batch_count, rel_error);
                 }
             }
 
             if(arg.norm_check)
             {
                 norm_error_host
-                    = norm_check_general<T>('F', 1, 1, 1, stride_a, ca, ra, batch_count);
+                    = norm_check_general<T>('F', 1, 1, 1, stride_a, ha_gold, ra, batch_count);
                 norm_error_host
-                    += norm_check_general<T>('F', 1, 1, 1, stride_b, cb, rb, batch_count);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_b, hb_gold, rb, batch_count);
                 norm_error_host
-                    += norm_check_general<U>('F', 1, 1, 1, stride_c, cc, rc, batch_count);
+                    += norm_check_general<U>('F', 1, 1, 1, stride_c, hc_gold, rc, batch_count);
                 norm_error_host
-                    += norm_check_general<T>('F', 1, 1, 1, stride_s, cs, rs, batch_count);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_s, hs_gold, rs, batch_count);
             }
         }
 
         // Test rocblas_pointer_mode_device
         {
-            device_vector<T> da(size_a);
-            device_vector<T> db(size_b);
-            device_vector<U> dc(size_c);
-            device_vector<T> ds(size_s);
+            // Allocate device memory
+            device_strided_batch_vector<T> da(1, 1, stride_a, batch_count);
+            device_strided_batch_vector<T> db(1, 1, stride_b, batch_count);
+            device_strided_batch_vector<U> dc(1, 1, stride_c, batch_count);
+            device_strided_batch_vector<T> ds(1, 1, stride_s, batch_count);
+
+            // Check device memory allocation
             CHECK_DEVICE_ALLOCATION(da.memcheck());
             CHECK_DEVICE_ALLOCATION(db.memcheck());
             CHECK_DEVICE_ALLOCATION(dc.memcheck());
             CHECK_DEVICE_ALLOCATION(ds.memcheck());
-            CHECK_HIP_ERROR(hipMemcpy(da, ha, sizeof(T) * size_a, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * size_b, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U) * size_c, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(T) * size_s, hipMemcpyHostToDevice));
+
+            // Transfer from CPU to GPU
+            CHECK_HIP_ERROR(da.transfer_from(ha));
+            CHECK_HIP_ERROR(db.transfer_from(hb));
+            CHECK_HIP_ERROR(dc.transfer_from(hc));
+            CHECK_HIP_ERROR(ds.transfer_from(hs));
+
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)));
-            host_vector<T> ra(size_a);
-            host_vector<T> rb(size_b);
-            host_vector<U> rc(size_c);
-            host_vector<T> rs(size_s);
-            CHECK_HIP_ERROR(hipMemcpy(ra, da, sizeof(T) * size_a, hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(rb, db, sizeof(T) * size_b, hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(rc, dc, sizeof(U) * size_c, hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(rs, ds, sizeof(T) * size_s, hipMemcpyDeviceToHost));
+
+            host_strided_batch_vector<T> ra(1, 1, stride_a, batch_count);
+            host_strided_batch_vector<T> rb(1, 1, stride_b, batch_count);
+            host_strided_batch_vector<U> rc(1, 1, stride_c, batch_count);
+            host_strided_batch_vector<T> rs(1, 1, stride_s, batch_count);
+
+            // Transfer from GPU to CPU
+            CHECK_HIP_ERROR(ra.transfer_from(da));
+            CHECK_HIP_ERROR(rb.transfer_from(db));
+            CHECK_HIP_ERROR(rc.transfer_from(dc));
+            CHECK_HIP_ERROR(rs.transfer_from(ds));
 
             if(arg.unit_check)
             {
                 if(enable_near_check_general)
                 {
-                    near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
-                    near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
-                    near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
-                    near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_a, ha_gold, ra, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_b, hb_gold, rb, batch_count, rel_error);
+                    near_check_general<U>(1, 1, 1, stride_c, hc_gold, rc, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_s, hs_gold, rs, batch_count, rel_error);
                 }
             }
 
             if(arg.norm_check)
             {
                 norm_error_device
-                    = norm_check_general<T>('F', 1, 1, 1, stride_a, ca, ra, batch_count);
+                    = norm_check_general<T>('F', 1, 1, 1, stride_a, ha_gold, ra, batch_count);
                 norm_error_device
-                    += norm_check_general<T>('F', 1, 1, 1, stride_b, cb, rb, batch_count);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_b, hb_gold, rb, batch_count);
                 norm_error_device
-                    += norm_check_general<U>('F', 1, 1, 1, stride_c, cc, rc, batch_count);
+                    += norm_check_general<U>('F', 1, 1, 1, stride_c, hc_gold, rc, batch_count);
                 norm_error_device
-                    += norm_check_general<T>('F', 1, 1, 1, stride_s, cs, rs, batch_count);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_s, hs_gold, rs, batch_count);
             }
         }
     }
@@ -240,18 +254,23 @@ void testing_rotg_strided_batched(const Arguments& arg)
         // (TODO: or is there another reason we are typically using host_mode for timing?)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        device_vector<T> da(size_a);
-        device_vector<T> db(size_b);
-        device_vector<U> dc(size_c);
-        device_vector<T> ds(size_s);
+        // Allocate device memory
+        device_strided_batch_vector<T> da(1, 1, stride_a, batch_count);
+        device_strided_batch_vector<T> db(1, 1, stride_b, batch_count);
+        device_strided_batch_vector<U> dc(1, 1, stride_c, batch_count);
+        device_strided_batch_vector<T> ds(1, 1, stride_s, batch_count);
+
+        // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(da.memcheck());
         CHECK_DEVICE_ALLOCATION(db.memcheck());
         CHECK_DEVICE_ALLOCATION(dc.memcheck());
         CHECK_DEVICE_ALLOCATION(ds.memcheck());
-        CHECK_HIP_ERROR(hipMemcpy(da, ha, sizeof(T) * size_a, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * size_b, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U) * size_c, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(T) * size_s, hipMemcpyHostToDevice));
+
+        // Transfer from CPU to GPU
+        CHECK_HIP_ERROR(da.transfer_from(ha));
+        CHECK_HIP_ERROR(db.transfer_from(hb));
+        CHECK_HIP_ERROR(dc.transfer_from(hc));
+        CHECK_HIP_ERROR(ds.transfer_from(hs));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {

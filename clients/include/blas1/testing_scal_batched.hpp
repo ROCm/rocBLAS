@@ -40,24 +40,23 @@ void testing_scal_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_x = N * size_t(incx);
-
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-
-    // Device-arrays of pointers to device memory
-    device_batch_vector<T> dx_1(N, incx, batch_count);
-    device_batch_vector<T> dx_2(N, incx, batch_count);
-    device_vector<U>       d_alpha(1);
-    CHECK_DEVICE_ALLOCATION(dx_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx_2.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-
-    // Host-arrays of pointers to host memory
+    // Naming: `h` is in CPU (host) memory(eg hx_1), `d` is in GPU (device) memory (eg dx_1).
+    // Allocate host memory
     host_batch_vector<T> hx_1(N, incx, batch_count);
     host_batch_vector<T> hx_2(N, incx, batch_count);
     host_batch_vector<T> hx_gold(N, incx, batch_count);
     host_vector<U>       halpha(1);
     halpha[0] = h_alpha;
+
+    // Allocate device memory
+    device_batch_vector<T> dx_1(N, incx, batch_count);
+    device_batch_vector<T> dx_2(N, incx, batch_count);
+    device_vector<U>       d_alpha(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize memory on host.
     rocblas_init_vector(hx_1, arg, rocblas_client_alpha_sets_nan, true);
@@ -88,15 +87,15 @@ void testing_scal_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             (rocblas_scal_batched_fn(handle, N, d_alpha, dx_2.ptr_on_device(), incx, batch_count)));
 
-        // copy output from device to CPU
+        // Transfer output from device to CPU
         CHECK_HIP_ERROR(hx_1.transfer_from(dx_1));
         CHECK_HIP_ERROR(hx_2.transfer_from(dx_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
-            cblas_scal(N, h_alpha, (T*)hx_gold[i], incx);
+            cblas_scal(N, h_alpha, (T*)hx_gold[b], incx);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -160,10 +159,10 @@ void testing_scal_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = N * size_t(incx);
-
-    // allocate memory on device
+    // Allocate device memory
     device_batch_vector<T> dx(N, incx, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(

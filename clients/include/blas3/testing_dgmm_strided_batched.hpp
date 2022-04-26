@@ -38,15 +38,15 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    const rocblas_stride stride_a = N * size_t(lda);
-    const rocblas_stride stride_x = (rocblas_side_right == side ? N : M) * size_t(incx);
-    const rocblas_stride stride_c = N * size_t(ldc);
+    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
-    size_t size_x = batch_count * stride_x;
+    const rocblas_stride stride_a = N * size_t(lda);
+    const rocblas_stride stride_x = K * size_t(incx);
+    const rocblas_stride stride_c = N * size_t(ldc);
 
     // Allocate device memory
     device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
-    device_vector<T>               dx(size_x);
+    device_strided_batch_vector<T> dx(K, incx ? incx : 1, stride_x, batch_count);
     device_strided_batch_matrix<T> dC(M, N, ldc, stride_a, batch_count);
 
     // Check device memory allocation
@@ -166,8 +166,6 @@ void testing_dgmm_strided_batched(const Arguments& arg)
         stride_x = K * size_t(abs_incx);
     }
 
-    size_t size_x = batch_count * stride_x;
-
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
@@ -195,7 +193,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(M, N, lda, stride_a, batch_count);
-    host_vector<T>               hx(size_x);
+    host_strided_batch_vector<T> hx(K, incx ? incx : 1, stride_x, batch_count);
     host_strided_batch_matrix<T> hC_1(M, N, ldc, stride_c, batch_count);
     host_strided_batch_matrix<T> hC_2(M, N, ldc, stride_c, batch_count);
     host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
@@ -208,7 +206,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     // Allocate device memory
     device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
-    device_vector<T>               dx(size_x);
+    device_strided_batch_vector<T> dx(K, incx ? incx : 1, stride_x, batch_count);
     device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
 
     // Check device memory allocation
@@ -218,7 +216,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     // Initialize data on host memory
     rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(hx, arg, size_x, 1, 1, 0, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
     rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     // copy data from CPU to device
@@ -248,7 +246,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_dgmm<T>(side, M, N, hA[b], lda, hx + b * stride_x, incx, hC_gold[b], ldc);
+            cblas_dgmm<T>(side, M, N, hA[b], lda, hx[b], incx, hC_gold[b], ldc);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

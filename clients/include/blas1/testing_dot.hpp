@@ -30,9 +30,13 @@ void testing_dot_bad_arg(const Arguments& arg)
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(safe_size);
-    device_vector<T>     dy(safe_size);
-    device_vector<T>     d_rocblas_result(1);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
+    device_vector<T> d_rocblas_result(1, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
@@ -101,30 +105,24 @@ void testing_dot(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<T> hx(N, incx ? incx : 1);
+    host_vector<T> hy(N, incy ? incy : 1);
 
-    // allocate memory on device
-    device_vector<T> dx(size_x, 1, HMM);
-    device_vector<T> dy(size_y, 1, HMM);
+    // Allocate device memory
+    device_vector<T> dx(N, incx ? incx : 1, HMM);
+    device_vector<T> dy(N, incy ? incy : 1, HMM);
     device_vector<T> d_rocblas_result_2(1, 1, HMM);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx(size_x);
-    host_vector<T> hy(size_y);
-
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -176,9 +174,6 @@ void testing_dot(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
-
             rocblas_error_1 = double(rocblas_abs((cpu_result - rocblas_result_1) / cpu_result));
             rocblas_error_2 = double(rocblas_abs((cpu_result - rocblas_result_2) / cpu_result));
         }

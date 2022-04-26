@@ -39,9 +39,6 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = lda * size_t(M);
-    size_t size_x = M * size_t(incx);
-
     // Allocate device memory
     device_batch_matrix<T> dAb(banded_matrix_row, M, lda, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
@@ -125,10 +122,7 @@ void testing_tbmv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_x, abs_incx;
-
-    abs_incx = incx >= 0 ? incx : -incx;
-    size_x   = M * abs_incx;
+    size_t abs_incx = incx >= 0 ? incx : -incx;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory

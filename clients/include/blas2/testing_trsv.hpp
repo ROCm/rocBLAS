@@ -35,21 +35,24 @@ void testing_trsv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = lda * size_t(M);
-    size_t size_x = M * size_t(incx);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(M, M, lda);
+    host_vector<T> hx(M, incx);
 
-    host_vector<T> hA(size_A);
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
-    host_vector<T> hx(size_x);
     CHECK_HIP_ERROR(hx.memcheck());
-    device_vector<T> dA(size_A);
+
+    // Allocate device memory
+    device_matrix<T> dA(M, M, lda);
+    device_vector<T> dx(M, incx);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    device_vector<T> dx(size_x);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
     // Checks.
-    //
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsv_fn(handle, rocblas_fill_full, transA, diag, M, dA, lda, dx, incx),
         rocblas_status_invalid_value);
@@ -105,21 +108,20 @@ void testing_trsv(const Arguments& arg)
     }
 
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-    size_t size_x   = M * abs_incx;
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(M, M, lda);
     host_matrix<T> hAAT(M, M, lda);
-    host_vector<T> hb(size_x);
-    host_vector<T> hx(size_x);
-    host_vector<T> hx_or_b_1(size_x);
-    host_vector<T> hx_or_b_2(size_x);
-    host_vector<T> cpu_x_or_b(size_x);
+    host_vector<T> hb(M, incx);
+    host_vector<T> hx(M, incx);
+    host_vector<T> hx_or_b_1(M, incx);
+    host_vector<T> hx_or_b_2(M, incx);
+    host_vector<T> cpu_x_or_b(M, incx);
 
     // Allocate device memory
     device_matrix<T> dA(M, M, lda);
-    device_vector<T> dx_or_b(size_x);
+    device_vector<T> dx_or_b(M, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -128,7 +130,7 @@ void testing_trsv(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
-    rocblas_init_vector(hx, arg, M, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     //  calculate hAAT = hA * hA ^ T or hAAT = hA * hA ^ H if complex
     cblas_gemm<T>(rocblas_operation_none,
@@ -191,15 +193,15 @@ void testing_trsv(const Arguments& arg)
     {
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
         CHECK_ROCBLAS_ERROR(rocblas_trsv_fn(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
-        CHECK_HIP_ERROR(hipMemcpy(hx_or_b_1, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_2, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
         CHECK_ROCBLAS_ERROR(rocblas_trsv_fn(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
-        CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate norm 1 of vector E
@@ -226,7 +228,7 @@ void testing_trsv(const Arguments& arg)
     if(arg.timing)
     {
         // GPU rocBLAS
-        CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 

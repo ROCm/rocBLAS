@@ -35,11 +35,9 @@ void testing_trmv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = M * size_t(incx);
-
     // Allocate device memory
     device_matrix<T> dA(M, M, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(M, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -96,21 +94,17 @@ void testing_trmv(const Arguments& arg)
         return;
     }
 
-    size_t size_x, dim_x, abs_incx;
-    dim_x = M;
-
-    abs_incx = incx >= 0 ? incx : -incx;
-    size_x   = dim_x * abs_incx;
+    size_t abs_incx = incx >= 0 ? incx : -incx;
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(M, M, lda);
-    host_vector<T> hx(size_x);
-    host_vector<T> hres(size_x);
+    host_vector<T> hx(M, incx);
+    host_vector<T> hres(M, incx);
 
     // Allocate device memory
     device_matrix<T> dA(M, M, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(M, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -119,7 +113,7 @@ void testing_trmv(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
-    rocblas_init_vector(hx, arg, dim_x, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     // Copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -134,14 +128,10 @@ void testing_trmv(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
 
-        //
         // ROCBLAS
-        //
         CHECK_ROCBLAS_ERROR(rocblas_trmv_fn(handle, uplo, transA, diag, M, dA, lda, dx, incx));
 
-        //
         // CPU BLAS
-        //
         {
             cpu_time_used = get_time_us_no_sync();
             cblas_trmv<T>(uplo, transA, diag, M, hA, lda, hx, incx);
@@ -150,28 +140,23 @@ void testing_trmv(const Arguments& arg)
 
         // fetch GPU
         CHECK_HIP_ERROR(hres.transfer_from(dx));
-        //
+
         // Unit check.
-        //
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_x, abs_incx, hx, hres);
+            unit_check_general<T>(1, M, abs_incx, hx, hres);
         }
 
-        //
         // Norm check.
-        //
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, dim_x, abs_incx, hx, hres);
+            rocblas_error = norm_check_general<T>('F', 1, M, abs_incx, hx, hres);
         }
     }
 
     if(arg.timing)
     {
-        //
         // Warmup
-        //
         {
             int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
@@ -180,9 +165,7 @@ void testing_trmv(const Arguments& arg)
             }
         }
 
-        //
         // Go !
-        //
         {
             hipStream_t stream;
             CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
@@ -195,9 +178,7 @@ void testing_trmv(const Arguments& arg)
             gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         }
 
-        //
         // Log performance.
-        //
         ArgumentModel<e_uplo, e_transA, e_diag, e_M, e_lda, e_incx>{}.log_args<T>(
             rocblas_cout,
             arg,

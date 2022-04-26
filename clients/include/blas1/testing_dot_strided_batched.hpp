@@ -27,19 +27,20 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
                                               : (CONJ ? rocblas_dotc_strided_batched<T, false>
                                                       : rocblas_dot_strided_batched<T, false>);
 
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    rocblas_int incy        = 1;
-    rocblas_int stride_x    = incx * N;
-    rocblas_int stride_y    = incy * N;
-    rocblas_int batch_count = 5;
-    size_t      size_x      = stride_x * batch_count;
-    size_t      size_y      = stride_y * batch_count;
-
+    rocblas_int          N           = 100;
+    rocblas_int          incx        = 1;
+    rocblas_int          incy        = 1;
+    rocblas_int          stride_x    = incx * N;
+    rocblas_int          stride_y    = incy * N;
+    rocblas_int          batch_count = 5;
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(size_x);
-    device_vector<T>     dy(size_y);
-    device_vector<T>     d_rocblas_result(1);
+
+    // Allocate device memory
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
+    device_vector<T>               d_rocblas_result(batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
@@ -173,40 +174,37 @@ void testing_dot_strided_batched(const Arguments& arg)
         return;
     }
 
-    host_vector<T> cpu_result(batch_count);
-    host_vector<T> rocblas_result_1(batch_count);
-    host_vector<T> rocblas_result_2(batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stride_x, batch_count);
+    host_strided_batch_vector<T> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_vector<T>               cpu_result(batch_count);
+    host_vector<T>               rocblas_result_1(batch_count);
+    host_vector<T>               rocblas_result_2(batch_count);
 
-    size_x += size_t(stride_x) * size_t(batch_count - 1);
-    size_y += size_t(stride_y) * size_t(batch_count - 1);
+    // Allocate device memory
+    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stride_x, batch_count);
+    device_strided_batch_vector<T> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_vector<T>               d_rocblas_result_2(batch_count);
 
-    // allocate memory on device
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
-    device_vector<T> d_rocblas_result_2(batch_count);
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx(size_x);
-    host_vector<T> hy(size_y);
-
     // Initialize data on host memory
-    rocblas_init_vector(
-        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(
-        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
 
     // arg.algo indicates to force optimized x dot x kernel algorithm with equal inc
     auto dy_ptr = (arg.algo) ? (T*)(dx) : (T*)(dy);
-    auto hy_ptr = (arg.algo) ? &hx[0] : &hy[0];
+    auto hy_ptr = (arg.algo) ? (T*)(hx) : (T*)(hy);
     if(arg.algo)
     {
         incy     = incx;
@@ -240,19 +238,15 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                              stride_y,
                                                              batch_count,
                                                              d_rocblas_result_2));
-        CHECK_HIP_ERROR(hipMemcpy(
-            rocblas_result_2, d_rocblas_result_2, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
+
+        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
         {
-            (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N,
-                                                  hx + b * stride_x,
-                                                  incx,
-                                                  hy_ptr + b * stride_y,
-                                                  incy,
-                                                  &cpu_result[b]);
+            (CONJ ? cblas_dotc<T>
+                  : cblas_dot<T>)(N, hx[b], incx, hy_ptr + b * stride_y, incy, &cpu_result[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -276,8 +270,6 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
             for(int b = 0; b < batch_count; ++b)
             {
                 rocblas_error_1

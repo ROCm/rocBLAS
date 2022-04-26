@@ -276,15 +276,7 @@ void testing_syr2_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_syr2<T>(uplo,
-                          N,
-                          h_alpha,
-                          hx + b * stride_x,
-                          incx,
-                          hy + b * stride_y,
-                          incy,
-                          hA_gold[b],
-                          lda);
+            cblas_syr2<T>(uplo, N, h_alpha, hx[b], incx, hy[b], incy, hA_gold[b], lda);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
