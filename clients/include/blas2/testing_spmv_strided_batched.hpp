@@ -35,18 +35,15 @@ void testing_spmv_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t         abs_incx = incx >= 0 ? incx : -incx;
-    size_t         abs_incy = incy >= 0 ? incy : -incy;
-    size_t         size_A   = N * N;
-    rocblas_stride strideA  = size_A;
-    rocblas_stride stridex  = N * abs_incx;
-    rocblas_stride stridey  = N * abs_incy;
+    rocblas_stride strideA = rocblas_packed_matrix_size(N);
+    rocblas_stride stridex = N * incx;
+    rocblas_stride stridey = N * incy;
 
     // Allocate device memory
     static const size_t            safe_size = 100;
-    device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, 1, batch_count);
-    device_vector<T>               dx(safe_size);
-    device_vector<T>               dy(safe_size);
+    device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, strideA, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stridey, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAp.memcheck());
@@ -222,10 +219,10 @@ void testing_spmv_strided_batched(const Arguments& arg)
     // Allocate host memory
     host_strided_batch_matrix<T> hA(N, N, N, strideA, batch_count);
     host_strided_batch_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1, strideA, batch_count);
-    host_vector<T>               hx(size_X);
-    host_vector<T>               hy_1(size_Y);
-    host_vector<T>               hy_2(size_Y);
-    host_vector<T>               hy_gold(size_Y); // gold standard
+    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
+    host_strided_batch_vector<T> hy_1(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hy_2(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy, stridey, batch_count); // gold standard
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
@@ -237,8 +234,8 @@ void testing_spmv_strided_batched(const Arguments& arg)
 
     // Allocate device memory
     device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, strideA, batch_count);
-    device_vector<T>               dx(size_X);
-    device_vector<T>               dy(size_Y);
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stridey, batch_count);
     device_vector<T>               d_alpha(1);
     device_vector<T>               d_beta(1);
 
@@ -252,16 +249,14 @@ void testing_spmv_strided_batched(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_symmetric_matrix, true);
-    rocblas_init_vector(
-        hx, arg, N, abs_incx, stridex, batch_count, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, N, abs_incy, stridey, batch_count, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     // Helper function to convert regular matrix `hA` to packed matrix `hAp`
     regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, N);
 
-    // make copy in hy_gold which will later be used with CPU BLAS
-    hy_gold = hy_1;
-    hy_2    = hy_1; // device memory re-test
+    hy_gold.copy_from(hy_1);
+    hy_2.copy_from(hy_1);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -273,9 +268,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        //
         // rocblas_pointer_mode_host test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_ROCBLAS_ERROR(rocblas_spmv_strided_batched_fn(handle,
@@ -296,9 +289,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
-        //
         // rocblas_pointer_mode_device test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(beta));
@@ -325,15 +316,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_spmv<T>(uplo,
-                          N,
-                          alpha[0],
-                          hAp[b],
-                          hx + b * stridex,
-                          incx,
-                          beta[0],
-                          hy_gold + b * stridey,
-                          incy);
+            cblas_spmv<T>(uplo, N, alpha[0], hAp[b], hx[b], incx, beta[0], hy_gold[b], incy);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

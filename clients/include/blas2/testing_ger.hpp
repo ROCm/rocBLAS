@@ -38,13 +38,11 @@ void testing_ger_bad_arg(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = M * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
 
     // Allocate device memory
     device_matrix<T> dA_1(M, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
+    device_vector<T> dx(M, incx);
+    device_vector<T> dy(N, incy);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
@@ -91,22 +89,22 @@ void testing_ger(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = M * abs_incx;
-    size_t size_y   = N * abs_incy;
 
     // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
     // Allocate host memory
     host_matrix<T> hA_1(M, N, lda);
     host_matrix<T> hA_2(M, N, lda);
     host_matrix<T> hA_gold(M, N, lda);
-    host_vector<T> hx(M * abs_incx);
-    host_vector<T> hy(N * abs_incy);
+    host_vector<T> hx(M, incx);
+    host_vector<T> hy(N, incy);
+    host_vector<T> halpha(1);
+    halpha[0] = h_alpha;
 
     // Allocate device memory
     device_matrix<T> dA_1(M, N, lda);
     device_matrix<T> dA_2(M, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
+    device_vector<T> dx(M, incx);
+    device_vector<T> dy(N, incy);
     device_vector<T> d_alpha(1);
 
     // Check device memory allocation
@@ -119,15 +117,15 @@ void testing_ger(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(hx, arg, M, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, false);
-    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, false);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan);
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS
     hA_gold = hA_1;
     hA_2    = hA_1;
 
-    // copy data from CPU to device
+    // Transfer data from CPU to device
     CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
@@ -138,9 +136,9 @@ void testing_ger(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // copy data from CPU to device
+        // Transfer data from CPU to device
         CHECK_HIP_ERROR(dA_2.transfer_from(hA_2));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
@@ -156,9 +154,9 @@ void testing_ger(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
-        hipMemcpy(hA_2, dA_2, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
+        // Transfer output from device to CPU
+        CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
+        CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
 
         if(arg.unit_check)
         {

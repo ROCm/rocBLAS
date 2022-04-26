@@ -33,19 +33,15 @@ void testing_tpsv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = N * size_t(incx);
-
     // Allocate device memory
     device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(N, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
-    // Checks.
-    //
+    // Checks
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpsv_fn(handle, rocblas_fill_full, transA, diag, N, dAp, dx, incx),
         rocblas_status_invalid_value);
@@ -95,23 +91,22 @@ void testing_tpsv(const Arguments& arg)
     }
 
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-    size_t size_x   = N * abs_incx;
 
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
     host_matrix<T> hA(N, N, N);
     host_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1);
     host_matrix<T> AAT(N, N, N);
-    host_vector<T> hb(size_x);
-    host_vector<T> hx(size_x);
-    host_vector<T> hx_or_b_1(size_x);
-    host_vector<T> hx_or_b_2(size_x);
-    host_vector<T> cpu_x_or_b(size_x);
-    host_vector<T> my_cpu_x_or_b(size_x);
+    host_vector<T> hb(N, incx);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hx_or_b_1(N, incx);
+    host_vector<T> hx_or_b_2(N, incx);
+    host_vector<T> cpu_x_or_b(N, incx);
+    host_vector<T> my_cpu_x_or_b(N, incx);
 
     // Allocate device memory
     device_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx_or_b(size_x);
+    device_vector<T> dx_or_b(N, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAp.memcheck());
@@ -120,7 +115,7 @@ void testing_tpsv(const Arguments& arg)
     // Initialize hA on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     prepare_triangular_solve((T*)hA, N, (T*)AAT, N, char_uplo);
     if(diag == rocblas_diagonal_unit)

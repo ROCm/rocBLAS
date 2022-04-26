@@ -40,13 +40,10 @@ void testing_hbmv_bad_arg(const Arguments& arg)
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
 
-    size_t size_x = N * size_t(incx);
-    size_t size_y = N * size_t(incy);
-
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -130,24 +127,22 @@ void testing_hbmv(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * abs_incx;
-    size_t size_y   = N * abs_incy;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
     host_matrix<T> hAb(banded_matrix_row, N, lda);
-    host_vector<T> hx(size_x);
-    host_vector<T> hy_1(size_y);
-    host_vector<T> hy_2(size_y);
-    host_vector<T> hy_gold(size_y);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy_1(N, incy);
+    host_vector<T> hy_2(N, incy);
+    host_vector<T> hy_gold(N, incy);
     host_vector<T> halpha(1);
     host_vector<T> hbeta(1);
 
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy_1(size_y);
-    device_vector<T> dy_2(size_y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy_1(N, incy);
+    device_vector<T> dy_2(N, incy);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
@@ -163,8 +158,9 @@ void testing_hbmv(const Arguments& arg)
     //Matrix `hAb` is initialized as a triangular matrix because only the upper triangular or lower triangular portion of the matrix `hAb` is referenced.
     rocblas_init_matrix(
         hAb, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 

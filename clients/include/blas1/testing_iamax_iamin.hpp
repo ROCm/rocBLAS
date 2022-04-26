@@ -19,12 +19,15 @@
 template <typename T>
 void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 {
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    static const size_t safe_size = 100;
+    rocblas_int N    = 100;
+    rocblas_int incx = 1;
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(safe_size);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     rocblas_int h_rocblas_result;
@@ -92,23 +95,23 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
         return;
     }
 
-    size_t size_x = size_t(N) * incx;
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<T> hx(N, incx);
 
-    // allocate memory on device
-    device_vector<T>           dx(size_x);
+    // Allocate device memory
+    device_vector<T>           dx(N, incx);
     device_vector<rocblas_int> d_rocblas_result(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-    // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz
-    // follow this practice
-    host_vector<T> hx(size_x);
-
     // Initial Data on CPU
-    rocblas_init_vector(hx, arg, N, incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
 

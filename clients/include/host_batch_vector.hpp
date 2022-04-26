@@ -154,7 +154,7 @@ public:
         if((this->batch_count() == that.batch_count()) && (this->n() == that.n())
            && (this->inc() == that.inc()))
         {
-            size_t num_bytes = this->n() * std::abs(this->inc()) * sizeof(T);
+            size_t num_bytes = size_t(this->n()) * std::abs(this->inc()) * sizeof(T);
             for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
             {
                 memcpy((*this)[batch_index], that[batch_index], num_bytes);
@@ -175,13 +175,13 @@ public:
     hipError_t transfer_from(const device_batch_vector<T>& that)
     {
         hipError_t hip_err;
-        size_t     num_bytes = size_t(this->m_n) * std::abs(this->m_inc) * sizeof(T);
+        size_t     num_bytes = size_t(this->n()) * std::abs(this->inc()) * sizeof(T);
         if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
             return hip_err;
 
         hipMemcpyKind kind = that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost;
 
-        for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+        for(rocblas_int batch_index = 0; batch_index < this->batch_count(); ++batch_index)
         {
             if(hipSuccess
                != (hip_err = hipMemcpy((*this)[batch_index], that[batch_index], num_bytes, kind)))

@@ -20,14 +20,16 @@ void testing_rotmg_bad_arg(const Arguments& arg)
 {
     auto rocblas_rotgm_fn = arg.fortran ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
 
-    static const size_t safe_size = 5;
-
     rocblas_local_handle handle{arg};
-    device_vector<T>     d1(safe_size);
-    device_vector<T>     d2(safe_size);
-    device_vector<T>     x1(safe_size);
-    device_vector<T>     y1(safe_size);
-    device_vector<T>     param(safe_size);
+
+    // Allocate device memory
+    device_vector<T> d1(1, 1);
+    device_vector<T> d2(1, 1);
+    device_vector<T> x1(1, 1);
+    device_vector<T> y1(1, 1);
+    device_vector<T> param(5, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(d1.memcheck());
     CHECK_DEVICE_ALLOCATION(d2.memcheck());
     CHECK_DEVICE_ALLOCATION(x1.memcheck());
@@ -59,49 +61,63 @@ void testing_rotmg(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double               error_host, error_device;
     const T              rel_error = std::numeric_limits<T>::epsilon() * 1000;
-    host_vector<T>       params(9);
+    host_vector<T>       params(9, 1);
 
     for(int i = 0; i < TEST_COUNT; ++i)
     {
         // Initialize data on host memory
-        rocblas_init_vector(params, arg, 9, 1, 0, 1, rocblas_client_alpha_sets_nan, true);
+        rocblas_init_vector(params, arg, rocblas_client_alpha_sets_nan, true);
 
         // CPU BLAS
-        host_vector<T> cparams = params;
-        cpu_time_used          = get_time_us_no_sync();
-        cblas_rotmg<T>(&cparams[0], &cparams[1], &cparams[2], &cparams[3], &cparams[4]);
+        host_vector<T> hparams_gold = params;
+        cpu_time_used               = get_time_us_no_sync();
+        cblas_rotmg<T>(&hparams_gold[0],
+                       &hparams_gold[1],
+                       &hparams_gold[2],
+                       &hparams_gold[3],
+                       &hparams_gold[4]);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // Test rocblas_pointer_mode_host
         {
+            // Naming: `h` is in CPU (host) memory(eg hparams), `d` is in GPU (device) memory (eg dparams).
+            // Allocate host memory
             host_vector<T> hparams = params;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_ROCBLAS_ERROR(rocblas_rotgm_fn(
                 handle, &hparams[0], &hparams[1], &hparams[2], &hparams[3], &hparams[4]));
 
             if(arg.unit_check)
-                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
+                near_check_general<T>(1, 9, 1, hparams_gold, hparams, rel_error);
 
             if(arg.norm_check)
-                error_host = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
+                error_host = norm_check_general<T>('F', 1, 9, 1, hparams_gold, hparams);
         }
 
         // Test rocblas_pointer_mode_device
         {
-            device_vector<T> dparams(9);
+            // Allocate device memory
+            device_vector<T> dparams(9, 1);
+
+            // Check device memory allocation
             CHECK_DEVICE_ALLOCATION(dparams.memcheck());
-            CHECK_HIP_ERROR(hipMemcpy(dparams, params, 9 * sizeof(T), hipMemcpyHostToDevice));
+
+            CHECK_HIP_ERROR(dparams.transfer_from(params));
+
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
             CHECK_ROCBLAS_ERROR(rocblas_rotgm_fn(
                 handle, dparams, dparams + 1, dparams + 2, dparams + 3, dparams + 4));
-            host_vector<T> hparams(9);
-            CHECK_HIP_ERROR(hipMemcpy(hparams, dparams, 9 * sizeof(T), hipMemcpyDeviceToHost));
+
+            host_vector<T> hparams(9, 1);
+
+            CHECK_HIP_ERROR(hparams.transfer_from(dparams));
 
             if(arg.unit_check)
-                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
+                near_check_general<T>(1, 9, 1, hparams_gold, hparams, rel_error);
 
             if(arg.norm_check)
-                error_device = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
+                error_device = norm_check_general<T>('F', 1, 9, 1, hparams_gold, hparams);
         }
     }
 

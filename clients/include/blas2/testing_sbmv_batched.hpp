@@ -33,10 +33,7 @@ void testing_sbmv_batched_bad_arg(const Arguments& arg)
     rocblas_int          banded_matrix_row = K + 1;
     rocblas_local_handle handle{arg};
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * abs_incx * batch_count;
-    size_t size_y   = N * abs_incy * batch_count;
 
     // Allocate device memory
     device_batch_matrix<T> dAb(banded_matrix_row, N, lda, batch_count);
@@ -172,7 +169,6 @@ void testing_sbmv_batched(const Arguments& arg)
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
 
     size_t size_A = size_t(lda) * N;
@@ -249,9 +245,7 @@ void testing_sbmv_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
 
-        //
         // rocblas_pointer_mode_host test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_ROCBLAS_ERROR(rocblas_sbmv_batched<T>(handle,
@@ -271,9 +265,7 @@ void testing_sbmv_batched(const Arguments& arg)
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
-        //
         // rocblas_pointer_mode_device test
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(beta));

@@ -291,16 +291,14 @@ void testing_hemv_strided_batched(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * abs_incx + stride_x * (batch_count - 1);
-    size_t size_y   = N * abs_incy + stride_y * (batch_count - 1);
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(N, N, lda, stride_A, batch_count);
-    host_vector<T>               hx(size_x);
-    host_vector<T>               hy_1(size_y);
-    host_vector<T>               hy_2(size_y);
-    host_vector<T>               hy_gold(size_y);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy_1(N, incy, stride_y, batch_count);
+    host_strided_batch_vector<T> hy_2(N, incy, stride_y, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy, stride_y, batch_count);
     host_vector<T>               halpha(1);
     host_vector<T>               hbeta(1);
 
@@ -309,9 +307,9 @@ void testing_hemv_strided_batched(const Arguments& arg)
 
     // Allocate device memory
     device_strided_batch_matrix<T> dA(N, N, lda, stride_A, batch_count);
-    device_vector<T>               dx(size_x);
-    device_vector<T>               dy_1(size_y);
-    device_vector<T>               dy_2(size_y);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy_1(N, incy, stride_y, batch_count);
+    device_strided_batch_vector<T> dy_2(N, incy, stride_y, batch_count);
     device_vector<T>               d_alpha(1);
     device_vector<T>               d_beta(1);
 
@@ -326,18 +324,14 @@ void testing_hemv_strided_batched(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_hermitian_matrix, true);
-    rocblas_init_vector(
-        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(
-        hy_1, arg, N, abs_incy, stride_y, batch_count, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 
-    // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
-    // CPU BLAS
-    hy_gold = hy_1;
-    hy_2    = hy_1;
+    hy_gold.copy_from(hy_1);
+    hy_2.copy_from(hy_1);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -395,16 +389,7 @@ void testing_hemv_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_hemv<T>(uplo,
-                          N,
-                          h_alpha,
-                          hA[b],
-                          lda,
-                          hx + b * stride_x,
-                          incx,
-                          h_beta,
-                          hy_gold + b * stride_y,
-                          incy);
+            cblas_hemv<T>(uplo, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

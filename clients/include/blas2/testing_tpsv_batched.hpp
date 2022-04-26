@@ -43,9 +43,7 @@ void testing_tpsv_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
     // Checks.
-    //
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpsv_batched_fn(
             handle, rocblas_fill_full, transA, diag, N, dAp, dx, incx, batch_count),

@@ -33,9 +33,6 @@ void testing_syr_batched_bad_arg(const Arguments& arg)
     rocblas_int          batch_count = 2;
     rocblas_local_handle handle{arg};
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_x   = N * abs_incx * batch_count;
-
     // Allocate device memory
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_matrix<T> dA_1(N, N, lda, batch_count);
@@ -102,12 +99,6 @@ void testing_syr_batched(const Arguments& arg)
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
-
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    if(abs_incx == 0)
-        abs_incx = 1;
-
-    size_t size_x = size_t(N) * abs_incx;
 
     // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
     // Allocate host memory

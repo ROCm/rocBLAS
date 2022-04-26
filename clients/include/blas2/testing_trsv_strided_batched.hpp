@@ -36,23 +36,24 @@ void testing_trsv_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = lda * size_t(M);
-
-    host_strided_batch_vector<T> hA(size_A, 1, stride_a, batch_count);
-    CHECK_DEVICE_ALLOCATION(hA.memcheck());
-
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(M, M, lda, stride_a, batch_count);
     host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
+
+    // Check host memory allocation
+    CHECK_DEVICE_ALLOCATION(hA.memcheck());
     CHECK_DEVICE_ALLOCATION(hx.memcheck());
 
-    device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(M, M, lda, stride_a, batch_count);
     device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
     // Checks.
-    //
     EXPECT_ROCBLAS_STATUS(rocblas_trsv_strided_batched_fn(handle,
                                                           rocblas_fill_full,
                                                           transA,
@@ -132,17 +133,16 @@ void testing_trsv_strided_batched(const Arguments& arg)
     }
 
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-    size_t size_x   = M * abs_incx + stride_x * (batch_count - 1);
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(M, M, lda, stride_a, batch_count);
     host_strided_batch_matrix<T> hAAT(M, M, lda, stride_a, batch_count);
-    host_vector<T>               hb(size_x);
-    host_vector<T>               hx(size_x);
-    host_vector<T>               hx_or_b_1(size_x);
-    host_vector<T>               hx_or_b_2(size_x);
-    host_vector<T>               cpu_x_or_b(size_x);
+    host_strided_batch_vector<T> hb(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx_or_b_1(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx_or_b_2(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> cpu_x_or_b(M, incx, stride_x, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
@@ -155,7 +155,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
     // Allocate device memory
     device_strided_batch_matrix<T> dA(M, M, lda, stride_a, batch_count);
-    device_vector<T>               dx_or_b(size_x);
+    device_strided_batch_vector<T> dx_or_b(M, incx, stride_x, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -164,8 +164,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
-    rocblas_init_vector(
-        hx, arg, M, abs_incx, stride_x, batch_count, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     //  calculate hAAT = hA * hA ^ T or hAAT = hA * hA ^ H if complex
     for(int b = 0; b < batch_count; b++)
@@ -197,16 +196,17 @@ void testing_trsv_strided_batched(const Arguments& arg)
         }
     }
 
-    hb = hx;
+    hb.copy_from(hx);
 
     // Calculate hb = hA*hx;
     for(int b = 0; b < batch_count; b++)
     {
         cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hb + stride_x * b, incx);
     }
-    cpu_x_or_b = hb; // cpuXorB <- B
-    hx_or_b_1  = hb;
-    hx_or_b_2  = hb;
+
+    cpu_x_or_b.copy_from(hb);
+    hx_or_b_1.copy_from(hb);
+    hx_or_b_2.copy_from(hb);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -262,11 +262,11 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                             incx,
                                                             stride_x,
                                                             batch_count));
-        CHECK_HIP_ERROR(hipMemcpy(hx_or_b_1, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_2, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
         CHECK_ROCBLAS_ERROR(rocblas_trsv_strided_batched_fn(handle,
                                                             uplo,
                                                             transA,
@@ -279,16 +279,14 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                             incx,
                                                             stride_x,
                                                             batch_count));
-        CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            error_host = rocblas_abs(
-                vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_1[b * stride_x]));
-            error_device = rocblas_abs(
-                vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_2[b * stride_x]));
+            error_host       = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_1[b]));
+            error_device     = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_2[b]));
             max_error_host   = std::max(max_error_host, error_host);
             max_error_device = std::max(max_error_device, error_device);
 
@@ -300,19 +298,15 @@ void testing_trsv_strided_batched(const Arguments& arg)
         // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_trmv<T>(
-                uplo, transA, diag, M, hA + b * stride_a, lda, hx_or_b_1 + b * stride_x, incx);
-            cblas_trmv<T>(
-                uplo, transA, diag, M, hA + b * stride_a, lda, hx_or_b_2 + b * stride_x, incx);
+            cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b_1[b], incx);
+            cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b_2[b], incx);
         }
 
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            error_host = rocblas_abs(
-                vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
-            error_device = rocblas_abs(
-                vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
+            error_host   = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
+            error_device = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
 
             //unit test
             trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
@@ -323,7 +317,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
     if(arg.timing)
     {
         // GPU rocBLAS
-        CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -369,8 +363,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_trsv<T>(
-                    uplo, transA, diag, M, hA + b * stride_a, lda, cpu_x_or_b + b * stride_x, incx);
+                cblas_trsv<T>(uplo, transA, diag, M, hA[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

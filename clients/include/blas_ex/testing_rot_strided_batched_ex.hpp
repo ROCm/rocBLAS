@@ -26,19 +26,22 @@ void testing_rot_strided_batched_ex_bad_arg(const Arguments& arg)
     rocblas_datatype cs_type        = rocblas_datatype_f32_r;
     rocblas_datatype execution_type = rocblas_datatype_f32_r;
 
-    rocblas_int         N           = 100;
-    rocblas_int         incx        = 1;
-    rocblas_stride      stride_x    = 1;
-    rocblas_int         incy        = 1;
-    rocblas_stride      stride_y    = 1;
-    rocblas_int         batch_count = 5;
-    static const size_t safe_size   = 100;
+    rocblas_int    N           = 100;
+    rocblas_int    incx        = 1;
+    rocblas_stride stride_x    = 1;
+    rocblas_int    incy        = 1;
+    rocblas_stride stride_y    = 1;
+    rocblas_int    batch_count = 5;
 
     rocblas_local_handle handle{arg};
-    device_vector<Tx>    dx(safe_size);
-    device_vector<Ty>    dy(safe_size);
-    device_vector<Tcs>   dc(1);
-    device_vector<Tcs>   ds(1);
+
+    // Allocate device memory
+    device_strided_batch_vector<Tx> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<Ty> dy(N, incy, stride_y, batch_count);
+    device_vector<Tcs>              dc(1, 1);
+    device_vector<Tcs>              ds(1, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
@@ -174,42 +177,44 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx) + size_t(stride_x) * size_t(batch_count - 1);
-    size_t      size_y   = N * size_t(abs_incy) + size_t(stride_y) * size_t(batch_count - 1);
 
-    device_vector<Tx>  dx(size_x);
-    device_vector<Ty>  dy(size_y);
-    device_vector<Tcs> dc(1);
-    device_vector<Tcs> ds(1);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_strided_batch_vector<Tx> hx(N, incx ? incx : 1, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_vector<Tcs>              hc(1, 1);
+    host_vector<Tcs>              hs(1, 1);
+
+    // Allocate device memory
+    device_strided_batch_vector<Tx> dx(N, incx ? incx : 1, stride_x, batch_count);
+    device_strided_batch_vector<Ty> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_vector<Tcs>              dc(1, 1);
+    device_vector<Tcs>              ds(1, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
     CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
-    // Initial Data on CPU
-    host_vector<Tx>  hx(size_x);
-    host_vector<Ty>  hy(size_y);
-    host_vector<Tcs> hc(1);
-    host_vector<Tcs> hs(1);
-
     // Initialize data on host memory
-    rocblas_init_vector(
-        hx, arg, N, abs_incx, stride_x, batch_count, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(
-        hy, arg, N, abs_incy, stride_y, batch_count, rocblas_client_alpha_sets_nan, false);
-    rocblas_init_vector(hc, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
-    rocblas_init_vector(hs, arg, 1, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hc, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
-    host_vector<Tx> cx = hx;
-    host_vector<Ty> cy = hy;
-    // cblas_rotg<T, U>(cx, cy, hc, hs);
-    // cx[0] = hx[0];
-    // cy[0] = hy[0];
+    host_strided_batch_vector<Tx> hx_gold(N, incx ? incx : 1, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy_gold(N, incy ? incy : 1, stride_y, batch_count);
+    hx_gold.copy_from(hx);
+    hy_gold.copy_from(hy);
+    // cblas_rotg<T, U>(hx_gold, hy_gold, hc, hs);
+    // hx_gold[0] = hx[0];
+    // hy_gold[0] = hy[0];
     cpu_time_used = get_time_us_no_sync();
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_rot<Tx, Ty, Tcs, Tcs>(N, cx + b * stride_x, incx, cy + b * stride_y, incy, hc, hs);
+        cblas_rot<Tx, Ty, Tcs, Tcs>(N, hx_gold[b], incx, hy_gold[b], incy, hc, hs);
     }
     cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -218,8 +223,8 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
         // Test rocblas_pointer_mode_host
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * size_x, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(Ty) * size_y, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(dx.transfer_from(hx));
+            CHECK_HIP_ERROR(dy.transfer_from(hy));
             CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_ex_fn(handle,
                                                                    N,
                                                                    dx,
@@ -235,31 +240,35 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                                                    cs_type,
                                                                    batch_count,
                                                                    execution_type)));
-            host_vector<Tx> rx(size_x);
-            host_vector<Ty> ry(size_y);
-            CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(Tx) * size_x, hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(Ty) * size_y, hipMemcpyDeviceToHost));
+            host_strided_batch_vector<Tx> rx(N, incx ? incx : 1, stride_x, batch_count);
+            host_strided_batch_vector<Ty> ry(N, incy ? incy : 1, stride_y, batch_count);
+
+            CHECK_HIP_ERROR(rx.transfer_from(dx));
+            CHECK_HIP_ERROR(ry.transfer_from(dy));
+
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, stride_x, cx, rx, batch_count);
-                unit_check_general<Ty>(1, N, abs_incy, stride_y, cy, ry, batch_count);
+                unit_check_general<Tx>(1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
+                unit_check_general<Ty>(1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
             }
             if(arg.norm_check)
             {
-                norm_error_host_x
-                    = norm_check_general<Tx>('F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
-                norm_error_host_y
-                    = norm_check_general<Ty>('F', 1, N, abs_incy, stride_x, cy, ry, batch_count);
+                norm_error_host_x = norm_check_general<Tx>(
+                    'F', 1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
+                norm_error_host_y = norm_check_general<Ty>(
+                    'F', 1, N, abs_incy, stride_x, hy_gold, ry, batch_count);
             }
         }
 
         // Test rocblas_pointer_mode_device
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * size_x, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(Ty) * size_y, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(Tcs), hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(Tcs), hipMemcpyHostToDevice));
+
+            CHECK_HIP_ERROR(dx.transfer_from(hx));
+            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            CHECK_HIP_ERROR(dc.transfer_from(hc));
+            CHECK_HIP_ERROR(ds.transfer_from(hs));
+
             CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_ex_fn(handle,
                                                                    N,
                                                                    dx,
@@ -275,21 +284,23 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                                                    cs_type,
                                                                    batch_count,
                                                                    execution_type)));
-            host_vector<Tx> rx(size_x);
-            host_vector<Ty> ry(size_y);
-            CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(Tx) * size_x, hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(Ty) * size_y, hipMemcpyDeviceToHost));
+            host_strided_batch_vector<Tx> rx(N, incx ? incx : 1, stride_x, batch_count);
+            host_strided_batch_vector<Ty> ry(N, incy ? incy : 1, stride_y, batch_count);
+
+            CHECK_HIP_ERROR(rx.transfer_from(dx));
+            CHECK_HIP_ERROR(ry.transfer_from(dy));
+
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, stride_x, cx, rx, batch_count);
-                unit_check_general<Ty>(1, N, abs_incy, stride_y, cy, ry, batch_count);
+                unit_check_general<Tx>(1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
+                unit_check_general<Ty>(1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
             }
             if(arg.norm_check)
             {
-                norm_error_device_x
-                    = norm_check_general<Tx>('F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
-                norm_error_device_y
-                    = norm_check_general<Ty>('F', 1, N, abs_incy, stride_y, cy, ry, batch_count);
+                norm_error_device_x = norm_check_general<Tx>(
+                    'F', 1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
+                norm_error_device_y = norm_check_general<Ty>(
+                    'F', 1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
             }
         }
     }
@@ -299,10 +310,11 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(Ty) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(Tcs), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(Tcs), hipMemcpyHostToDevice));
+
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+        CHECK_HIP_ERROR(dy.transfer_from(hy));
+        CHECK_HIP_ERROR(dc.transfer_from(hc));
+        CHECK_HIP_ERROR(ds.transfer_from(hs));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {

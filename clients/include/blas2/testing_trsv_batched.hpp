@@ -33,22 +33,24 @@ void testing_trsv_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = lda * size_t(M);
-
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    CHECK_HIP_ERROR(hA.memcheck());
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(M, M, lda, batch_count);
     host_batch_vector<T> hx(M, incx, batch_count);
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
 
-    device_batch_vector<T> dA(size_A, 1, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    // Allocate device memory
+    device_batch_matrix<T> dA(M, M, lda, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
     // Checks.
-    //
-
     EXPECT_ROCBLAS_STATUS(rocblas_trsv_batched_fn(handle,
                                                   rocblas_fill_full,
                                                   transA,
@@ -122,17 +124,16 @@ void testing_trsv_batched(const Arguments& arg)
     }
 
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-    size_t size_x   = M * abs_incx;
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_batch_matrix<T> hA(M, M, lda, batch_count);
     host_batch_matrix<T> hAAT(M, M, lda, batch_count);
-    host_batch_vector<T> hb(size_x, 1, batch_count);
-    host_batch_vector<T> hx(size_x, 1, batch_count);
-    host_batch_vector<T> hx_or_b_1(size_x, 1, batch_count);
-    host_batch_vector<T> hx_or_b_2(size_x, 1, batch_count);
-    host_batch_vector<T> cpu_x_or_b(size_x, 1, batch_count);
+    host_batch_vector<T> hb(M, incx, batch_count);
+    host_batch_vector<T> hx(M, incx, batch_count);
+    host_batch_vector<T> hx_or_b_1(M, incx, batch_count);
+    host_batch_vector<T> hx_or_b_2(M, incx, batch_count);
+    host_batch_vector<T> cpu_x_or_b(M, incx, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());

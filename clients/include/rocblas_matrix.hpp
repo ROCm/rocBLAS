@@ -13,7 +13,6 @@
 #include "host_batch_matrix.hpp"
 #include "host_matrix.hpp"
 #include "host_strided_batch_matrix.hpp"
-
 #include "rocblas_init.hpp"
 
 //!

@@ -35,11 +35,9 @@ void testing_tbsv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = N * size_t(incx);
-
     // Allocate device memory
     device_matrix<T> dA(banded_matrix_row, N, lda);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(N, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -100,22 +98,21 @@ void testing_tbsv(const Arguments& arg)
     }
 
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-    size_t size_x   = N * abs_incx;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
     host_matrix<T> hA(N, N, N);
     host_matrix<T> hAb(banded_matrix_row, N, lda);
     host_matrix<T> AAT(N, N, N);
-    host_vector<T> hb(size_x);
-    host_vector<T> hx(size_x);
-    host_vector<T> hx_or_b_1(size_x);
-    host_vector<T> hx_or_b_2(size_x);
-    host_vector<T> cpu_x_or_b(size_x);
+    host_vector<T> hb(N, incx);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hx_or_b_1(N, incx);
+    host_vector<T> hx_or_b_2(N, incx);
+    host_vector<T> cpu_x_or_b(N, incx);
 
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx_or_b(size_x);
+    device_vector<T> dx_or_b(N, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -124,7 +121,7 @@ void testing_tbsv(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     // Make hA a banded matrix with k sub/super-diagonals
     banded_matrix_setup(uplo == rocblas_fill_upper, (T*)hA, N, N, K);

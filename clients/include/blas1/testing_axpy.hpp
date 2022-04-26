@@ -31,8 +31,12 @@ void testing_axpy_bad_arg(const Arguments& arg)
     T           zero      = 0.0;
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(safe_size);
-    device_vector<T>     dy(safe_size);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
@@ -72,39 +76,35 @@ void testing_axpy(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx > 0 ? incx : -incx;
     rocblas_int abs_incy = incy > 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx(size_x);
-    host_vector<T> hy_1(size_y);
-    host_vector<T> hy_2(size_y);
-    host_vector<T> hy_gold(size_y);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<T> hx(N, incx ? incx : 1);
+    host_vector<T> hy_1(N, incy ? incy : 1);
+    host_vector<T> hy_2(N, incy ? incy : 1);
+    host_vector<T> hy_gold(N, incy ? incy : 1);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx ? incx : 1, HMM);
+    device_vector<T> dy_1(N, incy ? incy : 1, HMM);
+    device_vector<T> dy_2(N, incy ? incy : 1, HMM);
+    device_vector<T> d_alpha(1, 1, HMM);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS
     hy_2    = hy_1;
     hy_gold = hy_1;
-
-    // allocate memory on device
-    device_vector<T> dx(size_x, 1, HMM);
-    device_vector<T> dy_1(size_y, 1, HMM);
-    device_vector<T> dy_2(size_y, 1, HMM);
-    device_vector<T> d_alpha(1, 1, HMM);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));

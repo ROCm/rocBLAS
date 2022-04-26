@@ -30,7 +30,11 @@ void testing_asum_bad_arg(const Arguments& arg)
     real_t<T>*          h_rocblas_result = &rocblas_result;
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(safe_size);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_asum_fn(handle, N, nullptr, incx, h_rocblas_result),
@@ -67,43 +71,42 @@ void testing_asum(const Arguments& arg)
         device_vector<real_t<T>> dr(1);
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
-        host_vector<real_t<T>> hr1(1);
-        host_vector<real_t<T>> hr2(1);
+        host_vector<real_t<T>> hr_1(1);
+        host_vector<real_t<T>> hr_2(1);
         host_vector<real_t<T>> result_0(1);
-        CHECK_HIP_ERROR(hr1.memcheck());
-        CHECK_HIP_ERROR(hr2.memcheck());
+        CHECK_HIP_ERROR(hr_1.memcheck());
+        CHECK_HIP_ERROR(hr_2.memcheck());
         CHECK_HIP_ERROR(result_0.memcheck());
         result_0[0] = real_t<T>(0);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, dr));
-        CHECK_HIP_ERROR(hr1.transfer_from(dr));
+        CHECK_HIP_ERROR(hr_1.transfer_from(dr));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, hr2));
+        CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, hr_2));
 
         // check that result is set to 0
-        unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, result_0, hr1);
-        unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, result_0, hr2);
+        unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, result_0, hr_1);
+        unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, result_0, hr_2);
 
         return;
     }
 
-    size_t size_x = N * size_t(incx);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<T> hx(N, incx);
 
-    // allocate memory on device
-    device_vector<T> dx(size_x);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-
+    // Allocate device memory
+    device_vector<T>         dx(N, incx);
     device_vector<real_t<T>> dr(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
-    // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx(size_x);
-    CHECK_HIP_ERROR(hx.memcheck());
-
     // Initial Data on CPU
-    rocblas_init_vector(hx, arg, N, incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -136,10 +139,6 @@ void testing_asum(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << std::scientific << cpu_result
-                         << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_dev_ptr=" << rocblas_result_2 << std::endl;
-
             rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
             rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
         }

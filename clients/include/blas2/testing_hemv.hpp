@@ -43,8 +43,8 @@ void testing_hemv_bad_arg(const Arguments& arg)
 
     // Allocate device memory
     device_matrix<T> dA(N, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -130,18 +130,18 @@ void testing_hemv(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(N, N, lda);
-    host_vector<T> hx(size_x);
-    host_vector<T> hy_1(size_y);
-    host_vector<T> hy_2(size_y);
-    host_vector<T> hy_gold(size_y);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy_1(N, incy);
+    host_vector<T> hy_2(N, incy);
+    host_vector<T> hy_gold(N, incy);
     host_vector<T> halpha(1);
     host_vector<T> hbeta(1);
 
     // Allocate device memory
     device_matrix<T> dA(N, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy_1(size_y);
-    device_vector<T> dy_2(size_y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy_1(N, incy);
+    device_vector<T> dy_2(N, incy);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
@@ -156,8 +156,8 @@ void testing_hemv(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_hermitian_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 

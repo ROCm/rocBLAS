@@ -73,16 +73,24 @@ void testing_copy_batched(const Arguments& arg)
 
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
 
-    //Device-arrays of pointers to device memory
-    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
     host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
     host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
-    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
+
+    // Allocate device memory
+    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
+    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);

@@ -39,12 +39,11 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = (rocblas_side_right == side ? N : M) * size_t(incx);
-    size_t size_C = N * size_t(ldc);
+    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
     // Allocate device memory
     device_batch_matrix<T> dA(M, N, lda, batch_count);
-    device_batch_vector<T> dx(size_x, 1, batch_count);
+    device_batch_vector<T> dx(K, incx, batch_count);
     device_batch_matrix<T> dC(M, N, ldc, batch_count);
 
     // Check device memory allocation
@@ -94,10 +93,6 @@ void testing_dgmm_batched(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = size_t(abs_incx) * K;
-    if(!size_x)
-        size_x = 1;
-
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
@@ -112,7 +107,7 @@ void testing_dgmm_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_batch_matrix<T> hA(M, N, lda, batch_count);
-    host_batch_vector<T> hx(size_x, 1, batch_count);
+    host_batch_vector<T> hx(K, incx ? incx : 1, batch_count);
     host_batch_matrix<T> hC_1(M, N, ldc, batch_count);
     host_batch_matrix<T> hC_2(M, N, ldc, batch_count);
     host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
@@ -126,7 +121,7 @@ void testing_dgmm_batched(const Arguments& arg)
 
     // Allocate device memory
     device_batch_matrix<T> dA(M, N, lda, batch_count);
-    device_batch_vector<T> dx(size_x, 1, batch_count);
+    device_batch_vector<T> dx(K, incx ? incx : 1, batch_count);
     device_batch_matrix<T> dC(M, N, ldc, batch_count);
 
     // Check device memory allocation

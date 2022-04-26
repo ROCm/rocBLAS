@@ -163,9 +163,7 @@ void testing_spr2_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = rocblas_packed_matrix_size(N);
+    size_t size_A = rocblas_packed_matrix_size(N);
 
     // Naming: `h` is in CPU (host) memory(eg hAp_1), `d` is in GPU (device) memory (eg dAp_1).
     // Allocate host memory

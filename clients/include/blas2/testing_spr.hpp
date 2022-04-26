@@ -30,12 +30,9 @@ void testing_spr_bad_arg(const Arguments& arg)
     T                    alpha = 0.6;
     rocblas_local_handle handle{arg};
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_x   = size_t(N) * abs_incx;
-
     // Allocate device memory
     device_matrix<T> dAp_1(1, rocblas_packed_matrix_size(N), 1);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(N, incx);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAp_1.memcheck());
@@ -73,9 +70,7 @@ void testing_spr(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = rocblas_packed_matrix_size(N);
-    size_t size_x   = size_t(N) * abs_incx;
+    size_t size_A = rocblas_packed_matrix_size(N);
 
     // Naming: `h` is in CPU (host) memory(eg hAp_1), `d` is in GPU (device) memory (eg dAp_1).
     // Allocate host memory
@@ -83,7 +78,7 @@ void testing_spr(const Arguments& arg)
     host_matrix<T> hAp_1(1, size_A, 1);
     host_matrix<T> hAp_2(1, size_A, 1);
     host_matrix<T> hAp_gold(1, size_A, 1);
-    host_vector<T> hx(size_x);
+    host_vector<T> hx(N, incx);
     host_vector<T> halpha(1);
 
     halpha[0] = h_alpha;
@@ -91,7 +86,7 @@ void testing_spr(const Arguments& arg)
     // Allocate device memory
     device_matrix<T> dAp_1(1, size_A, 1);
     device_matrix<T> dAp_2(1, size_A, 1);
-    device_vector<T> dx(size_x);
+    device_vector<T> dx(N, incx);
     device_vector<T> d_alpha(1);
 
     // Check device memory allocation
@@ -103,7 +98,7 @@ void testing_spr(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // Helper function to convert regular matrix `hA` to packed matrix `hAp`
     regular_to_packed(uplo == rocblas_fill_upper, hA, hAp_1, N);

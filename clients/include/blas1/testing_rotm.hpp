@@ -27,9 +27,13 @@ void testing_rotm_bad_arg(const Arguments& arg)
     static const size_t safe_size = 100;
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(safe_size);
-    device_vector<T>     dy(safe_size);
-    device_vector<T>     dparam(5);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
+    device_vector<T> dparam(5, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dparam.memcheck());
@@ -70,26 +74,28 @@ void testing_rotm(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
 
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
-    device_vector<T> dparam(5);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<T> hx(N, incx ? incx : 1);
+    host_vector<T> hy(N, incy ? incy : 1);
+    host_vector<T> hdata(4, 1);
+    host_vector<T> hparam(5, 1);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx ? incx : 1);
+    device_vector<T> dy(N, incy ? incy : 1);
+    device_vector<T> dparam(5, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
-    // Initial Data on CPU
-    host_vector<T> hx(size_x);
-    host_vector<T> hy(size_y);
-    host_vector<T> hdata(4);
-    host_vector<T> hparam(5);
-
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false);
-    rocblas_init_vector(hdata, arg, 4, 1, 0, 1, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
+    rocblas_init_vector(hdata, arg, rocblas_client_alpha_sets_nan, false);
 
     // generating simply one set of hparam which will not be appropriate for testing
     // that it zeros out the second element of the rotm vector parameter
@@ -104,10 +110,10 @@ void testing_rotm(const Arguments& arg)
         hparam[0] = FLAGS[i];
 
         // CPU BLAS reference data
-        host_vector<T> cx = hx;
-        host_vector<T> cy = hy;
-        cpu_time_used     = get_time_us_no_sync();
-        cblas_rotm<T>(N, cx, incx, cy, incy, hparam);
+        host_vector<T> hx_gold = hx;
+        host_vector<T> hy_gold = hy;
+        cpu_time_used          = get_time_us_no_sync();
+        cblas_rotm<T>(N, hx_gold, incx, hy_gold, incy, hparam);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check || arg.norm_check)
@@ -115,49 +121,57 @@ void testing_rotm(const Arguments& arg)
             // Test rocblas_pointer_mode_host
             {
                 CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-                CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-                CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+
+                CHECK_HIP_ERROR(dx.transfer_from(hx));
+                CHECK_HIP_ERROR(dy.transfer_from(hy));
+
                 CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam));
-                host_vector<T> rx(size_x);
-                host_vector<T> ry(size_y);
-                CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
-                CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+
+                host_vector<T> rx(N, incx ? incx : 1);
+                host_vector<T> ry(N, incy ? incy : 1);
+
+                CHECK_HIP_ERROR(rx.transfer_from(dx));
+                CHECK_HIP_ERROR(ry.transfer_from(dy));
 
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
+                    near_check_general<T>(1, N, abs_incx, hx_gold, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, hy_gold, ry, rel_error);
                 }
 
                 if(arg.norm_check)
                 {
-                    norm_error_host_x += norm_check_general<T>('F', 1, N, abs_incx, cx, rx);
-                    norm_error_host_y += norm_check_general<T>('F', 1, N, abs_incy, cy, ry);
+                    norm_error_host_x += norm_check_general<T>('F', 1, N, abs_incx, hx_gold, rx);
+                    norm_error_host_y += norm_check_general<T>('F', 1, N, abs_incy, hy_gold, ry);
                 }
             }
 
             // Test rocblas_pointer_mode_device
             {
                 CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-                CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-                CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
-                CHECK_HIP_ERROR(hipMemcpy(dparam, hparam, sizeof(T) * 5, hipMemcpyHostToDevice));
+
+                CHECK_HIP_ERROR(dx.transfer_from(hx));
+                CHECK_HIP_ERROR(dy.transfer_from(hy));
+                CHECK_HIP_ERROR(dparam.transfer_from(hparam));
+
                 CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam));
-                host_vector<T> rx(size_x);
-                host_vector<T> ry(size_y);
-                CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
-                CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+
+                host_vector<T> rx(N, incx ? incx : 1);
+                host_vector<T> ry(N, incy ? incy : 1);
+
+                CHECK_HIP_ERROR(rx.transfer_from(dx));
+                CHECK_HIP_ERROR(ry.transfer_from(dy));
 
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
+                    near_check_general<T>(1, N, abs_incx, hx_gold, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, hy_gold, ry, rel_error);
                 }
 
                 if(arg.norm_check)
                 {
-                    norm_error_device_x += norm_check_general<T>('F', 1, N, abs_incx, cx, rx);
-                    norm_error_device_y += norm_check_general<T>('F', 1, N, abs_incy, cy, ry);
+                    norm_error_device_x += norm_check_general<T>('F', 1, N, abs_incx, hx_gold, rx);
+                    norm_error_device_y += norm_check_general<T>('F', 1, N, abs_incy, hy_gold, ry);
                 }
             }
         }
@@ -170,14 +184,16 @@ void testing_rotm(const Arguments& arg)
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dparam, hparam, sizeof(T) * 5, hipMemcpyHostToDevice));
+
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+        CHECK_HIP_ERROR(dy.transfer_from(hy));
+        CHECK_HIP_ERROR(dparam.transfer_from(hparam));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam);
         }
+
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         gpu_time_used = get_time_us_sync(stream); // in microseconds

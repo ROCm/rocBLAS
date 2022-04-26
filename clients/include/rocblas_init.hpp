@@ -33,6 +33,22 @@ typedef enum rocblas_check_matrix_type_
 
 } rocblas_check_matrix_type;
 
+//!
+//! @brief enum to check for NaN initialization of the Input vector/matrix
+//!
+typedef enum rocblas_check_nan_init_
+{
+    // Alpha sets NaN
+    rocblas_client_alpha_sets_nan,
+
+    // Beta sets NaN
+    rocblas_client_beta_sets_nan,
+
+    //  Never set NaN
+    rocblas_client_never_set_nan
+
+} rocblas_check_nan_init;
+
 // Initialize matrix so adjacent entries have alternating sign.
 // In gemm if either A or B are initialized with alernating
 // sign the reduction sum will be summing positive
@@ -116,20 +132,14 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
 
 // Initialize vector so adjacent entries have alternating sign.
 template <typename T>
-void rocblas_init_vector_alternating_sign(T               rand_gen(),
-                                          host_vector<T>& x,
-                                          size_t          N,
-                                          size_t          incx,
-                                          rocblas_stride  stride      = 0,
-                                          rocblas_int     batch_count = 1)
+void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, size_t N, size_t incx)
 {
-    for(size_t b = 0; b < batch_count; b++)
 #pragma omp parallel for
-        for(size_t j = 0; j < N; ++j)
-        {
-            auto value               = rand_gen();
-            x[j * incx + b * stride] = j & 1 ? T(value) : T(negate(value));
-        }
+    for(size_t j = 0; j < N; ++j)
+    {
+        auto value  = rand_gen();
+        x[j * incx] = j & 1 ? T(value) : T(negate(value));
+    }
 }
 
 /* ============================================================================================ */
@@ -312,17 +322,11 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 // Initialize vectors with rand_int/hpl/NaN values
 
 template <typename T>
-void rocblas_init_vector(T               rand_gen(),
-                         host_vector<T>& x,
-                         size_t          N,
-                         size_t          incx,
-                         rocblas_stride  stride      = 0,
-                         rocblas_int     batch_count = 1)
+void rocblas_init_vector(T rand_gen(), T* x, size_t N, size_t incx)
 {
-    for(size_t b = 0; b < batch_count; b++)
 #pragma omp parallel for
-        for(size_t j = 0; j < N; ++j)
-            x[j * incx + b * stride] = rand_gen();
+    for(size_t j = 0; j < N; ++j)
+        x[j * incx] = rand_gen();
 }
 
 /* ============================================================================================ */
@@ -519,18 +523,11 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
 // Initialize vector with rand_int/hpl/NaN values
 
 template <typename T>
-void rocblas_init_vector_trig(host_vector<T>& x,
-                              size_t          N,
-                              size_t          incx,
-                              rocblas_stride  stride      = 0,
-                              rocblas_int     batch_count = 1,
-                              bool            seedReset   = false)
+void rocblas_init_vector_trig(T* x, size_t N, size_t incx, bool seedReset = false)
 {
-    for(size_t b = 0; b < batch_count; b++)
 #pragma omp parallel for
-        for(size_t j = 0; j < N; ++j)
-            x[j * incx + b * stride]
-                = T(seedReset ? cos(j * incx + b * stride) : sin(j * incx + b * stride));
+    for(size_t j = 0; j < N; ++j)
+        x[j * incx] = T(seedReset ? cos(j * incx) : sin(j * incx));
 }
 
 /* ============================================================================================ */
@@ -565,193 +562,6 @@ inline void rocblas_init(
     host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     rocblas_init(A.data(), M, N, lda, stride, batch_count);
-}
-
-template <typename T>
-void rocblas_init_sin(
-    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-#pragma omp parallel for
-        for(size_t j = 0; j < N; ++j)
-        {
-            size_t offset = j * lda + i_batch * stride;
-            for(size_t i = 0; i < M; ++i)
-                A[i + offset] = T(sin(i + offset));
-        }
-}
-
-template <typename T>
-inline void rocblas_init_sin(
-    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    rocblas_init_sin(A.data(), M, N, lda, stride, batch_count);
-}
-
-// Initialize matrix so adjacent entries have alternating sign.
-// In gemm if either A or B are initialized with alernating
-// sign the reduction sum will be summing positive
-// and negative numbers, so it should not get too large.
-// This helps reduce floating point inaccuracies for 16bit
-// arithmetic where the exponent has only 5 bits, and the
-// mantissa 10 bits.
-template <typename T>
-void rocblas_init_alternating_sign(
-    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-#pragma omp parallel for
-        for(size_t j = 0; j < N; ++j)
-        {
-            size_t offset = j * lda + i_batch * stride;
-            for(size_t i = 0; i < M; ++i)
-            {
-                auto value    = random_generator<T>();
-                A[i + offset] = (i ^ j) & 1 ? value : negate(value);
-            }
-        }
-}
-
-template <typename T>
-void rocblas_init_alternating_sign(
-    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    rocblas_init_alternating_sign(A.data(), M, N, lda, stride, batch_count);
-}
-
-// Initialize matrix so adjacent entries have alternating sign.
-template <typename T>
-void rocblas_init_hpl_alternating_sign(
-    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-#pragma omp parallel for
-        for(size_t j = 0; j < N; ++j)
-        {
-            size_t offset = j * lda + i_batch * stride;
-            for(size_t i = 0; i < M; ++i)
-            {
-                auto value    = random_hpl_generator<T>();
-                A[i + offset] = (i ^ j) & 1 ? value : negate(value);
-            }
-        }
-}
-
-template <typename T>
-void rocblas_init_hpl_alternating_sign(
-    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    rocblas_init_hpl_alternating_sign(A.data(), M, N, lda, stride, batch_count);
-}
-
-template <typename T>
-void rocblas_init_cos(
-    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-#pragma omp parallel for
-        for(size_t j = 0; j < N; ++j)
-        {
-            size_t offset = j * lda + i_batch * stride;
-            for(size_t i = 0; i < M; ++i)
-                A[i + offset] = T(cos(i + offset));
-        }
-}
-
-template <typename T>
-inline void rocblas_init_cos(
-    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    rocblas_init_cos(A.data(), M, N, lda, stride, batch_count);
-}
-
-/*! \brief  symmetric matrix initialization: */
-// for real matrix only
-template <typename T>
-void rocblas_init_symmetric(host_vector<T>& A, size_t N, size_t lda)
-{
-    for(size_t i = 0; i < N; ++i)
-        for(size_t j = 0; j <= i; ++j)
-        {
-            auto value = random_generator<T>();
-            // Warning: It's undefined behavior to assign to the
-            // same array element twice in same sequence point (i==j)
-            A[j + i * lda] = value;
-            A[i + j * lda] = value;
-        }
-}
-
-/*! \brief  symmetric matrix initialization: */
-template <typename T>
-void rocblas_init_symmetric(T* A, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t b = 0; b < batch_count; ++b)
-    {
-        for(size_t i = 0; i < N; ++i)
-            for(size_t j = 0; j <= i; ++j)
-            {
-                auto value = random_generator<T>();
-                // Warning: It's undefined behavior to assign to the
-                // same array element twice in same sequence point (i==j)
-                A[b * stride + j + i * lda] = value;
-                A[b * stride + i + j * lda] = value;
-            }
-    }
-}
-
-/*! \brief  symmetric matrix clear: */
-template <typename T>
-void rocblas_clear_symmetric(
-    rocblas_fill uplo, T* A, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t b = 0; b < batch_count; ++b)
-    {
-        for(size_t i = 0; i < N; ++i)
-            for(size_t j = i + 1; j < N; ++j)
-            {
-                if(uplo == rocblas_fill_upper)
-                    A[b * stride + j + i * lda] = 0; // clear lower
-                else
-                    A[b * stride + i + j * lda] = 0; // clear upper
-            }
-    }
-}
-
-/*! \brief  Hermitian matrix initialization: */
-// for complex matrix only, the real/imag part would be initialized with the same value
-// except the diagonal elment must be real
-template <typename T>
-void rocblas_init_hermitian(host_vector<T>& A, size_t N, size_t lda)
-{
-    for(size_t i = 0; i < N; ++i)
-        for(size_t j = 0; j <= i; ++j)
-        {
-            auto value     = random_generator<T>();
-            A[j + i * lda] = value;
-            value.y        = (i == j) ? 0 : negate(value.y);
-            A[i + j * lda] = value;
-        }
-}
-
-// Initialize vector with HPL-like random values
-template <typename T>
-void rocblas_init_hpl(
-    host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = random_hpl_generator<T>();
-}
-
-template <typename T>
-void rocblas_init_hpl(
-    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
-{
-    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
-        for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = random_hpl_generator<T>();
 }
 
 /* ============================================================================================ */

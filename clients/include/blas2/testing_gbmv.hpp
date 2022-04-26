@@ -42,13 +42,10 @@ void testing_gbmv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_x = N * size_t(incx);
-    size_t size_y = M * size_t(incy);
-
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(M, incy);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -189,8 +186,8 @@ void testing_gbmv(const Arguments& arg)
         return;
     }
 
-    size_t size_x, dim_x, abs_incx;
-    size_t size_y, dim_y, abs_incy;
+    size_t dim_x, abs_incx;
+    size_t dim_y, abs_incy;
 
     if(transA == rocblas_operation_none)
     {
@@ -206,16 +203,13 @@ void testing_gbmv(const Arguments& arg)
     abs_incx = incx >= 0 ? incx : -incx;
     abs_incy = incy >= 0 ? incy : -incy;
 
-    size_x = dim_x * abs_incx;
-    size_y = dim_y * abs_incy;
-
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
     host_matrix<T> hAb(banded_matrix_row, N, lda);
-    host_vector<T> hx(size_x);
-    host_vector<T> hy_1(size_y);
-    host_vector<T> hy_2(size_y);
-    host_vector<T> hy_gold(size_y);
+    host_vector<T> hx(dim_x, incx);
+    host_vector<T> hy_1(dim_y, incy);
+    host_vector<T> hy_2(dim_y, incy);
+    host_vector<T> hy_gold(dim_y, incy);
     host_vector<T> halpha(1);
     host_vector<T> hbeta(1);
     halpha[0] = h_alpha;
@@ -223,9 +217,9 @@ void testing_gbmv(const Arguments& arg)
 
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy_1(size_y);
-    device_vector<T> dy_2(size_y);
+    device_vector<T> dx(dim_x, incx);
+    device_vector<T> dy_1(dim_y, incy);
+    device_vector<T> dy_2(dim_y, incy);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
@@ -240,8 +234,8 @@ void testing_gbmv(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hAb, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(hx, arg, dim_x, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, dim_y, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
     // CPU BLAS
