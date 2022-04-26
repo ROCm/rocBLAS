@@ -436,6 +436,75 @@ namespace
         }
     }
 
+    // Special (non-tensile) gemm kernel when K == 0 or alpha == 0
+    template <typename T, typename U>
+    ROCBLAS_KERNEL_ILF void
+        gemm_scale_device(rocblas_int m, rocblas_int n, T beta, U* C, rocblas_int ldc)
+    {
+        auto tx = blockIdx.x * blockDim.x + threadIdx.x;
+        auto ty = blockIdx.y * blockDim.y + threadIdx.y;
+
+        if(tx < m && ty < n)
+        {
+            C[ty * size_t(ldc) + tx] = beta ? (beta * C[ty * size_t(ldc) + tx]) : T(0);
+        }
+    }
+
+    /**
+  *  Loads pointers and launches the actual calculation kernel.
+  */
+    template <int DIM_X, int DIM_Y, typename T, typename TPtr>
+    ROCBLAS_KERNEL(DIM_X* DIM_Y)
+    gemm_scale_kernel(rocblas_int    m,
+                      rocblas_int    n,
+                      T              beta_host_device,
+                      TPtr           dC,
+                      rocblas_stride shift_c,
+                      rocblas_int    ldc,
+                      rocblas_stride stride_c)
+    {
+        auto beta = load_scalar(beta_host_device);
+
+        auto C = load_ptr_batch(dC, hipBlockIdx_z, shift_c, stride_c);
+        gemm_scale_device(m, n, beta, C, ldc);
+    }
+
+    template <typename TScal, typename TConstPtr>
+    rocblas_status rocblas_gemm_scale_template(rocblas_int    m,
+                                               rocblas_int    n,
+                                               TScal          beta,
+                                               TConstPtr      C,
+                                               rocblas_stride offset_c,
+                                               rocblas_int    ldc,
+                                               rocblas_stride stride_c,
+                                               rocblas_int    batch_count,
+                                               hipStream_t    rocblas_stream)
+    {
+        static constexpr int GEMM_DIM_X = 32;
+        static constexpr int GEMM_DIM_Y = 32;
+
+        rocblas_int blocksX = (m - 1) / GEMM_DIM_X + 1;
+        rocblas_int blocksY = (n - 1) / GEMM_DIM_Y + 1;
+
+        dim3 gemm_grid(blocksX, blocksY, batch_count);
+        dim3 gemm_threads(GEMM_DIM_X, GEMM_DIM_Y);
+
+        hipLaunchKernelGGL((gemm_scale_kernel<GEMM_DIM_X, GEMM_DIM_Y>),
+                           gemm_grid,
+                           gemm_threads,
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           beta,
+                           C,
+                           offset_c,
+                           ldc,
+                           stride_c);
+
+        return rocblas_status_success;
+    }
+
     template <bool BATCHED, typename T, typename TConstPtr, typename TPtr>
     void gemm_source_solution(rocblas_operation trans_a,
                               rocblas_operation trans_b,
