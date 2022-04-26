@@ -28,10 +28,10 @@ void testing_trmm_outofplace_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
     const rocblas_int    M           = 100;
-    const rocblas_int    N           = 100;
-    const rocblas_int    lda         = 100;
-    const rocblas_int    ldb         = 100;
-    const rocblas_int    ldc         = 100;
+    const rocblas_int    N           = 101;
+    const rocblas_int    lda         = 101;
+    const rocblas_int    ldb         = 101;
+    const rocblas_int    ldc         = 101;
     const rocblas_int    batch_count = 2;
     const T              alpha       = 1.0;
     const T              zero        = 0.0;
@@ -312,12 +312,23 @@ void testing_trmm_outofplace_batched_bad_arg(const Arguments& arg)
                                                              batch_count),
                           rocblas_status_invalid_pointer);
 
-    // TODO fix below test
     // quick return: If alpha==0, then A and B can be nullptr without error
-    //  EXPECT_ROCBLAS_STATUS(
-    //      rocblas_trmm_outofplace_batched_fn(
-    //          handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, nullptr, ldb, dC.ptr_on_device(), ldc, batch_count),
-    //      rocblas_status_success);
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_outofplace_batched_fn(handle,
+                                                             side,
+                                                             uplo,
+                                                             transA,
+                                                             diag,
+                                                             M,
+                                                             N,
+                                                             &zero,
+                                                             nullptr,
+                                                             lda,
+                                                             nullptr,
+                                                             ldb,
+                                                             dC.ptr_on_device(),
+                                                             ldc,
+                                                             batch_count),
+                          rocblas_status_success);
 
     // quick return: If M==0, then all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(rocblas_trmm_outofplace_batched_fn(handle,

@@ -364,12 +364,26 @@ void testing_trmm_outofplace_strided_batched_bad_arg(const Arguments& arg)
                                                                      batch_count),
                           rocblas_status_invalid_pointer);
 
-    // TODO fix below test
     // quick return: If alpha==0, then A and B can be nullptr without error
-    //  EXPECT_ROCBLAS_STATUS(
-    //      rocblas_trmm_outofplace_strided_batched_fn(
-    //          handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, stride_a, nullptr, ldb, stride_b, dC.ptr_on_device(), ldc, stride_c, batch_count),
-    //      rocblas_status_success);
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_outofplace_strided_batched_fn(handle,
+                                                                     side,
+                                                                     uplo,
+                                                                     transA,
+                                                                     diag,
+                                                                     M,
+                                                                     N,
+                                                                     &zero,
+                                                                     nullptr,
+                                                                     lda,
+                                                                     stride_a,
+                                                                     nullptr,
+                                                                     ldb,
+                                                                     stride_b,
+                                                                     dC,
+                                                                     ldc,
+                                                                     stride_c,
+                                                                     batch_count),
+                          rocblas_status_success);
 
     // quick return: If M==0, then all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(rocblas_trmm_outofplace_strided_batched_fn(handle,
