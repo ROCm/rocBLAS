@@ -204,6 +204,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
 #else // BUILD_WITH_TENSILE
     hipStream_t rocblas_stream = handle->get_stream();
+
+    if(k == 0 || (alpha && *alpha == 0))
+    {
+        return rocblas_gemm_scale_template(
+            m, n, *beta, C, offset_c, ldc, stride_c, batch_count, rocblas_stream);
+    }
+
     gemm_source_solution<BATCHED>(trans_a,
                                   trans_b,
                                   m,
