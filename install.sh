@@ -148,48 +148,32 @@ elevate_if_not_root( )
 # Take an array of packages as input, and install those packages with 'apt' if they are not already installed
 install_apt_packages( )
 {
-  package_dependencies=("$@")
-  for package in "${package_dependencies[@]}"; do
-    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root apt-get install -y --no-install-recommends ${package}
-    fi
-  done
+  package_dependencies="$@"
+  printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+  elevate_if_not_root apt-get -y --no-install-recommends install ${package_dependencies}
 }
 
 # Take an array of packages as input, and install those packages with 'yum' if they are not already installed
 install_yum_packages( )
 {
-  package_dependencies=("$@")
-  for package in "${package_dependencies[@]}"; do
-    if [[ $package == *-PyYAML ]] || [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root yum -y --nogpgcheck install ${package}
-    fi
-  done
+  package_dependencies="$@"
+  printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+  elevate_if_not_root yum -y --nogpgcheck install ${package_dependencies}
 }
 
 # Take an array of packages as input, and install those packages with 'dnf' if they are not already installed
 install_dnf_packages( )
 {
-  package_dependencies=("$@")
-  for package in "${package_dependencies[@]}"; do
-    if [[ $package == *-PyYAML ]] || [[ $(dnf list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root dnf install -y ${package}
-    fi
-  done
+  package_dependencies="$@"
+  printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+  elevate_if_not_root dnf install -y ${package_dependencies}
 }
 
 install_zypper_packages( )
 {
-    package_dependencies=("$@")
-    for package in "${package_dependencies[@]}"; do
-        if [[ $(rpm -q ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
-            printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-            elevate_if_not_root zypper install -y ${package}
-        fi
-    done
+    package_dependencies="$@"
+    printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+    elevate_if_not_root zypper install -y ${package_dependencies}
 }
 
 install_msgpack_from_source( )
@@ -268,85 +252,61 @@ install_packages( )
     fi
   fi
 
-  # dependencies to build the client
-  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" )
-  local client_dependencies_centos_rhel=( "devtoolset-7-gcc-gfortran" "libgomp" )
-  local client_dependencies_centos_rhel_8=( "gcc-gfortran" "libgomp" )
-  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" )
-  local client_dependencies_sles=( "gcc-fortran" "libgomp1" )
+  if [[ "${build_clients}" == true ]]; then
+    # dependencies to build the client
+    library_dependencies_ubuntu+=( "gfortran" "libomp-dev" )
+    library_dependencies_centos_rhel+=( "devtoolset-7-gcc-gfortran" "libgomp" )
+    library_dependencies_centos_8+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_rhel_8+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_fedora+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_sles+=( "gcc-fortran" "libgomp1" )
 
-  # wget is needed for blis
-  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
-    client_dependencies_ubuntu+=("wget")
-    client_dependencies_centos_rhel+=("wget")
-    client_dependencies_centos_rhel_8+=("wget")
-    client_dependencies_fedora+=("wget")
-    client_dependencies_sles+=("wget")
+    # wget is needed for blis
+    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+      library_dependencies_ubuntu+=("wget")
+      library_dependencies_centos_rhel+=("wget")
+      library_dependencies_centos_8+=("wget")
+      library_dependencies_rhel_8+=("wget")
+      library_dependencies_fedora+=("wget")
+      library_dependencies_sles+=("wget")
+    fi
   fi
 
   case "${ID}" in
     ubuntu)
       elevate_if_not_root apt-get update
       install_apt_packages "${library_dependencies_ubuntu[@]}"
-
-      if [[ "${build_clients}" == true ]]; then
-        install_apt_packages "${client_dependencies_ubuntu[@]}"
-      fi
       ;;
 
     centos)
       if [[ ( "${MAJORVERSION}" -ge 8 ) ]]; then
         install_yum_packages "${library_dependencies_centos_8[@]}"
-
-        if [[ "${build_clients}" == true ]]; then
-          install_yum_packages "${client_dependencies_centos_rhel_8[@]}"
-        fi
       else
   #     yum -y update brings *all* installed packages up to date
   #     without seeking user approval
   #     elevate_if_not_root yum -y update
         install_yum_packages "${library_dependencies_centos_rhel[@]}"
-
-        if [[ "${build_clients}" == true ]]; then
-          install_yum_packages "${client_dependencies_centos_rhel[@]}"
-        fi
       fi
       ;;
 
     rhel)
       if [[ ( "${MAJORVERSION}" -ge 8 ) ]]; then
         install_yum_packages "${library_dependencies_rhel_8[@]}"
-
-        if [[ "${build_clients}" == true ]]; then
-          install_yum_packages "${client_dependencies_centos_rhel_8[@]}"
-        fi
       else
   #     yum -y update brings *all* installed packages up to date
   #     without seeking user approval
   #     elevate_if_not_root yum -y update
         install_yum_packages "${library_dependencies_centos_rhel[@]}"
-
-        if [[ "${build_clients}" == true ]]; then
-          install_yum_packages "${client_dependencies_centos_rhel[@]}"
-        fi
       fi
       ;;
 
     fedora)
 #     elevate_if_not_root dnf -y update
       install_dnf_packages "${library_dependencies_fedora[@]}"
-
-      if [[ "${build_clients}" == true ]]; then
-        install_dnf_packages "${client_dependencies_fedora[@]}"
-      fi
       ;;
 
     sles|opensuse-leap)
        install_zypper_packages "${library_dependencies_sles[@]}"
-
-        if [[ "${build_clients}" == true ]]; then
-            install_zypper_packages "${client_dependencies_sles[@]}"
-        fi
         ;;
     *)
       echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora"
@@ -683,7 +643,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
   install_packages
 
-  if [ -z "$CMAKE_VERSION"] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+  if [ -z "$CMAKE_VERSION" ] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
       if $update_cmake == true; then
         CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
         wget -nv ${CMAKE_REPO}/cmake-3.16.8.tar.gz
