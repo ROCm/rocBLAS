@@ -47,6 +47,16 @@ Tests:
   matrix_size: *small_matrix_size_range
   fortran: [ false, true ]
 
+- name: trtri_bad_arg
+  category: pre_checkin
+  function:
+  - trtri_bad_arg: *single_double_precisions_complex_real
+  - trtri_batched_bad_arg: *single_double_precisions_complex_real
+  - trtri_strided_batched_bad_arg: *single_double_precisions_complex_real
+  uplo: L
+  diag: N
+  fortran: [ false, true ]
+
 - name: trtri
   category: pre_checkin
   function: trtri

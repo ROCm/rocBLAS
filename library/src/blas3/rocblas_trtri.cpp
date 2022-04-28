@@ -76,14 +76,10 @@ namespace
                         "ldinvA",
                         ldinvA);
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || lda < n)
-            return rocblas_status_invalid_size;
-        if(!n)
-            return rocblas_status_success;
-        if(!A || !invA)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status
+            = rocblas_trtri_arg_check(handle, uplo, diag, n, A, lda, invA, ldinvA, 1);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         auto w_mem = handle->device_malloc(size);
         if(!w_mem)

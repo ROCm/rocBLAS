@@ -84,14 +84,10 @@ namespace
                         "batch_count",
                         batch_count);
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || lda < n || ldinvA < n || batch_count < 0)
-            return rocblas_status_invalid_size;
-        if(!n || !batch_count)
-            return rocblas_status_success;
-        if(!A || !invA)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status
+            = rocblas_trtri_arg_check(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         rocblas_status status;
         if(n <= NB)

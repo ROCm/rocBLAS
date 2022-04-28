@@ -37,6 +37,123 @@
 #include "utility.hpp"
 
 template <typename T>
+void testing_trtri_batched_bad_arg(const Arguments& arg)
+{
+    auto rocblas_trtri_batched_fn
+        = arg.fortran ? rocblas_trtri_batched<T, true> : rocblas_trtri_batched<T, false>;
+
+    rocblas_local_handle handle{arg};
+
+    const rocblas_int N           = 100;
+    const rocblas_int lda         = 100;
+    const rocblas_int batch_count = 2;
+
+    const rocblas_fill     uplo = rocblas_fill_upper;
+    const rocblas_diagonal diag = rocblas_diagonal_non_unit;
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(N, N, lda, batch_count);
+    device_batch_matrix<T> dinvA(N, N, lda, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched_fn(handle,
+                                                   rocblas_fill_full,
+                                                   diag,
+                                                   N,
+                                                   dA.ptr_on_device(),
+                                                   lda,
+                                                   dinvA.ptr_on_device(),
+                                                   lda,
+                                                   batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched_fn(handle,
+                                                   uplo,
+                                                   (rocblas_diagonal)rocblas_side_both,
+                                                   N,
+                                                   dA.ptr_on_device(),
+                                                   lda,
+                                                   dinvA.ptr_on_device(),
+                                                   lda,
+                                                   batch_count),
+                          rocblas_status_invalid_value);
+
+    // check for invalid sizes
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched_fn(handle,
+                                                   uplo,
+                                                   diag,
+                                                   -1,
+                                                   dA.ptr_on_device(),
+                                                   lda,
+                                                   dinvA.ptr_on_device(),
+                                                   lda,
+                                                   batch_count),
+                          rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trtri_batched_fn(
+            handle, uplo, diag, N, dA.ptr_on_device(), lda, dinvA.ptr_on_device(), lda, -1),
+        rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched_fn(handle,
+                                                   uplo,
+                                                   diag,
+                                                   N,
+                                                   dA.ptr_on_device(),
+                                                   lda - 1,
+                                                   dinvA.ptr_on_device(),
+                                                   lda,
+                                                   batch_count),
+                          rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched_fn(handle,
+                                                   uplo,
+                                                   diag,
+                                                   N,
+                                                   dA.ptr_on_device(),
+                                                   lda,
+                                                   dinvA.ptr_on_device(),
+                                                   lda - 1,
+                                                   batch_count),
+                          rocblas_status_invalid_size);
+
+    // nullptr tests
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched_fn(nullptr,
+                                                   uplo,
+                                                   diag,
+                                                   N,
+                                                   dA.ptr_on_device(),
+                                                   lda,
+                                                   dinvA.ptr_on_device(),
+                                                   lda,
+                                                   batch_count),
+                          rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trtri_batched_fn(
+            handle, uplo, diag, N, nullptr, lda, dinvA.ptr_on_device(), lda, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trtri_batched_fn(
+            handle, uplo, diag, N, dA.ptr_on_device(), lda, nullptr, lda, batch_count),
+        rocblas_status_invalid_pointer);
+
+    // quick return: If N==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trtri_batched_fn(handle, uplo, diag, 0, nullptr, lda, nullptr, lda, batch_count),
+        rocblas_status_success);
+
+    // quick return: If batch_count==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trtri_batched_fn(handle, uplo, diag, N, nullptr, lda, nullptr, lda, 0),
+        rocblas_status_success);
+}
+
+template <typename T>
 void testing_trtri_batched(const Arguments& arg)
 {
     auto rocblas_trtri_batched_fn

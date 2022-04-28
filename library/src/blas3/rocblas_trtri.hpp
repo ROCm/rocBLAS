@@ -24,6 +24,37 @@
 
 #include "gemm.hpp"
 
+template <typename U, typename V>
+inline rocblas_status rocblas_trtri_arg_check(rocblas_handle   handle,
+                                              rocblas_fill     uplo,
+                                              rocblas_diagonal diag,
+                                              rocblas_int      n,
+                                              U                A,
+                                              rocblas_int      lda,
+                                              V                invA,
+                                              rocblas_int      ldinvA,
+                                              rocblas_int      batch_count)
+{
+
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(diag != rocblas_diagonal_non_unit && diag != rocblas_diagonal_unit)
+        return rocblas_status_invalid_value;
+
+    if(batch_count < 0 || n < 0 || lda < n || ldinvA < n)
+        return rocblas_status_invalid_size;
+
+    // quick return if possible.
+    if(!n || !batch_count)
+        return rocblas_status_success;
+
+    if(!A || !invA)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
 template <rocblas_int IB, typename T>
 ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
                                             rocblas_diagonal diag,
