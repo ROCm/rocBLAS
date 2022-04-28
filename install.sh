@@ -14,7 +14,7 @@ cat <<EOF
 rocBLAS build & installation helper script.
 
   Usage:
-    $0 (build rocBLAS and put library files at ./build/rocblas-install)
+    $0 (build rocBLAS and put library files at <builddir>/release/rocblas-install)
     $0 <options> (modify default behavior according to the following flags)
 
   Options:
@@ -22,59 +22,59 @@ rocBLAS build & installation helper script.
 
     --address-sanitizer              Build with address sanitizer enabled.
 
-    -b, --branch <arg>               Specify the Tensile repository branch or tag to use.(eg. develop, mybranch or <commit hash>).
+    -b, --branch <arg>               Specify the Tensile repository branch or tag to use. (eg. develop, mybranch or <commit hash>)
 
-    --build_dir <builddir>           Specify path to configure & build process output directory.
-                                     Relative paths are relative to the current directory (Default is ./build).
+    --build_dir <builddir>           Specify the directory path to build and save library files, dependencies and executables.
+                                     Relative paths are relative to the current directory. (Default is ./build)
 
     -c, --clients                    Build the library clients benchmark and gtest.
-                                     (Generated binaries will be located at builddir/clients/staging)
+                                     (Generated binaries will be located at <builddir>/release/clients/staging)
 
     --clients_no_fortran             When building clients, build them without Fortran API testing or Fortran examples
 
     --clients-only                   Skip building the library and only build the clients with a pre-built library.
 
-    --cpu_ref_lib  <lib>             Specify library to use for CPU reference code in testing (blis or lapack)
+    --cpu_ref_lib  <lib>             Specify library to use for CPU reference code in testing. (e.g., blis or lapack)
 
     --cmake-arg <argument>           Forward the given argument to CMake when configuring the build.
 
-    --cmake_install                  Auto update CMake to minimum version if required.
+    --cmake_install                  Auto-update CMake to minimum version if required.
 
     --codecoverage                   Build with code coverage profiling enabled, excluding release mode.
 
-    --cleanup                        Remove intermediary build files after build and reduce disk usage
+    --cleanup                        Remove intermediary build files after build and reduce disk usage.
 
     -d, --dependencies               Build and install external dependencies.
                                      Dependencies are to be installed in /usr/local. This should be done only once.
 
-    -f, --fork <username>            Specify the username to fork the Tensile GitHub repository (e.g., ROCmSoftwarePlatform or MyUserName).
+    -f, --fork <username>            Specify the username to fork the Tensile GitHub repository. (e.g., ROCmSoftwarePlatform or MyUserName)
 
-    -g, --debug                      Build in Debug mode, equivalent to set CMAKE_BUILD_TYPE=Debug.
+    -g, --debug                      Build-in Debug mode, equivalent to set CMAKE_BUILD_TYPE=Debug.
                                      (Default build type is Release)
 
     -h, --help                       Print this help message
 
-    --hip-clang                      Build library for amdgpu backend using the hip-clang compiler.
+    --hip-clang                      Build library for the amdgpu backend using the hip-clang compiler.
 
     -i, --install                    Generate and install library package after build.
 
-    -j, --jobs <num>                 Specify number of parallel jobs to launch, increases memory usage (Default logical core count)
+    -j, --jobs <num>                 Specify the number of parallel jobs to launch, increases memory usage. (Default logical core count)
 
-    -k, --relwithdebinfo             Build in release debug mode, equivalent to set CMAKE_BUILD_TYPE=RelWithDebInfo.
+    -k, --relwithdebinfo             Build-in release debug mode, equivalent to set CMAKE_BUILD_TYPE=RelWithDebInfo.
                                      (Default build type is Release)
 
-    -l, --logic <arg>                Specify the Tesile logic target. (e.g., asm_full,asm_lite, etc)
+    -l, --logic <arg>                Specify the Tesile logic target. (e.g., asm_full, asm_lite, etc)
 
     --library-path <blasdir>         Specify path to a pre-built rocBLAS library, when building clients only using '--clients-only' flag.
                                      (Default is /opt/rocm/rocblas)
 
-    --merge-files                    Enable Tensilse_MERGE_FILES (Default is Enabled).
+    --merge-files                    Enable Tensilse_MERGE_FILES. (Default is Enabled)
 
-    --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file (Default is disabled)
+    --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file. (Default is disabled)
 
     --msgpack                        Build Tensile backend to use MessagePack.
 
-    -n, --no-tensile                 Build a subset of rocBLAS library which does not require Tensile.
+    -n, --no-tensile                 Build a subset of the rocBLAS library which does not require Tensile.
 
     --no-hip-clang                   Build library without using the hip-clang compiler.
 
@@ -82,7 +82,7 @@ rocBLAS build & installation helper script.
 
     --no-msgpack                     Build Tensile backend not to use MessagePack.
 
-    -o, --cov <version>              Specify the Tesnile code_object version (e.g. V2 or V3.)
+    -o, --cov <version>              Specify the Tensile code_object version. (e.g. V2 or V3)
 
     -r, --relocatable                Add RUNPATH (based on ROCM_RPATH) and remove ldconf entry.
 
@@ -92,11 +92,11 @@ rocBLAS build & installation helper script.
 
     -t, --test_local_path <path>     Specify a local path for Tensile instead of remote GIT repo.
 
-    -u, --use-custom-version <arg>   Ignore Tensile version and just use the Tensile tag.
+    -u, --use-custom-version <arg>   Ignore the Tensile version and just use the Tensile tag.
 
     --use-cuda                       Use installed CUDA version instead of ROCm stack.
 
-    -v, --rocm-dev <version>         Specify specific rocm-dev version (e.g. 4.5.0).
+    -v, --rocm-dev <version>         Specify specific rocm-dev version. (e.g. 4.5.0)
 
     --rm-legacy-include-dir          Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
 EOF
