@@ -83,6 +83,13 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!handle)
         return rocblas_status_invalid_handle;
 
+    if(trans_a != rocblas_operation_none && trans_a != rocblas_operation_transpose
+       && trans_a != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+    if(trans_b != rocblas_operation_none && trans_b != rocblas_operation_transpose
+       && trans_b != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
     // sizes must not be negative
     if(m < 0 || n < 0 || k < 0 || batch_count < 0)
         return rocblas_status_invalid_size;
@@ -159,17 +166,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count)
 {
-    // Early exit. Note: k==0 is not an early exit, since C still needs to be multiplied by beta.
-    if(m == 0 || n == 0 || batch_count == 0)
-        return rocblas_status_success;
-
     TScal alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
         copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
-
-    // When beta == 1 and either k == 0 or alpha == 0, the operation is a no-op
-    if(*beta == 1 && (k == 0 || *alpha == 0))
-        return rocblas_status_success;
 
 #ifdef BUILD_WITH_TENSILE
     if(BATCHED)

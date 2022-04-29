@@ -398,6 +398,13 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!handle)
         return rocblas_status_invalid_handle;
 
+    if(trans_a != rocblas_operation_none && trans_a != rocblas_operation_transpose
+       && trans_a != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+    if(trans_b != rocblas_operation_none && trans_b != rocblas_operation_transpose
+       && trans_b != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
     // sizes must not be negative
     if(m < 0 || n < 0 || k < 0 || batch_count < 0)
         return rocblas_status_invalid_size;
