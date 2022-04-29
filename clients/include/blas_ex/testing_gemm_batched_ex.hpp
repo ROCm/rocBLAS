@@ -117,393 +117,129 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
             hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
         dC.transfer_from(hC);
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         alpha,
-                                                         dA.ptr_on_device(),
-                                                         a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dC.ptr_on_device(), // aliased C
-                                                         d_type,
-                                                         ldc + 1,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_size);
+        // clang-format off
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         alpha,
-                                                         nullptr,
-                                                         a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_pointer);
+// check for invalid enum
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, (rocblas_operation) rocblas_side_both, transB, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc, nullptr, d_type, ldd, batch_count,
+compute_type, algo, solution_index, flags), rocblas_status_invalid_value);
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         alpha,
-                                                         dA.ptr_on_device(),
-                                                         a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_pointer);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, (rocblas_operation) rocblas_side_both, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc, nullptr, d_type, ldd, batch_count,
+compute_type, algo, solution_index, flags), rocblas_status_invalid_value);
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         alpha,
-                                                         dA.ptr_on_device(),
-                                                         a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         nullptr,
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_pointer);
+// check for invalid size
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, -1, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         alpha,
-                                                         dA.ptr_on_device(),
-                                                         a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         nullptr,
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_pointer);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, -1, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         nullptr,
-                                                         dA.ptr_on_device(),
-                                                         a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_pointer);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, -1,
+nullptr, nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         alpha,
-                                                         dA.ptr_on_device(),
-                                                         a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         b_type,
-                                                         ldb,
-                                                         nullptr,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_pointer);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, -1, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(nullptr,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         alpha,
-                                                         dA.ptr_on_device(),
-                                                         a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_handle);
+// check for invalid leading dimension
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, rocblas_operation_none, rocblas_operation_none, M, N, K, nullptr,
+nullptr, a_type, M-1, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        // If batch_count==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         nullptr,
-                                                         nullptr,
-                                                         a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         b_type,
-                                                         ldb,
-                                                         nullptr,
-                                                         nullptr,
-                                                         c_type,
-                                                         ldc,
-                                                         nullptr,
-                                                         d_type,
-                                                         ldd,
-                                                         0,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_success);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, rocblas_operation_none, rocblas_operation_none, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, K-1, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        // If M==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         0,
-                                                         N,
-                                                         K,
-                                                         nullptr,
-                                                         nullptr,
-                                                         a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         b_type,
-                                                         ldb,
-                                                         nullptr,
-                                                         nullptr,
-                                                         c_type,
-                                                         ldc,
-                                                         nullptr,
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_success);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, rocblas_operation_transpose, rocblas_operation_transpose, M, N, K, nullptr,
+nullptr, a_type, K-1, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        // If N==0, then all pointers can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         0,
-                                                         K,
-                                                         nullptr,
-                                                         nullptr,
-                                                         a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         b_type,
-                                                         ldb,
-                                                         nullptr,
-                                                         nullptr,
-                                                         c_type,
-                                                         ldc,
-                                                         nullptr,
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_success);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, rocblas_operation_transpose, rocblas_operation_transpose, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, N-1, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        // the following tests still output to D
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, M-1,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        // If K==0, then alpha, A and B can be nullptr without issue.
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         0,
-                                                         nullptr,
-                                                         nullptr,
-                                                         a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_success);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, M-1, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
 
-        // If alpha==0, then A and B can be nullptr without issue.
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         zero,
-                                                         nullptr,
-                                                         a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         b_type,
-                                                         ldb,
-                                                         beta,
-                                                         dC.ptr_on_device(),
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_success);
+// check that nullptr gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(nullptr, transA, transB, M, N, K, alpha,
+dA.ptr_on_device(), a_type, lda, dB.ptr_on_device(), b_type, ldb, beta, dC.ptr_on_device(), c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_handle);
 
-        // alpha==0 && beta==1 must still copy C to D so no quick return
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, nullptr,
+dA.ptr_on_device(), a_type, lda, dB.ptr_on_device(), b_type, ldb, beta, dC.ptr_on_device(), c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
 
-        // If alpha==0 && beta==0 then A, B and C can be nullptr without issue.
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         zero,
-                                                         nullptr,
-                                                         a_type,
-                                                         lda,
-                                                         nullptr,
-                                                         b_type,
-                                                         ldb,
-                                                         zero,
-                                                         nullptr,
-                                                         c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_success);
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, alpha,
+nullptr, a_type, lda, dB.ptr_on_device(), b_type, ldb, beta, dC.ptr_on_device(), c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, alpha,
+dA.ptr_on_device(), a_type, lda, nullptr, b_type, ldb, beta, dC.ptr_on_device(), c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, alpha,
+dA.ptr_on_device(), a_type, lda, dB.ptr_on_device(), b_type, ldb, nullptr, dC.ptr_on_device(), c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, alpha,
+dA.ptr_on_device(), a_type, lda, dB.ptr_on_device(), b_type, ldb, beta, nullptr, c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, alpha,
+dA.ptr_on_device(), a_type, lda, dB.ptr_on_device(), b_type, ldb, beta, dC.ptr_on_device(), c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_pointer);
+
+// if D aliased to C then ldd must equal ldc
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, alpha,
+dA.ptr_on_device(), a_type, lda, dB.ptr_on_device(), b_type, ldb, beta,
+dC.ptr_on_device(), c_type, ldc, dC.ptr_on_device(), // aliased C
+d_type, ldc + 1, batch_count, compute_type, algo, solution_index, flags), rocblas_status_invalid_size);
+
+// If batch_count==0, then all pointers can be nullptr without error
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, 0, compute_type, algo, solution_index, flags), rocblas_status_success);
+
+// If M==0, then all pointers can be nullptr without error
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, 0, N, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_success);
+
+// If N==0, then all pointers can be nullptr without error
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, 0, K, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, nullptr, nullptr, c_type, ldc,
+nullptr, d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_success);
+
+// the following tests still output to D
+
+// If K==0, then alpha, A and B can be nullptr without issue.
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, 0, nullptr,
+nullptr, a_type, lda, nullptr, b_type, ldb, beta, dC.ptr_on_device(), c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_success);
+
+// If alpha==0, then A and B can be nullptr without issue.
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, zero,
+nullptr, a_type, lda, nullptr, b_type, ldb, beta, dC.ptr_on_device(), c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_success);
+
+// alpha==0 && beta==1 must still copy C to D so no quick return
+
+// If alpha==0 && beta==0 then A, B and C can be nullptr without issue.
+EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle, transA, transB, M, N, K, zero,
+nullptr, a_type, lda, nullptr, b_type, ldb, zero, nullptr, c_type, ldc,
+dD.ptr_on_device(), d_type, ldd, batch_count, compute_type, algo, solution_index, flags), rocblas_status_success);
+
+        // clang-format on
     }
 }
 
