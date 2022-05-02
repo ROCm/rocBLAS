@@ -22,7 +22,7 @@ The following is a list of rocBLAS documents in the suggested reading order:
 Prerequisites
 -------------
 
--  A ROCm enabled platform, more information `here <https://rocm.github.io/>`_.
+-  A ROCm enabled platform, more information `here <https://docs.amd.com/>`_. rocBLAS is supported on the same Linux versions that are supported by ROCm.
 
 
 -----------------------------
