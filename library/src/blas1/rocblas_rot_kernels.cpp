@@ -29,7 +29,7 @@ template <typename Tex,
           typename Ty,
           typename Tc,
           typename Ts,
-          std::enable_if_t<!is_complex<Ts>, int> = 0>
+          std::enable_if_t<!rocblas_is_complex<Ts>, int> = 0>
 __device__ void
     rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
@@ -51,7 +51,7 @@ template <typename Tex,
           typename Ty,
           typename Tc,
           typename Ts,
-          std::enable_if_t<is_complex<Ts>, int> = 0>
+          std::enable_if_t<rocblas_is_complex<Ts>, int> = 0>
 __device__ void
     rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {

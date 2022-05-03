@@ -354,7 +354,7 @@ void testing_gemm_ext2(const Arguments& arg)
 
     bool nantest = rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai);
     if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
-       && !std::is_same<To, rocblas_half>{} && !is_complex<To> && nantest)
+       && !std::is_same<To, rocblas_half>{} && !rocblas_is_complex<To> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();

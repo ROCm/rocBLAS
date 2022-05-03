@@ -274,7 +274,7 @@ namespace
         }
 
         // If A is complex and conjugated, add a ComplexConjugate op to aops
-        if(is_complex<Ti> && prob.trans_a == rocblas_operation_conjugate_transpose)
+        if(rocblas_is_complex<Ti> && prob.trans_a == rocblas_operation_conjugate_transpose)
             aops.push_back(Tensile::TensorOp::Type::ComplexConjugate);
 
         // If B is transposed, swap the free and bound dimensions and their ranks
@@ -304,7 +304,7 @@ namespace
         // clang-format on
 
         // If B is complex and conjugated, add a ComplexConjugate op to bops
-        if(is_complex<Ti> && prob.trans_b == rocblas_operation_conjugate_transpose)
+        if(rocblas_is_complex<Ti> && prob.trans_b == rocblas_operation_conjugate_transpose)
             bops.push_back(Tensile::TensorOp::Type::ComplexConjugate);
 
         // Descriptor for input matrix C

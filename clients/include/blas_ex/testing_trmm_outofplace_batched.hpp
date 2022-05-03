@@ -412,7 +412,7 @@ void testing_trmm_outofplace_batched(const Arguments& arg)
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
-       && !is_complex<T> && nantest)
+       && !rocblas_is_complex<T> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     rocblas_local_handle handle{arg};

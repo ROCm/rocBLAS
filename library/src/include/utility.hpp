@@ -52,13 +52,13 @@ __device__ inline rocblas_half2
 
 // Conjugate a value. For most types, simply return argument; for
 // rocblas_float_complex and rocblas_double_complex, return std::conj(z)
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return z;
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return std::conj(z);
@@ -451,13 +451,13 @@ __host__ __device__ inline bool rocblas_isnan(T)
     return false;
 }
 
-template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isnan(T arg)
 {
     return std::isnan(arg);
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isnan(const T& arg)
 {
     return rocblas_isnan(std::real(arg)) || rocblas_isnan(std::imag(arg));
@@ -483,13 +483,13 @@ __host__ __device__ inline bool rocblas_isinf(T)
     return false;
 }
 
-template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isinf(T arg)
 {
     return std::isinf(arg);
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isinf(const T& arg)
 {
     return rocblas_isinf(std::real(arg)) || rocblas_isinf(std::imag(arg));
@@ -516,14 +516,14 @@ __host__ __device__ inline bool rocblas_iszero(T arg)
 }
 
 // Absolute value
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline T rocblas_abs(T x)
 {
     return x < 0 ? -x : x;
 }
 
 // For complex, we have defined a __device__ __host__ compatible std::abs
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline auto rocblas_abs(T x)
 {
     return std::abs(x);
@@ -558,14 +558,14 @@ __host__ __device__ inline bool rocblas_isdenorm(T)
     return false;
 }
 
-template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isdenorm(T arg)
 {
     return ((rocblas_abs(arg) >= std::numeric_limits<T>::denorm_min())
             && (rocblas_abs(arg) < std::numeric_limits<T>::min()));
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isdenorm(const T& arg)
 {
     return rocblas_isdenorm(std::real(arg)) || rocblas_isdenorm(std::imag(arg));
@@ -617,7 +617,7 @@ struct rocblas_real_t_impl
 };
 
 template <typename T>
-struct rocblas_real_t_impl<T, std::enable_if_t<is_complex<T>>>
+struct rocblas_real_t_impl<T, std::enable_if_t<rocblas_is_complex<T>>>
 {
     using type = decltype(std::real(T{}));
 };

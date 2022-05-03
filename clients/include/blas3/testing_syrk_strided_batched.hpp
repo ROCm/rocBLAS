@@ -181,7 +181,7 @@ void testing_syrk_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_success);
 
-    if(is_complex<T>)
+    if(rocblas_is_complex<T>)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
                                                               uplo,

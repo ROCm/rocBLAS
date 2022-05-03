@@ -248,23 +248,23 @@ struct Arguments
     template <typename T>
     bool alpha_isnan() const
     {
-        return rocblas_isnan(alpha) || (is_complex<T> && rocblas_isnan(alphai));
+        return rocblas_isnan(alpha) || (rocblas_is_complex<T> && rocblas_isnan(alphai));
     }
 
     template <typename T>
     bool beta_isnan() const
     {
-        return rocblas_isnan(beta) || (is_complex<T> && rocblas_isnan(betai));
+        return rocblas_isnan(beta) || (rocblas_is_complex<T> && rocblas_isnan(betai));
     }
 
 private:
-    template <typename T, typename U, std::enable_if_t<!is_complex<T>, int> = 0>
+    template <typename T, typename U, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r);
     }
 
-    template <typename T, typename U, std::enable_if_t<+is_complex<T>, int> = 0>
+    template <typename T, typename U, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r, i);

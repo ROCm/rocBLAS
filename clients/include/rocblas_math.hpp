@@ -77,13 +77,13 @@ inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
 /* ============================================================================================ */
 // Conjugate a value. For most types, simply return argument; for
 // rocblas_float_complex and rocblas_double_complex, return std::conj(z)
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 __host__ inline T conjugate(const T& z)
 {
     return z;
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __host__ inline T conjugate(const T& z)
 {
     return std::conj(z);

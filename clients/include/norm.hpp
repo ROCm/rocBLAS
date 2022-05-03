@@ -160,7 +160,7 @@ void m_axpy(size_t* N, T* alpha, T* x, int* incx, T* y, int* incy)
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
 
 // Real
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -195,7 +195,7 @@ double norm_check_general(
 }
 
 // Complex
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -396,7 +396,7 @@ double norm_check_general(char        norm_type,
 
 /* ============== Norm Check for Symmetric Matrix ============= */
 /*! \brief compare the norm error of two Hermitian/symmetric matrices hCPU & hGPU */
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 double norm_check_symmetric(
     char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -427,7 +427,7 @@ double norm_check_symmetric(
     return error;
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 double norm_check_symmetric(
     char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {

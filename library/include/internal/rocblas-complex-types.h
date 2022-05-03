@@ -513,13 +513,26 @@ using rocblas_double_complex = rocblas_complex_num<double>;
 
 /*! \brief is_complex<T> returns true iff T is complex */
 template <typename T>
-static constexpr bool is_complex = false;
+__attribute__((deprecated(
+    "rocBLAS is_complex trait is deprecated, use rocblas_is_complex."))) static constexpr bool
+    is_complex
+    = false;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr bool is_complex<rocblas_float_complex> = true;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr bool is_complex<rocblas_double_complex> = true;
+
+/*! \brief rocblas_is_complex<T> returns true iff T is complex */
+template <typename T>
+static constexpr bool rocblas_is_complex = false;
+
+template <>
+ROCBLAS_CLANG_STATIC constexpr bool rocblas_is_complex<rocblas_float_complex> = true;
+
+template <>
+ROCBLAS_CLANG_STATIC constexpr bool rocblas_is_complex<rocblas_double_complex> = true;
 
 //!
 //! @brief Struct to define pair of value and index.

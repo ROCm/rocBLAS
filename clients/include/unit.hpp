@@ -479,7 +479,7 @@ inline void unit_check_general(rocblas_int                         M,
     UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, ASSERT_DOUBLE_COMPLEX_EQ);
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps)
 {
 #ifdef GOOGLE_TEST
@@ -487,19 +487,19 @@ inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, 
 #endif
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps)
 {
     trsm_err_res_check(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 constexpr double get_epsilon()
 {
     return std::numeric_limits<T>::epsilon();
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 constexpr auto get_epsilon()
 {
     return get_epsilon<decltype(std::real(T{}))>();
