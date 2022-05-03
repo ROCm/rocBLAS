@@ -57,18 +57,26 @@ if( BUILD_GTEST )
   include( external-gtest )
 
   list( APPEND rocblas_dependencies googletest )
-  set( gtest_custom_target COMMAND cd ${GTEST_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . --target install )
+  set( gtest_custom_target COMMAND cd ${GTEST_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . )
+  set( gtest_install_target COMMAND cd ${GTEST_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . --target install )
 endif( )
 
 if( BUILD_LAPACK )
   include( external-lapack )
 
   list( APPEND rocblas_dependencies lapack )
-  set( lapack_custom_target COMMAND cd ${LAPACK_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . --target install )
+  set( lapack_custom_target COMMAND cd ${LAPACK_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . )
+  set( lapack_install_target COMMAND cd ${LAPACK_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . --target install )
 endif( )
 
-add_custom_target( install_deps
+add_custom_target( build_deps
   ${gtest_custom_target}
   ${lapack_custom_target}
   DEPENDS ${rocblas_dependencies}
+)
+
+add_custom_target( install_deps
+  ${gtest_install_target}
+  ${lapack_install_target}
+  DEPENDS ${build_deps}
 )
