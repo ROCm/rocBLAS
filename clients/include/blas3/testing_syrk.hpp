@@ -47,7 +47,7 @@ void testing_syrk_bad_arg(const Arguments& arg)
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_int       N      = 100;
-    const rocblas_int       K      = 100;
+    const rocblas_int       K      = 99;
     const rocblas_int       lda    = 100;
     const rocblas_int       ldc    = 100;
     const T                 alpha  = 1.0;
@@ -120,7 +120,7 @@ void testing_syrk_bad_arg(const Arguments& arg)
         rocblas_status_success);
 
     // conjugate transpose supported in ssyrk and dsyrk
-    if(is_complex<T>)
+    if(rocblas_is_complex<T>)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
                                               uplo,

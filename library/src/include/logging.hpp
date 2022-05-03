@@ -195,13 +195,13 @@ inline float log_trace_scalar_value(const rocblas_half* value)
     return value ? float(*value) : std::numeric_limits<float>::quiet_NaN();
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value : std::numeric_limits<T>::quiet_NaN();
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value
@@ -235,7 +235,7 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
     return ss.str();
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 std::string log_bench_scalar_value(const char* name, const T* value)
 {
     rocblas_internal_ostream ss;
@@ -243,7 +243,7 @@ std::string log_bench_scalar_value(const char* name, const T* value)
     return ss.str();
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 std::string log_bench_scalar_value(const char* name, const T* value)
 {
     rocblas_internal_ostream ss;

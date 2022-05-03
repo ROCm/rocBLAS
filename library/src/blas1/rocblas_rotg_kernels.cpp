@@ -25,7 +25,7 @@
 #include "logging.hpp"
 #include "rocblas_rotg.hpp"
 
-template <typename T, typename U, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, typename U, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
 {
     T scale = rocblas_abs(a) + rocblas_abs(b);
@@ -55,7 +55,7 @@ __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
     }
 }
 
-template <typename T, typename U, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, typename U, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
 {
     if(!rocblas_abs(a))

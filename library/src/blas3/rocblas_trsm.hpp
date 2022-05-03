@@ -2730,7 +2730,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(batch_count == 0)
         return rocblas_status_success;
 
-    if(!is_complex<T> && transA == rocblas_operation_conjugate_transpose)
+    if(!rocblas_is_complex<T> && transA == rocblas_operation_conjugate_transpose)
         transA = rocblas_operation_transpose;
 
     rocblas_int k = side == rocblas_side_left ? m : n;

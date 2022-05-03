@@ -45,7 +45,7 @@ inline rocblas_status rocblas_syrk_arg_check(rocblas_handle    handle,
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
 
-    if(is_complex<TScal>)
+    if(rocblas_is_complex<TScal>)
     {
         if(transA != rocblas_operation_none && transA != rocblas_operation_transpose)
             return rocblas_status_invalid_value;
