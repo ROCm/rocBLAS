@@ -670,13 +670,12 @@ if [[ "${install_dependencies}" == true ]]; then
   esac
 
   if [[ "${build_clients}" == true ]]; then
-
     # The following builds googletest & lapack from source, installs into cmake default /usr/local
     pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
-    make -j${build_jobs}
+    make build_deps
     elevate_if_not_root make install_deps
     install_blis
     popd
