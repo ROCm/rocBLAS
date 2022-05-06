@@ -254,50 +254,37 @@ try
     auto stride_c = rocblas_stride(ldc) * n;
     auto stride_d = rocblas_stride(ldd) * n;
 
-    auto gemm_ex = [&] {
-        return rocblas_gemm_ex_template<true>(handle,
-                                              trans_a,
-                                              trans_b,
-                                              m,
-                                              n,
-                                              k,
-                                              alpha,
-                                              a,
-                                              a_type,
-                                              0,
-                                              lda,
-                                              stride_a,
-                                              b,
-                                              b_type,
-                                              0,
-                                              ldb,
-                                              stride_b,
-                                              beta,
-                                              c,
-                                              c_type,
-                                              0,
-                                              ldc,
-                                              stride_c,
-                                              d,
-                                              d_type,
-                                              0,
-                                              ldd,
-                                              stride_d,
-                                              batch_count,
-                                              compute_type,
-                                              flags);
-    };
-
-    if(HPA && !handle->is_device_memory_size_query())
-    {
-        // Allocate GSU workspace in handle
-        auto gsu_malloc = handle->gsu_malloc();
-        return gemm_ex();
-    }
-    else
-    {
-        return gemm_ex();
-    }
+    return rocblas_gemm_ex_template<true>(handle,
+                                          trans_a,
+                                          trans_b,
+                                          m,
+                                          n,
+                                          k,
+                                          alpha,
+                                          a,
+                                          a_type,
+                                          0,
+                                          lda,
+                                          stride_a,
+                                          b,
+                                          b_type,
+                                          0,
+                                          ldb,
+                                          stride_b,
+                                          beta,
+                                          c,
+                                          c_type,
+                                          0,
+                                          ldc,
+                                          stride_c,
+                                          d,
+                                          d_type,
+                                          0,
+                                          ldd,
+                                          stride_d,
+                                          batch_count,
+                                          compute_type,
+                                          flags);
 }
 catch(...)
 {

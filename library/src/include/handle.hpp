@@ -248,6 +248,11 @@ public:
         return device_memory_size_query;
     }
 
+    size_t get_available_workspace()
+    {
+        return (device_memory_size - device_memory_in_use);
+    }
+
     // Get the solution fitness query
     auto* get_solution_fitness_query() const
     {
@@ -513,6 +518,32 @@ private:
     };
     // clang-format on
 
+    // allocate workspace for GSU based on the needs.
+    // clang-format off
+    class [[nodiscard]] _gsu_malloc_by_size final : _device_malloc
+    {
+    public:
+        explicit _gsu_malloc_by_size(rocblas_handle handle, size_t requested_Workspace_Size)
+        : _device_malloc(handle, requested_Workspace_Size)
+        {
+            handle->gsu_workspace_size = success ? size : 0;
+            handle->gsu_workspace = static_cast<void*>(*this);
+        }
+
+        ~_gsu_malloc_by_size()
+        {
+            if(success)
+            {
+                handle->gsu_workspace_size = 0;
+                handle->gsu_workspace      = nullptr;
+            }
+        }
+
+        // Move constructor allows initialization by rvalues and returns from functions
+        _gsu_malloc_by_size(_gsu_malloc_by_size&&) = default;
+    };
+    // clang-format on
+
 public:
     // Allocate one or more sizes
     template <typename... Ss,
@@ -538,6 +569,11 @@ public:
     auto gsu_malloc()
     {
         return _gsu_malloc(this);
+    };
+
+    auto gsu_malloc_by_size(size_t requested_Workspace_Size)
+    {
+        return _gsu_malloc_by_size(this, requested_Workspace_Size);
     };
 };
 

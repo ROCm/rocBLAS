@@ -429,16 +429,8 @@ namespace
                                                   flags);
             };
 
-            if(HPA && !handle->is_device_memory_size_query())
-            {
-                // Allocate GSU workspace in handle
-                auto gsu_malloc = handle->gsu_malloc();
-                status          = gemm_ext2();
-            }
-            else
-            {
-                status = gemm_ext2();
-            }
+            status = gemm_ext2();
+
             if(status == rocblas_status_success || handle->is_device_memory_size_query())
                 return status;
 

@@ -53,6 +53,7 @@ namespace
                                         int32_t           solution_index,
                                         uint32_t          flags)
     {
+
         if(!handle)
             return rocblas_status_invalid_handle;
 
@@ -255,50 +256,37 @@ namespace
         // TODO: These strides could be 0 ( {} ) instead of 1 ( {1} ) once Tensile is fixed
         rocblas_stride stride_a{1}, stride_b{1}, stride_c{1}, stride_d{1};
 
-        auto gemm_ex = [&] {
-            return rocblas_gemm_ex_template<false>(handle,
-                                                   trans_a,
-                                                   trans_b,
-                                                   m,
-                                                   n,
-                                                   k,
-                                                   alpha,
-                                                   a,
-                                                   a_type,
-                                                   0,
-                                                   lda,
-                                                   stride_a,
-                                                   b,
-                                                   b_type,
-                                                   0,
-                                                   ldb,
-                                                   stride_b,
-                                                   beta,
-                                                   c,
-                                                   c_type,
-                                                   0,
-                                                   ldc,
-                                                   stride_c,
-                                                   d,
-                                                   d_type,
-                                                   0,
-                                                   ldd,
-                                                   stride_d,
-                                                   batch_count,
-                                                   compute_type,
-                                                   flags);
-        };
-
-        if(HPA && !handle->is_device_memory_size_query())
-        {
-            // Allocate GSU workspace in handle
-            auto gsu_malloc = handle->gsu_malloc();
-            return gemm_ex();
-        }
-        else
-        {
-            return gemm_ex();
-        }
+        return rocblas_gemm_ex_template<false>(handle,
+                                               trans_a,
+                                               trans_b,
+                                               m,
+                                               n,
+                                               k,
+                                               alpha,
+                                               a,
+                                               a_type,
+                                               0,
+                                               lda,
+                                               stride_a,
+                                               b,
+                                               b_type,
+                                               0,
+                                               ldb,
+                                               stride_b,
+                                               beta,
+                                               c,
+                                               c_type,
+                                               0,
+                                               ldc,
+                                               stride_c,
+                                               d,
+                                               d_type,
+                                               0,
+                                               ldd,
+                                               stride_d,
+                                               batch_count,
+                                               compute_type,
+                                               flags);
     }
 } // namespace
 
