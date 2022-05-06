@@ -94,6 +94,8 @@ rocBLAS build & installation helper script.
 
     -u, --use-custom-version <arg>   Ignore the Tensile version and just use the Tensile tag.
 
+    --upgrade_tensile_venv_pip       Upgrade PIP version during Tensile installation.
+
     --use-cuda                       Use installed CUDA version instead of ROCm stack.
 
     -v, --rocm-dev <version>         Specify specific rocm-dev version. (e.g. 4.5.0)
@@ -408,7 +410,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -514,7 +516,7 @@ while true; do
     --skipldconf)
         skip_ld_conf_entry=true
         shift ;;
-    --static)
+    -s|--static)
         static_lib=true
         shift ;;
     -u|--use-custom-version)
