@@ -323,7 +323,7 @@ namespace
         size_t workspace_size
             = prob.handle->is_device_memory_size_query()
                   ? ~size_t{0}
-                  : (prob.handle->gsu_workspace_size / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
+                  : (prob.handle->get_available_workspace() / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
                         * HPA_GSU_WORKSPACE_SIZE_GRANULARITY;
 
         // The ContractionProblem
@@ -808,7 +808,8 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 
         auto& adapter = get_library_and_adapter(&library, &deviceProp, prob.handle->getDevice());
 
-        hardware            = Tensile::hip::GetDevice(*deviceProp);
+        hardware = Tensile::hip::GetDevice(*deviceProp);
+
         auto  tensile_prob  = ConstructTensileProblem(prob);
         auto  handle        = prob.handle;
         auto* fitness_query = handle->get_solution_fitness_query();
@@ -835,6 +836,10 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
             }
             else
             {
+                // check if the solution requires workspace for GSU and allocate it.
+                size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob);
+                auto   gsu_malloc    = prob.handle->gsu_malloc_by_size(WorkspaceSize);
+
                 adapter.launchKernels(
                     solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
                     handle->get_stream(),
