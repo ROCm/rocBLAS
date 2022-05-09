@@ -276,49 +276,56 @@ rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
 {
 
     rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                             handle,
-                                                             trans_a,
-                                                             m,
-                                                             k,
-                                                             A,
-                                                             0,
-                                                             lda,
-                                                             stride_a,
-                                                             batch_count,
-                                                             check_numerics,
-                                                             is_input);
-    if(check_numerics_status != rocblas_status_success)
-        return check_numerics_status;
-
-    check_numerics_status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                               handle,
-                                                                               trans_b,
-                                                                               k,
-                                                                               n,
-                                                                               B,
-                                                                               0,
-                                                                               ldb,
-                                                                               stride_b,
-                                                                               batch_count,
-                                                                               check_numerics,
-                                                                               is_input);
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          trans_a,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          k,
+                                                          A,
+                                                          0,
+                                                          lda,
+                                                          stride_a,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
     check_numerics_status
-        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                             handle,
-                                                             rocblas_operation_none,
-                                                             m,
-                                                             n,
-                                                             C,
-                                                             0,
-                                                             ldc,
-                                                             stride_c,
-                                                             batch_count,
-                                                             check_numerics,
-                                                             is_input);
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          trans_b,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          k,
+                                                          n,
+                                                          B,
+                                                          0,
+                                                          ldb,
+                                                          stride_b,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          rocblas_operation_none,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          n,
+                                                          C,
+                                                          0,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
 
     return check_numerics_status;
 }

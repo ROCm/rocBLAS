@@ -442,6 +442,25 @@ typedef struct rocblas_check_numerics_s
 
 } rocblas_check_numerics_t;
 
+/*************************************************************************************************************************
+//! @brief enum to check the type of matrix
+ ************************************************************************************************************************/
+typedef enum rocblas_check_matrix_type_
+{
+    // General matrix
+    rocblas_client_general_matrix,
+
+    // Hermitian matrix
+    rocblas_client_hermitian_matrix,
+
+    // Symmetric matrix
+    rocblas_client_symmetric_matrix,
+
+    // Triangular matrix
+    rocblas_client_triangular_matrix,
+
+} rocblas_check_matrix_type;
+
 /*******************************************************************************
 * \brief  returns true if arg is NaN
 ********************************************************************************/
