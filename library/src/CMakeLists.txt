@@ -529,6 +529,7 @@ if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
     internal/rocblas-version.h internal/rocblas-export.h internal/rocblas-exported-proto.hpp internal/rocblas_device_malloc.hpp
     GUARDS SYMLINK WRAPPER
     WRAPPER_LOCATIONS include rocblas/include
+    ORIGINAL_FILES ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
   )
 endif( )
 
