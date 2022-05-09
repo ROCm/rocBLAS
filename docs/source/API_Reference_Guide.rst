@@ -7,17 +7,8 @@ API Reference Guide
 Introduction
 ------------
 
-rocBLAS is a BLAS implementation on top of AMD's Radeon Open Compute `ROCm <https://docs.amd.com/>`__ runtime and toolchains.
-rocBLAS is implemented in the `HIP <https://github.com/ROCm-Developer-Tools/HIP>`__ programming language and optimized for AMD's latest
-discrete GPUs.
-
-======== =========
-Acronym  Expansion
-======== =========
-**BLAS**    **B**\ asic **L**\ inear **A**\ lgebra **S**\ ubprograms
-**ROCm**    **R**\ adeon **O**\ pen E\ **C**\ osyste\ **m**
-**HIP**     **H**\ eterogeneous-Compute **I**\ nterface for **P**\ ortability
-======== =========
+rocBLAS is the AMD library for Basic Linear Algebra Subprograms (BLAS) on the `ROCm platform <https://docs.amd.com/>`__ . It is
+implemented in the `HIP programming language <https://github.com/ROCm-Developer-Tools/HIP/>`__ and optimized for AMD GPUs.
 
 The aim of rocBLAS is to provide:
 
