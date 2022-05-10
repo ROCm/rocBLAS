@@ -129,6 +129,7 @@ namespace
             rocblas_status her_check_numerics_status
                 = rocblas_her_check_numerics(rocblas_her_batched_name<T>,
                                              handle,
+                                             uplo,
                                              n,
                                              A,
                                              offset_A,
@@ -167,6 +168,7 @@ namespace
             rocblas_status her_check_numerics_status
                 = rocblas_her_check_numerics(rocblas_her_batched_name<T>,
                                              handle,
+                                             uplo,
                                              n,
                                              A,
                                              offset_A,

@@ -127,6 +127,7 @@ namespace
             rocblas_status trmv_check_numerics_status
                 = rocblas_trmv_check_numerics(rocblas_trmv_name<T>,
                                               handle,
+                                              uplo,
                                               m,
                                               A,
                                               0,
@@ -172,6 +173,7 @@ namespace
             rocblas_status trmv_check_numerics_status
                 = rocblas_trmv_check_numerics(rocblas_trmv_name<T>,
                                               handle,
+                                              uplo,
                                               m,
                                               A,
                                               0,

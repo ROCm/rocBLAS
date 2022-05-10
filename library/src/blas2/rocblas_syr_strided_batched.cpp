@@ -127,6 +127,7 @@ namespace
             rocblas_status syr_check_numerics_status
                 = rocblas_syr_check_numerics(rocblas_syr_strided_batched_name<T>,
                                              handle,
+                                             uplo,
                                              n,
                                              A,
                                              0,
@@ -153,6 +154,7 @@ namespace
             rocblas_status syr_check_numerics_status
                 = rocblas_syr_check_numerics(rocblas_syr_strided_batched_name<T>,
                                              handle,
+                                             uplo,
                                              n,
                                              A,
                                              0,
