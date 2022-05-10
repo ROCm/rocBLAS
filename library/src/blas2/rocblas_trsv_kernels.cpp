@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 
+#include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "rocblas_trsv.hpp"
 
@@ -975,10 +976,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
-//TODO :-Add rocblas_check_numerics_tr_matrix_template for checking Matrix `A` which is a Triangular Matrix
 template <typename T, typename U>
 rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_name,
                                                     rocblas_handle    handle,
+                                                    rocblas_fill      uplo,
                                                     rocblas_int       m,
                                                     T                 A,
                                                     rocblas_stride    offset_a,
@@ -992,17 +993,40 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
                                                     const rocblas_int check_numerics,
                                                     bool              is_input)
 {
-    rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_vector_template(function_name,
-                                                          handle,
-                                                          m,
-                                                          x,
-                                                          offset_x,
-                                                          inc_x,
-                                                          stride_x,
-                                                          batch_count,
-                                                          check_numerics,
-                                                          is_input);
+    rocblas_status check_numerics_status = rocblas_status_success;
+
+    if(is_input)
+    {
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              uplo,
+                                                              rocblas_client_triangular_matrix,
+                                                              m,
+                                                              m,
+                                                              A,
+                                                              offset_a,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            m,
+                                                                            x,
+                                                                            offset_x,
+                                                                            inc_x,
+                                                                            stride_x,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
 
     return check_numerics_status;
 }
@@ -1016,17 +1040,18 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
 #error INSTANTIATE_TRSV_NUMERICS already defined
 #endif
 
-#define INSTANTIATE_TRSV_NUMERICS(T_, U_)                                         \
-template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>             \
+#define INSTANTIATE_TRSV_NUMERICS(T_, U_)                                             \
+template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>                 \
                                                    (const char*       function_name,  \
                                                     rocblas_handle    handle,         \
+                                                    rocblas_fill      uplo,           \
                                                     rocblas_int       m,              \
                                                     T_                A,              \
-                                                    rocblas_stride       offset_a,       \
+                                                    rocblas_stride       offset_a,    \
                                                     rocblas_int       lda,            \
                                                     rocblas_stride    stride_a,       \
                                                     U_                x,              \
-                                                    rocblas_stride       offset_x,       \
+                                                    rocblas_stride       offset_x,    \
                                                     rocblas_int       inc_x,          \
                                                     rocblas_stride    stride_x,       \
                                                     rocblas_int       batch_count,    \

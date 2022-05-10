@@ -124,6 +124,7 @@ namespace
             rocblas_status syr2_check_numerics_status
                 = rocblas_syr2_check_numerics(rocblas_syr2_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               offset_A,
@@ -170,6 +171,7 @@ namespace
             rocblas_status syr2_check_numerics_status
                 = rocblas_syr2_check_numerics(rocblas_syr2_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               offset_A,

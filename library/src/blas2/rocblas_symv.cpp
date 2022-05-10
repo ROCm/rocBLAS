@@ -129,6 +129,7 @@ namespace
             rocblas_status symv_check_numerics_status
                 = rocblas_symv_check_numerics(rocblas_symv_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               0,
@@ -179,6 +180,7 @@ namespace
             rocblas_status symv_check_numerics_status
                 = rocblas_symv_check_numerics(rocblas_symv_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               0,
