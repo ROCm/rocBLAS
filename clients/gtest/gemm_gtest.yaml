@@ -31,6 +31,9 @@ Definitions:
     - { M:    20, N:    20, K:    20, lda:    20, ldb:    20, ldc:    20, ldd:    20 }
 
   - &small_matrix_size_range
+    - { M:     0, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # m==0
+    - { M:     8, N:     0, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # n==0
+    - { M:     8, N:     8, K:     0, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # k==0
     - { M:     9, N:     1, K:     9, lda:     9, ldb:     9, ldc:     9, ldd:     9 }
     - { M:     1, N:     1, K:     1, lda:     1, ldb:     1, ldc:     1, ldd:     1 }
     - { M:     1, N:     2, K:     3, lda:     4, ldb:     5, ldc:     6, ldd:     6 }

@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -11,6 +29,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -40,20 +59,23 @@ void testing_geam_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
 
-    const rocblas_stride stride_a = size_t(lda) * (transA == rocblas_operation_none ? N : M);
-    const rocblas_stride stride_b = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
-    const rocblas_stride stride_c = size_t(ldc) * N;
-
     rocblas_local_handle handle{arg};
 
-    size_t size_A = size_t(batch_count) * size_t(stride_a);
-    size_t size_B = size_t(batch_count) * size_t(stride_b);
-    size_t size_C = size_t(batch_count) * size_t(stride_c);
+    rocblas_int A_row = transA == rocblas_operation_none ? M : N;
+    rocblas_int A_col = transA == rocblas_operation_none ? N : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? M : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    const rocblas_stride stride_a = size_t(lda) * A_col;
+    const rocblas_stride stride_b = size_t(ldb) * B_col;
+    const rocblas_stride stride_c = size_t(ldc) * N;
+
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(A_row, A_col, lda, stride_a, batch_count);
+    device_strided_batch_matrix<T> dB(B_row, B_col, ldb, stride_b, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -196,11 +218,6 @@ void testing_geam_strided_batched(const Arguments& arg)
     T alpha = arg.get_alpha<T>();
     T beta  = arg.get_beta<T>();
 
-    T* dC_in_place;
-
-    rocblas_int A_row, A_col, B_row, B_col;
-    rocblas_int inc1_A, inc2_A, inc1_B, inc2_B;
-
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
 
@@ -210,50 +227,24 @@ void testing_geam_strided_batched(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    if(transA == rocblas_operation_none)
-    {
-        A_row  = M;
-        A_col  = N;
-        inc1_A = 1;
-        inc2_A = lda;
-    }
-    else
-    {
-        A_row  = N;
-        A_col  = M;
-        inc1_A = lda;
-        inc2_A = 1;
-    }
-    if(transB == rocblas_operation_none)
-    {
-        B_row  = M;
-        B_col  = N;
-        inc1_B = 1;
-        inc2_B = ldb;
-    }
-    else
-    {
-        B_row  = N;
-        B_col  = M;
-        inc1_B = ldb;
-        inc2_B = 1;
-    }
+    rocblas_int A_row = transA == rocblas_operation_none ? M : N;
+    rocblas_int A_col = transA == rocblas_operation_none ? N : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? M : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
-    if(stride_a < size_t(lda) * (transA == rocblas_operation_none ? N : M))
+    if(stride_a < size_t(lda) * A_col)
     {
-        rocblas_cout
-            << "WARNING: stride_a < lda * (transA == rocblas_operation_none ? N : M), \n"
-               "setting stride_a = size_t(lda) * (transA == rocblas_operation_none ? N : M)"
-            << std::endl;
-        stride_a = size_t(lda) * (transA == rocblas_operation_none ? N : M);
+        rocblas_cout << "WARNING: stride_a < lda * A_col, \n"
+                        "setting stride_a = size_t(lda) * A_col"
+                     << std::endl;
+        stride_a = size_t(lda) * A_col;
     }
-    if(stride_b < size_t(ldb) * (transB == rocblas_operation_none ? N : M))
+    if(stride_b < size_t(ldb) * B_col)
     {
-        rocblas_cout
-            << "WARNING: stride_b < ldb * (transB == rocblas_operation_none ? N : M), \n"
-               "setting stride_b = size_t(ldb) * (transB == rocblas_operation_none ? N : M)"
-            << std::endl;
-        stride_b = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
+        rocblas_cout << "WARNING: stride_b < ldb * B_col, \n"
+                        "setting stride_b = size_t(ldb) * B_col"
+                     << std::endl;
+        stride_b = size_t(ldb) * B_col;
     }
     if(stride_c < size_t(ldc) * N)
     {
@@ -261,10 +252,6 @@ void testing_geam_strided_batched(const Arguments& arg)
                      << std::endl;
         stride_c = size_t(ldc) * N;
     }
-
-    size_t size_A = size_t(batch_count) * size_t(stride_a);
-    size_t size_B = size_t(batch_count) * size_t(stride_b);
-    size_t size_C = size_t(batch_count) * size_t(stride_c);
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
@@ -291,61 +278,57 @@ void testing_geam_strided_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> h_alpha(1);
-    host_vector<T> h_beta(1);
-    host_vector<T> hA(size_A), hA_copy(size_A);
-    host_vector<T> hB(size_B), hB_copy(size_B);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> hC_gold(size_C);
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_2.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(A_row, A_col, lda, stride_a, batch_count),
+        hA_copy(A_row, A_col, lda, stride_a, batch_count);
+    host_strided_batch_matrix<T> hB(B_row, B_col, ldb, stride_b, batch_count),
+        hB_copy(B_row, B_col, ldb, stride_b, batch_count);
+    host_strided_batch_matrix<T> hC_1(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC_2(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
+    host_vector<T>               h_alpha(1);
+    host_vector<T>               h_beta(1);
 
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
 
-    // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        A_row,
-                        A_col,
-                        lda,
-                        stride_a,
-                        batch_count,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        true);
-    rocblas_init_matrix(hB,
-                        arg,
-                        B_row,
-                        B_col,
-                        ldb,
-                        stride_b,
-                        batch_count,
-                        rocblas_client_beta_sets_nan,
-                        rocblas_client_general_matrix);
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hA_copy.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hB_copy.memcheck());
+    CHECK_HIP_ERROR(hC_1.memcheck());
+    CHECK_HIP_ERROR(hC_2.memcheck());
+    CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    hA_copy = hA;
-    hB_copy = hB;
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(A_row, A_col, lda, stride_a, batch_count);
+    device_strided_batch_matrix<T> dB(B_row, B_col, ldb, stride_b, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
+    device_strided_batch_matrix<T> dC_in_place(M, N, ldc, stride_c, batch_count);
+    device_vector<T>               d_alpha(1);
+    device_vector<T>               d_beta(1);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC_in_place.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+    rocblas_init_matrix(
+        hB, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
+
+    hA_copy.copy_from(hA);
+    hB_copy.copy_from(hB);
+    hC_2.copy_from(hC_1);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
@@ -378,7 +361,6 @@ void testing_geam_strided_batched(const Arguments& arg)
 
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
-        rocblas_init<T>(hC_2);
         CHECK_HIP_ERROR(dC.transfer_from(hC_2));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -411,12 +393,12 @@ void testing_geam_strided_batched(const Arguments& arg)
                        M,
                        N,
                        (T*)h_alpha,
-                       (T*)hA + b * stride_a,
+                       hA[b],
                        lda,
                        (T*)h_beta,
-                       (T*)hB + b * stride_b,
+                       hB[b],
                        ldb,
-                       (T*)hC_gold + b * stride_c,
+                       hC_gold[b],
                        ldc);
         }
 
@@ -441,7 +423,8 @@ void testing_geam_strided_batched(const Arguments& arg)
 
         // inplace check for dC == dA
         {
-            dC_in_place = dA;
+            if((lda == ldc) && (transA == rocblas_operation_none))
+                CHECK_HIP_ERROR(dC_in_place.transfer_from(hA));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             auto status_h = rocblas_geam_strided_batched_fn(handle,
@@ -450,7 +433,7 @@ void testing_geam_strided_batched(const Arguments& arg)
                                                             M,
                                                             N,
                                                             &alpha,
-                                                            dA,
+                                                            dC_in_place,
                                                             lda,
                                                             stride_a,
                                                             &beta,
@@ -468,8 +451,7 @@ void testing_geam_strided_batched(const Arguments& arg)
             }
             else
             {
-                CHECK_HIP_ERROR(
-                    hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+                CHECK_HIP_ERROR(hC_1.transfer_from(dC_in_place));
                 // dA was clobbered by dC_in_place, so copy hA back to dA
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
@@ -481,12 +463,12 @@ void testing_geam_strided_batched(const Arguments& arg)
                                M,
                                N,
                                (T*)h_alpha,
-                               (T*)hA_copy + b * stride_a,
+                               hA_copy[b],
                                lda,
                                (T*)h_beta,
-                               (T*)hB_copy + b * stride_b,
+                               hB_copy[b],
                                ldb,
-                               (T*)hC_gold + b * stride_c,
+                               hC_gold[b],
                                ldc);
                 }
 
@@ -505,7 +487,8 @@ void testing_geam_strided_batched(const Arguments& arg)
 
         // inplace check for dC == dB
         {
-            dC_in_place = dB;
+            if((ldb == ldc) && (transB == rocblas_operation_none))
+                CHECK_HIP_ERROR(dC_in_place.transfer_from(hB));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             auto status_h = rocblas_geam_strided_batched_fn(handle,
@@ -518,7 +501,7 @@ void testing_geam_strided_batched(const Arguments& arg)
                                                             lda,
                                                             stride_a,
                                                             &beta,
-                                                            dB,
+                                                            dC_in_place,
                                                             ldb,
                                                             stride_b,
                                                             dC_in_place,
@@ -534,9 +517,7 @@ void testing_geam_strided_batched(const Arguments& arg)
             {
                 CHECK_ROCBLAS_ERROR(status_h);
 
-                CHECK_HIP_ERROR(
-                    hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
-
+                CHECK_HIP_ERROR(hC_1.transfer_from(dC_in_place));
                 // reference calculation
                 for(int b = 0; b < batch_count; b++)
                 {
@@ -545,12 +526,12 @@ void testing_geam_strided_batched(const Arguments& arg)
                                M,
                                N,
                                (T*)h_alpha,
-                               (T*)hA_copy + b * stride_a,
+                               hA_copy[b],
                                lda,
                                (T*)h_beta,
-                               (T*)hB_copy + b * stride_b,
+                               hB_copy[b],
                                ldb,
-                               (T*)hC_gold + b * stride_c,
+                               hC_gold[b],
                                ldc);
                 }
 

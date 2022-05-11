@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2019-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************/
 
 // The implementation of the rocBLAS<->Tensile interface layer.
@@ -256,7 +274,7 @@ namespace
         }
 
         // If A is complex and conjugated, add a ComplexConjugate op to aops
-        if(is_complex<Ti> && prob.trans_a == rocblas_operation_conjugate_transpose)
+        if(rocblas_is_complex<Ti> && prob.trans_a == rocblas_operation_conjugate_transpose)
             aops.push_back(Tensile::TensorOp::Type::ComplexConjugate);
 
         // If B is transposed, swap the free and bound dimensions and their ranks
@@ -286,7 +304,7 @@ namespace
         // clang-format on
 
         // If B is complex and conjugated, add a ComplexConjugate op to bops
-        if(is_complex<Ti> && prob.trans_b == rocblas_operation_conjugate_transpose)
+        if(rocblas_is_complex<Ti> && prob.trans_b == rocblas_operation_conjugate_transpose)
             bops.push_back(Tensile::TensorOp::Type::ComplexConjugate);
 
         // Descriptor for input matrix C
@@ -305,7 +323,7 @@ namespace
         size_t workspace_size
             = prob.handle->is_device_memory_size_query()
                   ? ~size_t{0}
-                  : (prob.handle->gsu_workspace_size / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
+                  : (prob.handle->get_available_workspace() / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
                         * HPA_GSU_WORKSPACE_SIZE_GRANULARITY;
 
         // The ContractionProblem
@@ -323,19 +341,11 @@ namespace
                                                    value_category(*prob.beta),
                                                    workspace_size};
 
-        // TODO: Remove this condition once we migrate HBH and BBH cases to the new naming convention.
-        // The alpha/beta data types for all cases, except HBH, remain as DataType::None here
-        // and will be defined in ContractionSolution::solve. The data types cannot be defined here now
-        // due to some naming conflicts for HBH/BBH.
-        if(Tensile_Ti == Tensile::DataType::Half && Tensile_To == Tensile::DataType::Half
-           && Tensile_Tc == Tensile::DataType::Float)
-        {
-            tensileProblem.setAlphaType(Tensile_Tc);
-            tensileProblem.setBetaType(Tensile_Tc);
-        }
+        tensileProblem.setAlphaType(Tensile_Tc);
+        tensileProblem.setBetaType(Tensile_Tc);
 
         // HPA is active iff sizeof(compute type) > sizeof(input type)
-        // but when Ti=int8x4 (32-byte),we still need to use HPA since the primitive data is int8
+        // but when Ti=int8x4 (32-byte), we still need to use HPA since the primitive data is int8
         tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti)
                                                   || std::is_same<Ti, rocblas_int8x4>{});
 
@@ -798,7 +808,8 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 
         auto& adapter = get_library_and_adapter(&library, &deviceProp, prob.handle->getDevice());
 
-        hardware            = Tensile::hip::GetDevice(*deviceProp);
+        hardware = Tensile::hip::GetDevice(*deviceProp);
+
         auto  tensile_prob  = ConstructTensileProblem(prob);
         auto  handle        = prob.handle;
         auto* fitness_query = handle->get_solution_fitness_query();
@@ -825,6 +836,10 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
             }
             else
             {
+                // check if the solution requires workspace for GSU and allocate it.
+                size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob);
+                auto   gsu_malloc    = prob.handle->gsu_malloc_by_size(WorkspaceSize);
+
                 adapter.launchKernels(
                     solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
                     handle->get_stream(),

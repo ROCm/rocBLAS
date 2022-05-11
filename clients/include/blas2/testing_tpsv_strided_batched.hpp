@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -12,6 +30,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_solve.hpp"
 #include "rocblas_test.hpp"
@@ -36,39 +55,40 @@ void testing_tpsv_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = N * size_t(N);
-
-    device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, stride_a, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    //
     // Checks.
-    //
     EXPECT_ROCBLAS_STATUS(rocblas_tpsv_strided_batched_fn(handle,
                                                           rocblas_fill_full,
                                                           transA,
                                                           diag,
                                                           N,
-                                                          dA,
+                                                          dAp,
                                                           stride_a,
                                                           dx,
                                                           incx,
                                                           stride_x,
                                                           batch_count),
                           rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpsv_strided_batched_fn(
             handle, uplo, transA, diag, N, nullptr, stride_a, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpsv_strided_batched_fn(
-            handle, uplo, transA, diag, N, dA, stride_a, nullptr, incx, stride_x, batch_count),
+            handle, uplo, transA, diag, N, dAp, stride_a, nullptr, incx, stride_x, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         rocblas_tpsv_strided_batched_fn(
-            nullptr, uplo, transA, diag, N, dA, stride_a, dx, incx, stride_x, batch_count),
+            nullptr, uplo, transA, diag, N, dAp, stride_a, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_handle);
 }
 
@@ -115,34 +135,40 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = N * size_t(N);
-    size_t size_AP  = tri_count(N);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_strided_batch_vector<T> hA(size_A, 1, stride_a, batch_count);
-    host_strided_batch_vector<T> hAP(size_AP, 1, stride_ap, batch_count);
-    host_strided_batch_vector<T> AAT(size_A, 1, stride_a, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(N, N, N, stride_a, batch_count);
+    host_strided_batch_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1, stride_ap, batch_count);
+    host_strided_batch_matrix<T> AAT(N, N, N, stride_a, batch_count);
     host_strided_batch_vector<T> hb(N, incx, stride_x, batch_count);
     host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
     host_strided_batch_vector<T> hx_or_b_1(N, incx, stride_x, batch_count);
     host_strided_batch_vector<T> hx_or_b_2(N, incx, stride_x, batch_count);
     host_strided_batch_vector<T> cpu_x_or_b(N, incx, stride_x, batch_count);
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_error;
-    double error_eps_multiplier    = 40.0;
-    double residual_eps_multiplier = 20.0;
-    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hAp.memcheck());
+    CHECK_HIP_ERROR(AAT.memcheck());
+    CHECK_HIP_ERROR(hb.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hx_or_b_1.memcheck());
+    CHECK_HIP_ERROR(hx_or_b_2.memcheck());
+    CHECK_HIP_ERROR(cpu_x_or_b.memcheck());
 
-    // allocate memory on device
-    device_strided_batch_vector<T> dAP(size_AP, 1, stride_ap, batch_count);
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAp(1, rocblas_packed_matrix_size(N), 1, stride_ap, batch_count);
     device_strided_batch_vector<T> dx_or_b(N, incx, stride_x, batch_count);
-    CHECK_DEVICE_ALLOCATION(dAP.memcheck());
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAp.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
@@ -161,18 +187,25 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     for(int b = 0; b < batch_count; b++)
     {
         cblas_trmv<T>(uplo, transA, diag, N, hA[b], N, hb[b], incx);
-        regular_to_packed(uplo == rocblas_fill_upper, (T*)(hA[b]), (T*)(hAP[b]), N);
     }
+
+    // helper function to convert Regular matrix `hA` to packed matrix `hAp`
+    regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, N);
 
     cpu_x_or_b.copy_from(hb);
     hx_or_b_1.copy_from(hb);
     hx_or_b_2.copy_from(hb);
 
-    CHECK_HIP_ERROR(dAP.transfer_from(hAP));
+    CHECK_HIP_ERROR(dAp.transfer_from(hAp));
     CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
 
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
+    double gpu_time_used, cpu_time_used;
+    double rocblas_error;
+    double error_eps_multiplier    = 40.0;
+    double residual_eps_multiplier = 20.0;
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -180,7 +213,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched_fn(
-            handle, uplo, transA, diag, N, dAP, stride_ap, dx_or_b, incx, stride_x, batch_count));
+            handle, uplo, transA, diag, N, dAp, stride_ap, dx_or_b, incx, stride_x, batch_count));
 
         CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
@@ -189,7 +222,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
 
         CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched_fn(
-            handle, uplo, transA, diag, N, dAP, stride_ap, dx_or_b, incx, stride_x, batch_count));
+            handle, uplo, transA, diag, N, dAp, stride_ap, dx_or_b, incx, stride_x, batch_count));
 
         CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
@@ -241,7 +274,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
                                             transA,
                                             diag,
                                             N,
-                                            dAP,
+                                            dAp,
                                             stride_ap,
                                             dx_or_b,
                                             incx,
@@ -258,7 +291,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
                                             transA,
                                             diag,
                                             N,
-                                            dAP,
+                                            dAp,
                                             stride_ap,
                                             dx_or_b,
                                             incx,
@@ -272,7 +305,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_tpsv<T>(uplo, transA, diag, N, hA[b], cpu_x_or_b[b], incx);
+                cblas_tpsv<T>(uplo, transA, diag, N, hAp[b], cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

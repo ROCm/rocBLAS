@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  *
  * ************************************************************************ */
 
@@ -14,6 +32,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -58,33 +77,46 @@ void testing_gemv_bad_arg(const Arguments& arg)
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        size_t size_A = lda * size_t(N);
-        size_t size_x = N * size_t(incx);
-        size_t size_y = M * size_t(incy);
+        // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+        // Allocate host memory
+        host_matrix<T> hA(M, N, lda);
+        host_vector<T> hx(N, incx);
+        host_vector<T> hy(N, incy);
 
-        // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-        host_vector<T> hA(size_A);
-        host_vector<T> hx(size_x);
-        host_vector<T> hy(size_y);
+        // Allocate device memory
+        device_matrix<T> dA(M, N, lda);
+        device_vector<T> dx(N, incx);
+        device_vector<T> dy(N, incy);
 
-        // Initial Data on CPU
-        rocblas_seedrand();
-        rocblas_init<T>(hA, M, N, lda);
-        rocblas_init<T>(hx, 1, N, incx);
-        rocblas_init<T>(hy, 1, M, incy);
-
-        // allocate memory on device
-        device_vector<T> dA(size_A);
-        device_vector<T> dx(size_x);
-        device_vector<T> dy(size_y);
+        // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
+        // Initialize data on host memory
+        rocblas_init_matrix(
+            hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+        rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+        rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
+
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA.transfer_from(hA));
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+        CHECK_HIP_ERROR(dy.transfer_from(hy));
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_fn(handle,
+                                              (rocblas_operation)rocblas_fill_full,
+                                              M,
+                                              N,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              dx,
+                                              incx,
+                                              beta,
+                                              dy,
+                                              incy),
+                              rocblas_status_invalid_value);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemv_fn(handle, transA, M, N, alpha, nullptr, lda, dx, incx, beta, dy, incy),
@@ -169,9 +201,8 @@ void testing_gemv(const Arguments& arg)
         return;
     }
 
-    size_t size_A = lda * size_t(N);
-    size_t size_x, dim_x, abs_incx;
-    size_t size_y, dim_y, abs_incy;
+    size_t dim_x, abs_incx;
+    size_t dim_y, abs_incy;
 
     if(transA == rocblas_operation_none)
     {
@@ -187,22 +218,27 @@ void testing_gemv(const Arguments& arg)
     abs_incx = incx >= 0 ? incx : -incx;
     abs_incy = incy >= 0 ? incy : -incy;
 
-    size_x = dim_x * abs_incx;
-    size_y = dim_y * abs_incy;
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(M, N, lda);
+    host_vector<T> hx(dim_x, incx);
+    host_vector<T> hy_1(dim_y, incy);
+    host_vector<T> hy_2(dim_y, incy);
+    host_vector<T> hy_gold(dim_y, incy);
+    host_vector<T> halpha(1);
+    host_vector<T> hbeta(1);
+    halpha[0] = h_alpha;
+    hbeta[0]  = h_beta;
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hx(size_x);
-    host_vector<T> hy_1(size_y);
-    host_vector<T> hy_2(size_y);
-    host_vector<T> hy_gold(size_y);
-
-    device_vector<T> dA(size_A, 1, HMM);
-    device_vector<T> dx(size_x, 1, HMM);
-    device_vector<T> dy_1(size_y, 1, HMM);
-    device_vector<T> dy_2(size_y, 1, HMM);
+    // Allocate device memory
+    device_matrix<T> dA(M, N, lda, HMM);
+    device_vector<T> dx(dim_x, incx, HMM);
+    device_vector<T> dy_1(dim_y, incy, HMM);
+    device_vector<T> dy_2(dim_y, incy, HMM);
     device_vector<T> d_alpha(1, 1, HMM);
     device_vector<T> d_beta(1, 1, HMM);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
@@ -211,18 +247,10 @@ void testing_gemv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        M,
-                        N,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_alpha_sets_nan,
-                        rocblas_client_general_matrix,
-                        true);
-    rocblas_init_vector(hx, arg, dim_x, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, dim_y, abs_incy, 0, 1, rocblas_client_beta_sets_nan);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
     // CPU BLAS
@@ -243,9 +271,9 @@ void testing_gemv(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        dy_2.transfer_from(hy_2);
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_gemv_fn(
