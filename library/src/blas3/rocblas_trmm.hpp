@@ -23,6 +23,7 @@
 #pragma once
 
 #include "Tensile/gemm.hpp"
+#include "check_numerics_matrix.hpp"
 #include "definitions.hpp"
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TPtr>
@@ -216,3 +217,21 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int       lddc,
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count);
+
+template <typename TConstPtr, typename TPtr>
+rocblas_status rocblas_trmm_check_numerics(const char*       function_name,
+                                           rocblas_handle    handle,
+                                           rocblas_side      side,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation trans_a,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           TConstPtr*        A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           TPtr*             B,
+                                           rocblas_int       ldb,
+                                           rocblas_stride    stride_b,
+                                           rocblas_int       batch_count,
+                                           const int         check_numerics,
+                                           bool              is_input);
