@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2019-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -9,7 +27,7 @@
 //-- Innovative Computing Laboratory
 //  -- Electrical Engineering and Computer Science Department
 //  -- University of Tennessee
-//  -- (C) Copyright 2009-2020
+//  -- (C) Copyright (C) 2009-2020
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions
@@ -577,7 +595,7 @@ hemvn_kernel_upper_block_sum(rocblas_int    n,
                              U              beta_device_host,
                              rocblas_stride stride_beta,
                              TPtr __restrict__ ya,
-                             ptrdiff_t      shifty,
+                             rocblas_stride shifty,
                              rocblas_int    incy,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
@@ -1099,7 +1117,7 @@ hemvn_kernel_lower_block_sum(rocblas_int    n,
                              U              beta_device_host,
                              rocblas_stride stride_beta,
                              TPtr __restrict__ ya,
-                             ptrdiff_t      shifty,
+                             rocblas_stride shifty,
                              rocblas_int    incy,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
@@ -1157,11 +1175,11 @@ hemvn_kernel_upper(rocblas_int    n,
                    U              alpha_device_host,
                    rocblas_stride stride_alpha,
                    V              Aa,
-                   ptrdiff_t      shifta,
+                   rocblas_stride shifta,
                    T_lda          lda,
                    rocblas_stride strideA,
                    V              xa,
-                   ptrdiff_t      shiftx,
+                   rocblas_stride shiftx,
                    rocblas_int    incx,
                    rocblas_stride stridex,
                    U              beta_device_host,
@@ -1201,11 +1219,11 @@ hemvn_kernel_lower(rocblas_int    n,
                    U              alpha_device_host,
                    rocblas_stride stride_alpha,
                    V              Aa,
-                   ptrdiff_t      shifta,
+                   rocblas_stride shifta,
                    T_lda          lda,
                    rocblas_stride strideA,
                    V              xa,
-                   ptrdiff_t      shiftx,
+                   rocblas_stride shiftx,
                    rocblas_int    incx,
                    rocblas_stride stridex,
                    U              beta_device_host,
@@ -1244,17 +1262,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                         const U*       alpha,
                                         rocblas_stride stride_alpha,
                                         V              A,
-                                        rocblas_int    offseta,
+                                        rocblas_stride offseta,
                                         rocblas_int    lda,
                                         rocblas_stride strideA,
                                         V              x,
-                                        rocblas_int    offsetx,
+                                        rocblas_stride offsetx,
                                         rocblas_int    incx,
                                         rocblas_stride stridex,
                                         const U*       beta,
                                         rocblas_stride stride_beta,
                                         TPtr           y,
-                                        rocblas_int    offsety,
+                                        rocblas_stride offsety,
                                         rocblas_int    incy,
                                         rocblas_stride stridey,
                                         rocblas_int    batch_count,
@@ -1440,17 +1458,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    const V*       alpha,
                                    rocblas_stride stride_alpha,
                                    const U*       A,
-                                   rocblas_int    offseta,
+                                   rocblas_stride offseta,
                                    rocblas_int    lda,
                                    rocblas_stride strideA,
                                    const U*       x,
-                                   rocblas_int    offsetx,
+                                   rocblas_stride offsetx,
                                    rocblas_int    incx,
                                    rocblas_stride stridex,
                                    const V*       beta,
                                    rocblas_stride stride_beta,
                                    TPtr*          y,
-                                   rocblas_int    offsety,
+                                   rocblas_stride offsety,
                                    rocblas_int    incy,
                                    rocblas_stride stridey,
                                    rocblas_int    batch_count,
@@ -1690,17 +1708,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symv_t
                                    V_ const*       alpha,                               \
                                    rocblas_stride stride_alpha,                         \
                                    U_ const*       A,                                   \
-                                   rocblas_int    offseta,                              \
+                                   rocblas_stride offseta,                              \
                                    rocblas_int    lda,                                  \
                                    rocblas_stride strideA,                              \
                                    U_ const*       x,                                   \
-                                   rocblas_int    offsetx,                              \
+                                   rocblas_stride offsetx,                              \
                                    rocblas_int    incx,                                 \
                                    rocblas_stride stridex,                              \
                                    V_ const*       beta,                                \
                                    rocblas_stride stride_beta,                          \
                                    TPtr_*          y,                                   \
-                                   rocblas_int    offsety,                              \
+                                   rocblas_stride offsety,                              \
                                    rocblas_int    incy,                                 \
                                    rocblas_stride stridey,                              \
                                    rocblas_int    batch_count,                          \
@@ -1732,17 +1750,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status             \
                                         U_ const*      alpha,        \
                                         rocblas_stride stride_alpha, \
                                         V_             A,            \
-                                        rocblas_int    offseta,      \
+                                        rocblas_stride offseta,      \
                                         rocblas_int    lda,          \
                                         rocblas_stride strideA,      \
                                         V_             x,            \
-                                        rocblas_int    offsetx,      \
+                                        rocblas_stride offsetx,      \
                                         rocblas_int    incx,         \
                                         rocblas_stride stridex,      \
                                         U_ const*      beta,         \
                                         rocblas_stride stride_beta,  \
                                         TPtr_          y,            \
-                                        rocblas_int    offsety,      \
+                                        rocblas_stride offsety,      \
                                         rocblas_int    incy,         \
                                         rocblas_stride stridey,      \
                                         rocblas_int    batch_count,  \

@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -13,6 +31,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -43,11 +62,15 @@ void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
     rocblas_stride          strideC     = 1;
     rocblas_int             batch_count = 2;
 
-    const size_t safe_size = 100;
-    // allocate memory on device
-    device_vector<T> dA(safe_size);
-    device_vector<T> dB(safe_size);
-    device_vector<T> dC(safe_size);
+    size_t rows = (transA == rocblas_operation_none ? N : K);
+    size_t cols = (transA == rocblas_operation_none ? K : N);
+
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(rows, cols, lda, strideA, batch_count);
+    device_strided_batch_matrix<T> dB(rows, cols, ldb, strideB, batch_count);
+    device_strided_batch_matrix<T> dC(N, N, ldc, strideC, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -284,39 +307,24 @@ void testing_syr2k_strided_batched(const Arguments& arg)
 
         return;
     }
-
-    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
     size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
-    strideA     = std::max(strideA, rocblas_stride(lda * cols));
-    strideB     = std::max(strideB, rocblas_stride(ldb * cols));
-    strideC     = std::max(strideC, rocblas_stride(size_t(ldc) * N));
+    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
 
-    size_t size_A = strideA * batch_count;
-    size_t size_B = strideB * batch_count;
-    size_t size_C = strideC * batch_count;
+    strideA = std::max(strideA, rocblas_stride(lda * cols));
+    strideB = std::max(strideB, rocblas_stride(ldb * cols));
+    strideC = std::max(strideC, rocblas_stride(size_t(ldc) * N));
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(rows, cols, lda, strideA, batch_count);
+    host_strided_batch_matrix<T> hB(rows, cols, ldb, strideB, batch_count);
+    host_strided_batch_matrix<T> hC_1(N, N, ldc, strideC, batch_count);
+    host_strided_batch_matrix<T> hC_2(N, N, ldc, strideC, batch_count);
+    host_strided_batch_matrix<T> hC_gold(N, N, ldc, strideC, batch_count);
+    host_vector<T>               h_alpha(1);
+    host_vector<T>               h_beta(1);
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> h_alpha(1);
-    host_vector<T> h_beta(1);
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> hC_gold(size_C);
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
@@ -327,49 +335,38 @@ void testing_syr2k_strided_batched(const Arguments& arg)
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
 
-    // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        rows,
-                        cols,
-                        lda,
-                        strideA,
-                        batch_count,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_triangular_matrix,
-                        true);
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(rows, cols, lda, strideA, batch_count);
+    device_strided_batch_matrix<T> dB(rows, cols, ldb, strideB, batch_count);
+    device_strided_batch_matrix<T> dC(N, N, ldc, strideC, batch_count);
+    device_vector<T>               d_alpha(1);
+    device_vector<T>               d_beta(1);
 
-    rocblas_init_matrix(hC_1,
-                        arg,
-                        N,
-                        N,
-                        ldc,
-                        strideC,
-                        batch_count,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_symmetric_matrix);
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+
+    // Initialize data on host memory
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
+
+    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix);
 
     if(TWOK)
     {
-        rocblas_init_matrix(hB,
-                            arg,
-                            rows,
-                            cols,
-                            ldb,
-                            strideB,
-                            batch_count,
-                            rocblas_client_never_set_nan,
-                            rocblas_client_triangular_matrix,
-                            false,
-                            true);
+        rocblas_init_matrix(
+            hB, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, false, true);
     }
     else
     { // using syrk as syrkx reference so testing with B = A
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb, strideA, strideB, batch_count);
     }
 
-    hC_2    = hC_1;
-    hC_gold = hC_1;
+    hC_2.copy_from(hC_1);
+    hC_gold.copy_from(hC_1);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -433,7 +430,7 @@ void testing_syr2k_strided_batched(const Arguments& arg)
         }
 
         // cpu reference
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
             if(TWOK)
             {
@@ -442,12 +439,12 @@ void testing_syr2k_strided_batched(const Arguments& arg)
                                N,
                                K,
                                h_alpha[0],
-                               hA + i * strideA,
+                               hA[b],
                                lda,
-                               hB + i * strideB,
+                               hB[b],
                                ldb,
                                h_beta[0],
-                               hC_gold + i * strideC,
+                               hC_gold[b],
                                ldc);
             }
             else // syrkx
@@ -457,10 +454,10 @@ void testing_syr2k_strided_batched(const Arguments& arg)
                               N,
                               K,
                               h_alpha[0],
-                              hA + i * strideA,
+                              hA[b],
                               lda,
                               h_beta[0],
-                              hC_gold + i * strideC,
+                              hC_gold[b],
                               ldc); // B must == A to use syrk as reference
             }
         }

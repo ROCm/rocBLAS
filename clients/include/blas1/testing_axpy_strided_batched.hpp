@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -27,12 +45,15 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
     rocblas_int          N = 100, incx = 1, incy = 1, batch_count = 2;
 
-    rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
+    rocblas_stride stridex = N * incx, stridey = N * incy;
 
     T alpha = 0.6, zero = 0.0;
 
-    device_strided_batch_vector<T> dx(10, 1, 10, 2), dy(10, 1, 10, 2);
+    // Allocate device memory
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count),
+        dy(N, incy, stridey, batch_count);
 
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
@@ -101,40 +122,42 @@ void testing_axpy_strided_batched(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incy = std::abs(incy);
+    rocblas_int abs_incy = incy > 0 ? incy : -incy;
 
-    //
-    // Host memory.
-    //
-    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stridex, batch_count),
-        hy(N, incy ? incy : 1, stridey, batch_count), hy1(N, incy ? incy : 1, stridey, batch_count),
-        hy2(N, incy ? incy : 1, stridey, batch_count);
-    host_vector<T> halpha(1);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stridex, batch_count);
+    host_strided_batch_vector<T> hy_1(N, incy ? incy : 1, stridey, batch_count);
+    host_strided_batch_vector<T> hy_2(N, incy ? incy : 1, stridey, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy ? incy : 1, stridey, batch_count);
+    host_vector<T>               halpha(1);
 
+    halpha[0] = h_alpha;
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy.memcheck());
-    CHECK_HIP_ERROR(hy1.memcheck());
-    CHECK_HIP_ERROR(hy2.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
+    CHECK_HIP_ERROR(hy_1.memcheck());
+    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
 
-    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stridex, batch_count),
-        dy(N, incy ? incy : 1, stridey, batch_count);
-    device_vector<T> dalpha(1);
+    // Allocate device memory
+    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stridex, batch_count);
+    device_strided_batch_vector<T> dy(N, incy ? incy : 1, stridey, batch_count);
+    device_vector<T>               dalpha(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dalpha.memcheck());
 
-    halpha[0] = h_alpha;
-
-    //
     // Initialize data on host memory
-    //
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_alpha_sets_nan, false, true);
 
-    //
+    hy_gold.copy_from(hy_1);
+    hy_2.copy_from(hy_1);
+
     // Device memory.
-    //
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
@@ -142,84 +165,63 @@ void testing_axpy_strided_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
 
-        //
         // Transfer host to device
-        //
         CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-        //
         // Call routine with pointer mode on host.
-        //
         {
 
-            //
-            // Pointer mode.
-            //
+            // Pointer mode host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            //
-            // Transfer host to device
-            //
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-            //
+            // Transfer host to device
+            CHECK_HIP_ERROR(dy.transfer_from(hy_1));
+
             // Call routine.
-            //
             CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched_fn(
                 handle, N, halpha, dx, incx, stridex, dy, incy, stridey, batch_count));
 
-            CHECK_HIP_ERROR(hy1.transfer_from(dy));
+            CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
-            //
-            // Pointer mode.
-            //
+            // Pointer mode device.
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            //
+
             // Transfer host to device
-            //
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            CHECK_HIP_ERROR(dy.transfer_from(hy_2));
             CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
-            //
+
             // Call routine.
-            //
             CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched_fn(
                 handle, N, dalpha, dx, incx, stridex, dy, incy, stridey, batch_count));
 
-            //
             // Transfer from device to host.
-            //
-            CHECK_HIP_ERROR(hy2.transfer_from(dy));
+            CHECK_HIP_ERROR(hy_2.transfer_from(dy));
 
-            //
             // CPU BLAS
-            //
             {
                 cpu_time_used = get_time_us_no_sync();
 
-                //
                 // Compute the host solution.
-                //
                 for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
                 {
-                    cblas_axpy<T>(N, h_alpha, hx[batch_index], incx, hy[batch_index], incy);
+                    cblas_axpy<T>(N, h_alpha, hx[batch_index], incx, hy_gold[batch_index], incy);
                 }
                 cpu_time_used = get_time_us_no_sync() - cpu_time_used;
             }
 
-            //
             // Compare with with the solution.
-            //
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incy, stridey, hy, hy1, batch_count);
-                unit_check_general<T>(1, N, abs_incy, stridey, hy, hy2, batch_count);
+                unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
+                unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
             }
 
             if(arg.norm_check)
             {
-                rocblas_error_1
-                    = norm_check_general<T>('I', 1, N, abs_incy, stridey, hy, hy1, batch_count);
-                rocblas_error_2
-                    = norm_check_general<T>('I', 1, N, abs_incy, stridey, hy, hy2, batch_count);
+                rocblas_error_1 = norm_check_general<T>(
+                    'I', 1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
+                rocblas_error_2 = norm_check_general<T>(
+                    'I', 1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
             }
         }
     }
@@ -230,24 +232,18 @@ void testing_axpy_strided_batched(const Arguments& arg)
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        //
         // Transfer from host to device.
-        //
-        CHECK_HIP_ERROR(dy.transfer_from(hy));
+        CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
-        //
         // Cold.
-        //
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_axpy_strided_batched_fn(
                 handle, N, &h_alpha, dx, incx, stridex, dy, incy, stridey, batch_count);
         }
 
-        //
         // Transfer from host to device.
-        //
-        CHECK_HIP_ERROR(dy.transfer_from(hy));
+        CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));

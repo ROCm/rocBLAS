@@ -48,10 +48,10 @@ Tests:
   category: pre_checkin
   function: trmv_bad_arg
   precision: *single_double_precisions
-  uplo: [L, U]
-  transA: [N, T, C]
-  diag: [N, U]
-  fortran: [ false, true ]
+  uplo: L
+  transA: N
+  diag: N
+  fortran: false
 
 - name: trmv_arg_check
   category: quick

@@ -1,9 +1,27 @@
 /* ************************************************************************
- * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "handle.hpp"
-#include "rocblas_symm.hpp"
+#include "rocblas_symm_hemm.hpp"
 
 template <typename T>
 ROCBLAS_KERNEL_ILF void
@@ -212,48 +230,6 @@ symm_hemm_kernel(bool           upper,
     symm_hemm_mult_add_device<HERM, RIGHT, DIM_XYT>(upper, m, n, alpha, A, lda, B, ldb, C, ldc);
 }
 
-template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_symm_arg_check(rocblas_handle handle,
-                                      rocblas_side   side,
-                                      rocblas_fill   uplo,
-                                      rocblas_int    m,
-                                      rocblas_int    n,
-                                      TScal          alpha,
-                                      TConstPtr      AP,
-                                      rocblas_stride offsetA,
-                                      rocblas_int    lda,
-                                      rocblas_stride strideA,
-                                      TConstPtr      BP,
-                                      rocblas_stride offsetB,
-                                      rocblas_int    ldb,
-                                      rocblas_stride strideB,
-                                      TScal          beta,
-                                      const TPtr     CP,
-                                      rocblas_stride offsetC,
-                                      rocblas_int    ldc,
-                                      rocblas_stride strideC,
-                                      rocblas_int    batch_count)
-{
-
-    if(side != rocblas_side_left && side != rocblas_side_right)
-        return rocblas_status_invalid_value;
-
-    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-        return rocblas_status_invalid_value;
-
-    if(batch_count < 0 || m < 0 || n < 0 || ldc < m || ldb < m
-       || (side == rocblas_side_left && (lda < m)) || (side != rocblas_side_left && (lda < n)))
-        return rocblas_status_invalid_size;
-
-    if(!m || !n || !batch_count)
-        return rocblas_status_success;
-
-    if(!AP || !BP || !alpha || !CP || !beta)
-        return rocblas_status_invalid_pointer;
-
-    return rocblas_status_continue;
-}
-
 /**
   *  TScal     is always: const T* (either host or device)
   *  TConstPtr is either: const T* OR const T* const*
@@ -441,47 +417,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 // template parameters in the files symm*.cpp
 
 // clang-format off
-#ifdef INSTANTIATE_SYMM_ARG_CHECK
-#error INSTANTIATE_SYMM_ARG_CHECK already defined
-#endif
-
-#define INSTANTIATE_SYMM_ARG_CHECK(TScal_, TConstPtr_, TPtr_)              \
-template rocblas_status rocblas_symm_arg_check<TScal_, TConstPtr_, TPtr_>   \
-                                              (rocblas_handle handle,       \
-                                               rocblas_side   side,         \
-                                               rocblas_fill   uplo,         \
-                                               rocblas_int    m,            \
-                                               rocblas_int    n,            \
-                                               TScal_         alpha,        \
-                                               TConstPtr_     AP,           \
-                                               rocblas_stride offsetA,      \
-                                               rocblas_int    lda,          \
-                                               rocblas_stride strideA,      \
-                                               TConstPtr_     BP,           \
-                                               rocblas_stride offsetB,      \
-                                               rocblas_int    ldb,          \
-                                               rocblas_stride strideB,      \
-                                               TScal_         beta,         \
-                                               TPtr_          CP,           \
-                                               rocblas_stride offsetC,      \
-                                               rocblas_int    ldc,          \
-                                               rocblas_stride strideC,      \
-                                               rocblas_int    batch_count);
-
-// instantiate for rocblas_Xsymm and rocblas_Xsymm_strided_batched
-INSTANTIATE_SYMM_ARG_CHECK( float const*,  float const*, float*)
-INSTANTIATE_SYMM_ARG_CHECK(double const*, double const*, double*)
-INSTANTIATE_SYMM_ARG_CHECK(rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYMM_ARG_CHECK(rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
-
-// instantiate for rocblas_Xsymm_batched
-INSTANTIATE_SYMM_ARG_CHECK( float const*,  float const* const*, float* const*)
-INSTANTIATE_SYMM_ARG_CHECK(double const*, double const* const*, double* const*)
-INSTANTIATE_SYMM_ARG_CHECK(rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_SYMM_ARG_CHECK(rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
-
-#undef INSTANTIATE_SYMM_ARG_CHECK
-
 #ifdef INSTANTIATE_SYMM_TEMPLATE
 #error INSTANTIATE_SYMM_TEMPLATE already defined
 #endif

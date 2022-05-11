@@ -73,19 +73,19 @@ Tests:
   uplo: L
   matrix_size: *special_case_range
 
-# - name: her2_size_t_M
-#   category: nightly
-#   function:
-#   - her2
-#   precision: *single_precision_complex
-#   #- her2: *single_double_precisions_complex
-#   # shared code for size_t with non-batched
-#   #- her2_batched: *single_precision_complex
-#   #- her2_strided_batched: *single_precision_complex
-#   uplo: [U, L]
-#   matrix_size: *size_t_index
-#   incx: 1
-#   incy: 1
+- name: her2_size_t_M
+  category: nightly
+  function:
+  - her2
+  precision: *single_precision_complex
+  #- her2: *single_double_precisions_complex
+  # shared code for size_t with non-batched
+  #- her2_batched: *single_precision_complex
+  #- her2_strided_batched: *single_precision_complex
+  uplo: [U, L]
+  matrix_size: *size_t_index
+  incx: 1
+  incy: 1
 
 
 - name: her2_fortran

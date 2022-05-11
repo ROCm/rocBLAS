@@ -1,10 +1,59 @@
 /* ************************************************************************
-* Copyright 2016-2022 Advanced Micro Devices, Inc.
+* Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
 * ************************************************************************ */
 
 #pragma once
 
 #include "gemm.hpp"
+
+template <typename U, typename V>
+inline rocblas_status rocblas_trtri_arg_check(rocblas_handle   handle,
+                                              rocblas_fill     uplo,
+                                              rocblas_diagonal diag,
+                                              rocblas_int      n,
+                                              U                A,
+                                              rocblas_int      lda,
+                                              V                invA,
+                                              rocblas_int      ldinvA,
+                                              rocblas_int      batch_count)
+{
+
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(diag != rocblas_diagonal_non_unit && diag != rocblas_diagonal_unit)
+        return rocblas_status_invalid_value;
+
+    if(batch_count < 0 || n < 0 || lda < n || ldinvA < n)
+        return rocblas_status_invalid_size;
+
+    // quick return if possible.
+    if(!n || !batch_count)
+        return rocblas_status_success;
+
+    if(!A || !invA)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
 
 template <rocblas_int IB, typename T>
 ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
@@ -303,7 +352,7 @@ constexpr size_t num_non_tri_elements(size_t n)
 }
 
 template <typename T>
-ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_upper(size_t         offset,
+ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_upper(rocblas_stride offset,
                                                   size_t         idx,
                                                   rocblas_int    n,
                                                   rocblas_int    lda,
@@ -321,7 +370,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_upper(size_t         offset,
 
 template <typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_lower(
-    size_t offset, size_t idx, rocblas_int lda, rocblas_int sub_stride_A, T value, T* A)
+    rocblas_stride offset, size_t idx, rocblas_int lda, rocblas_stride sub_stride_A, T value, T* A)
 {
     rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);
     rocblas_int col = idx - row * (row + 1) / 2;
@@ -340,7 +389,7 @@ rocblas_trtri_fill(rocblas_handle handle,
                    rocblas_int    lda,
                    rocblas_stride sub_stride_A,
                    U              A,
-                   rocblas_int    offset_A,
+                   rocblas_stride offset_A,
                    rocblas_stride stride_A,
                    rocblas_int    sub_batch_count)
 {
@@ -373,12 +422,12 @@ trtri_small_kernel(rocblas_fill     uplo,
                    rocblas_diagonal diag,
                    rocblas_int      n,
                    U                A,
-                   rocblas_int      offset_A,
+                   rocblas_stride   offset_A,
                    rocblas_int      lda,
                    rocblas_stride   stride_A,
                    rocblas_stride   sub_stride_A,
                    V                invA,
-                   rocblas_int      offset_invA,
+                   rocblas_stride   offset_invA,
                    rocblas_int      ldinvA,
                    rocblas_stride   stride_invA,
                    rocblas_stride   sub_stride_invA)
@@ -398,12 +447,12 @@ ROCBLAS_KERNEL_NO_BOUNDS trtri_remainder_kernel(rocblas_fill     uplo,
                                                 rocblas_diagonal diag,
                                                 rocblas_int      n,
                                                 U                A,
-                                                rocblas_int      offset_A,
+                                                rocblas_stride   offset_A,
                                                 rocblas_int      lda,
                                                 rocblas_stride   stride_A,
                                                 rocblas_stride   sub_stride_A,
                                                 V                invA,
-                                                rocblas_int      offset_invA,
+                                                rocblas_stride   offset_invA,
                                                 rocblas_int      ldinvA,
                                                 rocblas_stride   stride_invA,
                                                 rocblas_stride   sub_stride_invA)
@@ -424,12 +473,12 @@ rocblas_status rocblas_trtri_small(rocblas_handle   handle,
                                    rocblas_diagonal diag,
                                    rocblas_int      n,
                                    U                A,
-                                   rocblas_int      offset_A,
+                                   rocblas_stride   offset_A,
                                    rocblas_int      lda,
                                    rocblas_stride   stride_A,
                                    rocblas_stride   sub_stride_A,
                                    V                invA,
-                                   rocblas_int      offset_invA,
+                                   rocblas_stride   offset_invA,
                                    rocblas_int      ldinvA,
                                    rocblas_stride   stride_invA,
                                    rocblas_stride   sub_stride_invA,
@@ -490,12 +539,12 @@ trtri_diagonal_kernel(rocblas_fill     uplo,
                       rocblas_diagonal diag,
                       rocblas_int      n,
                       U                A,
-                      rocblas_int      offset_A,
+                      rocblas_stride   offset_A,
                       rocblas_int      lda,
                       rocblas_stride   stride_A,
                       rocblas_stride   sub_stride_A,
                       V                invA,
-                      rocblas_int      offset_invA,
+                      rocblas_stride   offset_invA,
                       rocblas_int      ldinvA,
                       rocblas_stride   stride_invA,
                       rocblas_stride   sub_stride_invA)
@@ -539,11 +588,11 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
                                 rocblas_stride sub_stride_C,
                                 rocblas_int    batch_count,
                                 rocblas_int    sub_blocks,
-                                rocblas_int    offset_A       = 0,
+                                rocblas_stride offset_A       = 0,
                                 rocblas_int    offset_invAg1  = 0,
                                 rocblas_int    offset_invAg2a = 0,
                                 rocblas_int    offset_invAg2c = 0,
-                                rocblas_int    offset_C       = 0)
+                                rocblas_stride offset_C       = 0)
 {
     std::unique_ptr<T*[]> host_A;
     std::unique_ptr<T*[]> host_invAg1;
@@ -663,12 +712,12 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                                    rocblas_diagonal diag,
                                    rocblas_int      n,
                                    U                A,
-                                   rocblas_int      offset_Ain,
+                                   rocblas_stride   offset_Ain,
                                    rocblas_int      lda,
                                    rocblas_stride   stride_A,
                                    rocblas_stride   sub_stride_Ain,
                                    V                invA,
-                                   rocblas_int      offset_invAin,
+                                   rocblas_stride   offset_invAin,
                                    rocblas_int      ldinvA,
                                    rocblas_stride   stride_invA,
                                    rocblas_stride   sub_stride_invAin,
@@ -1053,12 +1102,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_diagonal diag,
                                     rocblas_int      n,
                                     U                A,
-                                    rocblas_int      offset_A,
+                                    rocblas_stride   offset_A,
                                     rocblas_int      lda,
                                     rocblas_stride   stride_A,
                                     rocblas_stride   sub_stride_A,
                                     V                invA,
-                                    rocblas_int      offset_invA,
+                                    rocblas_stride   offset_invA,
                                     rocblas_int      ldinvA,
                                     rocblas_stride   stride_invA,
                                     rocblas_stride   sub_stride_invA,

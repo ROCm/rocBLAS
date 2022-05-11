@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "check_numerics_matrix.hpp"
@@ -21,15 +39,15 @@ ger_kernel(rocblas_int    m,
            V              alpha_device_host,
            rocblas_stride stride_alpha,
            const U __restrict__ xa,
-           ptrdiff_t      shiftx,
+           rocblas_stride shiftx,
            rocblas_int    incx,
            rocblas_stride stridex,
            const U __restrict__ ya,
-           ptrdiff_t      shifty,
+           rocblas_stride shifty,
            rocblas_int    incy,
            rocblas_stride stridey,
            W __restrict__ Aa,
-           ptrdiff_t      shifta,
+           rocblas_stride shifta,
            rocblas_int    lda,
            rocblas_stride strideA)
 {
@@ -87,15 +105,15 @@ sger_kernel(rocblas_int    m,
             V              alpha_device_host,
             rocblas_stride stride_alpha,
             const U __restrict__ xa,
-            ptrdiff_t      shiftx,
+            rocblas_stride shiftx,
             rocblas_int    incx,
             rocblas_stride stridex,
             const U __restrict__ ya,
-            ptrdiff_t      shifty,
+            rocblas_stride shifty,
             rocblas_int    incy,
             rocblas_stride stridey,
             W __restrict__ Aa,
-            ptrdiff_t      shifta,
+            rocblas_stride shifta,
             rocblas_int    lda,
             rocblas_stride strideA)
 {
@@ -137,17 +155,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                   const V*       alpha,
                                   rocblas_stride stride_alpha,
                                   const U*       x,
-                                  rocblas_int    offsetx,
+                                  rocblas_stride offsetx,
                                   rocblas_int    incx,
-                                  rocblas_int    stridex,
+                                  rocblas_stride stridex,
                                   const U*       y,
-                                  rocblas_int    offsety,
+                                  rocblas_stride offsety,
                                   rocblas_int    incy,
-                                  rocblas_int    stridey,
+                                  rocblas_stride stridey,
                                   W*             A,
-                                  rocblas_int    offsetA,
+                                  rocblas_stride offsetA,
                                   rocblas_int    lda,
-                                  rocblas_int    strideA,
+                                  rocblas_stride strideA,
                                   rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
@@ -229,18 +247,20 @@ rocblas_status rocblas_ger_check_numerics(const char*    function_name,
                                           bool           is_input)
 {
     rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                             handle,
-                                                             rocblas_operation_none,
-                                                             m,
-                                                             n,
-                                                             A,
-                                                             offset_a,
-                                                             lda,
-                                                             stride_a,
-                                                             batch_count,
-                                                             check_numerics,
-                                                             is_input);
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          rocblas_operation_none,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          n,
+                                                          A,
+                                                          offset_a,
+                                                          lda,
+                                                          stride_a,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
@@ -289,17 +309,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_ger_te
                                   V_ const *      alpha,                               \
                                   rocblas_stride stride_alpha,                         \
                                   U_ const *      x,                                   \
-                                  rocblas_int    offsetx,                              \
+                                  rocblas_stride    offsetx,                              \
                                   rocblas_int    incx,                                 \
-                                  rocblas_int    stridex,                              \
+                                  rocblas_stride    stridex,                              \
                                   U_ const *      y,                                   \
-                                  rocblas_int    offsety,                              \
+                                  rocblas_stride    offsety,                              \
                                   rocblas_int    incy,                                 \
-                                  rocblas_int    stridey,                              \
+                                  rocblas_stride    stridey,                              \
                                   W_*            A,                                    \
-                                  rocblas_int    offsetA,                              \
+                                  rocblas_stride    offsetA,                              \
                                   rocblas_int    lda,                                  \
-                                  rocblas_int    strideA,                              \
+                                  rocblas_stride    strideA,                              \
                                   rocblas_int    batch_count);
 
 INSTANTIATE_GER_TEMPLATE(false, float, float, float, float)

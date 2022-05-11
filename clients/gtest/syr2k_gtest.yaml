@@ -62,10 +62,20 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
 
-- name: syr2k_medium
+- name: syr2k_medium_real
   category: pre_checkin
   function: syr2k
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  fortran: [ false, true ]
+
+- name: syr2k_medium_complex
+  category: pre_checkin
+  function: syr2k
+  precision: *single_double_precisions_complex
   uplo: [ U, L ]
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range

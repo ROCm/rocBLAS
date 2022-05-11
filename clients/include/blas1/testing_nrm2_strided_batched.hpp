@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -31,8 +49,11 @@ void testing_nrm2_strided_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    device_vector<T>         dx(safe_size);
-    device_vector<real_t<T>> d_rocblas_result(batch_count);
+    // Allocate device memory
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_vector<real_t<T>>       d_rocblas_result(batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
@@ -103,27 +124,29 @@ void testing_nrm2_strided_batched(const Arguments& arg)
         return;
     }
 
-    real_t<T> rocblas_result_1[batch_count];
-    real_t<T> rocblas_result_2[batch_count];
-    real_t<T> cpu_result[batch_count];
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
+    host_vector<real_t<T>>       rocblas_result_1(batch_count);
+    host_vector<real_t<T>>       rocblas_result_2(batch_count);
+    host_vector<real_t<T>>       cpu_result(batch_count);
 
-    size_t size_x = (size_t)stridex;
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hx.memcheck());
 
-    // allocate memory on device
-    device_vector<T>         dx(batch_count * size_x);
-    device_vector<real_t<T>> d_rocblas_result_2(batch_count);
+    // Allocate device memory
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_vector<real_t<T>>       d_rocblas_result_2(batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
-    // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx(batch_count * size_x);
-
     // Initialize data on host memory
-    rocblas_init_vector(
-        hx, arg, N, incx, stridex, batch_count, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
     // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
 
@@ -138,15 +161,15 @@ void testing_nrm2_strided_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_strided_batched_fn(
             handle, N, dx, incx, stridex, batch_count, d_rocblas_result_2));
-        CHECK_HIP_ERROR(hipMemcpy(rocblas_result_2,
-                                  d_rocblas_result_2,
-                                  batch_count * sizeof(real_t<T>),
-                                  hipMemcpyDeviceToHost));
+
+        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int i = 0; i < batch_count; i++)
-            cblas_nrm2<T>(N, hx + i * stridex, incx, cpu_result + i);
+
+        for(int b = 0; b < batch_count; b++)
+            cblas_nrm2<T>(N, hx[b], incx, cpu_result + b);
+
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         real_t<T> abs_result = cpu_result[0] > 0 ? cpu_result[0] : -cpu_result[0];
@@ -176,10 +199,13 @@ void testing_nrm2_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result[0] << ", gpu_host_ptr=" << rocblas_result_1[0]
-                         << ", gpu_dev_ptr=" << rocblas_result_2[0] << "\n";
-            rocblas_error_1 = std::abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
-            rocblas_error_2 = std::abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
+            for(int b = 0; b < batch_count; ++b)
+            {
+                rocblas_error_1
+                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                rocblas_error_2
+                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+            }
         }
     }
 

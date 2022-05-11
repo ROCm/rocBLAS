@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -65,6 +83,13 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!handle)
         return rocblas_status_invalid_handle;
 
+    if(trans_a != rocblas_operation_none && trans_a != rocblas_operation_transpose
+       && trans_a != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+    if(trans_b != rocblas_operation_none && trans_b != rocblas_operation_transpose
+       && trans_b != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
     // sizes must not be negative
     if(m < 0 || n < 0 || k < 0 || batch_count < 0)
         return rocblas_status_invalid_size;
@@ -85,21 +110,29 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!beta)
         return rocblas_status_invalid_pointer;
 
-    if(handle->pointer_mode == rocblas_pointer_mode_host && *beta == 1)
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        if(!k)
-            return rocblas_status_success;
+        if(*beta == 1)
+        {
+            if(!k)
+                return rocblas_status_success;
 
-        if(!alpha)
+            if(!alpha)
+                return rocblas_status_invalid_pointer;
+
+            if(!*alpha)
+                return rocblas_status_success;
+        }
+        // all early return success now handled so
+        // pointers must be valid
+        bool ab_calc_invalid = !alpha || (*alpha != 0 && (!a || !b));
+        if(!c || (k && ab_calc_invalid))
             return rocblas_status_invalid_pointer;
-
-        if(!*alpha)
-            return rocblas_status_success;
     }
-
-    // pointers must be valid
-    if((k && (!a || !b || !alpha)) || !c)
-        return rocblas_status_invalid_pointer;
+    else
+    {
+        return rocblas_status_internal_error; // always pushed host_mode prevalidation
+    }
 
     return rocblas_status_continue;
 }
@@ -133,17 +166,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count)
 {
-    // Early exit. Note: k==0 is not an early exit, since C still needs to be multiplied by beta.
-    if(m == 0 || n == 0 || batch_count == 0)
-        return rocblas_status_success;
-
     TScal alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
         copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
-
-    // When beta == 1 and either k == 0 or alpha == 0, the operation is a no-op
-    if(*beta == 1 && (k == 0 || *alpha == 0))
-        return rocblas_status_success;
 
 #ifdef BUILD_WITH_TENSILE
     if(BATCHED)
@@ -196,6 +221,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
 #else // BUILD_WITH_TENSILE
     hipStream_t rocblas_stream = handle->get_stream();
+
+    if(k == 0 || (alpha && *alpha == 0))
+    {
+        return rocblas_gemm_scale_template(
+            m, n, *beta, C, offset_c, ldc, stride_c, batch_count, rocblas_stream);
+    }
+
     gemm_source_solution<BATCHED>(trans_a,
                                   trans_b,
                                   m,
@@ -244,49 +276,56 @@ rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
 {
 
     rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                             handle,
-                                                             trans_a,
-                                                             m,
-                                                             k,
-                                                             A,
-                                                             0,
-                                                             lda,
-                                                             stride_a,
-                                                             batch_count,
-                                                             check_numerics,
-                                                             is_input);
-    if(check_numerics_status != rocblas_status_success)
-        return check_numerics_status;
-
-    check_numerics_status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                               handle,
-                                                                               trans_b,
-                                                                               k,
-                                                                               n,
-                                                                               B,
-                                                                               0,
-                                                                               ldb,
-                                                                               stride_b,
-                                                                               batch_count,
-                                                                               check_numerics,
-                                                                               is_input);
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          trans_a,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          k,
+                                                          A,
+                                                          0,
+                                                          lda,
+                                                          stride_a,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
     check_numerics_status
-        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                             handle,
-                                                             rocblas_operation_none,
-                                                             m,
-                                                             n,
-                                                             C,
-                                                             0,
-                                                             ldc,
-                                                             stride_c,
-                                                             batch_count,
-                                                             check_numerics,
-                                                             is_input);
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          trans_b,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          k,
+                                                          n,
+                                                          B,
+                                                          0,
+                                                          ldb,
+                                                          stride_b,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          rocblas_operation_none,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          n,
+                                                          C,
+                                                          0,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
 
     return check_numerics_status;
 }
