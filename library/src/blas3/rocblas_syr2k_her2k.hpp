@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 #include "herk_scale_device.hpp"
 
@@ -206,3 +207,23 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int       ldc,
                                     rocblas_stride    strideC,
                                     rocblas_int       batch_count);
+
+template <bool HERM, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_name,
+                                                  rocblas_handle    handle,
+                                                  rocblas_fill      uplo,
+                                                  rocblas_operation trans,
+                                                  rocblas_int       n,
+                                                  rocblas_int       k,
+                                                  TConstPtr         A,
+                                                  rocblas_int       lda,
+                                                  rocblas_stride    strideA,
+                                                  TConstPtr         B,
+                                                  rocblas_int       ldb,
+                                                  rocblas_stride    strideB,
+                                                  TPtr              C,
+                                                  rocblas_int       ldc,
+                                                  rocblas_stride    strideC,
+                                                  rocblas_int       batch_count,
+                                                  const int         check_numerics,
+                                                  bool              is_input);

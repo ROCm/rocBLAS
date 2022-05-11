@@ -56,7 +56,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -167,26 +168,82 @@ namespace
             return arg_status;
 
         static constexpr bool Hermetian = true;
-        return rocblas_internal_symm_template<Hermetian>(handle,
-                                                         side,
-                                                         uplo,
-                                                         m,
-                                                         n,
-                                                         alpha,
-                                                         A,
-                                                         offset_A,
-                                                         lda,
-                                                         stride_a,
-                                                         B,
-                                                         offset_B,
-                                                         ldb,
-                                                         stride_b,
-                                                         beta,
-                                                         C,
-                                                         offset_C,
-                                                         ldc,
-                                                         stride_c,
-                                                         batch_count);
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status hemm_check_numerics_status
+                = rocblas_hemm_symm_check_numerics<Hermetian>(rocblas_hemm_name<T>,
+                                                              handle,
+                                                              side,
+                                                              uplo,
+                                                              m,
+                                                              n,
+                                                              A,
+                                                              lda,
+                                                              stride_a,
+                                                              B,
+                                                              ldb,
+                                                              stride_b,
+                                                              C,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+            if(hemm_check_numerics_status != rocblas_status_success)
+                return hemm_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_status_success;
+        status                = rocblas_internal_symm_template<Hermetian>(handle,
+                                                           side,
+                                                           uplo,
+                                                           m,
+                                                           n,
+                                                           alpha,
+                                                           A,
+                                                           offset_A,
+                                                           lda,
+                                                           stride_a,
+                                                           B,
+                                                           offset_B,
+                                                           ldb,
+                                                           stride_b,
+                                                           beta,
+                                                           C,
+                                                           offset_C,
+                                                           ldc,
+                                                           stride_c,
+                                                           batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status hemm_check_numerics_status
+                = rocblas_hemm_symm_check_numerics<Hermetian>(rocblas_hemm_name<T>,
+                                                              handle,
+                                                              side,
+                                                              uplo,
+                                                              m,
+                                                              n,
+                                                              A,
+                                                              lda,
+                                                              stride_a,
+                                                              B,
+                                                              ldb,
+                                                              stride_b,
+                                                              C,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+            if(hemm_check_numerics_status != rocblas_status_success)
+                return hemm_check_numerics_status;
+        }
+        return status;
     }
 
 }
