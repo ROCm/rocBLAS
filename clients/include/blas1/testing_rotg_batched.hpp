@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -24,11 +42,15 @@ void testing_rotg_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 1;
 
-    rocblas_local_handle   handle{arg};
+    rocblas_local_handle handle{arg};
+
+    // Allocate device memory
     device_batch_vector<T> da(1, 1, batch_count);
     device_batch_vector<T> db(1, 1, batch_count);
     device_batch_vector<U> dc(1, 1, batch_count);
     device_batch_vector<T> ds(1, 1, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(da.memcheck());
     CHECK_DEVICE_ALLOCATION(db.memcheck());
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
@@ -95,7 +117,8 @@ void testing_rotg_batched(const Arguments& arg)
         return;
     }
 
-    // Initial Data on CPU
+    // Naming: `h` is in CPU (host) memory(eg ha), `d` is in GPU (device) memory (eg da).
+    // Allocate host memory
     host_batch_vector<T> ha(1, 1, batch_count);
     host_batch_vector<T> hb(1, 1, batch_count);
     host_batch_vector<U> hc(1, 1, batch_count);
@@ -105,7 +128,7 @@ void testing_rotg_batched(const Arguments& arg)
 
 #ifdef WIN32
     // During explicit NaN initialization (i.e., when arg.alpha=NaN), the host side computation results of OpenBLAS differs from the result of kernel computation in rocBLAS.
-    // The output value of `cb` is NaN in OpenBLAS and, the output value of `cb` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
+    // The output value of `hb_gold` is NaN in OpenBLAS and, the output value of `hb_gold` is 1.000 in rocBLAS. There was no difference observed when comparing the rocBLAS results with BLIS.
     // Therefore, using the bool enable_near_check_general to skip unit check for WIN32 during NaN initialization.
 
     enable_near_check_general = !rocblas_isnan(arg.alpha);
@@ -113,10 +136,10 @@ void testing_rotg_batched(const Arguments& arg)
 
     for(int i = 0; i < TEST_COUNT; i++)
     {
-        host_batch_vector<T> ca(1, 1, batch_count);
-        host_batch_vector<T> cb(1, 1, batch_count);
-        host_batch_vector<U> cc(1, 1, batch_count);
-        host_batch_vector<T> cs(1, 1, batch_count);
+        host_batch_vector<T> ha_gold(1, 1, batch_count);
+        host_batch_vector<T> hb_gold(1, 1, batch_count);
+        host_batch_vector<U> hc_gold(1, 1, batch_count);
+        host_batch_vector<T> hs_gold(1, 1, batch_count);
 
         // Initialize data on host memory
         rocblas_init_vector(ha, arg, rocblas_client_alpha_sets_nan, true);
@@ -124,24 +147,26 @@ void testing_rotg_batched(const Arguments& arg)
         rocblas_init_vector(hb, arg, rocblas_client_alpha_sets_nan, false);
         rocblas_init_vector(hb, arg, rocblas_client_alpha_sets_nan, false);
 
-        ca.copy_from(ha);
-        cb.copy_from(hb);
-        cc.copy_from(hc);
-        cs.copy_from(hs);
+        ha_gold.copy_from(ha);
+        hb_gold.copy_from(hb);
+        hc_gold.copy_from(hc);
+        hs_gold.copy_from(hs);
 
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_rotg<T, U>(ca[b], cb[b], cc[b], cs[b]);
+            cblas_rotg<T, U>(ha_gold[b], hb_gold[b], hc_gold[b], hs_gold[b]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // Test rocblas_pointer_mode_host
         {
+
             host_batch_vector<T> ra(1, 1, batch_count);
             host_batch_vector<T> rb(1, 1, batch_count);
             host_batch_vector<U> rc(1, 1, batch_count);
             host_batch_vector<T> rs(1, 1, batch_count);
+
             ra.copy_from(ha);
             rb.copy_from(hb);
             rc.copy_from(hc);
@@ -155,29 +180,37 @@ void testing_rotg_batched(const Arguments& arg)
             {
                 if(enable_near_check_general)
                 {
-                    near_check_general<T>(1, 1, 1, ra, ca, rel_error, batch_count);
-                    near_check_general<T>(1, 1, 1, rb, cb, rel_error, batch_count);
-                    near_check_general<U>(1, 1, 1, rc, cc, rel_error, batch_count);
-                    near_check_general<T>(1, 1, 1, rs, cs, rel_error, batch_count);
+                    near_check_general<T>(1, 1, 1, ra, ha_gold, rel_error, batch_count);
+                    near_check_general<T>(1, 1, 1, rb, hb_gold, rel_error, batch_count);
+                    near_check_general<U>(1, 1, 1, rc, hc_gold, rel_error, batch_count);
+                    near_check_general<T>(1, 1, 1, rs, hs_gold, rel_error, batch_count);
                 }
             }
 
             if(arg.norm_check)
             {
-                norm_error_host = norm_check_general<T>('F', 1, 1, 1, ra, ca, batch_count);
-                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rb, cb, batch_count);
-                norm_error_host += norm_check_general<U>('F', 1, 1, 1, rc, cc, batch_count);
-                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rs, cs, batch_count);
+                norm_error_host = norm_check_general<T>('F', 1, 1, 1, ra, ha_gold, batch_count);
+                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rb, hb_gold, batch_count);
+                norm_error_host += norm_check_general<U>('F', 1, 1, 1, rc, hc_gold, batch_count);
+                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rs, hs_gold, batch_count);
             }
         }
 
         // Test rocblas_pointer_mode_device
         {
+            // Allocate device memory
             device_batch_vector<T> da(1, 1, batch_count);
             device_batch_vector<T> db(1, 1, batch_count);
             device_batch_vector<U> dc(1, 1, batch_count);
             device_batch_vector<T> ds(1, 1, batch_count);
 
+            // Check device memory allocation
+            CHECK_DEVICE_ALLOCATION(da.memcheck());
+            CHECK_DEVICE_ALLOCATION(db.memcheck());
+            CHECK_DEVICE_ALLOCATION(dc.memcheck());
+            CHECK_DEVICE_ALLOCATION(ds.memcheck());
+
+            // Transfer from CPU to GPU
             CHECK_HIP_ERROR(da.transfer_from(ha));
             CHECK_HIP_ERROR(db.transfer_from(hb));
             CHECK_HIP_ERROR(dc.transfer_from(hc));
@@ -195,6 +228,8 @@ void testing_rotg_batched(const Arguments& arg)
             host_batch_vector<T> rb(1, 1, batch_count);
             host_batch_vector<U> rc(1, 1, batch_count);
             host_batch_vector<T> rs(1, 1, batch_count);
+
+            // Transfer from GPU to CPU
             CHECK_HIP_ERROR(ra.transfer_from(da));
             CHECK_HIP_ERROR(rb.transfer_from(db));
             CHECK_HIP_ERROR(rc.transfer_from(dc));
@@ -204,19 +239,19 @@ void testing_rotg_batched(const Arguments& arg)
             {
                 if(enable_near_check_general)
                 {
-                    near_check_general<T>(1, 1, 1, ra, ca, batch_count, rel_error);
-                    near_check_general<T>(1, 1, 1, rb, cb, batch_count, rel_error);
-                    near_check_general<U>(1, 1, 1, rc, cc, batch_count, rel_error);
-                    near_check_general<T>(1, 1, 1, rs, cs, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, ra, ha_gold, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rb, hb_gold, batch_count, rel_error);
+                    near_check_general<U>(1, 1, 1, rc, hc_gold, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rs, hs_gold, batch_count, rel_error);
                 }
             }
 
             if(arg.norm_check)
             {
-                norm_error_device = norm_check_general<T>('F', 1, 1, 1, ra, ca, batch_count);
-                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rb, cb, batch_count);
-                norm_error_device += norm_check_general<U>('F', 1, 1, 1, rc, cc, batch_count);
-                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rs, cs, batch_count);
+                norm_error_device = norm_check_general<T>('F', 1, 1, 1, ra, ha_gold, batch_count);
+                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rb, hb_gold, batch_count);
+                norm_error_device += norm_check_general<U>('F', 1, 1, 1, rc, hc_gold, batch_count);
+                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rs, hs_gold, batch_count);
             }
         }
     }

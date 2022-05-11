@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -12,6 +30,7 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -32,11 +51,11 @@ void testing_her_batched_bad_arg(const Arguments& arg)
     rocblas_int          batch_count = 2;
     rocblas_local_handle handle{arg};
 
-    size_t size_A = size_t(N) * lda;
-
-    // allocate memory on device
+    // Allocate device memory
     device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dA_1(size_A, 1, batch_count);
+    device_batch_matrix<T> dA_1(N, N, lda, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
 
@@ -84,48 +103,55 @@ void testing_her_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A = size_t(N) * lda;
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T>   hA_1(size_A, 1, batch_count);
-    host_batch_vector<T>   hA_2(size_A, 1, batch_count);
-    host_batch_vector<T>   hA_gold(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
+    // Allocate host memory
+    host_batch_matrix<T>   hA_1(N, N, lda, batch_count);
+    host_batch_matrix<T>   hA_2(N, N, lda, batch_count);
+    host_batch_matrix<T>   hA_gold(N, N, lda, batch_count);
     host_batch_vector<T>   hx(N, incx, batch_count);
     host_vector<real_t<T>> halpha(1);
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA_1.memcheck());
     CHECK_HIP_ERROR(hA_2.memcheck());
     CHECK_HIP_ERROR(hA_gold.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
 
     halpha[0] = h_alpha;
 
-    // allocate memory on device
-    device_batch_vector<T>   dA_1(size_A, 1, batch_count);
-    device_batch_vector<T>   dA_2(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T>   dA_1(N, N, lda, batch_count);
+    device_batch_matrix<T>   dA_2(N, N, lda, batch_count);
     device_batch_vector<T>   dx(N, incx, batch_count);
     device_vector<real_t<T>> d_alpha(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
-
     // Initialize data on host memory
-    rocblas_init_vector(hA_1, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hA_1, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
 
     hA_2.copy_from(hA_1);
     hA_gold.copy_from(hA_1);
+
+    // copy data from CPU to device
     CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
-    CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+
+    double gpu_time_used, cpu_time_used;
+    double rocblas_error_1;
+    double rocblas_error_2;
 
     if(arg.unit_check || arg.norm_check)
     {
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_her_batched_fn(handle,
                                                    uplo,

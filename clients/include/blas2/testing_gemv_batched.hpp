@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  *
  * ************************************************************************ */
 
@@ -13,6 +31,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -40,13 +59,30 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    // allocate memory on device
-    device_batch_vector<T> dA(N * lda, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(M, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incx, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
+
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                  (rocblas_operation)rocblas_fill_full,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
                                                   transA,
@@ -248,9 +284,8 @@ void testing_gemv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A = lda * static_cast<size_t>(N);
-    size_t size_x, dim_x, abs_incx;
-    size_t size_y, dim_y, abs_incy;
+    size_t dim_x, abs_incx;
+    size_t dim_y, abs_incy;
 
     if(transA == rocblas_operation_none)
     {
@@ -266,28 +301,32 @@ void testing_gemv_batched(const Arguments& arg)
     abs_incx = incx >= 0 ? incx : -incx;
     abs_incy = incy >= 0 ? incy : -incy;
 
-    size_x = dim_x * abs_incx;
-    size_y = dim_y * abs_incy;
-
-    // Host-arrays of pointers to host memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(M, N, lda, batch_count);
     host_batch_vector<T> hx(dim_x, incx, batch_count);
     host_batch_vector<T> hy_1(dim_y, incy, batch_count);
     host_batch_vector<T> hy_2(dim_y, incy, batch_count);
     host_batch_vector<T> hy_gold(dim_y, incy, batch_count);
     host_vector<T>       halpha(1);
     host_vector<T>       hbeta(1);
-    halpha[0] = h_alpha;
-    hbeta[0]  = h_beta;
 
-    // Host-arrays of pointers to device memory
-    // (intermediate arrays used for the transfers)
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy_1.memcheck());
+    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(M, N, lda, batch_count);
     device_batch_vector<T> dx(dim_x, incx, batch_count);
     device_batch_vector<T> dy_1(dim_y, incy, batch_count);
     device_batch_vector<T> dy_2(dim_y, incy, batch_count);
     device_vector<T>       d_alpha(1);
     device_vector<T>       d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
@@ -296,9 +335,12 @@ void testing_gemv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+    halpha[0] = h_alpha;
+    hbeta[0]  = h_beta;
 
     hy_2.copy_from(hy_1);
     hy_gold.copy_from(hy_1);

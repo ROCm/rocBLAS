@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -12,9 +30,9 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -49,10 +67,10 @@ void testing_atomics_mode(const Arguments& arg)
     double               rocblas_error = 0.0;
     rocblas_local_handle handle;
 
-    rocblas_int A_row = transA == rocblas_operation_none ? M : K;
-    rocblas_int A_col = transA == rocblas_operation_none ? K : M;
-    rocblas_int B_row = transB == rocblas_operation_none ? K : N;
-    rocblas_int B_col = transB == rocblas_operation_none ? N : K;
+    rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
+    rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
 
     // check here to prevent undefined memory allocation error
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
@@ -78,36 +96,38 @@ void testing_atomics_mode(const Arguments& arg)
         return;
     }
 
-    const auto size_A = size_t(lda) * size_t(A_col);
-    const auto size_B = size_t(ldb) * size_t(B_col);
-    const auto size_C = size_t(ldc) * size_t(N);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(A_row, A_col, lda);
+    host_matrix<T> hB(B_row, B_col, ldb);
+    host_matrix<T> hC_1(M, N, ldc);
+    host_matrix<T> hC_gold(M, N, ldc);
+    host_matrix<T> hC_input(M, N, ldc);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    // Allocate device memory
+    device_matrix<T> dA(A_row, A_col, lda);
+    device_matrix<T> dB(B_row, B_col, ldb);
+    device_matrix<T> dC(M, N, ldc);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_gold(size_C);
-    host_vector<T> hC_input(size_C);
-
-    rocblas_seedrand();
-    rocblas_init_hpl<T>(hA, A_row, A_col, lda);
-    rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
-    rocblas_init_hpl<T>(hC_input, M, N, ldc);
+    // Initialize data on host memory
+    // For this test the arg.initialization has to be HPL and this has been set in the atomics_mode_gtest.yaml
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+    rocblas_init_matrix(
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix(hC_input, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     // ROCBLAS rocblas_pointer_mode_host
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
 
     //  From kernel selection file /library/src/blas3/Tensile/Logic/asm_full/vega20_Cijk_Ailk_Bljk_SB.yaml
     //  we know that for gchArch == 906 and [m,n,batch_count,k] = [1024, 16, 1, 500000] an
@@ -121,24 +141,24 @@ void testing_atomics_mode(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_allowed));
 
         // calculate reference result
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC_input));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_gold, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hC_gold.transfer_from(dC));
 
         // verify arbitary number of tests are not deterministic
         double err1                     = 0;
         int    arbitary_number_of_tests = 10;
         for(int i = 0; i < arbitary_number_of_tests; i++)
         {
-            CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(dC.transfer_from(hC_input));
 
             CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
 
-            CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+            CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
             // compare hC_1 and hC_gold
             err1 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
@@ -154,24 +174,24 @@ void testing_atomics_mode(const Arguments& arg)
     CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_not_allowed));
 
     // calculate reference result
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dC.transfer_from(hC_input));
 
     CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
         handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
 
-    CHECK_HIP_ERROR(hipMemcpy(hC_gold, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hC_gold.transfer_from(dC));
 
     // verify arbitary number of tests are deterministic
     double err2                     = 0;
     int    arbitary_number_of_tests = 10;
     for(int i = 0; i < arbitary_number_of_tests; i++)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC_input));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         // compare hC_1 and hC_gold
         err2 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));

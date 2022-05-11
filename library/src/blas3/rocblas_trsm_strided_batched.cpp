@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2019-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "handle.hpp"
@@ -151,29 +169,17 @@ namespace
             }
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
+        rocblas_status arg_status = rocblas_trsm_arg_check(
+            handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 
-        // A is of size lda*k
-        rocblas_int k = side == rocblas_side_left ? m : n;
-        if(batch_count < 0 || m < 0 || n < 0 || lda < k || ldb < m)
-            return rocblas_status_invalid_size;
-
-        // quick return if possible.
-        if(!m || !n || !batch_count)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
-        if(!alpha || !B)
-            return rocblas_status_invalid_pointer;
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
             set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, 0);
             return rocblas_status_success;
         }
-
-        if(!A)
-            return rocblas_status_invalid_pointer;
 
         //////////////////////
         // MEMORY MANAGEMENT//

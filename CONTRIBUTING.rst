@@ -2,24 +2,14 @@
 Contributor's Guide
 ===================
 
-License Agreement
-=================
-
-1. The code I am contributing is mine, and I have the right to license
-   it.
-
-2. By submitting a pull request for this project I am granting you a
-   license to distribute said code under the MIT License for the
-   project.
-
 Pull-request guidelines
 =======================
 
 
-Our code contriubtion guidelines closely follows the model of `GitHub
+Our code contribution guidelines closely follows the model of `GitHub
 pull-requests <https://help.github.com/articles/using-pull-requests/>`__.
-The rocBLAS repository follows a workflow which dictates a /master branch where releases are cut, and a
-/develop branch which serves as an integration branch for new code. Pull requests should:
+The [rocBLAS repository](https://github.com/ROCmSoftwarePlatform/rocBLAS) follows a workflow which dictates a **master** branch where releases are cut, and a
+**develop** branch which serves as an integration branch for new code. Pull requests should:
 
 -  target the **develop** branch for integration
 -  ensure code builds successfully.

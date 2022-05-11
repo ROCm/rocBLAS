@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -13,6 +31,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -38,12 +57,15 @@ void testing_symm_hemm_bad_arg(const Arguments& arg)
     const T              alpha = 1.0;
     const T              beta  = 1.0;
 
-    const size_t safe_size = 100;
+    size_t rows = (side == rocblas_side_left ? N : M);
+    size_t cols = (side == rocblas_side_left ? M : N);
 
-    // allocate memory on device
-    device_vector<T> dA(safe_size);
-    device_vector<T> dB(safe_size);
-    device_vector<T> dC(safe_size);
+    // Allocate device memory
+    device_matrix<T> dA(rows, cols, lda);
+    device_matrix<T> dB(M, N, ldb);
+    device_matrix<T> dC(M, N, ldc);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -133,83 +155,50 @@ void testing_symm_hemm(const Arguments& arg)
 
         return;
     }
+    size_t rows = (side == rocblas_side_left ? N : M);
+    size_t cols = (side == rocblas_side_left ? M : N);
 
-    size_t     cols   = (side == rocblas_side_left ? std::max(M, 1) : std::max(N, 1));
-    const auto size_A = size_t(lda) * cols;
-    const auto size_B = size_t(ldb) * N;
-    const auto size_C = size_t(ldc) * N;
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(rows, cols, lda);
+    host_matrix<T> hB(M, N, ldb);
+    host_matrix<T> hC_1(M, N, ldc);
+    host_matrix<T> hC_2(M, N, ldc);
+    host_matrix<T> hC_gold(M, N, ldc);
+    host_vector<T> h_alpha(1);
+    host_vector<T> h_beta(1);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
+    // Initial Data on CPU
+    h_alpha[0] = alpha;
+    h_beta[0]  = beta;
+
+    // Allocate device memory
+    device_matrix<T> dA(rows, cols, lda);
+    device_matrix<T> dB(M, N, ldb);
+    device_matrix<T> dC(M, N, ldc);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> h_alpha(1);
-    host_vector<T> h_beta(1);
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> hC_gold(size_C);
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_2.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
-
-    // Initial Data on CPU
-    h_alpha[0] = alpha;
-    h_beta[0]  = beta;
-
     if(HERM)
     {
-        rocblas_init_matrix<T>(hA,
-                               arg,
-                               cols,
-                               cols,
-                               lda,
-                               0,
-                               1,
-                               rocblas_client_never_set_nan,
-                               rocblas_client_hermitian_matrix,
-                               true);
+        rocblas_init_matrix<T>(
+            hA, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
     }
     else
     {
-        rocblas_init_matrix<T>(hA,
-                               arg,
-                               cols,
-                               cols,
-                               lda,
-                               0,
-                               1,
-                               rocblas_client_never_set_nan,
-                               rocblas_client_symmetric_matrix,
-                               true);
+        rocblas_init_matrix<T>(
+            hA, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
     }
-    rocblas_init_matrix<T>(hB,
-                           arg,
-                           M,
-                           N,
-                           ldb,
-                           0,
-                           1,
-                           rocblas_client_alpha_sets_nan,
-                           rocblas_client_general_matrix,
-                           false,
-                           true);
     rocblas_init_matrix<T>(
-        hC_1, arg, M, N, ldc, 0, 1, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+    rocblas_init_matrix<T>(hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

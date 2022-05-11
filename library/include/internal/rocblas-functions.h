@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #ifndef _ROCBLAS_FUNCTIONS_H_
@@ -12296,6 +12314,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
 
         op( A ) = A, op( B ) = B, and A and B are n by k if trans == rocblas_operation_none
         op( A ) = A^T, op( B ) = B^T,  and A and B are k by n if trans == rocblas_operation_transpose
+        or for ssyrkx and dsyrkx when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -12308,8 +12327,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A ) = A^T, op( B ) = B^T
-            - rocblas_operation_none:           op( A ) = A, op( B ) = B
+            - rocblas_operation_transpose:           op( A ) = A^T, op( B ) = B^T
+            - rocblas_operation_none:                op( A ) = A, op( B ) = B
+            - rocblas_operation_conjugate_transpose: op( A ) = A^T, op( B ) = B^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyrkx and zsyrkx.
 
     @param[in]
     n       [rocblas_int]
@@ -12434,6 +12456,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
         op( A_i ) = A_i^T, op( B_i ) = B_i^T,  and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        or for ssyrkx_batched and dsyrkx_batched when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -12446,8 +12469,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A_i ) = A_i^T, op( B_i ) = B_i^T
-            - rocblas_operation_none:           op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_transpose:           op( A_i ) = A_i^T, op( B_i ) = B_i^T
+            - rocblas_operation_none:                op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_conjugate_transpose: op( A_i ) = A_i^T, op( B_i ) = B_i^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyrkx_batched and zsyrkx_batched.
 
     @param[in]
     n       [rocblas_int]
@@ -12578,6 +12604,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
         op( A_i ) = A_i^T, op( B_i ) = B_i^T,  and A_i and B_i are k by n if trans == rocblas_operation_transpose
+        or for ssyrkx_strided_batched and dsyrkx_strided_batched when trans == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -12590,8 +12617,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
 
     @param[in]
     trans  [rocblas_operation]
-            - rocblas_operation_transpose:      op( A_i ) = A_i^T, op( B_i ) = B_i^T
-            - rocblas_operation_none:           op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_transpose:           op( A_i ) = A_i^T, op( B_i ) = B_i^T
+            - rocblas_operation_none:                op( A_i ) = A_i, op( B_i ) = B_i
+            - rocblas_operation_conjugate_transpose: op( A_i ) = A_i^T, op( B_i ) = B_i^T
+
+            rocblas_operation_conjugate_transpose is not supported for complex types in csyrkx_strided_batched and zsyrkx_strided_batched.
 
     @param[in]
     n       [rocblas_int]

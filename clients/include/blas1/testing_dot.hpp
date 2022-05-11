@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -30,9 +48,13 @@ void testing_dot_bad_arg(const Arguments& arg)
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(safe_size);
-    device_vector<T>     dy(safe_size);
-    device_vector<T>     d_rocblas_result(1);
+
+    // Allocate device memory
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
+    device_vector<T> d_rocblas_result(1, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
@@ -101,30 +123,24 @@ void testing_dot(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<T> hx(N, incx ? incx : 1);
+    host_vector<T> hy(N, incy ? incy : 1);
 
-    // allocate memory on device
-    device_vector<T> dx(size_x, 1, HMM);
-    device_vector<T> dy(size_y, 1, HMM);
+    // Allocate device memory
+    device_vector<T> dx(N, incx ? incx : 1, HMM);
+    device_vector<T> dy(N, incy ? incy : 1, HMM);
     device_vector<T> d_rocblas_result_2(1, 1, HMM);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx(size_x);
-    host_vector<T> hy(size_y);
-
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -176,9 +192,6 @@ void testing_dot(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
-
             rocblas_error_1 = double(rocblas_abs((cpu_result - rocblas_result_1) / cpu_result));
             rocblas_error_2 = double(rocblas_abs((cpu_result - rocblas_result_2) / cpu_result));
         }

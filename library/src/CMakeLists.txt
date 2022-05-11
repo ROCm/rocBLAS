@@ -1,5 +1,23 @@
 # ########################################################################
-# Copyright 2016-2022 Advanced Micro Devices, Inc.
+# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+# ies of the Software, and to permit persons to whom the Software is furnished
+# to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+# PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+# CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
 # ########################################################################
 
 # ########################################################################
@@ -373,12 +391,6 @@ add_library( rocblas
 
 add_library( roc::rocblas ALIAS rocblas )
 
-# RUNPATH is set only when ROCM_RPATH is defined in the ENV
-if( DEFINED ENV{ROCM_RPATH} )
-  set ( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
-endif( )
-
-
 target_link_libraries( rocblas INTERFACE hip::host )
 if (WIN32)
   target_link_libraries( rocblas PRIVATE hip::device )
@@ -517,6 +529,7 @@ if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
     internal/rocblas-version.h internal/rocblas-export.h internal/rocblas-exported-proto.hpp internal/rocblas_device_malloc.hpp
     GUARDS SYMLINK WRAPPER
     WRAPPER_LOCATIONS include rocblas/include
+    ORIGINAL_FILES ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
   )
 endif( )
 
