@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "rocblas_test.hpp"
@@ -7,6 +25,7 @@
 #include "../../library/src/include/check_numerics_matrix.hpp"
 #include "../../library/src/include/check_numerics_vector.hpp"
 #include "rocblas_data.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_vector.hpp"
 #include "type_dispatch.hpp"
 
@@ -208,22 +227,19 @@ namespace
             return;
         }
 
-        size_t size_x = N * size_t(inc_x);
-
         //Allocating memory for the host vector
-        host_vector<T> h_x(size_x);
+        host_vector<T> h_x(N, inc_x);
+
+        // allocate memory on device
+        device_vector<T> d_x(N, inc_x);
 
         //==============================================================================================
         // Initializing random values in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
-
-        // allocate memory on device
-        device_vector<T> d_x(size_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
 
         rocblas_status status          = rocblas_status_success;
         const char     function_name[] = "testing_check_numerics_vector";
@@ -246,7 +262,7 @@ namespace
         rocblas_init_zero<T>((T*)h_x, N - 1, N);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
 
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
@@ -263,12 +279,11 @@ namespace
         //==============================================================================================
         // Initializing and testing for Inf in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
         rocblas_init_inf<T>((T*)h_x, N - 3, N - 1);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
 
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
@@ -286,12 +301,11 @@ namespace
         //==============================================================================================
         // Initializing and testing for NaN in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
         rocblas_init_nan<T>((T*)h_x, 0, N - 3);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
                                                                  N,
@@ -308,12 +322,11 @@ namespace
         //==============================================================================================
         // Initializing and testing for denorm values in the vector
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_x, 1, N, inc_x);
+        rocblas_init_vector(h_x, arg, rocblas_client_never_set_nan, true);
         rocblas_init_denorm<T>((T*)h_x, 0, N - 4);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_x.transfer_from(h_x));
         status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                  handle,
                                                                  N,
@@ -335,8 +348,7 @@ namespace
         host_batch_vector<T>   h_x_batch(N, inc_x, batch_count);
 
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
@@ -358,8 +370,7 @@ namespace
         // Initializing and testing for zero in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 0; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_zero_rng());
@@ -384,8 +395,7 @@ namespace
         // Initializing and testing for Inf in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 3; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_inf_rng());
@@ -410,8 +420,7 @@ namespace
         // Initializing and testing for NaN in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 4; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_nan_rng());
@@ -436,8 +445,7 @@ namespace
         // Initializing and testing for denorm values in batched vectors
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_x_batch, true);
+        rocblas_init_vector(h_x_batch, arg, rocblas_client_never_set_nan, true);
         for(int i = 4; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_denorm_rng());
@@ -522,10 +530,11 @@ namespace
     {
         rocblas_int    M           = arg.M;
         rocblas_int    N           = arg.N;
-        rocblas_int    lda         = M;
+        rocblas_int    lda         = std::max(M, N);
         rocblas_stride offset_a    = 0;
         rocblas_stride stride_a    = arg.stride_a;
         rocblas_int    batch_count = arg.batch_count;
+        rocblas_fill   uplo        = char2rocblas_fill(arg.uplo);
 
         //Creating a rocBLAS handle
         rocblas_handle handle;
@@ -538,162 +547,312 @@ namespace
         if(!M || !N || !batch_count)
             return;
 
-        size_t size_a = N * size_t(lda);
-
         //Allocating memory for the host matrix
-        host_vector<T> h_A(size_a);
+        host_matrix<T> h_A(M, N, lda);
+        host_matrix<T> h_A_symmetric(N, N, lda);
+        host_matrix<T> h_A_triangular(N, N, lda);
+
+        // Allocate memory on device
+        device_matrix<T> d_A(M, N, lda);
+        device_matrix<T> d_A_symmetric(N, N, lda);
+        device_matrix<T> d_A_triangular(N, N, lda);
+
         //==============================================================================================
         // Initializing random values in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>(h_A, M, N, lda);
-
-        // allocate memory on device
-        device_vector<T> d_A(size_a);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_symmetric,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_symmetric_matrix,
+                            true);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
+        CHECK_HIP_ERROR(d_A_symmetric.transfer_from(h_A_symmetric));
 
         rocblas_status status          = rocblas_status_success;
         const char     function_name[] = "testing_check_numerics_matrix";
         bool           is_input        = true;
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_transpose,
-                                                                    M,
-                                                                    N,
-                                                                    (T*)d_A,
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    1,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_transpose,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 (T*)d_A,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
+        EXPECT_EQ(status, rocblas_status_success);
+
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 uplo,
+                                                                 rocblas_client_symmetric_matrix,
+                                                                 N,
+                                                                 N,
+                                                                 (T*)d_A_symmetric,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
         EXPECT_EQ(status, rocblas_status_success);
 
         //==============================================================================================
         // Initializing and testing for zero in the matrix
         //==============================================================================================
         rocblas_init_zero<T>((T*)h_A, M, N, lda);
+        rocblas_init_zero<T>((T*)h_A_triangular, N - 1, N, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
+        CHECK_HIP_ERROR(d_A_triangular.transfer_from(h_A_triangular));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_transpose,
-                                                                    M,
-                                                                    N,
-                                                                    (T*)d_A,
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    1,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_transpose,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 (T*)d_A,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
+        EXPECT_EQ(status, rocblas_status_success);
+
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 uplo,
+                                                                 rocblas_client_triangular_matrix,
+                                                                 N,
+                                                                 N,
+                                                                 (T*)d_A_triangular,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
         EXPECT_EQ(status, rocblas_status_success);
 
         //==============================================================================================
         // Initializing and testing for Inf in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
         rocblas_init_inf<T>((T*)h_A, M - 1, N - 1, lda);
+        rocblas_init_inf<T>((T*)h_A_symmetric, N - 2, N - 1, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
+        CHECK_HIP_ERROR(d_A_symmetric.transfer_from(h_A_symmetric));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_none,
-                                                                    M,
-                                                                    N,
-                                                                    (T*)d_A,
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    1,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 (T*)d_A,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
 
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 uplo,
+                                                                 rocblas_client_symmetric_matrix,
+                                                                 N,
+                                                                 N,
+                                                                 (T*)d_A_symmetric,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
         //==============================================================================================
         // Initializing and testing for NaN in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_triangular,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_triangular_matrix,
+                            true);
+
         rocblas_init_nan<T>((T*)h_A, M, N, lda);
+        rocblas_init_nan<T>((T*)h_A_triangular, N - 1, N, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
+        CHECK_HIP_ERROR(d_A_triangular.transfer_from(h_A_triangular));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_none,
-                                                                    M,
-                                                                    N,
-                                                                    (T*)d_A,
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    1,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 (T*)d_A,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 uplo,
+                                                                 rocblas_client_triangular_matrix,
+                                                                 N,
+                                                                 N,
+                                                                 (T*)d_A_triangular,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
         //==============================================================================================
         // Initializing and testing for denorm values in the matrix
         //==============================================================================================
-        rocblas_seedrand();
-        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_matrix(
+            h_A, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_symmetric,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_symmetric_matrix,
+                            true);
+
         rocblas_init_denorm<T>((T*)h_A, M, N, lda);
+        rocblas_init_denorm<T>((T*)h_A_symmetric, N - 1, N, lda);
 
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_A.transfer_from(h_A));
+        CHECK_HIP_ERROR(d_A_symmetric.transfer_from(h_A_symmetric));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_none,
-                                                                    M,
-                                                                    N,
-                                                                    (T*)d_A,
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    1,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 (T*)d_A,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
 
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 uplo,
+                                                                 rocblas_client_symmetric_matrix,
+                                                                 N,
+                                                                 N,
+                                                                 (T*)d_A_symmetric,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
         //==============================================================================================
         // Initializing random values in batched matrices
         //==============================================================================================
-        //Allocate device and host batched matrices
-        device_batch_vector<T> d_A_batch(size_a, 1, batch_count);
-        host_batch_vector<T>   h_A_batch(size_a, 1, batch_count);
+        //Allocating memory for the host batch matrix
+        host_batch_matrix<T> h_A_batch(M, N, lda, batch_count);
+        host_batch_matrix<T> h_A_batch_symmetric(N, N, lda, batch_count);
+        host_batch_matrix<T> h_A_batch_triangular(N, N, lda, batch_count);
+
+        // Allocate memory on device
+        device_batch_matrix<T> d_A_batch(M, N, lda, batch_count);
+        device_batch_matrix<T> d_A_batch_symmetric(N, N, lda, batch_count);
+        device_batch_matrix<T> d_A_batch_triangular(N, N, lda, batch_count);
 
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_batch_symmetric,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_symmetric_matrix,
+                            true);
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+        CHECK_HIP_ERROR(d_A_batch_symmetric.transfer_from(h_A_batch_symmetric));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_none,
-                                                                    M,
-                                                                    N,
-                                                                    d_A_batch.const_batch_ptr(),
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    batch_count,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_none,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 d_A_batch.const_batch_ptr(),
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
+
+        EXPECT_EQ(status, rocblas_status_success);
+
+        status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              uplo,
+                                                              rocblas_client_symmetric_matrix,
+                                                              N,
+                                                              N,
+                                                              d_A_batch_symmetric.const_batch_ptr(),
+                                                              offset_a,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
 
         EXPECT_EQ(status, rocblas_status_success);
 
@@ -701,57 +860,116 @@ namespace
         // Initializing and testing for zero in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_batch_triangular,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_triangular_matrix,
+                            true);
+
         for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
-                    h_A_batch[i_batch][i + j * lda] = T(rocblas_zero_rng());
+                {
+                    h_A_batch[i_batch][i + j * lda]            = T(rocblas_zero_rng());
+                    h_A_batch_triangular[i_batch][i + j * lda] = T(rocblas_zero_rng());
+                }
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+        CHECK_HIP_ERROR(d_A_batch_triangular.transfer_from(h_A_batch));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_transpose,
-                                                                    M,
-                                                                    N,
-                                                                    d_A_batch.const_batch_ptr(),
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    batch_count,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_transpose,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 d_A_batch.const_batch_ptr(),
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_success);
 
+        status = rocblas_internal_check_numerics_matrix_template(
+            function_name,
+            handle,
+            rocblas_operation_none,
+            uplo,
+            rocblas_client_triangular_matrix,
+            N,
+            N,
+            d_A_batch_triangular.const_batch_ptr(),
+            offset_a,
+            lda,
+            stride_a,
+            batch_count,
+            check_numerics,
+            is_input);
+
+        EXPECT_EQ(status, rocblas_status_success);
         //==============================================================================================
         // Initializing and testing for Inf in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_batch_symmetric,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_symmetric_matrix,
+                            true);
+
         for(size_t i_batch = 4; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
-                    h_A_batch[i_batch][i + j * lda] = T(rocblas_inf_rng());
+                {
+                    h_A_batch[i_batch][i + j * lda]           = T(rocblas_inf_rng());
+                    h_A_batch_symmetric[i_batch][i + j * lda] = T(rocblas_inf_rng());
+                }
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+        CHECK_HIP_ERROR(d_A_batch_symmetric.transfer_from(h_A_batch_symmetric));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_transpose,
-                                                                    M,
-                                                                    N,
-                                                                    d_A_batch.const_batch_ptr(),
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    batch_count,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_transpose,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 d_A_batch.const_batch_ptr(),
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              uplo,
+                                                              rocblas_client_symmetric_matrix,
+                                                              N,
+                                                              N,
+                                                              d_A_batch_symmetric.const_batch_ptr(),
+                                                              offset_a,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
@@ -759,28 +977,58 @@ namespace
         // Initializing and testing for NaN in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_batch_triangular,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_triangular_matrix,
+                            true);
+
         for(size_t i_batch = 1; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
-                    h_A_batch[i_batch][i + j * lda] = T(rocblas_nan_rng());
+                {
+                    h_A_batch[i_batch][i + j * lda]            = T(rocblas_nan_rng());
+                    h_A_batch_triangular[i_batch][i + j * lda] = T(rocblas_nan_rng());
+                }
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+        CHECK_HIP_ERROR(d_A_batch_triangular.transfer_from(h_A_batch));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_transpose,
-                                                                    M,
-                                                                    N,
-                                                                    d_A_batch.const_batch_ptr(),
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    batch_count,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_transpose,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 d_A_batch.const_batch_ptr(),
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        status = rocblas_internal_check_numerics_matrix_template(
+            function_name,
+            handle,
+            rocblas_operation_none,
+            uplo,
+            rocblas_client_triangular_matrix,
+            N,
+            N,
+            d_A_batch_triangular.const_batch_ptr(),
+            offset_a,
+            lda,
+            stride_a,
+            batch_count,
+            check_numerics,
+            is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
@@ -788,28 +1036,58 @@ namespace
         // Initializing and testing for denorm values in batched matrices
         //==============================================================================================
         //Initialize Data on CPU
-        rocblas_seedrand();
-        rocblas_init(h_A_batch, true);
+        rocblas_init_matrix(
+            h_A_batch, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+        rocblas_init_matrix(h_A_batch_symmetric,
+                            arg,
+                            rocblas_client_never_set_nan,
+                            rocblas_client_symmetric_matrix,
+                            true);
+
         for(size_t i_batch = 1; i_batch < batch_count; i_batch++)
             for(size_t i = 0; i < M; ++i)
                 for(size_t j = 0; j < N; ++j)
-                    h_A_batch[i_batch][i + j * lda] = T(rocblas_denorm_rng());
+                {
+                    h_A_batch[i_batch][i + j * lda]           = T(rocblas_denorm_rng());
+                    h_A_batch_symmetric[i_batch][i + j * lda] = T(rocblas_inf_rng());
+                }
 
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+        CHECK_HIP_ERROR(d_A_batch_symmetric.transfer_from(h_A_batch_symmetric));
 
-        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                    handle,
-                                                                    rocblas_operation_transpose,
-                                                                    M,
-                                                                    N,
-                                                                    d_A_batch.const_batch_ptr(),
-                                                                    offset_a,
-                                                                    lda,
-                                                                    stride_a,
-                                                                    batch_count,
-                                                                    check_numerics,
-                                                                    is_input);
+        status = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                                 handle,
+                                                                 rocblas_operation_transpose,
+                                                                 rocblas_fill_full,
+                                                                 rocblas_client_general_matrix,
+                                                                 M,
+                                                                 N,
+                                                                 d_A_batch.const_batch_ptr(),
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              uplo,
+                                                              rocblas_client_symmetric_matrix,
+                                                              N,
+                                                              N,
+                                                              d_A_batch_symmetric.const_batch_ptr(),
+                                                              offset_a,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 

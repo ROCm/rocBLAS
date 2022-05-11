@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -21,31 +39,29 @@
 template <typename T>
 void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_fill uplo        = rocblas_fill_upper;
-    rocblas_int  N           = 100;
-    rocblas_int  K           = 2;
-    rocblas_int  incx        = 1;
-    rocblas_int  incy        = 1;
-    rocblas_int  lda         = 100;
-    T            alpha       = 0.6;
-    T            beta        = 0.6;
-    rocblas_int  batch_count = 2;
-
+    rocblas_fill         uplo              = rocblas_fill_upper;
+    rocblas_int          N                 = 100;
+    rocblas_int          K                 = 2;
+    rocblas_int          incx              = 1;
+    rocblas_int          incy              = 1;
+    rocblas_int          lda               = 100;
+    T                    alpha             = 0.6;
+    T                    beta              = 0.6;
+    rocblas_int          batch_count       = 2;
+    rocblas_int          banded_matrix_row = K + 1;
     rocblas_local_handle handle{arg};
 
-    size_t         abs_incx = incx >= 0 ? incx : -incx;
-    size_t         abs_incy = incy >= 0 ? incy : -incy;
-    size_t         size_A   = lda * N;
-    rocblas_stride strideA  = size_A;
-    rocblas_stride stridex  = N * abs_incx;
-    rocblas_stride stridey  = N * abs_incy;
+    rocblas_stride strideA = N * lda;
+    rocblas_stride stridex = N * incx;
+    rocblas_stride stridey = N * incy;
 
-    // allocate memory on device
-    static const size_t safe_size = 100;
-    device_vector<T>    dA(safe_size);
-    device_vector<T>    dx(safe_size);
-    device_vector<T>    dy(safe_size);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAb(banded_matrix_row, N, 1, strideA, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stridey, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
@@ -54,7 +70,7 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           N,
                                                           K,
                                                           &alpha,
-                                                          dA,
+                                                          dAb,
                                                           lda,
                                                           strideA,
                                                           dx,
@@ -72,7 +88,7 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           N,
                                                           K,
                                                           &alpha,
-                                                          dA,
+                                                          dAb,
                                                           lda,
                                                           strideA,
                                                           dx,
@@ -90,7 +106,7 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           N,
                                                           K,
                                                           nullptr,
-                                                          dA,
+                                                          dAb,
                                                           lda,
                                                           strideA,
                                                           dx,
@@ -126,7 +142,7 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           N,
                                                           K,
                                                           &alpha,
-                                                          dA,
+                                                          dAb,
                                                           lda,
                                                           strideA,
                                                           nullptr,
@@ -144,7 +160,7 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           N,
                                                           K,
                                                           &alpha,
-                                                          dA,
+                                                          dAb,
                                                           lda,
                                                           strideA,
                                                           dx,
@@ -162,7 +178,7 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           N,
                                                           K,
                                                           &alpha,
-                                                          dA,
+                                                          dAb,
                                                           lda,
                                                           strideA,
                                                           dx,
@@ -179,11 +195,12 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_sbmv_strided_batched(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int lda  = arg.lda;
-    rocblas_int K    = arg.K;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
+    rocblas_int N                 = arg.N;
+    rocblas_int lda               = arg.lda;
+    rocblas_int K                 = arg.K;
+    rocblas_int incx              = arg.incx;
+    rocblas_int incy              = arg.incy;
+    rocblas_int banded_matrix_row = K + 1;
 
     host_vector<T> alpha(1);
     host_vector<T> beta(1);
@@ -204,7 +221,8 @@ void testing_sbmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = N < 0 || lda < K + 1 || K < 0 || !incx || !incy || batch_count < 0;
+    bool invalid_size
+        = N < 0 || lda < banded_matrix_row || K < 0 || !incx || !incy || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_sbmv_strided_batched<T>(handle,
@@ -228,54 +246,52 @@ void testing_sbmv_strided_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hAb(banded_matrix_row, N, lda, strideA, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
+    host_strided_batch_vector<T> hy_1(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hy_2(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy, stridey, batch_count); // gold standard
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hAb.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy_1.memcheck());
+    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
+
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAb(banded_matrix_row, N, lda, strideA, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stridey, batch_count);
+    device_vector<T>               d_alpha(1);
+    device_vector<T>               d_beta(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    host_strided_batch_vector<T> hA(size_A, 1, strideA, batch_count);
-    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
-    host_strided_batch_vector<T> hy(N, incy, stridey, batch_count);
-    host_strided_batch_vector<T> hy2(N, incy, stridey, batch_count);
-    host_strided_batch_vector<T> hg(N, incy, stridey, batch_count); // gold standard
-
-    double gpu_time_used, cpu_time_used;
-    double h_error, d_error;
-
-    device_strided_batch_vector<T> dA(size_A, 1, strideA, batch_count);
-    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
-    device_strided_batch_vector<T> dy(N, incy, stridey, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_matrix(
+        hAb, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
-    // make copy in hg which will later be used with CPU BLAS
-    hg.copy_from(hy);
-    hy2.copy_from(hy); // device memory re-test
-
-    if(arg.unit_check || arg.norm_check)
-    {
-        // cpu reference
-        cpu_time_used = get_time_us_no_sync();
-
-        for(int i = 0; i < batch_count; i++)
-        {
-            cblas_sbmv<T>(uplo, N, K, alpha[0], hA[i], lda, hx[i], incx, beta[0], hg[i], incy);
-        }
-
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-    }
+    // make copy in hy_gold which will later be used with CPU BLAS
+    hy_gold.copy_from(hy_1);
+    hy_2.copy_from(hy_1); // device memory re-test
 
     // copy data from CPU to device
     dx.transfer_from(hx);
-    dy.transfer_from(hy);
-    dA.transfer_from(hA);
+    dy.transfer_from(hy_1);
+    dAb.transfer_from(hAb);
+
+    double gpu_time_used, cpu_time_used;
+    double h_error, d_error;
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -289,7 +305,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                                                             N,
                                                             K,
                                                             alpha,
-                                                            dA,
+                                                            dAb,
                                                             lda,
                                                             strideA,
                                                             dx,
@@ -302,7 +318,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hy.transfer_from(dy));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy));
 
         //
         // rocblas_pointer_mode_device test
@@ -311,14 +327,14 @@ void testing_sbmv_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(beta));
 
-        dy.transfer_from(hy2);
+        dy.transfer_from(hy_2);
 
         CHECK_ROCBLAS_ERROR(rocblas_sbmv_strided_batched<T>(handle,
                                                             uplo,
                                                             N,
                                                             K,
                                                             d_alpha,
-                                                            dA,
+                                                            dAb,
                                                             lda,
                                                             strideA,
                                                             dx,
@@ -331,18 +347,29 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hy2.transfer_from(dy));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy));
+
+        // cpu reference
+        cpu_time_used = get_time_us_no_sync();
+        for(int b = 0; b < batch_count; b++)
+        {
+            cblas_sbmv<T>(
+                uplo, N, K, alpha[0], hAb[b], lda, hx[b], incx, beta[0], hy_gold[b], incy);
+        }
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, stridey, hg, hy, batch_count);
-            unit_check_general<T>(1, N, abs_incy, stridey, hg, hy2, batch_count);
+            unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
+            unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, stridey, hg, hy, batch_count);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, stridey, hg, hy2, batch_count);
+            h_error
+                = norm_check_general<T>('F', 1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
+            d_error
+                = norm_check_general<T>('F', 1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
         }
     }
 
@@ -361,7 +388,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                                                                 N,
                                                                 K,
                                                                 alpha,
-                                                                dA,
+                                                                dAb,
                                                                 lda,
                                                                 strideA,
                                                                 dx,
@@ -385,7 +412,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                                                                 N,
                                                                 K,
                                                                 alpha,
-                                                                dA,
+                                                                dAb,
                                                                 lda,
                                                                 strideA,
                                                                 dx,

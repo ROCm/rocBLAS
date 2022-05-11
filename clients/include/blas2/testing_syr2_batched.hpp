@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -12,6 +30,7 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -33,19 +52,15 @@ void testing_syr2_batched_bad_arg(const Arguments& arg)
     rocblas_int          batch_count = 2;
     rocblas_local_handle handle{arg};
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = lda * N;
-    size_t size_x   = N * abs_incx * batch_count;
-    size_t size_y   = N * abs_incy * batch_count;
-
-    // allocate memory on device
+    // Allocate device memory
+    device_batch_matrix<T> dA_1(N, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-    device_batch_vector<T> dA_1(size_A, 1, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr2_batched_fn(
@@ -103,50 +118,59 @@ void testing_syr2_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A = size_t(lda) * N;
-
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA_1(size_A, 1, batch_count);
-    host_batch_vector<T> hA_2(size_A, 1, batch_count);
-    host_batch_vector<T> hA_gold(size_A, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
+    // Allocate host memory
+    host_batch_matrix<T> hA_1(N, N, lda, batch_count);
+    host_batch_matrix<T> hA_2(N, N, lda, batch_count);
+    host_batch_matrix<T> hA_gold(N, N, lda, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
     host_batch_vector<T> hy(N, incy, batch_count);
     host_vector<T>       halpha(1);
     halpha[0] = h_alpha;
 
-    // allocate memory on device
-    device_batch_vector<T> dA_1(size_A, 1, batch_count);
-    device_batch_vector<T> dA_2(size_A, 1, batch_count);
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA_1.memcheck());
+    CHECK_HIP_ERROR(hA_2.memcheck());
+    CHECK_HIP_ERROR(hA_gold.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
+
+    // Allocate device memory
+    device_batch_matrix<T> dA_1(N, N, lda, batch_count);
+    device_batch_matrix<T> dA_2(N, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<T>       d_alpha(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
-
     // Initialize data on host memory
-    rocblas_init_vector(hA_1, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hA_1, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan);
 
     hA_2.copy_from(hA_1);
     hA_gold.copy_from(hA_1);
 
+    // copy data from CPU to device
     CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
-    CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
+
+    double gpu_time_used, cpu_time_used;
+    double rocblas_error_1;
+    double rocblas_error_2;
 
     if(arg.unit_check || arg.norm_check)
     {
         // copy data from CPU to device
-        //CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2, sizeof(T) * lda * N, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -177,9 +201,9 @@ void testing_syr2_batched(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
-            cblas_syr2<T>(uplo, N, h_alpha, hx[i], incx, hy[i], incy, hA_gold[i], lda);
+            cblas_syr2<T>(uplo, N, h_alpha, hx[b], incx, hy[b], incy, hA_gold[b], lda);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -188,14 +212,14 @@ void testing_syr2_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, size_A, 1, hA_gold, hA_1, batch_count);
-            unit_check_general<T>(1, size_A, 1, hA_gold, hA_2, batch_count);
+            unit_check_general<T>(N, N, lda, hA_gold, hA_1, batch_count);
+            unit_check_general<T>(N, N, lda, hA_gold, hA_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, size_A, 1, hA_gold, hA_1, batch_count);
-            rocblas_error_2 = norm_check_general<T>('F', 1, size_A, 1, hA_gold, hA_2, batch_count);
+            rocblas_error_1 = norm_check_general<T>('F', N, N, lda, hA_gold, hA_1, batch_count);
+            rocblas_error_2 = norm_check_general<T>('F', N, N, lda, hA_gold, hA_2, batch_count);
         }
     }
 

@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  *
  * ************************************************************************ */
 
@@ -13,6 +31,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -25,28 +44,43 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
     auto rocblas_tbmv_strided_batched_fn = arg.fortran ? rocblas_tbmv_strided_batched<T, true>
                                                        : rocblas_tbmv_strided_batched<T, false>;
 
-    const rocblas_int    M           = 100;
-    const rocblas_int    K           = 5;
-    const rocblas_int    lda         = 100;
-    const rocblas_int    incx        = 1;
-    const rocblas_stride stride_A    = 100;
-    const rocblas_stride stride_x    = 100;
-    const rocblas_int    batch_count = 5;
-
-    const rocblas_fill      uplo   = rocblas_fill_upper;
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+    const rocblas_int       M                 = 100;
+    const rocblas_int       K                 = 5;
+    const rocblas_int       lda               = 100;
+    const rocblas_int       incx              = 1;
+    const rocblas_stride    stride_A          = 100;
+    const rocblas_stride    stride_x          = 100;
+    const rocblas_int       batch_count       = 5;
+    const rocblas_int       banded_matrix_row = K + 1;
+    const rocblas_fill      uplo              = rocblas_fill_upper;
+    const rocblas_operation transA            = rocblas_operation_none;
+    const rocblas_diagonal  diag              = rocblas_diagonal_non_unit;
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = stride_A * batch_count;
-    size_t size_x = stride_x * batch_count;
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAb(banded_matrix_row, M, lda, stride_A, batch_count);
+    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dx(size_x);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched_fn(handle,
+                                                          rocblas_fill_full,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          K,
+                                                          dAb,
+                                                          lda,
+                                                          stride_A,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
+    // arg_checks code shared so transA, diag tested only in non-batched
 
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched_fn(handle,
                                                           uplo,
@@ -69,7 +103,7 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           diag,
                                                           M,
                                                           K,
-                                                          dA,
+                                                          dAb,
                                                           lda,
                                                           stride_A,
                                                           nullptr,
@@ -80,7 +114,7 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbmv_strided_batched_fn(
-            nullptr, uplo, transA, diag, M, K, dA, lda, stride_A, dx, incx, stride_x, batch_count),
+            nullptr, uplo, transA, diag, M, K, dAb, lda, stride_A, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_handle);
 
     // Adding test to check that if batch_count == 0 we can pass in nullptrs and get a success.
@@ -95,23 +129,24 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     auto rocblas_tbmv_strided_batched_fn = arg.fortran ? rocblas_tbmv_strided_batched<T, true>
                                                        : rocblas_tbmv_strided_batched<T, false>;
 
-    rocblas_int       M           = arg.M;
-    rocblas_int       K           = arg.K;
-    rocblas_int       lda         = arg.lda;
-    rocblas_int       incx        = arg.incx;
-    char              char_uplo   = arg.uplo;
-    char              char_diag   = arg.diag;
-    rocblas_stride    stride_A    = arg.stride_a;
-    rocblas_stride    stride_x    = arg.stride_x;
-    rocblas_int       batch_count = arg.batch_count;
-    rocblas_fill      uplo        = char2rocblas_fill(char_uplo);
-    rocblas_operation transA      = char2rocblas_operation(arg.transA);
-    rocblas_diagonal  diag        = char2rocblas_diagonal(char_diag);
+    rocblas_int       M                 = arg.M;
+    rocblas_int       K                 = arg.K;
+    rocblas_int       lda               = arg.lda;
+    rocblas_int       incx              = arg.incx;
+    char              char_uplo         = arg.uplo;
+    char              char_diag         = arg.diag;
+    rocblas_stride    stride_A          = arg.stride_a;
+    rocblas_stride    stride_x          = arg.stride_x;
+    rocblas_int       batch_count       = arg.batch_count;
+    rocblas_fill      uplo              = char2rocblas_fill(char_uplo);
+    rocblas_operation transA            = char2rocblas_operation(arg.transA);
+    rocblas_diagonal  diag              = char2rocblas_diagonal(char_diag);
+    const rocblas_int banded_matrix_row = K + 1;
 
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    bool invalid_size = M < 0 || K < 0 || lda < banded_matrix_row || !incx || batch_count < 0;
     if(invalid_size || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched_fn(handle,
@@ -132,30 +167,40 @@ void testing_tbmv_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = lda * size_t(M);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-    size_t size_x   = M * abs_incx + stride_x * (batch_count - 1);
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_strided_batch_vector<T> hA(size_A, 1, stride_A, batch_count);
-    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hAb(banded_matrix_row, M, lda, stride_A, batch_count);
     host_strided_batch_vector<T> hx_1(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx_2(M, incx, stride_x, batch_count);
     host_strided_batch_vector<T> hx_gold(M, incx, stride_x, batch_count);
 
-    device_strided_batch_vector<T> dA(size_A, 1, stride_A, batch_count);
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hAb.memcheck());
+    CHECK_HIP_ERROR(hx_1.memcheck());
+    CHECK_HIP_ERROR(hx_2.memcheck());
+    CHECK_HIP_ERROR(hx_gold.memcheck());
+
+    // Allocate device memory
+    device_strided_batch_matrix<T> dAb(banded_matrix_row, M, lda, stride_A, batch_count);
     device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
-    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
+    // Initializing the banded-matrix 'hAb' as a general matrix as the banded matrix is not triangular
+    rocblas_init_matrix(
+        hAb, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+    rocblas_init_vector(hx_1, arg, rocblas_client_never_set_nan, false, true);
 
-    hx_gold.copy_from(hx);
+    hx_gold.copy_from(hx_1);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dAb.transfer_from(hAb));
+    CHECK_HIP_ERROR(dx.transfer_from(hx_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1;
@@ -170,27 +215,28 @@ void testing_tbmv_strided_batched(const Arguments& arg)
         // pointer mode shouldn't matter here
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_tbmv_strided_batched_fn(
-            handle, uplo, transA, diag, M, K, dA, lda, stride_A, dx, incx, stride_x, batch_count));
+            handle, uplo, transA, diag, M, K, dAb, lda, stride_A, dx, incx, stride_x, batch_count));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
+
         for(int b = 0; b < batch_count; b++)
-            cblas_tbmv<T>(
-                uplo, transA, diag, M, K, hA + b * stride_A, lda, hx_gold + b * stride_x, incx);
+            cblas_tbmv<T>(uplo, transA, diag, M, K, hAb[b], lda, hx_gold[b], incx);
+
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hx_1.transfer_from(dx));
+        CHECK_HIP_ERROR(hx_2.transfer_from(dx));
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, stride_x, hx_gold, hx_1, batch_count);
+            unit_check_general<T>(1, M, abs_incx, stride_x, hx_gold, hx_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, M, abs_incx, stride_x, hx_gold, hx_1, batch_count);
+                = norm_check_general<T>('F', 1, M, abs_incx, stride_x, hx_gold, hx_2, batch_count);
         }
     }
 
@@ -207,7 +253,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             diag,
                                             M,
                                             K,
-                                            dA,
+                                            dAb,
                                             lda,
                                             stride_A,
                                             dx,
@@ -228,7 +274,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             diag,
                                             M,
                                             K,
-                                            dA,
+                                            dAb,
                                             lda,
                                             stride_A,
                                             dx,

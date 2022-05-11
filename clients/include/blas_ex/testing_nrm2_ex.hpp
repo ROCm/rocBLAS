@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -26,14 +44,16 @@ void testing_nrm2_ex_bad_arg(const Arguments& arg)
     rocblas_datatype result_type    = rocblas_datatype_f32_r;
     rocblas_datatype execution_type = rocblas_datatype_f32_r;
 
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    static const size_t safe_size = 100;
+    rocblas_int N    = 100;
+    rocblas_int incx = 1;
 
     rocblas_local_handle handle{arg};
 
-    device_vector<Tx> dx(safe_size);
+    // Allocate device memory
+    device_vector<Tx> dx(N, incx);
     device_vector<Tr> d_rocblas_result(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
@@ -63,10 +83,6 @@ void testing_nrm2_ex(const Arguments& arg)
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
-
-    Tr rocblas_result_1;
-    Tr rocblas_result_2;
-    Tr cpu_result;
 
     double rocblas_error_1;
     double rocblas_error_2;
@@ -104,22 +120,26 @@ void testing_nrm2_ex(const Arguments& arg)
         return;
     }
 
-    size_t size_x = N * size_t(incx);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_vector<Tx> hx(N, incx);
+    host_vector<Tr> rocblas_result_1(1, 1);
+    host_vector<Tr> rocblas_result_2(1, 1);
+    host_vector<Tr> cpu_result(1, 1);
 
-    // allocate memory on device
-    device_vector<Tx> dx(size_x);
-    device_vector<Tr> d_rocblas_result_2(1);
+    // Allocate device memory
+    device_vector<Tx> dx(N, incx);
+    device_vector<Tr> d_rocblas_result_2(1, 1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
-    // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    host_vector<Tx> hx(size_x);
-
     // Initial Data on CPU
-    rocblas_init_vector(hx, arg, N, incx, 0, 1, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
-    // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * N * incx, hipMemcpyHostToDevice));
+    // copy data from CPU to device
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
 
@@ -128,21 +148,21 @@ void testing_nrm2_ex(const Arguments& arg)
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_ex_fn(
-            handle, N, dx, x_type, incx, &rocblas_result_1, result_type, execution_type));
+            handle, N, dx, x_type, incx, rocblas_result_1, result_type, execution_type));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_ex_fn(
             handle, N, dx, x_type, incx, d_rocblas_result_2, result_type, execution_type));
-        CHECK_HIP_ERROR(
-            hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(Tr), hipMemcpyDeviceToHost));
+
+        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_nrm2<Tx>(N, hx, incx, &cpu_result);
+        cblas_nrm2<Tx>(N, hx, incx, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        Tr abs_result = cpu_result > 0 ? cpu_result : -cpu_result;
+        Tr abs_result = cpu_result[0] > 0 ? cpu_result[0] : -cpu_result[0];
         Tr abs_error;
         if(abs_result > 0)
         {
@@ -160,19 +180,15 @@ void testing_nrm2_ex(const Arguments& arg)
         {
             if(arg.unit_check)
             {
-                near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
-                near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+                near_check_general<Tr, Tr>(1, 1, 1, cpu_result, rocblas_result_1, abs_error);
+                near_check_general<Tr, Tr>(1, 1, 1, cpu_result, rocblas_result_2, abs_error);
             }
         }
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
-            rocblas_error_1 = ((cpu_result - rocblas_result_1) / cpu_result);
-            rocblas_error_2 = ((cpu_result - rocblas_result_2) / cpu_result);
-            rocblas_error_1 = rocblas_error_1 < 0 ? -rocblas_error_1 : rocblas_error_1;
-            rocblas_error_2 = rocblas_error_2 < 0 ? -rocblas_error_2 : rocblas_error_2;
+            rocblas_error_1 = rocblas_abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
+            rocblas_error_2 = rocblas_abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
         }
     }
 

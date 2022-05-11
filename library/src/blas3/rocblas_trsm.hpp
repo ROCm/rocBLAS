@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -15,6 +33,50 @@ static const T zero = T(0);
 template <typename T>
 static const T one = T(1);
 
+template <typename TScal, typename TPtr, typename TConstPtr>
+inline rocblas_status rocblas_trsm_arg_check(rocblas_handle    handle,
+                                             rocblas_side      side,
+                                             rocblas_fill      uplo,
+                                             rocblas_operation transA,
+                                             rocblas_diagonal  diag,
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             const TScal*      alpha,
+                                             TConstPtr         A,
+                                             rocblas_int       lda,
+                                             TPtr              B,
+                                             rocblas_int       ldb,
+                                             rocblas_int       batch_count)
+{
+    if(side != rocblas_side_left && side != rocblas_side_right)
+        return rocblas_status_invalid_value;
+
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+       && transA != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
+    if(diag != rocblas_diagonal_non_unit && diag != rocblas_diagonal_unit)
+        return rocblas_status_invalid_value;
+
+    // A is of size lda*k
+    rocblas_int k = side == rocblas_side_left ? m : n;
+    if(batch_count < 0 || m < 0 || n < 0 || lda < k || ldb < m)
+        return rocblas_status_invalid_size;
+
+    // quick return if possible.
+    if(!m || !n || !batch_count)
+        return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
+                                                     : rocblas_status_success;
+
+    if(!B || !alpha || (handle->pointer_mode == rocblas_pointer_mode_host && *alpha != 0 && !A))
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 copy_matrix_trsm(rocblas_int    rows,
@@ -26,8 +88,8 @@ copy_matrix_trsm(rocblas_int    rows,
                  V              b,
                  rocblas_int    ldb,
                  rocblas_stride stride_b,
-                 rocblas_int    offset_a,
-                 rocblas_int    offset_b)
+                 rocblas_stride offset_a,
+                 rocblas_stride offset_b)
 {
     const T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
     T*       xb = load_ptr_batch(b, hipBlockIdx_z, offset_b, stride_b);
@@ -51,8 +113,8 @@ void copy_block_unit(rocblas_handle handle,
                      rocblas_int    dst_ld,
                      rocblas_stride dst_stride,
                      rocblas_int    batch_count,
-                     rocblas_int    offset_src = 0,
-                     rocblas_int    offset_dst = 0)
+                     rocblas_stride offset_src = 0,
+                     rocblas_stride offset_dst = 0)
 {
     rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
     rocblas_int blocksY = (n - 1) / 8 + 1;
@@ -86,7 +148,7 @@ set_matrix_trsm(rocblas_int    rows,
                 rocblas_int    lda,
                 rocblas_stride stride_a,
                 T              val,
-                rocblas_int    offset_a)
+                rocblas_stride offset_a)
 {
     T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
 
@@ -107,7 +169,7 @@ void set_block_unit(rocblas_handle handle,
                     rocblas_stride src_stride,
                     rocblas_int    batch_count,
                     T              val        = 0.0,
-                    rocblas_int    offset_src = 0)
+                    rocblas_stride offset_src = 0)
 {
     rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
     rocblas_int blocksY = (n - 1) / 8 + 1;
@@ -139,16 +201,16 @@ rocblas_status rocblas_trsm_left(rocblas_handle    handle,
                                  rocblas_int       n,
                                  const T*          alpha,
                                  U                 A,
-                                 rocblas_int       offset_Ain,
+                                 rocblas_stride    offset_Ain,
                                  rocblas_int       lda,
                                  rocblas_stride    stride_A,
                                  V                 B,
-                                 rocblas_int       offset_Bin,
+                                 rocblas_stride    offset_Bin,
                                  rocblas_int       ldb,
                                  rocblas_stride    stride_B,
                                  rocblas_int       batch_count,
                                  U                 invA,
-                                 rocblas_int       offset_invAin,
+                                 rocblas_stride    offset_invAin,
                                  rocblas_stride    stride_invA,
                                  V                 X,
                                  rocblas_stride    stride_X)
@@ -597,16 +659,16 @@ rocblas_status rocblas_trsm_right(rocblas_handle    handle,
                                   rocblas_int       n,
                                   const T*          alpha,
                                   U                 A,
-                                  rocblas_int       offset_Ain,
+                                  rocblas_stride    offset_Ain,
                                   rocblas_int       lda,
                                   rocblas_stride    stride_A,
                                   V                 B,
-                                  rocblas_int       offset_Bin,
+                                  rocblas_stride    offset_Bin,
                                   rocblas_int       ldb,
                                   rocblas_stride    stride_B,
                                   rocblas_int       batch_count,
                                   U                 invA,
-                                  rocblas_int       offset_invAin,
+                                  rocblas_stride    offset_invAin,
                                   rocblas_stride    stride_invA,
                                   V                 X,
                                   rocblas_stride    stride_X)
@@ -1036,16 +1098,16 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                      rocblas_int       n,
                                      const T*          alpha,
                                      U                 A,
-                                     rocblas_int       offset_Ain,
+                                     rocblas_stride    offset_Ain,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_A,
                                      V                 B,
-                                     rocblas_int       offset_Bin,
+                                     rocblas_stride    offset_Bin,
                                      rocblas_int       ldb,
                                      rocblas_stride    stride_B,
                                      rocblas_int       batch_count,
                                      U                 invA,
-                                     rocblas_int       offset_invAin,
+                                     rocblas_stride    offset_invAin,
                                      rocblas_stride    stride_invA,
                                      size_t            B_chunk_size,
                                      V                 w_x_temp,
@@ -2645,11 +2707,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int       n,
                                    const T*          alpha,
                                    U                 A,
-                                   rocblas_int       offset_A,
+                                   rocblas_stride    offset_A,
                                    rocblas_int       lda,
                                    rocblas_stride    stride_A,
                                    V                 B,
-                                   rocblas_int       offset_B,
+                                   rocblas_stride    offset_B,
                                    rocblas_int       ldb,
                                    rocblas_stride    stride_B,
                                    rocblas_int       batch_count,
@@ -2660,7 +2722,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    void*             invAarr            = nullptr,
                                    U                 supplied_invA      = nullptr,
                                    rocblas_int       supplied_invA_size = 0,
-                                   rocblas_int       offset_invA        = 0,
+                                   rocblas_stride    offset_invA        = 0,
                                    rocblas_stride    stride_invA        = 0)
 {
     bool SUBSTITUTION_ENABLED = true;
@@ -2668,7 +2730,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(batch_count == 0)
         return rocblas_status_success;
 
-    if(!is_complex<T> && transA == rocblas_operation_conjugate_transpose)
+    if(!rocblas_is_complex<T> && transA == rocblas_operation_conjugate_transpose)
         transA = rocblas_operation_transpose;
 
     rocblas_int k = side == rocblas_side_left ? m : n;

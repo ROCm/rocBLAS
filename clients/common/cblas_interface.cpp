@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************/
 #include "cblas_interface.hpp"
 #include "rocblas_vector.hpp"
@@ -316,6 +334,95 @@ void cblas_rot<rocblas_bfloat16>(rocblas_int             n,
  *    level 3 BLAS
  * ===========================================================================
  */
+/**
+  *
+  * cblas_dgmm(rocblas_side side, rocblas_int m, rocblas_int n, T* A, rocblas_int lda, T *x, rocblas_int incx, T *C, rocblas_int ldc)
+  *
+  * Parameters   : side  : specifies the side of diag(x)
+  *                m     : Number of rows in matrices `A` and `C`.
+  *                n     : Number of cols in matrices `A` and `C`.
+  *                A     : Host pointer storing matrix `A`.
+  *                lda   : Leading dimension of matrix `A`.
+  *                x     : Host pointer storing vector `x`.
+  *                incx  : Specifies the increment of the elements in `x`.
+  *                C     : Host pointer storing matrix `C`.
+  *                ldc   : Leading dimension of matrix `C`.
+  *
+  * Return Value : Void
+  *
+**/
+
+template <typename T>
+void cblas_dgmm(rocblas_side side,
+                rocblas_int  m,
+                rocblas_int  n,
+                T*           A,
+                rocblas_int  lda,
+                T*           x,
+                rocblas_int  incx,
+                T*           C,
+                rocblas_int  ldc)
+{
+    if(!m || !n)
+        return;
+
+    rocblas_int K = rocblas_side_right == side ? size_t(n) : size_t(m);
+
+    ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (K - 1) : 0;
+
+    for(size_t i = 0; i < m; i++)
+    {
+        for(size_t j = 0; j < n; j++)
+        {
+            if(rocblas_side_right == side)
+            {
+                C[i + j * ldc] = A[i + j * lda] * x[shift_x + j * incx];
+            }
+            else
+            {
+                C[i + j * ldc] = A[i + j * lda] * x[shift_x + i * incx];
+            }
+        }
+    }
+}
+
+//dgmm Instantiation
+template void cblas_dgmm<float>(rocblas_side side,
+                                rocblas_int  m,
+                                rocblas_int  n,
+                                float*       A,
+                                rocblas_int  lda,
+                                float*       x,
+                                rocblas_int  incx,
+                                float*       C,
+                                rocblas_int  ldc);
+template void cblas_dgmm<double>(rocblas_side side,
+                                 rocblas_int  m,
+                                 rocblas_int  n,
+                                 double*      A,
+                                 rocblas_int  lda,
+                                 double*      x,
+                                 rocblas_int  incx,
+                                 double*      C,
+                                 rocblas_int  ldc);
+template void cblas_dgmm<rocblas_complex_num<float>>(rocblas_side                side,
+                                                     rocblas_int                 m,
+                                                     rocblas_int                 n,
+                                                     rocblas_complex_num<float>* A,
+                                                     rocblas_int                 lda,
+                                                     rocblas_complex_num<float>* x,
+                                                     rocblas_int                 incx,
+                                                     rocblas_complex_num<float>* C,
+                                                     rocblas_int                 ldc);
+template void cblas_dgmm<rocblas_complex_num<double>>(rocblas_side                 side,
+                                                      rocblas_int                  m,
+                                                      rocblas_int                  n,
+                                                      rocblas_complex_num<double>* A,
+                                                      rocblas_int                  lda,
+                                                      rocblas_complex_num<double>* x,
+                                                      rocblas_int                  incx,
+                                                      rocblas_complex_num<double>* C,
+                                                      rocblas_int                  ldc);
 
 // geam
 template <typename T>

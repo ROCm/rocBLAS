@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -177,13 +195,13 @@ inline float log_trace_scalar_value(const rocblas_half* value)
     return value ? float(*value) : std::numeric_limits<float>::quiet_NaN();
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value : std::numeric_limits<T>::quiet_NaN();
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value
@@ -217,7 +235,7 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
     return ss.str();
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 std::string log_bench_scalar_value(const char* name, const T* value)
 {
     rocblas_internal_ostream ss;
@@ -225,7 +243,7 @@ std::string log_bench_scalar_value(const char* name, const T* value)
     return ss.str();
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 std::string log_bench_scalar_value(const char* name, const T* value)
 {
     rocblas_internal_ostream ss;
@@ -366,6 +384,9 @@ inline rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
 template <typename T>
 auto value_category(const T* beta, rocblas_datatype compute_type)
 {
+    if(beta == nullptr)
+        return 0.0;
+
     switch(compute_type)
     {
     case rocblas_datatype_f16_r:

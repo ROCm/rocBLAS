@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "handle.hpp"
@@ -236,50 +254,37 @@ try
     auto stride_c = rocblas_stride(ldc) * n;
     auto stride_d = rocblas_stride(ldd) * n;
 
-    auto gemm_ex = [&] {
-        return rocblas_gemm_ex_template<true>(handle,
-                                              trans_a,
-                                              trans_b,
-                                              m,
-                                              n,
-                                              k,
-                                              alpha,
-                                              a,
-                                              a_type,
-                                              0,
-                                              lda,
-                                              stride_a,
-                                              b,
-                                              b_type,
-                                              0,
-                                              ldb,
-                                              stride_b,
-                                              beta,
-                                              c,
-                                              c_type,
-                                              0,
-                                              ldc,
-                                              stride_c,
-                                              d,
-                                              d_type,
-                                              0,
-                                              ldd,
-                                              stride_d,
-                                              batch_count,
-                                              compute_type,
-                                              flags);
-    };
-
-    if(HPA && !handle->is_device_memory_size_query())
-    {
-        // Allocate GSU workspace in handle
-        auto gsu_malloc = handle->gsu_malloc();
-        return gemm_ex();
-    }
-    else
-    {
-        return gemm_ex();
-    }
+    return rocblas_gemm_ex_template<true>(handle,
+                                          trans_a,
+                                          trans_b,
+                                          m,
+                                          n,
+                                          k,
+                                          alpha,
+                                          a,
+                                          a_type,
+                                          0,
+                                          lda,
+                                          stride_a,
+                                          b,
+                                          b_type,
+                                          0,
+                                          ldb,
+                                          stride_b,
+                                          beta,
+                                          c,
+                                          c_type,
+                                          0,
+                                          ldc,
+                                          stride_c,
+                                          d,
+                                          d_type,
+                                          0,
+                                          ldd,
+                                          stride_d,
+                                          batch_count,
+                                          compute_type,
+                                          flags);
 }
 catch(...)
 {

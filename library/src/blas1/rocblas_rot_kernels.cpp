@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
@@ -11,7 +29,7 @@ template <typename Tex,
           typename Ty,
           typename Tc,
           typename Ts,
-          std::enable_if_t<!is_complex<Ts>, int> = 0>
+          std::enable_if_t<!rocblas_is_complex<Ts>, int> = 0>
 __device__ void
     rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
@@ -33,7 +51,7 @@ template <typename Tex,
           typename Ty,
           typename Tc,
           typename Ts,
-          std::enable_if_t<is_complex<Ts>, int> = 0>
+          std::enable_if_t<rocblas_is_complex<Ts>, int> = 0>
 __device__ void
     rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
@@ -54,11 +72,11 @@ template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, t
 ROCBLAS_KERNEL(NB)
 rot_kernel(rocblas_int    n,
            Tx             x_in,
-           rocblas_int    offset_x,
+           rocblas_stride offset_x,
            rocblas_int    incx,
            rocblas_stride stride_x,
            Ty             y_in,
-           rocblas_int    offset_y,
+           rocblas_stride offset_y,
            rocblas_int    incy,
            rocblas_stride stride_y,
            Tc             c_in,
@@ -78,11 +96,11 @@ template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, t
 rocblas_status rocblas_rot_template(rocblas_handle handle,
                                     rocblas_int    n,
                                     Tx             x,
-                                    rocblas_int    offset_x,
+                                    rocblas_stride offset_x,
                                     rocblas_int    incx,
                                     rocblas_stride stride_x,
                                     Ty             y,
-                                    rocblas_int    offset_y,
+                                    rocblas_stride offset_y,
                                     rocblas_int    incy,
                                     rocblas_stride stride_y,
                                     Tc*            c,
@@ -149,11 +167,11 @@ rocblas_status rocblas_rot_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
                                           rocblas_int    n,
                                           T              x,
-                                          rocblas_int    offset_x,
+                                          rocblas_stride offset_x,
                                           rocblas_int    inc_x,
                                           rocblas_stride stride_x,
                                           T              y,
-                                          rocblas_int    offset_y,
+                                          rocblas_stride offset_y,
                                           rocblas_int    inc_y,
                                           rocblas_stride stride_y,
                                           rocblas_int    batch_count,
@@ -202,11 +220,11 @@ template rocblas_status rocblas_rot_check_numerics<T_>                   \
                                           rocblas_handle handle,         \
                                           rocblas_int    n,              \
                                           T_             x,              \
-                                          rocblas_int    offset_x,       \
+                                          rocblas_stride offset_x,       \
                                           rocblas_int    inc_x,          \
                                           rocblas_stride stride_x,       \
                                           T_             y,              \
-                                          rocblas_int    offset_y,       \
+                                          rocblas_stride offset_y,       \
                                           rocblas_int    inc_y,          \
                                           rocblas_stride stride_y,       \
                                           rocblas_int    batch_count,    \
@@ -236,11 +254,11 @@ template rocblas_status rocblas_rot_template <NB_, Tex_, Tx_, Ty_, Tc_, Ts_> \
                                              (rocblas_handle handle,         \
                                               rocblas_int    n,              \
                                               Tx_            x,              \
-                                              rocblas_int    offset_x,       \
+                                              rocblas_stride offset_x,       \
                                               rocblas_int    incx,           \
                                               rocblas_stride stride_x,       \
                                               Ty_            y,              \
-                                              rocblas_int    offset_y,       \
+                                              rocblas_stride offset_y,       \
                                               rocblas_int    incy,           \
                                               rocblas_stride stride_y,       \
                                               Tc_*           c,              \

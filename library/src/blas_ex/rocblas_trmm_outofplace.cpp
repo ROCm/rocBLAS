@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 #include "../blas3/rocblas_trmm.hpp"
 #include "handle.hpp"
@@ -46,6 +64,12 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        T        alpha_h, beta_h;
+        const T* beta = nullptr;
+        RETURN_IF_ROCBLAS_ERROR(
+            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, m && n));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -76,7 +100,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f trmm -r",
+                          "./rocblas-bench -f trmm_outofplace -r",
                           rocblas_precision_string<T>,
                           "--side",
                           side_letter,
@@ -121,20 +145,15 @@ namespace
                             ldc);
         }
 
-        rocblas_int nrowa = rocblas_side_left == side ? m : n;
+        rocblas_status arg_status = rocblas_trmm_outofplace_arg_check(
+            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, c, ldc, 1);
 
-        if(m < 0 || n < 0 || lda < nrowa || ldb < m || ldc < m)
-            return rocblas_status_invalid_size;
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
-        if(m == 0 || n == 0)
-            return rocblas_status_success;
-
-        if(!alpha || !b || !c)
-            return rocblas_status_invalid_pointer;
-
-        rocblas_int    offset_a     = 0;
-        rocblas_int    offset_b     = 0;
-        rocblas_int    offset_c     = 0;
+        rocblas_stride offset_a     = 0;
+        rocblas_stride offset_b     = 0;
+        rocblas_stride offset_c     = 0;
         rocblas_stride stride_a     = 0;
         rocblas_stride stride_b     = 0;
         rocblas_stride stride_c     = 0;
