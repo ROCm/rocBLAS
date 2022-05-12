@@ -44,69 +44,40 @@ void testing_syrk_batched_bad_arg(const Arguments& arg)
     auto rocblas_syrk_batched_fn
         = arg.fortran ? rocblas_syrk_batched<T, true> : rocblas_syrk_batched<T, false>;
 
-    rocblas_local_handle    handle{arg};
-    const rocblas_fill      uplo        = rocblas_fill_upper;
-    const rocblas_operation transA      = rocblas_operation_none;
-    const rocblas_int       N           = 100;
-    const rocblas_int       K           = 100;
-    const rocblas_int       lda         = 100;
-    const rocblas_int       ldc         = 100;
-    const T                 alpha       = 1.0;
-    const T                 beta        = 1.0;
-    rocblas_int             batch_count = 2;
-
-    size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
-    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
-
-    // Allocate device memory
-    device_batch_matrix<T> dA(rows, cols, lda, batch_count);
-    device_batch_matrix<T> dC(N, N, ldc, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_handle);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, &alpha, nullptr, lda, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, &alpha, dA, lda, &beta, nullptr, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, nullptr, ldc, batch_count),
-        rocblas_status_success);
-
-    if(rocblas_is_complex<T>)
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
+
+        const rocblas_fill      uplo        = rocblas_fill_upper;
+        const rocblas_operation transA      = rocblas_operation_none;
+        const rocblas_int       N           = 100;
+        const rocblas_int       K           = 100;
+        const rocblas_int       lda         = 100;
+        const rocblas_int       ldc         = 100;
+        const T                 alpha       = 1.0;
+        const T                 beta        = 1.0;
+        rocblas_int             batch_count = 2;
+
+        size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
+        size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+
+        // Allocate device memory
+        device_batch_matrix<T> dA(rows, cols, lda, batch_count);
+        device_batch_matrix<T> dC(N, N, ldc, batch_count);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_batched_fn(
+                nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
+            rocblas_status_invalid_handle);
+
         EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
-                                                      uplo,
-                                                      rocblas_operation_conjugate_transpose,
+                                                      rocblas_fill_full,
+                                                      transA,
                                                       N,
                                                       K,
                                                       &alpha,
@@ -117,6 +88,58 @@ void testing_syrk_batched_bad_arg(const Arguments& arg)
                                                       ldc,
                                                       batch_count),
                               rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_batched_fn(
+                handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc, batch_count),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_batched_fn(
+                handle, uplo, transA, N, K, &alpha, nullptr, lda, &beta, dC, ldc, batch_count),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_batched_fn(
+                handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, dC, ldc, batch_count),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_batched_fn(
+                handle, uplo, transA, N, K, &alpha, dA, lda, &beta, nullptr, ldc, batch_count),
+            rocblas_status_invalid_pointer);
+
+        // quick return with invalid pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
+                                                      uplo,
+                                                      transA,
+                                                      0,
+                                                      K,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      nullptr,
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        if(rocblas_is_complex<T>)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
+                                                          uplo,
+                                                          rocblas_operation_conjugate_transpose,
+                                                          N,
+                                                          K,
+                                                          &alpha,
+                                                          dA,
+                                                          lda,
+                                                          &beta,
+                                                          dC,
+                                                          ldc,
+                                                          batch_count),
+                                  rocblas_status_invalid_value);
+        }
     }
 }
 

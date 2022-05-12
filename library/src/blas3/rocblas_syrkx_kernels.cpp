@@ -977,6 +977,24 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 {
     static constexpr bool TWOK = false;
 
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*beta == 1)
+        {
+            if(!k || !*alpha)
+                return rocblas_status_success;
+        }
+        // all early return success now handled so
+        // pointers must be valid
+        bool ab_calc_invalid = !alpha || (*alpha != 0 && (!da || !db));
+        if(!dc || (k && ab_calc_invalid))
+            return rocblas_status_invalid_pointer;
+    }
+    else
+    {
+        return rocblas_status_internal_error; // always pushed host_mode prevalidation
+    }
+
     if(BATCHED == false && batch_count == 1)
     {
         return rocblas_syrkx_template<MIN_NB, BATCHED, T>(handle,
