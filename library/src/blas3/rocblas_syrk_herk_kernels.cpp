@@ -550,6 +550,63 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     return rocblas_status_success;
 }
+template <bool HERM, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
+                                                rocblas_handle    handle,
+                                                rocblas_fill      uplo,
+                                                rocblas_operation trans,
+                                                rocblas_int       n,
+                                                rocblas_int       k,
+                                                TConstPtr         A,
+                                                rocblas_int       lda,
+                                                rocblas_stride    stride_a,
+                                                TPtr              C,
+                                                rocblas_int       ldc,
+                                                rocblas_stride    stride_c,
+                                                rocblas_int       batch_count,
+                                                const int         check_numerics,
+                                                bool              is_input)
+{
+    rocblas_status check_numerics_status = rocblas_status_success;
+    if(is_input)
+    {
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              trans,
+                                                              rocblas_fill_full,
+                                                              rocblas_client_general_matrix,
+                                                              n,
+                                                              k,
+                                                              A,
+                                                              0,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+
+    check_numerics_status = rocblas_internal_check_numerics_matrix_template(
+        function_name,
+        handle,
+        rocblas_operation_none,
+        uplo,
+        HERM ? rocblas_client_hermitian_matrix : rocblas_client_symmetric_matrix,
+        n,
+        n,
+        C,
+        0,
+        ldc,
+        stride_c,
+        batch_count,
+        check_numerics,
+        is_input);
+
+    return check_numerics_status;
+}
 
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files syrk*.cpp or herk*.cpp
@@ -621,4 +678,44 @@ INSTANTIATE_HERK_TEMPLATE( double const*, rocblas_double_complex const* const*, 
 
 #undef INSTANTIATE_HERK_TEMPLATE
 
+#ifdef INSTANTIATE_HERK_SYRK_NUMERICS
+#error INSTANTIATE_HERK_SYRK_NUMERICS already defined
+#endif
+
+#define INSTANTIATE_HERK_SYRK_NUMERICS(HERM_, TConstPtr_, TPtr_)                        \
+template rocblas_status rocblas_herk_syrk_check_numerics                                \
+                                  <HERM_, TConstPtr_, TPtr_>                            \
+                                  (const char*       function_name,                     \
+                                   rocblas_handle handle,                               \
+                                   rocblas_fill   uplo,                                 \
+                                   rocblas_operation trans,                             \
+                                   rocblas_int    n,                                    \
+                                   rocblas_int    k,                                    \
+                                   TConstPtr_     A,                                    \
+                                   rocblas_int    lda,                                  \
+                                   rocblas_stride strideA,                              \
+                                   TPtr_          C,                                    \
+                                   rocblas_int    ldc,                                  \
+                                   rocblas_stride strideC,                              \
+                                   rocblas_int    batch_count,                          \
+                                   const int      check_numerics,                       \
+                                   bool           is_input);
+
+// instantiate for rocblas_Xherk_Xsyrk and rocblas_Xherk_Xsyrk_strided_batched
+INSTANTIATE_HERK_SYRK_NUMERICS(false, float const*, float*)
+INSTANTIATE_HERK_SYRK_NUMERICS(false, double const*, double*)
+INSTANTIATE_HERK_SYRK_NUMERICS(false,  rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_HERK_SYRK_NUMERICS( true,  rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_HERK_SYRK_NUMERICS(false, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_HERK_SYRK_NUMERICS( true, rocblas_double_complex const*, rocblas_double_complex*)
+
+// instantiate for rocblas_Xherk_Xsyrk_batched
+INSTANTIATE_HERK_SYRK_NUMERICS(false, float const* const*, float* const*)
+INSTANTIATE_HERK_SYRK_NUMERICS(false, double const* const*, double* const*)
+INSTANTIATE_HERK_SYRK_NUMERICS(false,  rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_HERK_SYRK_NUMERICS( true,  rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_HERK_SYRK_NUMERICS(false, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_HERK_SYRK_NUMERICS( true, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+
+#undef INSTANTIATE_HERK_SYRK_NUMERICS
 // clang-format on

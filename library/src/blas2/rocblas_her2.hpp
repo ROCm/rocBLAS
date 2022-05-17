@@ -55,6 +55,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 template <typename T, typename U>
 rocblas_status rocblas_her2_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
+                                           rocblas_fill   uplo,
                                            rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,

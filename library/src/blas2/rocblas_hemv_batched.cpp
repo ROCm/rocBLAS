@@ -150,6 +150,7 @@ namespace
             rocblas_status hemv_check_numerics_status
                 = rocblas_hemv_check_numerics(rocblas_hemv_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               0,
@@ -200,6 +201,7 @@ namespace
             rocblas_status hemv_check_numerics_status
                 = rocblas_hemv_check_numerics(rocblas_hemv_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               0,

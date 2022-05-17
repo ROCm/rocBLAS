@@ -54,7 +54,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -135,22 +136,76 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        return rocblas_internal_syrk_template(handle,
-                                              uplo,
-                                              transA,
-                                              n,
-                                              k,
-                                              alpha,
-                                              A,
-                                              offset_A,
-                                              lda,
-                                              stride_A,
-                                              beta,
-                                              C,
-                                              offset_C,
-                                              ldc,
-                                              stride_C,
-                                              batch_count);
+        static constexpr bool Hermetian = false;
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status syrk_check_numerics_status
+                = rocblas_herk_syrk_check_numerics<Hermetian>(rocblas_syrk_name<T>,
+                                                              handle,
+                                                              uplo,
+                                                              transA,
+                                                              n,
+                                                              k,
+                                                              A,
+                                                              lda,
+                                                              stride_A,
+                                                              C,
+                                                              ldc,
+                                                              stride_C,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+
+            if(syrk_check_numerics_status != rocblas_status_success)
+                return syrk_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_status_success;
+        status                = rocblas_internal_syrk_template(handle,
+                                                uplo,
+                                                transA,
+                                                n,
+                                                k,
+                                                alpha,
+                                                A,
+                                                offset_A,
+                                                lda,
+                                                stride_A,
+                                                beta,
+                                                C,
+                                                offset_C,
+                                                ldc,
+                                                stride_C,
+                                                batch_count);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status syrk_check_numerics_status
+                = rocblas_herk_syrk_check_numerics<Hermetian>(rocblas_syrk_name<T>,
+                                                              handle,
+                                                              uplo,
+                                                              transA,
+                                                              n,
+                                                              k,
+                                                              A,
+                                                              lda,
+                                                              stride_A,
+                                                              C,
+                                                              ldc,
+                                                              stride_C,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+
+            if(syrk_check_numerics_status != rocblas_status_success)
+                return syrk_check_numerics_status;
+        }
+        return status;
     }
 
 }

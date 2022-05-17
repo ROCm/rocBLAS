@@ -71,7 +71,9 @@ namespace
             copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, m && n));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
+
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
                   | rocblas_layer_mode_log_profile)
@@ -175,30 +177,84 @@ namespace
         if(rocblas_pointer_mode_host == handle->pointer_mode && !a)
             return rocblas_status_invalid_pointer;
 
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trmm_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trmm_batched_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transa,
+                                              m,
+                                              n,
+                                              a,
+                                              lda,
+                                              stride_a,
+                                              b,
+                                              ldb,
+                                              stride_b,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmm_check_numerics_status != rocblas_status_success)
+                return trmm_check_numerics_status;
+        }
+
         constexpr bool BATCHED = true;
 
-        return rocblas_internal_trmm_template<STOPPING_NB, BATCHED, T>(handle,
-                                                                       side,
-                                                                       uplo,
-                                                                       transa,
-                                                                       diag,
-                                                                       m,
-                                                                       n,
-                                                                       alpha,
-                                                                       stride_alpha,
-                                                                       a,
-                                                                       offset_a,
-                                                                       lda,
-                                                                       stride_a,
-                                                                       (const T* const*)b,
-                                                                       offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       b,
-                                                                       offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       batch_count);
+        rocblas_status status = rocblas_status_success;
+
+        status = rocblas_internal_trmm_template<STOPPING_NB, BATCHED, T>(handle,
+                                                                         side,
+                                                                         uplo,
+                                                                         transa,
+                                                                         diag,
+                                                                         m,
+                                                                         n,
+                                                                         alpha,
+                                                                         stride_alpha,
+                                                                         a,
+                                                                         offset_a,
+                                                                         lda,
+                                                                         stride_a,
+                                                                         (const T* const*)b,
+                                                                         offset_b,
+                                                                         ldb,
+                                                                         stride_b,
+                                                                         b,
+                                                                         offset_b,
+                                                                         ldb,
+                                                                         stride_b,
+                                                                         batch_count);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trmm_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trmm_batched_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transa,
+                                              m,
+                                              n,
+                                              a,
+                                              lda,
+                                              stride_a,
+                                              b,
+                                              ldb,
+                                              stride_b,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmm_check_numerics_status != rocblas_status_success)
+                return trmm_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

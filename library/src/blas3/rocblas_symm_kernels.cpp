@@ -413,6 +413,88 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+template <bool HERM, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_hemm_symm_check_numerics(const char*    function_name,
+                                                rocblas_handle handle,
+                                                rocblas_side   side,
+                                                rocblas_fill   uplo,
+                                                rocblas_int    m,
+                                                rocblas_int    n,
+                                                TConstPtr      A,
+                                                rocblas_int    lda,
+                                                rocblas_stride stride_a,
+                                                TConstPtr      B,
+                                                rocblas_int    ldb,
+                                                rocblas_stride stride_b,
+                                                TPtr           C,
+                                                rocblas_int    ldc,
+                                                rocblas_stride stride_c,
+                                                rocblas_int    batch_count,
+                                                const int      check_numerics,
+                                                bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_status_success;
+    if(is_input)
+    {
+        rocblas_int rows = (side == rocblas_side_left ? m : n);
+        rocblas_int cols = (side == rocblas_side_left ? m : n);
+
+        check_numerics_status = rocblas_internal_check_numerics_matrix_template(
+            function_name,
+            handle,
+            rocblas_operation_none,
+            uplo,
+            HERM ? rocblas_client_hermitian_matrix : rocblas_client_symmetric_matrix,
+            rows,
+            cols,
+            A,
+            0,
+            lda,
+            stride_a,
+            batch_count,
+            check_numerics,
+            is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              rocblas_fill_full,
+                                                              rocblas_client_general_matrix,
+                                                              m,
+                                                              n,
+                                                              B,
+                                                              0,
+                                                              ldb,
+                                                              stride_b,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+
+    check_numerics_status
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          rocblas_operation_none,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          n,
+                                                          C,
+                                                          0,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
+
+    return check_numerics_status;
+}
+
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files symm*.cpp
 
@@ -461,5 +543,50 @@ INSTANTIATE_SYMM_TEMPLATE( true,  rocblas_float_complex const*, rocblas_float_co
 INSTANTIATE_SYMM_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 INSTANTIATE_SYMM_TEMPLATE( true, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
-#undef INSTANTIATE_SYMM_TEMPLATE
+
+#undef INSTANTIATE_HEMM_SYMM_NUMERICS
+
+#ifdef INSTANTIATE_HEMM_SYMM_NUMERICS
+#error INSTANTIATE_HEMM_SYMM_NUMERICS already defined
+#endif
+
+#define INSTANTIATE_HEMM_SYMM_NUMERICS(HERM_, TConstPtr_, TPtr_)                        \
+template rocblas_status rocblas_hemm_symm_check_numerics                                \
+                                  <HERM_, TConstPtr_, TPtr_>                            \
+                                  (const char*       function_name,                     \
+                                   rocblas_handle handle,                               \
+                                   rocblas_side   side,                                 \
+                                   rocblas_fill   uplo,                                 \
+                                   rocblas_int    m,                                    \
+                                   rocblas_int    n,                                    \
+                                   TConstPtr_     A,                                    \
+                                   rocblas_int    lda,                                  \
+                                   rocblas_stride strideA,                              \
+                                   TConstPtr_     B,                                    \
+                                   rocblas_int    ldb,                                  \
+                                   rocblas_stride strideB,                              \
+                                   TPtr_          C,                                    \
+                                   rocblas_int    ldc,                                  \
+                                   rocblas_stride strideC,                              \
+                                   rocblas_int    batch_count,                          \
+                                   const int      check_numerics,                       \
+                                   bool           is_input);
+
+// instantiate for rocblas_Xhemm_Xsymm and rocblas_Xhemm_Xsymm_strided_batched
+INSTANTIATE_HEMM_SYMM_NUMERICS(false, float const*, float*)
+INSTANTIATE_HEMM_SYMM_NUMERICS(false, double const*, double*)
+INSTANTIATE_HEMM_SYMM_NUMERICS(false,  rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_HEMM_SYMM_NUMERICS( true,  rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_HEMM_SYMM_NUMERICS(false, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_HEMM_SYMM_NUMERICS( true, rocblas_double_complex const*, rocblas_double_complex*)
+
+// instantiate for rocblas_Xhemm_Xsymm_batched
+INSTANTIATE_HEMM_SYMM_NUMERICS(false, float const* const*, float* const*)
+INSTANTIATE_HEMM_SYMM_NUMERICS(false, double const* const*, double* const*)
+INSTANTIATE_HEMM_SYMM_NUMERICS(false,  rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_HEMM_SYMM_NUMERICS( true,  rocblas_float_complex const* const*, rocblas_float_complex* const*)
+INSTANTIATE_HEMM_SYMM_NUMERICS(false, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_HEMM_SYMM_NUMERICS( true, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+
+#undef INSTANTIATE_HEMM_SYMM_NUMERICS
 // clang-format on

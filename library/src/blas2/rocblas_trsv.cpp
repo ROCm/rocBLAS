@@ -129,6 +129,7 @@ namespace
             rocblas_status trsv_check_numerics_status
                 = rocblas_internal_trsv_check_numerics(rocblas_trsv_name<T>,
                                                        handle,
+                                                       uplo,
                                                        m,
                                                        A,
                                                        0,
@@ -172,6 +173,7 @@ namespace
             rocblas_status trsv_check_numerics_status
                 = rocblas_internal_trsv_check_numerics(rocblas_trsv_name<T>,
                                                        handle,
+                                                       uplo,
                                                        m,
                                                        A,
                                                        0,
