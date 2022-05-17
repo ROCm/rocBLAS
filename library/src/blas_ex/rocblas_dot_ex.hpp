@@ -45,39 +45,136 @@ rocblas_status dot_ex_typecasting(rocblas_handle __restrict__ handle,
                                   void* __restrict__ results,
                                   void* __restrict__ workspace)
 {
-    static constexpr rocblas_stride offset_0 = 0;
+    auto                            check_numerics = handle->check_numerics;
+    rocblas_status                  status         = rocblas_status_success;
+    static constexpr rocblas_stride offset_0       = 0;
+
     if(ISBATCHED)
     {
-        return rocblas_internal_dot_template<NB, CONJ>(handle,
-                                                       n,
-                                                       (const Tx* const*)x,
-                                                       offset_0,
-                                                       incx,
-                                                       stride_x,
-                                                       (const Ty* const*)y,
-                                                       offset_0,
-                                                       incy,
-                                                       stride_y,
-                                                       batch_count,
-                                                       (Tr*)results,
-                                                       (Tex*)workspace);
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status dot_ex_check_numerics_status
+                = rocblas_dot_check_numerics("rocblas_dot_batched_ex",
+                                             handle,
+                                             n,
+                                             (const Tx* const*)x,
+                                             offset_0,
+                                             incx,
+                                             stride_x,
+                                             (const Ty* const*)y,
+                                             offset_0,
+                                             incy,
+                                             stride_y,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(dot_ex_check_numerics_status != rocblas_status_success)
+                return dot_ex_check_numerics_status;
+        }
+        status = rocblas_internal_dot_template<NB, CONJ>(handle,
+                                                         n,
+                                                         (const Tx* const*)x,
+                                                         offset_0,
+                                                         incx,
+                                                         stride_x,
+                                                         (const Ty* const*)y,
+                                                         offset_0,
+                                                         incy,
+                                                         stride_y,
+                                                         batch_count,
+                                                         (Tr*)results,
+                                                         (Tex*)workspace);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status dot_ex_check_numerics_status
+                = rocblas_dot_check_numerics("rocblas_dot_batched_ex",
+                                             handle,
+                                             n,
+                                             (const Tx* const*)x,
+                                             offset_0,
+                                             incx,
+                                             stride_x,
+                                             (const Ty* const*)y,
+                                             offset_0,
+                                             incy,
+                                             stride_y,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(dot_ex_check_numerics_status != rocblas_status_success)
+                return dot_ex_check_numerics_status;
+        }
     }
     else
     {
-        return rocblas_internal_dot_template<NB, CONJ>(handle,
-                                                       n,
-                                                       (const Tx*)x,
-                                                       offset_0,
-                                                       incx,
-                                                       stride_x,
-                                                       (const Ty*)y,
-                                                       offset_0,
-                                                       incy,
-                                                       stride_y,
-                                                       batch_count,
-                                                       (Tr*)results,
-                                                       (Tex*)workspace);
+        if(check_numerics)
+        {
+            bool           is_input                     = true;
+            rocblas_status dot_ex_check_numerics_status = rocblas_dot_check_numerics(
+                stride_x ? "rocblas_dot_strided_batched_ex" : "rocblas_dot_ex",
+                handle,
+                n,
+                (const Tx*)x,
+                offset_0,
+                incx,
+                stride_x,
+                (const Ty*)y,
+                offset_0,
+                incy,
+                stride_y,
+                batch_count,
+                check_numerics,
+                is_input);
+            if(dot_ex_check_numerics_status != rocblas_status_success)
+                return dot_ex_check_numerics_status;
+        }
+
+        status = rocblas_internal_dot_template<NB, CONJ>(handle,
+                                                         n,
+                                                         (const Tx*)x,
+                                                         offset_0,
+                                                         incx,
+                                                         stride_x,
+                                                         (const Ty*)y,
+                                                         offset_0,
+                                                         incy,
+                                                         stride_y,
+                                                         batch_count,
+                                                         (Tr*)results,
+                                                         (Tex*)workspace);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input                     = false;
+            rocblas_status dot_ex_check_numerics_status = rocblas_dot_check_numerics(
+                stride_x ? "rocblas_dot_strided_batched_ex" : "rocblas_dot_ex",
+                handle,
+                n,
+                (const Tx*)x,
+                offset_0,
+                incx,
+                stride_x,
+                (const Ty*)y,
+                offset_0,
+                incy,
+                stride_y,
+                batch_count,
+                check_numerics,
+                is_input);
+            if(dot_ex_check_numerics_status != rocblas_status_success)
+                return dot_ex_check_numerics_status;
+        }
     }
+    return status;
 }
 
 template <rocblas_int NB, bool ISBATCHED, bool CONJ>
