@@ -21,6 +21,8 @@
  * ************************************************************************ */
 
 #pragma once
+#include "check_numerics_matrix.hpp"
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
 /**
@@ -47,3 +49,22 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
                                      rocblas_int    ldc,
                                      rocblas_stride stride_c,
                                      rocblas_int    batch_count);
+
+template <typename TConstPtr, typename TPtr>
+rocblas_status rocblas_dgmm_check_numerics(const char*    function_name,
+                                           rocblas_handle handle,
+                                           rocblas_side   side,
+                                           rocblas_int    m,
+                                           rocblas_int    n,
+                                           TConstPtr      A,
+                                           rocblas_int    lda,
+                                           rocblas_stride stride_A,
+                                           TConstPtr      x,
+                                           rocblas_int    incx,
+                                           rocblas_stride stride_x,
+                                           TPtr           C,
+                                           rocblas_int    ldc,
+                                           rocblas_stride stride_c,
+                                           rocblas_int    batch_count,
+                                           const int      check_numerics,
+                                           bool           is_input);

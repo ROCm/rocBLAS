@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "check_numerics_matrix.hpp"
 #include "gemm.hpp"
 
 template <typename U, typename V>
@@ -1157,4 +1158,59 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                             sub_batch_count,
                                                             w_C_tmp);
     }
+}
+
+template <typename TConstPtr, typename TPtr>
+rocblas_status rocblas_trtri_check_numerics(const char*    function_name,
+                                            rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            TConstPtr*     A,
+                                            rocblas_int    lda,
+                                            rocblas_stride stride_a,
+                                            TPtr*          invA,
+                                            rocblas_int    ldinvA,
+                                            rocblas_stride stride_invA,
+                                            rocblas_int    batch_count,
+                                            const int      check_numerics,
+                                            bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_status_success;
+    if(is_input)
+    {
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              uplo,
+                                                              rocblas_client_triangular_matrix,
+                                                              n,
+                                                              n,
+                                                              A,
+                                                              0,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+
+    check_numerics_status
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          rocblas_operation_none,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          n,
+                                                          n,
+                                                          invA,
+                                                          0,
+                                                          ldinvA,
+                                                          stride_invA,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
+    return check_numerics_status;
 }
