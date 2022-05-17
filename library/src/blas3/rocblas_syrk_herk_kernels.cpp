@@ -77,13 +77,19 @@ herk_scale_kernel(bool           upper,
                   rocblas_stride stride_c)
 {
 
-    auto C     = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
-    auto alpha = load_scalar(alpha_host_device);
-    auto beta  = load_scalar(beta_host_device);
+    auto beta = load_scalar(beta_host_device);
 
-    if(beta == 1 && (k == 0 || alpha == 0)) // if alpha not zero we need imaginary clear on diagonal
-        return;
+    if(beta == 1)
+    {
+        if(k == 0)
+            return;
 
+        auto alpha = load_scalar(alpha_host_device);
+        if(alpha == 0) // if alpha not zero we need imaginary clear on diagonal
+            return;
+    }
+
+    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
     herk_scale_device(upper, n, beta, C, ldc);
 }
 
@@ -270,6 +276,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            ldc,
                            strideC);
 
+        if(k == 0)
+            return rocblas_status_success;
+
         if(transA == rocblas_operation_none)
         {
             hipLaunchKernelGGL((syrk_herk_kernel<false, false, SYRK_DIM_XY>),
@@ -315,7 +324,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
     else
     {
-        if((!*alpha || k == 0) && *beta == 1)
+        if((k == 0 || !*alpha) && *beta == 1)
             return rocblas_status_success;
 
         // first scale C so we can use directly for output without work buffer
@@ -440,6 +449,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            ldc,
                            strideC);
 
+        if(k == 0)
+            return rocblas_status_success;
+
         if(transA == rocblas_operation_none)
         {
             hipLaunchKernelGGL((syrk_herk_kernel<Hermitian, false, SYRK_DIM_XY>),
@@ -485,7 +497,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
     else
     {
-        if((!*alpha || k == 0) && *beta == 1)
+        if((k == 0 || !*alpha) && *beta == 1)
             return rocblas_status_success;
 
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
