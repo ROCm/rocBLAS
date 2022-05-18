@@ -78,13 +78,13 @@
 // Allow the rocblas_bfloat16 to match the rounded or truncated value of float
 // Only call ASSERT_FLOAT_EQ with the rounded value if the truncated value does not match
 #include <gtest/internal/gtest-internal.h>
-#define ASSERT_FLOAT_BF16_EQ(a, b)                                                     \
-    do                                                                                 \
-    {                                                                                  \
-        using testing::internal::FloatingPoint;                                        \
-        if(!FloatingPoint<float>(b).AlmostEquals(                                      \
-               FloatingPoint<float>(rocblas_bfloat16(a, rocblas_bfloat16::truncate)))) \
-            ASSERT_FLOAT_EQ(b, rocblas_bfloat16(a));                                   \
+#define ASSERT_FLOAT_BF16_EQ(a, b)                                                            \
+    do                                                                                        \
+    {                                                                                         \
+        using testing::internal::FloatingPoint;                                               \
+        if(!FloatingPoint<float>(b).AlmostEquals(FloatingPoint<float>(                        \
+               rocblas_bfloat16(a, rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate)))) \
+            ASSERT_FLOAT_EQ(b, rocblas_bfloat16(a));                                          \
     } while(0)
 
 #define ASSERT_FLOAT_COMPLEX_EQ(a, b)                  \
