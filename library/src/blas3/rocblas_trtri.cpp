@@ -58,7 +58,9 @@ namespace
             return handle->set_optimal_device_memory_size(size);
         }
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
+
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_trtri_name<T>, uplo, diag, n, A, lda, invA, ldinvA);
 
@@ -85,23 +87,71 @@ namespace
         if(!w_mem)
             return rocblas_status_memory_error;
 
-        return rocblas_internal_trtri_template<NB, false, false, T>(handle,
-                                                                    uplo,
-                                                                    diag,
-                                                                    n,
-                                                                    A,
-                                                                    0,
-                                                                    lda,
-                                                                    lda * n,
-                                                                    0,
-                                                                    invA,
-                                                                    0,
-                                                                    ldinvA,
-                                                                    ldinvA * n,
-                                                                    0,
-                                                                    1,
-                                                                    1,
-                                                                    (T*)w_mem);
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trtri_check_numerics_status
+                = rocblas_trtri_check_numerics(rocblas_trtri_name<T>,
+                                               handle,
+                                               uplo,
+                                               n,
+                                               A,
+                                               lda,
+                                               0,
+                                               invA,
+                                               ldinvA,
+                                               0,
+                                               1,
+                                               check_numerics,
+                                               is_input);
+            if(trtri_check_numerics_status != rocblas_status_success)
+                return trtri_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_status_success;
+
+        status = rocblas_internal_trtri_template<NB, false, false, T>(handle,
+                                                                      uplo,
+                                                                      diag,
+                                                                      n,
+                                                                      A,
+                                                                      0,
+                                                                      lda,
+                                                                      lda * n,
+                                                                      0,
+                                                                      invA,
+                                                                      0,
+                                                                      ldinvA,
+                                                                      ldinvA * n,
+                                                                      0,
+                                                                      1,
+                                                                      1,
+                                                                      (T*)w_mem);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trtri_check_numerics_status
+                = rocblas_trtri_check_numerics(rocblas_trtri_name<T>,
+                                               handle,
+                                               uplo,
+                                               n,
+                                               A,
+                                               lda,
+                                               0,
+                                               invA,
+                                               ldinvA,
+                                               0,
+                                               1,
+                                               check_numerics,
+                                               is_input);
+            if(trtri_check_numerics_status != rocblas_status_success)
+                return trtri_check_numerics_status;
+        }
+        return status;
     }
 
 }

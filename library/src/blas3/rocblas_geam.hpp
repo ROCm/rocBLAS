@@ -22,7 +22,6 @@
 
 #pragma once
 #include "check_numerics_matrix.hpp"
-#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
 /**

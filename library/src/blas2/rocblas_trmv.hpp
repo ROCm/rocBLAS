@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "check_numerics_matrix.hpp"
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
@@ -88,10 +90,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    stridew,
                                    rocblas_int       batch_count);
 
-//TODO :-Add rocblas_check_numerics_tr_matrix_template for checking Matrix `A` which is a Triangular Matrix
 template <typename T, typename U>
 rocblas_status rocblas_trmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
+                                           rocblas_fill   uplo,
                                            rocblas_int    m,
                                            T              A,
                                            rocblas_stride offset_a,

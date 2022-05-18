@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 
+#include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "rocblas_her2.hpp"
@@ -190,10 +191,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
-//TODO :-Add rocblas_check_numerics_he_matrix_template for checking Matrix `A` which is a Hermitian Matrix
 template <typename T, typename U>
 rocblas_status rocblas_her2_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
+                                           rocblas_fill   uplo,
                                            rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,
@@ -213,30 +214,50 @@ rocblas_status rocblas_her2_check_numerics(const char*    function_name,
 {
 
     rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_vector_template(function_name,
+        = rocblas_internal_check_numerics_matrix_template(function_name,
                                                           handle,
+                                                          rocblas_operation_none,
+                                                          uplo,
+                                                          rocblas_client_hermitian_matrix,
                                                           n,
-                                                          x,
-                                                          offset_x,
-                                                          inc_x,
-                                                          stride_x,
+                                                          n,
+                                                          A,
+                                                          offset_a,
+                                                          lda,
+                                                          stride_a,
                                                           batch_count,
                                                           check_numerics,
                                                           is_input);
+
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
-    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
-                                                                            handle,
-                                                                            n,
-                                                                            y,
-                                                                            offset_y,
-                                                                            inc_y,
-                                                                            stride_y,
-                                                                            batch_count,
-                                                                            check_numerics,
-                                                                            is_input);
+    if(is_input)
+    {
+        check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                                handle,
+                                                                                n,
+                                                                                x,
+                                                                                offset_x,
+                                                                                inc_x,
+                                                                                stride_x,
+                                                                                batch_count,
+                                                                                check_numerics,
+                                                                                is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
 
+        check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                                handle,
+                                                                                n,
+                                                                                y,
+                                                                                offset_y,
+                                                                                inc_y,
+                                                                                stride_y,
+                                                                                batch_count,
+                                                                                check_numerics,
+                                                                                is_input);
+    }
     return check_numerics_status;
 }
 
@@ -253,6 +274,7 @@ rocblas_status rocblas_her2_check_numerics(const char*    function_name,
 template rocblas_status rocblas_her2_check_numerics<T_, U_>               \
                                           (const char*    function_name,  \
                                            rocblas_handle handle,         \
+                                           rocblas_fill   uplo,           \
                                            rocblas_int    n,              \
                                            T_             A,              \
                                            rocblas_stride offset_a,       \

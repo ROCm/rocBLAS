@@ -55,7 +55,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
 
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -113,25 +114,79 @@ namespace
         static constexpr rocblas_int    batch_count = 1;
         static constexpr rocblas_stride stride_A = 0, stride_x = 0, stride_C = 0;
 
-        return rocblas_dgmm_template(handle,
-                                     side,
-                                     m,
-                                     n,
-                                     A,
-                                     offset_A,
-                                     lda,
-                                     stride_A,
-                                     x,
-                                     offset_x,
-                                     incx,
-                                     stride_x,
-                                     C,
-                                     offset_C,
-                                     ldc,
-                                     stride_C,
-                                     batch_count);
-    }
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status dgmm_check_numerics_status
+                = rocblas_dgmm_check_numerics(rocblas_dgmm_name<T>,
+                                              handle,
+                                              side,
+                                              m,
+                                              n,
+                                              A,
+                                              lda,
+                                              stride_A,
+                                              x,
+                                              incx,
+                                              stride_x,
+                                              C,
+                                              ldc,
+                                              stride_C,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(dgmm_check_numerics_status != rocblas_status_success)
+                return dgmm_check_numerics_status;
+        }
 
+        rocblas_status status = rocblas_status_success;
+        status                = rocblas_dgmm_template(handle,
+                                       side,
+                                       m,
+                                       n,
+                                       A,
+                                       offset_A,
+                                       lda,
+                                       stride_A,
+                                       x,
+                                       offset_x,
+                                       incx,
+                                       stride_x,
+                                       C,
+                                       offset_C,
+                                       ldc,
+                                       stride_C,
+                                       batch_count);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status dgmm_check_numerics_status
+                = rocblas_dgmm_check_numerics(rocblas_dgmm_name<T>,
+                                              handle,
+                                              side,
+                                              m,
+                                              n,
+                                              A,
+                                              lda,
+                                              stride_A,
+                                              x,
+                                              incx,
+                                              stride_x,
+                                              C,
+                                              ldc,
+                                              stride_C,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(dgmm_check_numerics_status != rocblas_status_success)
+                return dgmm_check_numerics_status;
+        }
+        return status;
+    }
 } // namespace
 
 /*
