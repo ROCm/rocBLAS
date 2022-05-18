@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "rocblas.h"
@@ -56,6 +57,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 template <typename T, typename U>
 rocblas_status rocblas_syr2_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
+                                           rocblas_fill   uplo,
                                            rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,

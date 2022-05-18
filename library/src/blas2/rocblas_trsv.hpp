@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
@@ -74,6 +75,7 @@ inline rocblas_status rocblas_trsv_arg_check(rocblas_handle    handle,
 template <typename T, typename U>
 rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_name,
                                                     rocblas_handle    handle,
+                                                    rocblas_fill      uplo,
                                                     rocblas_int       m,
                                                     T                 A,
                                                     rocblas_stride    offset_a,

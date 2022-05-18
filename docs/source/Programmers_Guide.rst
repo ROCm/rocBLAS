@@ -856,7 +856,9 @@ Below is a code snippet from NETLIB for legacy L3 BLAS dgemm. It has both argume
 
       IF ((M.EQ.0) .OR. (N.EQ.0) .OR. (((ALPHA.EQ.ZERO).OR. (K.EQ.0)).AND. (BETA.EQ.ONE))) RETURN
 
+.. raw:: latex
 
+    \newpage
 
 ------------------------------
 rocBLAS Benchmarking & Testing
@@ -881,18 +883,465 @@ It has a command line interface. For more information:
 
 .. code-block:: bash
 
-   ./rocblas-bench --help
+   rocBLAS/build/release/clients/staging/rocblas-bench --help
 
-For example, to measure performance of sgemm:
+
+* The following table shows all the data types in rocBLAS:
+
+.. list-table:: Data types in rocBLAS
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Data type
+     - accronym
+   * - real 16 bit Brain Floating Point
+     - bf16_r
+   * - real half
+     - f16_r (h)
+   * - real float
+     - f32_r (s)
+   * - real double
+     - f64_r (d)
+   * - Complex float
+     - f32_c (c)
+   * - Complex double
+     - f64_c (z)
+   * - Integer 32
+     - i32_r
+   * - Integer 8
+     - i8_r
+
+
+* All options for problem types in rocBLAS for gemm are shown here:
+
+N: not transposed
+
+T: transposed
+
+C: complex conjugate (for real data type C is the same as T)
+
+
+.. list-table:: various matrix operations
+   :widths: 25 25 25
+   :header-rows: 1
+
+   * - Problem Types
+     - problem_type
+     - data type
+   * - NN
+     - Cijk_Ailk_Bljk
+     - real/complex
+   * - NT
+     - Cijk_Ailk_Bjlk
+     - real/complex
+   * - TN
+     - Cijk_Alik_Bljk
+     - real/complex
+   * - TT
+     - Cijk_Alik_Bjlk
+     - real/complex
+   * - NC
+     - Cijk_Ailk_BjlkC
+     - complex
+   * - CN
+     - Cijk_AlikC_Bljk
+     - complex
+   * - CC
+     - Cijk_AlikC_BjlkC
+     - complex
+   * - TC
+     - Cijk_Alik_BjlkC
+     - complex
+   * - CT
+     - Cijk_AlikC_Bjlk
+     - complex
+
+
+For example, NT means A * B\ :sup:`T`\.
+
+
+
+
+* Gemm functions can be divided into two main categories:
+
+#. HPA functions (HighPrecisionAccumulate) where the compute data type is different from the input data type (A/B). All HPA functions must be called using *gemm_ex* API in rocblas-bench (and not gemm). gemm_ex function name consists of three letters: A/B data type, C/D data type, compute data type.
+
+#. Non-HPA functions where the input (A/B), output (C/D), and compute data types are all the same. Non-HPA cases can be called using *gemm* or *gemm_ex*. But using *gemm* is recommended.
+
+The following table shows all possible gemm functions in rocBLAS.
+
+.. list-table:: all gemm functions in rocBLAS
+   :widths: 20 30 10 10 10
+   :header-rows: 1
+
+   * - function
+     - Kernel name
+     - A/B data type
+     - C/D data type
+     - compute data type
+   * - hgemm
+     - <arch>_<problem_type>_HB
+     - f16_r
+     - f16_r
+     - f16_r
+   * - hgemm_batched
+     - <arch>_<problem_type>_HB_GB
+     - f16_r
+     - f16_r
+     - f16_r
+   * - hgemm_strided_batched
+     - <arch>_<problem_type>_HB
+     - f16_r
+     - f16_r
+     - f16_r
+   * - sgemm
+     - <arch>_<problem_type>_SB
+     - f32_r
+     - f32_r
+     - f32_r
+   * - sgemm_batched
+     - <arch>_<problem_type>_SB_GB
+     - f32_r
+     - f32_r
+     - f32_r
+   * - sgemm_strided_batched
+     - <arch>_<problem_type>_SB
+     - f32_r
+     - f32_r
+     - f32_r
+   * - dgemm
+     - <arch>_<problem_type>_DB
+     - f64_r
+     - f64_r
+     - f64_r
+   * - dgemm_batched
+     - <arch>_<problem_type>_DB_GB
+     - f64_r
+     - f64_r
+     - f64_r
+   * - dgemm_strided_batched
+     - <arch>_<problem_type>_DB
+     - f64_r
+     - f64_r
+     - f64_r
+   * - cgemm
+     - <arch>_<problem_type>_CB
+     - f32_c
+     - f32_c
+     - f32_c
+   * - cgemm_batched
+     - <arch>_<problem_type>_CB_GB
+     - f32_c
+     - f32_c
+     - f32_c
+   * - cgemm_strided_batched
+     - <arch>_<problem_type>_CB
+     - f32_c
+     - f32_c
+     - f32_c
+   * - zgemm
+     - <arch>_<problem_type>_ZB
+     - f64_c
+     - f64_c
+     - f64_c
+   * - zgemm_batched
+     - <arch>_<problem_type>_ZB_GB
+     - f64_c
+     - f64_c
+     - f64_c
+   * - zgemm_strided_batched
+     - <arch>_<problem_type>_ZB
+     - f64_c
+     - f64_c
+     - f64_c
+   * - HHS
+     - <arch>_<problem_type>_HHS_BH
+     - f16_r
+     - f16_r
+     - f32_r
+   * - HHS_batched
+     - <arch>_<problem_type>_HHS_BH_GB
+     - f16_r
+     - f16_r
+     - f32_r
+   * - HHS_strided_batched
+     - <arch>_<problem_type>_HHS_BH
+     - f16_r
+     - f16_r
+     - f32_r
+   * - HSS
+     - <arch>_<problem_type>_HSS_BH
+     - f16_r
+     - f32_r
+     - f32_r
+   * - HSS_batched
+     - <arch>_<problem_type>_HSS_BH_GB
+     - f16_r
+     - f32_r
+     - f32_r
+   * - HSS_strided_batched
+     - <arch>_<problem_type>_HSS_BH
+     - f16_r
+     - f32_r
+     - f32_r
+   * - BBS
+     - <arch>_<problem_type>_BBS_BH
+     - bf16_r
+     - bf16_r
+     - f32_r
+   * - BBS_batched
+     - <arch>_<problem_type>_BBS_BH_GB
+     - bf16_r
+     - bf16_r
+     - f32_r
+   * - BBS_strided_batched
+     - <arch>_<problem_type>_BBS_BH
+     - bf16_r
+     - bf16_r
+     - f32_r
+   * - BSS
+     - <arch>_<problem_type>_BSS_BH
+     - bf16_r
+     - f32_r
+     - f32_r
+   * - BSS_batched
+     - <arch>_<problem_type>_BSS_BH_GB
+     - bf16_r
+     - f32_r
+     - f32_r
+   * - BSS_strided_batched
+     - <arch>_<problem_type>_BSS_BH
+     - bf16_r
+     - f32_r
+     - f32_r
+   * - I8II
+     - <arch>_<problem_type>_I8II_BH
+     - I8
+     - I
+     - I
+   * - I8II_batched
+     - <arch>_<problem_type>_I8II_BH_GB
+     - I8
+     - I
+     - I
+   * - I8II_strided_batched
+     - <arch>_<problem_type>_I8II_BH
+     - I8
+     - I
+     - I
+
+
+.. raw:: latex
+
+    \newpage
+
+* How to benchmark the performance of a gemm function using rocblas-bench:
+
+This method is good only if you want to test a few sizes, otherwise, refer to the next section. The following listing shows how to configure rocblas-bench to call each of the gemm funcitons:
+
+
+Non-HPA cases (gemm)
+
+.. code-block:: bash
+
+   #dgemm
+   $ ./rocblas-bench -f gemm --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r d --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1.0
+   # dgemm batched
+   $ ./rocblas-bench -f gemm_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r d --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1 --batch_count 5
+   # dgemm strided batched
+   $ ./rocblas-bench -f gemm_strided_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r d --lda 1024 --stride_a 4096 --ldb 2048 --stride_b 4096 --ldc 1024 --stride_c 2097152 --ldd 1024 --stride_d 2097152 --alpha 1.1 --beta 1 --batch_count 5
+
+   # sgemm
+   $ ./rocblas-bench -f gemm --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r s --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1
+   # sgemm batched
+   $ ./rocblas-bench -f gemm_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r s --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1 --batch_count 5
+   # sgemm strided batched
+   $ ./rocblas-bench -f gemm_strided_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r s --lda 1024 --stride_a 4096 --ldb 2048 --stride_b 4096 --ldc 1024 --stride_c 2097152 --ldd 1024 --stride_d 2097152 --alpha 1.1 --beta 1 --batch_count 5
+
+   # hgemm (this function is not really very fast. Use HHS instead, which is faster and more accurate)
+   $ ./rocblas-bench -f gemm --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r h --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1
+   # hgemm batched
+   $ ./rocblas-bench -f gemm_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r h --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1 --batch_count 5
+   # hgemm strided batched
+   $ ./rocblas-bench -f gemm_strided_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r h --lda 1024 --stride_a 4096 --ldb 2048 --stride_b 4096 --ldc 1024 --stride_c 2097152 --ldd 1024 --stride_d 2097152 --alpha 1.1 --beta 1 --batch_count 5
+
+   # cgemm
+   $ ./rocblas-bench -f gemm --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r c --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1
+   # cgemm batched
+   $ ./rocblas-bench -f gemm_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r c --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1 --batch_count 5
+   # cgemm strided batched
+   $ ./rocblas-bench -f gemm_strided_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r c --lda 1024 --stride_a 4096 --ldb 2048 --stride_b 4096 --ldc 1024 --stride_c 2097152 --ldd 1024 --stride_d 2097152 --alpha 1.1 --beta 1 --batch_count 5
+
+   # zgemm
+   $ ./rocblas-bench -f gemm --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r z --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1
+   # zgemm batched
+   $ ./rocblas-bench -f gemm_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r z --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1 --batch_count 5
+   # zgemm strided batched
+   $ ./rocblas-bench -f gemm_strided_batched --transposeA N --transposeB T -m 1024 -n 2048 -k 512 -r z --lda 1024 --stride_a 4096 --ldb 2048 --stride_b 4096 --ldc 1024 --stride_c 2097152 --ldd 1024 --stride_d 2097152 --alpha 1.1 --beta 1 --batch_count 5
+
+   # cgemm (NC)
+   $ ./rocblas-bench -f gemm --transposeA N --transposeB C -m 1024 -n 2048 -k 512 -r c --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1
+   # cgemm batched (NC)
+   $ ./rocblas-bench -f gemm_batched --transposeA N --transposeB C -m 1024 -n 2048 -k 512 -r c --lda 1024 --ldb 2048 --ldc 1024 --ldd 1024 --alpha 1.1 --beta 1 --batch_count 5
+   # cgemm strided batched (NC)
+   $ ./rocblas-bench -f gemm_strided_batched --transposeA N --transposeB C -m 1024 -n 2048 -k 512 -r c --lda 1024 --stride_a 4096 --ldb 2048 --stride_b 4096 --ldc 1024 --stride_c 2097152 --ldd 1024 --stride_d 2097152 --alpha 1.1 --beta 1 --batch_count 5
+
+
+
+.. raw:: latex
+
+    \newpage
+
+HPA cases (gemm_ex)
+
+.. code-block:: bash
+
+   # HHS
+   $ ./rocblas-bench -f gemm_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type h --lda 1024 --b_type h --ldb 2048 --c_type h --ldc 1024 --d_type h --ldd 1024 --compute_type s --alpha 1.1 --beta 1
+   # HHS batched
+   $ ./rocblas-bench -f gemm_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type h --lda 1024 --b_type h --ldb 2048 --c_type h --ldc 1024 --d_type h --ldd 1024 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+   # HHS strided batched
+   $ ./rocblas-bench -f gemm_strided_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type h --lda 1024 --stride_a 4096 --b_type h --ldb 2048 --stride_b 4096 --c_type h --ldc 1024 --stride_c 2097152 --d_type h --ldd 1024 --stride_d 2097152 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+
+   # HSS
+   $ ./rocblas-bench -f gemm_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type h --lda 1024 --b_type h --ldb 2048 --c_type s --ldc 1024 --d_type s --ldd 1024 --compute_type s --alpha 1.1 --beta 1
+   # HSS batched
+   $ ./rocblas-bench -f gemm_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type h --lda 1024 --b_type h --ldb 2048 --c_type s --ldc 1024 --d_type s --ldd 1024 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+   # HSS strided batched
+   $ ./rocblas-bench -f gemm_strided_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type h --lda 1024 --stride_a 4096 --b_type h --ldb 2048 --stride_b 4096 --c_type s --ldc 1024 --stride_c 2097152 --d_type s --ldd 1024 --stride_d 2097152 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+
+   # BBS
+   $ ./rocblas-bench -f gemm_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type bf16_r --lda 1024 --b_type bf16_r --ldb 2048 --c_type bf16_r --ldc 1024 --d_type bf16_r --ldd 1024 --compute_type s --alpha 1.1 --beta 1
+   # BBS batched
+   $ ./rocblas-bench -f gemm_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type bf16_r --lda 1024 --b_type bf16_r --ldb 2048 --c_type bf16_r --ldc 1024 --d_type bf16_r --ldd 1024 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+   # BBS strided batched
+   $ ./rocblas-bench -f gemm_strided_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type bf16_r --lda 1024 --stride_a 4096 --b_type bf16_r --ldb 2048 --stride_b 4096 --c_type bf16_r --ldc 1024 --stride_c 2097152 --d_type bf16_r --ldd 1024 --stride_d 2097152 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+
+   # BSS
+   $ ./rocblas-bench -f gemm_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type bf16_r --lda 1024 --b_type bf16_r --ldb 2048 --c_type s --ldc 1024 --d_type s --ldd 1024 --compute_type s --alpha 1.1 --beta 1
+   # BSS batched
+   $ ./rocblas-bench -f gemm_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type bf16_r --lda 1024 --b_type bf16_r --ldb 2048 --c_type s --ldc 1024 --d_type s --ldd 1024 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+   # BSS strided batched
+   $ ./rocblas-bench -f gemm_strided_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type bf16_r --lda 1024 --stride_a 4096 --b_type bf16_r --ldb 2048 --stride_b 4096 --c_type s --ldc 1024 --stride_c 2097152 --d_type s --ldd 1024 --stride_d 2097152 --compute_type s --alpha 1.1 --beta 1 --batch_count 5
+
+   # I8II
+   $ ./rocblas-bench -f gemm_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type i8_r --lda 1024 --b_type i8_r --ldb 2048 --c_type i32_r --ldc 1024 --d_type i32_r --ldd 1024 --compute_type i32_r --alpha 1.1 --beta 1
+   # I8II batched
+   $ ./rocblas-bench -f gemm_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type i8_r --lda 1024 --b_type i8_r --ldb 2048 --c_type i32_r --ldc 1024 --d_type i32_r --ldd 1024 --compute_type i32_r --alpha 1.1 --beta 1 --batch_count 5
+   # I8II strided batched
+   $ ./rocblas-bench -f gemm_strided_batched_ex --transposeA N --transposeB T -m 1024 -n 2048 -k 512 --a_type i8_r --lda 1024 --stride_a 4096 --b_type i8_r --ldb 2048 --stride_b 4096 --c_type i32_r --ldc 1024 --stride_c 2097152 --d_type i32_r --ldd 1024 --stride_d 2097152 --compute_type i32_r --alpha 1.1 --beta 1 --batch_count 5
+
+.. raw:: latex
+
+    \newpage
+
+* How to set rocblas-bench parameters in a yaml file:
+
+If you want to benchmark many sizes, it is recommended to use rocblas-bench with the batch call to eliminate the latency in loading the Tensile library which rocblas links to.  The batch call takes a yaml file with a list of all problem sizes. You can have multiple sizes of different types in one yaml file. The benchmark setting is different from the direct call to the rocblas-bench. A sample setting for each function is listed below. Once you have the yaml file, you can benchmark the sizes as follows:
+
+.. code-block:: bash
+
+  rocBLAS/build/release/clients/staging/rocblas-bench --yaml problem-sizes.yaml
+
+
+Here are the configurations for each function:
+
+
+Non-HPA cases (gemm)
+
+.. code-block:: bash
+
+    # dgemm
+    - { rocblas_function: "rocblas_dgemm",         transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # dgemm batched
+    - { rocblas_function: "rocblas_dgemm_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # dgemm strided batched
+    - { rocblas_function: "rocblas_dgemm_strided_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # sgemm
+    - { rocblas_function: "rocblas_sgemm",         transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # sgemm batched
+    - { rocblas_function: "rocblas_sgemm_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # sgemm strided batched
+    - { rocblas_function: "rocblas_sgemm_strided_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # hgemm
+    - { rocblas_function: "rocblas_hgemm",         transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # hgemm batched
+    - { rocblas_function: "rocblas_hgemm_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # hgemm strided batched
+    - { rocblas_function: "rocblas_hgemm_strided_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # cgemm
+    - { rocblas_function: "rocblas_cgemm",         transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # cgemm batched
+    - { rocblas_function: "rocblas_cgemm_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # cgemm strided batched
+    - { rocblas_function: "rocblas_cgemm_strided_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # zgemm
+    - { rocblas_function: "rocblas_zgemm",         transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # zgemm batched
+    - { rocblas_function: "rocblas_zgemm_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # zgemm strided batched
+    - { rocblas_function: "rocblas_zgemm_strided_batched", transA: "N", transB: "T", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # cgemm
+    - { rocblas_function: "rocblas_cgemm",         transA: "N", transB: "C", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # cgemm batched
+    - { rocblas_function: "rocblas_cgemm_batched", transA: "N", transB: "C", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # cgemm strided batched
+    - { rocblas_function: "rocblas_cgemm_strided_batched", transA: "N", transB: "C", M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+.. raw:: latex
+
+    \newpage
+
+HPA cases (gemm_ex)
+
+.. code-block:: bash
+
+    # HHS
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # HHS batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # HHS strided batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # HSS
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # HSS batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: f16_r, b_type: f16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # HSS strided batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: f16_r, b_type: f16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # BBS
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: bf16_r, b_type: bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # BBS batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: bf16_r, b_type: bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # BBS strided batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: bf16_r, b_type: bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # BSS
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: bf16_r, b_type: bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # BSS batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: bf16_r, b_type: bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # BSS strided batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: bf16_r, b_type: bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+    # I8II
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: i8_r, b_type: i8_r, c_type: i32_r, d_type: i32_r, compute_type: i32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10  }
+    # I8II batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: i8_r, b_type: i8_r, c_type: i32_r, d_type: i32_r, compute_type: i32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5  }
+    # I8II strided batched
+    - { rocblas_function: "rocblas_gemm_ex", transA: "N", transB: "T", a_type: i8_r, b_type: i8_r, c_type: i32_r, d_type: i32_r, compute_type: i32_r, M:    1024, N:    2048, K:    512, lda:   1024, ldb:   2048, ldc:   1024,  ldd:   1024, cold_iters: 2, iters: 10, batch_count: 5, stride_a: 4096, stride_b: 4096, stride_c: 2097152, stride_d: 2097152 }
+
+
+For example, the performance of sgemm using rocblas-bench on a vega20 machine returns:
 
 .. code-block:: bash
 
    ./rocblas-bench -f gemm -r f32_r --transposeA N --transposeB N -m 4096 -n 4096 -k 4096 --alpha 1 --lda 4096 --ldb 4096 --beta 0 --ldc 4096
-
-On a vega20 machine the above command outputs a performance of 11941.5 Gflops below:
-
-.. code-block:: bash
-
    transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us
    N,N,4096,4096,4096,1,4096,4096,0,4096,11941.5,11509.4
 

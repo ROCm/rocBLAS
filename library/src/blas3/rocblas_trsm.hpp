@@ -24,6 +24,7 @@
 
 #include "../blas2/rocblas_trsv.hpp"
 #include "../blas_ex/rocblas_gemm_ex.hpp"
+#include "rocblas_trmm.hpp"
 #include "trtri_trsm.hpp"
 
 template <typename T>

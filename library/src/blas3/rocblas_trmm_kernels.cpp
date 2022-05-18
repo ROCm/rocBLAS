@@ -1556,6 +1556,66 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+template <typename TConstPtr, typename TPtr>
+rocblas_status rocblas_trmm_check_numerics(const char*       function_name,
+                                           rocblas_handle    handle,
+                                           rocblas_side      side,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation trans_a,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           TConstPtr*        A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           TPtr*             B,
+                                           rocblas_int       ldb,
+                                           rocblas_stride    stride_b,
+                                           rocblas_int       batch_count,
+                                           const int         check_numerics,
+                                           bool              is_input)
+{
+    rocblas_status check_numerics_status = rocblas_status_success;
+    if(is_input)
+    {
+        rocblas_int rows = (side == rocblas_side_left ? m : n);
+        rocblas_int cols = (side == rocblas_side_left ? m : n);
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              trans_a,
+                                                              uplo,
+                                                              rocblas_client_triangular_matrix,
+                                                              rows,
+                                                              cols,
+                                                              A,
+                                                              0,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+
+    check_numerics_status
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          rocblas_operation_none,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          n,
+                                                          B,
+                                                          0,
+                                                          ldb,
+                                                          stride_b,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
+    return check_numerics_status;
+}
+
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files trmm*.cpp
 
@@ -1639,4 +1699,42 @@ INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(rocblas_double_complex const*, rocblas_doub
 
 #undef INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE
 
+
+#ifdef INSTANTIATE_TRMM_NUMERICS
+#error INSTANTIATE_TRMM_NUMERICS already defined
+#endif
+
+#define INSTANTIATE_TRMM_NUMERICS(TConstPtr_, TPtr_)                                     \
+template rocblas_status rocblas_trmm_check_numerics                                      \
+                                  <TConstPtr_, TPtr_>                                    \
+                                  (const char*       function_name,                      \
+                                   rocblas_handle    handle,                             \
+                                   rocblas_side      side,                               \
+                                   rocblas_fill      uplo,                               \
+                                   rocblas_operation trans_a,                            \
+                                   rocblas_int       m,                                  \
+                                   rocblas_int       n,                                  \
+                                   TConstPtr_*       dA,                                 \
+                                   rocblas_int       lda,                                \
+                                   rocblas_stride    stride_a,                           \
+                                   TPtr_*            dB,                                 \
+                                   rocblas_int       ldb,                                \
+                                   rocblas_stride    stride_b,                           \
+                                   rocblas_int       batch_count,                        \
+                                   const int         check_numerics,                     \
+                                   bool              is_input);
+
+// instantiate for rocblas_Xtrmm and rocblas_Xtrmm_strided_batched
+INSTANTIATE_TRMM_NUMERICS(float const,  float)
+INSTANTIATE_TRMM_NUMERICS(double const, double)
+INSTANTIATE_TRMM_NUMERICS(rocblas_float_complex const, rocblas_float_complex)
+INSTANTIATE_TRMM_NUMERICS(rocblas_double_complex const, rocblas_double_complex)
+
+// instantiate for rocblas_Xtrmm_batched
+INSTANTIATE_TRMM_NUMERICS(float const* const,  float* const)
+INSTANTIATE_TRMM_NUMERICS(double const* const, double* const)
+INSTANTIATE_TRMM_NUMERICS(rocblas_float_complex const* const, rocblas_float_complex* const)
+INSTANTIATE_TRMM_NUMERICS(rocblas_double_complex const* const, rocblas_double_complex* const)
+
+#undef INSTANTIATE_TRMM_NUMERICS
 // clang-format on
