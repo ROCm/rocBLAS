@@ -52,9 +52,18 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
 {
     uint16_t data;
 
+    enum rocblas_truncate_t
+    {
+        rocblas_truncate
+    };
+
     enum truncate_t
     {
-        truncate
+        truncate __attribute__((deprecated(
+            "From the ROCm release 6.0, The enum truncate_t and the value truncate will be "
+            "removed and replaced by rocblas_truncate_t and rocblas_truncate, "
+            "respectively. The new enum rocblas_truncate_t and the value rocblas_truncate could "
+            "be used from this ROCm release for an easy transition.")))
     };
 
     __host__ __device__ rocblas_bfloat16() = default;
@@ -62,6 +71,11 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
     // round upper 16 bits of IEEE float to convert to bfloat16
     explicit __host__ __device__ rocblas_bfloat16(float f)
         : data(float_to_bfloat16(f))
+    {
+    }
+
+    explicit __host__ __device__ rocblas_bfloat16(float f, rocblas_truncate_t)
+        : data(truncate_float_to_bfloat16(f))
     {
     }
 
