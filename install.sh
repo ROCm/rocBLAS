@@ -68,17 +68,11 @@ rocBLAS build & installation helper script.
     --library-path <blasdir>         Specify path to a pre-built rocBLAS library, when building clients only using '--clients-only' flag.
                                      (Default is /opt/rocm/rocblas)
 
-    --merge-files                    Enable Tensilse_MERGE_FILES. (Default is Enabled)
-
     --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file. (Default is disabled)
 
     --msgpack                        Build Tensile backend to use MessagePack.
 
     -n, --no-tensile                 Build a subset of the rocBLAS library which does not require Tensile.
-
-    --no-hip-clang                   Build library without using the hip-clang compiler.
-
-    --no-merge-files                 Disable Tensile_MERGE_FILES.
 
     --no-msgpack                     Build Tensile backend not to use MessagePack.
 
@@ -367,7 +361,6 @@ tensile_logic=asm_full
 gpu_architecture=all
 tensile_cov=
 tensile_fork=
-tensile_merge_files=
 tensile_separate_architectures=true
 tensile_tag=
 tensile_test_local_path=
@@ -410,7 +403,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -495,18 +488,6 @@ while true; do
     --cpu_ref_lib)
         cpu_ref_lib=${2}
         shift 2 ;;
-    --hip-clang)
-        build_hip_clang=true
-        shift ;;
-    --no-hip-clang)
-        build_hip_clang=false
-        shift ;;
-    --merge-files)
-        tensile_merge_files=true
-        shift ;;
-    --no-merge-files)
-        tensile_merge_files=false
-        shift ;;
     --merge-architectures)
         tensile_separate_architectures=false
         shift ;;
@@ -564,8 +545,12 @@ if [[ -z $tensile_cov ]]; then
     if [[ $build_hip_clang == true ]]; then
         tensile_cov=V3
     else
-        tensile_cov=V2
+        echo "Currently the only supported code object version is V3"
+        exit 2
     fi
+elif [[ $tensile_cov != V3 ]]; then
+  echo "Currently the only supported code object version is V3"
+        exit 2
 fi
 
 set -x
@@ -758,10 +743,6 @@ pushd .
 
   if [[ "${upgrade_tensile_pip}" == true ]]; then
     cmake_common_options+=("-DTENSILE_VENV_UPGRADE_PIP=ON")
-  fi
-
-  if [[ "${tensile_merge_files}" == false ]]; then
-    cmake_common_options+=("-DTensile_MERGE_FILES=OFF")
   fi
 
   if [[ "${tensile_separate_architectures}" == true ]]; then
