@@ -48,12 +48,14 @@
 #include <sys/types.h>
 #endif
 
-#ifdef __cpp_lib_filesystem
+#if __has_include(<filesystem>)
 #include <filesystem>
 namespace fs = std::filesystem;
-#else
+#elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#else
+#error no filesystem found
 #endif
 
 inline void testing_ostream_threadsafety(const Arguments& arg)

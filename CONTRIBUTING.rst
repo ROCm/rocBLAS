@@ -34,7 +34,7 @@ Interface
 ---------
 
 -  All public APIs are C99 compatible; all other library code should use
-   C++14
+   C++17
 -  Our minimum supported compiler is clang 3.6
 -  Avoid CamelCase
 -  This rule applies specifically to publicly visible APIs, but is also
@@ -44,7 +44,7 @@ Philosophy
 ----------
 
 -  `P.2 <https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rp-Cplusplus>`__:
-   Write in ISO Standard C++14 (especially to support windows, linux and
+   Write in ISO Standard C++17 (especially to support windows, linux and
    macos plaforms )
 -  `P.5 <https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rp-compile-time>`__:
    Prefer compile-time checking to run-time checking
@@ -593,9 +593,8 @@ Coding Guidelines
 
     ``std::string`` involves dynamic memory allocation and copying of
     temporaries, which can be slow. ``std::string_view`` is supposed to
-    help alleviate that, but it's not available until C++17, and we're
-    using C++14 now. ``const char*`` should be used for read-only views
-    of strings, in the interest of efficiency.
+    help alleviate that, which became available in C++17. ``const char*``
+    can be used for read-only views of strings, in the interest of efficiency.
 
 16. For code brevity and readability, when converting to *numeric*
     types, uniform initialization or function-style casts are preferred
