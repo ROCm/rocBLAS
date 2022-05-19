@@ -37,9 +37,6 @@
 
 #ifdef WIN32
 #define strcasecmp(A, B) _stricmp(A, B)
-#else
-#include <fcntl.h>
-#endif
 
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
@@ -47,6 +44,11 @@ namespace fs = std::filesystem;
 #else
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#endif
+
+// Not WIN32
+#else
+#include <fcntl.h>
 #endif
 
 /* ============================================================================================ */
