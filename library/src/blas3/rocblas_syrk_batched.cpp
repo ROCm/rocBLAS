@@ -23,6 +23,11 @@
 #include "rocblas_syrk_herk.hpp"
 #include "utility.hpp"
 
+#define SSYRK_MIN_NB 16
+#define DSYRK_MIN_NB 16
+#define CSYRK_MIN_NB 8
+#define ZSYRK_MIN_NB 8
+
 namespace
 {
     template <typename>
@@ -36,7 +41,7 @@ namespace
     template <>
     constexpr char rocblas_syrk_name<rocblas_double_complex>[] = "rocblas_zsyrk_batched";
 
-    template <typename T, typename U>
+    template <rocblas_int NB, typename T, typename U>
     rocblas_status rocblas_syrk_batched_impl(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
@@ -167,22 +172,22 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        status                = rocblas_internal_syrk_template(handle,
-                                                uplo,
-                                                transA,
-                                                n,
-                                                k,
-                                                alpha,
-                                                A,
-                                                offset_A,
-                                                lda,
-                                                stride_A,
-                                                beta,
-                                                C,
-                                                offset_C,
-                                                ldc,
-                                                stride_C,
-                                                batch_count);
+        status                = rocblas_internal_syrk_template<NB, true, T>(handle,
+                                                             uplo,
+                                                             transA,
+                                                             n,
+                                                             k,
+                                                             alpha,
+                                                             A,
+                                                             offset_A,
+                                                             lda,
+                                                             stride_A,
+                                                             beta,
+                                                             C,
+                                                             offset_C,
+                                                             ldc,
+                                                             stride_C,
+                                                             batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -225,7 +230,7 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                                    \
+#define IMPL(routine_name_, NB_, T_)                                               \
     rocblas_status routine_name_(rocblas_handle    handle,                         \
                                  rocblas_fill      uplo,                           \
                                  rocblas_operation transA,                         \
@@ -240,7 +245,7 @@ extern "C" {
                                  rocblas_int       batch_count)                    \
     try                                                                            \
     {                                                                              \
-        return rocblas_syrk_batched_impl(                                          \
+        return rocblas_syrk_batched_impl<NB_>(                                     \
             handle, uplo, transA, n, k, alpha, A, lda, beta, C, ldc, batch_count); \
     }                                                                              \
     catch(...)                                                                     \
@@ -248,11 +253,15 @@ extern "C" {
         return exception_to_rocblas_status();                                      \
     }
 
-IMPL(rocblas_ssyrk_batched, float);
-IMPL(rocblas_dsyrk_batched, double);
-IMPL(rocblas_csyrk_batched, rocblas_float_complex);
-IMPL(rocblas_zsyrk_batched, rocblas_double_complex);
+IMPL(rocblas_ssyrk_batched, SSYRK_MIN_NB, float);
+IMPL(rocblas_dsyrk_batched, DSYRK_MIN_NB, double);
+IMPL(rocblas_csyrk_batched, CSYRK_MIN_NB, rocblas_float_complex);
+IMPL(rocblas_zsyrk_batched, ZSYRK_MIN_NB, rocblas_double_complex);
 
 #undef IMPL
+#undef SSYRK_MIN_NB
+#undef DSYRK_MIN_NB
+#undef CSYRK_MIN_NB
+#undef ZSYRK_MIN_NB
 
 } // extern "C"
