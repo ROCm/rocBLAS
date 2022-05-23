@@ -75,7 +75,8 @@ namespace
             copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, m && n));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
                   | rocblas_layer_mode_log_profile)
@@ -193,57 +194,109 @@ namespace
                            || (n * size_t(ldb) > std::numeric_limits<rocblas_int>::max())
                            || (n * size_t(ldc) > std::numeric_limits<rocblas_int>::max());
 
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trmm_outofplace_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trmm_outofplace_batched_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transa,
+                                              m,
+                                              n,
+                                              a,
+                                              lda,
+                                              stride_a,
+                                              b,
+                                              ldb,
+                                              stride_b,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmm_outofplace_check_numerics_status != rocblas_status_success)
+                return trmm_outofplace_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_status_success;
         if(i64_indices)
         {
-            rocblas_internal_trmm_template<NB, true, T>(handle,
-                                                        side,
-                                                        uplo,
-                                                        transa,
-                                                        diag,
-                                                        m,
-                                                        n,
-                                                        alpha,
-                                                        stride_alpha,
-                                                        a,
-                                                        size_t(offset_a),
-                                                        size_t(lda),
-                                                        stride_a,
-                                                        b,
-                                                        size_t(offset_b),
-                                                        size_t(ldb),
-                                                        stride_b,
-                                                        c,
-                                                        size_t(offset_c),
-                                                        size_t(ldc),
-                                                        stride_c,
-                                                        batch_count);
+            status = rocblas_internal_trmm_template<NB, true, T>(handle,
+                                                                 side,
+                                                                 uplo,
+                                                                 transa,
+                                                                 diag,
+                                                                 m,
+                                                                 n,
+                                                                 alpha,
+                                                                 stride_alpha,
+                                                                 a,
+                                                                 size_t(offset_a),
+                                                                 size_t(lda),
+                                                                 stride_a,
+                                                                 b,
+                                                                 size_t(offset_b),
+                                                                 size_t(ldb),
+                                                                 stride_b,
+                                                                 c,
+                                                                 size_t(offset_c),
+                                                                 size_t(ldc),
+                                                                 stride_c,
+                                                                 batch_count);
+            if(status != rocblas_status_success)
+                return status;
         }
         else
         {
-            rocblas_internal_trmm_template<NB, true, T>(handle,
-                                                        side,
-                                                        uplo,
-                                                        transa,
-                                                        diag,
-                                                        m,
-                                                        n,
-                                                        alpha,
-                                                        stride_alpha,
-                                                        a,
-                                                        offset_a,
-                                                        lda,
-                                                        stride_a,
-                                                        b,
-                                                        offset_b,
-                                                        ldb,
-                                                        stride_b,
-                                                        c,
-                                                        offset_c,
-                                                        ldc,
-                                                        stride_c,
-                                                        batch_count);
+            status = rocblas_internal_trmm_template<NB, true, T>(handle,
+                                                                 side,
+                                                                 uplo,
+                                                                 transa,
+                                                                 diag,
+                                                                 m,
+                                                                 n,
+                                                                 alpha,
+                                                                 stride_alpha,
+                                                                 a,
+                                                                 offset_a,
+                                                                 lda,
+                                                                 stride_a,
+                                                                 b,
+                                                                 offset_b,
+                                                                 ldb,
+                                                                 stride_b,
+                                                                 c,
+                                                                 offset_c,
+                                                                 ldc,
+                                                                 stride_c,
+                                                                 batch_count);
+            if(status != rocblas_status_success)
+                return status;
         }
-        return rocblas_status_success;
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trmm_outofplace_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trmm_outofplace_batched_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transa,
+                                              m,
+                                              n,
+                                              a,
+                                              lda,
+                                              stride_a,
+                                              c,
+                                              ldc,
+                                              stride_c,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmm_outofplace_check_numerics_status != rocblas_status_success)
+                return trmm_outofplace_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

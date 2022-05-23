@@ -39,9 +39,14 @@ Definitions:
 Tests:
 - name: syrk_bad
   category: pre_checkin
-  function: syrk_bad_arg
-  precision: *single_precision_complex_real
+  function:
+  - syrk_bad_arg
+  - syrk_batched_bad_arg
+  - syrk_strided_batched_bad_arg
+  precision: *single_double_precisions_complex_real
   fortran: [ false, true ]
+
+# non batched
 
 - name: syrk_size_t
   category: nightly
@@ -105,11 +110,6 @@ Tests:
   alpha_beta: *alpha_beta
 
   # batched
-- name: syrk_batched_bad
-  category: pre_checkin
-  function: syrk_batched_bad_arg
-  precision: *single_precision_complex_real
-  fortran: [ false, true ]
 
 - name: syrk_batched_quick
   category: quick
@@ -144,11 +144,7 @@ Tests:
   batch_count: [ 2 ]
 
   # strided batched
-- name: syrk_strided_batched_bad
-  category: pre_checkin
-  function: syrk_strided_batched_bad_arg
-  precision: *single_precision_complex_real
-  fortran: [ false, true ]
+
 
 - name: syrk_strided_batched_quick
   category: quick

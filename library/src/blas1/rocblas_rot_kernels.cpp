@@ -243,6 +243,14 @@ INSTANTIATE_ROT_CHECK_NUMERICS(double* const*)
 INSTANTIATE_ROT_CHECK_NUMERICS(rocblas_float_complex* const*)
 INSTANTIATE_ROT_CHECK_NUMERICS(rocblas_double_complex* const*)
 
+//  instantiate for rocblas_Xrot_ex and rocblas_Xrot_strided_batched_ex
+INSTANTIATE_ROT_CHECK_NUMERICS(rocblas_bfloat16*)
+INSTANTIATE_ROT_CHECK_NUMERICS(rocblas_half*)
+
+//  instantiate for rocblas_Xrot__batched_ex
+INSTANTIATE_ROT_CHECK_NUMERICS(rocblas_bfloat16* const*)
+INSTANTIATE_ROT_CHECK_NUMERICS(rocblas_half* const*)
+
 #undef INSTANTIATE_ROT_CHECK_NUMERICS
 
 #ifdef INSTANTIATE_ROT_TEMPLATE
