@@ -36,9 +36,14 @@ Definitions:
 Tests:
 - name: herk_bad
   category: pre_checkin
-  function: herk_bad_arg
+  function:
+  - herk_bad_arg
+  - herk_batched_bad_arg
+  - herk_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   fortran: [ false, true ]
+
+# non batched
 
 - name: herk_quick
   category: quick
@@ -70,7 +75,6 @@ Tests:
   alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
   beta: [ 0.5, 1.0, .NaN ]
 
-
 - name: herk_large
   category: nightly
   function: herk
@@ -81,11 +85,6 @@ Tests:
   alpha_beta: *alpha_beta_range_small
 
   # batched
-- name: herk_batched_bad
-  category: pre_checkin
-  function: herk_batched_bad_arg
-  precision: *single_precision
-  fortran: [ false, true ]
 
 - name: herk_batched_quick
   category: quick
@@ -120,11 +119,6 @@ Tests:
   batch_count: [ 2 ]
 
   # strided batched
-- name: herk_strided_batched_bad
-  category: pre_checkin
-  function: herk_strided_batched_bad_arg
-  precision: *single_precision
-  fortran: [ false, true ]
 
 - name: herk_strided_batched_quick
   category: quick

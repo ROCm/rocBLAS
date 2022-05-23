@@ -75,6 +75,7 @@ fi
 # Perform cppcheck for added or modified files
 # if cppcheck exists, run it on C/C++ files
 if command -v cppcheck >/dev/null; then
+    fail=0
     for file in $files; do
         [[ -L $file ]] && continue
         if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'; then
@@ -83,9 +84,13 @@ if command -v cppcheck >/dev/null; then
                     -i./build --suppressions-list=./CppCheckSuppressions.txt \
                     --template="{file}:{line}: {severity}: {id} :{message}" \
                     --error-exitcode=1 "$file"
-            exit $?
+            bad=$?
+            if [[ $bad ]]; then
+                fail=$bad
+            fi
         fi
     done
+    exit $fail
 else
     echo "cppcheck command not found, skipping static analysis."
     # exit 127
