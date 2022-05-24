@@ -43,63 +43,179 @@ void testing_geam_bad_arg(const Arguments& arg)
 {
     auto rocblas_geam_fn = arg.fortran ? rocblas_geam<T, true> : rocblas_geam<T, false>;
 
-    const rocblas_int M = 100;
-    const rocblas_int N = 100;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    const rocblas_int lda = 100;
-    const rocblas_int ldb = 100;
-    const rocblas_int ldc = 100;
+        const rocblas_int M = 100;
+        const rocblas_int N = 99;
 
-    const T h_alpha = 1.0;
-    const T h_beta  = 1.0;
+        const rocblas_int lda = 100;
+        const rocblas_int ldb = 100;
+        const rocblas_int ldc = 100;
 
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_operation transB = rocblas_operation_none;
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
-    rocblas_local_handle handle{arg};
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
-    rocblas_int A_row = transA == rocblas_operation_none ? M : N;
-    rocblas_int A_col = transA == rocblas_operation_none ? N : M;
-    rocblas_int B_row = transB == rocblas_operation_none ? M : N;
-    rocblas_int B_col = transB == rocblas_operation_none ? N : M;
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
 
-    // Allocate device memory
-    device_matrix<T> dA(A_row, A_col, lda);
-    device_matrix<T> dB(B_row, B_col, ldb);
-    device_matrix<T> dC(M, N, ldc);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transB = rocblas_operation_none;
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_fn(
-            handle, transA, transB, M, N, &h_alpha, nullptr, lda, &h_beta, dB, ldb, dC, ldc),
-        rocblas_status_invalid_pointer);
+        rocblas_int A_row = transA == rocblas_operation_none ? M : N;
+        rocblas_int A_col = transA == rocblas_operation_none ? N : M;
+        rocblas_int B_row = transB == rocblas_operation_none ? M : N;
+        rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_fn(
-            handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, nullptr, ldb, dC, ldc),
-        rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_matrix<T> dA(A_row, A_col, lda);
+        device_matrix<T> dB(B_row, B_col, ldb);
+        device_matrix<T> dC(M, N, ldc);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_fn(
-            handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, nullptr, ldc),
-        rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_fn(handle, transA, transB, M, N, nullptr, dA, lda, &h_beta, dB, ldb, dC, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(nullptr, transA, transB, M, N, alpha, dA, lda, beta, dB, ldb, dC, ldc),
+            rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_fn(handle, transA, transB, M, N, &h_alpha, dA, lda, nullptr, dB, ldb, dC, ldc),
-        rocblas_status_invalid_pointer);
+        // invalid values
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_fn(handle,
+                                              (rocblas_operation)rocblas_fill_full,
+                                              transB,
+                                              M,
+                                              N,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              beta,
+                                              dB,
+                                              ldb,
+                                              dC,
+                                              ldc),
+                              rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_fn(
-            nullptr, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc),
-        rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_fn(handle,
+                                              transA,
+                                              (rocblas_operation)rocblas_fill_full,
+                                              M,
+                                              N,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              beta,
+                                              dB,
+                                              ldb,
+                                              dC,
+                                              ldc),
+                              rocblas_status_invalid_value);
+
+        // invalid sizes not done in yaml test
+
+        // A == C leading dims must match
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(
+                handle, transA, transB, M, N, alpha, dC, ldc + 1, beta, dB, ldb, dC, ldc),
+            rocblas_status_invalid_size);
+
+        // B == C leading dims must match
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(
+                handle, transA, transB, M, N, alpha, dA, lda, beta, dC, ldc + 1, dC, ldc),
+            rocblas_status_invalid_size);
+
+        // alpha/beta
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(handle, transA, transB, M, N, nullptr, dA, lda, beta, dB, ldb, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(
+                handle, transA, transB, M, N, alpha, dA, lda, nullptr, dB, ldb, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        // invalid pointers
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(
+                handle, transA, transB, M, N, alpha, dA, lda, beta, dB, ldb, nullptr, ldc),
+            rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_geam_fn(
+                    handle, transA, transB, M, N, alpha, nullptr, lda, beta, dB, ldb, dC, ldc),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_geam_fn(
+                    handle, transA, transB, M, N, alpha, dA, lda, beta, nullptr, ldb, dC, ldc),
+                rocblas_status_invalid_pointer);
+        }
+
+        // M==0 then all may be nullptr
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_fn(handle,
+                                              transA,
+                                              transB,
+                                              0,
+                                              N,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              nullptr,
+                                              ldb,
+                                              nullptr,
+                                              ldc),
+                              rocblas_status_success);
+
+        // N==0 then all may be nullptr
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_fn(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              0,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              nullptr,
+                                              ldb,
+                                              nullptr,
+                                              ldc),
+                              rocblas_status_success);
+
+        // alpha==0 then A may be nullptr
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(
+                handle, transA, transB, M, N, zero, nullptr, lda, beta, dB, ldb, dC, ldc),
+            rocblas_status_success);
+
+        // beta==0 then B may be nullptr
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(
+                handle, transA, transB, M, N, alpha, dA, lda, zero, nullptr, ldb, dC, ldc),
+            rocblas_status_success);
+    }
 }
 
 template <typename T>
@@ -136,26 +252,28 @@ void testing_geam(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_C = size_t(ldc) * size_t(N);
+    size_t size_C = size_t(ldc) * N;
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M;
     if(invalid_size || !M || !N)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_geam_fn(handle,
-                                              transA,
-                                              transB,
-                                              M,
-                                              N,
-                                              nullptr,
-                                              nullptr,
-                                              lda,
-                                              nullptr,
-                                              nullptr,
-                                              ldb,
-                                              nullptr,
-                                              ldc),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_fn(
+                handle,
+                transA,
+                transB,
+                M,
+                N,
+                nullptr,
+                nullptr,
+                lda,
+                nullptr,
+                nullptr,
+                ldb,
+                (T*)0x1, // defeat C==A or B leading dim invalid checks, C nullptr in bad_arg
+                ldc),
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

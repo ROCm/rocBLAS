@@ -50,11 +50,12 @@ void testing_dgmm_bad_arg(const Arguments& arg)
     const rocblas_int incx = 1;
     const rocblas_int ldc  = 100;
 
-    const rocblas_side side = (rand() & 1) ? rocblas_side_right : rocblas_side_left;
+    rocblas_side side = rocblas_side_left;
 
+    // no device/host loop required as no difference
     rocblas_local_handle handle{arg};
 
-    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
+    rocblas_int K = rocblas_side_right == side ? N : M;
 
     // Allocate device memory
     device_matrix<T> dA(M, N, lda);
@@ -66,6 +67,15 @@ void testing_dgmm_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(nullptr, side, M, N, dA, lda, dx, incx, dC, ldc),
+                          rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_dgmm_fn(handle, (rocblas_side)rocblas_fill_full, M, N, dA, lda, dx, incx, dC, ldc),
+        rocblas_status_invalid_value);
+
+    // sizes and quick returns done in normal test harness
+
     EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, nullptr, lda, dx, incx, dC, ldc),
                           rocblas_status_invalid_pointer);
 
@@ -74,9 +84,6 @@ void testing_dgmm_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, nullptr, ldc),
                           rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(nullptr, side, M, N, dA, lda, dx, incx, dC, ldc),
-                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
