@@ -92,8 +92,6 @@ rocBLAS build & installation helper script.
 
     --use-cuda                       Use installed CUDA version instead of ROCm stack.
 
-    -v, --rocm-dev <version>         Specify specific rocm-dev version. (e.g. 4.5.0)
-
     --rm-legacy-include-dir          Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
@@ -403,7 +401,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -502,9 +500,6 @@ while true; do
         shift ;;
     -u|--use-custom-version)
         tensile_version=${2}
-        shift 2;;
-    -v|--rocm-dev)
-        custom_rocm_dev=${2}
         shift 2;;
     --prefix)
         install_prefix=${2}
