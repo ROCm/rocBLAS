@@ -51,13 +51,14 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
     const rocblas_int incx = 1;
     const rocblas_int ldc  = 100;
 
-    const rocblas_int batch_count = 5;
+    const rocblas_int batch_count = 2;
 
-    const rocblas_side side = (rand() & 1) ? rocblas_side_right : rocblas_side_left;
+    const rocblas_side side = rocblas_side_left;
 
+    // no device/host loop required as no difference
     rocblas_local_handle handle{arg};
 
-    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
+    rocblas_int K = rocblas_side_right == side ? N : M;
 
     // Allocate device memory
     device_batch_matrix<T> dA(M, N, lda, batch_count);
@@ -70,6 +71,15 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
+        rocblas_dgmm_batched_fn(nullptr, side, M, N, dA, lda, dx, incx, dC, ldc, batch_count),
+        rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_dgmm_batched_fn(
+            handle, (rocblas_side)rocblas_fill_full, M, N, dA, lda, dx, incx, dC, ldc, batch_count),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
         rocblas_dgmm_batched_fn(handle, side, M, N, nullptr, lda, dx, incx, dC, ldc, batch_count),
         rocblas_status_invalid_pointer);
 
@@ -80,10 +90,6 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_dgmm_batched_fn(handle, side, M, N, dA, lda, dx, incx, nullptr, ldc, batch_count),
         rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_dgmm_batched_fn(nullptr, side, M, N, dA, lda, dx, incx, dC, ldc, batch_count),
-        rocblas_status_invalid_handle);
 }
 
 template <typename T>

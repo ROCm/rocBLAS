@@ -24,6 +24,57 @@
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 
+template <typename TScal, typename TConstPtr, typename TPtr>
+inline rocblas_status rocblas_geam_arg_check(rocblas_handle    handle,
+                                             rocblas_operation transA,
+                                             rocblas_operation transB,
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             TScal             alpha,
+                                             TConstPtr         A,
+                                             rocblas_int       lda,
+                                             TScal             beta,
+                                             TConstPtr         B,
+                                             rocblas_int       ldb,
+                                             TPtr              C,
+                                             rocblas_int       ldc,
+                                             rocblas_int       batch_count)
+{
+
+    if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+       && transA != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+    if(transB != rocblas_operation_none && transB != rocblas_operation_transpose
+       && transB != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
+    if(batch_count < 0 || m < 0 || n < 0 || ldc < m
+       || lda < (transA == rocblas_operation_none ? m : n)
+       || ldb < (transB == rocblas_operation_none ? m : n))
+        return rocblas_status_invalid_size;
+
+    if((C == A && (lda != ldc || transA != rocblas_operation_none))
+       || (C == B && (ldb != ldc || transB != rocblas_operation_none)))
+        return rocblas_status_invalid_size;
+
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!C)
+        return rocblas_status_invalid_pointer;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if((*alpha && !A) || (*beta && !B))
+            return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
+
 /**
  * TScal     is always: const T* (either host or device)
  * TConstPtr is either: const T* OR const T* const*
