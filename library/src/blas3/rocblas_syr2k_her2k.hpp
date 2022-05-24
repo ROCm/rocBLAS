@@ -99,8 +99,19 @@ inline rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    if((k > 0 && (!AP || !BP || !alpha)) || !CP || !beta)
+    if((k > 0 && !alpha) || !beta)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        bool calcAB = k > 0 && *alpha != 0;
+
+        if(!calcAB && *beta == 1)
+            return rocblas_status_success;
+
+        if((calcAB && (!AP || !BP)) || ((calcAB || *beta != 1) && !CP))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }
@@ -141,8 +152,19 @@ inline rocblas_status rocblas_her2k_arg_check(rocblas_handle    handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    if((k > 0 && (!AP || !BP || !alpha)) || !CP || !beta)
+    if((k > 0 && !alpha) || !beta)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        bool calcAB = k > 0 && *alpha != 0;
+
+        if(!calcAB && *beta == 1)
+            return rocblas_status_success; // avoid slow kernel launches for no op
+
+        if((calcAB && (!AP || !BP)) || ((calcAB || *beta != 1) && !CP))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }

@@ -41,122 +41,284 @@
 template <typename T, bool TWOK = true>
 void testing_syr2k_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_syrk_batched_fn
+    auto rocblas_syrXX_batched_fn
         = TWOK ? (arg.fortran ? rocblas_syr2k_batched<T, true> : rocblas_syr2k_batched<T, false>)
                : (arg.fortran ? rocblas_syrkx_batched<T, true> : rocblas_syrkx_batched<T, false>);
 
-    rocblas_local_handle    handle{arg};
-    const rocblas_fill      uplo        = rocblas_fill_upper;
-    const rocblas_operation transA      = rocblas_operation_none;
-    const rocblas_int       N           = 100;
-    const rocblas_int       K           = 100;
-    const rocblas_int       lda         = 100;
-    const rocblas_int       ldb         = 100;
-    const rocblas_int       ldc         = 100;
-    const T                 alpha       = 1.0;
-    const T                 beta        = 1.0;
-    rocblas_int             batch_count = 2;
-
-    size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
-    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
-
-    // Allocate device memory
-    device_batch_matrix<T> dA(rows, cols, lda, batch_count);
-    device_batch_matrix<T> dB(rows, cols, ldb, batch_count);
-    device_batch_matrix<T> dC(N, N, ldc, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            nullptr, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_handle);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
-                                                  rocblas_fill_full,
-                                                  transA,
-                                                  N,
-                                                  K,
-                                                  &alpha,
-                                                  dA,
-                                                  lda,
-                                                  dB,
-                                                  ldb,
-                                                  &beta,
-                                                  dC,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_invalid_value);
-
-    if(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, rocblas_double_complex>{})
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
-                                                      uplo,
-                                                      rocblas_operation_conjugate_transpose,
-                                                      N,
-                                                      K,
-                                                      &alpha,
-                                                      dA,
-                                                      lda,
-                                                      dB,
-                                                      ldb,
-                                                      &beta,
-                                                      dC,
-                                                      ldc,
-                                                      batch_count),
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
+
+        const rocblas_fill      uplo        = rocblas_fill_upper;
+        const rocblas_operation transA      = rocblas_operation_none;
+        const rocblas_int       N           = 100;
+        const rocblas_int       K           = 100;
+        const rocblas_int       lda         = 100;
+        const rocblas_int       ldb         = 100;
+        const rocblas_int       ldc         = 100;
+        rocblas_int             batch_count = 2;
+
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
+
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
+
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
+
+        size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
+        size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+
+        // Allocate device memory
+        device_batch_matrix<T> dA(rows, cols, lda, batch_count);
+        device_batch_matrix<T> dB(rows, cols, ldb, batch_count);
+        device_batch_matrix<T> dC(N, N, ldc, batch_count);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrXX_batched_fn(
+                nullptr, uplo, transA, N, K, alpha, dA, lda, dB, ldb, beta, dC, ldc, batch_count),
+            rocblas_status_invalid_handle);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       rocblas_fill_full,
+                                                       transA,
+                                                       N,
+                                                       K,
+                                                       alpha,
+                                                       dA,
+                                                       lda,
+                                                       dB,
+                                                       ldb,
+                                                       beta,
+                                                       dC,
+                                                       ldc,
+                                                       batch_count),
                               rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       uplo,
+                                                       (rocblas_operation)rocblas_fill_full,
+                                                       N,
+                                                       K,
+                                                       alpha,
+                                                       dA,
+                                                       lda,
+                                                       dB,
+                                                       ldb,
+                                                       beta,
+                                                       dC,
+                                                       ldc,
+                                                       batch_count),
+                              rocblas_status_invalid_value);
+
+        if(rocblas_is_complex<T>)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                           uplo,
+                                                           rocblas_operation_conjugate_transpose,
+                                                           N,
+                                                           K,
+                                                           alpha,
+                                                           dA,
+                                                           lda,
+                                                           dB,
+                                                           ldb,
+                                                           beta,
+                                                           dC,
+                                                           ldc,
+                                                           batch_count),
+                                  rocblas_status_invalid_value);
+        }
+
+        // alpha/beta pointer checks
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrXX_batched_fn(
+                handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, beta, dC, ldc, batch_count),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrXX_batched_fn(
+                handle, uplo, transA, N, K, alpha, dA, lda, dB, ldb, nullptr, dC, ldc, batch_count),
+            rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            // alpha and beta can only be inspected in host_mode so A and B validated
+            EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                           uplo,
+                                                           transA,
+                                                           N,
+                                                           K,
+                                                           alpha,
+                                                           nullptr,
+                                                           lda,
+                                                           dB,
+                                                           ldb,
+                                                           beta,
+                                                           dC,
+                                                           ldc,
+                                                           batch_count),
+                                  rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                           uplo,
+                                                           transA,
+                                                           N,
+                                                           K,
+                                                           alpha,
+                                                           dA,
+                                                           lda,
+                                                           nullptr,
+                                                           ldb,
+                                                           beta,
+                                                           dC,
+                                                           ldc,
+                                                           batch_count),
+                                  rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                           uplo,
+                                                           transA,
+                                                           N,
+                                                           K,
+                                                           alpha,
+                                                           dA,
+                                                           lda,
+                                                           dB,
+                                                           ldb,
+                                                           beta,
+                                                           nullptr,
+                                                           ldc,
+                                                           batch_count),
+                                  rocblas_status_invalid_pointer);
+        }
+
+        // invalid values
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       rocblas_fill_full,
+                                                       transA,
+                                                       N,
+                                                       K,
+                                                       alpha,
+                                                       dA,
+                                                       lda,
+                                                       dB,
+                                                       ldb,
+                                                       beta,
+                                                       dC,
+                                                       ldc,
+                                                       batch_count),
+                              rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       uplo,
+                                                       (rocblas_operation)rocblas_fill_full,
+                                                       N,
+                                                       K,
+                                                       alpha,
+                                                       dA,
+                                                       lda,
+                                                       dB,
+                                                       ldb,
+                                                       beta,
+                                                       dC,
+                                                       ldc,
+                                                       batch_count),
+                              rocblas_status_invalid_value);
+
+        // batch_count==0 quick return for no ops with null pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       uplo,
+                                                       transA,
+                                                       N,
+                                                       K,
+                                                       nullptr,
+                                                       nullptr,
+                                                       lda,
+                                                       dB,
+                                                       ldb,
+                                                       nullptr,
+                                                       nullptr,
+                                                       ldc,
+                                                       0),
+                              rocblas_status_success);
+
+        // N==0 quick return for no ops with null pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       uplo,
+                                                       transA,
+                                                       0,
+                                                       K,
+                                                       nullptr,
+                                                       nullptr,
+                                                       lda,
+                                                       dB,
+                                                       ldb,
+                                                       nullptr,
+                                                       nullptr,
+                                                       ldc,
+                                                       batch_count),
+                              rocblas_status_success);
+
+        // k==0 and beta==1 all A, B, C pointers may be null
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       uplo,
+                                                       transA,
+                                                       N,
+                                                       0,
+                                                       alpha,
+                                                       nullptr,
+                                                       lda,
+                                                       nullptr,
+                                                       ldb,
+                                                       one,
+                                                       nullptr,
+                                                       ldc,
+                                                       batch_count),
+                              rocblas_status_success);
+
+        // alpha==0 and beta==1 all pointers may be null
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       uplo,
+                                                       transA,
+                                                       N,
+                                                       K,
+                                                       zero,
+                                                       nullptr,
+                                                       lda,
+                                                       nullptr,
+                                                       ldb,
+                                                       one,
+                                                       nullptr,
+                                                       ldc,
+                                                       batch_count),
+                              rocblas_status_success);
     }
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_batched_fn(
-            handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc, batch_count),
-        rocblas_status_invalid_pointer);
-
-    // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
-                                                  uplo,
-                                                  transA,
-                                                  0,
-                                                  K,
-                                                  nullptr,
-                                                  nullptr,
-                                                  lda,
-                                                  nullptr,
-                                                  ldb,
-                                                  nullptr,
-                                                  nullptr,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_success);
 }
 
 template <typename T, bool TWOK = true>
 void testing_syr2k_batched(const Arguments& arg)
 {
-    auto rocblas_syrk_batched_fn
+    auto rocblas_syrXX_batched_fn
         = TWOK ? (arg.fortran ? rocblas_syr2k_batched<T, true> : rocblas_syr2k_batched<T, false>)
                : (arg.fortran ? rocblas_syrkx_batched<T, true> : rocblas_syrkx_batched<T, false>);
     auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
@@ -184,20 +346,20 @@ void testing_syr2k_batched(const Arguments& arg)
     {
         // ensure invalid sizes checked before pointer check
 
-        EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched_fn(handle,
-                                                      uplo,
-                                                      transA,
-                                                      N,
-                                                      K,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      ldb,
-                                                      nullptr,
-                                                      nullptr,
-                                                      ldc,
-                                                      batch_count),
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
+                                                       uplo,
+                                                       transA,
+                                                       N,
+                                                       K,
+                                                       nullptr,
+                                                       nullptr,
+                                                       lda,
+                                                       nullptr,
+                                                       ldb,
+                                                       nullptr,
+                                                       nullptr,
+                                                       ldc,
+                                                       batch_count),
                               invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
@@ -269,20 +431,20 @@ void testing_syr2k_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
-        CHECK_ROCBLAS_ERROR(rocblas_syrk_batched_fn(handle,
-                                                    uplo,
-                                                    transA,
-                                                    N,
-                                                    K,
-                                                    &h_alpha[0],
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dB.ptr_on_device(),
-                                                    ldb,
-                                                    &h_beta[0],
-                                                    dC.ptr_on_device(),
-                                                    ldc,
-                                                    batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_syrXX_batched_fn(handle,
+                                                     uplo,
+                                                     transA,
+                                                     N,
+                                                     K,
+                                                     &h_alpha[0],
+                                                     dA.ptr_on_device(),
+                                                     lda,
+                                                     dB.ptr_on_device(),
+                                                     ldb,
+                                                     &h_beta[0],
+                                                     dC.ptr_on_device(),
+                                                     ldc,
+                                                     batch_count));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
@@ -293,20 +455,20 @@ void testing_syr2k_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-        CHECK_ROCBLAS_ERROR(rocblas_syrk_batched_fn(handle,
-                                                    uplo,
-                                                    transA,
-                                                    N,
-                                                    K,
-                                                    d_alpha,
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dB.ptr_on_device(),
-                                                    ldb,
-                                                    d_beta,
-                                                    dC.ptr_on_device(),
-                                                    ldc,
-                                                    batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_syrXX_batched_fn(handle,
+                                                     uplo,
+                                                     transA,
+                                                     N,
+                                                     K,
+                                                     d_alpha,
+                                                     dA.ptr_on_device(),
+                                                     lda,
+                                                     dB.ptr_on_device(),
+                                                     ldb,
+                                                     d_beta,
+                                                     dC.ptr_on_device(),
+                                                     ldc,
+                                                     batch_count));
 
         // CPU BLAS
         if(arg.timing)
@@ -380,20 +542,20 @@ void testing_syr2k_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_syrk_batched_fn(handle,
-                                    uplo,
-                                    transA,
-                                    N,
-                                    K,
-                                    h_alpha,
-                                    dA.ptr_on_device(),
-                                    lda,
-                                    dB.ptr_on_device(),
-                                    ldb,
-                                    h_beta,
-                                    dC.ptr_on_device(),
-                                    ldc,
-                                    batch_count);
+            rocblas_syrXX_batched_fn(handle,
+                                     uplo,
+                                     transA,
+                                     N,
+                                     K,
+                                     h_alpha,
+                                     dA.ptr_on_device(),
+                                     lda,
+                                     dB.ptr_on_device(),
+                                     ldb,
+                                     h_beta,
+                                     dC.ptr_on_device(),
+                                     ldc,
+                                     batch_count);
         }
 
         hipStream_t stream;
@@ -401,20 +563,20 @@ void testing_syr2k_batched(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_syrk_batched_fn(handle,
-                                    uplo,
-                                    transA,
-                                    N,
-                                    K,
-                                    h_alpha,
-                                    dA.ptr_on_device(),
-                                    lda,
-                                    dB.ptr_on_device(),
-                                    ldb,
-                                    h_beta,
-                                    dC.ptr_on_device(),
-                                    ldc,
-                                    batch_count);
+            rocblas_syrXX_batched_fn(handle,
+                                     uplo,
+                                     transA,
+                                     N,
+                                     K,
+                                     h_alpha,
+                                     dA.ptr_on_device(),
+                                     lda,
+                                     dB.ptr_on_device(),
+                                     ldb,
+                                     h_beta,
+                                     dC.ptr_on_device(),
+                                     ldc,
+                                     batch_count);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 

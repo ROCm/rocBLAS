@@ -44,160 +44,291 @@ void testing_syrk_strided_batched_bad_arg(const Arguments& arg)
     auto rocblas_syrk_strided_batched_fn = arg.fortran ? rocblas_syrk_strided_batched<T, true>
                                                        : rocblas_syrk_strided_batched<T, false>;
 
-    rocblas_local_handle    handle{arg};
-    const rocblas_fill      uplo        = rocblas_fill_upper;
-    const rocblas_operation transA      = rocblas_operation_none;
-    const rocblas_int       N           = 100;
-    const rocblas_int       K           = 100;
-    const rocblas_int       lda         = 100;
-    const rocblas_int       ldc         = 100;
-    const T                 alpha       = 1.0;
-    const T                 beta        = 1.0;
-    rocblas_stride          strideA     = 1;
-    rocblas_stride          strideC     = 1;
-    rocblas_int             batch_count = 2;
-
-    size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
-    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
-
-    // Allocate device memory
-    device_strided_batch_matrix<T> dA(rows, cols, lda, strideA, batch_count);
-    device_strided_batch_matrix<T> dC(N, N, ldc, strideC, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(nullptr,
-                                                          uplo,
-                                                          transA,
-                                                          N,
-                                                          K,
-                                                          &alpha,
-                                                          dA,
-                                                          lda,
-                                                          strideA,
-                                                          &beta,
-                                                          dC,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_handle);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          rocblas_fill_full,
-                                                          transA,
-                                                          N,
-                                                          K,
-                                                          &alpha,
-                                                          dA,
-                                                          lda,
-                                                          strideA,
-                                                          &beta,
-                                                          dC,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          N,
-                                                          K,
-                                                          nullptr,
-                                                          dA,
-                                                          lda,
-                                                          strideA,
-                                                          &beta,
-                                                          dC,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          N,
-                                                          K,
-                                                          &alpha,
-                                                          nullptr,
-                                                          lda,
-                                                          strideA,
-                                                          &beta,
-                                                          dC,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          N,
-                                                          K,
-                                                          &alpha,
-                                                          dA,
-                                                          lda,
-                                                          strideA,
-                                                          nullptr,
-                                                          dC,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          N,
-                                                          K,
-                                                          &alpha,
-                                                          dA,
-                                                          lda,
-                                                          strideA,
-                                                          &beta,
-                                                          nullptr,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-
-    // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
-                                                          uplo,
-                                                          transA,
-                                                          0,
-                                                          K,
-                                                          nullptr,
-                                                          nullptr,
-                                                          lda,
-                                                          strideA,
-                                                          nullptr,
-                                                          nullptr,
-                                                          ldc,
-                                                          strideC,
-                                                          batch_count),
-                          rocblas_status_success);
-
-    if(rocblas_is_complex<T>)
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
+
+        const rocblas_fill      uplo        = rocblas_fill_upper;
+        const rocblas_operation transA      = rocblas_operation_none;
+        const rocblas_int       N           = 100;
+        const rocblas_int       K           = 100;
+        const rocblas_int       lda         = 100;
+        const rocblas_int       ldc         = 100;
+        rocblas_stride          strideA     = 1;
+        rocblas_stride          strideC     = 1;
+        rocblas_int             batch_count = 2;
+
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
+
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
+
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
+
+        size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
+        size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+
+        // Allocate device memory
+        device_strided_batch_matrix<T> dA(rows, cols, lda, strideA, batch_count);
+        device_strided_batch_matrix<T> dC(N, N, ldc, strideC, batch_count);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(nullptr,
                                                               uplo,
-                                                              rocblas_operation_conjugate_transpose,
+                                                              transA,
                                                               N,
                                                               K,
-                                                              &alpha,
+                                                              alpha,
                                                               dA,
                                                               lda,
                                                               strideA,
-                                                              &beta,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_handle);
+
+        // invalid values
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              rocblas_fill_full,
+                                                              transA,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              strideA,
+                                                              beta,
                                                               dC,
                                                               ldc,
                                                               strideC,
                                                               batch_count),
                               rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              (rocblas_operation)rocblas_fill_full,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              strideA,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_value);
+
+        if(rocblas_is_complex<T>)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_syrk_strided_batched_fn(handle,
+                                                uplo,
+                                                rocblas_operation_conjugate_transpose,
+                                                N,
+                                                K,
+                                                alpha,
+                                                dA,
+                                                lda,
+                                                strideA,
+                                                beta,
+                                                dC,
+                                                ldc,
+                                                strideC,
+                                                batch_count),
+                rocblas_status_invalid_value);
+        }
+
+        // invalid sizes
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda - 1,
+                                                              strideA,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_size);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              strideA,
+                                                              beta,
+                                                              dC,
+                                                              ldc - 1,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_size);
+
+        // invalid alpha/beta pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              N,
+                                                              K,
+                                                              nullptr,
+                                                              dA,
+                                                              lda,
+                                                              strideA,
+                                                              beta,
+                                                              dC,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              N,
+                                                              K,
+                                                              alpha,
+                                                              dA,
+                                                              lda,
+                                                              strideA,
+                                                              nullptr,
+                                                              dC,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_invalid_pointer);
+
+        // invalid pointers
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                                  uplo,
+                                                                  transA,
+                                                                  N,
+                                                                  K,
+                                                                  alpha,
+                                                                  nullptr,
+                                                                  lda,
+                                                                  strideA,
+                                                                  beta,
+                                                                  dC,
+                                                                  ldc,
+                                                                  strideC,
+                                                                  batch_count),
+                                  rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                                  uplo,
+                                                                  transA,
+                                                                  N,
+                                                                  K,
+                                                                  alpha,
+                                                                  dA,
+                                                                  lda,
+                                                                  strideA,
+                                                                  beta,
+                                                                  nullptr,
+                                                                  ldc,
+                                                                  strideC,
+                                                                  batch_count),
+                                  rocblas_status_invalid_pointer);
+        }
+
+        // batch_count == 0 quick return with invalid pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              N,
+                                                              K,
+                                                              nullptr,
+                                                              nullptr,
+                                                              lda,
+                                                              strideA,
+                                                              nullptr,
+                                                              nullptr,
+                                                              ldc,
+                                                              strideC,
+                                                              0),
+                              rocblas_status_success);
+
+        // N == 0 quick return with invalid pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              0,
+                                                              K,
+                                                              nullptr,
+                                                              nullptr,
+                                                              lda,
+                                                              strideA,
+                                                              nullptr,
+                                                              nullptr,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_success);
+
+        // k==0 and beta==1 all other pointers may be null
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              N,
+                                                              0,
+                                                              nullptr,
+                                                              nullptr,
+                                                              lda,
+                                                              strideA,
+                                                              one,
+                                                              nullptr,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_success);
+
+        // alpha==0 and beta==1 all other pointers may be null
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched_fn(handle,
+                                                              uplo,
+                                                              transA,
+                                                              N,
+                                                              K,
+                                                              zero,
+                                                              nullptr,
+                                                              lda,
+                                                              strideA,
+                                                              one,
+                                                              nullptr,
+                                                              ldc,
+                                                              strideC,
+                                                              batch_count),
+                              rocblas_status_success);
     }
 }
 

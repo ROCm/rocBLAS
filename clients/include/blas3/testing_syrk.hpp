@@ -43,97 +43,147 @@ void testing_syrk_bad_arg(const Arguments& arg)
 {
     auto rocblas_syrk_fn = arg.fortran ? rocblas_syrk<T, true> : rocblas_syrk<T, false>;
 
-    rocblas_local_handle    handle{arg};
-    const rocblas_fill      uplo   = rocblas_fill_upper;
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_int       N      = 100;
-    const rocblas_int       K      = 99;
-    const rocblas_int       lda    = 100;
-    const rocblas_int       ldc    = 100;
-    const T                 alpha  = 1.0;
-    const T                 beta   = 1.0;
-
-    size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
-    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
-
-    // Allocate device memory
-    device_matrix<T> dA(rows, cols, lda);
-    device_matrix<T> dC(N, N, ldc);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
-        rocblas_status_invalid_handle);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
-        rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
-                                          (rocblas_fill)rocblas_operation_none,
-                                          transA,
-                                          N,
-                                          K,
-                                          &alpha,
-                                          dA,
-                                          lda,
-                                          &beta,
-                                          dC,
-                                          ldc),
-                          rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
-                                          uplo,
-                                          (rocblas_operation)rocblas_fill_full,
-                                          N,
-                                          K,
-                                          &alpha,
-                                          dA,
-                                          lda,
-                                          &beta,
-                                          dC,
-                                          ldc),
-                          rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, &alpha, nullptr, lda, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, dC, ldc),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, &alpha, dA, lda, &beta, nullptr, ldc),
-        rocblas_status_invalid_pointer);
-
-    // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, nullptr, ldc),
-        rocblas_status_success);
-
-    // conjugate transpose supported in ssyrk and dsyrk
-    if(rocblas_is_complex<T>)
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
+
+        const rocblas_fill      uplo   = rocblas_fill_upper;
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_int       N      = 100;
+        const rocblas_int       K      = 99;
+        const rocblas_int       lda    = 100;
+        const rocblas_int       ldc    = 100;
+
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
+
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
+
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
+
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
+
+        size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
+        size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+
+        // Allocate device memory
+        device_matrix<T> dA(rows, cols, lda);
+        device_matrix<T> dC(N, N, ldc);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(nullptr, uplo, transA, N, K, alpha, dA, lda, beta, dC, ldc),
+            rocblas_status_invalid_handle);
+
+        // invalid values
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(handle, rocblas_fill_full, transA, N, K, alpha, dA, lda, beta, dC, ldc),
+            rocblas_status_invalid_value);
+
         EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
-                                              uplo,
-                                              rocblas_operation_conjugate_transpose,
+                                              (rocblas_fill)rocblas_operation_none,
+                                              transA,
                                               N,
                                               K,
-                                              &alpha,
+                                              alpha,
                                               dA,
                                               lda,
-                                              &beta,
+                                              beta,
                                               dC,
                                               ldc),
                               rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
+                                              uplo,
+                                              (rocblas_operation)rocblas_fill_full,
+                                              N,
+                                              K,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              beta,
+                                              dC,
+                                              ldc),
+                              rocblas_status_invalid_value);
+
+        // conjugate transpose supported in ssyrk and dsyrk
+        if(rocblas_is_complex<T>)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
+                                                  uplo,
+                                                  rocblas_operation_conjugate_transpose,
+                                                  N,
+                                                  K,
+                                                  alpha,
+                                                  dA,
+                                                  lda,
+                                                  beta,
+                                                  dC,
+                                                  ldc),
+                                  rocblas_status_invalid_value);
+        }
+
+        // size
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(handle, uplo, transA, N, K, alpha, dA, lda - 1, beta, dC, ldc),
+            rocblas_status_invalid_size);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(handle, uplo, transA, N, K, alpha, dA, lda, beta, dC, ldc - 1),
+            rocblas_status_invalid_size);
+
+        // invalid alpha/beta pointers
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(handle, uplo, transA, N, K, nullptr, dA, lda, beta, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(handle, uplo, transA, N, K, alpha, dA, lda, nullptr, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        // invalid pointers
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_syrk_fn(handle, uplo, transA, N, K, alpha, nullptr, lda, beta, dC, ldc),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_syrk_fn(handle, uplo, transA, N, K, alpha, dA, lda, beta, nullptr, ldc),
+                rocblas_status_invalid_pointer);
+        }
+
+        // N == 0 quick return with invalid pointers
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(
+                handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, nullptr, ldc),
+            rocblas_status_success);
+
+        // k==0 and beta==1 all other pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(handle, uplo, transA, N, 0, nullptr, nullptr, lda, one, nullptr, ldc),
+            rocblas_status_success);
+
+        // alpha==0 and beta==1 all other pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syrk_fn(handle, uplo, transA, N, K, zero, nullptr, lda, one, nullptr, ldc),
+            rocblas_status_success);
     }
 }
 
