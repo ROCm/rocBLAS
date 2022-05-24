@@ -1736,5 +1736,17 @@ INSTANTIATE_TRMM_NUMERICS(double const* const, double* const)
 INSTANTIATE_TRMM_NUMERICS(rocblas_float_complex const* const, rocblas_float_complex* const)
 INSTANTIATE_TRMM_NUMERICS(rocblas_double_complex const* const, rocblas_double_complex* const)
 
+// instantiate for rocblas_Xtrmm_outofplace and rocblas_Xtrmm_outofplace_strided_batched
+INSTANTIATE_TRMM_NUMERICS(float const,  float const)
+INSTANTIATE_TRMM_NUMERICS(double const, double const)
+INSTANTIATE_TRMM_NUMERICS(rocblas_float_complex const, rocblas_float_complex const)
+INSTANTIATE_TRMM_NUMERICS(rocblas_double_complex const, rocblas_double_complex const)
+
+// instantiate for rocblas_Xtrmm_outofplace_batched
+INSTANTIATE_TRMM_NUMERICS(float const* const,  float const* const)
+INSTANTIATE_TRMM_NUMERICS(double const* const, double const* const)
+INSTANTIATE_TRMM_NUMERICS(rocblas_float_complex const* const, rocblas_float_complex const* const)
+INSTANTIATE_TRMM_NUMERICS(rocblas_double_complex const* const, rocblas_double_complex const* const)
+
 #undef INSTANTIATE_TRMM_NUMERICS
 // clang-format on

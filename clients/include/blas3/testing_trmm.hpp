@@ -42,136 +42,152 @@ void testing_trmm_bad_arg(const Arguments& arg)
 {
     auto rocblas_trmm_fn = arg.fortran ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
 
-    const rocblas_int M   = 100;
-    const rocblas_int N   = 100;
-    const rocblas_int lda = 100;
-    const rocblas_int ldb = 100;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    const T alpha = 1.0;
-    const T zero  = 0.0;
+        const rocblas_int M   = 100;
+        const rocblas_int N   = 100;
+        const rocblas_int lda = 100;
+        const rocblas_int ldb = 100;
 
-    const rocblas_side      side   = rocblas_side_left;
-    const rocblas_fill      uplo   = rocblas_fill_upper;
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+        device_vector<T> alpha_d(1), zero_d(1);
 
-    rocblas_local_handle handle{arg};
+        const T alpha_h(1), zero_h(0);
 
-    rocblas_int K = side == rocblas_side_left ? M : N;
+        const T* alpha = &alpha_h;
+        const T* zero  = &zero_h;
 
-    // Allocate device memory
-    device_matrix<T> dA(K, K, lda);
-    device_matrix<T> dB(M, N, ldb);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        const rocblas_side      side   = rocblas_side_left;
+        const rocblas_fill      uplo   = rocblas_fill_upper;
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    // check for invalid enum
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(
-            handle, rocblas_side_both, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
-        rocblas_status_invalid_value);
+        rocblas_int K = side == rocblas_side_left ? M : N;
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
-                                          side,
-                                          (rocblas_fill)rocblas_side_both,
-                                          transA,
-                                          diag,
-                                          M,
-                                          N,
-                                          &alpha,
-                                          dA,
-                                          lda,
-                                          dB,
-                                          ldb),
-                          rocblas_status_invalid_value);
+        // Allocate device memory
+        device_matrix<T> dA(K, K, lda);
+        device_matrix<T> dB(M, N, ldb);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
-                                          side,
-                                          uplo,
-                                          (rocblas_operation)rocblas_side_both,
-                                          diag,
-                                          M,
-                                          N,
-                                          &alpha,
-                                          dA,
-                                          lda,
-                                          dB,
-                                          ldb),
-                          rocblas_status_invalid_value);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
-                                          side,
-                                          uplo,
-                                          transA,
-                                          (rocblas_diagonal)rocblas_side_both,
-                                          M,
-                                          N,
-                                          &alpha,
-                                          dA,
-                                          lda,
-                                          dB,
-                                          ldb),
-                          rocblas_status_invalid_value);
+        // check for invalid enum
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(
+                handle, rocblas_side_both, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb),
+            rocblas_status_invalid_value);
 
-    // check for invalid size
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(handle, side, uplo, transA, diag, -1, N, &alpha, dA, lda, dB, ldb),
-        rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
+                                              side,
+                                              (rocblas_fill)rocblas_side_both,
+                                              transA,
+                                              diag,
+                                              M,
+                                              N,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              dB,
+                                              ldb),
+                              rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, -1, &alpha, dA, lda, dB, ldb),
-        rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
+                                              side,
+                                              uplo,
+                                              (rocblas_operation)rocblas_side_both,
+                                              diag,
+                                              M,
+                                              N,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              dB,
+                                              ldb),
+                              rocblas_status_invalid_value);
 
-    // check for invalid leading dimension
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, M - 1),
-        rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              (rocblas_diagonal)rocblas_side_both,
+                                              M,
+                                              N,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              dB,
+                                              ldb),
+                              rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(
-            handle, rocblas_side_left, uplo, transA, diag, M, N, &alpha, dA, M - 1, dB, ldb),
-        rocblas_status_invalid_size);
+        // check for invalid size
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(handle, side, uplo, transA, diag, -1, N, alpha, dA, lda, dB, ldb),
+            rocblas_status_invalid_size);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(
-            handle, rocblas_side_right, uplo, transA, diag, M, N, &alpha, dA, N - 1, dB, ldb),
-        rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, -1, alpha, dA, lda, dB, ldb),
+            rocblas_status_invalid_size);
 
-    // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
-        rocblas_status_invalid_handle);
+        // check for invalid leading dimension
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, M - 1),
+            rocblas_status_invalid_size);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(
+                handle, rocblas_side_left, uplo, transA, diag, M, N, alpha, dA, M - 1, dB, ldb),
+            rocblas_status_invalid_size);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(
+                handle, rocblas_side_right, uplo, transA, diag, M, N, alpha, dA, N - 1, dB, ldb),
+            rocblas_status_invalid_size);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, nullptr, ldb),
-        rocblas_status_invalid_pointer);
+        // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(nullptr, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb),
+            rocblas_status_invalid_handle);
 
-    // quick return: If alpha==0, then A can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, dB, ldb),
-        rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb),
+            rocblas_status_invalid_pointer);
 
-    // quick return: If M==0, then all pointers can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(
-            handle, side, uplo, transA, diag, 0, N, nullptr, nullptr, lda, nullptr, ldb),
-        rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, alpha, nullptr, lda, dB, ldb),
+            rocblas_status_invalid_pointer);
 
-    // quick return: If N==0, then all pointers can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_fn(
-            handle, side, uplo, transA, diag, M, 0, nullptr, nullptr, lda, nullptr, ldb),
-        rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, alpha, dA, lda, nullptr, ldb),
+            rocblas_status_invalid_pointer);
+
+        // quick return: If alpha==0, then A can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, zero, nullptr, lda, dB, ldb),
+            rocblas_status_success);
+
+        // quick return: If M==0, then all pointers can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(
+                handle, side, uplo, transA, diag, 0, N, nullptr, nullptr, lda, nullptr, ldb),
+            rocblas_status_success);
+
+        // quick return: If N==0, then all pointers can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmm_fn(
+                handle, side, uplo, transA, diag, M, 0, nullptr, nullptr, lda, nullptr, ldb),
+            rocblas_status_success);
+    }
 }
 
 template <typename T>

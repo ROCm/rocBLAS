@@ -406,7 +406,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
     else
     {
-        if(*beta == 1 && (*alpha == 0 || k == 0))
+        if(*beta == 1 && (k == 0 || *alpha == 0))
             return rocblas_status_success;
 
         // first scale C so we can use directly for output without work buffer
@@ -619,7 +619,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     }
     else
     {
-        if(*beta == 1 && (*alpha == 0 || k == 0))
+        if(*beta == 1 && (k == 0 || *alpha == 0))
             return rocblas_status_success;
 
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
