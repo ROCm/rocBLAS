@@ -2,7 +2,7 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 2.44.0
+## rocBLAS 2.44.0 for ROCm 5.2.0
 ### Added
 - Packages for test and benchmark executables on all supported OSes using CPack.
 - Added Denormal number detection to the Numerical checking helper function to detect denormal/subnormal numbers in the input and the output vectors of rocBLAS level 1 and 2 functions.
@@ -30,7 +30,8 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Fixed memory access issue in trsv.
 - Fixed git pre-commit script to update only AMD copyright year.
 - Fixed dgmm, geam test functions to set correct stride values.
-- For functions ssyr2k and dsyr2k allow trans == rocblas_operation_conjugate_transpose
+- For functions ssyr2k and dsyr2k allow trans == rocblas_operation_conjugate_transpose.
+- Fixed compilation error for clients-only build.
 
 ### Removed
 - Remove Navi12 (gfx1011) from fat binary.
