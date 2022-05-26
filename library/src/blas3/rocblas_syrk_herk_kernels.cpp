@@ -64,26 +64,27 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     // we can just call syrkx here
-    return rocblas_internal_syrkx_template<NB, BATCHED, T>(handle,
-                                                           uplo,
-                                                           trans_a,
-                                                           n,
-                                                           k,
-                                                           alpha,
-                                                           AP,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           AP,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           beta,
-                                                           CP,
-                                                           offset_c,
-                                                           ldc,
-                                                           stride_c,
-                                                           batch_count);
+    constexpr bool HERM = false;
+    return rocblas_internal_syrkx_herkx_template<NB, BATCHED, HERM, T>(handle,
+                                                                       uplo,
+                                                                       trans_a,
+                                                                       n,
+                                                                       k,
+                                                                       alpha,
+                                                                       AP,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       AP,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       beta,
+                                                                       CP,
+                                                                       offset_c,
+                                                                       ldc,
+                                                                       stride_c,
+                                                                       batch_count);
 }
 
 /**

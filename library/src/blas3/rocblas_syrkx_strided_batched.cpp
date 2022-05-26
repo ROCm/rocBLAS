@@ -213,26 +213,26 @@ namespace
 
         static constexpr bool BATCHED = false;
         rocblas_status        status  = rocblas_status_success;
-        status                        = rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
-                                                                     uplo,
-                                                                     trans,
-                                                                     n,
-                                                                     k,
-                                                                     alpha,
-                                                                     A,
-                                                                     offset_a,
-                                                                     lda,
-                                                                     stride_a,
-                                                                     B,
-                                                                     offset_b,
-                                                                     ldb,
-                                                                     stride_b,
-                                                                     beta,
-                                                                     C,
-                                                                     offset_c,
-                                                                     ldc,
-                                                                     stride_c,
-                                                                     batch_count);
+        status = rocblas_internal_syrkx_herkx_template<MIN_NB, BATCHED, Hermetian, T>(handle,
+                                                                                      uplo,
+                                                                                      trans,
+                                                                                      n,
+                                                                                      k,
+                                                                                      alpha,
+                                                                                      A,
+                                                                                      offset_a,
+                                                                                      lda,
+                                                                                      stride_a,
+                                                                                      B,
+                                                                                      offset_b,
+                                                                                      ldb,
+                                                                                      stride_b,
+                                                                                      beta,
+                                                                                      C,
+                                                                                      offset_c,
+                                                                                      ldc,
+                                                                                      stride_c,
+                                                                                      batch_count);
         if(status != rocblas_status_success)
             return status;
 
