@@ -518,7 +518,7 @@ add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
 add_custom_target( rocblas_device_malloc DEPENDS ${ROCBLAS_DEVICE_MALLOC} )
 add_dependencies( rocblas rocblas_device_malloc )
 
-if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
   rocm_wrap_header_dir(
     ${CMAKE_SOURCE_DIR}/library/include
     PATTERNS "*.h"
@@ -610,7 +610,7 @@ else()
   endif()
 endif()
 
-if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
   rocm_install(
     DIRECTORY
        "${PROJECT_BINARY_DIR}/rocblas"
