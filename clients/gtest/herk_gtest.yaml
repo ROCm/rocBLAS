@@ -70,10 +70,10 @@ Tests:
   function: herk
   precision: *single_double_precisions_complex
   uplo: [ U ]
-  transA: [N, C]
+  transA: [ N ]
   matrix_size: *tiny_matrix_size
-  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
-  beta: [ 0.5, 1.0, .NaN ]
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, .NaN ]
 
 - name: herk_large
   category: nightly
@@ -108,6 +108,17 @@ Tests:
   batch_count: [ 1, 7 ]
   fortran: [ false, true ]
 
+- name: herk_batched_NaN
+  category: pre_checkin
+  function: herk_batched
+  precision: *single_precision_complex
+  uplo: [ L ]
+  transA: [ C ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, .NaN ]
+  batch_count: [ 2 ]
+
 - name: herk_batched_large
   category: nightly
   function: herk_batched
@@ -141,6 +152,17 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
   fortran: [ false, true ]
+
+- name: herk_strided_batched_NaN
+  category: pre_checkin
+  function: herk_strided_batched
+  precision: *double_precision_complex
+  uplo: [ U ]
+  transA: [ N ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, .NaN ]
+  batch_count: [ 2 ]
 
 - name: herk_strided_batched_large
   category: nightly
