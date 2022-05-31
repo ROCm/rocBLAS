@@ -153,21 +153,21 @@ namespace
     };
 
     using syrk = syrk_template<syrk_testing, SYRK>;
-    TEST_P(syrk, blas3)
+    TEST_P(syrk, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<syrk_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(syrk);
 
     using syrk_batched = syrk_template<syrk_testing, SYRK_BATCHED>;
-    TEST_P(syrk_batched, blas3)
+    TEST_P(syrk_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<syrk_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(syrk_batched);
 
     using syrk_strided_batched = syrk_template<syrk_testing, SYRK_STRIDED_BATCHED>;
-    TEST_P(syrk_strided_batched, blas3)
+    TEST_P(syrk_strided_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<syrk_testing>(GetParam()));
     }

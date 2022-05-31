@@ -157,7 +157,7 @@ namespace
     };
 
     using syrkx = syrkx_template<syrkx_testing, SYRKX>;
-    TEST_P(syrkx, blas3)
+    TEST_P(syrkx, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<syrkx_testing>(GetParam()));
@@ -165,7 +165,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(syrkx);
 
     using syrkx_batched = syrkx_template<syrkx_testing, SYRKX_BATCHED>;
-    TEST_P(syrkx_batched, blas3)
+    TEST_P(syrkx_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<syrkx_testing>(GetParam()));
@@ -173,7 +173,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(syrkx_batched);
 
     using syrkx_strided_batched = syrkx_template<syrkx_testing, SYRKX_STRIDED_BATCHED>;
-    TEST_P(syrkx_strided_batched, blas3)
+    TEST_P(syrkx_strided_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<syrkx_testing>(GetParam()));
