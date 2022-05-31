@@ -128,33 +128,30 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if((k == 0 || !*alpha) && *beta == 1)
         return rocblas_status_success;
 
+    // we can just call herkx here
     const rocblas_complex_num<real_t<T>> alpha_comp = {*alpha, 0};
     const rocblas_complex_num<real_t<T>> beta_comp  = {*beta, 0};
-
-    return rocblas_internal_her2k_template<BATCHED, false>(handle,
-                                                           uplo,
-                                                           trans_a,
-                                                           n,
-                                                           k,
-                                                           &alpha_comp,
-                                                           AP,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           AP,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           beta,
-                                                           CP,
-                                                           offset_c,
-                                                           ldc,
-                                                           stride_c,
-                                                           batch_count);
-
-    // once herkx has it's own block-recusive template, use that
-    // return rocblas_internal_herkx_template<NB, true, BATCHED, T>(handle, uplo, trans_a, n, k, alpha, AP, offset_a, lda, stride_a,
-    //                                        AP, offset_a, lda, stride_a, beta, CP, offset_c, ldc, stride_c, batch_count);
+    constexpr bool                       HERM       = true;
+    return rocblas_internal_syrkx_herkx_template<NB, BATCHED, HERM, T>(handle,
+                                                                       uplo,
+                                                                       trans_a,
+                                                                       n,
+                                                                       k,
+                                                                       &alpha_comp,
+                                                                       AP,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       AP,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       &beta_comp,
+                                                                       CP,
+                                                                       offset_c,
+                                                                       ldc,
+                                                                       stride_c,
+                                                                       batch_count);
 }
 template <bool HERM, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
