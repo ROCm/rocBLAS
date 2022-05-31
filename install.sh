@@ -224,6 +224,10 @@ install_packages( )
                                       "make" "rpm-build"
                                       "python36" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
+  local library_dependencies_rhel_9=( "epel-release" "openssl-devel"
+                                      "make" "rpm-build"
+                                      "python39" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" )
   local library_dependencies_fedora=( "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" )
@@ -249,6 +253,7 @@ install_packages( )
       library_dependencies_centos_rhel+=("wget")
       library_dependencies_centos_8+=("wget")
       library_dependencies_rhel_8+=("wget")
+      library_dependencies_rhel_9+=("wget")
       library_dependencies_fedora+=("wget")
       library_dependencies_sles+=("wget")
     fi
@@ -260,6 +265,7 @@ install_packages( )
     library_dependencies_centos_rhel+=( "devtoolset-7-gcc-gfortran" "libgomp" )
     library_dependencies_centos_8+=( "gcc-gfortran" "libgomp" )
     library_dependencies_rhel_8+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_rhel_9+=( "gcc-gfortran" "libgomp" )
     library_dependencies_fedora+=( "gcc-gfortran" "libgomp" )
     library_dependencies_sles+=( "gcc-fortran" "libgomp1" )
 
@@ -269,6 +275,7 @@ install_packages( )
       library_dependencies_centos_rhel+=("wget")
       library_dependencies_centos_8+=("wget")
       library_dependencies_rhel_8+=("wget")
+      library_dependencies_rhel_9+=("wget")
       library_dependencies_fedora+=("wget")
       library_dependencies_sles+=("wget")
     fi
@@ -281,7 +288,7 @@ install_packages( )
       ;;
 
     centos)
-      if [[ ( "${MAJORVERSION}" -ge 8 ) ]]; then
+      if (( "${VERSION_ID%%.*}" >= "8" )); then
         install_yum_packages "${library_dependencies_centos_8[@]}"
       else
   #     yum -y update brings *all* installed packages up to date
@@ -292,7 +299,9 @@ install_packages( )
       ;;
 
     rhel)
-      if [[ ( "${MAJORVERSION}" -ge 8 ) ]]; then
+      if (( "${VERSION_ID%%.*}" >= "9" )); then
+        install_yum_packages "${library_dependencies_rhel_9[@]}"
+      elif (( "${VERSION_ID%%.*}" >= "8" )); then
         install_yum_packages "${library_dependencies_rhel_8[@]}"
       else
   #     yum -y update brings *all* installed packages up to date
@@ -352,7 +361,6 @@ else
   echo "This script depends on the /etc/*-release files"
   exit 2
 fi
-MAJORVERSION=$(echo $VERSION_ID | cut -f1 -d.)
 
 # The following function exits script if an unsupported distro is detected
 supported_distro
