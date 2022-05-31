@@ -157,7 +157,7 @@ namespace
     };
 
     using herkx = herkx_template<herkx_testing, HERKX>;
-    TEST_P(herkx, blas3)
+    TEST_P(herkx, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<herkx_testing>(GetParam()));
@@ -165,7 +165,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(herkx);
 
     using herkx_batched = herkx_template<herkx_testing, HERKX_BATCHED>;
-    TEST_P(herkx_batched, blas3)
+    TEST_P(herkx_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<herkx_testing>(GetParam()));
@@ -173,7 +173,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(herkx_batched);
 
     using herkx_strided_batched = herkx_template<herkx_testing, HERKX_STRIDED_BATCHED>;
-    TEST_P(herkx_strided_batched, blas3)
+    TEST_P(herkx_strided_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<herkx_testing>(GetParam()));

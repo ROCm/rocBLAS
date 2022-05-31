@@ -154,21 +154,21 @@ namespace
     };
 
     using herk = herk_template<herk_testing, HERK>;
-    TEST_P(herk, blas3)
+    TEST_P(herk, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<herk_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(herk);
 
     using herk_batched = herk_template<herk_testing, HERK_BATCHED>;
-    TEST_P(herk_batched, blas3)
+    TEST_P(herk_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<herk_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(herk_batched);
 
     using herk_strided_batched = herk_template<herk_testing, HERK_STRIDED_BATCHED>;
-    TEST_P(herk_strided_batched, blas3)
+    TEST_P(herk_strided_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<herk_testing>(GetParam()));
     }

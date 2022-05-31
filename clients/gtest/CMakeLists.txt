@@ -33,6 +33,11 @@ if( BUILD_WITH_TENSILE )
       atomics_mode_gtest.cpp
       trsm_gtest.cpp
       trtri_gtest.cpp
+      trmm_gtest.cpp
+      syrkx_gtest.cpp
+      herkx_gtest.cpp
+      syrk_gtest.cpp
+      herk_gtest.cpp
       )
 endif()
 
@@ -76,17 +81,12 @@ set(rocblas_no_tensile_test_source
     symv_gtest.cpp
     # blas3
     hemm_gtest.cpp
-    herk_gtest.cpp
     her2k_gtest.cpp
-    herkx_gtest.cpp
     symm_gtest.cpp
-    syrk_gtest.cpp
     syr2k_gtest.cpp
     geam_gtest.cpp
     dgmm_gtest.cpp
     gemm_gtest.cpp
-    syrkx_gtest.cpp
-    trmm_gtest.cpp
     )
 
 # Keep ${rocblas_tensile_test_source} first, so that multiheaded tests are the
