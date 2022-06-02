@@ -199,29 +199,29 @@ namespace
             if(symm_check_numerics_status != rocblas_status_success)
                 return symm_check_numerics_status;
         }
-      
+
         rocblas_status status = rocblas_status_success;
 
         status = rocblas_internal_symm_template<BATCHED, HERMITIAN, T>(handle,
-                                                                     side,
-                                                                     uplo,
-                                                                     m,
-                                                                     n,
-                                                                     alpha,
-                                                                     A,
-                                                                     offset_A,
-                                                                     lda,
-                                                                     stride_a,
-                                                                     B,
-                                                                     offset_B,
-                                                                     ldb,
-                                                                     stride_b,
-                                                                     beta,
-                                                                     C,
-                                                                     offset_C,
-                                                                     ldc,
-                                                                     stride_c,
-                                                                     batch_count);
+                                                                       side,
+                                                                       uplo,
+                                                                       m,
+                                                                       n,
+                                                                       alpha,
+                                                                       A,
+                                                                       offset_A,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       B,
+                                                                       offset_B,
+                                                                       ldb,
+                                                                       stride_b,
+                                                                       beta,
+                                                                       C,
+                                                                       offset_C,
+                                                                       ldc,
+                                                                       stride_c,
+                                                                       batch_count);
 
         if(status != rocblas_status_success)
             return status;

@@ -176,7 +176,7 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        status = rocblas_internal_symm_template<BATCHED, HERMITIAN, T>(handle,
+        status                = rocblas_internal_symm_template<BATCHED, HERMITIAN, T>(handle,
                                                                        side,
                                                                        uplo,
                                                                        m,
