@@ -248,27 +248,27 @@ symm_hemm_kernel(bool           upper,
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
-template <bool BATCHED, bool HERM, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
-                                                                      rocblas_side   side,
-                                                                      rocblas_fill   uplo,
-                                                                      rocblas_int    m,
-                                                                      rocblas_int    n,
-                                                                      TScal          alpha,
-                                                                      TConstPtr      AP,
-                                                                      rocblas_stride offsetA,
-                                                                      rocblas_int    lda,
-                                                                      rocblas_stride strideA,
-                                                                      TConstPtr      BP,
-                                                                      rocblas_stride offsetB,
-                                                                      rocblas_int    ldb,
-                                                                      rocblas_stride strideB,
-                                                                      TScal          beta,
-                                                                      TPtr           CP,
-                                                                      rocblas_stride offsetC,
-                                                                      rocblas_int    ldc,
-                                                                      rocblas_stride strideC,
-                                                                      rocblas_int    batch_count)
+template <bool HERM, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
+                                     rocblas_side   side,
+                                     rocblas_fill   uplo,
+                                     rocblas_int    m,
+                                     rocblas_int    n,
+                                     TScal          alpha,
+                                     TConstPtr      AP,
+                                     rocblas_stride offsetA,
+                                     rocblas_int    lda,
+                                     rocblas_stride strideA,
+                                     TConstPtr      BP,
+                                     rocblas_stride offsetB,
+                                     rocblas_int    ldb,
+                                     rocblas_stride strideB,
+                                     TScal          beta,
+                                     TPtr           CP,
+                                     rocblas_stride offsetC,
+                                     rocblas_int    ldc,
+                                     rocblas_stride strideC,
+                                     rocblas_int    batch_count)
 {
     // quick return
     if(!m || !n || !batch_count)
@@ -490,7 +490,7 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
 
     // calls to symm_strided_batched for diagonal blocks of size nb_diag
     // clang-format off
-    RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<BATCHED, HERM>(handle,
+    RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
              side, uplo, symm_m, symm_n, alpha,
              a, 0, lda, nb_diag * diag_a_stride,
              b, 0, ldb, nb_diag * diag_b_stride, beta,
@@ -503,7 +503,7 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
         symm_m = rocblas_side_left == side ? nb_rem : m;
         symm_n = rocblas_side_left == side ? n : nb_rem;
 
-        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<BATCHED, HERM>(handle,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
                  a, i_diag * diag_a_stride, lda, 0,
                  b, i_diag * diag_b_stride, ldb, 0, beta,
@@ -827,7 +827,7 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
     // calls to symm_strided_batched for diagonal blocks of size nb_diag
     for(int i_nb = 0; i_nb < n_nb; i_nb++)
     {
-        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<BATCHED, HERM>(handle,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
                  a, i_nb * (nb_diag * diag_a_stride) + offsetA, lda, strideA,
                  b, i_nb * (nb_diag * diag_b_stride) + offsetB, ldb, strideB, beta,
@@ -841,7 +841,7 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
         symm_m = rocblas_side_left == side ? nb_rem : m;
         symm_n = rocblas_side_left == side ? n : nb_rem;
 
-        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<BATCHED, HERM>(handle,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
                  a, i_diag * diag_a_stride + offsetA, lda, strideA,
                  b, i_diag * diag_b_stride + offsetB, ldb, strideB, beta,
