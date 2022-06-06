@@ -41,23 +41,26 @@ def runCI =
 
         def testFilter = ""
 
-        pullRequest.labels.each
+        if (env.BRANCH_NAME ==~ /PR-\d+/)
         {
-            if (it == "TestTensileOnly")
+            pullRequest.labels.each
             {
-                testFilter += "*blas3_tensile/quick*:*blas3_tensile/pre_checkin*:"
-            }
-            else if(it == "TestLevel3Only")
-            {
-                testFilter += "*blas3/quick*:*blas3/pre_checkin*:"
-            }
-            else if(it == "TestLevel2Only")
-            {
-                testFilter += "*blas2/quick*:*blas2/pre_checkin*:"
-            }
-            else if(it == "TestLevel1Only")
-            {
-                testFilter += "*blas1/quick*:*blas1/pre_checkin*:"
+                if (it == "TestTensileOnly")
+                {
+                    testFilter += "*blas3_tensile/quick*:*blas3_tensile/pre_checkin*:"
+                }
+                else if(it == "TestLevel3Only")
+                {
+                    testFilter += "*blas3/quick*:*blas3/pre_checkin*:"
+                }
+                else if(it == "TestLevel2Only")
+                {
+                    testFilter += "*blas2/quick*:*blas2/pre_checkin*:"
+                }
+                else if(it == "TestLevel1Only")
+                {
+                    testFilter += "*blas1/quick*:*blas1/pre_checkin*:"
+                }
             }
         }
 

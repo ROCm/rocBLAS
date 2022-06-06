@@ -41,23 +41,26 @@ def runCI =
 
         def testFilter = ""
 
-        pullRequest.labels.each
+        if (env.BRANCH_NAME ==~ /PR-\d+/)
         {
-            if (it == "TestTensileOnly")
+            pullRequest.labels.each
             {
-                testFilter += "*blas3_tensile/multi_gpu*:"
-            }
-            else if(it == "TestLevel3Only")
-            {
-                testFilter += "*blas3/multi_gpu*:"
-            }
-            else if(it == "TestLevel2Only")
-            {
-                testFilter += "*blas2/multi_gpu*:"
-            }
-            else if(it == "TestLevel1Only")
-            {
-                testFilter += "*blas1/multi_gpu*:"
+                if (it == "TestTensileOnly")
+                {
+                    testFilter += "*blas3_tensile/multi_gpu*:"
+                }
+                else if(it == "TestLevel3Only")
+                {
+                    testFilter += "*blas3/multi_gpu*:"
+                }
+                else if(it == "TestLevel2Only")
+                {
+                    testFilter += "*blas2/multi_gpu*:"
+                }
+                else if(it == "TestLevel1Only")
+                {
+                    testFilter += "*blas1/multi_gpu*:"
+                }
             }
         }
 

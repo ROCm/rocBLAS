@@ -42,23 +42,26 @@ def runCI =
 
         def testFilter = ""
 
-        pullRequest.labels.each
+        if (env.BRANCH_NAME ==~ /PR-\d+/)
         {
-            if (it == "TestTensileOnly")
+            pullRequest.labels.each
             {
-                testFilter += "*blas3_tensile/nightly*:"
-            }
-            else if(it == "TestLevel3Only")
-            {
-                testFilter += "*blas3/nightly*:"
-            }
-            else if(it == "TestLevel2Only")
-            {
-                testFilter += "*blas2/nightly*:"
-            }
-            else if(it == "TestLevel1Only")
-            {
-                testFilter += "*blas1/nightly*:"
+                if (it == "TestTensileOnly")
+                {
+                    testFilter += "*blas3_tensile/nightly*:"
+                }
+                else if(it == "TestLevel3Only")
+                {
+                    testFilter += "*blas3/nightly*:"
+                }
+                else if(it == "TestLevel2Only")
+                {
+                    testFilter += "*blas2/nightly*:"
+                }
+                else if(it == "TestLevel1Only")
+                {
+                    testFilter += "*blas1/nightly*:"
+                }
             }
         }
 
