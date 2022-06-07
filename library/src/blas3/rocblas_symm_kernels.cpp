@@ -20,8 +20,21 @@
  *
  * ************************************************************************ */
 
+#define SSYMM_MIN_NB 32
+#define DSYMM_MIN_NB 32
+#define CSYMM_MIN_NB 32
+#define ZSYMM_MIN_NB 32
+
+#define SSYMM_BATCHED_MIN_NB 32
+#define DSYMM_BATCHED_MIN_NB 32
+#define CSYMM_BATCHED_MIN_NB 32
+#define ZSYMM_BATCHED_MIN_NB 32
+
+#include "Tensile/gemm.hpp"
+#include "definitions.hpp"
 #include "handle.hpp"
 #include "rocblas_symm_hemm.hpp"
+#include <type_traits>
 
 template <typename T>
 ROCBLAS_KERNEL_ILF void
@@ -236,27 +249,26 @@ symm_hemm_kernel(bool           upper,
   *  TPtr      is either:       T* OR       T* const*
   */
 template <bool HERM, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_symm_template(rocblas_handle handle,
-                                   rocblas_side   side,
-                                   rocblas_fill   uplo,
-                                   rocblas_int    m,
-                                   rocblas_int    n,
-                                   TScal          alpha,
-                                   TConstPtr      AP,
-                                   rocblas_stride offsetA,
-                                   rocblas_int    lda,
-                                   rocblas_stride strideA,
-                                   TConstPtr      BP,
-                                   rocblas_stride offsetB,
-                                   rocblas_int    ldb,
-                                   rocblas_stride strideB,
-                                   TScal          beta,
-                                   TPtr           CP,
-                                   rocblas_stride offsetC,
-                                   rocblas_int    ldc,
-                                   rocblas_stride strideC,
-                                   rocblas_int    batch_count)
+rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
+                                     rocblas_side   side,
+                                     rocblas_fill   uplo,
+                                     rocblas_int    m,
+                                     rocblas_int    n,
+                                     TScal          alpha,
+                                     TConstPtr      AP,
+                                     rocblas_stride offsetA,
+                                     rocblas_int    lda,
+                                     rocblas_stride strideA,
+                                     TConstPtr      BP,
+                                     rocblas_stride offsetB,
+                                     rocblas_int    ldb,
+                                     rocblas_stride strideB,
+                                     TScal          beta,
+                                     TPtr           CP,
+                                     rocblas_stride offsetC,
+                                     rocblas_int    ldc,
+                                     rocblas_stride strideC,
+                                     rocblas_int    batch_count)
 {
     // quick return
     if(!m || !n || !batch_count)
@@ -409,7 +421,265 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                strideC);
         }
     }
+    return rocblas_status_success;
+}
 
+template <bool BATCHED, bool HERM, typename T, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
+                                                 rocblas_side   side,
+                                                 rocblas_fill   uplo,
+                                                 rocblas_int    m,
+                                                 rocblas_int    n,
+                                                 TScal          alpha,
+                                                 TConstPtr      a,
+                                                 rocblas_int    lda,
+                                                 TConstPtr      b,
+                                                 rocblas_int    ldb,
+                                                 TScal          beta,
+                                                 TPtr           c,
+                                                 rocblas_int    ldc)
+{
+    // nb_diag is a tuning parameter. It is the size of the diagonal blocks in the matrix
+    // a. It is also the starting size for subdiagonal blocks in calls to gemm.
+    rocblas_int nb_diag = 32; // size of diag blocks of triangle matrix a
+
+    if(std::is_same<T, float>{})
+    {
+        nb_diag = SSYMM_MIN_NB;
+    }
+    else if(std::is_same<T, double>{})
+    {
+        nb_diag = DSYMM_MIN_NB;
+    }
+    else if(std::is_same<T, rocblas_float_complex>{})
+    {
+        nb_diag = CSYMM_MIN_NB;
+    }
+    else if(std::is_same<T, rocblas_double_complex>{})
+    {
+        nb_diag = ZSYMM_MIN_NB;
+    }
+
+    rocblas_operation trans_a
+        = HERM ? rocblas_operation_conjugate_transpose : rocblas_operation_transpose;
+
+    // rocblas_internal_gemm_template requires alpha and beta to be pointers to host memory.
+    // If they are pointers to device memory, then copy *alpha and *beta to alpha_h and beta_h
+    // and make alpha and beta point to alpha_h and beta_h, and set pointer mode to host.
+    // Restore pointer mode in destructor when save_pointer_mode goes out of scope.
+    T alpha_h, beta_h;
+    RETURN_IF_ROCBLAS_ERROR(
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
+    auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    rocblas_int ka = rocblas_side_left == side ? m : n; // dimension of triangle matrix a
+
+    rocblas_int n_nb   = ka / nb_diag; // number of diag blocks of matrix a of size nb_diag
+    rocblas_int nb_rem = ka % nb_diag; // remainder diag block size when ka not multiple of nb_diag
+
+    rocblas_int symm_m = rocblas_side_left == side ? nb_diag : m; // diag block symm argument m
+    rocblas_int symm_n = rocblas_side_left == side ? n : nb_diag; // diag block symm argument n
+
+    rocblas_int diag_a_stride = 1 + lda; // stride for diag blocks in a
+    rocblas_int diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
+    rocblas_int diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
+
+    rocblas_int i_diag; // index of diag block
+
+    const T one = 1.0;
+
+    // calls to symm_strided_batched for diagonal blocks of size nb_diag
+    // clang-format off
+    RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+             side, uplo, symm_m, symm_n, alpha,
+             a, 0, lda, nb_diag * diag_a_stride,
+             b, 0, ldb, nb_diag * diag_b_stride, beta,
+             c, 0, ldc, nb_diag * diag_c_stride, n_nb)));
+
+    // calls to symm for single remainder diagonal block of size nb_rem < nb_diag
+    if(nb_rem != 0)
+    {
+        i_diag = n_nb * nb_diag; // diag block at a[i_diag, i_diag], size is nb_rem
+        symm_m = rocblas_side_left == side ? nb_rem : m;
+        symm_n = rocblas_side_left == side ? n : nb_rem;
+
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+                 side, uplo, symm_m, symm_n, alpha,
+                 a, i_diag * diag_a_stride, lda, 0,
+                 b, i_diag * diag_b_stride, ldb, 0, beta,
+                 c, i_diag * diag_c_stride, ldc, 0, 1)));
+    }
+
+    rocblas_int stride, stride_rem, i_start;
+    rocblas_int nb; // size of sub-diagonal blocks of matrix a
+
+    // calls to gemm for sub-diagonal square blocks in matrix a with size m = n = nb.
+    // Start with nb = nb_diag. Each iteration of the outer loop nb doubles, and the
+    // number of gemm calls halves.
+    for(nb = nb_diag, i_start = nb_diag; i_start < ka; i_start += nb, nb *= 2)
+    {
+        stride     = nb * 2; // stride for both indices of a, and for one index of b and c
+        n_nb       = (ka - i_start) / stride; // number of calls to gemm
+        stride_rem = (ka - i_start) % stride; // remainder when stride not multiple of ka-istart
+        if(stride_rem >= nb)
+        {
+            stride_rem = 0;
+            n_nb += 1;
+        }
+
+        rocblas_int i1       = i_start;
+        rocblas_int i2       = i_start - nb;
+
+        if(rocblas_side_right == side)
+        {
+            if(rocblas_fill_lower == uplo)
+            {
+                // lower sub-diagonal (from stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
+                         b,      i1 * ldb, ldb,          stride * ldb,
+                         a, i1 + i2 * lda, lda, stride + stride * lda, &one,
+                         c,      i2 * ldc, ldc,          stride * ldc, n_nb)));
+
+                // upper sub-diagonal (from transpose of stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         rocblas_operation_none, trans_a, m, nb, nb, alpha,
+                         b,      i2 * ldb, ldb,          stride * ldb,
+                         a, i1 + i2 * lda, lda, stride + stride * lda, &one,
+                         c,      i1 * ldc, ldc,          stride * ldc, n_nb)));
+            }
+            else
+            {
+                // upper sub-diagonal (from stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
+                         b, i2*ldb,         ldb, stride*ldb,
+                         a, i1-nb + i1*lda, lda, stride*(1+lda), &one,
+                         c, i1*ldc,         ldc, stride*ldc, n_nb)));
+
+                // lower sub-diagonal (from transpose of stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         rocblas_operation_none, trans_a, m, nb, nb, alpha,
+                         b, i1*ldb,         ldb, stride*ldb,
+                         a, i1-nb + i1*lda, lda, stride*(1+lda), &one,
+                         c, i2*ldc,         ldc, stride*ldc, n_nb)));
+            }
+        }
+        else
+        {
+            if(rocblas_fill_lower == uplo)
+            {
+                // lower sub-diagonal (from stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
+                         a, i1 + i2*lda, lda, stride*(1+lda),
+                         b, i2,          ldb, stride, &one,
+                         c, i1,          ldc, stride, n_nb)));
+
+                // upper sub-diagonal (from transpose of stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         trans_a, rocblas_operation_none, nb, n, nb, alpha,
+                         a, i1 + i2*lda, lda, stride*(1+lda),
+                         b, i1,          ldb, stride, &one,
+                         c, i2,          ldc, stride, n_nb)));
+            }
+            else
+            {
+                // upper sub-diagonal (from stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
+                         a, i2 + i1*lda, lda, stride*(1+lda),
+                         b, i1,          ldb, stride, &one,
+                         c, i2,          ldc, stride, n_nb)));
+
+                // lower sub-diagonal (from transpose of stored part of a)
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                         trans_a, rocblas_operation_none, nb, n, nb, alpha,
+                         a, i2 + i1*lda, lda, stride*(1+lda),
+                         b, i2,          ldb, stride, &one,
+                         c, i1,          ldc, stride, n_nb)));
+            }
+        }
+
+        // remainder gemm block of size nb_rem x nb where n_rem < nb
+        if(stride_rem != 0)
+        {
+            rocblas_int i1     = i_start + n_nb * stride;
+            rocblas_int i2     = i1 - nb;
+            rocblas_int nb_rem = ka - i1;
+
+            if(rocblas_side_right == side)
+            {
+                if(rocblas_fill_lower == uplo)
+                {
+                    // lower sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, m, nb, nb_rem, alpha,
+                             b,      i1 * ldb, ldb, 0,
+                             a, i1 + i2 * lda, lda, 0, &one,
+                             c,      i2 * ldc, ldc, 0, 1)));
+
+                    // upper sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, trans_a, m, nb_rem, nb, alpha,
+                             b,      i2 * ldb, ldb, 0,
+                             a, i1 + i2 * lda, lda, 0, &one,
+                             c,      i1 * ldc, ldc, 0, 1)));
+                }
+                else
+                {
+                    // upper sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, m, nb_rem, nb, alpha,
+                             b,      i2*ldb, ldb, 0,
+                             a, i2 + i1*lda, lda, 0, &one,
+                             c,      i1*ldc, ldc, 0, 1)));
+
+                    // lower sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, trans_a, m, nb, nb_rem, alpha,
+                             b,      i1*ldb, ldb, 0,
+                             a, i2 + i1*lda, lda, 0, &one,
+                             c,      i2*ldc, ldc, 0, 1)));
+                }
+            }
+            else
+            {
+                if(rocblas_fill_lower == uplo)
+                {
+                    // lower sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, nb_rem, n, nb, alpha,
+                             a, i2*lda + i1, lda, 0,
+                             b,          i2, ldb, 0, &one,
+                             c,          i1, ldc, 0, 1)));
+
+                    // upper sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             trans_a, rocblas_operation_none, nb, n, nb_rem, alpha,
+                             a, i2*lda + i1, lda, 0,
+                             b,          i1, ldb, 0, &one,
+                             c,          i2, ldc, 0, 1)));
+                }
+                else
+                {
+                    // upper sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, nb, n, nb_rem, alpha,
+                             a, i1*lda + i2, lda, 0,
+                             b,          i1, ldb, 0, &one,
+                             c,          i2, ldc, 0, 1)));
+
+                    // lower sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             trans_a, rocblas_operation_none, nb_rem, n, nb, alpha,
+                             a, i1*lda + i2, lda, 0,
+                             b,          i2, ldb, 0, &one,
+                             c,          i1, ldc, 0, 1)));
+                }
+            }
+        }
+    }
     return rocblas_status_success;
 }
 
@@ -495,6 +765,308 @@ rocblas_status rocblas_hemm_symm_check_numerics(const char*    function_name,
     return check_numerics_status;
 }
 
+template <bool BATCHED, bool HERM, typename T, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
+                                             rocblas_side   side,
+                                             rocblas_fill   uplo,
+                                             rocblas_int    m,
+                                             rocblas_int    n,
+                                             TScal          alpha,
+                                             TConstPtr      a,
+                                             rocblas_stride offsetA,
+                                             rocblas_int    lda,
+                                             rocblas_stride strideA,
+                                             TConstPtr      b,
+                                             rocblas_stride offsetB,
+                                             rocblas_int    ldb,
+                                             rocblas_stride strideB,
+                                             TScal          beta,
+                                             TPtr           c,
+                                             rocblas_stride offsetC,
+                                             rocblas_int    ldc,
+                                             rocblas_stride strideC,
+                                             rocblas_int    batch_count)
+{
+    // nb_diag is a tuning parameter. It is the size of the diagonal blocks in the matrix
+    // a. It is also the starting size for subdiagonal blocks in calls to gemm.
+    rocblas_int nb_diag = 32; // size of diag blocks of triangle matrix a
+
+    if     (std::is_same<T, float>{})                  { nb_diag = SSYMM_BATCHED_MIN_NB; }
+    else if(std::is_same<T, double>{})                 { nb_diag = DSYMM_BATCHED_MIN_NB; }
+    else if(std::is_same<T, rocblas_float_complex>{})  { nb_diag = CSYMM_BATCHED_MIN_NB; }
+    else if(std::is_same<T, rocblas_double_complex>{}) { nb_diag = ZSYMM_BATCHED_MIN_NB; }
+
+    rocblas_operation trans_a = HERM ? rocblas_operation_conjugate_transpose : rocblas_operation_transpose;
+
+    // rocblas_internal_gemm_template requires alpha and beta to be pointers to host memory.
+    // If they are pointers to device memory, then copy *alpha and *beta to alpha_h and beta_h
+    // and make alpha and beta point to alpha_h and beta_h, and set pointer mode to host.
+    // Restore pointer mode in destructor when save_pointer_mode goes out of scope.
+    T alpha_h, beta_h;
+    RETURN_IF_ROCBLAS_ERROR(
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
+    auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    rocblas_int ka = rocblas_side_left == side ? m : n; // dimension of triangle matrix a
+
+    rocblas_int n_nb   = ka / nb_diag; // number of diag blocks of matrix a of size nb_diag
+    rocblas_int nb_rem = ka % nb_diag; // remainder diag block size when ka not multiple of nb_diag
+
+    rocblas_int symm_m = rocblas_side_left == side ? nb_diag : m; // diag block symm argument m
+    rocblas_int symm_n = rocblas_side_left == side ? n : nb_diag; // diag block symm argument n
+
+    rocblas_int diag_a_stride = 1 + lda; // stride for diag blocks in a
+    rocblas_int diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
+    rocblas_int diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
+
+    rocblas_int i_diag; // index of diag block
+
+    const T one = 1.0;
+
+    // clang-format off
+    // calls to symm_strided_batched for diagonal blocks of size nb_diag
+    for(int i_nb = 0; i_nb < n_nb; i_nb++)
+    {
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+                 side, uplo, symm_m, symm_n, alpha,
+                 a, i_nb * (nb_diag * diag_a_stride) + offsetA, lda, strideA,
+                 b, i_nb * (nb_diag * diag_b_stride) + offsetB, ldb, strideB, beta,
+                 c, i_nb * (nb_diag * diag_c_stride) + offsetC, ldc, strideC, batch_count)));
+    }
+
+    // calls to symm for single remainder diagonal block of size nb_rem < nb_diag
+    if(nb_rem != 0)
+    {
+        i_diag = n_nb * nb_diag; // diag block at a[i_diag, i_diag], size is nb_rem
+        symm_m = rocblas_side_left == side ? nb_rem : m;
+        symm_n = rocblas_side_left == side ? n : nb_rem;
+
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
+                 side, uplo, symm_m, symm_n, alpha,
+                 a, i_diag * diag_a_stride + offsetA, lda, strideA,
+                 b, i_diag * diag_b_stride + offsetB, ldb, strideB, beta,
+                 c, i_diag * diag_c_stride + offsetC, ldc, strideC, batch_count)));
+    }
+
+    rocblas_int stride, stride_rem, i_start;
+    rocblas_int nb; // size of sub-diagonal blocks of matrix a
+    // calls to gemm for sub-diagonal square blocks in matrix a with size m = n = nb.
+    // Start with nb = nb_diag. Each iteration of the outer loop nb doubles, and the
+    // number of gemm calls halves.
+    for(nb = nb_diag, i_start = nb_diag; i_start < ka; i_start += nb, nb *= 2)
+    {
+        stride     = nb * 2; // stride for both indices of a, and for one index of b and c
+        n_nb       = (ka - i_start) / stride; // number of calls to gemm
+        stride_rem = (ka - i_start) % stride; // remainder when stride not multiple of ka-istart
+        if(stride_rem >= nb)
+        {
+            stride_rem = 0;
+            n_nb += 1;
+        }
+
+        rocblas_int i1       = i_start;
+        rocblas_int i2       = i_start - nb;
+
+        for(int i_nb = 0; i_nb < n_nb; i_nb++)
+        {
+            if(rocblas_side_right == side)
+            {
+                if(rocblas_fill_lower == uplo)
+                {
+                    // lower sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
+                             b,      i1*ldb + offsetB + i_nb * stride * ldb    , ldb, strideB,
+                             a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA, &one,
+                             c,      i2*ldc + offsetC + i_nb * stride * ldc    , ldc, strideC, batch_count)));
+
+                    // upper sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, trans_a, m, nb, nb, alpha,
+                             b,      i2*ldb + offsetB + i_nb * stride * ldb    , ldb, strideB,
+                             a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA, &one,
+                             c,      i1*ldc + offsetC + i_nb * stride * ldc    , ldc, strideC, batch_count)));
+                }
+                else
+                {
+                    // upper sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, m, nb, nb, alpha,
+                             b, i2*ldb         + offsetB + i_nb * stride * ldb    , ldb, strideB,
+                             a, i1*lda + i1-nb + offsetA + i_nb * stride * (1+lda), lda, strideA, &one,
+                             c, i1*ldc         + offsetC + i_nb * stride * ldc    , ldc, strideC, batch_count)));
+
+                    // lower sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, trans_a, m, nb, nb, alpha,
+                             b, i1*ldb         + offsetB + i_nb * stride * ldb    , ldb, strideB,
+                             a, i1*lda + i1-nb + offsetA + i_nb * stride * (1+lda), lda, strideA, &one,
+                             c, i2*ldc         + offsetC + i_nb * stride * ldc    , ldc, strideC, batch_count)));
+                }
+            }
+            else
+            {
+                if(rocblas_fill_lower == uplo)
+                {
+                    // lower sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
+                             a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
+                             b, i2          + offsetB + i_nb * stride          , ldb, strideB, &one,
+                             c, i1          + offsetC + i_nb * stride          , ldc, strideC, batch_count)));
+
+                    // upper sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             trans_a, rocblas_operation_none, nb, n, nb, alpha,
+                             a, i1 + i2*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
+                             b, i1          + offsetB + i_nb * stride          , ldb, strideB, &one,
+                             c, i2          + offsetC + i_nb * stride          , ldc, strideC, batch_count)));
+                }
+                else
+                {
+                    // upper sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, nb, n, nb, alpha,
+                             a, i2 + i1*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
+                             b, i1          + offsetB + i_nb * stride          , ldb, strideB, &one,
+                             c, i2          + offsetC + i_nb * stride          , ldc, strideC, batch_count)));
+
+                    // lower sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             trans_a, rocblas_operation_none, nb, n, nb, alpha,
+                             a, i2 + i1*lda + offsetA + i_nb * stride * (1+lda), lda, strideA,
+                             b, i2          + offsetB + i_nb * stride          , ldb, strideB, &one,
+                             c, i1          + offsetC + i_nb * stride          , ldc, strideC, batch_count)));
+                }
+            }
+        }
+        // remainder gemm block of size nb_rem x nb where n_rem < nb
+        if(stride_rem != 0)
+        {
+            rocblas_int i1     = i_start + n_nb * stride;
+            rocblas_int i2     = i1 - nb;
+            rocblas_int nb_rem = ka - i1;
+
+            if(rocblas_side_right == side)
+            {
+                if(rocblas_fill_lower == uplo)
+                {
+                    // lower sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, m, nb, nb_rem, alpha,
+                             b,      i1*ldb + offsetB, ldb, strideB,
+                             a, i1 + i2*lda + offsetA, lda, strideA, &one,
+                             c,      i2*ldc + offsetC, ldc, strideC, batch_count)));
+
+                    // upper sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, trans_a, m, nb_rem, nb, alpha,
+                             b,      i2*ldb + offsetB, ldb, strideB,
+                             a, i1 + i2*lda + offsetA, lda, strideA, &one,
+                             c,      i1*ldc + offsetC, ldc, strideC, batch_count)));
+                }
+                else
+                {
+                    // upper sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, m, nb_rem, nb, alpha,
+                             b,      i2*ldb + offsetB, ldb, strideB,
+                             a, i2 + i1*lda + offsetA, lda, strideA, &one,
+                             c,      i1*ldc + offsetC, ldc, strideC, batch_count)));
+
+                    // lower sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, trans_a, m, nb, nb_rem, alpha,
+                             b,      i1*ldb + offsetB, ldb, strideB,
+                             a, i2 + i1*lda + offsetA, lda, strideA, &one,
+                             c,      i2*ldc + offsetC, ldc, strideC, batch_count)));
+                }
+            }
+            else
+            {
+                if(rocblas_fill_lower == uplo)
+                {
+                    // lower sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, nb_rem, n, nb, alpha,
+                             a, i2*lda + i1 + offsetA, lda, strideA,
+                             b,          i2 + offsetB, ldb, strideB, &one,
+                             c,          i1 + offsetC, ldc, strideC, batch_count)));
+
+                    // upper sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             trans_a, rocblas_operation_none, nb, n, nb_rem, alpha,
+                             a, i2*lda + i1 + offsetA, lda, strideA,
+                             b,          i1 + offsetB, ldb, strideB, &one,
+                             c,          i2 + offsetC, ldc, strideC, batch_count)));
+                }
+                else
+                {
+                    // upper sub-diagonal (from stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             rocblas_operation_none, rocblas_operation_none, nb, n, nb_rem, alpha,
+                             a, i1*lda + i2 + offsetA, lda, strideA,
+                             b,          i1 + offsetB, ldb, strideB, &one,
+                             c,          i2 + offsetC, ldc, strideC, batch_count)));
+
+                    // lower sub-diagonal (from transpose of stored part of a)
+                    RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(handle,
+                             trans_a, rocblas_operation_none, nb_rem, n, nb, alpha,
+                             a, i1*lda + i2 + offsetA, lda, strideA,
+                             b,          i2 + offsetB, ldb, strideB, &one,
+                             c,          i1 + offsetC, ldc, strideC, batch_count)));
+                }
+            }
+        }
+    }
+    return rocblas_status_success;
+}
+
+/**
+  *  TScal     is always: const T* (either host or device)
+  *  TConstPtr is either: const T* OR const T* const*
+  *  TPtr      is either:       T* OR       T* const*
+  */
+template <bool BATCHED, bool HERM, typename T, typename TScal, typename TConstPtr, typename TPtr>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_symm_template(rocblas_handle handle,
+                                   rocblas_side   side,
+                                   rocblas_fill   uplo,
+                                   rocblas_int    m,
+                                   rocblas_int    n,
+                                   TScal          alpha,
+                                   TConstPtr      AP,
+                                   rocblas_stride offsetA,
+                                   rocblas_int    lda,
+                                   rocblas_stride strideA,
+                                   TConstPtr      BP,
+                                   rocblas_stride offsetB,
+                                   rocblas_int    ldb,
+                                   rocblas_stride strideB,
+                                   TScal          beta,
+                                   TPtr           CP,
+                                   rocblas_stride offsetC,
+                                   rocblas_int    ldc,
+                                   rocblas_stride strideC,
+                                   rocblas_int    batch_count)
+{
+    if(BATCHED == false && batch_count == 1)
+    {
+        return rocblas_symm_template_non_batched<BATCHED, HERM, T>(
+            handle, side, uplo, m, n, alpha,
+            AP, lda,
+            BP, ldb, beta,
+            CP, ldc);
+    }
+    else
+    {
+        return rocblas_symm_template_batched<BATCHED, HERM, T>(handle, side, uplo, m, n, alpha,
+            AP, offsetA, lda, strideA,
+            BP, offsetB, ldb, strideB, beta,
+            CP, offsetC, ldc, strideC, batch_count);
+    }
+}
+
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files symm*.cpp
 
@@ -503,9 +1075,9 @@ rocblas_status rocblas_hemm_symm_check_numerics(const char*    function_name,
 #error INSTANTIATE_SYMM_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYMM_TEMPLATE(HERM_, TScal_, TConstPtr_, TPtr_)                    \
+#define INSTANTIATE_SYMM_TEMPLATE(BATCHED_, HERM_, T_, TScal_, TConstPtr_, TPtr_)       \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symm_template \
-                                  <HERM_, TScal_, TConstPtr_, TPtr_>                    \
+                                  <BATCHED_, HERM_, T_, TScal_, TConstPtr_, TPtr_>      \
                                   (rocblas_handle handle,                               \
                                    rocblas_side   side,                                 \
                                    rocblas_fill   uplo,                                 \
@@ -528,21 +1100,20 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symm_t
                                    rocblas_int    batch_count);
 
 // instantiate for rocblas_Xsymm and rocblas_Xsymm_strided_batched
-INSTANTIATE_SYMM_TEMPLATE(false, float const*, float const*, float*)
-INSTANTIATE_SYMM_TEMPLATE(false, double const*, double const*, double*)
-INSTANTIATE_SYMM_TEMPLATE(false,  rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYMM_TEMPLATE( true,  rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYMM_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_SYMM_TEMPLATE( true, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_SYMM_TEMPLATE(false, false,  float,  float const*,  float const*,  float*)
+INSTANTIATE_SYMM_TEMPLATE(false, false, double, double const*, double const*, double*)
+INSTANTIATE_SYMM_TEMPLATE(false, false,  rocblas_float_complex,  rocblas_float_complex const*,  rocblas_float_complex const*,  rocblas_float_complex*)
+INSTANTIATE_SYMM_TEMPLATE(false,  true,  rocblas_float_complex,  rocblas_float_complex const*,  rocblas_float_complex const*,  rocblas_float_complex*)
+INSTANTIATE_SYMM_TEMPLATE(false, false, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_SYMM_TEMPLATE(false,  true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
 
 // instantiate for rocblas_Xsymm_batched
-INSTANTIATE_SYMM_TEMPLATE(false, float const*, float const* const*, float* const*)
-INSTANTIATE_SYMM_TEMPLATE(false, double const*, double const* const*, double* const*)
-INSTANTIATE_SYMM_TEMPLATE(false,  rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_SYMM_TEMPLATE( true,  rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_SYMM_TEMPLATE(false, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
-INSTANTIATE_SYMM_TEMPLATE( true, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
-
+INSTANTIATE_SYMM_TEMPLATE(true, false,  float,  float const*,  float const* const*,  float* const*)
+INSTANTIATE_SYMM_TEMPLATE(true, false, double, double const*, double const* const*, double* const*)
+INSTANTIATE_SYMM_TEMPLATE(true, false,  rocblas_float_complex,  rocblas_float_complex const*,  rocblas_float_complex const* const*,  rocblas_float_complex* const*)
+INSTANTIATE_SYMM_TEMPLATE(true,  true,  rocblas_float_complex,  rocblas_float_complex const*,  rocblas_float_complex const* const*,  rocblas_float_complex* const*)
+INSTANTIATE_SYMM_TEMPLATE(true, false, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_SYMM_TEMPLATE(true,  true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_HEMM_SYMM_NUMERICS
 
@@ -589,4 +1160,17 @@ INSTANTIATE_HEMM_SYMM_NUMERICS(false, rocblas_double_complex const* const*, rocb
 INSTANTIATE_HEMM_SYMM_NUMERICS( true, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_HEMM_SYMM_NUMERICS
+
+#undef INSTANTIATE_SYMM_TEMPLATE
+
+#undef SSYMM_MIN_NB
+#undef DSYMM_MIN_NB
+#undef CSYMM_MIN_NB
+#undef ZSYMM_MIN_NB
+
+#undef SSYMM_BATCHED_MIN_NB
+#undef DSYMM_BATCHED_MIN_NB
+#undef CSYMM_BATCHED_MIN_NB
+#undef ZSYMM_BATCHED_MIN_NB
+
 // clang-format on
