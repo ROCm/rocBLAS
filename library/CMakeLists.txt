@@ -127,11 +127,5 @@ set( rocblas_headers_public
 
 source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )
 
-include( GNUInstallDirs )
-
-set( BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR} )
-set( LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR} )
-set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
-
 # Build into subdirectories
 add_subdirectory( src )
