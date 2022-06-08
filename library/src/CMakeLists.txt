@@ -414,7 +414,7 @@ target_include_directories( rocblas
 	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas>
 	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${Tensile_INC}>
-          $<INSTALL_INTERFACE:include>
+	  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
           )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
@@ -523,12 +523,12 @@ if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
     ${CMAKE_SOURCE_DIR}/library/include
     PATTERNS "*.h"
     GUARDS SYMLINK WRAPPER
-    WRAPPER_LOCATIONS include
+    WRAPPER_LOCATIONS ${CMAKE_INSTALL_INCLUDEDIR}
   )
   rocm_wrap_header_file(
     internal/rocblas-version.h internal/rocblas-export.h internal/rocblas-exported-proto.hpp internal/rocblas_device_malloc.hpp
     GUARDS SYMLINK WRAPPER
-    WRAPPER_LOCATIONS include rocblas/include
+    WRAPPER_LOCATIONS ${CMAKE_INSTALL_INCLUDEDIR} rocblas/${CMAKE_INSTALL_INCLUDEDIR}
     ORIGINAL_FILES ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
   )
 endif( )
@@ -561,21 +561,21 @@ endif( )
 
 # Force installation of .f90 module file
 rocm_install(FILES "../include/rocblas_module.f90"
-        DESTINATION "include/rocblas/"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/"
 )
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/library/include ${PROJECT_BINARY_DIR}/include/rocblas)
 rocm_install_targets(
   TARGETS ${package_targets}
   INCLUDE
-    ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 if( BUILD_WITH_TENSILE )
   if (WIN32)
     set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/bin/rocblas" CACHE PATH "path to tensile library" )
   else()
-    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}lib/rocblas" CACHE PATH "path to tensile library" )
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas" CACHE PATH "path to tensile library" )
   endif()
   rocm_install(
     DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
