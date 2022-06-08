@@ -1,4 +1,4 @@
-// This file is for internal AMD use.
+// This file is for AMD Continuous Integration use.
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
 
 def runCompileCommand(platform, project, jobName)
