@@ -134,7 +134,12 @@ inline rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <rocblas_int NB,
+          bool        BATCHED,
+          typename T,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_syrk_template(rocblas_handle    handle,
                                    rocblas_fill      uplo,
@@ -158,7 +163,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <rocblas_int NB,
+          bool        BATCHED,
+          typename T,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_herk_template(rocblas_handle    handle,
                                    rocblas_fill      uplo,

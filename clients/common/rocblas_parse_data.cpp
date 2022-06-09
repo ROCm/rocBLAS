@@ -30,18 +30,6 @@
 #include <iostream>
 #include <string>
 #include <sys/types.h>
-#ifdef WIN32
-#ifdef __cpp_lib_filesystem
-#include <filesystem>
-#else
-#include <experimental/filesystem>
-
-namespace std
-{
-    namespace filesystem = experimental::filesystem;
-}
-#endif
-#endif // WIN32
 
 // Parse YAML data
 static std::string rocblas_parse_yaml(const std::string& yaml)

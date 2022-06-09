@@ -37,9 +37,13 @@
  * If k == 0, we set alpha = 0 instead of copying from device.                   *
  * TODO: Make this asynchronous, putting synchronization closer to Tensile call. *
  *********************************************************************************/
-template <typename T, typename Tc>
-rocblas_status copy_alpha_beta_to_host_if_on_device(
-    rocblas_handle handle, const T*& alpha, const T*& beta, Tc& alpha_h, Tc& beta_h, rocblas_int k)
+template <typename Ta, typename Tac, typename Tb, typename Tbc>
+rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle handle,
+                                                    const Ta*&     alpha,
+                                                    const Tb*&     beta,
+                                                    Tac&           alpha_h,
+                                                    Tbc&           beta_h,
+                                                    rocblas_int    k)
 {
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
@@ -48,17 +52,18 @@ rocblas_status copy_alpha_beta_to_host_if_on_device(
             if(k == 0)
                 alpha_h = 0;
             else
-                RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tc), hipMemcpyDeviceToHost));
+                RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tac), hipMemcpyDeviceToHost));
             alpha = &alpha_h;
         }
         if(beta)
         {
-            RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tc), hipMemcpyDeviceToHost));
+            RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tbc), hipMemcpyDeviceToHost));
             beta = &beta_h;
         }
     }
     return rocblas_status_success;
 }
+
 /*******************************************************************************
  * Validate Arguments
  ******************************************************************************/

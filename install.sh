@@ -38,7 +38,7 @@ rocBLAS build & installation helper script.
 
     --cmake-arg <argument>           Forward the given argument to CMake when configuring the build.
 
-    --cmake_install                  Auto-update CMake to minimum version if required.
+    --cmake_install                  Install minimum cmake version if required.
 
     --codecoverage                   Build with code coverage profiling enabled, excluding release mode.
 
@@ -68,17 +68,11 @@ rocBLAS build & installation helper script.
     --library-path <blasdir>         Specify path to a pre-built rocBLAS library, when building clients only using '--clients-only' flag.
                                      (Default is /opt/rocm/rocblas)
 
-    --merge-files                    Enable Tensilse_MERGE_FILES. (Default is Enabled)
-
     --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file. (Default is disabled)
 
     --msgpack                        Build Tensile backend to use MessagePack.
 
     -n, --no-tensile                 Build a subset of the rocBLAS library which does not require Tensile.
-
-    --no-hip-clang                   Build library without using the hip-clang compiler.
-
-    --no-merge-files                 Disable Tensile_MERGE_FILES.
 
     --no-msgpack                     Build Tensile backend not to use MessagePack.
 
@@ -97,8 +91,6 @@ rocBLAS build & installation helper script.
     --upgrade_tensile_venv_pip       Upgrade PIP version during Tensile installation.
 
     --use-cuda                       Use installed CUDA version instead of ROCm stack.
-
-    -v, --rocm-dev <version>         Specify specific rocm-dev version. (e.g. 4.5.0)
 
     --rm-legacy-include-dir          Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
 EOF
@@ -210,17 +202,17 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
-  local library_dependencies_ubuntu=( "make" "libssl-dev"
+  local library_dependencies_ubuntu=( "make"
                                       "python3" "python3-yaml" "python3-venv" "python3*-pip" )
-  local library_dependencies_centos_rhel=( "epel-release" "openssl-devel"
+  local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
-  local library_dependencies_centos_8=( "epel-release" "openssl-devel"
+  local library_dependencies_centos_8=( "epel-release"
                                       "make" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
-  local library_dependencies_rhel_8=( "epel-release" "openssl-devel"
+  local library_dependencies_rhel_8=( "epel-release"
                                       "make" "rpm-build"
                                       "python36" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
@@ -231,7 +223,7 @@ install_packages( )
   local library_dependencies_fedora=( "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" )
-  local library_dependencies_sles=(   "make" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
+  local library_dependencies_sles=(   "make" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
@@ -246,16 +238,16 @@ install_packages( )
     fi
   fi
 
-  # wget is needed for cmake
+  # wget and openssl are needed for cmake
   if [ -z "$CMAKE_VERSION" ] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
     if $update_cmake == true; then
-      library_dependencies_ubuntu+=("wget")
-      library_dependencies_centos_rhel+=("wget")
-      library_dependencies_centos_8+=("wget")
-      library_dependencies_rhel_8+=("wget")
-      library_dependencies_rhel_9+=("wget")
+      library_dependencies_ubuntu+=("wget" "libssl-dev")
+      library_dependencies_centos_rhel+=("wget" "openssl-devel")
+      library_dependencies_centos_8+=("wget" "openssl-devel")
+      library_dependencies_rhel_8+=("wget" "openssl-devel")
+      library_dependencies_rhel_9+=("wget" "openssl-devel")
       library_dependencies_fedora+=("wget")
-      library_dependencies_sles+=("wget")
+      library_dependencies_sles+=("wget" "libopenssl-devel")
     fi
   fi
 
@@ -375,7 +367,6 @@ tensile_logic=asm_full
 gpu_architecture=all
 tensile_cov=
 tensile_fork=
-tensile_merge_files=
 tensile_separate_architectures=true
 tensile_tag=
 tensile_test_local_path=
@@ -418,7 +409,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -503,18 +494,6 @@ while true; do
     --cpu_ref_lib)
         cpu_ref_lib=${2}
         shift 2 ;;
-    --hip-clang)
-        build_hip_clang=true
-        shift ;;
-    --no-hip-clang)
-        build_hip_clang=false
-        shift ;;
-    --merge-files)
-        tensile_merge_files=true
-        shift ;;
-    --no-merge-files)
-        tensile_merge_files=false
-        shift ;;
     --merge-architectures)
         tensile_separate_architectures=false
         shift ;;
@@ -529,9 +508,6 @@ while true; do
         shift ;;
     -u|--use-custom-version)
         tensile_version=${2}
-        shift 2;;
-    -v|--rocm-dev)
-        custom_rocm_dev=${2}
         shift 2;;
     --prefix)
         install_prefix=${2}
@@ -572,8 +548,12 @@ if [[ -z $tensile_cov ]]; then
     if [[ $build_hip_clang == true ]]; then
         tensile_cov=V3
     else
-        tensile_cov=V2
+        echo "Currently the only supported code object version is V3"
+        exit 2
     fi
+elif [[ $tensile_cov != V3 ]]; then
+  echo "Currently the only supported code object version is V3"
+        exit 2
 fi
 
 set -x
@@ -655,17 +635,20 @@ if [[ "${install_dependencies}" == true ]]; then
 
   if [ -z "$CMAKE_VERSION" ] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
       if $update_cmake == true; then
+        pushd
+        printf "\033[32mBuilding \033[33mcmake\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
         CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
+        mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
         wget -nv ${CMAKE_REPO}/cmake-3.16.8.tar.gz
         tar -xvf cmake-3.16.8.tar.gz
+        rm cmake-3.16.8.tar.gz
         cd cmake-3.16.8
-        ./bootstrap --prefix=/usr --no-system-curl --parallel=16
+        ./bootstrap --no-system-curl --parallel=16
         make -j16
         sudo make install
-        cd ..
-        rm -rf cmake-3.16.8.tar.gz cmake-3.16.8
+        popd
       else
-          echo "rocBLAS requires CMake version >= 3.16.8 and CMake version ${CMAKE_VERSION} is installed. Run install.sh again with --cmake_install flag and CMake version ${CMAKE_VERSION} will be uninstalled and CMake version 3.16.8 will be installed"
+          echo "rocBLAS requires CMake version >= 3.16.8 and CMake version ${CMAKE_VERSION} is installed. Run install.sh again with --cmake_install flag and CMake version 3.16.8 will be installed to /usr/local"
           exit 2
       fi
   fi
@@ -766,10 +749,6 @@ pushd .
 
   if [[ "${upgrade_tensile_pip}" == true ]]; then
     cmake_common_options+=("-DTENSILE_VENV_UPGRADE_PIP=ON")
-  fi
-
-  if [[ "${tensile_merge_files}" == false ]]; then
-    cmake_common_options+=("-DTensile_MERGE_FILES=OFF")
   fi
 
   if [[ "${tensile_separate_architectures}" == true ]]; then

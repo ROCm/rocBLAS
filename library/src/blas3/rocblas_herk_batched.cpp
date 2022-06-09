@@ -23,6 +23,9 @@
 #include "rocblas_syrk_herk.hpp"
 #include "utility.hpp"
 
+#define CHERK_MIN_NB 8
+#define ZHERK_MIN_NB 8
+
 namespace
 {
     template <typename>
@@ -32,7 +35,7 @@ namespace
     template <>
     constexpr char rocblas_herk_name<rocblas_double_complex>[] = "rocblas_zherk_batched";
 
-    template <typename T, typename U>
+    template <rocblas_int NB, typename T, typename U>
     rocblas_status rocblas_herk_batched_impl(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
@@ -138,6 +141,7 @@ namespace
             return arg_status;
 
         static constexpr bool Hermetian = true;
+        static constexpr bool BATCHED   = true;
         if(check_numerics)
         {
             bool           is_input = true;
@@ -163,22 +167,22 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        status                = rocblas_internal_herk_template(handle,
-                                                uplo,
-                                                transA,
-                                                n,
-                                                k,
-                                                alpha,
-                                                A,
-                                                offset_A,
-                                                lda,
-                                                stride_A,
-                                                beta,
-                                                C,
-                                                offset_C,
-                                                ldc,
-                                                stride_C,
-                                                batch_count);
+        status                = rocblas_internal_herk_template<NB, BATCHED, T>(handle,
+                                                                uplo,
+                                                                transA,
+                                                                n,
+                                                                k,
+                                                                alpha,
+                                                                A,
+                                                                offset_A,
+                                                                lda,
+                                                                stride_A,
+                                                                beta,
+                                                                C,
+                                                                offset_C,
+                                                                ldc,
+                                                                stride_C,
+                                                                batch_count);
 
         if(check_numerics)
         {
@@ -219,7 +223,7 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, S_, T_)                                                \
+#define IMPL(routine_name_, NB_, S_, T_)                                           \
     rocblas_status routine_name_(rocblas_handle    handle,                         \
                                  rocblas_fill      uplo,                           \
                                  rocblas_operation transA,                         \
@@ -234,7 +238,7 @@ extern "C" {
                                  rocblas_int       batch_count)                    \
     try                                                                            \
     {                                                                              \
-        return rocblas_herk_batched_impl(                                          \
+        return rocblas_herk_batched_impl<NB_>(                                     \
             handle, uplo, transA, n, k, alpha, A, lda, beta, C, ldc, batch_count); \
     }                                                                              \
     catch(...)                                                                     \
@@ -242,9 +246,11 @@ extern "C" {
         return exception_to_rocblas_status();                                      \
     }
 
-IMPL(rocblas_cherk_batched, float, rocblas_float_complex);
-IMPL(rocblas_zherk_batched, double, rocblas_double_complex);
+IMPL(rocblas_cherk_batched, CHERK_MIN_NB, float, rocblas_float_complex);
+IMPL(rocblas_zherk_batched, ZHERK_MIN_NB, double, rocblas_double_complex);
 
 #undef IMPL
+#undef CHERK_MIN_NB
+#undef ZHERK_MIN_NB
 
 } // extern "C"

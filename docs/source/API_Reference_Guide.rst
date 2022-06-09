@@ -15,7 +15,7 @@ The aim of rocBLAS is to provide:
 - functionality similar to Legacy BLAS, adapted to run on GPUs
 - high performance robust implementation
 
-rocBLAS is written in C++14 and HIP. It uses AMD's ROCm runtime to run on GPU devices.
+rocBLAS is written in C++17 and HIP. It uses AMD's ROCm runtime to run on GPU devices.
 
 The rocBLAS API is a thin C99 API using the Hourglass Pattern. It contains:
 

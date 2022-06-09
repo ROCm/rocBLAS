@@ -64,6 +64,12 @@ __device__ __host__ inline T conj(const T& z)
     return std::conj(z);
 }
 
+template <bool CONJ, typename T>
+__device__ __host__ inline T conj_if_true(const T& z)
+{
+    return CONJ ? conj(z) : z;
+}
+
 // Load a scalar. If the argument is a pointer, dereference it; otherwise copy
 // it. Allows the same kernels to be used for host and device scalars.
 
