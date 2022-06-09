@@ -3,8 +3,17 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &invalid_size_range
+    - { M:     3, N:     3, lda:     3, ldb:     3, ldc:     3, stride_scale: 1, batch_count: -1 } # batch_count < 0
+    - { M:    -1, N:     1, lda:     1, ldb:     1, ldc:     1, stride_scale: 1 } # M < 0
+    - { M:     1, N:    -1, lda:     1, ldb:     1, ldc:     1, stride_scale: 1 } # N < 0
+    - { M:     2, N:     2, lda:     1, ldb:     2, ldc:     2, stride_scale: 1 } # lda < M
+    - { M:     2, N:     2, lda:     2, ldb:     1, ldc:     2, stride_scale: 1 } # ldb < M
+    - { M:     2, N:     2, lda:     2, ldb:     2, ldc:     1, stride_scale: 1 } # ldc < M
+
   - &small_matrix_size_range
-    - { M:     0, N:     0, lda:     1, ldb:     1, ldc:     1 }
+    - { M:     0, N:     1, lda:     1, ldb:     1, ldc:     1 } # M == 0
+    - { M:     1, N:     0, lda:     1, ldb:     1, ldc:     1 } # N == 0
     - { M:     3, N:    33, lda:    35, ldb:    35, ldc:    35 }
     - { M:    10, N:    11, lda:   100, ldb:    12, ldc:    13 }
 
@@ -47,29 +56,32 @@ Definitions:
     - { alpha:  4, beta:  3, alphai:  2, betai:  1 }
 
   - &transA_transB_range
-    - { transA: N, transB: N }
-    - { transA: N, transB: T }
-    - { transA: N, transB: C }
-    - { transA: T, transB: N }
-    - { transA: T, transB: T }
-    - { transA: T, transB: C }
-    - { transA: C, transB: N }
-    - { transA: C, transB: T }
-    - { transA: C, transB: C }
+    - { transA: [N,T,C], transB: [N,T,C] }
 
   - &tiny_transA_transB_range
     - { transA: N, transB: N }
 
 
 Tests:
-- name: geam_bad_arg
+- name: bad_arg
   category: quick
-  function: geam_bad_arg
-  precision: *single_precision
+  function:
+  - geam_bad_arg
+  - geam_batched_bad_arg
+  - geam_strided_batched_bad_arg
+  precision: *single_double_precisions_complex_real
+  fortran: [ false, true ]
+
+- name: invalid_size
+  category: quick
+  function:
+  - geam
+  - geam_batched
+  - geam_strided_batched
+  precision: *single_double_precisions
   transA: [N]
   transB: [N]
-  stride_scale: [ 1 ]
-  batch_count: [ 1 ]
+  matrix_size: *invalid_size_range
   fortran: [ false, true ]
 
 - name: geam_size_t
@@ -87,25 +99,6 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 1 ]
   fortran: [ false ]
-
-- name: geam_batched_bad_arg
-  category: quick
-  function: geam_batched_bad_arg
-  precision: *single_precision
-  transA: [N]
-  transB: [N]
-  batch_count: [        1    ]
-  fortran: [ false, true ]
-
-- name: geam_strided_batched_bad_arg
-  category: quick
-  function: geam_strided_batched_bad_arg
-  precision: *single_precision
-  transA: [N]
-  transB: [N]
-  stride_scale: [ 1         ]
-  batch_count: [        1    ]
-  fortran: [ false, true ]
 
 - name: geam_NaN
   category: quick
@@ -164,7 +157,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
   stride_scale: [ 1, 2      ]
-  batch_count: [        1, 2 ]
+  batch_count: [ 1, 2 ]
   fortran: [ false, true ]
 
 - name: geam_small_complex

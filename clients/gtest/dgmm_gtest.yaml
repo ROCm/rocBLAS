@@ -4,14 +4,14 @@ include: known_bugs.yaml
 
 Definitions:
   - &invalid_size_range
-    - { M:     3, N:     3, lda:     3, incx:     3, ldc:     3 } # batch_count < 0
-    - { M:    -1, N:     1, lda:     1, incx:     1, ldc:     1 } # M < 0
-    - { M:     1, N:    -1, lda:     1, incx:     1, ldc:     1 } # N < 0
-    - { M:     2, N:     2, lda:     1, incx:     1, ldc:     2 } # lda < M
-    - { M:     2, N:     2, lda:     2, incx:     1, ldc:     1 } # ldc < M
+    - { M:     3, N:     3, lda:     3, incx:     3, ldc:     3, stride_scale: 1, batch_count: -1 } # batch_count < 0
+    - { M:    -1, N:     1, lda:     1, incx:     1, ldc:     1, stride_scale: 1 } # M < 0
+    - { M:     1, N:    -1, lda:     1, incx:     1, ldc:     1, stride_scale: 1 } # N < 0
+    - { M:     2, N:     2, lda:     1, incx:     1, ldc:     2, stride_scale: 1 } # lda < M
+    - { M:     2, N:     2, lda:     2, incx:     1, ldc:     1, stride_scale: 1 } # ldc < M
 
   - &quick_return_size_range
-    - { M:     3, N:     3, lda:     3, incx:     3, ldc:     3 } # batch_count == 0
+    - { M:     3, N:     3, lda:     3, incx:     3, ldc:     3, batch_count: 0 } # batch_count == 0
     - { M:     0, N:     1, lda:     1, incx:     1, ldc:     1 } # M == 0
     - { M:     1, N:     0, lda:     1, incx:     1, ldc:     1 } # N == 0
 
@@ -30,11 +30,25 @@ Definitions:
     - { M:  4011, N:  4012, lda:  4012, incx:     2, ldc:  4014 }
 
 Tests:
-- name: dgmm_bad_arg
+- name: bad_arg
   category: quick
-  function: dgmm_bad_arg
-  precision: *single_precision
+  function:
+  - dgmm_bad_arg
+  - dgmm_batched_bad_arg
+  - dgmm_strided_batched_bad_arg
+  precision: *single_double_precisions_complex_real
   side: [R]
+  fortran: [ false, true ]
+
+- name: invalid_size
+  category: quick
+  function:
+  - dgmm
+  - dgmm_batched
+  - dgmm_strided_batched
+  precision: *single_double_precisions
+  side: [L]
+  matrix_size: *invalid_size_range
   fortran: [ false, true ]
 
 - name: dgmm_size_t
@@ -47,72 +61,27 @@ Tests:
   batch_count: [        1    ]
   fortran: [ false ]
 
-- name: dgmm_batched_bad_arg
-  category: quick
-  function: dgmm_batched_bad_arg
-  precision: *single_precision
-  side: [R]
-  batch_count: [        1    ]
-  fortran: [ false, true ]
-
-- name: dgmm_strided_batched_bad_arg
-  category: quick
-  function: dgmm_strided_batched_bad_arg
-  precision: *single_precision
-  side: [R]
-  stride_scale: [ 1         ]
-  batch_count: [        1    ]
-  fortran: [ false, true ]
-
-
-- name: dgmm_invalid_size
-  category: quick
-  function: dgmm
-  precision: *single_double_precisions
-  side: [L]
-  matrix_size: *invalid_size_range
-
-- name: dgmm_batched_invalid_size
-  category: quick
-  function: dgmm_batched
-  precision: *single_double_precisions
-  side: [L, ]
-  matrix_size: *invalid_size_range
-  batch_count: [        1, -1 ]
-
-- name: dgmm_strided_batched_invalid_size
-  category: quick
-  function: dgmm_strided_batched
-  precision: *single_double_precisions
-  side: [L, ]
-  matrix_size: *invalid_size_range
-  stride_scale: [ 1         ]
-  batch_count: [        1, -1 ]
-
-
 - name: dgmm_quick_return
   category: quick
   function: dgmm
   precision: *single_double_precisions
-  side: [L, ]
+  side: [L]
   matrix_size: *quick_return_size_range
 
 - name: dgmm_batched_quick_return
   category: quick
   function: dgmm_batched
   precision: *single_double_precisions
-  side: [L, ]
+  side: [L]
   matrix_size: *quick_return_size_range
-  batch_count: [        1, 0  ]
 
 - name: dgmm_strided_batched_quick_return
   category: quick
   function: dgmm_strided_batched
   precision: *single_double_precisions
-  side: [L, ]
+  side: [L]
   matrix_size: *quick_return_size_range
-  stride_scale: [ 1         ]
-  batch_count: [        1, 0  ]
+  stride_scale: [ 1]
 
 
 - name: dgmm_small

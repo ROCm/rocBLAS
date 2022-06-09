@@ -23,6 +23,9 @@
 #include "rocblas_herkx.hpp"
 #include "utility.hpp"
 
+#define CHERKX_MIN_NB 32
+#define ZHERKX_MIN_NB 32
+
 namespace
 {
     template <typename>
@@ -32,7 +35,7 @@ namespace
     template <>
     constexpr char rocblas_herkx_name<rocblas_double_complex>[] = "rocblas_zherkx_strided_batched";
 
-    template <typename T>
+    template <rocblas_int NB, typename T>
     rocblas_status rocblas_herkx_strided_batched_impl(rocblas_handle    handle,
                                                       rocblas_fill      uplo,
                                                       rocblas_operation trans,
@@ -55,6 +58,14 @@ namespace
             return rocblas_status_invalid_handle;
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
+        // Copy alpha and beta to host if on device. This is because gemm is called and it
+        // requires alpha and beta to be on host
+        T         alpha_h;
+        real_t<T> beta_h;
+        RETURN_IF_ROCBLAS_ERROR(
+            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
@@ -195,29 +206,31 @@ namespace
                 return herkx_check_numerics_status;
         }
 
-        static constexpr bool is2K    = false; // herkx
         static constexpr bool BATCHED = false;
         rocblas_status        status  = rocblas_status_success;
-        status                        = rocblas_internal_her2k_template<BATCHED, is2K>(handle,
-                                                                uplo,
-                                                                trans,
-                                                                n,
-                                                                k,
-                                                                alpha,
-                                                                A,
-                                                                offset_A,
-                                                                lda,
-                                                                stride_a,
-                                                                B,
-                                                                offset_B,
-                                                                ldb,
-                                                                stride_b,
-                                                                beta,
-                                                                C,
-                                                                offset_C,
-                                                                ldc,
-                                                                stride_c,
-                                                                batch_count);
+        // passing in beta as the same type as alpha for easy code reuse
+        const T beta_comp = {*beta, 0};
+        status            = rocblas_internal_syrkx_herkx_template<NB, BATCHED, true, T>(handle,
+                                                                             uplo,
+                                                                             trans,
+                                                                             n,
+                                                                             k,
+                                                                             alpha,
+                                                                             A,
+                                                                             offset_A,
+                                                                             lda,
+                                                                             stride_a,
+                                                                             B,
+                                                                             offset_B,
+                                                                             ldb,
+                                                                             stride_b,
+                                                                             &beta_comp,
+                                                                             C,
+                                                                             offset_C,
+                                                                             ldc,
+                                                                             stride_c,
+                                                                             batch_count);
+
         if(status != rocblas_status_success)
             return status;
 
@@ -263,52 +276,54 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, S_, T_)                             \
-    rocblas_status routine_name_(rocblas_handle    handle,      \
-                                 rocblas_fill      uplo,        \
-                                 rocblas_operation trans,       \
-                                 rocblas_int       n,           \
-                                 rocblas_int       k,           \
-                                 const T_*         alpha,       \
-                                 const T_*         A,           \
-                                 rocblas_int       lda,         \
-                                 rocblas_stride    stride_a,    \
-                                 const T_*         B,           \
-                                 rocblas_int       ldb,         \
-                                 rocblas_stride    stride_b,    \
-                                 const S_*         beta,        \
-                                 T_*               C,           \
-                                 rocblas_int       ldc,         \
-                                 rocblas_stride    stride_c,    \
-                                 rocblas_int       batch_count) \
-    try                                                         \
-    {                                                           \
-        return rocblas_herkx_strided_batched_impl(handle,       \
-                                                  uplo,         \
-                                                  trans,        \
-                                                  n,            \
-                                                  k,            \
-                                                  alpha,        \
-                                                  A,            \
-                                                  lda,          \
-                                                  stride_a,     \
-                                                  B,            \
-                                                  ldb,          \
-                                                  stride_b,     \
-                                                  beta,         \
-                                                  C,            \
-                                                  ldc,          \
-                                                  stride_c,     \
-                                                  batch_count); \
-    }                                                           \
-    catch(...)                                                  \
-    {                                                           \
-        return exception_to_rocblas_status();                   \
+#define IMPL(routine_name_, NB_, S_, T_)                             \
+    rocblas_status routine_name_(rocblas_handle    handle,           \
+                                 rocblas_fill      uplo,             \
+                                 rocblas_operation trans,            \
+                                 rocblas_int       n,                \
+                                 rocblas_int       k,                \
+                                 const T_*         alpha,            \
+                                 const T_*         A,                \
+                                 rocblas_int       lda,              \
+                                 rocblas_stride    stride_a,         \
+                                 const T_*         B,                \
+                                 rocblas_int       ldb,              \
+                                 rocblas_stride    stride_b,         \
+                                 const S_*         beta,             \
+                                 T_*               C,                \
+                                 rocblas_int       ldc,              \
+                                 rocblas_stride    stride_c,         \
+                                 rocblas_int       batch_count)      \
+    try                                                              \
+    {                                                                \
+        return rocblas_herkx_strided_batched_impl<NB_>(handle,       \
+                                                       uplo,         \
+                                                       trans,        \
+                                                       n,            \
+                                                       k,            \
+                                                       alpha,        \
+                                                       A,            \
+                                                       lda,          \
+                                                       stride_a,     \
+                                                       B,            \
+                                                       ldb,          \
+                                                       stride_b,     \
+                                                       beta,         \
+                                                       C,            \
+                                                       ldc,          \
+                                                       stride_c,     \
+                                                       batch_count); \
+    }                                                                \
+    catch(...)                                                       \
+    {                                                                \
+        return exception_to_rocblas_status();                        \
     }
 
-IMPL(rocblas_cherkx_strided_batched, float, rocblas_float_complex);
-IMPL(rocblas_zherkx_strided_batched, double, rocblas_double_complex);
+IMPL(rocblas_cherkx_strided_batched, CHERKX_MIN_NB, float, rocblas_float_complex);
+IMPL(rocblas_zherkx_strided_batched, ZHERKX_MIN_NB, double, rocblas_double_complex);
 
 #undef IMPL
+#undef CHERKX_MIN_NB
+#undef ZHERKX_MIN_NB
 
 } // extern "C"

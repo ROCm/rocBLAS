@@ -722,11 +722,14 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation   transA,
     if(alt)
     {
         for(size_t i = 0; i < sizeA; i++)
-            A_float[i] = rocblas_bfloat16(float(A[i]), rocblas_bfloat16::truncate_t::truncate);
+            A_float[i] = rocblas_bfloat16(float(A[i]),
+                                          rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate);
         for(size_t i = 0; i < sizeB; i++)
-            B_float[i] = rocblas_bfloat16(float(B[i]), rocblas_bfloat16::truncate_t::truncate);
+            B_float[i] = rocblas_bfloat16(float(B[i]),
+                                          rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate);
         for(size_t i = 0; i < sizeC; i++)
-            C_float[i] = rocblas_bfloat16(float(C[i]), rocblas_bfloat16::truncate_t::truncate);
+            C_float[i] = rocblas_bfloat16(float(C[i]),
+                                          rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate);
     }
     else
     {

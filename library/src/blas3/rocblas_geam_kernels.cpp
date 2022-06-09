@@ -70,8 +70,8 @@ geam_device(rocblas_operation transA,
 
     if(tx < m && ty < n)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, 0);
-        auto beta  = load_scalar(beta_device_host, hipBlockIdx_z, 0);
+        auto alpha = load_scalar(alpha_device_host);
+        auto beta  = load_scalar(beta_device_host);
 
         auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_z, offset_a, stride_a);
         auto* B = cond_load_ptr_batch(beta, Ba, hipBlockIdx_z, offset_b, stride_b);
@@ -132,7 +132,7 @@ geam_2matrix_device(rocblas_operation transA,
 
     if(tx < m && ty < n)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, 0);
+        auto alpha = load_scalar(alpha_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
 
@@ -186,8 +186,8 @@ geam_1D_device(size_t         size,
 
     if(tx < size)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, 0);
-        auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, 0);
+        auto alpha = load_scalar(alpha_device_host);
+        auto beta  = load_scalar(beta_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_y, offset_c, stride_c);
 
@@ -224,7 +224,7 @@ geam_1D_2matrix_device(size_t         size,
 
     if(tx < size)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, 0);
+        auto alpha = load_scalar(alpha_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_y, offset_c, stride_c);
 
@@ -263,8 +263,8 @@ geam_inplace_device(rocblas_operation transB,
 
     if(tx < m && ty < n)
     {
-        auto alpha = load_scalar(alpha_device_host, 0, 0);
-        auto beta  = load_scalar(beta_device_host, 0, 0);
+        auto alpha = load_scalar(alpha_device_host);
+        auto beta  = load_scalar(beta_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
 

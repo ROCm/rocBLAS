@@ -25,6 +25,34 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
+template <typename TConstPtr, typename TPtr>
+inline rocblas_status rocblas_dgmm_arg_check(rocblas_handle handle,
+                                             rocblas_side   side,
+                                             rocblas_int    m,
+                                             rocblas_int    n,
+                                             TConstPtr      A,
+                                             rocblas_int    lda,
+                                             TConstPtr      X,
+                                             rocblas_int    incx,
+                                             TPtr           C,
+                                             rocblas_int    ldc,
+                                             rocblas_int    batch_count)
+{
+    if(side != rocblas_side_left && side != rocblas_side_right)
+        return rocblas_status_invalid_value;
+
+    if(m < 0 || n < 0 || ldc < m || lda < m || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!A || !X || !C)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
 /**
  * TConstPtr is either: const T* OR const T* const*
  * TPtr      is either:       T* OR       T* const*

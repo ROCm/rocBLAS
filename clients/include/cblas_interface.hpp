@@ -1847,7 +1847,7 @@ inline void cblas_syr2_local(rocblas_fill uplo,
                              T*           A,
                              rocblas_int  lda)
 {
-    if(n <= 0)
+    if(n <= 0 || alpha == 0)
         return;
 
     T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;

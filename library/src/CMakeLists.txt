@@ -209,7 +209,7 @@ set( rocblas_blas3_source_no_tensile
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
     blas3/rocblas_syrkx.cpp
-    blas3/rocblas_syrkx_kernels.cpp
+    blas3/rocblas_syrkx_herkx_kernels.cpp
     blas3/rocblas_syrkx_batched.cpp
     blas3/rocblas_syrkx_strided_batched.cpp
     blas3/rocblas_trmm.cpp
@@ -518,7 +518,7 @@ add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
 add_custom_target( rocblas_device_malloc DEPENDS ${ROCBLAS_DEVICE_MALLOC} )
 add_dependencies( rocblas rocblas_device_malloc )
 
-if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
   rocm_wrap_header_dir(
     ${CMAKE_SOURCE_DIR}/library/include
     PATTERNS "*.h"
@@ -610,7 +610,7 @@ else()
   endif()
 endif()
 
-if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
   rocm_install(
     DIRECTORY
        "${PROJECT_BINARY_DIR}/rocblas"

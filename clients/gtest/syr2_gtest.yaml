@@ -83,8 +83,8 @@ Tests:
 - name: syr2_NaN
   category: quick
   function: syr2
-  precision: *single_double_precisions
-  uplo: [ U ]
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
   N: [ 32 ]
   lda: [ 32 ]
   incx_incy: *incx_incy_range_small

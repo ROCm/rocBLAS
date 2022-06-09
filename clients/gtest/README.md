@@ -1,4 +1,4 @@
-# To add new data-driven tests to the ROCblas Google Test Framework:
+# To add new data-driven tests to the rocBLAS Google Test Framework:
 
 **I**. Create a C++ header file with the name `testing_<function>.hpp` in the
 `include` subdirectory, with templated functions for a specific rocBLAS
