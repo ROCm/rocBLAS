@@ -384,6 +384,9 @@ add_library( rocblas
   ${rocblas_auxiliary_source}
 )
 
+message(STATUS "*** NOTE: blas2/rocblas_ger_kernels.cpp is compiled with the verbose flag -v for QC purposes.")
+SET_SOURCE_FILES_PROPERTIES( blas2/rocblas_ger_kernels.cpp PROPERTIES COMPILE_FLAGS "-v" )
+
 #if( WIN32 )
 #  set_target_properties(rocblas_fortran PROPERTIES LINKER_LANGUAGE CXX)
 #  target_link_directories(rocblas_fortran PRIVATE "C:\\cygwin64\\lib\\gcc\\x86_64-pc-cygwin\\9.3.0" "C:\\cygwin64\\lib" "C:\\cygwin64\\lib\\w32api")
