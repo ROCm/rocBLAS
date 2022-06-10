@@ -472,6 +472,9 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
         copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
+    if(*alpha == T(0) && *beta == T(1.0))
+        return rocblas_status_success;
+
     rocblas_int ka = rocblas_side_left == side ? m : n; // dimension of triangle matrix a
 
     rocblas_int n_nb   = ka / nb_diag; // number of diag blocks of matrix a of size nb_diag
@@ -806,6 +809,9 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
     RETURN_IF_ROCBLAS_ERROR(
         copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    if (*alpha == T(0) && *beta == T(1.0))
+        return rocblas_status_success;
 
     rocblas_int ka = rocblas_side_left == side ? m : n; // dimension of triangle matrix a
 

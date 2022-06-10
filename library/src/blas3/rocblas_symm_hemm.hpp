@@ -61,8 +61,17 @@ inline rocblas_status rocblas_symm_arg_check(rocblas_handle handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    if(!AP || !BP || !alpha || !CP || !beta)
+    if(!beta || !alpha)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0 && *beta == 1)
+            return rocblas_status_success;
+
+        if(!CP || (*alpha != 0 && (!AP || !BP)))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }
