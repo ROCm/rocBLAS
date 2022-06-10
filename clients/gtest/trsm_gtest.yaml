@@ -180,27 +180,7 @@ Tests:
   category: quick
   function:
     - trsm_bad_arg
-  precision: *single_precision
-  side: [L]
-  uplo: [L]
-  transA: [N]
-  diag: [N]
-  fortran: [ false, true ]
-
-- name: trsm_batched_bad_arg
-  category: quick
-  function:
     - trsm_batched_bad_arg
-  precision: *single_precision
-  side: [L]
-  uplo: [U]
-  transA: [N]
-  diag: [N]
-  fortran: [ false, true ]
-
-- name: trsm_strided_batched_bad_arg
-  category: quick
-  function:
     - trsm_strided_batched_bad_arg
   precision: *single_precision
   side: [L]

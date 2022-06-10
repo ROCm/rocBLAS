@@ -36,9 +36,13 @@ Definitions:
 Tests:
 - name: hemm_bad
   category: pre_checkin
-  function: hemm_bad_arg
+  function:
+  - hemm_bad_arg
+  - hemm_batched_bad_arg
+  - hemm_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   fortran: [ false, true ]
+
 
 - name: hemm_quick
   category: quick
@@ -80,11 +84,6 @@ Tests:
   alpha_beta: *alpha_beta_range
 
 # batched
-- name: hemm_batched_bad
-  category: pre_checkin
-  function: hemm_batched_bad_arg
-  precision: *single_double_precisions_complex
-  fortran: [ false, true ]
 
 - name: hemm_batched_NaN
   category: pre_checkin
@@ -130,11 +129,6 @@ Tests:
   batch_count: [ 2 ]
 
 # strided batched
-- name: hemm_strided_batched_bad
-  category: pre_checkin
-  function: hemm_strided_batched_bad_arg
-  precision: *single_double_precisions_complex
-  fortran: [ false, true ]
 
 - name: hemm_strided_batched_quick
   category: quick
