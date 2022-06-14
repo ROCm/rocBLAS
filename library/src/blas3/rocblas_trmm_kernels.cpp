@@ -1498,6 +1498,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count)
 {
+    //quick return
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
     bool inplace = (dB == dC) || BATCHED || batch_count != 1;
 
     rocblas_int k = side == rocblas_side_left ? m : n;
