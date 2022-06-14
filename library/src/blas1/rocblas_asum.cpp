@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "rocblas_asum.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_reduction_impl.hpp"
 
 namespace
@@ -76,8 +77,7 @@ extern "C" {
         rocblas_handle handle, rocblas_int n, const typei_* x, rocblas_int incx, typeo_* results) \
     try                                                                                           \
     {                                                                                             \
-        constexpr rocblas_int NB = 512;                                                           \
-        return rocblas_asum_impl<NB>(handle, n, x, incx, results);                                \
+        return rocblas_asum_impl<ROCBLAS_ASUM_NB>(handle, n, x, incx, results);                   \
     }                                                                                             \
     catch(...)                                                                                    \
     {                                                                                             \

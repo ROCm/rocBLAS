@@ -22,13 +22,12 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trsv_inverse.hpp"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr rocblas_int TRSV_EX_BLOCK = 128;
-
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_trsv_batched_ex_impl(rocblas_handle    handle,
                                                 rocblas_fill      uplo,
@@ -250,35 +249,35 @@ try
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsv_batched_ex_impl<TRSV_EX_BLOCK>(handle,
-                                                           uplo,
-                                                           transA,
-                                                           diag,
-                                                           m,
-                                                           (const double* const*)(A),
-                                                           lda,
-                                                           (double* const*)(x),
-                                                           incx,
-                                                           batch_count,
-                                                           (const double* const*)(invA),
-                                                           invA_size);
+        return rocblas_trsv_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(handle,
+                                                                uplo,
+                                                                transA,
+                                                                diag,
+                                                                m,
+                                                                (const double* const*)(A),
+                                                                lda,
+                                                                (double* const*)(x),
+                                                                incx,
+                                                                batch_count,
+                                                                (const double* const*)(invA),
+                                                                invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsv_batched_ex_impl<TRSV_EX_BLOCK>(handle,
-                                                           uplo,
-                                                           transA,
-                                                           diag,
-                                                           m,
-                                                           (const float* const*)(A),
-                                                           lda,
-                                                           (float* const*)(x),
-                                                           incx,
-                                                           batch_count,
-                                                           (const float* const*)(invA),
-                                                           invA_size);
+        return rocblas_trsv_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(handle,
+                                                                uplo,
+                                                                transA,
+                                                                diag,
+                                                                m,
+                                                                (const float* const*)(A),
+                                                                lda,
+                                                                (float* const*)(x),
+                                                                incx,
+                                                                batch_count,
+                                                                (const float* const*)(invA),
+                                                                invA_size);
 
     case rocblas_datatype_f64_c:
-        return rocblas_trsv_batched_ex_impl<TRSV_EX_BLOCK>(
+        return rocblas_trsv_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(
             handle,
             uplo,
             transA,
@@ -293,7 +292,7 @@ try
             invA_size);
 
     case rocblas_datatype_f32_c:
-        return rocblas_trsv_batched_ex_impl<TRSV_EX_BLOCK>(
+        return rocblas_trsv_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(
             handle,
             uplo,
             transA,

@@ -24,9 +24,8 @@
 #pragma once
 
 #include "gemm.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trtri.hpp"
-
-static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
 
 /*
     Invert the IB by IB diagonal blocks of A of size n by n, where n is divisible by IB

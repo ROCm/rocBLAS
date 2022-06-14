@@ -21,6 +21,7 @@
  *
  * ************************************************************************ */
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trtri.hpp"
 #include "utility.hpp"
 
@@ -200,8 +201,8 @@ rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
                                       rocblas_int        batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
+        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {
@@ -219,8 +220,8 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
                                       rocblas_int         batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
+        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {
@@ -238,8 +239,8 @@ rocblas_status rocblas_ctrtri_batched(rocblas_handle                     handle,
                                       rocblas_int                        batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
+        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {
@@ -257,8 +258,8 @@ rocblas_status rocblas_ztrtri_batched(rocblas_handle                      handle
                                       rocblas_int                         batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
+        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {

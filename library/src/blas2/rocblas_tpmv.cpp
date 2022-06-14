@@ -23,6 +23,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
@@ -136,7 +137,7 @@ namespace
                 return tpmv_check_numerics_status;
         }
 
-        static constexpr rocblas_int    NB          = 512;
+        static constexpr rocblas_int    NB          = ROCBLAS_TPMV_NB;
         static constexpr rocblas_int    batch_count = 1;
         static constexpr rocblas_stride offset_a    = 0;
         static constexpr rocblas_stride offset_x    = 0;
