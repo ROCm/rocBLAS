@@ -39,6 +39,38 @@ def runCI =
         platform, project->
 
         def gfilter = "*nightly*"
+
+        def testFilter = ""
+
+        if (env.BRANCH_NAME ==~ /PR-\d+/)
+        {
+            pullRequest.labels.each
+            {
+                if (it == "TestTensileOnly")
+                {
+                    testFilter += "*blas3_tensile/nightly*:"
+                }
+                else if(it == "TestLevel3Only")
+                {
+                    testFilter += "*blas3/nightly*:"
+                }
+                else if(it == "TestLevel2Only")
+                {
+                    testFilter += "*blas2/nightly*:"
+                }
+                else if(it == "TestLevel1Only")
+                {
+                    testFilter += "*blas1/nightly*:"
+                }
+            }
+        }
+
+        if (testFilter.length() > 0)
+        {
+            // The below command chops the final character ':' in testFilter and transfers the string to gfilter.
+            gfilter = testFilter.substring(0, testFilter.length() - 1);
+        }
+
         commonGroovy.runTestCommand(platform, project, gfilter)
     }
 
