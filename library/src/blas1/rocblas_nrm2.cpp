@@ -22,6 +22,7 @@
 
 #include "rocblas_nrm2.hpp"
 #include "check_numerics_vector.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_reduction_impl.hpp"
 
 namespace
@@ -137,8 +138,7 @@ extern "C" {
         rocblas_handle handle, rocblas_int n, const typei_* x, rocblas_int incx, typeo_* results) \
     try                                                                                           \
     {                                                                                             \
-        constexpr rocblas_int NB = 512;                                                           \
-        return rocblas_nrm2_impl<NB>(handle, n, x, incx, results);                                \
+        return rocblas_nrm2_impl<ROCBLAS_NRM2_NB>(handle, n, x, incx, results);                   \
     }                                                                                             \
     catch(...)                                                                                    \
     {                                                                                             \

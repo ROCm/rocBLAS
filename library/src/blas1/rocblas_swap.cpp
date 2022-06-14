@@ -21,6 +21,7 @@
  * ************************************************************************ */
 #include "rocblas_swap.hpp"
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
@@ -137,8 +138,7 @@ rocblas_status rocblas_sswap(
     rocblas_handle handle, rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_swap_impl<ROCBLAS_SWAP_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {
@@ -149,8 +149,7 @@ rocblas_status rocblas_dswap(
     rocblas_handle handle, rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_swap_impl<ROCBLAS_SWAP_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {
@@ -165,8 +164,7 @@ rocblas_status rocblas_cswap(rocblas_handle         handle,
                              rocblas_int            incy)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_swap_impl<ROCBLAS_SWAP_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {
@@ -181,8 +179,7 @@ rocblas_status rocblas_zswap(rocblas_handle          handle,
                              rocblas_int             incy)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_swap_impl<ROCBLAS_SWAP_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {

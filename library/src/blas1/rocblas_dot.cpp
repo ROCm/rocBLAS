@@ -23,13 +23,14 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
 {
     // HIP support up to 1024 threads/work itemes per thread block/work group
     // setting to 512 for gfx803.
-    constexpr int NB = 512;
+    constexpr int NB = ROCBLAS_DOT_NB;
 
     template <bool, typename>
     constexpr char rocblas_dot_name[] = "unknown";

@@ -24,6 +24,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "trtri_trsm.hpp"
 #include "utility.hpp"
 
@@ -31,14 +32,8 @@ namespace
 {
     // Shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
     // you can use all 64K, but in practice no.
-    constexpr rocblas_int STRSM_BLOCK = 128;
-    constexpr rocblas_int DTRSM_BLOCK = 128;
-
-    // For trsv case (side == left, n == 1)
-    constexpr rocblas_int STRSV_BLOCK = 64;
-    constexpr rocblas_int DTRSV_BLOCK = 64;
-    constexpr rocblas_int CTRSV_BLOCK = 64;
-    constexpr rocblas_int ZTRSV_BLOCK = 32;
+    // constexpr rocblas_int STRSM_BLOCK = ROCBLAS_TRSM_NB;
+    // constexpr rocblas_int DTRSM_BLOCK = ROCBLAS_TRSM_NB;
 
     template <typename>
     constexpr char rocblas_trsm_name[] = "unknown";
@@ -295,7 +290,7 @@ rocblas_status rocblas_strsm(rocblas_handle    handle,
                              rocblas_int       ldb)
 try
 {
-    return rocblas_trsm_ex_impl<STRSM_BLOCK, STRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -317,7 +312,7 @@ rocblas_status rocblas_dtrsm(rocblas_handle    handle,
                              rocblas_int       ldb)
 try
 {
-    return rocblas_trsm_ex_impl<DTRSM_BLOCK, DTRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -339,7 +334,7 @@ rocblas_status rocblas_ctrsm(rocblas_handle               handle,
                              rocblas_int                  ldb)
 try
 {
-    return rocblas_trsm_ex_impl<STRSM_BLOCK, CTRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -361,7 +356,7 @@ rocblas_status rocblas_ztrsm(rocblas_handle                handle,
                              rocblas_int                   ldb)
 try
 {
-    return rocblas_trsm_ex_impl<DTRSM_BLOCK, ZTRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -389,39 +384,41 @@ try
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsm_ex_impl<DTRSM_BLOCK, DTRSV_BLOCK>(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              m,
-                                                              n,
-                                                              static_cast<const double*>(alpha),
-                                                              static_cast<const double*>(A),
-                                                              lda,
-                                                              static_cast<double*>(B),
-                                                              ldb,
-                                                              static_cast<const double*>(invA),
-                                                              invA_size);
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            static_cast<const double*>(alpha),
+            static_cast<const double*>(A),
+            lda,
+            static_cast<double*>(B),
+            ldb,
+            static_cast<const double*>(invA),
+            invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsm_ex_impl<STRSM_BLOCK, STRSV_BLOCK>(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              m,
-                                                              n,
-                                                              static_cast<const float*>(alpha),
-                                                              static_cast<const float*>(A),
-                                                              lda,
-                                                              static_cast<float*>(B),
-                                                              ldb,
-                                                              static_cast<const float*>(invA),
-                                                              invA_size);
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            static_cast<const float*>(alpha),
+            static_cast<const float*>(A),
+            lda,
+            static_cast<float*>(B),
+            ldb,
+            static_cast<const float*>(invA),
+            invA_size);
 
     case rocblas_datatype_f32_c:
-        return rocblas_trsm_ex_impl<STRSM_BLOCK, CTRSV_BLOCK>(
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
             handle,
             side,
             uplo,
@@ -438,7 +435,7 @@ try
             invA_size);
 
     case rocblas_datatype_f64_c:
-        return rocblas_trsm_ex_impl<DTRSM_BLOCK, ZTRSV_BLOCK>(
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
             handle,
             side,
             uplo,

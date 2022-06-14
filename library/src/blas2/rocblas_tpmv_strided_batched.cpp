@@ -22,6 +22,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_tpmv.hpp"
 #include "utility.hpp"
 
@@ -168,7 +169,7 @@ namespace
         }
 
         rocblas_stride                  stridew = m;
-        static constexpr rocblas_int    NB      = 512;
+        static constexpr rocblas_int    NB      = ROCBLAS_TPMV_NB;
         static constexpr rocblas_stride offseta = 0;
         static constexpr rocblas_stride offsetx = 0;
         rocblas_status                  status  = rocblas_tpmv_template<NB>(handle,

@@ -23,15 +23,11 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr rocblas_int STRSV_BLOCK = 64;
-    constexpr rocblas_int DTRSV_BLOCK = 64;
-    constexpr rocblas_int CTRSV_BLOCK = 64;
-    constexpr rocblas_int ZTRSV_BLOCK = 32;
-
     template <typename>
     constexpr char rocblas_trsv_name[] = "unknown";
     template <>
@@ -213,7 +209,7 @@ rocblas_status rocblas_strsv(rocblas_handle    handle,
                              rocblas_int       incx)
 try
 {
-    return rocblas_trsv_impl<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl<ROCBLAS_SDCTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -231,7 +227,7 @@ rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                              rocblas_int       incx)
 try
 {
-    return rocblas_trsv_impl<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl<ROCBLAS_SDCTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -249,7 +245,7 @@ rocblas_status rocblas_ctrsv(rocblas_handle               handle,
                              rocblas_int                  incx)
 try
 {
-    return rocblas_trsv_impl<CTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl<ROCBLAS_SDCTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -267,7 +263,7 @@ rocblas_status rocblas_ztrsv(rocblas_handle                handle,
                              rocblas_int                   incx)
 try
 {
-    return rocblas_trsv_impl<ZTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl<ROCBLAS_ZTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
