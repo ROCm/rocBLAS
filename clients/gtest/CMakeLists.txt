@@ -51,8 +51,16 @@ set(rocblas_no_tensile_test_source
     ostream_threadsafety_gtest.cpp
     set_get_vector_gtest.cpp
     set_get_matrix_gtest.cpp
-    blas1_gtest.cpp
     blas1_ex_gtest.cpp
+    asum_gtest.cpp
+    axpy_gtest.cpp
+    copy_gtest.cpp
+    dot_gtest.cpp
+    iamaxmin_gtest.cpp
+    nrm2_gtest.cpp
+    rot_gtest.cpp
+    scal_gtest.cpp
+    swap_gtest.cpp
     # blas2
     trsv_gtest.cpp
     gbmv_gtest.cpp
