@@ -22,6 +22,7 @@
 
 #include "handle.hpp"
 #include "herk_scale_device.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_syrk_herk.hpp"
 #include "rocblas_syrkx.hpp"
 
@@ -240,14 +241,15 @@ rocblas_internal_syrk_template<NB_, BATCHED_, T_, TScal_, TConstPtr_, TPtr_>(roc
                                                           rocblas_stride    stride_c,    \
                                                           rocblas_int       batch_count);
 
-INSTANTIATE_SYRK_TEMPLATE( 16, false, float, float const*, float const*,  float*)
-INSTANTIATE_SYRK_TEMPLATE(32, false, double, double const*, double const*, double*)
-INSTANTIATE_SYRK_TEMPLATE( 32, false, rocblas_float_complex, rocblas_float_complex const*,  rocblas_float_complex const*,  rocblas_float_complex*)
-INSTANTIATE_SYRK_TEMPLATE(32, false, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_SYRK_TEMPLATE( 16, true, float, float const*,  float const* const*,  float* const*)
-INSTANTIATE_SYRK_TEMPLATE(16, true, double, double const*, double const* const*, double* const*)
-INSTANTIATE_SYRK_TEMPLATE( 8, true, rocblas_float_complex, rocblas_float_complex const*,  rocblas_float_complex const* const*,  rocblas_float_complex* const*)
-INSTANTIATE_SYRK_TEMPLATE(8, true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_SDZSYRK_NB, false, float, float const*, float const*,  float*)
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_SDZSYRK_NB, false, double, double const*, double const*, double*)
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_CSYRK_NB, false, rocblas_float_complex, rocblas_float_complex const*,  rocblas_float_complex const*,  rocblas_float_complex*)
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_SDZSYRK_NB, false, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
+
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_SDSYRK_BATCHED_NB, true, float, float const*,  float const* const*,  float* const*)
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_SDSYRK_BATCHED_NB, true, double, double const*, double const* const*, double* const*)
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_CZSYRK_BATCHED_NB, true, rocblas_float_complex, rocblas_float_complex const*,  rocblas_float_complex const* const*,  rocblas_float_complex* const*)
+INSTANTIATE_SYRK_TEMPLATE(ROCBLAS_CZSYRK_BATCHED_NB, true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_SYRK_TEMPLATE
 
@@ -274,10 +276,10 @@ rocblas_internal_herk_template<NB_, BATCHED_, T_, Tscal_, TConstPtr_, TPtr_>(roc
                                                           rocblas_stride    stride_c,    \
                                                           rocblas_int       batch_count);
 
-INSTANTIATE_HERK_TEMPLATE(32, false, rocblas_float_complex, float const*, rocblas_float_complex const*,  rocblas_float_complex*)
-INSTANTIATE_HERK_TEMPLATE(8, true, rocblas_float_complex, float const*, rocblas_float_complex const* const*,  rocblas_float_complex* const*)
-INSTANTIATE_HERK_TEMPLATE(32, false, rocblas_double_complex, double const*, rocblas_double_complex const*,  rocblas_double_complex*)
-INSTANTIATE_HERK_TEMPLATE(8, true, rocblas_double_complex, double const*, rocblas_double_complex const* const*,  rocblas_double_complex* const*)
+INSTANTIATE_HERK_TEMPLATE(ROCBLAS_CHERK_NB, false, rocblas_float_complex, float const*, rocblas_float_complex const*,  rocblas_float_complex*)
+INSTANTIATE_HERK_TEMPLATE(ROCBLAS_HERK_BATCHED_NB, true, rocblas_float_complex, float const*, rocblas_float_complex const* const*,  rocblas_float_complex* const*)
+INSTANTIATE_HERK_TEMPLATE(ROCBLAS_ZHERK_NB, false, rocblas_double_complex, double const*, rocblas_double_complex const*,  rocblas_double_complex*)
+INSTANTIATE_HERK_TEMPLATE(ROCBLAS_HERK_BATCHED_NB, true, rocblas_double_complex, double const*, rocblas_double_complex const* const*,  rocblas_double_complex* const*)
 
 #undef INSTANTIATE_HERK_TEMPLATE
 
