@@ -60,7 +60,7 @@ def runCI =
                 }
                 else if(it == "TestLevel1Only")
                 {
-                    testFilter += "*blas1/quick*:*blas1/pre_checkin*:"
+                    testFilter += "*blas1*quick*:*blas1*pre_checkin*:"
                 }
             }
         }
