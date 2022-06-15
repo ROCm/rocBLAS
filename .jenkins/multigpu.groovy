@@ -59,7 +59,7 @@ def runCI =
                 }
                 else if(it == "TestLevel1Only")
                 {
-                    testFilter += "*blas1/multi_gpu*:"
+                    testFilter += "*blas1*multi_gpu*:"
                 }
             }
         }
