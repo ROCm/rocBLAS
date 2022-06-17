@@ -54,8 +54,6 @@ rocBLAS build & installation helper script.
 
     -h, --help                       Print this help message
 
-    --hip-clang                      Build library for the amdgpu backend using the hip-clang compiler.
-
     -i, --install                    Generate and install library package after build.
 
     -j, --jobs <num>                 Specify the number of parallel jobs to launch, increases memory usage. (Default logical core count)
