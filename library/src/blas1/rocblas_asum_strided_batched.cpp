@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "rocblas_asum_strided_batched.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_reduction_impl.hpp"
 
 namespace
@@ -84,23 +85,22 @@ extern "C" {
 #error IMPL IS ALREADY DEFINED
 #endif
 
-#define IMPL(name_, typei_, typeo_)                             \
-    rocblas_status name_(rocblas_handle handle,                 \
-                         rocblas_int    n,                      \
-                         const typei_*  x,                      \
-                         rocblas_int    incx,                   \
-                         rocblas_stride stridex,                \
-                         rocblas_int    batch_count,            \
-                         typeo_*        results)                \
-    try                                                         \
-    {                                                           \
-        constexpr rocblas_int NB = 512;                         \
-        return rocblas_asum_strided_batched_impl<NB>(           \
-            handle, n, x, incx, stridex, batch_count, results); \
-    }                                                           \
-    catch(...)                                                  \
-    {                                                           \
-        return exception_to_rocblas_status();                   \
+#define IMPL(name_, typei_, typeo_)                                \
+    rocblas_status name_(rocblas_handle handle,                    \
+                         rocblas_int    n,                         \
+                         const typei_*  x,                         \
+                         rocblas_int    incx,                      \
+                         rocblas_stride stridex,                   \
+                         rocblas_int    batch_count,               \
+                         typeo_*        results)                   \
+    try                                                            \
+    {                                                              \
+        return rocblas_asum_strided_batched_impl<ROCBLAS_ASUM_NB>( \
+            handle, n, x, incx, stridex, batch_count, results);    \
+    }                                                              \
+    catch(...)                                                     \
+    {                                                              \
+        return exception_to_rocblas_status();                      \
     }
 
 IMPL(rocblas_sasum_strided_batched, float, float);

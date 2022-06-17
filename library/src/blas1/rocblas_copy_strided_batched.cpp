@@ -22,6 +22,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_copy.hpp"
 #include "utility.hpp"
 
@@ -185,8 +186,7 @@ rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
                                              rocblas_int    batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_strided_batched_impl<NB>(
+    return rocblas_copy_strided_batched_impl<ROCBLAS_COPY_NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
 }
 catch(...)
@@ -205,8 +205,7 @@ rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
                                              rocblas_int    batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_strided_batched_impl<NB>(
+    return rocblas_copy_strided_batched_impl<ROCBLAS_COPY_NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
 }
 catch(...)
@@ -225,8 +224,7 @@ rocblas_status rocblas_hcopy_strided_batched(rocblas_handle      handle,
                                              rocblas_int         batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_strided_batched_impl<NB>(
+    return rocblas_copy_strided_batched_impl<ROCBLAS_COPY_NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
 }
 catch(...)
@@ -245,8 +243,7 @@ rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle
                                              rocblas_int                  batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_strided_batched_impl<NB>(
+    return rocblas_copy_strided_batched_impl<ROCBLAS_COPY_NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
 }
 catch(...)
@@ -265,8 +262,7 @@ rocblas_status rocblas_zcopy_strided_batched(rocblas_handle                handl
                                              rocblas_int                   batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_strided_batched_impl<NB>(
+    return rocblas_copy_strided_batched_impl<ROCBLAS_COPY_NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
 }
 catch(...)

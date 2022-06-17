@@ -22,12 +22,13 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_rot.hpp"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr int NB = 512;
+    constexpr int NB = ROCBLAS_ROT_NB;
 
     template <typename T, typename = T>
     constexpr char rocblas_rot_name[] = "unknown";

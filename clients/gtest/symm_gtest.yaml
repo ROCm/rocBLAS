@@ -36,8 +36,13 @@ Definitions:
 Tests:
 - name: symm_bad
   category: pre_checkin
-  function: symm_bad_arg
-  precision: *single_precision
+  function:
+  - symm_bad_arg
+  - symm_batched_bad_arg
+  - symm_strided_batched_bad_arg
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  side: [ R ]
   fortran: [ false, true ]
 
 - name: symm_size_t
@@ -92,11 +97,6 @@ Tests:
   alpha_beta: *alpha_beta_range
 
 # batched
-- name: symm_batched_bad
-  category: pre_checkin
-  function: symm_batched_bad_arg
-  precision: *single_precision
-  fortran: [ false, true ]
 
 - name: symm_batched_quick
   category: quick
@@ -142,11 +142,6 @@ Tests:
   batch_count: [ 2 ]
 
 # strided batched
-- name: symm_strided_batched_bad
-  category: pre_checkin
-  function: symm_strided_batched_bad_arg
-  precision: *single_precision
-  fortran: [ false, true ]
 
 - name: symm_strided_batched_quick
   category: quick

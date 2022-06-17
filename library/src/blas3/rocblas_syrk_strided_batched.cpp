@@ -20,13 +20,9 @@
  *
  * ************************************************************************ */
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_syrk_herk.hpp"
 #include "utility.hpp"
-
-#define SSYRK_MIN_NB 16
-#define DSYRK_MIN_NB 32
-#define CSYRK_MIN_NB 32
-#define ZSYRK_MIN_NB 32
 
 namespace
 {
@@ -278,15 +274,11 @@ extern "C" {
         return exception_to_rocblas_status();                       \
     }
 
-IMPL(rocblas_ssyrk_strided_batched, SSYRK_MIN_NB, float);
-IMPL(rocblas_dsyrk_strided_batched, DSYRK_MIN_NB, double);
-IMPL(rocblas_csyrk_strided_batched, CSYRK_MIN_NB, rocblas_float_complex);
-IMPL(rocblas_zsyrk_strided_batched, ZSYRK_MIN_NB, rocblas_double_complex);
+IMPL(rocblas_ssyrk_strided_batched, ROCBLAS_SSYRK_NB, float);
+IMPL(rocblas_dsyrk_strided_batched, ROCBLAS_DCZSYRK_NB, double);
+IMPL(rocblas_csyrk_strided_batched, ROCBLAS_DCZSYRK_NB, rocblas_float_complex);
+IMPL(rocblas_zsyrk_strided_batched, ROCBLAS_DCZSYRK_NB, rocblas_double_complex);
 
 #undef IMPL
-#undef SSYRK_MIN_NB
-#undef DSYRK_MIN_NB
-#undef CSYRK_MIN_NB
-#undef ZSYRK_MIN_NB
 
 } // extern "C"

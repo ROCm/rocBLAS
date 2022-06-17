@@ -23,12 +23,8 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
-
-#define Strmm_outofplace_batched_NB 32
-#define Dtrmm_outofplace_batched_NB 32
-#define Ctrmm_outofplace_batched_NB 32
-#define Ztrmm_outofplace_batched_NB 32
 
 namespace
 {
@@ -303,10 +299,10 @@ extern "C" {
         return exception_to_rocblas_status();                                                    \
     }
 
-IMPL(rocblas_strmm_outofplace_batched, float, Strmm_outofplace_batched_NB);
-IMPL(rocblas_dtrmm_outofplace_batched, double, Dtrmm_outofplace_batched_NB);
-IMPL(rocblas_ctrmm_outofplace_batched, rocblas_float_complex, Ctrmm_outofplace_batched_NB);
-IMPL(rocblas_ztrmm_outofplace_batched, rocblas_double_complex, Ztrmm_outofplace_batched_NB);
+IMPL(rocblas_strmm_outofplace_batched, float, ROCBLAS_TRMM_OUTOFPLACE_NB);
+IMPL(rocblas_dtrmm_outofplace_batched, double, ROCBLAS_TRMM_OUTOFPLACE_NB);
+IMPL(rocblas_ctrmm_outofplace_batched, rocblas_float_complex, ROCBLAS_TRMM_OUTOFPLACE_NB);
+IMPL(rocblas_ztrmm_outofplace_batched, rocblas_double_complex, ROCBLAS_TRMM_OUTOFPLACE_NB);
 
 #undef IMPL
 

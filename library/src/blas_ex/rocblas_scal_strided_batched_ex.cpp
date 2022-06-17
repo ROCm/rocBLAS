@@ -22,6 +22,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_scal_ex.hpp"
 #include "utility.hpp"
 
@@ -154,8 +155,7 @@ rocblas_status rocblas_scal_strided_batched_ex(rocblas_handle   handle,
                                                rocblas_datatype execution_type)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_strided_batched_ex_impl<NB>(
+    return rocblas_scal_strided_batched_ex_impl<ROCBLAS_SCAL_NB>(
         handle, n, alpha, alpha_type, x, x_type, incx, stridex, batch_count, execution_type);
 }
 catch(...)

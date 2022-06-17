@@ -20,11 +20,9 @@
  *
  * ************************************************************************ */
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_herkx.hpp"
 #include "utility.hpp"
-
-#define CHERKX_MIN_NB 8
-#define ZHERKX_MIN_NB 8
 
 namespace
 {
@@ -284,11 +282,9 @@ extern "C" {
         return exception_to_rocblas_status();                                             \
     }
 
-IMPL(rocblas_cherkx_batched, CHERKX_MIN_NB, float, rocblas_float_complex);
-IMPL(rocblas_zherkx_batched, ZHERKX_MIN_NB, double, rocblas_double_complex);
+IMPL(rocblas_cherkx_batched, ROCBLAS_HERKX_BATCHED_NB, float, rocblas_float_complex);
+IMPL(rocblas_zherkx_batched, ROCBLAS_HERKX_BATCHED_NB, double, rocblas_double_complex);
 
 #undef IMPL
-#undef CHERKX_MIN_NB
-#undef ZHERKX_MIN_NB
 
 } // extern "C"

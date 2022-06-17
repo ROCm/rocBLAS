@@ -22,6 +22,7 @@
  *  * ************************************************************************ */
 #include "rocblas_trtri.hpp"
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
@@ -173,8 +174,7 @@ rocblas_status rocblas_strtri(rocblas_handle   handle,
                               rocblas_int      ldinvA)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {
@@ -191,8 +191,7 @@ rocblas_status rocblas_dtrtri(rocblas_handle   handle,
                               rocblas_int      ldinvA)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {
@@ -209,8 +208,7 @@ rocblas_status rocblas_ctrtri(rocblas_handle               handle,
                               rocblas_int                  ldinvA)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {
@@ -227,8 +225,7 @@ rocblas_status rocblas_ztrtri(rocblas_handle                handle,
                               rocblas_int                   ldinvA)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {
