@@ -22,13 +22,12 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trsv_inverse.hpp"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr rocblas_int TRSV_EX_BLOCK = 128;
-
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_trsv_strided_batched_ex_impl(rocblas_handle    handle,
                                                         rocblas_fill      uplo,
@@ -266,39 +265,41 @@ try
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsv_strided_batched_ex_impl<TRSV_EX_BLOCK>(handle,
-                                                                   uplo,
-                                                                   transA,
-                                                                   diag,
-                                                                   m,
-                                                                   static_cast<const double*>(A),
-                                                                   lda,
-                                                                   stride_A,
-                                                                   static_cast<double*>(x),
-                                                                   incx,
-                                                                   stride_x,
-                                                                   batch_count,
-                                                                   static_cast<const double*>(invA),
-                                                                   invA_size);
+        return rocblas_trsv_strided_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(
+            handle,
+            uplo,
+            transA,
+            diag,
+            m,
+            static_cast<const double*>(A),
+            lda,
+            stride_A,
+            static_cast<double*>(x),
+            incx,
+            stride_x,
+            batch_count,
+            static_cast<const double*>(invA),
+            invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsv_strided_batched_ex_impl<TRSV_EX_BLOCK>(handle,
-                                                                   uplo,
-                                                                   transA,
-                                                                   diag,
-                                                                   m,
-                                                                   static_cast<const float*>(A),
-                                                                   lda,
-                                                                   stride_A,
-                                                                   static_cast<float*>(x),
-                                                                   incx,
-                                                                   stride_x,
-                                                                   batch_count,
-                                                                   static_cast<const float*>(invA),
-                                                                   invA_size);
+        return rocblas_trsv_strided_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(
+            handle,
+            uplo,
+            transA,
+            diag,
+            m,
+            static_cast<const float*>(A),
+            lda,
+            stride_A,
+            static_cast<float*>(x),
+            incx,
+            stride_x,
+            batch_count,
+            static_cast<const float*>(invA),
+            invA_size);
 
     case rocblas_datatype_f64_c:
-        return rocblas_trsv_strided_batched_ex_impl<TRSV_EX_BLOCK>(
+        return rocblas_trsv_strided_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(
             handle,
             uplo,
             transA,
@@ -315,7 +316,7 @@ try
             invA_size);
 
     case rocblas_datatype_f32_c:
-        return rocblas_trsv_strided_batched_ex_impl<TRSV_EX_BLOCK>(
+        return rocblas_trsv_strided_batched_ex_impl<ROCBLAS_TRSV_EX_NB>(
             handle,
             uplo,
             transA,

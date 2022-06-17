@@ -167,12 +167,13 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        static constexpr bool Hermetian = true;
+        static constexpr bool HERMITIAN = true;
+        static constexpr bool BATCHED   = false;
         if(check_numerics)
         {
             bool           is_input = true;
             rocblas_status hemm_check_numerics_status
-                = rocblas_hemm_symm_check_numerics<Hermetian>(rocblas_hemm_name<T>,
+                = rocblas_hemm_symm_check_numerics<HERMITIAN>(rocblas_hemm_name<T>,
                                                               handle,
                                                               side,
                                                               uplo,
@@ -195,26 +196,26 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        status                = rocblas_internal_symm_template<Hermetian>(handle,
-                                                           side,
-                                                           uplo,
-                                                           m,
-                                                           n,
-                                                           alpha,
-                                                           A,
-                                                           offset_A,
-                                                           lda,
-                                                           stride_a,
-                                                           B,
-                                                           offset_B,
-                                                           ldb,
-                                                           stride_b,
-                                                           beta,
-                                                           C,
-                                                           offset_C,
-                                                           ldc,
-                                                           stride_c,
-                                                           batch_count);
+        status                = rocblas_internal_symm_template<BATCHED, HERMITIAN, T>(handle,
+                                                                       side,
+                                                                       uplo,
+                                                                       m,
+                                                                       n,
+                                                                       alpha,
+                                                                       A,
+                                                                       offset_A,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       B,
+                                                                       offset_B,
+                                                                       ldb,
+                                                                       stride_b,
+                                                                       beta,
+                                                                       C,
+                                                                       offset_C,
+                                                                       ldc,
+                                                                       stride_c,
+                                                                       batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -222,7 +223,7 @@ namespace
         {
             bool           is_input = false;
             rocblas_status hemm_check_numerics_status
-                = rocblas_hemm_symm_check_numerics<Hermetian>(rocblas_hemm_name<T>,
+                = rocblas_hemm_symm_check_numerics<HERMITIAN>(rocblas_hemm_name<T>,
                                                               handle,
                                                               side,
                                                               uplo,
@@ -245,7 +246,6 @@ namespace
         }
         return status;
     }
-
 }
 /*
  * ===========================================================================

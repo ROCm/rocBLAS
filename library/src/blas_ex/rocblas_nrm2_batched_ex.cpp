@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "../blas1/rocblas_reduction_impl.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_nrm2_ex.hpp"
 
 namespace
@@ -185,8 +186,7 @@ rocblas_status rocblas_nrm2_batched_ex(rocblas_handle   handle,
 {
     try
     {
-        constexpr rocblas_int NB = 512;
-        return rocblas_nrm2_batched_ex_impl<NB>(
+        return rocblas_nrm2_batched_ex_impl<ROCBLAS_NRM2_NB>(
             handle, n, x, x_type, incx, batch_count, results, result_type, execution_type);
     }
     catch(...)

@@ -23,12 +23,8 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
-
-#define STRMM_STOPPING_NB 32
-#define DTRMM_STOPPING_NB 32
-#define CTRMM_STOPPING_NB 16
-#define ZTRMM_STOPPING_NB 16
 
 // clang-format off
 rocblas_int rocblas_get_trmm_recursive_nb(rocblas_int n)
@@ -311,10 +307,10 @@ extern "C" {
         return exception_to_rocblas_status();                               \
     }
 
-IMPL(rocblas_strmm, float, STRMM_STOPPING_NB);
-IMPL(rocblas_dtrmm, double, DTRMM_STOPPING_NB);
-IMPL(rocblas_ctrmm, rocblas_float_complex, CTRMM_STOPPING_NB);
-IMPL(rocblas_ztrmm, rocblas_double_complex, ZTRMM_STOPPING_NB);
+IMPL(rocblas_strmm, float, ROCBLAS_SDTRMM_NB);
+IMPL(rocblas_dtrmm, double, ROCBLAS_SDTRMM_NB);
+IMPL(rocblas_ctrmm, rocblas_float_complex, ROCBLAS_CZTRMM_NB);
+IMPL(rocblas_ztrmm, rocblas_double_complex, ROCBLAS_CZTRMM_NB);
 
 #undef IMPL
 

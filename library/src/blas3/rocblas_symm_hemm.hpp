@@ -61,13 +61,22 @@ inline rocblas_status rocblas_symm_arg_check(rocblas_handle handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    if(!AP || !BP || !alpha || !CP || !beta)
+    if(!beta || !alpha)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0 && *beta == 1)
+            return rocblas_status_success;
+
+        if(!CP || (*alpha != 0 && (!AP || !BP)))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }
 
-template <bool HERM, typename TScal, typename TConstPtr, typename TPtr>
+template <bool BATCHED, bool HERM, typename T, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_symm_template(rocblas_handle handle,
                                    rocblas_side   side,

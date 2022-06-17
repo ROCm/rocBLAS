@@ -22,6 +22,7 @@
 
 #include "logging.hpp"
 #include "rocblas_axpy.hpp"
+#include "rocblas_block_sizes.h"
 
 namespace
 {
@@ -195,7 +196,7 @@ extern "C" {
                                  rocblas_int     batch_count)                                 \
     try                                                                                       \
     {                                                                                         \
-        return rocblas_axpy_batched_impl<256>(                                                \
+        return rocblas_axpy_batched_impl<ROCBLAS_AXPY_NB>(                                    \
             handle, n, alpha, x, incx, y, incy, batch_count, #routine_name_, "axpy_batched"); \
     }                                                                                         \
     catch(...)                                                                                \

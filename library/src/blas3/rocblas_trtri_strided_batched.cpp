@@ -22,6 +22,7 @@
  * ************************************************************************ */
 
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trtri.hpp"
 #include "utility.hpp"
 
@@ -223,8 +224,7 @@ rocblas_status rocblas_strtri_strided_batched(rocblas_handle   handle,
                                               rocblas_int      batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)
@@ -245,8 +245,7 @@ rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   handle,
                                               rocblas_int      batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)
@@ -267,8 +266,7 @@ rocblas_status rocblas_ctrtri_strided_batched(rocblas_handle               handl
                                               rocblas_int                  batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)
@@ -289,8 +287,7 @@ rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle                hand
                                               rocblas_int                   batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)

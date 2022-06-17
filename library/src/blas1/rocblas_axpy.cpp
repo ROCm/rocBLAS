@@ -21,6 +21,7 @@
  * ************************************************************************ */
 #include "rocblas_axpy.hpp"
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 
 namespace
 {
@@ -172,21 +173,22 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                                                    \
-    rocblas_status routine_name_(rocblas_handle handle,                                            \
-                                 rocblas_int    n,                                                 \
-                                 const T_*      alpha,                                             \
-                                 const T_*      x,                                                 \
-                                 rocblas_int    incx,                                              \
-                                 T_*            y,                                                 \
-                                 rocblas_int    incy)                                              \
-    try                                                                                            \
-    {                                                                                              \
-        return rocblas_axpy_impl<256>(handle, n, alpha, x, incx, y, incy, #routine_name_, "axpy"); \
-    }                                                                                              \
-    catch(...)                                                                                     \
-    {                                                                                              \
-        return exception_to_rocblas_status();                                                      \
+#define IMPL(routine_name_, T_)                                          \
+    rocblas_status routine_name_(rocblas_handle handle,                  \
+                                 rocblas_int    n,                       \
+                                 const T_*      alpha,                   \
+                                 const T_*      x,                       \
+                                 rocblas_int    incx,                    \
+                                 T_*            y,                       \
+                                 rocblas_int    incy)                    \
+    try                                                                  \
+    {                                                                    \
+        return rocblas_axpy_impl<ROCBLAS_AXPY_NB>(                       \
+            handle, n, alpha, x, incx, y, incy, #routine_name_, "axpy"); \
+    }                                                                    \
+    catch(...)                                                           \
+    {                                                                    \
+        return exception_to_rocblas_status();                            \
     }
 
 IMPL(rocblas_saxpy, float);

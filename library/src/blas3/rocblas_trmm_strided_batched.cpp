@@ -22,13 +22,9 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trmm.hpp"
 #include "utility.hpp"
-
-#define STRMM_STRIDED_BATCHED_STOPPING_NB 32
-#define DTRMM_STRIDED_BATCHED_STOPPING_NB 32
-#define CTRMM_STRIDED_BATCHED_STOPPING_NB 16
-#define ZTRMM_STRIDED_BATCHED_STOPPING_NB 16
 
 namespace
 {
@@ -323,10 +319,10 @@ extern "C" {
         return exception_to_rocblas_status();                                                \
     }
 
-IMPL(rocblas_strmm_strided_batched, float, STRMM_STRIDED_BATCHED_STOPPING_NB);
-IMPL(rocblas_dtrmm_strided_batched, double, DTRMM_STRIDED_BATCHED_STOPPING_NB);
-IMPL(rocblas_ctrmm_strided_batched, rocblas_float_complex, CTRMM_STRIDED_BATCHED_STOPPING_NB);
-IMPL(rocblas_ztrmm_strided_batched, rocblas_double_complex, ZTRMM_STRIDED_BATCHED_STOPPING_NB);
+IMPL(rocblas_strmm_strided_batched, float, ROCBLAS_SDTRMM_NB);
+IMPL(rocblas_dtrmm_strided_batched, double, ROCBLAS_SDTRMM_NB);
+IMPL(rocblas_ctrmm_strided_batched, rocblas_float_complex, ROCBLAS_CZTRMM_NB);
+IMPL(rocblas_ztrmm_strided_batched, rocblas_double_complex, ROCBLAS_CZTRMM_NB);
 
 #undef IMPL
 
