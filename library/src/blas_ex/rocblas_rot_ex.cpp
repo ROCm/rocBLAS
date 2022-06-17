@@ -23,11 +23,12 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr int NB = 512;
+    constexpr int NB = ROCBLAS_ROT_NB;
 
     rocblas_status rocblas_rot_ex_impl(rocblas_handle   handle,
                                        rocblas_int      n,

@@ -22,6 +22,7 @@
 
 #include "logging.hpp"
 #include "rocblas_axpy.hpp"
+#include "rocblas_block_sizes.h"
 
 namespace
 {
@@ -208,35 +209,35 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                                \
-    rocblas_status routine_name_(rocblas_handle handle,                        \
-                                 rocblas_int    n,                             \
-                                 const T_*      alpha,                         \
-                                 const T_*      x,                             \
-                                 rocblas_int    incx,                          \
-                                 rocblas_stride stridex,                       \
-                                 T_*            y,                             \
-                                 rocblas_int    incy,                          \
-                                 rocblas_stride stridey,                       \
-                                 rocblas_int    batch_count)                   \
-    try                                                                        \
-    {                                                                          \
-        return rocblas_axpy_strided_batched_impl<256>(handle,                  \
-                                                      n,                       \
-                                                      alpha,                   \
-                                                      x,                       \
-                                                      incx,                    \
-                                                      stridex,                 \
-                                                      y,                       \
-                                                      incy,                    \
-                                                      stridey,                 \
-                                                      batch_count,             \
-                                                      #routine_name_,          \
-                                                      "axpy_strided_batched"); \
-    }                                                                          \
-    catch(...)                                                                 \
-    {                                                                          \
-        return exception_to_rocblas_status();                                  \
+#define IMPL(routine_name_, T_)                                                            \
+    rocblas_status routine_name_(rocblas_handle handle,                                    \
+                                 rocblas_int    n,                                         \
+                                 const T_*      alpha,                                     \
+                                 const T_*      x,                                         \
+                                 rocblas_int    incx,                                      \
+                                 rocblas_stride stridex,                                   \
+                                 T_*            y,                                         \
+                                 rocblas_int    incy,                                      \
+                                 rocblas_stride stridey,                                   \
+                                 rocblas_int    batch_count)                               \
+    try                                                                                    \
+    {                                                                                      \
+        return rocblas_axpy_strided_batched_impl<ROCBLAS_AXPY_NB>(handle,                  \
+                                                                  n,                       \
+                                                                  alpha,                   \
+                                                                  x,                       \
+                                                                  incx,                    \
+                                                                  stridex,                 \
+                                                                  y,                       \
+                                                                  incy,                    \
+                                                                  stridey,                 \
+                                                                  batch_count,             \
+                                                                  #routine_name_,          \
+                                                                  "axpy_strided_batched"); \
+    }                                                                                      \
+    catch(...)                                                                             \
+    {                                                                                      \
+        return exception_to_rocblas_status();                                              \
     }
 
 IMPL(rocblas_saxpy_strided_batched, float);

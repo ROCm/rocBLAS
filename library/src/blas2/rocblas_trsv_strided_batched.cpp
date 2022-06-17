@@ -22,16 +22,12 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trsv.hpp"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr rocblas_int STRSV_BLOCK = 64;
-    constexpr rocblas_int DTRSV_BLOCK = 64;
-    constexpr rocblas_int CTRSV_BLOCK = 64;
-    constexpr rocblas_int ZTRSV_BLOCK = 32;
-
     template <typename>
     constexpr char rocblas_trsv_strided_batched_name[] = "unknown";
     template <>
@@ -246,7 +242,7 @@ rocblas_status rocblas_strsv_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 try
 {
-    return rocblas_trsv_strided_batched_impl<STRSV_BLOCK>(
+    return rocblas_trsv_strided_batched_impl<ROCBLAS_SDCTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, stride_A, x, incx, stride_x, batch_count);
 }
 catch(...)
@@ -268,7 +264,7 @@ rocblas_status rocblas_dtrsv_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 try
 {
-    return rocblas_trsv_strided_batched_impl<DTRSV_BLOCK>(
+    return rocblas_trsv_strided_batched_impl<ROCBLAS_SDCTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, stride_A, x, incx, stride_x, batch_count);
 }
 catch(...)
@@ -290,7 +286,7 @@ rocblas_status rocblas_ctrsv_strided_batched(rocblas_handle               handle
                                              rocblas_int                  batch_count)
 try
 {
-    return rocblas_trsv_strided_batched_impl<CTRSV_BLOCK>(
+    return rocblas_trsv_strided_batched_impl<ROCBLAS_SDCTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, stride_A, x, incx, stride_x, batch_count);
 }
 catch(...)
@@ -312,7 +308,7 @@ rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle                handl
                                              rocblas_int                   batch_count)
 try
 {
-    return rocblas_trsv_strided_batched_impl<ZTRSV_BLOCK>(
+    return rocblas_trsv_strided_batched_impl<ROCBLAS_ZTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, stride_A, x, incx, stride_x, batch_count);
 }
 catch(...)

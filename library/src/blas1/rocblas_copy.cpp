@@ -23,6 +23,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
@@ -144,8 +145,7 @@ rocblas_status rocblas_scopy(rocblas_handle handle,
                              rocblas_int    incy)
 try
 {
-    constexpr int NB = 256;
-    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {
@@ -160,8 +160,7 @@ rocblas_status rocblas_dcopy(rocblas_handle handle,
                              rocblas_int    incy)
 try
 {
-    constexpr int NB = 256;
-    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {
@@ -176,8 +175,7 @@ rocblas_status rocblas_hcopy(rocblas_handle      handle,
                              rocblas_int         incy)
 try
 {
-    constexpr int NB = 256;
-    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {
@@ -192,8 +190,7 @@ rocblas_status rocblas_ccopy(rocblas_handle               handle,
                              rocblas_int                  incy)
 try
 {
-    constexpr int NB = 256;
-    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {
@@ -208,8 +205,7 @@ rocblas_status rocblas_zcopy(rocblas_handle                handle,
                              rocblas_int                   incy)
 try
 {
-    constexpr int NB = 256;
-    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
 }
 catch(...)
 {

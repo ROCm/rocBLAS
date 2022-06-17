@@ -115,7 +115,10 @@ void testing_rotm_strided_batched(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
-    const T rel_error          = std::numeric_limits<T>::epsilon() * 1000;
+    T rel_error                = std::numeric_limits<T>::epsilon() * 1000;
+    // increase relative error for ieee64 bit
+    if(std::is_same<T, double>{} || std::is_same<T, rocblas_double_complex>{})
+        rel_error *= 10.0;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || batch_count <= 0)

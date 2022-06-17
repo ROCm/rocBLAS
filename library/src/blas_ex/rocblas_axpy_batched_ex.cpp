@@ -21,6 +21,7 @@
  * ************************************************************************ */
 #include "logging.hpp"
 #include "rocblas_axpy_ex.hpp"
+#include "rocblas_block_sizes.h"
 
 namespace
 {
@@ -197,20 +198,20 @@ rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
 {
     try
     {
-        return rocblas_axpy_batched_ex_impl<256>(handle,
-                                                 n,
-                                                 alpha,
-                                                 alpha_type,
-                                                 x,
-                                                 x_type,
-                                                 incx,
-                                                 y,
-                                                 y_type,
-                                                 incy,
-                                                 batch_count,
-                                                 execution_type,
-                                                 "rocblas_axpy_batched_ex",
-                                                 "axpy_batched_ex");
+        return rocblas_axpy_batched_ex_impl<ROCBLAS_AXPY_NB>(handle,
+                                                             n,
+                                                             alpha,
+                                                             alpha_type,
+                                                             x,
+                                                             x_type,
+                                                             incx,
+                                                             y,
+                                                             y_type,
+                                                             incy,
+                                                             batch_count,
+                                                             execution_type,
+                                                             "rocblas_axpy_batched_ex",
+                                                             "axpy_batched_ex");
     }
     catch(...)
     {

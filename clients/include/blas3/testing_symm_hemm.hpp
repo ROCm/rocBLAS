@@ -46,66 +46,112 @@ void testing_symm_hemm_bad_arg(const Arguments& arg)
                            : (arg.fortran ? rocblas_symm<T, true> : rocblas_symm<T, false>);
     // clang-format on
 
-    rocblas_local_handle handle{arg};
-    const rocblas_side   side  = rocblas_side_left;
-    const rocblas_fill   uplo  = rocblas_fill_upper;
-    const rocblas_int    M     = 100;
-    const rocblas_int    N     = 100;
-    const rocblas_int    lda   = 100;
-    const rocblas_int    ldb   = 100;
-    const rocblas_int    ldc   = 100;
-    const T              alpha = 1.0;
-    const T              beta  = 1.0;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    size_t rows = (side == rocblas_side_left ? N : M);
-    size_t cols = (side == rocblas_side_left ? M : N);
+        const rocblas_side side = rocblas_side_left;
+        const rocblas_fill uplo = rocblas_fill_upper;
+        const rocblas_int  M    = 100;
+        const rocblas_int  N    = 100;
+        const rocblas_int  lda  = 100;
+        const rocblas_int  ldb  = 100;
+        const rocblas_int  ldc  = 100;
 
-    // Allocate device memory
-    device_matrix<T> dA(rows, cols, lda);
-    device_matrix<T> dB(M, N, ldb);
-    device_matrix<T> dC(M, N, ldc);
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(nullptr, side, uplo, M, N, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_handle);
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, rocblas_side_both, uplo, M, N, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_value);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, side, rocblas_fill_full, M, N, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_value);
+        size_t rows = (side == rocblas_side_left ? N : M);
+        size_t cols = (side == rocblas_side_left ? M : N);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, side, uplo, M, N, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_matrix<T> dA(rows, cols, lda);
+        device_matrix<T> dB(M, N, ldb);
+        device_matrix<T> dC(M, N, ldc);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, side, uplo, M, N, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, side, uplo, M, N, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_fn(nullptr, side, uplo, M, N, alpha, dA, lda, dB, ldb, beta, dC, ldc),
+            rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, side, uplo, M, N, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_fn(
+                handle, rocblas_side_both, uplo, M, N, alpha, dA, lda, dB, ldb, beta, dC, ldc),
+            rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, side, uplo, M, N, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_fn(
+                handle, side, rocblas_fill_full, M, N, alpha, dA, lda, dB, ldb, beta, dC, ldc),
+            rocblas_status_invalid_value);
 
-    // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_fn(handle, side, uplo, 0, N, nullptr, nullptr, lda, dB, ldb, nullptr, nullptr, ldc),
-        rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_fn(handle, side, uplo, M, N, nullptr, dA, lda, dB, ldb, beta, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_fn(handle, side, uplo, M, N, alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_fn(handle, side, uplo, M, N, alpha, nullptr, lda, dB, ldb, beta, dC, ldc),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_fn(handle, side, uplo, M, N, alpha, dA, lda, nullptr, ldb, beta, dC, ldc),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_fn(handle, side, uplo, M, N, alpha, dA, lda, dB, ldb, beta, nullptr, ldc),
+                rocblas_status_invalid_pointer);
+        }
+
+        // quick return with invalid pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_fn(handle,
+                                         side,
+                                         uplo,
+                                         0,
+                                         N,
+                                         nullptr,
+                                         nullptr,
+                                         lda,
+                                         nullptr,
+                                         ldb,
+                                         nullptr,
+                                         nullptr,
+                                         ldc),
+                              rocblas_status_success);
+
+        // alpha==0 and beta==1 all pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_fn(
+                handle, side, uplo, M, N, zero, nullptr, lda, nullptr, ldb, one, nullptr, ldc),
+            rocblas_status_success);
+    }
 }
 
 template <typename T, bool HERM>

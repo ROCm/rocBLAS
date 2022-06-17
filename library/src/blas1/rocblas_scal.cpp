@@ -24,6 +24,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
@@ -124,8 +125,7 @@ rocblas_status rocblas_sscal(
     rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
 }
 catch(...)
 {
@@ -136,8 +136,7 @@ rocblas_status rocblas_dscal(
     rocblas_handle handle, rocblas_int n, const double* alpha, double* x, rocblas_int incx)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
 }
 catch(...)
 {
@@ -151,8 +150,7 @@ rocblas_status rocblas_cscal(rocblas_handle               handle,
                              rocblas_int                  incx)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
 }
 catch(...)
 {
@@ -166,8 +164,7 @@ rocblas_status rocblas_zscal(rocblas_handle                handle,
                              rocblas_int                   incx)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
 }
 catch(...)
 {
@@ -182,8 +179,7 @@ rocblas_status rocblas_csscal(rocblas_handle         handle,
                               rocblas_int            incx)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
 }
 catch(...)
 {
@@ -197,8 +193,7 @@ rocblas_status rocblas_zdscal(rocblas_handle          handle,
                               rocblas_int             incx)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
 }
 catch(...)
 {
