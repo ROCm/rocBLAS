@@ -22,6 +22,7 @@
 
 #include "rocblas_iamin.hpp"
 #include "check_numerics_vector.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_reduction_impl.hpp"
 
 namespace
@@ -46,7 +47,7 @@ namespace
         static constexpr rocblas_stride shiftx_0      = 0;
         static constexpr rocblas_stride stridex_0     = 0;
         static constexpr rocblas_int    batch_count_1 = 1;
-        static constexpr int            NB            = 1024;
+        static constexpr int            NB            = ROCBLAS_IAMAX_NB;
 
         size_t         dev_bytes = 0;
         rocblas_status checks_status

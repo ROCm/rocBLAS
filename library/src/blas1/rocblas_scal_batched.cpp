@@ -23,6 +23,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_scal.hpp"
 #include "utility.hpp"
 
@@ -155,8 +156,7 @@ rocblas_status rocblas_sscal_batched(rocblas_handle handle,
                                      rocblas_int    batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, incx, batch_count);
+    return rocblas_scal_batched_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx, batch_count);
 }
 catch(...)
 {
@@ -171,8 +171,7 @@ rocblas_status rocblas_dscal_batched(rocblas_handle handle,
                                      rocblas_int    batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, incx, batch_count);
+    return rocblas_scal_batched_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx, batch_count);
 }
 catch(...)
 {
@@ -187,8 +186,7 @@ rocblas_status rocblas_cscal_batched(rocblas_handle               handle,
                                      rocblas_int                  batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, incx, batch_count);
+    return rocblas_scal_batched_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx, batch_count);
 }
 catch(...)
 {
@@ -203,8 +201,7 @@ rocblas_status rocblas_zscal_batched(rocblas_handle                handle,
                                      rocblas_int                   batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, incx, batch_count);
+    return rocblas_scal_batched_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx, batch_count);
 }
 catch(...)
 {
@@ -220,8 +217,7 @@ rocblas_status rocblas_csscal_batched(rocblas_handle               handle,
                                       rocblas_int                  batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, incx, batch_count);
+    return rocblas_scal_batched_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx, batch_count);
 }
 catch(...)
 {
@@ -236,8 +232,7 @@ rocblas_status rocblas_zdscal_batched(rocblas_handle                handle,
                                       rocblas_int                   batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, incx, batch_count);
+    return rocblas_scal_batched_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx, batch_count);
 }
 catch(...)
 {

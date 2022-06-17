@@ -23,20 +23,15 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trsm.hpp"
 #include "trtri_trsm.hpp"
 #include "utility.hpp"
 
 // Shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
 // you can use all 64K, but in practice no.
-constexpr rocblas_int STRSM_BLOCK = 128;
-constexpr rocblas_int DTRSM_BLOCK = 128;
-
-// For trsv case (side == left, n == 1)
-constexpr rocblas_int STRSV_BLOCK = 64;
-constexpr rocblas_int DTRSV_BLOCK = 64;
-constexpr rocblas_int CTRSV_BLOCK = 64;
-constexpr rocblas_int ZTRSV_BLOCK = 32;
+// constexpr rocblas_int STRSM_BLOCK = 128;
+// constexpr rocblas_int DTRSM_BLOCK = 128;
 
 namespace
 {
@@ -303,7 +298,7 @@ rocblas_status rocblas_strsm_batched(rocblas_handle     handle,
                                      rocblas_int        batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<STRSM_BLOCK, STRSV_BLOCK>(
+    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -326,7 +321,7 @@ rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<DTRSM_BLOCK, DTRSV_BLOCK>(
+    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -349,7 +344,7 @@ rocblas_status rocblas_ctrsm_batched(rocblas_handle                     handle,
                                      rocblas_int                        batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<STRSM_BLOCK, CTRSV_BLOCK>(
+    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -372,7 +367,7 @@ rocblas_status rocblas_ztrsm_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<DTRSM_BLOCK, ZTRSV_BLOCK>(
+    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -401,40 +396,42 @@ try
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsm_batched_ex_impl<DTRSM_BLOCK, DTRSV_BLOCK>(handle,
-                                                                      side,
-                                                                      uplo,
-                                                                      transA,
-                                                                      diag,
-                                                                      m,
-                                                                      n,
-                                                                      (double*)(alpha),
-                                                                      (const double* const*)(A),
-                                                                      lda,
-                                                                      (double* const*)(B),
-                                                                      ldb,
-                                                                      batch_count,
-                                                                      (const double* const*)(invA),
-                                                                      invA_size);
+        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            (double*)(alpha),
+            (const double* const*)(A),
+            lda,
+            (double* const*)(B),
+            ldb,
+            batch_count,
+            (const double* const*)(invA),
+            invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsm_batched_ex_impl<STRSM_BLOCK, STRSV_BLOCK>(handle,
-                                                                      side,
-                                                                      uplo,
-                                                                      transA,
-                                                                      diag,
-                                                                      m,
-                                                                      n,
-                                                                      (float*)(alpha),
-                                                                      (const float* const*)(A),
-                                                                      lda,
-                                                                      (float* const*)(B),
-                                                                      ldb,
-                                                                      batch_count,
-                                                                      (const float* const*)(invA),
-                                                                      invA_size);
+        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            (float*)(alpha),
+            (const float* const*)(A),
+            lda,
+            (float* const*)(B),
+            ldb,
+            batch_count,
+            (const float* const*)(invA),
+            invA_size);
     case rocblas_datatype_f64_c:
-        return rocblas_trsm_batched_ex_impl<DTRSM_BLOCK, ZTRSV_BLOCK>(
+        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
             handle,
             side,
             uplo,
@@ -452,7 +449,7 @@ try
             invA_size);
 
     case rocblas_datatype_f32_c:
-        return rocblas_trsm_batched_ex_impl<STRSM_BLOCK, CTRSV_BLOCK>(
+        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
             handle,
             side,
             uplo,

@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_swap.hpp"
 #include "utility.hpp"
 
@@ -127,7 +128,7 @@ namespace
                 return swap_check_numerics_status;
         }
 
-        static constexpr rocblas_int NB     = 256;
+        static constexpr rocblas_int NB     = ROCBLAS_SWAP_NB;
         rocblas_status               status = rocblas_swap_template<NB>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
         if(status != rocblas_status_success)

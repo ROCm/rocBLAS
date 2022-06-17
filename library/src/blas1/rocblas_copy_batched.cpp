@@ -22,6 +22,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_copy.hpp"
 #include "utility.hpp"
 
@@ -161,8 +162,7 @@ rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
                                      rocblas_int        batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_copy_batched_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy, batch_count);
 }
 catch(...)
 {
@@ -178,8 +178,7 @@ rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_copy_batched_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy, batch_count);
 }
 catch(...)
 {
@@ -195,8 +194,7 @@ rocblas_status rocblas_hcopy_batched(rocblas_handle            handle,
                                      rocblas_int               batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_copy_batched_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy, batch_count);
 }
 catch(...)
 {
@@ -212,8 +210,7 @@ rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
                                      rocblas_int                        batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_copy_batched_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy, batch_count);
 }
 catch(...)
 {
@@ -229,8 +226,7 @@ rocblas_status rocblas_zcopy_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_copy_batched_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy, batch_count);
 }
 catch(...)
 {

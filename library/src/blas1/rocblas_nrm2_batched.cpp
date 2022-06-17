@@ -20,6 +20,7 @@
  *
  * ************************************************************************ */
 #include "check_numerics_vector.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_nrm2.hpp"
 #include "rocblas_reduction_impl.hpp"
 
@@ -129,21 +130,21 @@ extern "C" {
 #error IMPL IS ALREADY DEFINED
 #endif
 
-#define IMPL(name_, typei_, typeo_)                                                    \
-    rocblas_status name_(rocblas_handle      handle,                                   \
-                         rocblas_int         n,                                        \
-                         const typei_* const x[],                                      \
-                         rocblas_int         incx,                                     \
-                         rocblas_int         batch_count,                              \
-                         typeo_*             result)                                   \
-    try                                                                                \
-    {                                                                                  \
-        constexpr rocblas_int NB = 512;                                                \
-        return rocblas_nrm2_batched_impl<NB>(handle, n, x, incx, batch_count, result); \
-    }                                                                                  \
-    catch(...)                                                                         \
-    {                                                                                  \
-        return exception_to_rocblas_status();                                          \
+#define IMPL(name_, typei_, typeo_)                        \
+    rocblas_status name_(rocblas_handle      handle,       \
+                         rocblas_int         n,            \
+                         const typei_* const x[],          \
+                         rocblas_int         incx,         \
+                         rocblas_int         batch_count,  \
+                         typeo_*             result)       \
+    try                                                    \
+    {                                                      \
+        return rocblas_nrm2_batched_impl<ROCBLAS_NRM2_NB>( \
+            handle, n, x, incx, batch_count, result);      \
+    }                                                      \
+    catch(...)                                             \
+    {                                                      \
+        return exception_to_rocblas_status();              \
     }
 
 IMPL(rocblas_snrm2_batched, float, float);

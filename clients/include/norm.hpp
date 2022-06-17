@@ -18,12 +18,11 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- *
  * ************************************************************************ */
-
 #pragma once
 
 #include "cblas.h"
+#include "lapack_utilities.hpp"
 #include "norm.hpp"
 #include "rocblas.h"
 #include "rocblas_vector.hpp"
@@ -40,16 +39,9 @@
  * \brief compares two results (usually, CPU and GPU results); provides Norm check
  */
 
-/* ========================================Norm Check
- * ==================================================== */
-
-/* LAPACK fortran library functionality */
+/* ========================================Norm Check* ==================================================== */
+// LAPACK fortran library functionality
 extern "C" {
-float  slange_(char* norm_type, int* m, int* n, float* A, int* lda, float* work);
-double dlange_(char* norm_type, int* m, int* n, double* A, int* lda, double* work);
-float  clange_(char* norm_type, int* m, int* n, rocblas_float_complex* A, int* lda, float* work);
-double zlange_(char* norm_type, int* m, int* n, rocblas_double_complex* A, int* lda, double* work);
-
 float  slansy_(char* norm_type, char* uplo, int* n, float* A, int* lda, float* work);
 double dlansy_(char* norm_type, char* uplo, int* n, double* A, int* lda, double* work);
 float clanhe_(char* norm_type, char* uplo, int* n, rocblas_float_complex* A, int* lda, float* work);
@@ -70,29 +62,6 @@ void zaxpy_(int*                    n,
             int*                    incx,
             rocblas_double_complex* y,
             int*                    incy);
-}
-
-/*! \brief  Overloading: norm check for general Matrix: half/float/doubel/complex */
-inline float xlange(char* norm_type, int* m, int* n, float* A, int* lda, float* work)
-{
-    return slange_(norm_type, m, n, A, lda, work);
-}
-
-inline double xlange(char* norm_type, int* m, int* n, double* A, int* lda, double* work)
-{
-    return dlange_(norm_type, m, n, A, lda, work);
-}
-
-inline float
-    xlange(char* norm_type, int* m, int* n, rocblas_float_complex* A, int* lda, float* work)
-{
-    return clange_(norm_type, m, n, A, lda, work);
-}
-
-inline double
-    xlange(char* norm_type, int* m, int* n, rocblas_double_complex* A, int* lda, double* work)
-{
-    return zlange_(norm_type, m, n, A, lda, work);
 }
 
 inline float xlanhe(char* norm_type, char* uplo, int* n, float* A, int* lda, float* work)
@@ -183,14 +152,13 @@ double norm_check_general(
         }
     }
 
-    double      work[1];
-    rocblas_int incx  = 1;
-    double      alpha = -1.0;
+    host_vector<double> work(std::max(1, M));
+    rocblas_int         incx  = 1;
+    double              alpha = -1.0;
 
-    double cpu_norm = xlange(&norm_type, &M, &N, hCPU_double.data(), &lda, work);
+    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU_double.data(), lda, work.data());
     m_axpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
-    double error = xlange(&norm_type, &M, &N, hGPU_double.data(), &lda, work) / cpu_norm;
-
+    double error = lapack_xlange(norm_type, M, N, hGPU_double.data(), lda, work.data()) / cpu_norm;
     return error;
 }
 
@@ -204,14 +172,14 @@ double norm_check_general(
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
 
-    decltype(std::real(*hCPU)) work[1];
-    rocblas_int                incx  = 1;
-    T                          alpha = -1.0;
-    size_t                     size  = N * (size_t)lda;
+    host_vector<double> work(std::max(1, M));
+    rocblas_int         incx  = 1;
+    T                   alpha = -1.0;
+    size_t              size  = N * (size_t)lda;
 
-    double cpu_norm = xlange(&norm_type, &M, &N, hCPU, &lda, work);
+    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU, lda, work.data());
     m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
-    double error = xlange(&norm_type, &M, &N, hGPU, &lda, work) / cpu_norm;
+    double error = lapack_xlange(norm_type, M, N, hGPU, lda, work.data()) / cpu_norm;
 
     return error;
 }

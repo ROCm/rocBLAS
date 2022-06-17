@@ -23,6 +23,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
@@ -140,8 +141,8 @@ rocblas_status rocblas_scal_ex(rocblas_handle   handle,
                                rocblas_datatype execution_type)
 try
 {
-    constexpr rocblas_int NB = 256;
-    return rocblas_scal_ex_impl<NB>(handle, n, alpha, alpha_type, x, x_type, incx, execution_type);
+    return rocblas_scal_ex_impl<ROCBLAS_SCAL_NB>(
+        handle, n, alpha, alpha_type, x, x_type, incx, execution_type);
 }
 catch(...)
 {
