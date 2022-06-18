@@ -24,6 +24,7 @@
 #pragma once
 
 #include "cblas.h"
+#include "lapack_utilities.hpp"
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include <type_traits>
@@ -343,39 +344,6 @@ inline void cblas_swap(rocblas_int             n,
 }
 
 // rot
-
-// LAPACK fortran library functionality
-extern "C" {
-void crot_(const int*                   n,
-           rocblas_float_complex*       cx,
-           const int*                   incx,
-           rocblas_float_complex*       cy,
-           const int*                   incy,
-           const float*                 c,
-           const rocblas_float_complex* s);
-void csrot_(const int*             n,
-            rocblas_float_complex* cx,
-            const int*             incx,
-            rocblas_float_complex* cy,
-            const int*             incy,
-            const float*           c,
-            const float*           s);
-void zrot_(const int*                    n,
-           rocblas_double_complex*       cx,
-           const int*                    incx,
-           rocblas_double_complex*       cy,
-           const int*                    incy,
-           const double*                 c,
-           const rocblas_double_complex* s);
-void zdrot_(const int*              n,
-            rocblas_double_complex* cx,
-            const int*              incx,
-            rocblas_double_complex* cy,
-            const int*              incy,
-            const double*           c,
-            const double*           s);
-}
-
 template <typename Tx, typename Ty, typename Tc, typename Ts>
 void cblas_rot(
     rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, const Tc* c, const Ts* s);
@@ -413,7 +381,7 @@ inline void cblas_rot(rocblas_int                  n,
                       const float*                 c,
                       const rocblas_float_complex* s)
 {
-    crot_(&n, x, &incx, y, &incy, c, s);
+    lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 template <>
@@ -425,7 +393,7 @@ inline void cblas_rot(rocblas_int            n,
                       const float*           c,
                       const float*           s)
 {
-    csrot_(&n, x, &incx, y, &incy, c, s);
+    lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 template <>
@@ -437,7 +405,7 @@ inline void cblas_rot(rocblas_int                   n,
                       const double*                 c,
                       const rocblas_double_complex* s)
 {
-    zrot_(&n, x, &incx, y, &incy, c, s);
+    lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 template <>
@@ -449,7 +417,7 @@ inline void cblas_rot(rocblas_int             n,
                       const double*           c,
                       const double*           s)
 {
-    zdrot_(&n, x, &incx, y, &incy, c, s);
+    lapack_xrot(n, x, incx, y, incy, *c, *s);
 }
 
 // for rot_ex
@@ -463,7 +431,7 @@ inline void cblas_rot(rocblas_int                  n,
                       const rocblas_float_complex* s)
 {
     const float c_real = std::real(*c);
-    crot_(&n, x, &incx, y, &incy, &c_real, s);
+    lapack_xrot(n, x, incx, y, incy, c_real, *s);
 }
 
 template <>
@@ -476,20 +444,10 @@ inline void cblas_rot(rocblas_int                   n,
                       const rocblas_double_complex* s)
 {
     const double c_real = std::real(*c);
-    zrot_(&n, x, &incx, y, &incy, &c_real, s);
+    lapack_xrot(n, x, incx, y, incy, c_real, *s);
 }
 
 // rotg
-
-// LAPACK fortran library functionality
-extern "C" {
-void crotg_(rocblas_float_complex* a, rocblas_float_complex* b, float* c, rocblas_float_complex* s);
-void zrotg_(rocblas_double_complex* a,
-            rocblas_double_complex* b,
-            double*                 c,
-            rocblas_double_complex* s);
-}
-
 template <typename T, typename U>
 inline void cblas_rotg(T* a, T* b, U* c, T* s);
 
@@ -511,7 +469,7 @@ inline void cblas_rotg(rocblas_float_complex* a,
                        float*                 c,
                        rocblas_float_complex* s)
 {
-    crotg_(a, b, c, s);
+    lapack_xrotg(*a, *b, *c, *s);
 }
 
 template <>
@@ -520,7 +478,7 @@ inline void cblas_rotg(rocblas_double_complex* a,
                        double*                 c,
                        rocblas_double_complex* s)
 {
-    zrotg_(a, b, c, s);
+    lapack_xrotg(*a, *b, *c, *s);
 }
 
 // rotm
@@ -1438,31 +1396,6 @@ inline void cblas_symv(rocblas_fill uplo,
     cblas_dsymv(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
-// blis flame symbols
-extern "C" {
-void csymv_(char*                  uplo,
-            int*                   n,
-            rocblas_float_complex* alpha,
-            rocblas_float_complex* A,
-            int*                   lda,
-            rocblas_float_complex* x,
-            int*                   incx,
-            rocblas_float_complex* beta,
-            rocblas_float_complex* y,
-            int*                   yinc);
-
-void zsymv_(char*                   uplo,
-            int*                    n,
-            rocblas_double_complex* alpha,
-            rocblas_double_complex* A,
-            int*                    lda,
-            rocblas_double_complex* x,
-            int*                    incx,
-            rocblas_double_complex* beta,
-            rocblas_double_complex* y,
-            int*                    yinc);
-}
-
 template <>
 inline void cblas_symv(rocblas_fill           uplo,
                        rocblas_int            n,
@@ -1475,8 +1408,7 @@ inline void cblas_symv(rocblas_fill           uplo,
                        rocblas_float_complex* y,
                        rocblas_int            incy)
 {
-    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
-    csymv_(&u, &n, &alpha, A, &lda, x, &incx, &beta, y, &incy);
+    lapack_xsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <>
@@ -1491,8 +1423,7 @@ inline void cblas_symv(rocblas_fill            uplo,
                        rocblas_double_complex* y,
                        rocblas_int             incy)
 {
-    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
-    zsymv_(&u, &n, &alpha, A, &lda, x, &incx, &beta, y, &incy);
+    lapack_xsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 // spr
@@ -1715,24 +1646,6 @@ inline void cblas_syr(rocblas_fill uplo,
     cblas_dsyr(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A, lda);
 }
 
-// blis flame symbols
-extern "C" {
-void csyr_(char*                  uplo,
-           int*                   n,
-           rocblas_float_complex* alpha,
-           rocblas_float_complex* x,
-           int*                   incx,
-           rocblas_float_complex* a,
-           int*                   lda);
-void zsyr_(char*                   uplo,
-           int*                    n,
-           rocblas_double_complex* alpha,
-           rocblas_double_complex* x,
-           int*                    incx,
-           rocblas_double_complex* a,
-           int*                    lda);
-}
-
 template <>
 inline void cblas_syr(rocblas_fill           uplo,
                       rocblas_int            n,
@@ -1742,8 +1655,7 @@ inline void cblas_syr(rocblas_fill           uplo,
                       rocblas_float_complex* A,
                       rocblas_int            lda)
 {
-    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
-    csyr_(&u, &n, &alpha, xa, &incx, A, &lda);
+    lapack_xsyr(uplo, n, alpha, xa, incx, A, lda);
 }
 
 template <>
@@ -1755,45 +1667,8 @@ inline void cblas_syr(rocblas_fill            uplo,
                       rocblas_double_complex* A,
                       rocblas_int             lda)
 {
-    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
-    zsyr_(&u, &n, &alpha, xa, &incx, A, &lda);
+    lapack_xsyr(uplo, n, alpha, xa, incx, A, lda);
 }
-
-/* working cpu template code in case flame symbols disappear
-// cblas_syr doesn't have complex support so implementation below for float/double complex
-template <typename T>
-void cblas_syr(
-    rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A, rocblas_int lda)
-{
-    if(n <= 0)
-        return;
-
-    T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
-
-    if(uplo == rocblas_fill_upper)
-    {
-        for(int j = 0; j < n; ++j)
-        {
-            T tmp = alpha * x[j * incx];
-            for(int i = 0; i <= j; ++i)
-            {
-                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
-            }
-        }
-    }
-    else
-    {
-        for(int j = 0; j < n; ++j)
-        {
-            T tmp = alpha * x[j * incx];
-            for(int i = j; i < n; ++i)
-            {
-                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
-            }
-        }
-    }
-}
-*/
 
 // syr2
 template <typename T>
@@ -1835,50 +1710,6 @@ inline void cblas_syr2(rocblas_fill uplo,
     cblas_dsyr2(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, y, incy, A, lda);
 }
 
-// No complex implementation of syr2, make a local version.
-template <typename T>
-inline void cblas_syr2_local(rocblas_fill uplo,
-                             rocblas_int  n,
-                             T            alpha,
-                             T*           xa,
-                             rocblas_int  incx,
-                             T*           ya,
-                             rocblas_int  incy,
-                             T*           A,
-                             rocblas_int  lda)
-{
-    if(n <= 0 || alpha == 0)
-        return;
-
-    T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
-    T* y = (incy < 0) ? ya - ptrdiff_t(incy) * (n - 1) : ya;
-
-    if(uplo == rocblas_fill_upper)
-    {
-        for(int j = 0; j < n; ++j)
-        {
-            T tmpx = alpha * x[j * incx];
-            T tmpy = alpha * y[j * incy];
-            for(int i = 0; i <= j; ++i)
-            {
-                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmpy + y[i * incy] * tmpx;
-            }
-        }
-    }
-    else
-    {
-        for(int j = 0; j < n; ++j)
-        {
-            T tmpx = alpha * x[j * incx];
-            T tmpy = alpha * y[j * incy];
-            for(int i = j; i < n; ++i)
-            {
-                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmpy + y[i * incy] * tmpx;
-            }
-        }
-    }
-}
-
 template <>
 inline void cblas_syr2(rocblas_fill           uplo,
                        rocblas_int            n,
@@ -1890,7 +1721,7 @@ inline void cblas_syr2(rocblas_fill           uplo,
                        rocblas_float_complex* A,
                        rocblas_int            lda)
 {
-    cblas_syr2_local(uplo, n, alpha, x, incx, y, incy, A, lda);
+    lapack_xsyr2(uplo, n, alpha, x, incx, y, incy, A, lda);
 }
 
 template <>
@@ -1904,7 +1735,7 @@ inline void cblas_syr2(rocblas_fill            uplo,
                        rocblas_double_complex* A,
                        rocblas_int             lda)
 {
-    cblas_syr2_local(uplo, n, alpha, x, incx, y, incy, A, lda);
+    lapack_xsyr2(uplo, n, alpha, x, incx, y, incy, A, lda);
 }
 
 // hbmv
