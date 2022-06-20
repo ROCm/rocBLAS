@@ -5,7 +5,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## (Unreleased) rocBLAS 2.45.0
 ### Added
 - install.sh option --upgrade_tensile_venv_pip to upgrade Pip in Tensile Virtual Environment. The corresponding CMake option is TENSILE_VENV_UPGRADE_PIP.
-- install.sh option --relocatable or -r too add rpath and remove ldconf entry on rocBLAS build.
+- install.sh option --relocatable or -r adds rpath and removes ldconf entry on rocBLAS build.
 - Support for RHEL9 and CS9.
 - Added Numerical checking routine for symmetric, Hermitian, and triangular matrices, so that they could be checked for any numerical abnormalities such as NaN, Zero, infinity and denormal value.
  
@@ -36,7 +36,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - The enum truncate_t and the value truncate is now deprecated and will removed from the ROCm release 6.0. It is replaced by rocblas_truncate_t and rocblas_truncate, respectively. The new enum rocblas_truncate_t and the value rocblas_truncate could be used from this ROCm release for an easy transition.
  
 ### Removed
-- install.sh options  --hip-clang , --no-hip-clang, --merge-files, --no-merge-files are removed. The default options are set to --hip-clang and --merge-files.
+- install.sh options  --hip-clang , --no-hip-clang, --merge-files, --no-merge-files are removed.
 
 ## rocBLAS 2.44.0 for ROCm 5.2.0
 ### Added
