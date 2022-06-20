@@ -24,7 +24,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Moved function block sizes to a shared header file.
 - Level 1, 2, and 3 functions use rocblas_stride datatype for offset.
 - Modified the matrix and vector memory allocation in our test infrastructure for all Level 1, 2, 3 and BLAS_EX functions.
-- Added specific initialization to honour symmetric, Hermitian, and triangular matrix types in our test infrastructure.
+- Added specific initialization for symmetric, Hermitian, and triangular matrix types in our test infrastructure.
 - Added NaN tests to the test infrastructure for the rest of Level 3, BLAS_EX functions.
 
 ### Fixed
