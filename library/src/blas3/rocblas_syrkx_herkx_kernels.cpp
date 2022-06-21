@@ -22,6 +22,7 @@
 
 #include "Tensile/gemm.hpp"
 #include "definitions.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_syrkx.hpp"
 
 template <typename T,
@@ -1376,29 +1377,35 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_syrkx_
                                     rocblas_int       batch_count);
 
 // instantiate for rocblas_Xsyrkx and rocblas_Xsyrkx_strided_batched
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(16, false, false, float,  float const,  float,  float const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(32, false, false, double, double const, double, double const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(16, false, false, double, double const, double, double const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8, false, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(32, false, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8, false, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(32, false, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_SSYRKX_NB, false, false, float,  float const,  float,  float const)
+// INSTANTIATE_SYRKX_HERKX_TEMPLATE(16, false, false, double, double const, double, double const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_DCZSYRKX_NB, false, false, double, double const, double, double const)
+// INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8, false, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_DCZSYRKX_NB, false, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
+// INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8, false, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_DCZSYRKX_NB, false, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
+
+// instantiate for rocblas_Xsyrk, double/double complex precisions already covered
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_SDZSYRK_NB, false, false, float,  float const,  float,  float const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_CSYRK_NB, false, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
 
 // instantiate for rocblas_Xherkx and rocblas_Xherkx_strided_batched
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8, false, true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(32, false, true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8, false, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(32, false, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_HERKX_NB, false, true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_HERKX_NB, false, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
 
-// instantiate for rocblas_Xsyrkx_batched
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(16,  true, false,  float,  float const,  float* const,  float const* const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE(16,  true, false, double, double const, double* const, double const* const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8,  true, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8,  true, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const)
+// instantiate for rocblas_Xherk
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_CHERK_NB, false, true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex,  rocblas_float_complex const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_ZHERK_NB, false, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex, rocblas_double_complex const)
 
-// instantiate for rocblas_Xherkx_batched
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8,  true, true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const)
-INSTANTIATE_SYRKX_HERKX_TEMPLATE( 8,  true, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const)
+// instantiate for rocblas_Xsyrk(x)_batched
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_SDSYRKX_BATCHED_NB,  true, false,  float,  float const,  float* const,  float const* const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_SDSYRKX_BATCHED_NB,  true, false, double, double const, double* const, double const* const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_CZSYRKX_BATCHED_NB,  true, false,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_CZSYRKX_BATCHED_NB,  true, false, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const)
+
+// instantiate for rocblas_Xherk(x)_batched
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_HERKX_BATCHED_NB,  true, true,  rocblas_float_complex,  rocblas_float_complex const,  rocblas_float_complex* const,  rocblas_float_complex const* const)
+INSTANTIATE_SYRKX_HERKX_TEMPLATE(ROCBLAS_HERKX_BATCHED_NB,  true, true, rocblas_double_complex, rocblas_double_complex const, rocblas_double_complex* const, rocblas_double_complex const* const)
 
 #undef INSTANTIATE_SYRKX_HERKX_TEMPLATE
 // clang-format on
