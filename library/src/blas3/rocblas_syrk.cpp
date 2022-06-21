@@ -243,10 +243,10 @@ extern "C" {
         return exception_to_rocblas_status();                                                   \
     }
 
-IMPL(rocblas_ssyrk, ROCBLAS_SSYRK_NB, float);
-IMPL(rocblas_dsyrk, ROCBLAS_DCZSYRK_NB, double);
-IMPL(rocblas_csyrk, ROCBLAS_DCZSYRK_NB, rocblas_float_complex);
-IMPL(rocblas_zsyrk, ROCBLAS_DCZSYRK_NB, rocblas_double_complex);
+IMPL(rocblas_ssyrk, ROCBLAS_SDZSYRK_NB, float);
+IMPL(rocblas_dsyrk, ROCBLAS_SDZSYRK_NB, double);
+IMPL(rocblas_csyrk, ROCBLAS_CSYRK_NB, rocblas_float_complex);
+IMPL(rocblas_zsyrk, ROCBLAS_SDZSYRK_NB, rocblas_double_complex);
 
 #undef IMPL
 

@@ -24,6 +24,7 @@
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "flops.hpp"
 #include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"

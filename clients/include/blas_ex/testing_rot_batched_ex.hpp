@@ -22,7 +22,9 @@
 
 #pragma once
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
