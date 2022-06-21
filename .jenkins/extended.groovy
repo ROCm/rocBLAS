@@ -60,7 +60,7 @@ def runCI =
                 }
                 else if(it == "TestLevel1Only")
                 {
-                    testFilter += "*blas1/nightly*:"
+                    testFilter += "*blas1*nightly*:"
                 }
             }
         }
