@@ -239,8 +239,8 @@ extern "C" {
         return exception_to_rocblas_status();                                                   \
     }
 
-IMPL(rocblas_cherk, ROCBLAS_HERK_NB, float, rocblas_float_complex);
-IMPL(rocblas_zherk, ROCBLAS_HERK_NB, double, rocblas_double_complex);
+IMPL(rocblas_cherk, ROCBLAS_CHERK_NB, float, rocblas_float_complex);
+IMPL(rocblas_zherk, ROCBLAS_ZHERK_NB, double, rocblas_double_complex);
 
 #undef IMPL
 
