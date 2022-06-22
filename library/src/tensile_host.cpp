@@ -36,6 +36,7 @@ extern "C" void rocblas_shutdown();
 #include <Tensile/Contractions.hpp>
 #include <Tensile/EmbeddedLibrary.hpp>
 #include <Tensile/MasterSolutionLibrary.hpp>
+#include <Tensile/PlaceholderLibrary.hpp>
 #include <Tensile/Tensile.hpp>
 #include <Tensile/TensorDescriptor.hpp>
 #include <Tensile/Utils.hpp>
@@ -540,6 +541,11 @@ namespace
         {
             std::string path;
             std::string tensileLibraryPath;
+            bool        tensile_lazy_load_enabled = false;
+            static std::future<
+                std::shared_ptr<Tensile::SolutionLibrary<Tensile::ContractionProblem>>>
+                ftr_lib;
+
 #ifndef WIN32
             path.reserve(PATH_MAX);
 #endif
@@ -598,85 +604,117 @@ namespace
             }
 
 #ifdef TENSILE_YAML
-            tensileLibraryPath = path + "/TensileLibrary_" + processor + ".yaml";
+            tensileLibraryPath = path + "/TensileLibrary_lazy_" + processor + ".yaml";
 #else
-            tensileLibraryPath = path + "/TensileLibrary_" + processor + ".dat";
+            tensileLibraryPath = path + "/TensileLibrary_lazy_" + processor + ".dat";
 #endif
             if(!TestPath(tensileLibraryPath))
             {
-#ifdef TENSILE_YAML
-                tensileLibraryPath = path + "/TensileLibrary.yaml";
-#else
-                tensileLibraryPath = path + "/TensileLibrary.dat";
-#endif
 
+#ifdef TENSILE_YAML
+                tensileLibraryPath = path + "/TensileLibrary_" + processor + ".yaml";
+#else
+                tensileLibraryPath = path + "/TensileLibrary_" + processor + ".dat";
+#endif
                 if(!TestPath(tensileLibraryPath))
                 {
-                    rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath << ": "
-                                 << strerror(errno) << std::endl;
-                    rocblas_abort();
+#ifdef TENSILE_YAML
+                    tensileLibraryPath = path + "/TensileLibrary.yaml";
+#else
+                    tensileLibraryPath = path + "/TensileLibrary.dat";
+#endif
+
+                    if(!TestPath(tensileLibraryPath))
+                    {
+                        rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath
+                                     << ": " << strerror(errno) << std::endl;
+                        rocblas_abort();
+                    }
                 }
             }
-            // We initialize a local static variable with a lambda function call to avoid
-            // race conditions when multiple threads with different device IDs try to
-            // initialize library. This ensures that only one thread initializes library,
-            // and other threads trying to initialize library wait for it to complete.
-            static auto ftr_lib = std::async(std::launch::async,
-                                             Tensile::LoadLibraryFile<Tensile::ContractionProblem>,
-                                             tensileLibraryPath);
+            else
+                tensile_lazy_load_enabled = true;
 
-            // only load modules for the current architecture
-            auto dir = path + "/*" + processor + "*co";
+            if(!tensile_lazy_load_enabled || rocblas_initialize_called())
+            {
 
-            bool no_match = false;
+                static int once = [&] {
+                    ftr_lib = std::async(
+                        std::launch::async,
+                        Tensile::LoadLibraryFilePreload<Tensile::ContractionProblem>,
+                        tensileLibraryPath,
+                        std::vector<Tensile::LazyLoadingInit>{Tensile::LazyLoadingInit::All});
+                    return 0;
+                }();
+
+                // only load modules for the current architecture
+                auto dir = path + "/*" + processor + "*co";
+
+                bool no_match = false;
 #ifdef WIN32
-            std::replace(dir.begin(), dir.end(), '/', '\\');
-            WIN32_FIND_DATAA finddata;
-            HANDLE           hfine = FindFirstFileA(dir.c_str(), &finddata);
-            if(hfine != INVALID_HANDLE_VALUE)
-            {
-                do
+                std::replace(dir.begin(), dir.end(), '/', '\\');
+                WIN32_FIND_DATAA finddata;
+                HANDLE           hfine = FindFirstFileA(dir.c_str(), &finddata);
+                if(hfine != INVALID_HANDLE_VALUE)
                 {
-                    std::string codeObjectFile = path + "\\" + finddata.cFileName;
-                    adapter.loadCodeObjectFile(codeObjectFile.c_str());
-                } while(FindNextFileA(hfine, &finddata));
-            }
-            else
-            {
-                no_match = true;
-            }
-            FindClose(hfine);
+                    do
+                    {
+                        std::string codeObjectFile = path + "\\" + finddata.cFileName;
+                        adapter.loadCodeObjectFile(codeObjectFile.c_str());
+                    } while(FindNextFileA(hfine, &finddata));
+                }
+                else
+                {
+                    no_match = true;
+                }
+                FindClose(hfine);
 #else
-            glob_t glob_result{};
-            int    g = glob(dir.c_str(), GLOB_NOSORT, nullptr, &glob_result);
-            if(!g)
-            {
-                for(size_t i = 0; i < glob_result.gl_pathc; ++i)
-                    adapter.loadCodeObjectFile(glob_result.gl_pathv[i]);
-            }
-            else if(g == GLOB_NOMATCH)
-            {
-                no_match = true;
-            }
-            else
-            {
-                // clang-format off
+                glob_t glob_result{};
+                int    g = glob(dir.c_str(), GLOB_NOSORT, nullptr, &glob_result);
+                if(!g)
+                {
+                    for(size_t i = 0; i < glob_result.gl_pathc; ++i)
+                        adapter.loadCodeObjectFile(glob_result.gl_pathv[i]);
+                }
+                else if(g == GLOB_NOMATCH)
+                {
+                    no_match = true;
+                }
+                else
+                {
+                    // clang-format off
                 static auto& once = rocblas_cerr
                                     << "\nrocBLAS warning: glob(\"" << dir << "\", ...) returned "
                                     << (g == GLOB_ABORTED ? "GLOB_ABORTED"
                                                           : g == GLOB_NOSPACE ? "GLOB_NOSPACE"
                                                                               : "an unknown error")
                                     << "." << std::endl;
-                // clang-format on
-            }
-            globfree(&glob_result);
+                    // clang-format on
+                }
+                globfree(&glob_result);
 #endif
-            if(no_match)
+                if(no_match)
+                {
+                    static auto& once
+                        = rocblas_cerr
+                          << "\nrocBLAS warning: No paths matched " << dir
+                          << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
+                          << std::endl;
+                }
+            }
+            else // initialize lazy loading
             {
-                static auto& once = rocblas_cerr
-                                    << "\nrocBLAS warning: No paths matched " << dir
-                                    << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
-                                    << std::endl;
+                static int once = [&] {
+                    ftr_lib
+                        = std::async(std::launch::async,
+                                     Tensile::LoadLibraryFilePreload<Tensile::ContractionProblem>,
+                                     tensileLibraryPath,
+                                     std::vector<Tensile::LazyLoadingInit>{});
+
+                    return 0;
+                }();
+
+                adapter.initializeLazyLoading(processor, path);
             }
 
             {
@@ -870,6 +908,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
  ***************************************************************/
 extern "C" void rocblas_initialize()
 {
+    rocblas_initialize_called() = true;
     get_library_and_adapter();
 }
 
@@ -918,4 +957,13 @@ ROCBLAS_INTERNAL_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialize
 {
     static std::atomic_bool init;
     return init;
+}
+
+/***********************************************************************************
+ * Whether rocblas_initialize() is invoked to load all tensile kernels at startup  *
+ ***********************************************************************************/
+std::atomic_bool& rocblas_initialize_called()
+{
+    static std::atomic_bool rocblas_init_called;
+    return rocblas_init_called;
 }

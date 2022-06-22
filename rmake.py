@@ -75,6 +75,12 @@ def parse_args():
     parser.add_argument('-l', '--logic', dest='tensile_logic', type=str, required=False, default="asm_full",
                         help='Specify the Tensile logic target, e.g., asm_full, asm_lite, etc. (optional, default: asm_full)')
 
+    parser.add_argument(    '--lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=True, action='store_true',
+                        help='Enable on-demand loading of Tensile Library files, speeds up the rocblas initialization. (Default is enabled)')
+
+    parser.add_argument(    '--no-lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=False, action='store_false',
+                        help='Disable on-demand loading of Tensile Library files. (Default is enabled)')
+
     parser.add_argument(     '--library-path', dest='library_dir_installed', type=str, required=False, default = "",
                         help='Specify path to a pre-built rocBLAS library, when building clients only using --clients-only flag. (optional, default: /opt/rocm/rocblas)')
 
@@ -251,6 +257,8 @@ def config_cmd():
         cmake_options.append( f"-DTensile_CODE_OBJECT_VERSION=V3" )
         if args.tensile_logic:
             cmake_options.append( f"-DTensile_LOGIC={args.tensile_logic}" )
+        if args.tensile_lazy_library_loading:
+            cmake_options.append( f"-DTensile_LAZY_LIBRARY_LOADING=ON" )
         if args.tensile_fork:
             cmake_options.append( f"-Dtensile_fork={args.tensile_fork}" )
         if args.tensile_tag:

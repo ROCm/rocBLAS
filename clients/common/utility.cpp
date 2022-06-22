@@ -322,8 +322,8 @@ void rocblas_client_initialize()
     // this routine completes execution under max limit of 12 seconds.
     // The minimum time it takes to complete varies based on
     // the architecture & build options used while building the library.
-    // Setting a max duration of 15 seconds for rocblas library initialization to complete.
-    constexpr static int max_duration = 15;
+    // Setting a max duration of 5 seconds for rocblas library initialization to complete.
+    constexpr static int max_duration = 5;
 
     // Store the start timepoint of rocblas initialize
     auto start_time = std::chrono::steady_clock::now();
@@ -337,8 +337,12 @@ void rocblas_client_initialize()
     auto total_library_initialize_time
         = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
 
+    // Compute the time taken to load the Tensile kernels (in milliseconds).
+    auto init_time_in_ms
+        = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
     rocblas_cout << "\nrocBLAS info: Time taken to complete rocBLAS library initialization is "
-                 << total_library_initialize_time << " seconds." << std::endl;
+                 << init_time_in_ms << " milliseconds." << std::endl;
 
     // If initialization time exceeds the max duration, display the following info message.
     if(total_library_initialize_time > max_duration)

@@ -6,16 +6,17 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Added
 - install.sh option --upgrade_tensile_venv_pip to upgrade Pip in Tensile Virtual Environment. The corresponding CMake option is TENSILE_VENV_UPGRADE_PIP.
 - install.sh option --relocatable or -r adds rpath and removes ldconf entry on rocBLAS build.
+- install.sh option --lazy-library-loading to enable on-demand loading of tensile library files at runtime to speedup rocBLAS initialization.
 - Support for RHEL9 and CS9.
 - Added Numerical checking routine for symmetric, Hermitian, and triangular matrices, so that they could be checked for any numerical abnormalities such as NaN, Zero, infinity and denormal value.
- 
- 
+
+
 ### Optimizations
 - trmm_outofplace performance improvements for all sizes and data types using block-recursive algorithm.
 - herkx performance improvements for all sizes and data types using block-recursive algorithm.
 - syrk/herk performance improvements by utilising optimised syrkx/herkx code.
 - symm/hemm performance improvements for all sizes and datatypes using block-recursive algorithm.
- 
+
 ### Changed
 - Unifying library logic file names: affects HBH (->HHS_BH), BBH (->BBS_BH), 4xi8BH (->4xi8II_BH). All HPA types are using the new naming convention now.
 - Level 3 function argument checking when the handle is set to rocblas_pointer_mode_host now returns the status of rocblas_status_invalid_pointer only for pointers that must be dereferenced based on the alpha and beta argument values. With handle mode rocblas_pointer_mode_device only pointers that are always dereferenced regardless of alpha and beta values are checked and so may lead to a return status of rocblas_status_invalid_pointer. This improves consistency with legacy BLAS behaviour.
@@ -30,11 +31,11 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Fixed
 - Improved logic to #include <filesystem> vs <experimental/filesystem>.
 - install.sh -s option to build rocblas as a static library.
- 
+
 ### Deprecated
 - is_complex helper is now deprecated.  Use rocblas_is_complex instead.
 - The enum truncate_t and the value truncate is now deprecated and will removed from the ROCm release 6.0. It is replaced by rocblas_truncate_t and rocblas_truncate, respectively. The new enum rocblas_truncate_t and the value rocblas_truncate could be used from this ROCm release for an easy transition.
- 
+
 ### Removed
 - install.sh options  --hip-clang , --no-hip-clang, --merge-files, --no-merge-files are removed.
 

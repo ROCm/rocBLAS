@@ -63,6 +63,8 @@ rocBLAS build & installation helper script.
 
     -l, --logic <arg>                Specify the Tesile logic target. (e.g., asm_full, asm_lite, etc)
 
+    --[no-]lazy-library-loading      Enable on-demand loading of Tensile Library files, speeds up the rocblas initialization. (Default is enabled)
+        
     --library-path <blasdir>         Specify path to a pre-built rocBLAS library, when building clients only using '--clients-only' flag.
                                      (Default is /opt/rocm/rocblas)
 
@@ -369,6 +371,7 @@ tensile_separate_architectures=true
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
+tensile_lazy_library_loading=true
 build_jobs=$(nproc)
 build_library=true
 build_cleanup=false
@@ -407,7 +410,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures,lazy-library-loading,no-lazy-library-loading --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -457,6 +460,12 @@ while true; do
     -l|--logic)
         tensile_logic=${2}
         shift 2 ;;
+    --lazy-library-loading)
+        tensile_lazy_library_loading=true
+        shift ;;
+    --no-lazy-library-loading)
+        tensile_lazy_library_loading=false
+        shift ;;
     -a|--architecture)
         gpu_architecture=${2}
         shift 2 ;;
@@ -494,6 +503,7 @@ while true; do
         shift 2 ;;
     --merge-architectures)
         tensile_separate_architectures=false
+        tensile_lazy_library_loading=false
         shift ;;
     --no-merge-architectures)
         tensile_separate_architectures=true
@@ -751,6 +761,10 @@ pushd .
 
   if [[ "${tensile_separate_architectures}" == true ]]; then
     cmake_common_options+=("-DTensile_SEPARATE_ARCHITECTURES=ON")
+  fi
+
+  if [[ "${tensile_lazy_library_loading}" == true ]]; then
+    cmake_common_options+=("-DTensile_LAZY_LIBRARY_LOADING=ON")
   fi
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
