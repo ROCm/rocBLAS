@@ -378,6 +378,11 @@ rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const
  ***********************************************************************************/
 ROCBLAS_INTERNAL_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized();
 
+/***********************************************************************************
+ * Whether rocblas_initialize() is invoked to load all tensile kernels at startup  *
+ ***********************************************************************************/
+std::atomic_bool& rocblas_initialize_called();
+
 /**********************************************
  * Whether to suppress Tensile error messages *
  **********************************************/
