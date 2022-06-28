@@ -43,48 +43,109 @@ void testing_her2_batched_bad_arg(const Arguments& arg)
     auto rocblas_her2_batched_fn
         = arg.fortran ? rocblas_her2_batched<T, true> : rocblas_her2_batched<T, false>;
 
-    rocblas_fill         uplo        = rocblas_fill_upper;
-    rocblas_int          N           = 100;
-    rocblas_int          lda         = 100;
-    rocblas_int          incx        = 1;
-    rocblas_int          incy        = 1;
-    T                    alpha       = 0.6;
-    rocblas_int          batch_count = 2;
-    rocblas_local_handle handle{arg};
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
-    device_batch_matrix<T> dA_1(N, N, lda, batch_count);
+        rocblas_fill uplo        = rocblas_fill_upper;
+        rocblas_int  N           = 100;
+        rocblas_int  lda         = 100;
+        rocblas_int  incx        = 1;
+        rocblas_int  incy        = 1;
+        rocblas_int  batch_count = 2;
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+        device_vector<T> alpha_d(1), zero_d(1);
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2_batched<
-            T>)(handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1, lda, batch_count),
-        rocblas_status_invalid_value);
+        const T alpha_h(1), zero_h(0);
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2_batched<
-            T>)(handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1, lda, batch_count),
-        rocblas_status_invalid_pointer);
+        const T* alpha = &alpha_h;
+        const T* zero  = &zero_h;
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2_batched<
-            T>)(handle, uplo, N, &alpha, dx, incx, nullptr, incy, dA_1, lda, batch_count),
-        rocblas_status_invalid_pointer);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2_batched<
-            T>)(handle, uplo, N, &alpha, dx, incx, dy, incy, nullptr, lda, batch_count),
-        rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_batch_vector<T> dx(N, incx, batch_count);
+        device_batch_vector<T> dy(N, incy, batch_count);
+        device_batch_matrix<T> dA_1(N, N, lda, batch_count);
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2_batched<
-            T>)(nullptr, uplo, N, &alpha, dx, incx, dy, incy, dA_1, lda, batch_count),
-        rocblas_status_invalid_handle);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_her2_batched<
+                T>)(nullptr, uplo, N, alpha, dx, incx, dy, incy, dA_1, lda, batch_count),
+            rocblas_status_invalid_handle);
+
+        EXPECT_ROCBLAS_STATUS((rocblas_her2_batched<T>)(handle,
+                                                        rocblas_fill_full,
+                                                        N,
+                                                        alpha,
+                                                        dx,
+                                                        incx,
+                                                        dy,
+                                                        incy,
+                                                        dA_1,
+                                                        lda,
+                                                        batch_count),
+                              rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_her2_batched<
+                T>)(handle, uplo, N, nullptr, dx, incx, dy, incy, dA_1, lda, batch_count),
+            rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                (rocblas_her2_batched<
+                    T>)(handle, uplo, N, alpha, nullptr, incx, dy, incy, dA_1, lda, batch_count),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                (rocblas_her2_batched<
+                    T>)(handle, uplo, N, alpha, dx, incx, nullptr, incy, dA_1, lda, batch_count),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                (rocblas_her2_batched<
+                    T>)(handle, uplo, N, alpha, dx, incx, dy, incy, nullptr, lda, batch_count),
+                rocblas_status_invalid_pointer);
+        }
+
+        // N==0 all pointers may be null
+        EXPECT_ROCBLAS_STATUS((rocblas_her2_batched<T>)(handle,
+                                                        uplo,
+                                                        0,
+                                                        nullptr,
+                                                        nullptr,
+                                                        incx,
+                                                        nullptr,
+                                                        incy,
+                                                        nullptr,
+                                                        lda,
+                                                        batch_count),
+                              rocblas_status_success);
+
+        // batch_count==0 all pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_her2_batched<
+                T>)(handle, uplo, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda, 0),
+            rocblas_status_success);
+
+        // alpha==0 all pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_her2_batched<
+                T>)(handle, uplo, N, zero, nullptr, incx, nullptr, incy, nullptr, lda, batch_count),
+            rocblas_status_success);
+    }
 }
 
 template <typename T>

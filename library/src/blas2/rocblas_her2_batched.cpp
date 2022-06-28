@@ -107,17 +107,28 @@ namespace
                             batch_count);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || !incx || !incy || batch_count < 0 || lda < 1 || lda < n)
-            return rocblas_status_invalid_size;
-        if(!n || !batch_count)
-            return rocblas_status_success;
-        if(!x || !y || !A || !alpha)
-            return rocblas_status_invalid_pointer;
-
         static constexpr rocblas_stride offset_x = 0, offset_y = 0, offset_A = 0;
         static constexpr rocblas_stride stride_x = 0, stride_y = 0, stride_A = 0;
+
+        rocblas_status arg_status = rocblas_her2_arg_check(handle,
+                                                           uplo,
+                                                           n,
+                                                           alpha,
+                                                           x,
+                                                           offset_x,
+                                                           incx,
+                                                           stride_x,
+                                                           y,
+                                                           offset_y,
+                                                           incy,
+                                                           stride_y,
+                                                           A,
+                                                           lda,
+                                                           offset_A,
+                                                           stride_A,
+                                                           batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {
