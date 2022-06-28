@@ -131,7 +131,7 @@ namespace
                         batch_count);
 
         rocblas_status arg_status = rocblas_ger_arg_check<CONJ, T>(
-            m, n, alpha, 0, x, 0, incx, 0, y, 0, incy, 0, A, 0, lda, 0, batch_count);
+            handle, m, n, alpha, 0, x, 0, incx, 0, y, 0, incy, 0, A, 0, lda, 0, batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
