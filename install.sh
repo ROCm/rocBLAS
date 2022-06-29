@@ -34,8 +34,6 @@ rocBLAS build & installation helper script.
 
     --clients-only                   Skip building the library and only build the clients with a pre-built library.
 
-    --cpu_ref_lib  <lib>             Specify library to use for CPU reference code in testing. (e.g., blis or lapack)
-
     --cmake-arg <argument>           Forward the given argument to CMake when configuring the build.
 
     --cmake_install                  Install minimum cmake version if required.
@@ -262,7 +260,7 @@ install_packages( )
     library_dependencies_sles+=( "gcc-fortran" "libgomp1" )
 
     # wget is needed for blis
-    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+    if [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
       library_dependencies_ubuntu+=("wget")
       library_dependencies_centos_rhel+=("wget")
       library_dependencies_centos_8+=("wget")
@@ -379,7 +377,6 @@ build_clients=false
 build_clients_no_fortran=false
 use_cuda=false
 build_tensile=true
-cpu_ref_lib=blis
 build_release=true
 build_hip_clang=true
 #use readlink rather than realpath for CentOS 6.10 support
@@ -410,7 +407,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures,lazy-library-loading,no-lazy-library-loading --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures,lazy-library-loading,no-lazy-library-loading --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -498,9 +495,6 @@ while true; do
     --use-cuda)
         use_cuda=true
         shift ;;
-    --cpu_ref_lib)
-        cpu_ref_lib=${2}
-        shift 2 ;;
     --merge-architectures)
         tensile_separate_architectures=false
         tensile_lazy_library_loading=false
@@ -566,21 +560,12 @@ fi
 
 set -x
 
-if [[ "${cpu_ref_lib}" == blis ]]; then
-  LINK_BLIS=true
-elif [[ "${cpu_ref_lib}" == lapack ]]; then
-  LINK_BLIS=false
-else
-  echo "Currently the only CPU library options are blis and lapack"
-      exit 2
-fi
-
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
 
 install_blis()
 {
     #Download prebuilt AMD multithreaded blis
-    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.a" ]]; then
+    if [[ ! -e "./blis/lib/libblis.a" ]]; then
       case "${ID}" in
           centos|rhel|sles|opensuse-leap)
               wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
@@ -671,9 +656,9 @@ if [[ "${install_dependencies}" == true ]]; then
   esac
 
   if [[ "${build_clients}" == true ]]; then
-    # The following builds googletest & lapack from source, installs into cmake default /usr/local
+    # The following builds googletest from source, installs into cmake default /usr/local
     pushd .
-    printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
+    printf "\033[32mBuilding \033[33mgoogletest; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
     make build_deps
@@ -779,7 +764,7 @@ pushd .
       "-DBUILD_CLIENTS_SAMPLES=ON"
       "-DBUILD_CLIENTS_TESTS=ON"
       "-DBUILD_CLIENTS_BENCHMARKS=ON"
-      "-DLINK_BLIS=${LINK_BLIS}"
+      "-DLINK_BLIS=ON"
       "-DBUILD_DIR=${build_dir}"
     )
     if [[ "${build_clients_no_fortran}" == true ]]; then

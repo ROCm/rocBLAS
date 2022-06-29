@@ -170,7 +170,6 @@ target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERN
 target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 # target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
 if (NOT WIN32)
-  target_link_libraries( rocblas-test PRIVATE lapack cblas )
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
   if (NOT BUILD_FORTRAN_CLIENTS)
     list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack
