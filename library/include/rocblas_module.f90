@@ -174,6 +174,28 @@ module rocblas
     end interface
 
     interface
+        function rocblas_set_int8_type_for_hipblas(handle, int8_datatype) &
+                result(c_int) &
+                bind(c, name = 'rocblas_set_int8_type_for_hipblas')
+            use iso_c_binding
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: int8_datatype
+        end function rocblas_set_int8_type_for_hipblas
+    end interface
+
+    interface
+        function rocblas_get_int8_type_for_hipblas(handle, int8_datatype) &
+                result(c_int) &
+                bind(c, name = 'rocblas_get_int8_type_for_hipblas')
+            use iso_c_binding
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int) :: int8_datatype
+        end function rocblas_get_int8_type_for_hipblas
+    end interface
+
+    interface
         function rocblas_pointer_to_mode(ptr) &
             bind(c, name='rocblas_pointer_to_mode')
             use iso_c_binding

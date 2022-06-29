@@ -25,6 +25,16 @@
 #include "rocblas-export.h"
 #include "rocblas-types.h"
 
+#ifndef ROCBLAS_NO_DEPRECATED_WARNINGS
+#ifndef ROCBLAS_DEPRECATED_MSG
+#define ROCBLAS_DEPRECATED_MSG(MSG) __attribute__((deprecated(#MSG)))
+#endif
+#else
+#ifndef ROCBLAS_DEPRECATED_MSG
+#define ROCBLAS_DEPRECATED_MSG(MSG)
+#endif
+#endif
+
 /*!\file
  * \brief rocblas-auxiliary.h provides auxilary functions in rocblas
  */
@@ -53,12 +63,22 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_stream(rocblas_handle handle, hipStrea
  */
 ROCBLAS_EXPORT rocblas_status rocblas_set_pointer_mode(rocblas_handle       handle,
                                                        rocblas_pointer_mode pointer_mode);
-
 /*! \brief get rocblas_pointer_mode
  */
 ROCBLAS_EXPORT rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
                                                        rocblas_pointer_mode* pointer_mode);
 
+ROCBLAS_DEPRECATED_MSG("rocblas_set_int8_type_for_hipblas will be removed in a future release.")
+/*! \brief set rocblas_int8_type_for_hipblas
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_set_int8_type_for_hipblas(
+    rocblas_handle handle, rocblas_int8_type_for_hipblas int8_type);
+
+ROCBLAS_DEPRECATED_MSG("rocblas_get_int8_type_for_hipblas will be removed in a future release.")
+/*! \brief get rocblas_int8_type_for_hipblas
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_get_int8_type_for_hipblas(
+    rocblas_handle handle, rocblas_int8_type_for_hipblas* int8_type);
 /*! \brief set rocblas_atomics_mode
  */
 ROCBLAS_EXPORT rocblas_status rocblas_set_atomics_mode(rocblas_handle       handle,
