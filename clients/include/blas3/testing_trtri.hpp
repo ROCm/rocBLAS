@@ -211,16 +211,8 @@ void testing_trtri(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
         }
 
-        rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB, lda);
-
-        if(info != 0)
-        {
-#ifdef GOOGLE_TEST
-            FAIL() << "error in cblas_trtri";
-#else
-            rocblas_cerr << "error in cblas_trtri" << std::endl;
-#endif
-        }
+        // CBLAS doesn't have trtri implementation so using the LAPACK trtri
+        lapack_xtrtri<T>(char_uplo, char_diag, N, hB, lda);
 
         if(arg.timing)
         {

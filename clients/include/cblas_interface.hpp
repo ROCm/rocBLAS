@@ -29,28 +29,6 @@
 #include "rocblas.hpp"
 #include <type_traits>
 
-/*!\file
- * \brief provide template functions interfaces to CBLAS C89 interfaces, it is only used for testing
- * not part of the GPU library
- */
-
-extern "C" {
-void strtri_(char* uplo, char* diag, int* n, float* A, int* lda, int* info);
-void dtrtri_(char* uplo, char* diag, int* n, double* A, int* lda, int* info);
-void ctrtri_(char* uplo, char* diag, int* n, rocblas_float_complex* A, int* lda, int* info);
-void ztrtri_(char* uplo, char* diag, int* n, rocblas_double_complex* A, int* lda, int* info);
-
-void sgetrf_(int* m, int* n, float* A, int* lda, int* ipiv, int* info);
-void dgetrf_(int* m, int* n, double* A, int* lda, int* ipiv, int* info);
-void cgetrf_(int* m, int* n, rocblas_float_complex* A, int* lda, int* ipiv, int* info);
-void zgetrf_(int* m, int* n, rocblas_double_complex* A, int* lda, int* ipiv, int* info);
-
-void spotrf_(char* uplo, int* m, float* A, int* lda, int* info);
-void dpotrf_(char* uplo, int* m, double* A, int* lda, int* info);
-void cpotrf_(char* uplo, int* m, rocblas_float_complex* A, int* lda, int* info);
-void zpotrf_(char* uplo, int* m, rocblas_double_complex* A, int* lda, int* info);
-}
-
 /*
  * ===========================================================================
  *    level 1 BLAS
@@ -1426,23 +1404,6 @@ inline void cblas_symv(rocblas_fill            uplo,
     lapack_xsymv(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
-// spr
-extern "C" {
-void cspr_(char*                  uplo,
-           int*                   n,
-           rocblas_float_complex* alpha,
-           rocblas_float_complex* x,
-           int*                   incx,
-           rocblas_float_complex* A);
-
-void zspr_(char*                   uplo,
-           int*                    n,
-           rocblas_double_complex* alpha,
-           rocblas_double_complex* x,
-           int*                    incx,
-           rocblas_double_complex* A);
-}
-
 template <typename T>
 void cblas_spr(rocblas_fill uplo, rocblas_int n, T alpha, T* x, rocblas_int incx, T* A);
 
@@ -1468,8 +1429,7 @@ inline void cblas_spr(rocblas_fill           uplo,
                       rocblas_int            incx,
                       rocblas_float_complex* A)
 {
-    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
-    cspr_(&u, &n, &alpha, x, &incx, A);
+    lapack_xspr(uplo, n, alpha, x, incx, A);
 }
 
 template <>
@@ -1480,8 +1440,7 @@ inline void cblas_spr(rocblas_fill            uplo,
                       rocblas_int             incx,
                       rocblas_double_complex* A)
 {
-    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
-    zspr_(&u, &n, &alpha, x, &incx, A);
+    lapack_xspr(uplo, n, alpha, x, incx, A);
 }
 
 // spr2
@@ -2944,52 +2903,6 @@ inline void cblas_trsm(rocblas_side                  side,
                 ldb);
 }
 
-// trtri
-template <typename T>
-rocblas_int cblas_trtri(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda);
-
-template <>
-inline rocblas_int cblas_trtri(char uplo, char diag, rocblas_int n, float* A, rocblas_int lda)
-{
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    rocblas_int info;
-    strtri_(&uplo, &diag, &n, A, &lda, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int cblas_trtri(char uplo, char diag, rocblas_int n, double* A, rocblas_int lda)
-{
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    rocblas_int info;
-    dtrtri_(&uplo, &diag, &n, A, &lda, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int
-    cblas_trtri(char uplo, char diag, rocblas_int n, rocblas_float_complex* A, rocblas_int lda)
-{
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    rocblas_int info;
-    ctrtri_(&uplo, &diag, &n, A, &lda, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int
-    cblas_trtri(char uplo, char diag, rocblas_int n, rocblas_double_complex* A, rocblas_int lda)
-{
-    // just directly cast, since transA, transB are integers in the enum
-    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
-    rocblas_int info;
-    ztrtri_(&uplo, &diag, &n, A, &lda, &info);
-    return info;
-}
-
 // trmm
 template <typename T>
 void cblas_trmm(rocblas_side      side,
@@ -3116,80 +3029,11 @@ inline void cblas_trmm(rocblas_side                  side,
                 ldb);
 }
 
-// getrf
-template <typename T>
-rocblas_int cblas_getrf(rocblas_int m, rocblas_int n, T* A, rocblas_int lda, rocblas_int* ipiv);
-
-template <>
-inline rocblas_int
-    cblas_getrf(rocblas_int m, rocblas_int n, float* A, rocblas_int lda, rocblas_int* ipiv)
-{
-    rocblas_int info;
-    sgetrf_(&m, &n, A, &lda, ipiv, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int
-    cblas_getrf(rocblas_int m, rocblas_int n, double* A, rocblas_int lda, rocblas_int* ipiv)
-{
-    rocblas_int info;
-    dgetrf_(&m, &n, A, &lda, ipiv, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int cblas_getrf(
-    rocblas_int m, rocblas_int n, rocblas_float_complex* A, rocblas_int lda, rocblas_int* ipiv)
-{
-    rocblas_int info;
-    cgetrf_(&m, &n, A, &lda, ipiv, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int cblas_getrf(
-    rocblas_int m, rocblas_int n, rocblas_double_complex* A, rocblas_int lda, rocblas_int* ipiv)
-{
-    rocblas_int info;
-    zgetrf_(&m, &n, A, &lda, ipiv, &info);
-    return info;
-}
-
 // potrf
 template <typename T>
-rocblas_int cblas_potrf(char uplo, rocblas_int m, T* A, rocblas_int lda);
-
-template <>
-inline rocblas_int cblas_potrf(char uplo, rocblas_int m, float* A, rocblas_int lda)
+void cblas_potrf(char uplo, rocblas_int m, T* A, rocblas_int lda)
 {
     rocblas_int info;
-    spotrf_(&uplo, &m, A, &lda, &info);
-    return info;
+    lapack_xpotrf(char2rocblas_fill(uplo), m, A, lda, info);
 }
-
-template <>
-inline rocblas_int cblas_potrf(char uplo, rocblas_int m, double* A, rocblas_int lda)
-{
-    rocblas_int info;
-    dpotrf_(&uplo, &m, A, &lda, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int cblas_potrf(char uplo, rocblas_int m, rocblas_float_complex* A, rocblas_int lda)
-{
-    rocblas_int info;
-    cpotrf_(&uplo, &m, A, &lda, &info);
-    return info;
-}
-
-template <>
-inline rocblas_int cblas_potrf(char uplo, rocblas_int m, rocblas_double_complex* A, rocblas_int lda)
-{
-    rocblas_int info;
-    zpotrf_(&uplo, &m, A, &lda, &info);
-    return info;
-}
-
 /* ============================================================================================ */

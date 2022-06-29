@@ -117,8 +117,6 @@ endif( )
 
 if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
   if ( NOT WIN32 )
-    # Linking lapack library requires fortran flags
-    find_package( cblas REQUIRED CONFIG )
     if (LINK_BLIS)
       set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
       set( BLIS_CPP ../common/blis_interface.cpp )
