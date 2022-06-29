@@ -604,6 +604,9 @@ hemvn_kernel_upper_block_sum(rocblas_int    n,
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
 
+    if(!alpha && beta == 1)
+        return;
+
     auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
     int tx      = threadIdx.x;
@@ -1125,6 +1128,9 @@ hemvn_kernel_lower_block_sum(rocblas_int    n,
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+
+    if(!alpha && beta == 1)
+        return;
 
     auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 

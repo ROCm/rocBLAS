@@ -124,32 +124,29 @@ namespace
                             incy);
         }
 
-        if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
-           && transA != rocblas_operation_conjugate_transpose)
-            return rocblas_status_invalid_value;
-
-        if(m < 0 || n < 0 || lda < kl + ku + 1 || !incx || !incy || kl < 0 || ku < 0)
-            return rocblas_status_invalid_size;
-
-        if(!m || !n)
-            return rocblas_status_success;
-
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
-        if(handle->pointer_mode == rocblas_pointer_mode_host && !*alpha)
-        {
-            if(*beta == 1)
-                return rocblas_status_success;
-        }
-        else
-        {
-            if(!A || !x)
-                return rocblas_status_invalid_pointer;
-        }
-
-        if(!y)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status = rocblas_gbmv_arg_check(handle,
+                                                           transA,
+                                                           m,
+                                                           n,
+                                                           kl,
+                                                           ku,
+                                                           alpha,
+                                                           A,
+                                                           0,
+                                                           lda,
+                                                           0,
+                                                           x,
+                                                           0,
+                                                           incx,
+                                                           0,
+                                                           beta,
+                                                           y,
+                                                           0,
+                                                           incy,
+                                                           0,
+                                                           1);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {
