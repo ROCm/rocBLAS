@@ -15693,33 +15693,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
         - rocblas_datatype_f32_c  = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f64_c  = a_type = b_type = c_type = d_type = compute_type
 
-    ROCm 4.2 supports two different versions of a = b = i8_r (in) and c = d = i32_r (out):
-        - Both versions are rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type, in addition to a last flag param indicating packing input or not.
+   Two int8 datatypes are supported: int8_t and rocblas_int8x4. int8_t is the C99 signed
+   8 bit integer. The default is int8_t and it is recommended int8_t be used. rocblas_int8x4
+   is a packed datatype. The packed int 8 datatype occurs if the user sets:
 
-        - Without setting the last param 'flags' (default=none), this is supported for gfx908 or
-   later GPUs only. Input a/b won't be packed into int8x4. So the following size restrictions and
-   packing pseudo-code is not neccessary.
+    @code
+        flags |= rocblas_gemm_flags_pack_int8x4;
+    @endcode
 
-        - Set the last param 'flags' |= rocblas_gemm_flags_pack_int8x4. Input a/b would be packed
-   into int8x4, and this will impose some size restrictions on A or B (See below.) For GPUs before
-   gfx908, only packed-int8 version is supported so this flag and packing is required, while
-   gfx908 GPUs support both versions.
+   For this packed int8 datatype matrices A and B are packed into int8x4 in the k dimension.
+   This will impose the following size restrictions on A or B:
 
-    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type; flags |= rocblas_gemm_flags_pack_int8x4:
         - k must be a multiple of 4
-        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_none or transB == rocblas_operation_transpose the matrices
-   A and B must
-          have each 4 consecutive values in the k dimension packed. This packing can be achieved
-   with the following
-          pseudo-code. The code assumes the original matrices are in A and B, and the packed
-   matrices are A_packed
-          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
-   the size of
-          the B_packed matrix is the same as the size of the B matrix.
+        - if transA == rocblas_operation_transpose then lda must be a multiple of 4
+        - if transB == rocblas_operation_none then ldb must be a multiple of 4
+        - if transA == rocblas_operation_none the matrix A must have each 4 consecutive
+          values in the k dimension packed
+        - if transB == rocblas_operation_transpose the matrix B must have each 4
+          consecutive values in the k dimension packed.
+
+   This packing can be achieved with the following pseudo-code. The code assumes the
+   original matrices are in A and B, and the packed matrices are A_packed and B_packed.
+   The size of the A_packed and B_packed are the same as the size of the A and B respectively.
 
     @code
         if(transA == rocblas_operation_none)
@@ -15943,33 +15938,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
         - rocblas_datatype_f32_c  = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f64_c  = a_type = b_type = c_type = d_type = compute_type
 
-    ROCm 4.2 supports two different versions of a = b = i8_r (in) and c = d = i32_r (out):
-        - Both versions are rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type, in addition to a last flag param indicating packing input or not.
+   Two int8 datatypes are supported: int8_t and rocblas_int8x4. int8_t is the C99 signed
+   8 bit integer. The default is int8_t and it is recommended int8_t be used. rocblas_int8x4
+   is a packed datatype. The packed int 8 datatype occurs if the user sets:
 
-        - Without setting the last param 'flags' (default=none), this is supported for gfx908 or
-   later GPUs only. Input a/b won't be packed into int8x4. So the following size restrictions and
-   packing pseudo-code is not neccessary.
+    @code
+        flags |= rocblas_gemm_flags_pack_int8x4;
+    @endcode
 
-        - Set the last param 'flags' |= rocblas_gemm_flags_pack_int8x4. Input a/b would be packed
-   into int8x4, and this will impose some size restrictions on A or B (See below.) For GPUs before
-   gfx908, only packed-int8 version is supported so this flag and packing is required, while
-   gfx908 GPUs support both versions.
+   For this packed int8 datatype matrices A and B are packed into int8x4 in the k dimension.
+   This will impose the following size restrictions on A or B:
 
-    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type; flags |= rocblas_gemm_flags_pack_int8x4:
         - k must be a multiple of 4
-        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_none or transB == rocblas_operation_transpose the matrices
-   A and B must
-          have each 4 consecutive values in the k dimension packed. This packing can be achieved
-   with the following
-          pseudo-code. The code assumes the original matrices are in A and B, and the packed
-   matrices are A_packed
-          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
-   the size of
-          the B_packed matrix is the same as the size of the B matrix.
+        - if transA == rocblas_operation_transpose then lda must be a multiple of 4
+        - if transB == rocblas_operation_none then ldb must be a multiple of 4
+        - if transA == rocblas_operation_none the matrix A must have each 4 consecutive
+          values in the k dimension packed
+        - if transB == rocblas_operation_transpose the matrix B must have each 4
+          consecutive values in the k dimension packed.
+
+   This packing can be achieved with the following pseudo-code. The code assumes the
+   original matrices are in A and B, and the packed matrices are A_packed and B_packed.
+   The size of the A_packed and B_packed are the same as the size of the A and B respectively.
 
     @code
     if(transA == rocblas_operation_none)
@@ -16148,33 +16138,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
         - rocblas_datatype_f32_c  = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f64_c  = a_type = b_type = c_type = d_type = compute_type
 
-    ROCm 4.2 supports two different versions of a = b = i8_r (in) and c = d = i32_r (out):
-        - Both versions are rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type, in addition to a last flag param indicating packing input or not.
+   Two int8 datatypes are supported: int8_t and rocblas_int8x4. int8_t is the C99 signed
+   8 bit integer. The default is int8_t and it is recommended int8_t be used. rocblas_int8x4
+   is a packed datatype. The packed int 8 datatype occurs if the user sets:
 
-        - Without setting the last param 'flags' (default=none), this is supported for gfx908 or
-   later GPUs only. Input a/b won't be packed into int8x4. So the following size restrictions and
-   packing pseudo-code is not neccessary.
+    @code
+        flags |= rocblas_gemm_flags_pack_int8x4;
+    @endcode
 
-        - Set the last param 'flags' |= rocblas_gemm_flags_pack_int8x4. Input a/b would be packed
-   into int8x4, and this will impose some size restrictions on A or B (See below.) For GPUs before
-   gfx908, only packed-int8 version is supported so this flag and packing is required, while
-   gfx908 GPUs support both versions.
+   For this packed int8 datatype matrices A and B are packed into int8x4 in the k dimension.
+   This will impose the following size restrictions on A or B:
 
-    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type; flags |= rocblas_gemm_flags_pack_int8x4:
         - k must be a multiple of 4
-        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_none or transB == rocblas_operation_transpose the matrices
-   A and B must
-          have each 4 consecutive values in the k dimension packed. This packing can be achieved
-   with the following
-          pseudo-code. The code assumes the original matrices are in A and B, and the packed
-   matrices are A_packed
-          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
-   the size of
-          the B_packed matrix is the same as the size of the B matrix.
+        - if transA == rocblas_operation_transpose then lda must be a multiple of 4
+        - if transB == rocblas_operation_none then ldb must be a multiple of 4
+        - if transA == rocblas_operation_none the matrix A must have each 4 consecutive
+          values in the k dimension packed
+        - if transB == rocblas_operation_transpose the matrix B must have each 4
+          consecutive values in the k dimension packed.
+
+   This packing can be achieved with the following pseudo-code. The code assumes the
+   original matrices are in A and B, and the packed matrices are A_packed and B_packed.
+   The size of the A_packed and B_packed are the same as the size of the A and B respectively.
 
     @code
     if(transA == rocblas_operation_none)
