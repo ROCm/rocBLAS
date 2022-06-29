@@ -109,7 +109,7 @@ namespace
             }
         }
 
-        rocblas_status arg_status = rocblas_symv_arg_check<T>(
+        rocblas_status arg_status = rocblas_hemv_symv_arg_check<T>(
             handle, uplo, n, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
         if(arg_status != rocblas_status_continue)
             return arg_status;

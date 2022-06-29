@@ -56,7 +56,10 @@ Definitions:
 Tests:
 - name: hpmv_bad_arg
   category: pre_checkin
-  function: hpmv_bad_arg
+  function:
+  - hpmv_bad_arg
+  - hpmv_batched_bad_arg
+  - hpmv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   uplo: N
   fortran: [ false, true ]
@@ -70,6 +73,8 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: L
   matrix_size: *special_case_range
+
+# non-batched
 
 - name: hpmv_NaN
   category: pre_checkin
@@ -118,11 +123,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
 
-- name: hpmv_batched_bad_arg
-  category: pre_checkin
-  function: hpmv_batched_bad_arg
-  precision: *single_double_precisions_complex
-  uplo: N
+# batched
 
 - name: hpmv_batched_NaN
   category: pre_checkin
@@ -176,11 +177,7 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 
-- name: hpmv_strided_batched_bad_arg
-  category: pre_checkin
-  function: hpmv_strided_batched_bad_arg
-  precision: *single_double_precisions_complex
-  uplo: N
+# strided
 
 - name: hpmv_strided_batched_NaN
   category: pre_checkin

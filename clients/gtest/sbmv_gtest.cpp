@@ -102,6 +102,12 @@ namespace
                 if(SBMV_TYPE == SBMV_STRIDED_BATCHED || SBMV_TYPE == SBMV_BATCHED)
                     name << '_' << arg.batch_count;
             }
+
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };

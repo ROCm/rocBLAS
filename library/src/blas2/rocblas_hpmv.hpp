@@ -25,6 +25,49 @@
 #include "../blas1/rocblas_copy.hpp"
 #include "check_numerics_vector.hpp"
 
+template <typename TScal, typename TConstPtr, typename TPtr>
+inline rocblas_status rocblas_hpmv_arg_check(rocblas_handle handle,
+                                             rocblas_fill   uplo,
+                                             rocblas_int    n,
+                                             TScal          alpha,
+                                             TConstPtr      AP,
+                                             rocblas_stride offseta,
+                                             rocblas_stride strideA,
+                                             TConstPtr      x,
+                                             rocblas_stride offsetx,
+                                             rocblas_int    incx,
+                                             rocblas_stride stridex,
+                                             TScal          beta,
+                                             TPtr           y,
+                                             rocblas_stride offsety,
+                                             rocblas_int    incy,
+                                             rocblas_stride stridey,
+                                             rocblas_int    batch_count)
+{
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(n < 0 || !incx || !incy || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    if(!n || !batch_count)
+        return rocblas_status_success;
+
+    if(!beta || !alpha)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0 && *beta == 1)
+            return rocblas_status_success;
+
+        if(!y || (*alpha != 0 && (!AP || !x)))
+            return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
+
 /**
   *  TScal     is always: const T* (either host or device)
   *  TConstPtr is either: const T* OR const T* const*

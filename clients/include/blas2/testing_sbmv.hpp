@@ -39,60 +39,109 @@
 template <typename T>
 void testing_sbmv_bad_arg(const Arguments& arg)
 {
-    rocblas_fill         uplo  = rocblas_fill_upper;
-    rocblas_int          N     = 100;
-    rocblas_int          K     = 2;
-    rocblas_int          incx  = 1;
-    rocblas_int          incy  = 1;
-    rocblas_int          lda   = 100;
-    T                    alpha = 0.6;
-    T                    beta  = 0.6;
-    rocblas_local_handle handle{arg};
-    rocblas_int          banded_matrix_row = K + 1;
+    auto rocblas_sbmv_fn = arg.fortran ? rocblas_sbmv<T, true> : rocblas_sbmv<T, false>;
 
-    // Allocate device memory
-    device_matrix<T> dAb(banded_matrix_row, N, lda);
-    device_vector<T> dx(N, incx);
-    device_vector<T> dy(N, incy);
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        rocblas_fill uplo = rocblas_fill_upper;
+        rocblas_int  N    = 100;
+        rocblas_int  K    = 2;
+        rocblas_int  incx = 1;
+        rocblas_int  incy = 1;
+        rocblas_int  lda  = 100;
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(nullptr, uplo, N, K, &alpha, dAb, lda, dx, incx, &beta, dy, incy),
-        rocblas_status_invalid_handle);
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(
-            handle, rocblas_fill_full, N, K, &alpha, dAb, lda, dx, incx, &beta, dy, incy),
-        rocblas_status_invalid_value);
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(handle, uplo, N, K, nullptr, dAb, lda, dx, incx, &beta, dy, incy),
-        rocblas_status_invalid_pointer);
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(handle, uplo, N, K, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
-        rocblas_status_invalid_pointer);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(handle, uplo, N, K, &alpha, dAb, lda, nullptr, incx, &beta, dy, incy),
-        rocblas_status_invalid_pointer);
+        rocblas_int banded_matrix_row = K + 1;
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(handle, uplo, N, K, &alpha, dAb, lda, dx, incx, nullptr, dy, incy),
-        rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_matrix<T> dAb(banded_matrix_row, N, lda);
+        device_vector<T> dx(N, incx);
+        device_vector<T> dy(N, incy);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(handle, uplo, N, K, &alpha, dAb, lda, dx, incx, &beta, nullptr, incy),
-        rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dAb.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_fn(nullptr, uplo, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy),
+            rocblas_status_invalid_handle);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_fn(
+                handle, rocblas_fill_full, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy),
+            rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_fn(handle, uplo, N, K, nullptr, dAb, lda, dx, incx, beta, dy, incy),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_fn(handle, uplo, N, K, alpha, dAb, lda, dx, incx, nullptr, dy, incy),
+            rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_sbmv_fn(handle, uplo, N, K, alpha, nullptr, lda, dx, incx, beta, dy, incy),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_sbmv_fn(handle, uplo, N, K, alpha, dAb, lda, nullptr, incx, beta, dy, incy),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_sbmv_fn(handle, uplo, N, K, alpha, dAb, lda, dx, incx, beta, nullptr, incy),
+                rocblas_status_invalid_pointer);
+        }
+
+        // N==0 all pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_fn(
+                handle, uplo, 0, K, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
+            rocblas_status_success);
+
+        // alpha==0 then A and x pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_fn(handle, uplo, N, K, zero, nullptr, lda, nullptr, incx, beta, dy, incy),
+            rocblas_status_success);
+
+        // alpha==0 and beta==1 all pointers may be null
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_fn(
+                handle, uplo, N, K, zero, nullptr, lda, nullptr, incx, one, nullptr, incy),
+            rocblas_status_success);
+    }
 }
 
 template <typename T>
 void testing_sbmv(const Arguments& arg)
 {
+    auto rocblas_sbmv_fn = arg.fortran ? rocblas_sbmv<T, true> : rocblas_sbmv<T, false>;
+
     rocblas_int N                 = arg.N;
     rocblas_int lda               = arg.lda;
     rocblas_int K                 = arg.K;
@@ -115,7 +164,7 @@ void testing_sbmv(const Arguments& arg)
     if(N < 0 || lda < banded_matrix_row || K < 0 || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_sbmv<T>(
+            rocblas_sbmv_fn(
                 handle, uplo, N, K, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
             rocblas_status_invalid_size);
         return;
@@ -167,7 +216,7 @@ void testing_sbmv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_sbmv<T>(handle, uplo, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy));
+            rocblas_sbmv_fn(handle, uplo, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy));
@@ -180,7 +229,7 @@ void testing_sbmv(const Arguments& arg)
         dy.transfer_from(hy_2);
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_sbmv<T>(handle, uplo, N, K, d_alpha, dAb, lda, dx, incx, d_beta, dy, incy));
+            rocblas_sbmv_fn(handle, uplo, N, K, d_alpha, dAb, lda, dx, incx, d_beta, dy, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_2.transfer_from(dy));
@@ -214,7 +263,7 @@ void testing_sbmv(const Arguments& arg)
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             CHECK_ROCBLAS_ERROR(
-                rocblas_sbmv<T>(handle, uplo, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy));
+                rocblas_sbmv_fn(handle, uplo, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy));
         }
 
         hipStream_t stream;
@@ -224,7 +273,7 @@ void testing_sbmv(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             CHECK_ROCBLAS_ERROR(
-                rocblas_sbmv<T>(handle, uplo, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy));
+                rocblas_sbmv_fn(handle, uplo, N, K, alpha, dAb, lda, dx, incx, beta, dy, incy));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

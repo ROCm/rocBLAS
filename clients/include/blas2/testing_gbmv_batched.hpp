@@ -44,155 +44,270 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
     auto rocblas_gbmv_batched_fn
         = arg.fortran ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
 
-    const rocblas_int M                 = 100;
-    const rocblas_int N                 = 100;
-    const rocblas_int KL                = 5;
-    const rocblas_int KU                = 5;
-    const rocblas_int lda               = 100;
-    const rocblas_int incx              = 1;
-    const rocblas_int incy              = 1;
-    const T           alpha             = 1.0;
-    const T           beta              = 1.0;
-    const rocblas_int batch_count       = 5;
-    const rocblas_int safe_size         = 100;
-    const rocblas_int banded_matrix_row = KL + KU + 1;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transA      = rocblas_operation_none;
+        const rocblas_int       M           = 100;
+        const rocblas_int       N           = 100;
+        const rocblas_int       KL          = 5;
+        const rocblas_int       KU          = 5;
+        const rocblas_int       lda         = 100;
+        const rocblas_int       incx        = 1;
+        const rocblas_int       incy        = 1;
+        const rocblas_int       batch_count = 2;
 
-    rocblas_local_handle handle{arg};
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
-    // Allocate device memory
-    device_batch_matrix<T> dAb(banded_matrix_row, N, lda, batch_count);
-    device_batch_vector<T> dx(safe_size, 1, batch_count);
-    device_batch_vector<T> dy(safe_size, 1, batch_count);
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
 
-    auto dA_dev = dAb.ptr_on_device();
-    auto dx_dev = dx.ptr_on_device();
-    auto dy_dev = dy.ptr_on_device();
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
-                                                  (rocblas_operation)rocblas_fill_full,
-                                                  M,
-                                                  N,
-                                                  KL,
-                                                  KU,
-                                                  &alpha,
-                                                  dA_dev,
-                                                  lda,
-                                                  dx_dev,
-                                                  incx,
-                                                  &beta,
-                                                  dy_dev,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_value);
+        const rocblas_int banded_matrix_row = KL + KU + 1;
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  KL,
-                                                  KU,
-                                                  &alpha,
-                                                  nullptr,
-                                                  lda,
-                                                  dx_dev,
-                                                  incx,
-                                                  &beta,
-                                                  dy_dev,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_batch_matrix<T> dAb(banded_matrix_row, N, lda, batch_count);
+        device_batch_vector<T> dx(N, incx, batch_count);
+        device_batch_vector<T> dy(M, incy, batch_count);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  KL,
-                                                  KU,
-                                                  &alpha,
-                                                  dA_dev,
-                                                  lda,
-                                                  nullptr,
-                                                  incx,
-                                                  &beta,
-                                                  dy_dev,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dAb.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  KL,
-                                                  KU,
-                                                  &alpha,
-                                                  dA_dev,
-                                                  lda,
-                                                  dx_dev,
-                                                  incx,
-                                                  &beta,
-                                                  nullptr,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        auto dA_dev = dAb.ptr_on_device();
+        auto dx_dev = dx.ptr_on_device();
+        auto dy_dev = dy.ptr_on_device();
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  KL,
-                                                  KU,
-                                                  nullptr,
-                                                  dA_dev,
-                                                  lda,
-                                                  dx_dev,
-                                                  incx,
-                                                  &beta,
-                                                  dy_dev,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(nullptr,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      alpha,
+                                                      dA_dev,
+                                                      lda,
+                                                      dx_dev,
+                                                      incx,
+                                                      beta,
+                                                      dy_dev,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  KL,
-                                                  KU,
-                                                  &alpha,
-                                                  dA_dev,
-                                                  lda,
-                                                  dx_dev,
-                                                  incx,
-                                                  nullptr,
-                                                  dy_dev,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      (rocblas_operation)rocblas_fill_full,
+                                                      M,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      alpha,
+                                                      dA_dev,
+                                                      lda,
+                                                      dx_dev,
+                                                      incx,
+                                                      beta,
+                                                      dy_dev,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(nullptr,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  KL,
-                                                  KU,
-                                                  &alpha,
-                                                  dA_dev,
-                                                  lda,
-                                                  dx_dev,
-                                                  incx,
-                                                  &beta,
-                                                  dy_dev,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      nullptr,
+                                                      dA_dev,
+                                                      lda,
+                                                      dx_dev,
+                                                      incx,
+                                                      beta,
+                                                      dy_dev,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      alpha,
+                                                      dA_dev,
+                                                      lda,
+                                                      dx_dev,
+                                                      incx,
+                                                      nullptr,
+                                                      dy_dev,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          KL,
+                                                          KU,
+                                                          alpha,
+                                                          nullptr,
+                                                          lda,
+                                                          dx_dev,
+                                                          incx,
+                                                          beta,
+                                                          dy_dev,
+                                                          incy,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          KL,
+                                                          KU,
+                                                          alpha,
+                                                          dA_dev,
+                                                          lda,
+                                                          nullptr,
+                                                          incx,
+                                                          beta,
+                                                          dy_dev,
+                                                          incy,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          KL,
+                                                          KU,
+                                                          alpha,
+                                                          dA_dev,
+                                                          lda,
+                                                          dx_dev,
+                                                          incx,
+                                                          beta,
+                                                          nullptr,
+                                                          incy,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
+        }
+
+        // When M==0, alpha, A, x, beta, and y may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      transA,
+                                                      0,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // When N==0, alpha, A, x, beta, and Y may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      0,
+                                                      KL,
+                                                      KU,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // When alpha==0, A and x may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      zero,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      beta,
+                                                      dy_dev,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // When alpha==0 && beta==1, A, x and y may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      zero,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      one,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // When batch_count==0, alpha, A, x, beta, and Y may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      KL,
+                                                      KU,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      0),
+                              rocblas_status_success);
+    }
 }
 
 template <typename T>

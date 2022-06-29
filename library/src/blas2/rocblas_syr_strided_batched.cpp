@@ -117,7 +117,7 @@ namespace
         }
 
         rocblas_status arg_status = rocblas_syr_arg_check<T>(
-            uplo, n, alpha, 0, x, 0, incx, stridex, A, 0, lda, strideA, batch_count);
+            handle, uplo, n, alpha, 0, x, 0, incx, stridex, A, 0, lda, strideA, batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
