@@ -65,6 +65,7 @@ inline rocblas_status rocblas_trmv_arg_check(rocblas_handle    handle,
     if(handle->is_device_memory_size_query())
         return handle->set_optimal_device_memory_size(dev_bytes);
 
+    // pointers are validated if they need to be dereferenced
     if(!a || !x)
         return rocblas_status_invalid_pointer;
 
