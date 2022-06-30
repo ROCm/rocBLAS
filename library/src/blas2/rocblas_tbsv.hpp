@@ -41,7 +41,8 @@ inline rocblas_status rocblas_tbsv_arg_check(rocblas_handle    handle,
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
 
-    if(transA < rocblas_operation_none || transA > rocblas_operation_conjugate_transpose)
+    if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+       && transA != rocblas_operation_conjugate_transpose)
         return rocblas_status_invalid_value;
 
     if(diag != rocblas_diagonal_unit && diag != rocblas_diagonal_non_unit)
@@ -53,6 +54,7 @@ inline rocblas_status rocblas_tbsv_arg_check(rocblas_handle    handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
+    // pointers are validated if they need to be dereferenced
     if(!A || !x)
         return rocblas_status_invalid_pointer;
 
