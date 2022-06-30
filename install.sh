@@ -14,7 +14,7 @@ cat <<EOF
 rocBLAS build & installation helper script.
 
   Usage:
-    $0 (build rocBLAS and put library files at ./build/rocblas-install)
+    $0 (build rocBLAS and put library files at <builddir>/release/rocblas-install)
     $0 <options> (modify default behavior according to the following flags)
 
   Options:
@@ -22,67 +22,61 @@ rocBLAS build & installation helper script.
 
     --address-sanitizer              Build with address sanitizer enabled.
 
-    -b, --branch <arg>               Specify the Tensile repository branch or tag to use.(eg. develop, mybranch or <commit hash>).
+    -b, --branch <arg>               Specify the Tensile repository branch or tag to use. (eg. develop, mybranch or <commit hash>)
 
-    --build_dir <builddir>           Specify path to configure & build process output directory.
-                                     Relative paths are relative to the current directory (Default is ./build).
+    --build_dir <builddir>           Specify the directory path to build and save library files, dependencies and executables.
+                                     Relative paths are relative to the current directory. (Default is ./build)
 
     -c, --clients                    Build the library clients benchmark and gtest.
-                                     (Generated binaries will be located at builddir/clients/staging)
+                                     (Generated binaries will be located at <builddir>/release/clients/staging)
 
     --clients_no_fortran             When building clients, build them without Fortran API testing or Fortran examples
 
     --clients-only                   Skip building the library and only build the clients with a pre-built library.
 
-    --cpu_ref_lib  <lib>             Specify library to use for CPU reference code in testing (blis or lapack)
+    --cmake-arg <argument>           Forward the given argument to CMake when configuring the build.
 
-    --cmake_install                  Auto update CMake to minimum version if required.
+    --cmake_install                  Install minimum cmake version if required.
 
     --codecoverage                   Build with code coverage profiling enabled, excluding release mode.
 
-    --cleanup                        Remove intermediary build files after build and reduce disk usage
+    --cleanup                        Remove intermediary build files after build and reduce disk usage.
 
     -d, --dependencies               Build and install external dependencies.
                                      Dependencies are to be installed in /usr/local. This should be done only once.
 
-    -f, --fork <username>            Specify the username to fork the Tensile GitHub repository (e.g., ROCmSoftwarePlatform or MyUserName).
+    -f, --fork <username>            Specify the username to fork the Tensile GitHub repository. (e.g., ROCmSoftwarePlatform or MyUserName)
 
-    -g, --debug                      Build in Debug mode, equivalent to set CMAKE_BUILD_TYPE=Debug.
+    -g, --debug                      Build-in Debug mode, equivalent to set CMAKE_BUILD_TYPE=Debug.
                                      (Default build type is Release)
 
     -h, --help                       Print this help message
 
-    --hip-clang                      Build library for amdgpu backend using the hip-clang compiler.
-
     -i, --install                    Generate and install library package after build.
 
-    -j, --jobs <num>                 Specify number of parallel jobs to launch, increases memory usage (Default logical core count)
+    -j, --jobs <num>                 Specify the number of parallel jobs to launch, increases memory usage. (Default logical core count)
 
-    -k, --relwithdebinfo             Build in release debug mode, equivalent to set CMAKE_BUILD_TYPE=RelWithDebInfo.
+    -k, --relwithdebinfo             Build-in release debug mode, equivalent to set CMAKE_BUILD_TYPE=RelWithDebInfo.
                                      (Default build type is Release)
 
-    -l, --logic <arg>                Specify the Tesile logic target. (e.g., asm_full,asm_lite, etc)
+    -l, --logic <arg>                Specify the Tesile logic target. (e.g., asm_full, asm_lite, etc)
 
+    --[no-]lazy-library-loading      Enable on-demand loading of Tensile Library files, speeds up the rocblas initialization. (Default is enabled)
+        
     --library-path <blasdir>         Specify path to a pre-built rocBLAS library, when building clients only using '--clients-only' flag.
                                      (Default is /opt/rocm/rocblas)
 
-    --merge-files                    Enable Tensilse_MERGE_FILES (Default is Enabled).
-
-    --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file (Default is disabled)
+    --[no-]merge-architectures       Merge TensileLibrary files for different architectures into single file. (Default is disabled)
 
     --msgpack                        Build Tensile backend to use MessagePack.
 
-    -n, --no-tensile                 Build a subset of rocBLAS library which does not require Tensile.
-
-    --no-hip-clang                   Build library without using the hip-clang compiler.
-
-    --no-merge-files                 Disable Tensile_MERGE_FILES.
+    -n, --no-tensile                 Build a subset of the rocBLAS library which does not require Tensile.
 
     --no-msgpack                     Build Tensile backend not to use MessagePack.
 
-    -o, --cov <version>              Specify the Tesnile code_object version (e.g. V2 or V3.)
+    -o, --cov <version>              Specify the Tensile code_object version. (e.g. V2 or V3)
 
-    -r, --relocatable                Add RUNPATH(based on ROCM_RPATH) and remove ldconf entry.
+    -r, --relocatable                Add RUNPATH (based on ROCM_RPATH) and remove ldconf entry.
 
     -s, --static                     Build rocblas as a static library.
 
@@ -90,12 +84,13 @@ rocBLAS build & installation helper script.
 
     -t, --test_local_path <path>     Specify a local path for Tensile instead of remote GIT repo.
 
-    -u, --use-custom-version <arg>   Ignore Tensile version and just use the Tensile tag.
+    -u, --use-custom-version <arg>   Ignore the Tensile version and just use the Tensile tag.
+
+    --upgrade_tensile_venv_pip       Upgrade PIP version during Tensile installation.
 
     --use-cuda                       Use installed CUDA version instead of ROCm stack.
 
-    -v, --rocm-dev <version>         Specify specific rocm-dev version (e.g. 4.5.0).
-        --rm-legacy-include-dir      Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
+    --rm-legacy-include-dir          Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -145,48 +140,32 @@ elevate_if_not_root( )
 # Take an array of packages as input, and install those packages with 'apt' if they are not already installed
 install_apt_packages( )
 {
-  package_dependencies=("$@")
-  for package in "${package_dependencies[@]}"; do
-    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root apt-get install -y --no-install-recommends ${package}
-    fi
-  done
+  package_dependencies="$@"
+  printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+  elevate_if_not_root apt-get -y --no-install-recommends install ${package_dependencies}
 }
 
 # Take an array of packages as input, and install those packages with 'yum' if they are not already installed
 install_yum_packages( )
 {
-  package_dependencies=("$@")
-  for package in "${package_dependencies[@]}"; do
-    if [[ $package == *-PyYAML ]] || [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root yum -y --nogpgcheck install ${package}
-    fi
-  done
+  package_dependencies="$@"
+  printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+  elevate_if_not_root yum -y --nogpgcheck install ${package_dependencies}
 }
 
 # Take an array of packages as input, and install those packages with 'dnf' if they are not already installed
 install_dnf_packages( )
 {
-  package_dependencies=("$@")
-  for package in "${package_dependencies[@]}"; do
-    if [[ $package == *-PyYAML ]] || [[ $(dnf list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root dnf install -y ${package}
-    fi
-  done
+  package_dependencies="$@"
+  printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+  elevate_if_not_root dnf install -y ${package_dependencies}
 }
 
 install_zypper_packages( )
 {
-    package_dependencies=("$@")
-    for package in "${package_dependencies[@]}"; do
-        if [[ $(rpm -q ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
-            printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-            elevate_if_not_root zypper install -y ${package}
-        fi
-    done
+    package_dependencies="$@"
+    printf "\033[32mInstalling following packages from distro package manager: \033[33m${package_dependencies}\033[32m \033[0m\n"
+    elevate_if_not_root zypper install -y ${package_dependencies}
 }
 
 install_msgpack_from_source( )
@@ -221,20 +200,28 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
-  local library_dependencies_ubuntu=( "make" "libssl-dev"
+  local library_dependencies_ubuntu=( "make"
                                       "python3" "python3-yaml" "python3-venv" "python3*-pip" )
-  local library_dependencies_centos_rhel=( "epel-release" "openssl-devel"
+  local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
-  local library_dependencies_centos_rhel_8=( "epel-release" "openssl-devel"
+  local library_dependencies_centos_8=( "epel-release"
                                       "make" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" )
+  local library_dependencies_rhel_8=( "epel-release"
+                                      "make" "rpm-build"
+                                      "python36" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" )
+  local library_dependencies_rhel_9=( "epel-release" "openssl-devel"
+                                      "make" "rpm-build"
+                                      "python39" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_fedora=( "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" )
-  local library_dependencies_sles=(   "make" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
+  local library_dependencies_sles=(   "make" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
@@ -249,77 +236,78 @@ install_packages( )
     fi
   fi
 
-  # wget is needed for cmake
+  # wget and openssl are needed for cmake
   if [ -z "$CMAKE_VERSION" ] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
     if $update_cmake == true; then
-      library_dependencies_ubuntu+=("wget")
-      library_dependencies_centos_rhel+=("wget")
-      library_dependencies_centos_rhel_8+=("wget")
+      library_dependencies_ubuntu+=("wget" "libssl-dev")
+      library_dependencies_centos_rhel+=("wget" "openssl-devel")
+      library_dependencies_centos_8+=("wget" "openssl-devel")
+      library_dependencies_rhel_8+=("wget" "openssl-devel")
+      library_dependencies_rhel_9+=("wget" "openssl-devel")
       library_dependencies_fedora+=("wget")
-      library_dependencies_sles+=("wget")
+      library_dependencies_sles+=("wget" "libopenssl-devel")
     fi
   fi
 
-  # dependencies to build the client
-  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" )
-  local client_dependencies_centos_rhel=( "devtoolset-7-gcc-gfortran" "libgomp" )
-  local client_dependencies_centos_rhel_8=( "gcc-gfortran" "libgomp" )
-  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" )
-  local client_dependencies_sles=( "gcc-fortran" "libgomp1" )
+  if [[ "${build_clients}" == true ]]; then
+    # dependencies to build the client
+    library_dependencies_ubuntu+=( "gfortran" "libomp-dev" )
+    library_dependencies_centos_rhel+=( "devtoolset-7-gcc-gfortran" "libgomp" )
+    library_dependencies_centos_8+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_rhel_8+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_rhel_9+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_fedora+=( "gcc-gfortran" "libgomp" )
+    library_dependencies_sles+=( "gcc-fortran" "libgomp1" )
 
-  # wget is needed for blis
-  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
-    client_dependencies_ubuntu+=("wget")
-    client_dependencies_centos_rhel+=("wget")
-    client_dependencies_centos_rhel_8+=("wget")
-    client_dependencies_fedora+=("wget")
-    client_dependencies_sles+=("wget")
+    # wget is needed for blis
+    if [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+      library_dependencies_ubuntu+=("wget")
+      library_dependencies_centos_rhel+=("wget")
+      library_dependencies_centos_8+=("wget")
+      library_dependencies_rhel_8+=("wget")
+      library_dependencies_rhel_9+=("wget")
+      library_dependencies_fedora+=("wget")
+      library_dependencies_sles+=("wget")
+    fi
   fi
 
   case "${ID}" in
     ubuntu)
       elevate_if_not_root apt-get update
       install_apt_packages "${library_dependencies_ubuntu[@]}"
-
-      if [[ "${build_clients}" == true ]]; then
-        install_apt_packages "${client_dependencies_ubuntu[@]}"
-      fi
       ;;
 
-    centos|rhel)
-      if [[ ( "${VERSION_ID}" -ge 8 ) ]]; then
-        install_yum_packages "${library_dependencies_centos_rhel_8[@]}"
-
-        if [[ "${build_clients}" == true ]]; then
-          install_yum_packages "${client_dependencies_centos_rhel_8[@]}"
-        fi
+    centos)
+      if (( "${VERSION_ID%%.*}" >= "8" )); then
+        install_yum_packages "${library_dependencies_centos_8[@]}"
       else
   #     yum -y update brings *all* installed packages up to date
   #     without seeking user approval
   #     elevate_if_not_root yum -y update
         install_yum_packages "${library_dependencies_centos_rhel[@]}"
+      fi
+      ;;
 
-        if [[ "${build_clients}" == true ]]; then
-          install_yum_packages "${client_dependencies_centos_rhel[@]}"
-        fi
+    rhel)
+      if (( "${VERSION_ID%%.*}" >= "9" )); then
+        install_yum_packages "${library_dependencies_rhel_9[@]}"
+      elif (( "${VERSION_ID%%.*}" >= "8" )); then
+        install_yum_packages "${library_dependencies_rhel_8[@]}"
+      else
+  #     yum -y update brings *all* installed packages up to date
+  #     without seeking user approval
+  #     elevate_if_not_root yum -y update
+        install_yum_packages "${library_dependencies_centos_rhel[@]}"
       fi
       ;;
 
     fedora)
 #     elevate_if_not_root dnf -y update
       install_dnf_packages "${library_dependencies_fedora[@]}"
-
-      if [[ "${build_clients}" == true ]]; then
-        install_dnf_packages "${client_dependencies_fedora[@]}"
-      fi
       ;;
 
     sles|opensuse-leap)
        install_zypper_packages "${library_dependencies_sles[@]}"
-
-        if [[ "${build_clients}" == true ]]; then
-            install_zypper_packages "${client_dependencies_sles[@]}"
-        fi
         ;;
     *)
       echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora"
@@ -377,11 +365,11 @@ tensile_logic=asm_full
 gpu_architecture=all
 tensile_cov=
 tensile_fork=
-tensile_merge_files=
 tensile_separate_architectures=true
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
+tensile_lazy_library_loading=true
 build_jobs=$(nproc)
 build_library=true
 build_cleanup=false
@@ -389,11 +377,11 @@ build_clients=false
 build_clients_no_fortran=false
 use_cuda=false
 build_tensile=true
-cpu_ref_lib=blis
 build_release=true
 build_hip_clang=true
 #use readlink rather than realpath for CentOS 6.10 support
 build_dir=$(readlink -m ./build)
+build_relocatable=false
 skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
@@ -402,6 +390,8 @@ build_codecoverage=false
 build_release_debug=false
 build_address_sanitizer=false
 build_freorg_bkwdcomp=true
+declare -a cmake_common_options
+declare -a cmake_client_options
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -417,7 +407,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,rm-legacy-include-dir,merge-architectures,no-merge-architectures --options nhij:cdgkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures,lazy-library-loading,no-lazy-library-loading --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -467,6 +457,12 @@ while true; do
     -l|--logic)
         tensile_logic=${2}
         shift 2 ;;
+    --lazy-library-loading)
+        tensile_lazy_library_loading=true
+        shift ;;
+    --no-lazy-library-loading)
+        tensile_lazy_library_loading=false
+        shift ;;
     -a|--architecture)
         gpu_architecture=${2}
         shift 2 ;;
@@ -485,30 +481,23 @@ while true; do
     -n|--no_tensile|--no-tensile)
         build_tensile=false
         shift ;;
+    --upgrade_tensile_venv_pip)
+        upgrade_tensile_pip=true
+        shift ;;
     --build_dir)
 #use readlink rather than realpath for CentOS 6.10 support
         build_dir=$(readlink -m ${2})
         shift 2;;
+    -r|--relocatable)
+      skip_ld_conf_entry=true
+      build_relocatable=true
+      shift ;;
     --use-cuda)
         use_cuda=true
         shift ;;
-    --cpu_ref_lib)
-        cpu_ref_lib=${2}
-        shift 2 ;;
-    --hip-clang)
-        build_hip_clang=true
-        shift ;;
-    --no-hip-clang)
-        build_hip_clang=false
-        shift ;;
-    --merge-files)
-        tensile_merge_files=true
-        shift ;;
-    --no-merge-files)
-        tensile_merge_files=false
-        shift ;;
     --merge-architectures)
         tensile_separate_architectures=false
+        tensile_lazy_library_loading=false
         shift ;;
     --no-merge-architectures)
         tensile_separate_architectures=true
@@ -516,14 +505,11 @@ while true; do
     --skipldconf)
         skip_ld_conf_entry=true
         shift ;;
-    --static)
+    -s|--static)
         static_lib=true
         shift ;;
     -u|--use-custom-version)
         tensile_version=${2}
-        shift 2;;
-    -v|--rocm-dev)
-        custom_rocm_dev=${2}
         shift 2;;
     --prefix)
         install_prefix=${2}
@@ -550,6 +536,9 @@ while true; do
     --rm-legacy-include-dir)
         build_freorg_bkwdcomp=false
         shift ;;
+    --cmake-arg)
+        cmake_common_options+=("${2}")
+        shift 2 ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
         exit 1
@@ -561,27 +550,22 @@ if [[ -z $tensile_cov ]]; then
     if [[ $build_hip_clang == true ]]; then
         tensile_cov=V3
     else
-        tensile_cov=V2
+        echo "Currently the only supported code object version is V3"
+        exit 2
     fi
+elif [[ $tensile_cov != V3 ]]; then
+  echo "Currently the only supported code object version is V3"
+        exit 2
 fi
 
 set -x
-
-if [[ "${cpu_ref_lib}" == blis ]]; then
-  LINK_BLIS=true
-elif [[ "${cpu_ref_lib}" == lapack ]]; then
-  LINK_BLIS=false
-else
-  echo "Currently the only CPU library options are blis and lapack"
-      exit 2
-fi
 
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
 
 install_blis()
 {
     #Download prebuilt AMD multithreaded blis
-    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.a" ]]; then
+    if [[ ! -e "./blis/lib/libblis.a" ]]; then
       case "${ID}" in
           centos|rhel|sles|opensuse-leap)
               wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
@@ -642,19 +626,22 @@ if [[ "${install_dependencies}" == true ]]; then
 
   install_packages
 
-  if [ -z "$CMAKE_VERSION"] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+  if [ -z "$CMAKE_VERSION" ] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
       if $update_cmake == true; then
+        pushd
+        printf "\033[32mBuilding \033[33mcmake\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
         CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
+        mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
         wget -nv ${CMAKE_REPO}/cmake-3.16.8.tar.gz
         tar -xvf cmake-3.16.8.tar.gz
+        rm cmake-3.16.8.tar.gz
         cd cmake-3.16.8
-        ./bootstrap --prefix=/usr --no-system-curl --parallel=16
+        ./bootstrap --no-system-curl --parallel=16
         make -j16
         sudo make install
-        cd ..
-        rm -rf cmake-3.16.8.tar.gz cmake-3.16.8
+        popd
       else
-          echo "rocBLAS requires CMake version >= 3.16.8 and CMake version ${CMAKE_VERSION} is installed. Run install.sh again with --cmake_install flag and CMake version ${CMAKE_VERSION} will be uninstalled and CMake version 3.16.8 will be installed"
+          echo "rocBLAS requires CMake version >= 3.16.8 and CMake version ${CMAKE_VERSION} is installed. Run install.sh again with --cmake_install flag and CMake version 3.16.8 will be installed to /usr/local"
           exit 2
       fi
   fi
@@ -669,13 +656,12 @@ if [[ "${install_dependencies}" == true ]]; then
   esac
 
   if [[ "${build_clients}" == true ]]; then
-
-    # The following builds googletest & lapack from source, installs into cmake default /usr/local
+    # The following builds googletest from source, installs into cmake default /usr/local
     pushd .
-    printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
+    printf "\033[32mBuilding \033[33mgoogletest; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
-    make -j${build_jobs}
+    make build_deps
     elevate_if_not_root make install_deps
     install_blis
     popd
@@ -691,21 +677,23 @@ pushd .
   # #################################################
   # configure & build
   # #################################################
-  cmake_common_options=""
-  cmake_client_options=""
 
-  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -DAMDGPU_TARGETS=${gpu_architecture}"
+  cmake_common_options+=(
+    "-DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake"
+    "-DROCM_PATH=${rocm_path}"
+    "-DAMDGPU_TARGETS=${gpu_architecture}"
+  )
 
   # build type
   if [[ "${build_release}" == true ]]; then
     mkdir -p ${build_dir}/release/clients && cd ${build_dir}/release
-    cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Release"
+    cmake_common_options+=("-DCMAKE_BUILD_TYPE=Release")
   elif [[ "${build_release_debug}" == true ]]; then
     mkdir -p ${build_dir}/release-debug/clients && cd ${build_dir}/release-debug
-    cmake_common_options="${cmake_common_options}  -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+    cmake_common_options+=("-DCMAKE_BUILD_TYPE=RelWithDebInfo")
   else
     mkdir -p ${build_dir}/debug/clients && cd ${build_dir}/debug
-    cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Debug"
+    cmake_common_options+=("-DCMAKE_BUILD_TYPE=Debug")
   fi
 
   # code coverage
@@ -714,96 +702,113 @@ pushd .
           echo "Code coverage is disabled in Release mode, to enable code coverage select either Debug mode (-g|--debug) or RelWithDebInfo mode (-k|--relwithdebinfo); aborting";
           exit 1
       fi
-      cmake_common_options="${cmake_common_options} -DBUILD_CODE_COVERAGE=ON"
+      cmake_common_options+=("-DBUILD_CODE_COVERAGE=ON")
   fi
 
   if [[ "${static_lib}" == true ]]; then
-    cmake_common_options="${cmake_common_options} -DBUILD_SHARED_LIBS=OFF"
+    cmake_common_options+=("-DBUILD_SHARED_LIBS=OFF")
   fi
 
+
+  # tensile options
   if [[ -n "${tensile_fork}" ]]; then
-    cmake_common_options="${cmake_common_options} -Dtensile_fork=${tensile_fork}"
+    cmake_common_options+=("-Dtensile_fork=${tensile_fork}")
   fi
 
   if [[ -n "${tensile_tag}" ]]; then
-    cmake_common_options="${cmake_common_options} -Dtensile_tag=${tensile_tag}"
+    cmake_common_options+=("-Dtensile_tag=${tensile_tag}")
   fi
 
   if [[ -n "${tensile_test_local_path}" ]]; then
-    cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
+    cmake_common_options+=("-DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}")
   fi
 
   if [[ "${skip_ld_conf_entry}" == true ]]; then
-    cmake_common_options="${cmake_common_options} -DROCM_DISABLE_LDCONFIG=ON"
+    cmake_common_options+=("-DROCM_DISABLE_LDCONFIG=ON")
   fi
 
   if [[ -n "${tensile_version}" ]]; then
-    cmake_common_options="${cmake_common_options} -DTENSILE_VERSION=${tensile_version}"
+    cmake_common_options+=("-DTENSILE_VERSION=${tensile_version}")
   fi
 
-  tensile_opt=""
   if [[ "${build_tensile}" == false ]]; then
-    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
+    cmake_common_options+=("-DBUILD_WITH_TENSILE=OFF")
    else
-    tensile_opt="${tensile_opt} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+    cmake_common_options+=("-DTensile_LOGIC=${tensile_logic}" "-DTensile_CODE_OBJECT_VERSION=${tensile_cov}")
     if [[ ${build_jobs} != $(nproc) ]]; then
-      tensile_opt="${tensile_opt} -DTensile_CPU_THREADS=${build_jobs}"
+      cmake_common_options+=("-DTensile_CPU_THREADS=${build_jobs}")
     fi
   fi
 
-  if [[ "${tensile_merge_files}" == false ]]; then
-    tensile_opt="${tensile_opt} -DTensile_MERGE_FILES=OFF"
+  if [[ "${upgrade_tensile_pip}" == true ]]; then
+    cmake_common_options+=("-DTENSILE_VENV_UPGRADE_PIP=ON")
   fi
 
   if [[ "${tensile_separate_architectures}" == true ]]; then
-    tensile_opt="${tensile_opt} -DTensile_SEPARATE_ARCHITECTURES=ON"
+    cmake_common_options+=("-DTensile_SEPARATE_ARCHITECTURES=ON")
+  fi
+
+  if [[ "${tensile_lazy_library_loading}" == true ]]; then
+    cmake_common_options+=("-DTensile_LAZY_LIBRARY_LOADING=ON")
   fi
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
-    tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=msgpack"
+    cmake_common_options+=("-DTensile_LIBRARY_FORMAT=msgpack")
   else
-    tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=yaml"
+    cmake_common_options+=("-DTensile_LIBRARY_FORMAT=yaml")
   fi
-
-  cmake_common_options="-DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake ${cmake_common_options} ${tensile_opt}"
 
 
   if [[ "${build_clients}" == true ]]; then
-    cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS} -DBUILD_DIR=${build_dir}"
+    cmake_client_options+=(
+      "-DBUILD_CLIENTS_SAMPLES=ON"
+      "-DBUILD_CLIENTS_TESTS=ON"
+      "-DBUILD_CLIENTS_BENCHMARKS=ON"
+      "-DLINK_BLIS=ON"
+      "-DBUILD_DIR=${build_dir}"
+    )
     if [[ "${build_clients_no_fortran}" == true ]]; then
-      cmake_client_options="${cmake_client_options} -DBUILD_FORTRAN_CLIENTS=OFF"
+      cmake_client_options+=("-DBUILD_FORTRAN_CLIENTS=OFF")
     fi
   fi
 
   if [[ "${build_library}" == false ]]; then
-    cmake_client_options="${cmake_client_options} -DSKIP_LIBRARY=ON -DROCBLAS_LIBRARY_DIR=${library_dir_installed}"
+    cmake_client_options+=("-DSKIP_LIBRARY=ON" "-DROCBLAS_LIBRARY_DIR=${library_dir_installed}")
+  fi
+
+  rocm_rpath=""
+  if [[ "${build_relocatable}" == true ]]; then
+      rocm_rpath=" -Wl,--enable-new-dtags -Wl,--rpath,/opt/rocm/lib:/opt/rocm/lib64"
+      if ! [ -z ${ROCM_RPATH+x} ]; then
+          rocm_rpath=" -Wl,--enable-new-dtags -Wl,--rpath,${ROCM_RPATH}"
+      fi
   fi
 
   if [[ "${build_hip_clang}" == true ]]; then
-      cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
+      cmake_common_options+=("-DRUN_HEADER_TESTING=OFF")
   fi
 
   if [[ "${use_cuda}" == true ]]; then
-    cmake_common_options="${cmake_common_options} -DUSE_CUDA=ON"
+    cmake_common_options+=("-DUSE_CUDA=ON")
   fi
 
   if [[ "${build_address_sanitizer}" == true ]]; then
-    cmake_common_options="$cmake_common_options -DBUILD_ADDRESS_SANITIZER=ON"
+    cmake_common_options+=("-DBUILD_ADDRESS_SANITIZER=ON")
   fi
   if [[ "${build_freorg_bkwdcomp}" == true ]]; then
-    cmake_common_options="${cmake_common_options} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON"
+    cmake_common_options+=("-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON")
   else
-    cmake_common_options="${cmake_common_options} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF"
+    cmake_common_options+=("-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF")
   fi
 
   # Uncomment for cmake debugging
-  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_common_options[@]} ${cmake_client_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} -DCMAKE_SHARED_LINKER_FLAGS="${rocm_rpath}" ${ROCBLAS_SRC_PATH}
   else
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} -DCMAKE_SHARED_LINKER_FLAGS="${rocm_rpath}" ${ROCBLAS_SRC_PATH}
   fi
   check_exit_code "$?"
 

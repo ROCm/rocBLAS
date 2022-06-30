@@ -2,7 +2,7 @@
 // This shared library is available at https://github.com/ROCmSoftwarePlatform/rocJENKINS/
 @Library('rocJenkins@pong') _
 
-// This is file for internal AMD use.
+// This is file for AMD Continuous Integration use.
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
 
 import com.amd.project.*
@@ -38,6 +38,38 @@ def runCI =
         platform, project->
 
         def gfilter = "*quick*:*pre_checkin*"
+
+        def testFilter = ""
+
+        if (env.BRANCH_NAME ==~ /PR-\d+/)
+        {
+            pullRequest.labels.each
+            {
+                if (it == "TestTensileOnly")
+                {
+                    testFilter += "*blas3_tensile/quick*:*blas3_tensile/pre_checkin*:"
+                }
+                else if(it == "TestLevel3Only")
+                {
+                    testFilter += "*blas3/quick*:*blas3/pre_checkin*:"
+                }
+                else if(it == "TestLevel2Only")
+                {
+                    testFilter += "*blas2/quick*:*blas2/pre_checkin*:"
+                }
+                else if(it == "TestLevel1Only")
+                {
+                    testFilter += "*blas1*quick*:*blas1*pre_checkin*:"
+                }
+            }
+        }
+
+        if (testFilter.length() > 0)
+        {
+            // The below command chops the final character ':' in testFilter and transfers the string to gfilter.
+            gfilter = testFilter.substring(0, testFilter.length() - 1);
+        }
+
         commonGroovy.runTestCommand(platform, project, gfilter)
     }
 

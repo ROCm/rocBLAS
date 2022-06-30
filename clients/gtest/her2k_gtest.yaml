@@ -59,10 +59,10 @@ Tests:
   function: her2k
   precision: *single_double_precisions_complex
   uplo: [ U ]
-  transA: [ N, C ]
+  transA: [ N ]
   matrix_size: *tiny_matrix_size
-  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
-  beta: [ 0.5, 1.0, .NaN ]
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
 
 - name: her2k_medium
   category: pre_checkin
@@ -100,6 +100,17 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
   batch_count: [ 0, 1 ]
+
+- name: her2k_batched_NaN
+  category: pre_checkin
+  function: her2k_batched
+  precision: *single_precision_complex
+  uplo: [ L ]
+  transA: [ C ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+  batch_count: [ 2 ]
 
 - name: her2k_batched_medium
   category: pre_checkin
@@ -139,6 +150,17 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
   batch_count: [ 0, 1 ]
+
+- name: her2k_strided_batched_NaN
+  category: pre_checkin
+  function: her2k_strided_batched
+  precision: *double_precision_complex
+  uplo: [ L ]
+  transA: [ C ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+  batch_count: [ 2 ]
 
 - name: her2k_strided_batched_medium
   category: pre_checkin

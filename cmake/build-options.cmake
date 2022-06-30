@@ -1,5 +1,23 @@
 # ########################################################################
-# Copyright 2016-2022 Advanced Micro Devices, Inc.
+# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+# ies of the Software, and to permit persons to whom the Software is furnished
+# to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+# PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+# CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
 # ########################################################################
 
 # This file is intended to be used in two ways; independently in a stand alone PROJECT
@@ -37,12 +55,15 @@ option(BUILD_CODE_COVERAGE "Build rocBLAS with code coverage enabled" OFF)
 # FOR OPTIONAL ADDRESS SANITIZER
 option(BUILD_ADDRESS_SANITIZER "Build with address sanitizer enabled" OFF)
 
+# FOR OPTIONAL HEADER TESTSING
+option(RUN_HEADER_TESTING "Build with header testing disabled" OFF)
+
 if( BUILD_WITH_TENSILE )
 
   set( Tensile_CPU_THREADS "" CACHE STRING "Number of threads for Tensile parallel build")
 
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
-  set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
+  set( Tensile_CODE_OBJECT_VERSION "V3" CACHE STRING "Tensile code_object_version")
   set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")
   set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
 
@@ -62,6 +83,8 @@ if( BUILD_WITH_TENSILE )
     option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." OFF)
     option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
   endif()
+
+  option( TENSILE_VENV_UPGRADE_PIP "Upgrade pip in Tensile virtuaal environment" OFF)
 
 endif()
 

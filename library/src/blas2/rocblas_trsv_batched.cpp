@@ -1,19 +1,33 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trsv.hpp"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr rocblas_int STRSV_BLOCK = 64;
-    constexpr rocblas_int DTRSV_BLOCK = 64;
-    constexpr rocblas_int CTRSV_BLOCK = 64;
-    constexpr rocblas_int ZTRSV_BLOCK = 32;
-
     template <typename>
     constexpr char rocblas_trsv_batched_name[] = "unknown";
     template <>
@@ -106,29 +120,13 @@ namespace
             }
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
-        if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)
-            return rocblas_status_invalid_size;
+        size_t         dev_bytes;
+        rocblas_status arg_status = rocblas_trsv_arg_check(
+            handle, uplo, transA, diag, m, A, lda, B, incx, batch_count, dev_bytes);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
-        // quick return if possible.
-        if(!m || !batch_count)
-        {
-            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-            return rocblas_status_success;
-        }
-
-        if(!A || !B)
-            return rocblas_status_invalid_pointer;
-
-        // Need one int worth of global memory to keep track of completed sections. Needed for each batch.
-        size_t dev_bytes_completed_sec = batch_count * sizeof(rocblas_int);
-        if(handle->is_device_memory_size_query())
-        {
-            return handle->set_optimal_device_memory_size(dev_bytes_completed_sec);
-        }
-        auto w_mem = handle->device_malloc(dev_bytes_completed_sec);
-
+        auto w_mem = handle->device_malloc(dev_bytes);
         if(!w_mem)
             return rocblas_status_memory_error;
 
@@ -142,6 +140,7 @@ namespace
             rocblas_status trsv_check_numerics_status
                 = rocblas_internal_trsv_check_numerics(rocblas_trsv_batched_name<T>,
                                                        handle,
+                                                       uplo,
                                                        m,
                                                        A,
                                                        0,
@@ -185,6 +184,7 @@ namespace
             rocblas_status trsv_check_numerics_status
                 = rocblas_internal_trsv_check_numerics(rocblas_trsv_batched_name<T>,
                                                        handle,
+                                                       uplo,
                                                        m,
                                                        A,
                                                        0,
@@ -226,7 +226,7 @@ rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
                                      rocblas_int batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<STRSV_BLOCK>(
+    return rocblas_trsv_batched_impl<ROCBLAS_SDCTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)
@@ -246,7 +246,7 @@ rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<DTRSV_BLOCK>(
+    return rocblas_trsv_batched_impl<ROCBLAS_SDCTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)
@@ -267,7 +267,7 @@ rocblas_status rocblas_ctrsv_batched(rocblas_handle                     handle,
                                      rocblas_int batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<CTRSV_BLOCK>(
+    return rocblas_trsv_batched_impl<ROCBLAS_SDCTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)
@@ -287,7 +287,7 @@ rocblas_status rocblas_ztrsv_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<ZTRSV_BLOCK>(
+    return rocblas_trsv_batched_impl<ROCBLAS_ZTRSV_NB>(
         handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)

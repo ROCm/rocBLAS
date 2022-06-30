@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -34,16 +52,22 @@ __device__ inline rocblas_half2
 
 // Conjugate a value. For most types, simply return argument; for
 // rocblas_float_complex and rocblas_double_complex, return std::conj(z)
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return z;
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return std::conj(z);
+}
+
+template <bool CONJ, typename T>
+__device__ __host__ inline T conj_if_true(const T& z)
+{
+    return CONJ ? conj(z) : z;
 }
 
 // Load a scalar. If the argument is a pointer, dereference it; otherwise copy
@@ -424,6 +448,25 @@ typedef struct rocblas_check_numerics_s
 
 } rocblas_check_numerics_t;
 
+/*************************************************************************************************************************
+//! @brief enum to check the type of matrix
+ ************************************************************************************************************************/
+typedef enum rocblas_check_matrix_type_
+{
+    // General matrix
+    rocblas_client_general_matrix,
+
+    // Hermitian matrix
+    rocblas_client_hermitian_matrix,
+
+    // Symmetric matrix
+    rocblas_client_symmetric_matrix,
+
+    // Triangular matrix
+    rocblas_client_triangular_matrix,
+
+} rocblas_check_matrix_type;
+
 /*******************************************************************************
 * \brief  returns true if arg is NaN
 ********************************************************************************/
@@ -433,13 +476,13 @@ __host__ __device__ inline bool rocblas_isnan(T)
     return false;
 }
 
-template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isnan(T arg)
 {
     return std::isnan(arg);
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isnan(const T& arg)
 {
     return rocblas_isnan(std::real(arg)) || rocblas_isnan(std::imag(arg));
@@ -465,13 +508,13 @@ __host__ __device__ inline bool rocblas_isinf(T)
     return false;
 }
 
-template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isinf(T arg)
 {
     return std::isinf(arg);
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isinf(const T& arg)
 {
     return rocblas_isinf(std::real(arg)) || rocblas_isinf(std::imag(arg));
@@ -498,14 +541,14 @@ __host__ __device__ inline bool rocblas_iszero(T arg)
 }
 
 // Absolute value
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline T rocblas_abs(T x)
 {
     return x < 0 ? -x : x;
 }
 
 // For complex, we have defined a __device__ __host__ compatible std::abs
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline auto rocblas_abs(T x)
 {
     return std::abs(x);
@@ -540,14 +583,14 @@ __host__ __device__ inline bool rocblas_isdenorm(T)
     return false;
 }
 
-template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isdenorm(T arg)
 {
     return ((rocblas_abs(arg) >= std::numeric_limits<T>::denorm_min())
             && (rocblas_abs(arg) < std::numeric_limits<T>::min()));
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __host__ __device__ inline bool rocblas_isdenorm(const T& arg)
 {
     return rocblas_isdenorm(std::real(arg)) || rocblas_isdenorm(std::imag(arg));
@@ -599,7 +642,7 @@ struct rocblas_real_t_impl
 };
 
 template <typename T>
-struct rocblas_real_t_impl<T, std::enable_if_t<is_complex<T>>>
+struct rocblas_real_t_impl<T, std::enable_if_t<rocblas_is_complex<T>>>
 {
     using type = decltype(std::real(T{}));
 };

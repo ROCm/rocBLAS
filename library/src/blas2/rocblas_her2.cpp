@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 #include "rocblas_her2.hpp"
 #include "logging.hpp"
@@ -83,17 +101,29 @@ namespace
                             lda);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || !incx || !incy || lda < n || lda < 1)
-            return rocblas_status_invalid_size;
-        if(!n)
-            return rocblas_status_success;
-        if(!x || !y || !A || !alpha)
-            return rocblas_status_invalid_pointer;
-
-        static constexpr rocblas_int    offset_x = 0, offset_y = 0, offset_A = 0, batch_count = 1;
+        static constexpr rocblas_stride offset_x = 0, offset_y = 0, offset_A = 0;
+        static constexpr rocblas_int    batch_count = 1;
         static constexpr rocblas_stride stride_x = 0, stride_y = 0, stride_A = 0;
+
+        rocblas_status arg_status = rocblas_her2_arg_check(handle,
+                                                           uplo,
+                                                           n,
+                                                           alpha,
+                                                           x,
+                                                           offset_x,
+                                                           incx,
+                                                           stride_x,
+                                                           y,
+                                                           offset_y,
+                                                           incy,
+                                                           stride_y,
+                                                           A,
+                                                           lda,
+                                                           offset_A,
+                                                           stride_A,
+                                                           batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {
@@ -101,6 +131,7 @@ namespace
             rocblas_status her2_check_numerics_status
                 = rocblas_her2_check_numerics(rocblas_her2_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               offset_A,
@@ -147,6 +178,7 @@ namespace
             rocblas_status her2_check_numerics_status
                 = rocblas_her2_check_numerics(rocblas_her2_name<T>,
                                               handle,
+                                              uplo,
                                               n,
                                               A,
                                               offset_A,

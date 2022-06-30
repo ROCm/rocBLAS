@@ -3,6 +3,10 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+
+  - &tiny_matrix_size
+    - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
+
   - &quick_matrix_size_range
     - { N:  -1,  K:  1,  lda:  1,  ldb: 1,  ldc:  1 } # bad n
     - { N:   2,  K: -1,  lda:  2,  ldb: 2,  ldc:  1 } # bad k
@@ -62,10 +66,30 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
 
-- name: syr2k_medium
+- name: syr2k_NaN
   category: pre_checkin
   function: syr2k
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+
+- name: syr2k_medium_real
+  category: pre_checkin
+  function: syr2k
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  fortran: [ false, true ]
+
+- name: syr2k_medium_complex
+  category: pre_checkin
+  function: syr2k
+  precision: *single_double_precisions_complex
   uplo: [ U, L ]
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range
@@ -97,7 +121,7 @@ Tests:
 - name: syr2k_batched_bad
   category: pre_checkin
   function: syr2k_batched_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions_complex_real
   fortran: [ false, true ]
 
 - name: syr2k_batched_quick
@@ -110,6 +134,17 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
   batch_count: [ 0, 1 ]
+
+- name: syr2k_batched_NaN
+  category: pre_checkin
+  function: syr2k_batched
+  precision: *single_precision
+  uplo: [ L ]
+  transA: [ T ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+  batch_count: [ 2 ]
 
 - name: syr2k_batched_medium
   category: pre_checkin
@@ -136,7 +171,7 @@ Tests:
 - name: syr2k_strided_batched_bad
   category: pre_checkin
   function: syr2k_strided_batched_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions_complex_real
   fortran: [ false, true ]
 
 - name: syr2k_strided_batched_quick
@@ -149,6 +184,17 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
   batch_count: [ 0, 1 ]
+
+- name: syr2k_strided_batched_NaN
+  category: pre_checkin
+  function: syr2k_strided_batched
+  precision: *double_precision
+  uplo: [ U ]
+  transA: [ N ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+  batch_count: [ 2 ]
 
 - name: syr2k_strided_batched_medium
   category: pre_checkin

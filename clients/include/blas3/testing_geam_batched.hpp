@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -11,6 +29,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -25,119 +44,280 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
     auto rocblas_geam_batched_fn
         = arg.fortran ? rocblas_geam_batched<T, true> : rocblas_geam_batched<T, false>;
 
-    const rocblas_int M = 100;
-    const rocblas_int N = 100;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    const rocblas_int lda = 100;
-    const rocblas_int ldb = 100;
-    const rocblas_int ldc = 100;
+        const rocblas_int M = 100;
+        const rocblas_int N = 99;
 
-    const rocblas_int batch_count = 5;
+        const rocblas_int lda = 100;
+        const rocblas_int ldb = 100;
+        const rocblas_int ldc = 100;
 
-    const T h_alpha = 1.0;
-    const T h_beta  = 1.0;
+        const rocblas_int batch_count = 2;
 
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_operation transB = rocblas_operation_none;
+        device_vector<T> alpha_d(1), beta_d(1), one_d(1), zero_d(1);
 
-    rocblas_local_handle handle{arg};
+        const T alpha_h(1), beta_h(2), one_h(1), zero_h(0);
 
-    size_t size_A = size_t(lda) * (transA == rocblas_operation_none ? N : M);
-    size_t size_B = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
-    size_t size_C = size_t(lda) * N;
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* one   = &one_h;
+        const T* zero  = &zero_h;
 
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
-    device_batch_vector<T> dB(size_B, 1, batch_count);
-    device_batch_vector<T> dC(size_C, 1, batch_count);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
-                                                  transA,
-                                                  transB,
-                                                  M,
-                                                  N,
-                                                  &h_alpha,
-                                                  nullptr,
-                                                  lda,
-                                                  &h_beta,
-                                                  dB,
-                                                  ldb,
-                                                  dC,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transB = rocblas_operation_none;
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
-                                                  transA,
-                                                  transB,
-                                                  M,
-                                                  N,
-                                                  &h_alpha,
-                                                  dA,
-                                                  lda,
-                                                  &h_beta,
-                                                  nullptr,
-                                                  ldb,
-                                                  dC,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        rocblas_int A_row = transA == rocblas_operation_none ? M : N;
+        rocblas_int A_col = transA == rocblas_operation_none ? N : M;
+        rocblas_int B_row = transB == rocblas_operation_none ? M : N;
+        rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
-                                                  transA,
-                                                  transB,
-                                                  M,
-                                                  N,
-                                                  &h_alpha,
-                                                  dA,
-                                                  lda,
-                                                  &h_beta,
-                                                  dB,
-                                                  ldb,
-                                                  nullptr,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_batch_matrix<T> dA(A_row, A_col, lda, batch_count);
+        device_batch_matrix<T> dB(B_row, B_col, ldb, batch_count);
+        device_batch_matrix<T> dC(M, N, ldc, batch_count);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_batched_fn(
-            handle, transA, transB, M, N, nullptr, dA, lda, &h_beta, dB, ldb, dC, ldc, batch_count),
-        rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
-                                                  transA,
-                                                  transB,
-                                                  M,
-                                                  N,
-                                                  &h_alpha,
-                                                  dA,
-                                                  lda,
-                                                  nullptr,
-                                                  dB,
-                                                  ldb,
-                                                  dC,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(nullptr,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      beta,
+                                                      dB.ptr_on_device(),
+                                                      ldb,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(nullptr,
-                                                  transA,
-                                                  transB,
-                                                  M,
-                                                  N,
-                                                  &h_alpha,
-                                                  dA,
-                                                  lda,
-                                                  &h_beta,
-                                                  dB,
-                                                  ldb,
-                                                  dC,
-                                                  ldc,
-                                                  batch_count),
-                          rocblas_status_invalid_handle);
+        // invalid values
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      (rocblas_operation)rocblas_fill_full,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      beta,
+                                                      dB.ptr_on_device(),
+                                                      ldb,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      (rocblas_operation)rocblas_fill_full,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      beta,
+                                                      dB.ptr_on_device(),
+                                                      ldb,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_invalid_value);
+
+        // invalid size in regular tests
+
+        // alpha/beta
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      nullptr,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      beta,
+                                                      dB.ptr_on_device(),
+                                                      ldb,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      nullptr,
+                                                      dB.ptr_on_device(),
+                                                      ldb,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
+
+        // invalid pointers
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      beta,
+                                                      dB.ptr_on_device(),
+                                                      ldb,
+                                                      nullptr,
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          alpha,
+                                                          nullptr,
+                                                          lda,
+                                                          beta,
+                                                          dB.ptr_on_device(),
+                                                          ldb,
+                                                          dC.ptr_on_device(),
+                                                          ldc,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          alpha,
+                                                          dA.ptr_on_device(),
+                                                          lda,
+                                                          beta,
+                                                          nullptr,
+                                                          ldb,
+                                                          dC.ptr_on_device(),
+                                                          ldc,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
+        }
+
+        // batch_count==0 then all may be nullptr
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      nullptr,
+                                                      ldb,
+                                                      nullptr,
+                                                      ldc,
+                                                      0),
+                              rocblas_status_success);
+
+        // M==0 then all may be nullptr
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      0,
+                                                      N,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      nullptr,
+                                                      ldb,
+                                                      nullptr,
+                                                      ldc,
+                                                      0),
+                              rocblas_status_success);
+
+        // N==0 then all may be nullptr
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      0,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      nullptr,
+                                                      ldb,
+                                                      nullptr,
+                                                      ldc,
+                                                      0),
+                              rocblas_status_success);
+
+        // alpha==0 then A may be nullptr
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      zero,
+                                                      nullptr,
+                                                      lda,
+                                                      beta,
+                                                      dB.ptr_on_device(),
+                                                      ldb,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // beta==0 then B may be nullptr
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      zero,
+                                                      nullptr,
+                                                      ldb,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count),
+                              rocblas_status_success);
+    }
 }
 
 template <typename T>
@@ -160,9 +340,6 @@ void testing_geam_batched(const Arguments& arg)
     T alpha = arg.get_alpha<T>();
     T beta  = arg.get_beta<T>();
 
-    rocblas_int A_row, A_col, B_row, B_col;
-    rocblas_int inc1_A, inc2_A, inc1_B, inc2_B;
-
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
 
@@ -172,100 +349,86 @@ void testing_geam_batched(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    if(transA == rocblas_operation_none)
-    {
-        A_row  = M;
-        A_col  = N;
-        inc1_A = 1;
-        inc2_A = lda;
-    }
-    else
-    {
-        A_row  = N;
-        A_col  = M;
-        inc1_A = lda;
-        inc2_A = 1;
-    }
-    if(transB == rocblas_operation_none)
-    {
-        B_row  = M;
-        B_col  = N;
-        inc1_B = 1;
-        inc2_B = ldb;
-    }
-    else
-    {
-        B_row  = N;
-        B_col  = M;
-        inc1_B = ldb;
-        inc2_B = 1;
-    }
+    rocblas_int A_row = transA == rocblas_operation_none ? M : N;
+    rocblas_int A_col = transA == rocblas_operation_none ? N : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? M : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
-    size_t size_A = size_t(lda) * size_t(A_col);
-    size_t size_B = size_t(ldb) * size_t(B_col);
     size_t size_C = size_t(ldc) * size_t(N);
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
-                                                      transA,
-                                                      transB,
-                                                      M,
-                                                      N,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      nullptr,
-                                                      ldb,
-                                                      nullptr,
-                                                      ldc,
-                                                      batch_count),
-                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_geam_batched_fn(
+                handle,
+                transA,
+                transB,
+                M,
+                N,
+                nullptr,
+                nullptr,
+                lda,
+                nullptr,
+                nullptr,
+                ldb,
+                (T**)0x1, // defeat C==A or B leading dim invalid checks, C nullptr in bad_arg
+                ldc,
+                batch_count),
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_batch_matrix<T> hA(A_row, A_col, lda, batch_count),
+        hA_copy(A_row, A_col, lda, batch_count);
+    host_batch_matrix<T> hB(B_row, B_col, ldb, batch_count),
+        hB_copy(B_row, B_col, ldb, batch_count);
+    host_batch_matrix<T> hC_1(M, N, ldc, batch_count);
+    host_batch_matrix<T> hC_2(M, N, ldc, batch_count);
+    host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
     host_vector<T>       h_alpha(1);
     host_vector<T>       h_beta(1);
-    host_batch_vector<T> hA(size_A, 1, batch_count), hA_copy(size_A, 1, batch_count);
-    host_batch_vector<T> hB(size_B, 1, batch_count), hB_copy(size_B, 1, batch_count);
-    host_batch_vector<T> hC_1(size_C, 1, batch_count);
-    host_batch_vector<T> hC_2(size_C, 1, batch_count);
-    host_batch_vector<T> hC_gold(size_C, 1, batch_count);
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hA_copy.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hB_copy.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
     CHECK_HIP_ERROR(hC_2.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
+
+    // Allocate device memory
+    device_batch_matrix<T> dA(A_row, A_col, lda, batch_count);
+    device_batch_matrix<T> dB(B_row, B_col, ldb, batch_count);
+    device_batch_matrix<T> dC(M, N, ldc, batch_count);
+    device_batch_matrix<T> dC_in_place(M, N, ldc, batch_count);
+    device_vector<T>       d_alpha(1);
+    device_vector<T>       d_beta(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hB, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
+    rocblas_init_matrix(hB, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     hA_copy.copy_from(hA);
     hB_copy.copy_from(hB);
-
-    // allocate memory on device
-    device_batch_vector<T> dA(size_A, 1, batch_count);
-    device_batch_vector<T> dB(size_B, 1, batch_count);
-    device_batch_vector<T> dC(size_C, 1, batch_count);
-    device_batch_vector<T> dC_in_place(size_C, 1, batch_count);
-    device_vector<T>       d_alpha(1);
-    device_vector<T>       d_beta(1);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+    hC_2.copy_from(hC_1);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
@@ -294,7 +457,6 @@ void testing_geam_batched(const Arguments& arg)
 
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
-        rocblas_init<T>(hC_2);
         CHECK_HIP_ERROR(dC.transfer_from(hC_2));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -381,7 +543,7 @@ void testing_geam_batched(const Arguments& arg)
             }
             else
             {
-                CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+                CHECK_HIP_ERROR(hC_1.transfer_from(dC_in_place));
                 // dA was clobbered by dC_in_place, so copy hA back to dA
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 

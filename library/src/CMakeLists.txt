@@ -1,5 +1,23 @@
 # ########################################################################
-# Copyright 2016-2022 Advanced Micro Devices, Inc.
+# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+# ies of the Software, and to permit persons to whom the Software is furnished
+# to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+# PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+# CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
 # ########################################################################
 
 # ########################################################################
@@ -48,6 +66,9 @@ if( BUILD_WITH_TENSILE )
   endif()
   if(Tensile_SEPARATE_ARCHITECTURES)
     set(Tensile_Options ${Tensile_Options} SEPARATE_ARCHITECTURES)
+  endif()
+  if(Tensile_LAZY_LIBRARY_LOADING)
+  set(Tensile_Options ${Tensile_Options} LAZY_LIBRARY_LOADING)
   endif()
   if(Tensile_SHORT_FILENAMES)
     set(Tensile_Options ${Tensile_Options} SHORT_FILE_NAMES)
@@ -191,7 +212,7 @@ set( rocblas_blas3_source_no_tensile
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
     blas3/rocblas_syrkx.cpp
-    blas3/rocblas_syrkx_kernels.cpp
+    blas3/rocblas_syrkx_herkx_kernels.cpp
     blas3/rocblas_syrkx_batched.cpp
     blas3/rocblas_syrkx_strided_batched.cpp
     blas3/rocblas_trmm.cpp
@@ -366,18 +387,15 @@ add_library( rocblas
   ${rocblas_auxiliary_source}
 )
 
+message(STATUS "*** NOTE: blas2/rocblas_ger_kernels.cpp is compiled with the verbose flag -v for QC purposes.")
+SET_SOURCE_FILES_PROPERTIES( blas2/rocblas_ger_kernels.cpp PROPERTIES COMPILE_FLAGS "-v" )
+
 #if( WIN32 )
 #  set_target_properties(rocblas_fortran PROPERTIES LINKER_LANGUAGE CXX)
 #  target_link_directories(rocblas_fortran PRIVATE "C:\\cygwin64\\lib\\gcc\\x86_64-pc-cygwin\\9.3.0" "C:\\cygwin64\\lib" "C:\\cygwin64\\lib\\w32api")
 #endif( )
 
 add_library( roc::rocblas ALIAS rocblas )
-
-# RUNPATH is set only when ROCM_RPATH is defined in the ENV
-if( DEFINED ENV{ROCM_RPATH} )
-  set ( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
-endif( )
-
 
 target_link_libraries( rocblas INTERFACE hip::host )
 if (WIN32)
@@ -402,7 +420,7 @@ target_include_directories( rocblas
 	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas>
 	  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${Tensile_INC}>
-          $<INSTALL_INTERFACE:include>
+	  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
           )
 
 target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
@@ -506,17 +524,17 @@ add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
 add_custom_target( rocblas_device_malloc DEPENDS ${ROCBLAS_DEVICE_MALLOC} )
 add_dependencies( rocblas rocblas_device_malloc )
 
-if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
   rocm_wrap_header_dir(
     ${CMAKE_SOURCE_DIR}/library/include
     PATTERNS "*.h"
     GUARDS SYMLINK WRAPPER
-    WRAPPER_LOCATIONS include
+    WRAPPER_LOCATIONS ${CMAKE_INSTALL_INCLUDEDIR}
   )
   rocm_wrap_header_file(
     internal/rocblas-version.h internal/rocblas-export.h internal/rocblas-exported-proto.hpp internal/rocblas_device_malloc.hpp
     GUARDS SYMLINK WRAPPER
-    WRAPPER_LOCATIONS include rocblas/include
+    WRAPPER_LOCATIONS ${CMAKE_INSTALL_INCLUDEDIR} rocblas/${CMAKE_INSTALL_INCLUDEDIR}
     ORIGINAL_FILES ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
   )
 endif( )
@@ -549,21 +567,21 @@ endif( )
 
 # Force installation of .f90 module file
 rocm_install(FILES "../include/rocblas_module.f90"
-        DESTINATION "include/rocblas/"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/"
 )
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/library/include ${PROJECT_BINARY_DIR}/include/rocblas)
 rocm_install_targets(
   TARGETS ${package_targets}
   INCLUDE
-    ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 if( BUILD_WITH_TENSILE )
   if (WIN32)
     set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/bin/rocblas" CACHE PATH "path to tensile library" )
   else()
-    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}lib/rocblas" CACHE PATH "path to tensile library" )
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas" CACHE PATH "path to tensile library" )
   endif()
   rocm_install(
     DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
@@ -598,7 +616,7 @@ else()
   endif()
 endif()
 
-if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
   rocm_install(
     DIRECTORY
        "${PROJECT_BINARY_DIR}/rocblas"

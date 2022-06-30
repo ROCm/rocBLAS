@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -11,6 +29,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_solve.hpp"
 #include "rocblas_test.hpp"
@@ -24,22 +43,23 @@ void testing_tbsv_batched_bad_arg(const Arguments& arg)
     auto rocblas_tbsv_batched_fn
         = arg.fortran ? rocblas_tbsv_batched<T, true> : rocblas_tbsv_batched<T, false>;
 
-    const rocblas_int       N           = 100;
-    const rocblas_int       K           = 5;
-    const rocblas_int       lda         = 100;
-    const rocblas_int       incx        = 1;
-    const rocblas_int       batch_count = 5;
-    const rocblas_operation transA      = rocblas_operation_none;
-    const rocblas_fill      uplo        = rocblas_fill_lower;
-    const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
+    const rocblas_int       N                 = 100;
+    const rocblas_int       K                 = 5;
+    const rocblas_int       lda               = 100;
+    const rocblas_int       incx              = 1;
+    const rocblas_int       batch_count       = 5;
+    const rocblas_operation transA            = rocblas_operation_none;
+    const rocblas_fill      uplo              = rocblas_fill_lower;
+    const rocblas_diagonal  diag              = rocblas_diagonal_non_unit;
+    const rocblas_int       banded_matrix_row = K + 1;
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A = lda * size_t(N);
-    size_t size_x = N * size_t(incx);
-
-    device_batch_vector<T> dA(size_A, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dA(banded_matrix_row, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
@@ -58,6 +78,7 @@ void testing_tbsv_batched_bad_arg(const Arguments& arg)
                                                   incx,
                                                   batch_count),
                           rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbsv_batched_fn(
             handle, uplo, transA, diag, N, K, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
@@ -86,24 +107,24 @@ void testing_tbsv_batched(const Arguments& arg)
     auto rocblas_tbsv_batched_fn
         = arg.fortran ? rocblas_tbsv_batched<T, true> : rocblas_tbsv_batched<T, false>;
 
-    rocblas_int N           = arg.N;
-    rocblas_int K           = arg.K;
-    rocblas_int lda         = arg.lda;
-    rocblas_int incx        = arg.incx;
-    char        char_uplo   = arg.uplo;
-    char        char_transA = arg.transA;
-    char        char_diag   = arg.diag;
-    rocblas_int batch_count = arg.batch_count;
-
-    rocblas_fill      uplo   = char2rocblas_fill(char_uplo);
-    rocblas_operation transA = char2rocblas_operation(char_transA);
-    rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
+    rocblas_int       N                 = arg.N;
+    rocblas_int       K                 = arg.K;
+    rocblas_int       lda               = arg.lda;
+    rocblas_int       incx              = arg.incx;
+    char              char_uplo         = arg.uplo;
+    char              char_transA       = arg.transA;
+    char              char_diag         = arg.diag;
+    rocblas_int       batch_count       = arg.batch_count;
+    const rocblas_int banded_matrix_row = K + 1;
+    rocblas_fill      uplo              = char2rocblas_fill(char_uplo);
+    rocblas_operation transA            = char2rocblas_operation(char_transA);
+    rocblas_diagonal  diag              = char2rocblas_diagonal(char_diag);
 
     rocblas_status       status;
     rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
-    bool invalid_size = N < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    bool invalid_size = N < 0 || K < 0 || lda < banded_matrix_row || !incx || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -114,33 +135,40 @@ void testing_tbsv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = N * size_t(N);
-    size_t size_AB  = lda * size_t(N);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA(size_A, 1, batch_count);
-    host_batch_vector<T> AAT(size_A, 1, batch_count);
-    host_batch_vector<T> hAB(size_AB, 1, batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
+    // Allocate host memory
+    host_batch_matrix<T> hA(N, N, N, batch_count);
+    host_batch_matrix<T> AAT(N, N, N, batch_count);
+    host_batch_matrix<T> hAb(banded_matrix_row, N, lda, batch_count);
     host_batch_vector<T> hb(N, incx, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
     host_batch_vector<T> hx_or_b_1(N, incx, batch_count);
     host_batch_vector<T> hx_or_b_2(N, incx, batch_count);
     host_batch_vector<T> cpu_x_or_b(N, incx, batch_count);
 
-    double gpu_time_used, cpu_time_used;
-    double error_eps_multiplier    = 40.0;
-    double residual_eps_multiplier = 40.0;
-    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(AAT.memcheck());
+    CHECK_HIP_ERROR(hAb.memcheck());
+    CHECK_HIP_ERROR(hb.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hx_or_b_1.memcheck());
+    CHECK_HIP_ERROR(hx_or_b_2.memcheck());
+    CHECK_HIP_ERROR(cpu_x_or_b.memcheck());
 
-    // allocate memory on device
-    device_batch_vector<T> dAB(size_AB, 1, batch_count);
+    // Allocate device memory
+    device_batch_matrix<T> dAb(banded_matrix_row, N, lda, batch_count);
     device_batch_vector<T> dx_or_b(N, incx, batch_count);
-    CHECK_DEVICE_ALLOCATION(dAB.memcheck());
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hA, arg, rocblas_client_never_set_nan, true);
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     for(int b = 0; b < batch_count; b++)
@@ -154,18 +182,18 @@ void testing_tbsv_batched(const Arguments& arg)
             make_unit_diagonal(uplo, (T*)(hA[b]), N, N);
         }
 
-        // Convert regular-storage hA to banded-storage hAB
-        regular_to_banded(uplo == rocblas_fill_upper, (T*)(hA[b]), N, (T*)(hAB[b]), lda, N, K);
+        // Convert regular-storage hA to banded-storage hAb
+        regular_to_banded(uplo == rocblas_fill_upper, (T*)(hA[b]), N, (T*)(hAb[b]), lda, N, K);
     }
 
-    CHECK_HIP_ERROR(dAB.transfer_from(hAB));
+    CHECK_HIP_ERROR(dAb.transfer_from(hAb));
 
     hb.copy_from(hx);
 
     // Calculate hb = hA*hx;
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_tbmv<T>(uplo, transA, diag, N, K, hAB[b], lda, hb[b], incx);
+        cblas_tbmv<T>(uplo, transA, diag, N, K, hAb[b], lda, hb[b], incx);
     }
 
     cpu_x_or_b.copy_from(hb);
@@ -174,6 +202,11 @@ void testing_tbsv_batched(const Arguments& arg)
 
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
+
+    double gpu_time_used, cpu_time_used;
+    double error_eps_multiplier    = 40.0;
+    double residual_eps_multiplier = 40.0;
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -187,7 +220,7 @@ void testing_tbsv_batched(const Arguments& arg)
                                                     diag,
                                                     N,
                                                     K,
-                                                    dAB.ptr_on_device(),
+                                                    dAb.ptr_on_device(),
                                                     lda,
                                                     dx_or_b.ptr_on_device(),
                                                     incx,
@@ -205,7 +238,7 @@ void testing_tbsv_batched(const Arguments& arg)
                                                     diag,
                                                     N,
                                                     K,
-                                                    dAB.ptr_on_device(),
+                                                    dAb.ptr_on_device(),
                                                     lda,
                                                     dx_or_b.ptr_on_device(),
                                                     incx,
@@ -228,8 +261,8 @@ void testing_tbsv_batched(const Arguments& arg)
         // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_tbmv<T>(uplo, transA, diag, N, K, hAB[b], lda, hx_or_b_1[b], incx);
-            cblas_tbmv<T>(uplo, transA, diag, N, K, hAB[b], lda, hx_or_b_2[b], incx);
+            cblas_tbmv<T>(uplo, transA, diag, N, K, hAb[b], lda, hx_or_b_1[b], incx);
+            cblas_tbmv<T>(uplo, transA, diag, N, K, hAb[b], lda, hx_or_b_2[b], incx);
         }
 
         //calculate norm 1 of res
@@ -261,7 +294,7 @@ void testing_tbsv_batched(const Arguments& arg)
                                     diag,
                                     N,
                                     K,
-                                    dAB.ptr_on_device(),
+                                    dAb.ptr_on_device(),
                                     lda,
                                     dx_or_b.ptr_on_device(),
                                     incx,
@@ -278,7 +311,7 @@ void testing_tbsv_batched(const Arguments& arg)
                                     diag,
                                     N,
                                     K,
-                                    dAB.ptr_on_device(),
+                                    dAb.ptr_on_device(),
                                     lda,
                                     dx_or_b.ptr_on_device(),
                                     incx,
@@ -291,7 +324,7 @@ void testing_tbsv_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_tbsv<T>(uplo, transA, diag, N, K, hAB[b], lda, cpu_x_or_b[b], incx);
+                cblas_tbsv<T>(uplo, transA, diag, N, K, hAb[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

@@ -1,6 +1,24 @@
 #!/usr/bin/python3
-"""Copyright 2020-2022 Advanced Micro Devices, Inc.
-Manage build and installation"""
+
+"""Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+   ies of the Software, and to permit persons to whom the Software is furnished
+   to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+   PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+   FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+   IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+   CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
 
 import re
 import sys
@@ -56,6 +74,12 @@ def parse_args():
 
     parser.add_argument('-l', '--logic', dest='tensile_logic', type=str, required=False, default="asm_full",
                         help='Specify the Tensile logic target, e.g., asm_full, asm_lite, etc. (optional, default: asm_full)')
+
+    parser.add_argument(    '--lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=True, action='store_true',
+                        help='Enable on-demand loading of Tensile Library files, speeds up the rocblas initialization. (Default is enabled)')
+
+    parser.add_argument(    '--no-lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=False, action='store_false',
+                        help='Disable on-demand loading of Tensile Library files. (Default is enabled)')
 
     parser.add_argument(     '--library-path', dest='library_dir_installed', type=str, required=False, default = "",
                         help='Specify path to a pre-built rocBLAS library, when building clients only using --clients-only flag. (optional, default: /opt/rocm/rocblas)')
@@ -233,6 +257,8 @@ def config_cmd():
         cmake_options.append( f"-DTensile_CODE_OBJECT_VERSION=V3" )
         if args.tensile_logic:
             cmake_options.append( f"-DTensile_LOGIC={args.tensile_logic}" )
+        if args.tensile_lazy_library_loading:
+            cmake_options.append( f"-DTensile_LAZY_LIBRARY_LOADING=ON" )
         if args.tensile_fork:
             cmake_options.append( f"-Dtensile_fork={args.tensile_fork}" )
         if args.tensile_tag:

@@ -1,11 +1,30 @@
 /* ************************************************************************
- * Copyright 2019-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "rocblas_trsm.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "trtri_trsm.hpp"
 #include "utility.hpp"
 
@@ -13,14 +32,8 @@ namespace
 {
     // Shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
     // you can use all 64K, but in practice no.
-    constexpr rocblas_int STRSM_BLOCK = 128;
-    constexpr rocblas_int DTRSM_BLOCK = 128;
-
-    // For trsv case (side == left, n == 1)
-    constexpr rocblas_int STRSV_BLOCK = 64;
-    constexpr rocblas_int DTRSV_BLOCK = 64;
-    constexpr rocblas_int CTRSV_BLOCK = 64;
-    constexpr rocblas_int ZTRSV_BLOCK = 32;
+    // constexpr rocblas_int STRSM_BLOCK = ROCBLAS_TRSM_NB;
+    // constexpr rocblas_int DTRSM_BLOCK = ROCBLAS_TRSM_NB;
 
     template <typename>
     constexpr char rocblas_trsm_name[] = "unknown";
@@ -54,6 +67,7 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        auto check_numerics = handle->check_numerics;
         /////////////
         // LOGGING //
         /////////////
@@ -128,20 +142,11 @@ namespace
             }
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
+        rocblas_status arg_status = rocblas_trsm_arg_check(
+            handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, 1);
 
-        // A is of size lda*k
-        rocblas_int k = side == rocblas_side_left ? m : n;
-        if(m < 0 || n < 0 || lda < k || ldb < m)
-            return rocblas_status_invalid_size;
-
-        // quick return if possible.
-        if(!m || !n)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
-        if(!alpha || !B)
-            return rocblas_status_invalid_pointer;
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
@@ -149,69 +154,118 @@ namespace
             return rocblas_status_success;
         }
 
-        if(!A)
-            return rocblas_status_invalid_pointer;
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trsm_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trsm_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              m,
+                                              n,
+                                              A,
+                                              lda,
+                                              0,
+                                              B,
+                                              ldb,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(trsm_check_numerics_status != rocblas_status_success)
+                return trsm_check_numerics_status;
+        }
 
         //////////////////////
         // MEMORY MANAGEMENT//
         //////////////////////
+        rocblas_status status = rocblas_status_success;
+        //kernel function is enclosed inside the brackets so that the handle device memory used by the kernel is released after the computation.
+        {
+            // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
+            auto           w_mem = handle->device_malloc(0);
+            void*          w_mem_x_temp;
+            void*          w_mem_x_temp_arr;
+            void*          w_mem_invA;
+            void*          w_mem_invA_arr;
+            rocblas_status perf_status
+                = rocblas_internal_trsm_template_mem<BLOCK, false, T>(handle,
+                                                                      side,
+                                                                      transA,
+                                                                      m,
+                                                                      n,
+                                                                      1,
+                                                                      w_mem,
+                                                                      w_mem_x_temp,
+                                                                      w_mem_x_temp_arr,
+                                                                      w_mem_invA,
+                                                                      w_mem_invA_arr,
+                                                                      supplied_invA,
+                                                                      supplied_invA_size);
 
-        // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
-        auto           w_mem = handle->device_malloc(0);
-        void*          w_mem_x_temp;
-        void*          w_mem_x_temp_arr;
-        void*          w_mem_invA;
-        void*          w_mem_invA_arr;
-        rocblas_status perf_status
-            = rocblas_internal_trsm_template_mem<BLOCK, false, T>(handle,
-                                                                  side,
-                                                                  transA,
-                                                                  m,
-                                                                  n,
-                                                                  1,
-                                                                  w_mem,
-                                                                  w_mem_x_temp,
-                                                                  w_mem_x_temp_arr,
-                                                                  w_mem_invA,
-                                                                  w_mem_invA_arr,
-                                                                  supplied_invA,
-                                                                  supplied_invA_size);
+            // If this was a device memory query or an error occurred, return status
+            if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
+                return perf_status;
 
-        // If this was a device memory query or an error occurred, return status
-        if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
-            return perf_status;
+            bool optimal_mem = perf_status == rocblas_status_success;
 
-        bool optimal_mem = perf_status == rocblas_status_success;
+            status = rocblas_internal_trsm_template<BLOCK, DIM_X, false, T>(handle,
+                                                                            side,
+                                                                            uplo,
+                                                                            transA,
+                                                                            diag,
+                                                                            m,
+                                                                            n,
+                                                                            alpha,
+                                                                            A,
+                                                                            0,
+                                                                            lda,
+                                                                            0,
+                                                                            B,
+                                                                            0,
+                                                                            ldb,
+                                                                            0,
+                                                                            1,
+                                                                            optimal_mem,
+                                                                            w_mem_x_temp,
+                                                                            w_mem_x_temp_arr,
+                                                                            w_mem_invA,
+                                                                            w_mem_invA_arr,
+                                                                            supplied_invA,
+                                                                            supplied_invA_size);
 
-        rocblas_status status
-            = rocblas_internal_trsm_template<BLOCK, DIM_X, false, T>(handle,
-                                                                     side,
-                                                                     uplo,
-                                                                     transA,
-                                                                     diag,
-                                                                     m,
-                                                                     n,
-                                                                     alpha,
-                                                                     A,
-                                                                     0,
-                                                                     lda,
-                                                                     0,
-                                                                     B,
-                                                                     0,
-                                                                     ldb,
-                                                                     0,
-                                                                     1,
-                                                                     optimal_mem,
-                                                                     w_mem_x_temp,
-                                                                     w_mem_x_temp_arr,
-                                                                     w_mem_invA,
-                                                                     w_mem_invA_arr,
-                                                                     supplied_invA,
-                                                                     supplied_invA_size);
+            status = (status != rocblas_status_success) ? status : perf_status;
+            if(status != rocblas_status_success)
+                return status;
+        }
 
-        return status != rocblas_status_success ? status : perf_status;
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trsm_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trsm_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              m,
+                                              n,
+                                              A,
+                                              lda,
+                                              0,
+                                              B,
+                                              ldb,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(trsm_check_numerics_status != rocblas_status_success)
+                return trsm_check_numerics_status;
+        }
+        return status;
     }
-
 }
 
 /*
@@ -236,7 +290,7 @@ rocblas_status rocblas_strsm(rocblas_handle    handle,
                              rocblas_int       ldb)
 try
 {
-    return rocblas_trsm_ex_impl<STRSM_BLOCK, STRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -258,7 +312,7 @@ rocblas_status rocblas_dtrsm(rocblas_handle    handle,
                              rocblas_int       ldb)
 try
 {
-    return rocblas_trsm_ex_impl<DTRSM_BLOCK, DTRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -280,7 +334,7 @@ rocblas_status rocblas_ctrsm(rocblas_handle               handle,
                              rocblas_int                  ldb)
 try
 {
-    return rocblas_trsm_ex_impl<STRSM_BLOCK, CTRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -302,7 +356,7 @@ rocblas_status rocblas_ztrsm(rocblas_handle                handle,
                              rocblas_int                   ldb)
 try
 {
-    return rocblas_trsm_ex_impl<DTRSM_BLOCK, ZTRSV_BLOCK>(
+    return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 catch(...)
@@ -330,39 +384,41 @@ try
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsm_ex_impl<DTRSM_BLOCK, DTRSV_BLOCK>(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              m,
-                                                              n,
-                                                              static_cast<const double*>(alpha),
-                                                              static_cast<const double*>(A),
-                                                              lda,
-                                                              static_cast<double*>(B),
-                                                              ldb,
-                                                              static_cast<const double*>(invA),
-                                                              invA_size);
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            static_cast<const double*>(alpha),
+            static_cast<const double*>(A),
+            lda,
+            static_cast<double*>(B),
+            ldb,
+            static_cast<const double*>(invA),
+            invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsm_ex_impl<STRSM_BLOCK, STRSV_BLOCK>(handle,
-                                                              side,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              m,
-                                                              n,
-                                                              static_cast<const float*>(alpha),
-                                                              static_cast<const float*>(A),
-                                                              lda,
-                                                              static_cast<float*>(B),
-                                                              ldb,
-                                                              static_cast<const float*>(invA),
-                                                              invA_size);
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            static_cast<const float*>(alpha),
+            static_cast<const float*>(A),
+            lda,
+            static_cast<float*>(B),
+            ldb,
+            static_cast<const float*>(invA),
+            invA_size);
 
     case rocblas_datatype_f32_c:
-        return rocblas_trsm_ex_impl<STRSM_BLOCK, CTRSV_BLOCK>(
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
             handle,
             side,
             uplo,
@@ -379,7 +435,7 @@ try
             invA_size);
 
     case rocblas_datatype_f64_c:
-        return rocblas_trsm_ex_impl<DTRSM_BLOCK, ZTRSV_BLOCK>(
+        return rocblas_trsm_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
             handle,
             side,
             uplo,

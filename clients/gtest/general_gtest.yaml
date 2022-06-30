@@ -53,6 +53,7 @@ Tests:
   N : [ 5 ]
   batch_count : [ 5, 8 ]
   stride_x : [ 0 ]
+  uplo: [ L ]
   precision : *single_double_precisions
 
 - name : check_numerics_matrix
@@ -62,6 +63,7 @@ Tests:
   N : [ 5 ]
   batch_count : [ 5, 8 ]
   stride_x : [ 0 ]
+  uplo: [ U ]
   precision : *single_double_precisions_complex
 
 - name : check_numerics_matrix
@@ -71,5 +73,6 @@ Tests:
   N : [ 5 ]
   batch_count : [ 5, 8 ]
   stride_x : [ 0 ]
+  uplo: [ U, L ]
   precision : *half_bfloat_precisions
 ...

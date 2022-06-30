@@ -14,6 +14,9 @@ Definitions:
     - { N:   1,  K:  3,  lda:  3,  ldb: 1,  ldc:  3 } # bad ldb if transpose
     - { N:   3,  K:  3,  lda:  3,  ldb: 3,  ldc:  1 } # bad ldc
 
+  - &tiny_matrix_size
+    - { N:   199, lda:  199, K:  32,   ldc: 199 }
+
   - &medium_matrix_size_range
     - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
     - { N:    88, K:  200,  lda:  200,  ldb: 200,  ldc: 88 }
@@ -62,7 +65,7 @@ Tests:
 - name: syrkx_bad
   category: pre_checkin
   function: syrkx_bad_arg
-  precision: *single_precision
+  precision: *single_double_precisions_complex_real
   fortran: [ false, true ]
 
 - name: syrkx_size_t_N
@@ -90,10 +93,30 @@ Tests:
     - { alpha:  1.0, beta:  1.0 }
   batch_count: [ 1 ]
 
-- name: syrkx_restricted_kernel_32_8
+- name: syrkx_NaN
+  category: pre_checkin
+  function: syrkx
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+
+- name: syrkx_restricted_kernel_32_8_real
   category: quick
   function: syrkx
-  precision: *single_double_precisions_complex_real
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *restrict_size_range_32_8
+  alpha_beta: *alpha_beta_restrict_32_8
+  batch_count: [ 1 ]
+
+- name: syrkx_restricted_kernel_32_8_complex
+  category: quick
+  function: syrkx
+  precision: *single_double_precisions_complex
   uplo: [ U, L ]
   transA: [ N, T ]
   matrix_size: *restrict_size_range_32_8
@@ -177,6 +200,17 @@ Tests:
   beta: [ 0, 1 ]
   batch_count: [ 0, 1 ]
 
+- name: syrkx_batched_NaN
+  category: pre_checkin
+  function: syrkx_batched
+  precision: *single_precision
+  uplo: [ L ]
+  transA: [ T ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+  batch_count: [ 2 ]
+
 - name: syrkx_batched_medium
   category: pre_checkin
   function: syrkx_batched
@@ -215,6 +249,17 @@ Tests:
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
   batch_count: [ 0, 1 ]
+
+- name: syrkx_strided_batched_NaN
+  category: pre_checkin
+  function: syrkx_strided_batched
+  precision: *double_precision
+  uplo: [ U ]
+  transA: [ T ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 2.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+  batch_count: [ 3 ]
 
 - name: syrkx_strided_batched_medium
   category: pre_checkin

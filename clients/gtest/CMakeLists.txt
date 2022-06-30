@@ -1,5 +1,23 @@
 # ########################################################################
-# Copyright 2018-2022 Advanced Micro Devices, Inc.
+# Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+# ies of the Software, and to permit persons to whom the Software is furnished
+# to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+# PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+# CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
 # ########################################################################
 
 #enable_testing()
@@ -15,6 +33,11 @@ if( BUILD_WITH_TENSILE )
       atomics_mode_gtest.cpp
       trsm_gtest.cpp
       trtri_gtest.cpp
+      trmm_gtest.cpp
+      syrkx_gtest.cpp
+      herkx_gtest.cpp
+      syrk_gtest.cpp
+      herk_gtest.cpp
       )
 endif()
 
@@ -28,8 +51,22 @@ set(rocblas_no_tensile_test_source
     ostream_threadsafety_gtest.cpp
     set_get_vector_gtest.cpp
     set_get_matrix_gtest.cpp
-    blas1_gtest.cpp
-    blas1_ex_gtest.cpp
+    # blas1
+    asum_gtest.cpp
+    axpy_gtest.cpp
+    copy_gtest.cpp
+    dot_gtest.cpp
+    iamaxmin_gtest.cpp
+    nrm2_gtest.cpp
+    rot_gtest.cpp
+    scal_gtest.cpp
+    swap_gtest.cpp
+    # blas1_ex
+    axpy_ex_gtest.cpp
+    dot_ex_gtest.cpp
+    nrm2_ex_gtest.cpp
+    rot_ex_gtest.cpp
+    scal_ex_gtest.cpp
     # blas2
     trsv_gtest.cpp
     gbmv_gtest.cpp
@@ -58,17 +95,12 @@ set(rocblas_no_tensile_test_source
     symv_gtest.cpp
     # blas3
     hemm_gtest.cpp
-    herk_gtest.cpp
     her2k_gtest.cpp
-    herkx_gtest.cpp
     symm_gtest.cpp
-    syrk_gtest.cpp
     syr2k_gtest.cpp
     geam_gtest.cpp
     dgmm_gtest.cpp
     gemm_gtest.cpp
-    syrkx_gtest.cpp
-    trmm_gtest.cpp
     )
 
 # Keep ${rocblas_tensile_test_source} first, so that multiheaded tests are the
@@ -138,7 +170,6 @@ target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERN
 target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 # target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
 if (NOT WIN32)
-  target_link_libraries( rocblas-test PRIVATE lapack cblas )
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
   if (NOT BUILD_FORTRAN_CLIENTS)
     list( APPEND COMMON_LINK_LIBS "-lgfortran") # for lapack

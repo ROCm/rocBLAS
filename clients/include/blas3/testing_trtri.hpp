@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -11,11 +29,65 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
+
+template <typename T>
+void testing_trtri_bad_arg(const Arguments& arg)
+{
+    auto rocblas_trtri_fn = arg.fortran ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
+
+    rocblas_local_handle handle{arg};
+
+    const rocblas_int N   = 100;
+    const rocblas_int lda = 100;
+
+    const rocblas_fill     uplo = rocblas_fill_upper;
+    const rocblas_diagonal diag = rocblas_diagonal_non_unit;
+
+    // Allocate device memory
+    device_matrix<T> dA(N, N, lda);
+    device_matrix<T> dinvA(N, N, lda);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, rocblas_fill_full, diag, N, dA, lda, dinvA, lda),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trtri_fn(handle, uplo, (rocblas_diagonal)rocblas_side_both, N, dA, lda, dinvA, lda),
+        rocblas_status_invalid_value);
+
+    // check for invalid sizes
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, uplo, diag, -1, dA, lda, dinvA, lda),
+                          rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda - 1, dinvA, lda),
+                          rocblas_status_invalid_size);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, lda - 1),
+                          rocblas_status_invalid_size);
+
+    // nullptr tests
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(nullptr, uplo, diag, N, dA, lda, dinvA, lda),
+                          rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, uplo, diag, N, nullptr, lda, dinvA, lda),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, nullptr, lda),
+                          rocblas_status_invalid_pointer);
+
+    // quick return: If N==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trtri_fn(handle, uplo, diag, 0, nullptr, lda, nullptr, lda),
+                          rocblas_status_success);
+}
 
 template <typename T>
 void testing_trtri(const Arguments& arg)
@@ -47,51 +119,40 @@ void testing_trtri(const Arguments& arg)
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_A);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(N, N, lda);
+    host_matrix<T> hB(N, N, lda);
 
-    double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error;
+    // Allocate device memory
+    device_matrix<T> dA(N, N, lda);
+    device_matrix<T> dinvA(N, N, lda);
 
-    device_vector<T> dA(size_A);
-    device_vector<T> dinvA(size_A);
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init_matrix(hA,
-                        arg,
-                        N,
-                        N,
-                        lda,
-                        0,
-                        1,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_symmetric_matrix,
-                        true);
+    //Explicitly set the unused side of matrix `hA` to 0 when using it for temp storage.
+    //Used rocblas_client_triangular_matrix type initialization, which will ensure the unused side is set to 0 or could be done manually
+    rocblas_init_matrix(
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
 
     for(size_t i = 0; i < N; i++)
     {
         for(size_t j = 0; j < N; j++)
         {
-            hA[i + j * lda] *= 0.01;
+            T* A = (T*)hA;
+            A[i + j * lda] *= 0.01;
 
             if(j % 2)
-                hA[i + j * lda] *= -1;
-            if(uplo == rocblas_fill_lower
-               && j > i) // need to explicitly set unsused side to 0 if using it for temp storage
-                hA[i + j * lda] = 0.0f;
-            else if(uplo == rocblas_fill_upper && j < i)
-                hA[i + j * lda] = 0.0f;
+                A[i + j * lda] *= -1;
             if(i == j)
             {
                 if(diag == rocblas_diagonal_unit)
-                    hA[i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
+                    A[i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
                 else
-                    hA[i + j * lda] *= 100.0;
+                    A[i + j * lda] *= 100.0;
             }
         }
     }
@@ -99,8 +160,12 @@ void testing_trtri(const Arguments& arg)
     hB = hA;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dinvA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dinvA.transfer_from(hA));
+
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error;
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
@@ -134,7 +199,7 @@ void testing_trtri(const Arguments& arg)
     }
 
     // copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA, dinvA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hA.transfer_from(dinvA));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -146,16 +211,8 @@ void testing_trtri(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
         }
 
-        rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB, lda);
-
-        if(info != 0)
-        {
-#ifdef GOOGLE_TEST
-            FAIL() << "error in cblas_trtri";
-#else
-            rocblas_cerr << "error in cblas_trtri" << std::endl;
-#endif
-        }
+        // CBLAS doesn't have trtri implementation so using the LAPACK trtri
+        lapack_xtrtri<T>(char_uplo, char_diag, N, hB, lda);
 
         if(arg.timing)
         {

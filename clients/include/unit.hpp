@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  *
  * ************************************************************************ */
 
@@ -60,13 +78,13 @@
 // Allow the rocblas_bfloat16 to match the rounded or truncated value of float
 // Only call ASSERT_FLOAT_EQ with the rounded value if the truncated value does not match
 #include <gtest/internal/gtest-internal.h>
-#define ASSERT_FLOAT_BF16_EQ(a, b)                                                     \
-    do                                                                                 \
-    {                                                                                  \
-        using testing::internal::FloatingPoint;                                        \
-        if(!FloatingPoint<float>(b).AlmostEquals(                                      \
-               FloatingPoint<float>(rocblas_bfloat16(a, rocblas_bfloat16::truncate)))) \
-            ASSERT_FLOAT_EQ(b, rocblas_bfloat16(a));                                   \
+#define ASSERT_FLOAT_BF16_EQ(a, b)                                                            \
+    do                                                                                        \
+    {                                                                                         \
+        using testing::internal::FloatingPoint;                                               \
+        if(!FloatingPoint<float>(b).AlmostEquals(FloatingPoint<float>(                        \
+               rocblas_bfloat16(a, rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate)))) \
+            ASSERT_FLOAT_EQ(b, rocblas_bfloat16(a));                                          \
     } while(0)
 
 #define ASSERT_FLOAT_COMPLEX_EQ(a, b)                  \
@@ -461,7 +479,7 @@ inline void unit_check_general(rocblas_int                         M,
     UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, ASSERT_DOUBLE_COMPLEX_EQ);
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps)
 {
 #ifdef GOOGLE_TEST
@@ -469,19 +487,19 @@ inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, 
 #endif
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps)
 {
     trsm_err_res_check(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
 }
 
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 constexpr double get_epsilon()
 {
     return std::numeric_limits<T>::epsilon();
 }
 
-template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
 constexpr auto get_epsilon()
 {
     return get_epsilon<decltype(std::real(T{}))>();
