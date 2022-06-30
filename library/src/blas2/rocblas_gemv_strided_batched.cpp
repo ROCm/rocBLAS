@@ -144,28 +144,29 @@ namespace
                             batch_count);
         }
 
-        if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
-           && transA != rocblas_operation_conjugate_transpose)
-            return rocblas_status_invalid_value;
-
-        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        if(!batch_count || !m || !n)
-            return rocblas_status_success;
-
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
-        if(handle->pointer_mode == rocblas_pointer_mode_host && !*alpha)
-        {
-            if(*beta == 1)
-                return rocblas_status_success;
-        }
-        else if(!A || !x)
-            return rocblas_status_invalid_pointer;
-        if(!y)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status = rocblas_internal_gemv_arg_check<T>(handle,
+                                                                       transA,
+                                                                       m,
+                                                                       n,
+                                                                       alpha,
+                                                                       0,
+                                                                       A,
+                                                                       0,
+                                                                       lda,
+                                                                       strideA,
+                                                                       x,
+                                                                       0,
+                                                                       incx,
+                                                                       stridex,
+                                                                       beta,
+                                                                       0,
+                                                                       y,
+                                                                       0,
+                                                                       incy,
+                                                                       stridey,
+                                                                       batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         rocblas_status perf_status = rocblas_status_success;
         auto           w_mem       = handle->device_malloc(dev_bytes);

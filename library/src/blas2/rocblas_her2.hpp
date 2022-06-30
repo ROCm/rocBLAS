@@ -59,6 +59,7 @@ inline rocblas_status rocblas_her2_arg_check(rocblas_handle handle,
         if(*alpha == 0)
             return rocblas_status_success;
 
+        // pointers are validated if they need to be dereferenced
         if(!A || !x || !y)
             return rocblas_status_invalid_pointer;
     }
