@@ -44,205 +44,237 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
     auto rocblas_gemv_batched_fn
         = arg.fortran ? rocblas_gemv_batched<T, true> : rocblas_gemv_batched<T, false>;
 
-    const rocblas_int M           = 100;
-    const rocblas_int N           = 100;
-    const rocblas_int lda         = 100;
-    const rocblas_int incx        = 1;
-    const rocblas_int incy        = 1;
-    const T           alpha       = 0.5;
-    const T           beta        = 1.5;
-    const T           zero        = 0.0;
-    const T           one         = 1.0;
-    const rocblas_int batch_count = 5;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transA      = rocblas_operation_none;
+        const rocblas_int       M           = 100;
+        const rocblas_int       N           = 100;
+        const rocblas_int       lda         = 100;
+        const rocblas_int       incx        = 1;
+        const rocblas_int       incy        = 1;
+        const rocblas_int       batch_count = 2;
 
-    rocblas_local_handle handle{arg};
+        device_vector<T> alpha_d(1), beta_d(1), zero_d(1), one_d(1);
+        const T          alpha_h(1), beta_h(1), zero_h(0), one_h(1);
 
-    // Allocate device memory
-    device_batch_matrix<T> dA(M, N, lda, batch_count);
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incx, batch_count);
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* zero  = &zero_h;
+        const T* one   = &one_h;
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  (rocblas_operation)rocblas_fill_full,
-                                                  M,
-                                                  N,
-                                                  &alpha,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  &beta,
-                                                  dy.ptr_on_device(),
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_value);
+        // Allocate device memory
+        device_batch_matrix<T> dA(M, N, lda, batch_count);
+        device_batch_vector<T> dx(N, incx, batch_count);
+        device_batch_vector<T> dy(N, incx, batch_count);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  &alpha,
-                                                  nullptr,
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  &beta,
-                                                  dy.ptr_on_device(),
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  &alpha,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  nullptr,
-                                                  incx,
-                                                  &beta,
-                                                  dy.ptr_on_device(),
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(nullptr,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      dx.ptr_on_device(),
+                                                      incx,
+                                                      beta,
+                                                      dy.ptr_on_device(),
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  &alpha,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  &beta,
-                                                  nullptr,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      (rocblas_operation)rocblas_fill_full,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      dx.ptr_on_device(),
+                                                      incx,
+                                                      beta,
+                                                      dy.ptr_on_device(),
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  nullptr,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  &beta,
-                                                  dy.ptr_on_device(),
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      nullptr,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      dx.ptr_on_device(),
+                                                      incx,
+                                                      beta,
+                                                      dy.ptr_on_device(),
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  &alpha,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  nullptr,
-                                                  dy.ptr_on_device(),
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      dx.ptr_on_device(),
+                                                      incx,
+                                                      nullptr,
+                                                      dy.ptr_on_device(),
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(nullptr,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  &alpha,
-                                                  dA.ptr_on_device(),
-                                                  lda,
-                                                  dx.ptr_on_device(),
-                                                  incx,
-                                                  &beta,
-                                                  dy.ptr_on_device(),
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_invalid_handle);
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          alpha,
+                                                          nullptr,
+                                                          lda,
+                                                          dx.ptr_on_device(),
+                                                          incx,
+                                                          beta,
+                                                          dy.ptr_on_device(),
+                                                          incy,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
 
-    // If batch_count==0, then all pointers may be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched_fn(
-            handle, transA, M, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy, 0),
-        rocblas_status_success);
+            EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          alpha,
+                                                          dA.ptr_on_device(),
+                                                          lda,
+                                                          nullptr,
+                                                          incx,
+                                                          beta,
+                                                          dy.ptr_on_device(),
+                                                          incy,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
 
-    // If M==0, then all pointers may be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  0,
-                                                  N,
-                                                  nullptr,
-                                                  nullptr,
-                                                  lda,
-                                                  nullptr,
-                                                  incx,
-                                                  nullptr,
-                                                  nullptr,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_success);
+            EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          alpha,
+                                                          dA.ptr_on_device(),
+                                                          lda,
+                                                          dx.ptr_on_device(),
+                                                          incx,
+                                                          beta,
+                                                          nullptr,
+                                                          incy,
+                                                          batch_count),
+                                  rocblas_status_invalid_pointer);
+        }
 
-    // If N==0, then all pointers may be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  0,
-                                                  nullptr,
-                                                  nullptr,
-                                                  lda,
-                                                  nullptr,
-                                                  incx,
-                                                  nullptr,
-                                                  nullptr,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_success);
+        // If M==0, then all pointers may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      transA,
+                                                      0,
+                                                      N,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
 
-    // If alpha==0 && beta==1, then A, X and Y may be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  &zero,
-                                                  nullptr,
-                                                  lda,
-                                                  nullptr,
-                                                  incx,
-                                                  &one,
-                                                  nullptr,
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_success);
+        // If N==0, then all pointers may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      0,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
 
-    // If alpha==0, then A and X may be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
-                                                  transA,
-                                                  M,
-                                                  N,
-                                                  &zero,
-                                                  nullptr,
-                                                  lda,
-                                                  nullptr,
-                                                  incx,
-                                                  &beta,
-                                                  dy.ptr_on_device(),
-                                                  incy,
-                                                  batch_count),
-                          rocblas_status_success);
+        // If alpha==0, then A and X may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      zero,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      beta,
+                                                      dy.ptr_on_device(),
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // If alpha==0 && beta==1, then A, X and Y may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      zero,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      one,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
+
+        // If batch_count==0, then all pointers may be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      0),
+                              rocblas_status_success);
+    }
 }
 
 template <typename T>
