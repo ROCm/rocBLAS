@@ -61,28 +61,16 @@ public:
                                  rocblas_int batch_count,
                                  bool        HMM = false)
         : m_n(n)
+        , m_nmemb(n * std::abs(inc))
         , m_inc(inc)
         , m_batch_count(batch_count)
-        , d_vector<T>(size_t(n) * std::abs(inc), HMM)
+        , d_vector<T>(n * std::abs(inc) * batch_count,
+                      HMM) // d_vector is a single contiguous block for performance
     {
         if(false == this->try_initialize_memory())
         {
             this->free_memory();
         }
-    }
-
-    //!
-    //! @brief Constructor.
-    //! @param n           The length of the vector.
-    //! @param inc         The increment.
-    //! @param stride      (UNUSED) The stride.
-    //! @param batch_count The batch count.
-    //! @param HMM         HipManagedMemory Flag.
-    //!
-    explicit device_batch_vector(
-        size_t n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, bool HMM = false)
-        : device_batch_vector(n, inc, batch_count, HMM)
-    {
     }
 
     //!
@@ -98,7 +86,7 @@ public:
     //!
     size_t n() const
     {
-        return this->m_n;
+        return m_n;
     }
 
     //!
@@ -106,7 +94,7 @@ public:
     //!
     rocblas_int inc() const
     {
-        return this->m_inc;
+        return m_inc;
     }
 
     //!
@@ -114,7 +102,7 @@ public:
     //!
     rocblas_int batch_count() const
     {
-        return this->m_batch_count;
+        return m_batch_count;
     }
 
     //!
@@ -131,7 +119,7 @@ public:
     //!
     T** ptr_on_device()
     {
-        return this->m_device_data;
+        return m_device_data;
     }
 
     //!
@@ -140,7 +128,7 @@ public:
     //!
     const T* const* ptr_on_device() const
     {
-        return this->m_device_data;
+        return m_device_data;
     }
 
     //!
@@ -149,7 +137,7 @@ public:
     //!
     T* const* const_batch_ptr()
     {
-        return this->m_device_data;
+        return m_device_data;
     }
 
     //!
@@ -160,7 +148,7 @@ public:
     T* operator[](rocblas_int batch_index)
     {
 
-        return this->m_data[batch_index];
+        return m_data[batch_index];
     }
 
     //!
@@ -171,7 +159,7 @@ public:
     const T* operator[](rocblas_int batch_index) const
     {
 
-        return this->m_data[batch_index];
+        return m_data[batch_index];
     }
 
     //!
@@ -179,7 +167,7 @@ public:
     //!
     operator const T* const *() const
     {
-        return this->m_data;
+        return m_data;
     }
 
     //!
@@ -189,7 +177,7 @@ public:
     operator T**()
     // clang-format on
     {
-        return this->m_data;
+        return m_data;
     }
 
     //!
@@ -197,7 +185,7 @@ public:
     //!
     explicit operator bool() const
     {
-        return nullptr != this->m_data;
+        return nullptr != m_data;
     }
 
     //!
@@ -211,11 +199,11 @@ public:
         // Copy each vector.
         //
         hipMemcpyKind kind = this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice;
-        for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+        if(m_batch_count > 0)
         {
             if(hipSuccess
-               != (hip_err = hipMemcpy(
-                       (*this)[batch_index], that[batch_index], sizeof(T) * this->nmemb(), kind)))
+               != (hip_err
+                   = hipMemcpy((*this)[0], that[0], sizeof(T) * m_nmemb * m_batch_count, kind)))
             {
                 return hip_err;
             }
@@ -238,6 +226,7 @@ public:
 
 private:
     size_t      m_n{};
+    size_t      m_nmemb{}; // in one batch
     rocblas_int m_inc{};
     rocblas_int m_batch_count{};
     T**         m_data{};
@@ -253,21 +242,25 @@ private:
 
         success
             = (hipSuccess
-               == (!this->use_HMM
-                       ? (hipMalloc)(&this->m_device_data, this->m_batch_count * sizeof(T*))
-                       : hipMallocManaged(&this->m_device_data, this->m_batch_count * sizeof(T*))));
+               == (!this->use_HMM ? (hipMalloc)(&m_device_data, m_batch_count * sizeof(T*))
+                                  : hipMallocManaged(&m_device_data, m_batch_count * sizeof(T*))));
         if(success)
         {
-            success
-                = (nullptr
-                   != (this->m_data = !this->use_HMM ? (T**)calloc(this->m_batch_count, sizeof(T*))
-                                                     : m_device_data));
+            success = (nullptr
+                       != (m_data = !this->use_HMM ? (T**)calloc(m_batch_count, sizeof(T*))
+                                                   : m_device_data));
             if(success)
             {
-                for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+                for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
                 {
-                    success
-                        = (nullptr != (this->m_data[batch_index] = this->device_vector_setup()));
+                    if(batch_index == 0)
+                    {
+                        success = (nullptr != (m_data[batch_index] = this->device_vector_setup()));
+                    }
+                    else
+                    {
+                        m_data[batch_index] = m_data[0] + batch_index * m_nmemb;
+                    }
                     if(!success)
                     {
                         break;
@@ -277,9 +270,9 @@ private:
                 if(success && !this->use_HMM)
                 {
                     success = (hipSuccess
-                               == hipMemcpy(this->m_device_data,
-                                            this->m_data,
-                                            sizeof(T*) * this->m_batch_count,
+                               == hipMemcpy(m_device_data,
+                                            m_data,
+                                            sizeof(T*) * m_batch_count,
                                             hipMemcpyHostToDevice));
                 }
             }
@@ -292,30 +285,34 @@ private:
     //!
     void free_memory()
     {
-        if(nullptr != this->m_data)
+        if(nullptr != m_data)
         {
-            for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
-                if(nullptr != this->m_data[batch_index])
+                if(batch_index == 0 && nullptr != m_data[batch_index])
                 {
-                    this->device_vector_teardown(this->m_data[batch_index]);
-                    this->m_data[batch_index] = nullptr;
+                    this->device_vector_teardown(m_data[batch_index]);
+                    m_data[batch_index] = nullptr;
+                }
+                else
+                {
+                    m_data[batch_index] = nullptr;
                 }
             }
 
             if(!this->use_HMM)
             {
-                free(this->m_data);
+                free(m_data);
             }
             // else this is just a copy of m_device_data
 
-            this->m_data = nullptr;
+            m_data = nullptr;
         }
 
-        if(nullptr != this->m_device_data)
+        if(nullptr != m_device_data)
         {
-            auto tmp_device_data = this->m_device_data;
-            this->m_device_data  = nullptr;
+            auto tmp_device_data = m_device_data;
+            m_device_data        = nullptr;
             CHECK_HIP_ERROR((hipFree)(tmp_device_data));
         }
     }
