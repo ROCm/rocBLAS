@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -24,15 +42,17 @@ void testing_nrm2_batched_bad_arg(const Arguments& arg)
     auto       rocblas_nrm2_batched_fn
         = FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
 
-    rocblas_int         N           = 100;
-    rocblas_int         incx        = 1;
-    rocblas_int         batch_count = 1;
-    static const size_t safe_size   = 100;
+    rocblas_int N           = 100;
+    rocblas_int incx        = 1;
+    rocblas_int batch_count = 1;
 
     rocblas_local_handle handle{arg};
 
+    // Allocate device memory
     device_batch_vector<T>   dx(N, incx, batch_count);
     device_vector<real_t<T>> d_rocblas_result(1);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
@@ -103,16 +123,21 @@ void testing_nrm2_batched(const Arguments& arg)
         return;
     }
 
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_batch_vector<T>   hx(N, incx, batch_count);
     host_vector<real_t<T>> rocblas_result_1(batch_count);
     host_vector<real_t<T>> rocblas_result_2(batch_count);
     host_vector<real_t<T>> cpu_result(batch_count);
-    host_batch_vector<T>   hx(N, incx, batch_count);
 
-    size_t size_x = N * size_t(incx);
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hx.memcheck());
 
-    // allocate memory on device
-    device_vector<real_t<T>> d_rocblas_result_2(batch_count);
+    // Allocate device memory
     device_batch_vector<T>   dx(N, incx, batch_count);
+    device_vector<real_t<T>> d_rocblas_result_2(batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
@@ -139,9 +164,9 @@ void testing_nrm2_batched(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        for(int i = 0; i < batch_count; i++)
+        for(int b = 0; b < batch_count; b++)
         {
-            cblas_nrm2<T>(N, hx[i], incx, cpu_result + i);
+            cblas_nrm2<T>(N, hx[b], incx, cpu_result + b);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -172,10 +197,13 @@ void testing_nrm2_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result[0] << ", gpu_host_ptr=" << rocblas_result_1[0]
-                         << ", gpu_dev_ptr=" << rocblas_result_2[0] << "\n";
-            rocblas_error_1 = std::abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
-            rocblas_error_2 = std::abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
+            for(int b = 0; b < batch_count; ++b)
+            {
+                rocblas_error_1
+                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                rocblas_error_2
+                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+            }
         }
     }
 

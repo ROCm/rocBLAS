@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -13,6 +31,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -25,65 +44,152 @@ void testing_herk_bad_arg(const Arguments& arg)
     auto rocblas_herk_fn
         = arg.fortran ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
 
-    rocblas_local_handle    handle{arg};
-    const rocblas_fill      uplo   = rocblas_fill_upper;
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_int       N      = 100;
-    const rocblas_int       K      = 100;
-    const rocblas_int       lda    = 100;
-    const rocblas_int       ldc    = 100;
-    using U                        = real_t<T>;
-    const U alpha                  = 1.0;
-    const U beta                   = 1.0;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    const size_t safe_size = 100;
-    // allocate memory on device
-    device_vector<T> dA(safe_size);
-    device_vector<T> dC(safe_size);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        const rocblas_fill      uplo   = rocblas_fill_upper;
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_int       N      = 100;
+        const rocblas_int       K      = 99;
+        const rocblas_int       lda    = 100;
+        const rocblas_int       ldc    = 100;
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
-        rocblas_status_invalid_handle);
+        using U = real_t<T>;
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
-        rocblas_status_invalid_value);
+        device_vector<U> alpha_d(1), zero_d(1);
+        device_vector<U> beta_d(1), one_d(1);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
-                                            uplo,
-                                            rocblas_operation_transpose,
-                                            N,
-                                            K,
-                                            &alpha,
-                                            dA,
-                                            lda,
-                                            &beta,
-                                            dC,
-                                            ldc),
-                          rocblas_status_invalid_value);
+        const U alpha_h(1), zero_h(0);
+        const U beta_h(2), one_h(1);
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        const U* alpha = &alpha_h;
+        const U* zero  = &zero_h;
+        const U* beta  = &beta_h;
+        const U* one   = &one_h;
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(handle, uplo, transA, N, K, &alpha, nullptr, lda, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, dC, ldc),
-        rocblas_status_invalid_pointer);
+        size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+        size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(handle, uplo, transA, N, K, &alpha, dA, lda, &beta, nullptr, ldc),
-        rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_matrix<T> dA(rows, cols, lda);
+        device_matrix<T> dC(N, N, ldc);
 
-    // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, nullptr, ldc),
-        rocblas_status_success);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_herk_fn)(nullptr, uplo, transA, N, K, alpha, dA, lda, beta, dC, ldc),
+            rocblas_status_invalid_handle);
+
+        // values
+        EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
+                                                rocblas_fill_full,
+                                                transA,
+                                                N,
+                                                K,
+                                                alpha,
+                                                dA,
+                                                lda,
+                                                beta,
+                                                dC,
+                                                ldc),
+                              rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
+                                                uplo,
+                                                (rocblas_operation)rocblas_fill_full,
+                                                N,
+                                                K,
+                                                alpha,
+                                                dA,
+                                                lda,
+                                                beta,
+                                                dC,
+                                                ldc),
+                              rocblas_status_invalid_value);
+
+        EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
+                                                uplo,
+                                                rocblas_operation_transpose,
+                                                N,
+                                                K,
+                                                alpha,
+                                                dA,
+                                                lda,
+                                                beta,
+                                                dC,
+                                                ldc),
+                              rocblas_status_invalid_value);
+
+        // size
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_herk_fn)(handle, uplo, transA, N, K, alpha, dA, lda - 1, beta, dC, ldc),
+            rocblas_status_invalid_size);
+
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_herk_fn)(handle, uplo, transA, N, K, alpha, dA, lda, beta, dC, ldc - 1),
+            rocblas_status_invalid_size);
+
+        // alpha/beta
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_herk_fn)(handle, uplo, transA, N, K, nullptr, dA, lda, beta, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_herk_fn)(handle, uplo, transA, N, K, alpha, dA, lda, nullptr, dC, ldc),
+            rocblas_status_invalid_pointer);
+
+        // invalid pointers
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                (rocblas_herk_fn)(handle, uplo, transA, N, K, alpha, nullptr, lda, beta, dC, ldc),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                (rocblas_herk_fn)(handle, uplo, transA, N, K, alpha, dA, lda, beta, nullptr, ldc),
+                rocblas_status_invalid_pointer);
+        }
+
+        // N==0 quick return for no ops with null pointers
+        EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
+                                                uplo,
+                                                transA,
+                                                0,
+                                                K,
+                                                nullptr,
+                                                nullptr,
+                                                lda,
+                                                nullptr,
+                                                nullptr,
+                                                ldc),
+                              rocblas_status_success);
+
+        // k==0 and beta==1 quick return with null pointers
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_herk_fn)(handle, uplo, transA, N, 0, nullptr, nullptr, lda, one, nullptr, ldc),
+            rocblas_status_success);
+
+        // alpha==0 and beta==1 quick return with null pointers
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_herk_fn)(handle, uplo, transA, N, K, zero, nullptr, lda, one, nullptr, ldc),
+            rocblas_status_success);
+    }
 }
 
 template <typename T>
@@ -120,52 +226,38 @@ void testing_herk(const Arguments& arg)
         return;
     }
 
-    const auto size_A = size_t(lda) * (transA == rocblas_operation_none ? K : N);
-    const auto size_C = size_t(ldc) * N;
-    size_t     cols   = (transA == rocblas_operation_none ? K : N);
-    size_t     rows   = (transA == rocblas_operation_none ? N : K);
+    size_t cols = (transA == rocblas_operation_none ? K : N);
+    size_t rows = (transA == rocblas_operation_none ? N : K);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dC(size_C);
-    device_vector<U> d_alpha(1);
-    device_vector<U> d_beta(1);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_matrix<T> hA(rows, cols, lda);
+    host_matrix<T> hC_1(N, N, ldc);
+    host_matrix<T> hC_2(N, N, ldc);
+    host_matrix<T> hC_gold(N, N, ldc);
     host_vector<U> h_alpha(1);
     host_vector<U> h_beta(1);
-    host_vector<T> hA(size_A);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> hC_gold(size_C);
-
-    CHECK_HIP_ERROR(h_alpha.memcheck());
-    CHECK_HIP_ERROR(h_beta.memcheck());
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_2.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
 
     // Initial Data on CPU
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
 
-    rocblas_init_matrix<T>(hA,
-                           arg,
-                           rows,
-                           cols,
-                           lda,
-                           0,
-                           1,
-                           rocblas_client_alpha_sets_nan,
-                           rocblas_client_triangular_matrix,
-                           true);
+    // Allocate device memory
+    device_matrix<T> dA(rows, cols, lda);
+    device_matrix<T> dC(N, N, ldc);
+    device_vector<U> d_alpha(1);
+    device_vector<U> d_beta(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+
     rocblas_init_matrix(
-        hC_1, arg, N, N, ldc, 0, 1, rocblas_client_beta_sets_nan, rocblas_client_hermitian_matrix);
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true, true);
+    rocblas_init_matrix(
+        hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_hermitian_matrix, false, true);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

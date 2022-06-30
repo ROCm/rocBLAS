@@ -1,15 +1,35 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
 
+#include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
@@ -25,83 +45,33 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
                                                        : rocblas_dgmm_strided_batched<T, false>;
 
     const rocblas_int M = 100;
-    const rocblas_int N = 100;
+    const rocblas_int N = 101;
 
     const rocblas_int lda  = 100;
     const rocblas_int incx = 1;
     const rocblas_int ldc  = 100;
 
-    const rocblas_int batch_count = 5;
+    const rocblas_int  batch_count = 2;
+    const rocblas_side side        = rocblas_side_left;
 
-    const rocblas_int abs_incx = incx > 0 ? incx : -incx;
-
-    const rocblas_side side = rocblas_side_right;
-
+    // no device/host loop required as no difference
     rocblas_local_handle handle{arg};
 
+    rocblas_int K = rocblas_side_right == side ? N : M;
+
     const rocblas_stride stride_a = N * size_t(lda);
-    const rocblas_stride stride_x = (rocblas_side_right == side ? N : M) * size_t(abs_incx);
+    const rocblas_stride stride_x = K * size_t(incx);
     const rocblas_stride stride_c = N * size_t(ldc);
 
-    size_t size_A = batch_count * stride_a;
-    size_t size_x = batch_count * stride_x;
-    size_t size_C = batch_count * stride_c;
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
+    device_strided_batch_vector<T> dx(K, incx ? incx : 1, stride_x, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, stride_a, batch_count);
 
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dX(size_x);
-    device_vector<T> dC(size_C);
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dX.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
-                                                          side,
-                                                          M,
-                                                          N,
-                                                          nullptr,
-                                                          lda,
-                                                          stride_a,
-                                                          dX,
-                                                          incx,
-                                                          stride_x,
-                                                          dC,
-                                                          ldc,
-                                                          stride_c,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
-                                                          side,
-                                                          M,
-                                                          N,
-                                                          dA,
-                                                          lda,
-                                                          stride_a,
-                                                          nullptr,
-                                                          incx,
-                                                          stride_x,
-                                                          dC,
-                                                          ldc,
-                                                          stride_c,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
-                                                          side,
-                                                          M,
-                                                          N,
-                                                          dA,
-                                                          lda,
-                                                          stride_a,
-                                                          dX,
-                                                          incx,
-                                                          stride_x,
-                                                          nullptr,
-                                                          ldc,
-                                                          stride_c,
-                                                          batch_count),
-                          rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(nullptr,
                                                           side,
@@ -110,7 +80,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
                                                           dA,
                                                           lda,
                                                           stride_a,
-                                                          dX,
+                                                          dx,
                                                           incx,
                                                           stride_x,
                                                           dC,
@@ -118,6 +88,70 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
                                                           stride_c,
                                                           batch_count),
                           rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
+                                                          (rocblas_side)rocblas_fill_full,
+                                                          M,
+                                                          N,
+                                                          dA,
+                                                          lda,
+                                                          stride_a,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          dC,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
+                                                          side,
+                                                          M,
+                                                          N,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_a,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          dC,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
+                                                          side,
+                                                          M,
+                                                          N,
+                                                          dA,
+                                                          lda,
+                                                          stride_a,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          dC,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
+                                                          side,
+                                                          M,
+                                                          N,
+                                                          dA,
+                                                          lda,
+                                                          stride_a,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          nullptr,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count),
+                          rocblas_status_invalid_pointer);
 }
 
 template <typename T>
@@ -167,10 +201,6 @@ void testing_dgmm_strided_batched(const Arguments& arg)
         stride_x = K * size_t(abs_incx);
     }
 
-    size_t size_A = batch_count * stride_a;
-    size_t size_x = batch_count * stride_x;
-    size_t size_C = batch_count * stride_c;
-
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
@@ -195,56 +225,39 @@ void testing_dgmm_strided_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A), hA_copy(size_A);
-    host_vector<T> hX(size_x), hX_copy(size_x);
-    host_vector<T> hC(size_C);
-    host_vector<T> hC_1(size_C);
-    host_vector<T> hC_gold(size_C);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_strided_batch_matrix<T> hA(M, N, lda, stride_a, batch_count);
+    host_strided_batch_vector<T> hx(K, incx ? incx : 1, stride_x, batch_count);
+    host_strided_batch_matrix<T> hC_1(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC_2(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
+
+    // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hA_copy.memcheck());
-    CHECK_HIP_ERROR(hX.memcheck());
-    CHECK_HIP_ERROR(hX_copy.memcheck());
     CHECK_HIP_ERROR(hC_1.memcheck());
+    CHECK_HIP_ERROR(hC_2.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
-    // Initialize data on host memory
-    rocblas_init_matrix(hA,
-                        arg,
-                        M,
-                        N,
-                        lda,
-                        stride_a,
-                        batch_count,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_general_matrix,
-                        true);
-    rocblas_init_vector(hX, arg, size_x, 1, 1, 0, rocblas_client_never_set_nan, false, true);
-    rocblas_init_matrix(hC,
-                        arg,
-                        M,
-                        N,
-                        ldc,
-                        stride_c,
-                        batch_count,
-                        rocblas_client_never_set_nan,
-                        rocblas_client_general_matrix);
+    // Allocate device memory
+    device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
+    device_strided_batch_vector<T> dx(K, incx ? incx : 1, stride_x, batch_count);
+    device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
 
-    hA_copy = hA;
-    hX_copy = hX;
-
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dX(size_x);
-    device_vector<T> dC(size_C);
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dX.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+    // Initialize data on host memory
+    rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
+    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dX.transfer_from(hX));
-    CHECK_HIP_ERROR(dC.transfer_from(hC));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -256,7 +269,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                                                             dA,
                                                             lda,
                                                             stride_a,
-                                                            dX,
+                                                            dx,
                                                             incx,
                                                             stride_x,
                                                             dC,
@@ -265,45 +278,25 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         // reference calculation for golden result
-        ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (K - 1) : 0;
-        cpu_time_used     = get_time_us_no_sync();
+        cpu_time_used = get_time_us_no_sync();
 
-        for(size_t i3 = 0; i3 < batch_count; i3++)
-        {
-            for(size_t i1 = 0; i1 < M; i1++)
-            {
-                for(size_t i2 = 0; i2 < N; i2++)
-                {
-                    if(rocblas_side_right == side)
-                    {
-                        hC_gold[i1 + i2 * ldc + i3 * stride_c]
-                            = hA_copy[i1 + i2 * lda + i3 * stride_a]
-                              * hX_copy[shift_x + i2 * incx + i3 * stride_x];
-                    }
-                    else
-                    {
-                        hC_gold[i1 + i2 * ldc + i3 * stride_c]
-                            = hA_copy[i1 + i2 * lda + i3 * stride_a]
-                              * hX_copy[shift_x + i1 * incx + i3 * stride_x];
-                    }
-                }
-            }
-        }
+        for(int b = 0; b < batch_count; b++)
+            cblas_dgmm<T>(side, M, N, hA[b], lda, hx[b], incx, hC_gold[b], ldc);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // fetch GPU result
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+            unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+                = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_2, batch_count);
         }
 
     } // end of if unit/norm check
@@ -322,7 +315,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                                             dA,
                                             lda,
                                             stride_a,
-                                            dX,
+                                            dx,
                                             incx,
                                             stride_x,
                                             dC,
@@ -343,7 +336,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                                             dA,
                                             lda,
                                             stride_a,
-                                            dX,
+                                            dx,
                                             incx,
                                             stride_x,
                                             dC,

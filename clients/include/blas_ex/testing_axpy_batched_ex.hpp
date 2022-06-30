@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -34,10 +52,14 @@ void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
 
     rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
-    Ta                      alpha(0.6);
-    device_batch_vector<Tx> dx(10, 1, 2);
+    Ta alpha(0.6);
+
+    // Allocate device memory
+    device_batch_vector<Tx> dx(N, incx, batch_count);
+    device_batch_vector<Ty> dy(N, incy, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    device_batch_vector<Ty> dy(10, 1, 2);
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
 #ifdef GOOGLE_TEST
@@ -139,18 +161,13 @@ void testing_axpy_batched_ex(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = std::abs(incx);
-    rocblas_int abs_incy = std::abs(incy);
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
+    size_t abs_incx = std::abs(incx);
+    size_t abs_incy = std::abs(incy);
+    size_t size_x   = N * (abs_incx ? abs_incx : 1);
+    size_t size_y   = N * (abs_incy ? abs_incy : 1);
 
-    //
-    // Host memory.
-    //
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
     host_batch_vector<Tx> hx(N, incx ? incx : 1, batch_count);
     host_batch_vector<Ty> hy(N, incy ? incy : 1, batch_count), hy1(N, incy ? incy : 1, batch_count),
         hy2(N, incy ? incy : 1, batch_count);
@@ -158,31 +175,27 @@ void testing_axpy_batched_ex(const Arguments& arg)
     host_batch_vector<Tex> hx_ex(N, incx ? incx : 1, batch_count);
     host_vector<Ta>        halpha(1);
 
+    // Check host memory allocation
     CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hy.memcheck());
     CHECK_HIP_ERROR(hy1.memcheck());
     CHECK_HIP_ERROR(hy2.memcheck());
     CHECK_HIP_ERROR(halpha.memcheck());
 
-    //
-    // Device memory.
-    //
+    // Allocate device memory
     device_batch_vector<Tx> dx(N, incx ? incx : 1, batch_count);
     device_batch_vector<Ty> dy(N, incy ? incy : 1, batch_count);
     device_vector<Ta>       dalpha(1);
 
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dalpha.memcheck());
 
-    //
     // Assign host alpha.
-    //
     halpha[0] = h_alpha;
 
-    //
     // Initialize data on host memory
-    //
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
     rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
@@ -194,33 +207,22 @@ void testing_axpy_batched_ex(const Arguments& arg)
             hx_ex[b][i] = (Tex)hx[b][i];
     }
 
-    //
     // Device memory.
-    //
-
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
-        //
         // Transfer host to device
-        //
         CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-        //
         // Call routine with pointer mode on host.
-        //
 
-        //
         // Pointer mode.
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        //
         // Call routine.
-        //
         CHECK_HIP_ERROR(dy.transfer_from(hy));
         CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_ex_fn(handle,
                                                        N,
@@ -235,19 +237,13 @@ void testing_axpy_batched_ex(const Arguments& arg)
                                                        batch_count,
                                                        execution_type));
 
-        //
         // Transfer from device to host.
-        //
         CHECK_HIP_ERROR(hy1.transfer_from(dy));
 
-        //
         // Pointer mode.
-        //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        //
         // Call routine.
-        //
         CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
         CHECK_HIP_ERROR(dy.transfer_from(hy));
         CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_ex_fn(handle,
@@ -262,23 +258,17 @@ void testing_axpy_batched_ex(const Arguments& arg)
                                                        incy,
                                                        batch_count,
                                                        execution_type));
-        //
         // Transfer from device to host.
-        //
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
 
-        //
         // CPU BLAS
-        //
         {
             cpu_time_used = get_time_us_no_sync();
 
-            //
             // Compute the host solution.
-            //
-            for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
+            for(rocblas_int b = 0; b < batch_count; ++b)
             {
-                cblas_axpy<Tex>(N, h_alpha_ex, hx_ex[batch_index], incx, hy_ex[batch_index], incy);
+                cblas_axpy<Tex>(N, h_alpha_ex, hx_ex[b], incx, hy_ex[b], incy);
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -289,9 +279,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
             }
         }
 
-        //
         // Compare with with hsolution.
-        //
         if(arg.unit_check)
         {
             unit_check_general<Ty>(1, N, abs_incy, hy, hy1, batch_count);
@@ -312,14 +300,10 @@ void testing_axpy_batched_ex(const Arguments& arg)
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        //
         // Transfer from host to device.
-        //
         CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-        //
         // Cold.
-        //
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_axpy_batched_ex_fn(handle,
@@ -336,9 +320,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
                                        execution_type);
         }
 
-        //
         // Transfer from host to device.
-        //
         CHECK_HIP_ERROR(dy.transfer_from(hy));
 
         hipStream_t stream;

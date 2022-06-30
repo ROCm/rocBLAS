@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -31,10 +49,10 @@ void template_testing_reduction_batched_bad_arg(const Arguments&                
 
     rocblas_local_handle handle{arg};
 
-    //
-    // allocate memory on device
-    //
+    // Allocate device memory
     device_batch_vector<T> dx(N, incx, batch_count);
+
+    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     R h_rocblas_result;
@@ -86,59 +104,55 @@ void template_testing_reduction_batched(
         return;
     }
 
-    host_vector<R> hr1(batch_count);
-    CHECK_HIP_ERROR(hr1.memcheck());
-    host_vector<R> hr2(batch_count);
-    CHECK_HIP_ERROR(hr2.memcheck());
-    host_vector<R> cpu_result(batch_count);
-    CHECK_HIP_ERROR(cpu_result.memcheck());
-    device_vector<R> dr(batch_count);
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
+    // Allocate host memory
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_vector<R>       hr1(batch_count);
+    host_vector<R>       hr2(batch_count);
+    host_vector<R>       cpu_result(batch_count);
+
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hx.memcheck());
+
+    // Allocate device memory
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_vector<R>       dr(batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
-    host_batch_vector<T> hx(N, incx, batch_count);
-    CHECK_HIP_ERROR(hx.memcheck());
-    device_batch_vector<T> dx(N, incx, batch_count);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-
-    //
     // Initialize memory on host.
-    //
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
-    //
     // Copy data from host to device.
-    //
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
     if(arg.unit_check || arg.norm_check)
     {
-        //
         // GPU BLAS, rocblas_pointer_mode_host
-        //
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_ROCBLAS_ERROR(func(handle, N, dx.ptr_on_device(), incx, batch_count, hr1));
         }
 
-        //
         // GPU BLAS, rocblas_pointer_mode_device
-        //
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_ROCBLAS_ERROR(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
             CHECK_HIP_ERROR(hr2.transfer_from(dr));
         }
 
-        //
         // CPU BLAS
-        //
         {
             cpu_time_used = get_time_us_no_sync();
+
             for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
             {
                 REFBLAS_FUNC(N, hx[batch_index], incx, cpu_result + batch_index);
             }
+
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
 

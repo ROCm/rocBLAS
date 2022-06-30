@@ -1,9 +1,28 @@
 /* ************************************************************************
- * Copyright 2020-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
 
+#include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 #include "herk_scale_device.hpp"
 
@@ -80,8 +99,19 @@ inline rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    if((k > 0 && (!AP || !BP || !alpha)) || !CP || !beta)
+    if((k > 0 && !alpha) || !beta)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        bool calcAB = k > 0 && *alpha != 0;
+
+        if(!calcAB && *beta == 1)
+            return rocblas_status_success;
+
+        if((calcAB && (!AP || !BP)) || ((calcAB || *beta != 1) && !CP))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }
@@ -122,8 +152,19 @@ inline rocblas_status rocblas_her2k_arg_check(rocblas_handle    handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    if((k > 0 && (!AP || !BP || !alpha)) || !CP || !beta)
+    if((k > 0 && !alpha) || !beta)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        bool calcAB = k > 0 && *alpha != 0;
+
+        if(!calcAB && *beta == 1)
+            return rocblas_status_success; // avoid slow kernel launches for no op
+
+        if((calcAB && (!AP || !BP)) || ((calcAB || *beta != 1) && !CP))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }
@@ -188,3 +229,23 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int       ldc,
                                     rocblas_stride    strideC,
                                     rocblas_int       batch_count);
+
+template <bool HERM, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_name,
+                                                  rocblas_handle    handle,
+                                                  rocblas_fill      uplo,
+                                                  rocblas_operation trans,
+                                                  rocblas_int       n,
+                                                  rocblas_int       k,
+                                                  TConstPtr         A,
+                                                  rocblas_int       lda,
+                                                  rocblas_stride    strideA,
+                                                  TConstPtr         B,
+                                                  rocblas_int       ldb,
+                                                  rocblas_stride    strideB,
+                                                  TPtr              C,
+                                                  rocblas_int       ldc,
+                                                  rocblas_stride    strideC,
+                                                  rocblas_int       batch_count,
+                                                  const int         check_numerics,
+                                                  bool              is_input);

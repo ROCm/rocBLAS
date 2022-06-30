@@ -1,16 +1,30 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trmm.hpp"
 #include "utility.hpp"
-
-#define STRMM_STRIDED_BATCHED_STOPPING_NB 32
-#define DTRMM_STRIDED_BATCHED_STOPPING_NB 32
-#define CTRMM_STRIDED_BATCHED_STOPPING_NB 16
-#define ZTRMM_STRIDED_BATCHED_STOPPING_NB 16
 
 namespace
 {
@@ -26,8 +40,8 @@ namespace
     template <>
     constexpr char rocblas_trmm_strided_batched_name<rocblas_double_complex>[]
         = "rocblas_ztrmm_strided_batched";
-
     template <int STOPPING_NB, typename T>
+
     rocblas_status rocblas_trmm_strided_batched_impl(rocblas_handle    handle,
                                                      rocblas_side      side,
                                                      rocblas_fill      uplo,
@@ -57,7 +71,9 @@ namespace
             copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, m && n));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
+
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
                   | rocblas_layer_mode_log_profile)
@@ -141,19 +157,14 @@ namespace
                             batch_count);
         }
 
-        rocblas_int nrowa = rocblas_side_left == side ? m : n;
+        rocblas_status arg_status = rocblas_trmm_arg_check(
+            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
 
-        if(m < 0 || n < 0 || lda < nrowa || ldb < m || batch_count < 0)
-            return rocblas_status_invalid_size;
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
-        if(m == 0 || n == 0 || batch_count == 0)
-            return rocblas_status_success;
-
-        if(!b || !alpha)
-            return rocblas_status_invalid_pointer;
-
-        rocblas_int    offset_a     = 0;
-        rocblas_int    offset_b     = 0;
+        rocblas_stride offset_a     = 0;
+        rocblas_stride offset_b     = 0;
         rocblas_stride stride_alpha = 0;
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
@@ -177,28 +188,82 @@ namespace
 
         constexpr bool BATCHED = false;
 
-        return rocblas_internal_trmm_template<STOPPING_NB, BATCHED, T>(handle,
-                                                                       side,
-                                                                       uplo,
-                                                                       transa,
-                                                                       diag,
-                                                                       m,
-                                                                       n,
-                                                                       alpha,
-                                                                       stride_alpha,
-                                                                       a,
-                                                                       offset_a,
-                                                                       lda,
-                                                                       stride_a,
-                                                                       (const T*)b,
-                                                                       offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       b,
-                                                                       offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       batch_count);
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trmm_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trmm_strided_batched_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transa,
+                                              m,
+                                              n,
+                                              a,
+                                              lda,
+                                              stride_a,
+                                              b,
+                                              ldb,
+                                              stride_b,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmm_check_numerics_status != rocblas_status_success)
+                return trmm_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_status_success;
+
+        status = rocblas_internal_trmm_template<STOPPING_NB, BATCHED, T>(handle,
+                                                                         side,
+                                                                         uplo,
+                                                                         transa,
+                                                                         diag,
+                                                                         m,
+                                                                         n,
+                                                                         alpha,
+                                                                         stride_alpha,
+                                                                         a,
+                                                                         offset_a,
+                                                                         lda,
+                                                                         stride_a,
+                                                                         (const T*)b,
+                                                                         offset_b,
+                                                                         ldb,
+                                                                         stride_b,
+                                                                         b,
+                                                                         offset_b,
+                                                                         ldb,
+                                                                         stride_b,
+                                                                         batch_count);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trmm_check_numerics_status
+                = rocblas_trmm_check_numerics(rocblas_trmm_strided_batched_name<T>,
+                                              handle,
+                                              side,
+                                              uplo,
+                                              transa,
+                                              m,
+                                              n,
+                                              a,
+                                              lda,
+                                              stride_a,
+                                              b,
+                                              ldb,
+                                              stride_b,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmm_check_numerics_status != rocblas_status_success)
+                return trmm_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace
@@ -254,10 +319,10 @@ extern "C" {
         return exception_to_rocblas_status();                                                \
     }
 
-IMPL(rocblas_strmm_strided_batched, float, STRMM_STRIDED_BATCHED_STOPPING_NB);
-IMPL(rocblas_dtrmm_strided_batched, double, DTRMM_STRIDED_BATCHED_STOPPING_NB);
-IMPL(rocblas_ctrmm_strided_batched, rocblas_float_complex, CTRMM_STRIDED_BATCHED_STOPPING_NB);
-IMPL(rocblas_ztrmm_strided_batched, rocblas_double_complex, ZTRMM_STRIDED_BATCHED_STOPPING_NB);
+IMPL(rocblas_strmm_strided_batched, float, ROCBLAS_SDTRMM_NB);
+IMPL(rocblas_dtrmm_strided_batched, double, ROCBLAS_SDTRMM_NB);
+IMPL(rocblas_ctrmm_strided_batched, rocblas_float_complex, ROCBLAS_CZTRMM_NB);
+IMPL(rocblas_ztrmm_strided_batched, rocblas_double_complex, ROCBLAS_CZTRMM_NB);
 
 #undef IMPL
 

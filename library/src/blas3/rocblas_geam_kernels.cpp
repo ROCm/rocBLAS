@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "handle.hpp"
@@ -52,8 +70,8 @@ geam_device(rocblas_operation transA,
 
     if(tx < m && ty < n)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, 0);
-        auto beta  = load_scalar(beta_device_host, hipBlockIdx_z, 0);
+        auto alpha = load_scalar(alpha_device_host);
+        auto beta  = load_scalar(beta_device_host);
 
         auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_z, offset_a, stride_a);
         auto* B = cond_load_ptr_batch(beta, Ba, hipBlockIdx_z, offset_b, stride_b);
@@ -114,7 +132,7 @@ geam_2matrix_device(rocblas_operation transA,
 
     if(tx < m && ty < n)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, 0);
+        auto alpha = load_scalar(alpha_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
 
@@ -168,8 +186,8 @@ geam_1D_device(size_t         size,
 
     if(tx < size)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, 0);
-        auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, 0);
+        auto alpha = load_scalar(alpha_device_host);
+        auto beta  = load_scalar(beta_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_y, offset_c, stride_c);
 
@@ -206,7 +224,7 @@ geam_1D_2matrix_device(size_t         size,
 
     if(tx < size)
     {
-        auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, 0);
+        auto alpha = load_scalar(alpha_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_y, offset_c, stride_c);
 
@@ -245,8 +263,8 @@ geam_inplace_device(rocblas_operation transB,
 
     if(tx < m && ty < n)
     {
-        auto alpha = load_scalar(alpha_device_host, 0, 0);
-        auto beta  = load_scalar(beta_device_host, 0, 0);
+        auto alpha = load_scalar(alpha_device_host);
+        auto beta  = load_scalar(beta_device_host);
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
 
@@ -727,49 +745,57 @@ rocblas_status rocblas_geam_check_numerics(const char*       function_name,
 
     if(is_input)
     {
-        check_numerics_status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                                   handle,
-                                                                                   trans_a,
-                                                                                   m,
-                                                                                   n,
-                                                                                   A,
-                                                                                   0,
-                                                                                   lda,
-                                                                                   stride_a,
-                                                                                   batch_count,
-                                                                                   check_numerics,
-                                                                                   is_input);
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              trans_a,
+                                                              rocblas_fill_full,
+                                                              rocblas_client_general_matrix,
+                                                              m,
+                                                              n,
+                                                              A,
+                                                              0,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
         if(check_numerics_status != rocblas_status_success)
             return check_numerics_status;
 
-        check_numerics_status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                                                   handle,
-                                                                                   trans_b,
-                                                                                   m,
-                                                                                   n,
-                                                                                   B,
-                                                                                   0,
-                                                                                   ldb,
-                                                                                   stride_b,
-                                                                                   batch_count,
-                                                                                   check_numerics,
-                                                                                   is_input);
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              trans_b,
+                                                              rocblas_fill_full,
+                                                              rocblas_client_general_matrix,
+                                                              m,
+                                                              n,
+                                                              B,
+                                                              0,
+                                                              ldb,
+                                                              stride_b,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
         if(check_numerics_status != rocblas_status_success)
             return check_numerics_status;
     }
     check_numerics_status
-        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
-                                                             handle,
-                                                             rocblas_operation_none,
-                                                             m,
-                                                             n,
-                                                             C,
-                                                             0,
-                                                             ldc,
-                                                             stride_c,
-                                                             batch_count,
-                                                             check_numerics,
-                                                             is_input);
+        = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                          handle,
+                                                          rocblas_operation_none,
+                                                          rocblas_fill_full,
+                                                          rocblas_client_general_matrix,
+                                                          m,
+                                                          n,
+                                                          C,
+                                                          0,
+                                                          ldc,
+                                                          stride_c,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
 
     return check_numerics_status;
 }

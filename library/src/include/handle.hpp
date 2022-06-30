@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -228,6 +246,11 @@ public:
     bool is_device_memory_size_query() const
     {
         return device_memory_size_query;
+    }
+
+    size_t get_available_workspace()
+    {
+        return (device_memory_size - device_memory_in_use);
     }
 
     // Get the solution fitness query
@@ -495,6 +518,32 @@ private:
     };
     // clang-format on
 
+    // allocate workspace for GSU based on the needs.
+    // clang-format off
+    class [[nodiscard]] _gsu_malloc_by_size final : _device_malloc
+    {
+    public:
+        explicit _gsu_malloc_by_size(rocblas_handle handle, size_t requested_Workspace_Size)
+        : _device_malloc(handle, requested_Workspace_Size)
+        {
+            handle->gsu_workspace_size = success ? size : 0;
+            handle->gsu_workspace = static_cast<void*>(*this);
+        }
+
+        ~_gsu_malloc_by_size()
+        {
+            if(success)
+            {
+                handle->gsu_workspace_size = 0;
+                handle->gsu_workspace      = nullptr;
+            }
+        }
+
+        // Move constructor allows initialization by rvalues and returns from functions
+        _gsu_malloc_by_size(_gsu_malloc_by_size&&) = default;
+    };
+    // clang-format on
+
 public:
     // Allocate one or more sizes
     template <typename... Ss,
@@ -520,6 +569,11 @@ public:
     auto gsu_malloc()
     {
         return _gsu_malloc(this);
+    };
+
+    auto gsu_malloc_by_size(size_t requested_Workspace_Size)
+    {
+        return _gsu_malloc_by_size(this, requested_Workspace_Size);
     };
 };
 

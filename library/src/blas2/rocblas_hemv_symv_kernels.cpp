@@ -1,7 +1,26 @@
 /* ************************************************************************
- * Copyright 2019-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
+#include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "rocblas_hemv_symv.hpp"
@@ -9,7 +28,7 @@
 //-- Innovative Computing Laboratory
 //  -- Electrical Engineering and Computer Science Department
 //  -- University of Tennessee
-//  -- (C) Copyright 2009-2020
+//  -- (C) Copyright (C) 2009-2020
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions
@@ -577,13 +596,16 @@ hemvn_kernel_upper_block_sum(rocblas_int    n,
                              U              beta_device_host,
                              rocblas_stride stride_beta,
                              TPtr __restrict__ ya,
-                             ptrdiff_t      shifty,
+                             rocblas_stride shifty,
                              rocblas_int    incy,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+
+    if(!alpha && beta == 1)
+        return;
 
     auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
@@ -1099,13 +1121,16 @@ hemvn_kernel_lower_block_sum(rocblas_int    n,
                              U              beta_device_host,
                              rocblas_stride stride_beta,
                              TPtr __restrict__ ya,
-                             ptrdiff_t      shifty,
+                             rocblas_stride shifty,
                              rocblas_int    incy,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+
+    if(!alpha && beta == 1)
+        return;
 
     auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
@@ -1157,11 +1182,11 @@ hemvn_kernel_upper(rocblas_int    n,
                    U              alpha_device_host,
                    rocblas_stride stride_alpha,
                    V              Aa,
-                   ptrdiff_t      shifta,
+                   rocblas_stride shifta,
                    T_lda          lda,
                    rocblas_stride strideA,
                    V              xa,
-                   ptrdiff_t      shiftx,
+                   rocblas_stride shiftx,
                    rocblas_int    incx,
                    rocblas_stride stridex,
                    U              beta_device_host,
@@ -1201,11 +1226,11 @@ hemvn_kernel_lower(rocblas_int    n,
                    U              alpha_device_host,
                    rocblas_stride stride_alpha,
                    V              Aa,
-                   ptrdiff_t      shifta,
+                   rocblas_stride shifta,
                    T_lda          lda,
                    rocblas_stride strideA,
                    V              xa,
-                   ptrdiff_t      shiftx,
+                   rocblas_stride shiftx,
                    rocblas_int    incx,
                    rocblas_stride stridex,
                    U              beta_device_host,
@@ -1244,17 +1269,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                         const U*       alpha,
                                         rocblas_stride stride_alpha,
                                         V              A,
-                                        rocblas_int    offseta,
+                                        rocblas_stride offseta,
                                         rocblas_int    lda,
                                         rocblas_stride strideA,
                                         V              x,
-                                        rocblas_int    offsetx,
+                                        rocblas_stride offsetx,
                                         rocblas_int    incx,
                                         rocblas_stride stridex,
                                         const U*       beta,
                                         rocblas_stride stride_beta,
                                         TPtr           y,
-                                        rocblas_int    offsety,
+                                        rocblas_stride offsety,
                                         rocblas_int    incy,
                                         rocblas_stride stridey,
                                         rocblas_int    batch_count,
@@ -1440,17 +1465,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    const V*       alpha,
                                    rocblas_stride stride_alpha,
                                    const U*       A,
-                                   rocblas_int    offseta,
+                                   rocblas_stride offseta,
                                    rocblas_int    lda,
                                    rocblas_stride strideA,
                                    const U*       x,
-                                   rocblas_int    offsetx,
+                                   rocblas_stride offsetx,
                                    rocblas_int    incx,
                                    rocblas_stride stridex,
                                    const V*       beta,
                                    rocblas_stride stride_beta,
                                    TPtr*          y,
-                                   rocblas_int    offsety,
+                                   rocblas_stride offsety,
                                    rocblas_int    incy,
                                    rocblas_stride stridey,
                                    rocblas_int    batch_count,
@@ -1493,10 +1518,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return status;
 }
 
-//TODO :-Add rocblas_check_numerics_he_matrix_template for checking Matrix `A` which is a Hermitian Matrix
 template <typename T, typename U>
 rocblas_status rocblas_hemv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
+                                           rocblas_fill   uplo,
                                            rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,
@@ -1514,19 +1539,42 @@ rocblas_status rocblas_hemv_check_numerics(const char*    function_name,
                                            const int      check_numerics,
                                            bool           is_input)
 {
-    rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_vector_template(function_name,
-                                                          handle,
-                                                          n,
-                                                          x,
-                                                          offset_x,
-                                                          inc_x,
-                                                          stride_x,
-                                                          batch_count,
-                                                          check_numerics,
-                                                          is_input);
-    if(check_numerics_status != rocblas_status_success)
-        return check_numerics_status;
+    rocblas_status check_numerics_status = rocblas_status_success;
+
+    if(is_input)
+    {
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              uplo,
+                                                              rocblas_client_hermitian_matrix,
+                                                              n,
+                                                              n,
+                                                              A,
+                                                              offset_a,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+
+        check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                                handle,
+                                                                                n,
+                                                                                x,
+                                                                                offset_x,
+                                                                                inc_x,
+                                                                                stride_x,
+                                                                                batch_count,
+                                                                                check_numerics,
+                                                                                is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
 
     check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                             handle,
@@ -1542,10 +1590,10 @@ rocblas_status rocblas_hemv_check_numerics(const char*    function_name,
     return check_numerics_status;
 }
 
-//TODO :-Add rocblas_check_numerics_sy_matrix_template for checking Matrix `A` which is a Symmetric Matrix
 template <typename T, typename U>
 rocblas_status rocblas_symv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
+                                           rocblas_fill   uplo,
                                            rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,
@@ -1564,16 +1612,34 @@ rocblas_status rocblas_symv_check_numerics(const char*    function_name,
                                            bool           is_input)
 {
     rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_vector_template(function_name,
+        = rocblas_internal_check_numerics_matrix_template(function_name,
                                                           handle,
+                                                          rocblas_operation_none,
+                                                          uplo,
+                                                          rocblas_client_symmetric_matrix,
                                                           n,
-                                                          x,
-                                                          offset_x,
-                                                          inc_x,
-                                                          stride_x,
+                                                          n,
+                                                          A,
+                                                          offset_a,
+                                                          lda,
+                                                          stride_a,
                                                           batch_count,
                                                           check_numerics,
                                                           is_input);
+
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            n,
+                                                                            x,
+                                                                            offset_x,
+                                                                            inc_x,
+                                                                            stride_x,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
@@ -1617,6 +1683,7 @@ INSTANTIATE_HEMV_WORKSPACE(rocblas_double_complex )
 template rocblas_status rocblas_hemv_check_numerics<T_, U_>               \
                                           (const char*    function_name,  \
                                            rocblas_handle handle,         \
+                                           rocblas_fill   uplo,           \
                                            rocblas_int    n,              \
                                            T_             A,              \
                                            rocblas_stride    offset_a,       \
@@ -1649,6 +1716,7 @@ INSTANTIATE_HEMV_NUMERICS(rocblas_double_complex const* const*, rocblas_double_c
 template rocblas_status rocblas_symv_check_numerics<T_, U_>               \
                                           (const char*    function_name,  \
                                            rocblas_handle handle,         \
+                                           rocblas_fill   uplo,           \
                                            rocblas_int    n,              \
                                            T_             A,              \
                                            rocblas_stride offset_a,       \
@@ -1690,17 +1758,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symv_t
                                    V_ const*       alpha,                               \
                                    rocblas_stride stride_alpha,                         \
                                    U_ const*       A,                                   \
-                                   rocblas_int    offseta,                              \
+                                   rocblas_stride offseta,                              \
                                    rocblas_int    lda,                                  \
                                    rocblas_stride strideA,                              \
                                    U_ const*       x,                                   \
-                                   rocblas_int    offsetx,                              \
+                                   rocblas_stride offsetx,                              \
                                    rocblas_int    incx,                                 \
                                    rocblas_stride stridex,                              \
                                    V_ const*       beta,                                \
                                    rocblas_stride stride_beta,                          \
                                    TPtr_*          y,                                   \
-                                   rocblas_int    offsety,                              \
+                                   rocblas_stride offsety,                              \
                                    rocblas_int    incy,                                 \
                                    rocblas_stride stridey,                              \
                                    rocblas_int    batch_count,                          \
@@ -1732,17 +1800,17 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status             \
                                         U_ const*      alpha,        \
                                         rocblas_stride stride_alpha, \
                                         V_             A,            \
-                                        rocblas_int    offseta,      \
+                                        rocblas_stride offseta,      \
                                         rocblas_int    lda,          \
                                         rocblas_stride strideA,      \
                                         V_             x,            \
-                                        rocblas_int    offsetx,      \
+                                        rocblas_stride offsetx,      \
                                         rocblas_int    incx,         \
                                         rocblas_stride stridex,      \
                                         U_ const*      beta,         \
                                         rocblas_stride stride_beta,  \
                                         TPtr_          y,            \
-                                        rocblas_int    offsety,      \
+                                        rocblas_stride offsety,      \
                                         rocblas_int    incy,         \
                                         rocblas_stride stridey,      \
                                         rocblas_int    batch_count,  \

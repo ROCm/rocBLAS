@@ -1,5 +1,5 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Copyright (c) 2020 Advanced Micro Devices, Inc.
+! Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
 !
 ! Permission is hereby granted, free of charge, to any person obtaining a copy
 ! of this software and associated documentation files (the "Software"), to deal
@@ -9757,7 +9757,7 @@ module rocblas_interface
         integer(c_int64_t), value :: stride_C
         integer(c_int), value :: batch_count
         integer(c_int) :: res
-        res = rocblas_chemm_strided_batched(handle, side, uplo, n, k, alpha, &
+        res = rocblas_zhemm_strided_batched(handle, side, uplo, n, k, alpha, &
             A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count)
     end function rocblas_zhemm_strided_batched_fortran
 

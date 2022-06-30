@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -100,26 +118,35 @@ void testing_axpy_ex(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx > 0 ? incx : -incx;
-    rocblas_int abs_incy = incy > 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
+    size_t abs_incx = std::abs(incx);
+    size_t abs_incy = std::abs(incy);
+    size_t size_x   = N * (abs_incx ? abs_incx : 1);
+    size_t size_y   = N * (abs_incy ? abs_incy : 1);
 
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<Tx>  hx(size_x);
-    host_vector<Ty>  hy_1(size_y);
-    host_vector<Ty>  hy_2(size_y);
-    host_vector<Ty>  hy_gold(size_y);
-    host_vector<Tex> hy_gold_ex(size_y);
-    host_vector<Tex> hx_ex(size_x);
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // Allocate host memory
+    host_vector<Tx>  hx(N, incx ? incx : 1);
+    host_vector<Tex> hx_ex(N, incx ? incx : 1);
+    host_vector<Ty>  hy_1(N, incy ? incy : 1);
+    host_vector<Ty>  hy_2(N, incy ? incy : 1);
+    host_vector<Ty>  hy_gold(N, incy ? incy : 1);
+    host_vector<Tex> hy_gold_ex(N, incy ? incy : 1);
+
+    // Allocate device memory
+    device_vector<Tx> dx(N, incx ? incx : 1);
+    device_vector<Ty> dy_1(N, incy ? incy : 1);
+    device_vector<Ty> dy_2(N, incy ? incy : 1);
+    device_vector<Ta> d_alpha(1);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_vector(hx, arg, N, abs_incx, 0, 1, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy_1, arg, N, abs_incy, 0, 1, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy_1, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS
@@ -134,16 +161,6 @@ void testing_axpy_ex(const Arguments& arg)
 
     Tex h_alpha_ex = (Tex)h_alpha;
 
-    // allocate memory on device
-    device_vector<Tx> dx(size_x);
-    device_vector<Ty> dy_1(size_y);
-    device_vector<Ty> dy_2(size_y);
-    device_vector<Ta> d_alpha(1);
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-
     // This is to test that we are using the correct
     // compute type (avoiding overflow in this case)
     if(special_compute_test)
@@ -156,8 +173,8 @@ void testing_axpy_ex(const Arguments& arg)
     }
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(Ty) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
@@ -165,7 +182,7 @@ void testing_axpy_ex(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(Ty) * size_y, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(Ta), hipMemcpyHostToDevice));
 
         // ROCBLAS pointer mode host
@@ -179,8 +196,8 @@ void testing_axpy_ex(const Arguments& arg)
             handle, N, d_alpha, alpha_type, dx, x_type, incx, dy_2, y_type, incy, execution_type));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(Ty) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(Ty) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

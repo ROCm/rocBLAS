@@ -1,26 +1,24 @@
-/**
- * MIT License
- *
- * Copyright 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+/* ************************************************************************
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * ************************************************************************ */
 
 /*!\file
  * \brief rocblas_bfloat16.h provides struct for rocblas_bfloat16 typedef
@@ -54,9 +52,18 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
 {
     uint16_t data;
 
+    enum rocblas_truncate_t
+    {
+        rocblas_truncate
+    };
+
     enum truncate_t
     {
-        truncate
+        truncate __attribute__((deprecated(
+            "From the ROCm release 6.0, The enum truncate_t and the value truncate will be "
+            "removed and replaced by rocblas_truncate_t and rocblas_truncate, "
+            "respectively. The new enum rocblas_truncate_t and the value rocblas_truncate could "
+            "be used from this ROCm release for an easy transition.")))
     };
 
     __host__ __device__ rocblas_bfloat16() = default;
@@ -64,6 +71,11 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
     // round upper 16 bits of IEEE float to convert to bfloat16
     explicit __host__ __device__ rocblas_bfloat16(float f)
         : data(float_to_bfloat16(f))
+    {
+    }
+
+    explicit __host__ __device__ rocblas_bfloat16(float f, rocblas_truncate_t)
+        : data(truncate_float_to_bfloat16(f))
     {
     }
 

@@ -1,8 +1,27 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "../blas1/rocblas_reduction_impl.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_nrm2_ex.hpp"
 
 namespace
@@ -127,7 +146,7 @@ namespace
 
         static constexpr bool           isbatched = true;
         static constexpr rocblas_stride stridex_0 = 0;
-        static constexpr rocblas_int    shiftx_0  = 0;
+        static constexpr rocblas_stride shiftx_0  = 0;
 
         return rocblas_nrm2_ex_template<NB, isbatched>(handle,
                                                        n,
@@ -167,8 +186,7 @@ rocblas_status rocblas_nrm2_batched_ex(rocblas_handle   handle,
 {
     try
     {
-        constexpr rocblas_int NB = 512;
-        return rocblas_nrm2_batched_ex_impl<NB>(
+        return rocblas_nrm2_batched_ex_impl<ROCBLAS_NRM2_NB>(
             handle, n, x, x_type, incx, batch_count, results, result_type, execution_type);
     }
     catch(...)

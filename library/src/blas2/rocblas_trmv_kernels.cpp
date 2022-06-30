@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2019-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "../blas1/rocblas_copy.hpp"
@@ -103,11 +121,11 @@ template <rocblas_int DIM_X,
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 trmvn_kernel(rocblas_int    m,
              A              a,
-             ptrdiff_t      shifta,
+             rocblas_stride shifta,
              rocblas_int    lda,
              rocblas_stride stridea,
              X              x,
-             ptrdiff_t      shiftx,
+             rocblas_stride shiftx,
              rocblas_int    incx,
              rocblas_stride stridex,
              W              workspace,
@@ -155,11 +173,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_diagonal  diag,
                                    rocblas_int       m,
                                    A                 a,
-                                   ptrdiff_t         offseta,
+                                   rocblas_stride    offseta,
                                    rocblas_int       lda,
                                    rocblas_stride    stridea,
                                    X                 x,
-                                   ptrdiff_t         offsetx,
+                                   rocblas_stride    offsetx,
                                    rocblas_int       incx,
                                    rocblas_stride    stridex,
                                    W                 workspace,
@@ -284,10 +302,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #undef TRMV_TEMPLATE_PARAMS
 }
 
-//TODO :-Add rocblas_check_numerics_tr_matrix_template for checking Matrix `A` which is a Triangular Matrix
 template <typename T, typename U>
 rocblas_status rocblas_trmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
+                                           rocblas_fill   uplo,
                                            rocblas_int    m,
                                            T              A,
                                            rocblas_stride offset_a,
@@ -301,17 +319,39 @@ rocblas_status rocblas_trmv_check_numerics(const char*    function_name,
                                            const int      check_numerics,
                                            bool           is_input)
 {
-    rocblas_status check_numerics_status
-        = rocblas_internal_check_numerics_vector_template(function_name,
-                                                          handle,
-                                                          m,
-                                                          x,
-                                                          offset_x,
-                                                          inc_x,
-                                                          stride_x,
-                                                          batch_count,
-                                                          check_numerics,
-                                                          is_input);
+    rocblas_status check_numerics_status = rocblas_status_success;
+    if(is_input)
+    {
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              rocblas_operation_none,
+                                                              uplo,
+                                                              rocblas_client_triangular_matrix,
+                                                              m,
+                                                              m,
+                                                              A,
+                                                              offset_a,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            m,
+                                                                            x,
+                                                                            offset_x,
+                                                                            inc_x,
+                                                                            stride_x,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
 
     return check_numerics_status;
 }
@@ -334,11 +374,11 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmv_t
                                    rocblas_diagonal  diag,                              \
                                    rocblas_int       m,                                 \
                                    A_                 a,                                \
-                                   ptrdiff_t         offseta,                           \
+                                   rocblas_stride         offseta,                      \
                                    rocblas_int       lda,                               \
                                    rocblas_stride    stridea,                           \
                                    X_                 x,                                \
-                                   ptrdiff_t         offsetx,                           \
+                                   rocblas_stride         offsetx,                      \
                                    rocblas_int       incx,                              \
                                    rocblas_stride    stridex,                           \
                                    W_                 workspace,                        \
@@ -364,13 +404,14 @@ INSTANTIATE_TRMV_TEMPLATE(rocblas_double_complex const* const*, rocblas_double_c
 template rocblas_status rocblas_trmv_check_numerics <T_, U_>              \
                                           (const char*    function_name,  \
                                            rocblas_handle handle,         \
+                                           rocblas_fill   uplo,           \
                                            rocblas_int    m,              \
                                            T_              A,             \
-                                           rocblas_stride    offset_a,       \
+                                           rocblas_stride    offset_a,    \
                                            rocblas_int    lda,            \
                                            rocblas_stride stride_a,       \
                                            U_              x,             \
-                                           rocblas_stride    offset_x,       \
+                                           rocblas_stride    offset_x,    \
                                            rocblas_int    inc_x,          \
                                            rocblas_stride stride_x,       \
                                            rocblas_int    batch_count,    \

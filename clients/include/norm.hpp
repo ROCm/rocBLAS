@@ -1,11 +1,28 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-
 #pragma once
 
 #include "cblas.h"
+#include "lapack_utilities.hpp"
 #include "norm.hpp"
 #include "rocblas.h"
 #include "rocblas_vector.hpp"
@@ -22,112 +39,7 @@
  * \brief compares two results (usually, CPU and GPU results); provides Norm check
  */
 
-/* ========================================Norm Check
- * ==================================================== */
-
-/* LAPACK fortran library functionality */
-extern "C" {
-float  slange_(char* norm_type, int* m, int* n, float* A, int* lda, float* work);
-double dlange_(char* norm_type, int* m, int* n, double* A, int* lda, double* work);
-float  clange_(char* norm_type, int* m, int* n, rocblas_float_complex* A, int* lda, float* work);
-double zlange_(char* norm_type, int* m, int* n, rocblas_double_complex* A, int* lda, double* work);
-
-float  slansy_(char* norm_type, char* uplo, int* n, float* A, int* lda, float* work);
-double dlansy_(char* norm_type, char* uplo, int* n, double* A, int* lda, double* work);
-float clanhe_(char* norm_type, char* uplo, int* n, rocblas_float_complex* A, int* lda, float* work);
-double
-    zlanhe_(char* norm_type, char* uplo, int* n, rocblas_double_complex* A, int* lda, double* work);
-
-void saxpy_(int* n, float* alpha, float* x, int* incx, float* y, int* incy);
-void daxpy_(int* n, double* alpha, double* x, int* incx, double* y, int* incy);
-void caxpy_(int*                   n,
-            rocblas_float_complex* alpha,
-            rocblas_float_complex* x,
-            int*                   incx,
-            rocblas_float_complex* y,
-            int*                   incy);
-void zaxpy_(int*                    n,
-            rocblas_double_complex* alpha,
-            rocblas_double_complex* x,
-            int*                    incx,
-            rocblas_double_complex* y,
-            int*                    incy);
-}
-
-/*! \brief  Overloading: norm check for general Matrix: half/float/doubel/complex */
-inline float xlange(char* norm_type, int* m, int* n, float* A, int* lda, float* work)
-{
-    return slange_(norm_type, m, n, A, lda, work);
-}
-
-inline double xlange(char* norm_type, int* m, int* n, double* A, int* lda, double* work)
-{
-    return dlange_(norm_type, m, n, A, lda, work);
-}
-
-inline float
-    xlange(char* norm_type, int* m, int* n, rocblas_float_complex* A, int* lda, float* work)
-{
-    return clange_(norm_type, m, n, A, lda, work);
-}
-
-inline double
-    xlange(char* norm_type, int* m, int* n, rocblas_double_complex* A, int* lda, double* work)
-{
-    return zlange_(norm_type, m, n, A, lda, work);
-}
-
-inline float xlanhe(char* norm_type, char* uplo, int* n, float* A, int* lda, float* work)
-{
-    return slansy_(norm_type, uplo, n, A, lda, work);
-}
-
-inline double xlanhe(char* norm_type, char* uplo, int* n, double* A, int* lda, double* work)
-{
-    return dlansy_(norm_type, uplo, n, A, lda, work);
-}
-
-inline float
-    xlanhe(char* norm_type, char* uplo, int* n, rocblas_float_complex* A, int* lda, float* work)
-{
-    return clanhe_(norm_type, uplo, n, A, lda, work);
-}
-
-inline double
-    xlanhe(char* norm_type, char* uplo, int* n, rocblas_double_complex* A, int* lda, double* work)
-{
-    return zlanhe_(norm_type, uplo, n, A, lda, work);
-}
-
-inline void xaxpy(int* n, float* alpha, float* x, int* incx, float* y, int* incy)
-{
-    return saxpy_(n, alpha, x, incx, y, incy);
-}
-
-inline void xaxpy(int* n, double* alpha, double* x, int* incx, double* y, int* incy)
-{
-    return daxpy_(n, alpha, x, incx, y, incy);
-}
-
-inline void xaxpy(int*                   n,
-                  rocblas_float_complex* alpha,
-                  rocblas_float_complex* x,
-                  int*                   incx,
-                  rocblas_float_complex* y,
-                  int*                   incy)
-{
-    return caxpy_(n, alpha, x, incx, y, incy);
-}
-
-inline void xaxpy(int*                    n,
-                  rocblas_double_complex* alpha,
-                  rocblas_double_complex* x,
-                  int*                    incx,
-                  rocblas_double_complex* y,
-                  int*                    incy)
-{
-    return zaxpy_(n, alpha, x, incx, y, incy);
-}
+/* ========================================Norm Check* ==================================================== */
 
 template <typename T>
 void m_axpy(size_t* N, T* alpha, T* x, int* incx, T* y, int* incy)
@@ -142,7 +54,7 @@ void m_axpy(size_t* N, T* alpha, T* x, int* incx, T* y, int* incy)
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
 
 // Real
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -165,19 +77,18 @@ double norm_check_general(
         }
     }
 
-    double      work[1];
-    rocblas_int incx  = 1;
-    double      alpha = -1.0;
+    host_vector<double> work(std::max(1, M));
+    rocblas_int         incx  = 1;
+    double              alpha = -1.0;
 
-    double cpu_norm = xlange(&norm_type, &M, &N, hCPU_double.data(), &lda, work);
+    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU_double.data(), lda, work.data());
     m_axpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
-    double error = xlange(&norm_type, &M, &N, hGPU_double.data(), &lda, work) / cpu_norm;
-
+    double error = lapack_xlange(norm_type, M, N, hGPU_double.data(), lda, work.data()) / cpu_norm;
     return error;
 }
 
 // Complex
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -186,14 +97,14 @@ double norm_check_general(
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
 
-    decltype(std::real(*hCPU)) work[1];
-    rocblas_int                incx  = 1;
-    T                          alpha = -1.0;
-    size_t                     size  = N * (size_t)lda;
+    host_vector<double> work(std::max(1, M));
+    rocblas_int         incx  = 1;
+    T                   alpha = -1.0;
+    size_t              size  = N * (size_t)lda;
 
-    double cpu_norm = xlange(&norm_type, &M, &N, hCPU, &lda, work);
+    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU, lda, work.data());
     m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
-    double error = xlange(&norm_type, &M, &N, hGPU, &lda, work) / cpu_norm;
+    double error = lapack_xlange(norm_type, M, N, hGPU, lda, work.data()) / cpu_norm;
 
     return error;
 }
@@ -249,6 +160,41 @@ double norm_check_general(char           norm_type,
         auto index = i * stride_a;
 
         auto error = norm_check_general(norm_type, M, N, lda, (T_hpa*)hCPU + index, hGPU + index);
+
+        if(norm_type == 'F' || norm_type == 'f')
+        {
+            cumulative_error += error;
+        }
+        else if(norm_type == 'O' || norm_type == 'o' || norm_type == 'I' || norm_type == 'i')
+        {
+            cumulative_error = cumulative_error > error ? cumulative_error : error;
+        }
+    }
+
+    return cumulative_error;
+}
+
+template <typename T, typename U>
+double norm_check_general(char norm_type, T& hCPU, U& hGPU)
+{
+    // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+    // one norm is max column sum
+    // infinity norm is max row sum
+    // Frobenius is l2 norm of matrix entries
+    //
+    // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
+    // of strided batched matrix
+    rocblas_int M                = hCPU.m();
+    rocblas_int N                = hCPU.n();
+    size_t      lda              = hCPU.lda();
+    rocblas_int batch_count      = hCPU.batch_count();
+    double      cumulative_error = 0.0;
+
+    for(rocblas_int b = 0; b < batch_count; b++)
+    {
+        auto* CPU   = hCPU[b];
+        auto* GPU   = hGPU[b];
+        auto  error = norm_check_general(norm_type, M, N, lda, CPU, GPU);
 
         if(norm_type == 'F' || norm_type == 'f')
         {
@@ -343,16 +289,16 @@ double norm_check_general(char        norm_type,
 
 /* ============== Norm Check for Symmetric Matrix ============= */
 /*! \brief compare the norm error of two Hermitian/symmetric matrices hCPU & hGPU */
-template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0, bool HERM = false>
 double norm_check_symmetric(
     char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
     // norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
 
-    double      work[1];
-    rocblas_int incx  = 1;
-    double      alpha = -1.0;
-    size_t      size  = N * (size_t)lda;
+    host_vector<double> work(std::max(1, N));
+    rocblas_int         incx  = 1;
+    double              alpha = -1.0;
+    size_t              size  = N * (size_t)lda;
 
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
@@ -367,27 +313,27 @@ double norm_check_symmetric(
         }
     }
 
-    double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU_double, &lda, work);
+    double cpu_norm = lapack_xlansy<HERM>(norm_type, uplo, N, hCPU_double.data(), lda, work.data());
     m_axpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
-    double error = xlanhe(&norm_type, &uplo, &N, hGPU_double, &lda, work) / cpu_norm;
+    double error
+        = lapack_xlansy<HERM>(norm_type, uplo, N, hGPU_double.data(), lda, work.data()) / cpu_norm;
 
     return error;
 }
 
-template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0, bool HERM = false>
 double norm_check_symmetric(
     char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
     // norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
+    host_vector<double> work(std::max(1, N));
+    rocblas_int         incx  = 1;
+    T                   alpha = -1.0;
+    size_t              size  = (size_t)lda * N;
 
-    decltype(std::real(*hCPU)) work[1];
-    rocblas_int                incx  = 1;
-    T                          alpha = -1.0;
-    size_t                     size  = (size_t)lda * N;
-
-    double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU, &lda, work);
+    double cpu_norm = lapack_xlansy<HERM>(norm_type, uplo, N, hCPU, lda, work.data());
     m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
-    double error = xlanhe(&norm_type, &uplo, &N, hGPU, &lda, work) / cpu_norm;
+    double error = lapack_xlansy<HERM>(norm_type, uplo, N, hGPU, lda, work.data()) / cpu_norm;
 
     return error;
 }

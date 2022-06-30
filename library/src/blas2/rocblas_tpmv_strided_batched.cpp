@@ -1,9 +1,28 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_tpmv.hpp"
 #include "utility.hpp"
 
@@ -118,24 +137,11 @@ namespace
             }
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-
-        if(m < 0 || !incx || batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        if(!m || !batch_count)
-        {
-            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-            return rocblas_status_success;
-        }
-
-        size_t dev_bytes = m * batch_count * sizeof(T);
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(dev_bytes);
-
-        if(!a || !x)
-            return rocblas_status_invalid_pointer;
+        size_t         dev_bytes;
+        rocblas_status arg_status = rocblas_tpmv_arg_check<T>(
+            handle, uplo, transa, diag, m, a, x, incx, batch_count, dev_bytes);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         auto w_mem = handle->device_malloc(dev_bytes);
         if(!w_mem)
@@ -162,11 +168,11 @@ namespace
                 return tpmv_check_numerics_status;
         }
 
-        rocblas_stride               stridew = m;
-        static constexpr rocblas_int NB      = 512;
-        static constexpr ptrdiff_t   offseta = 0;
-        static constexpr ptrdiff_t   offsetx = 0;
-        rocblas_status               status  = rocblas_tpmv_template<NB>(handle,
+        rocblas_stride                  stridew = m;
+        static constexpr rocblas_int    NB      = ROCBLAS_TPMV_NB;
+        static constexpr rocblas_stride offseta = 0;
+        static constexpr rocblas_stride offsetx = 0;
+        rocblas_status                  status  = rocblas_tpmv_template<NB>(handle,
                                                           uplo,
                                                           transa,
                                                           diag,

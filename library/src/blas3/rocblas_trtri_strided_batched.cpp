@@ -1,9 +1,28 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  *
  * ************************************************************************ */
 
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trtri.hpp"
 #include "utility.hpp"
 
@@ -45,7 +64,9 @@ namespace
             return handle->set_optimal_device_memory_size(size);
         }
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
+
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle,
                       rocblas_trtri_name<T>,
@@ -80,16 +101,33 @@ namespace
                         "batch_count",
                         batch_count);
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || lda < n || ldinvA < n || batch_count < 0)
-            return rocblas_status_invalid_size;
-        if(!n || !batch_count)
-            return rocblas_status_success;
-        if(!A || !invA)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status
+            = rocblas_trtri_arg_check(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
-        rocblas_status status;
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trtri_check_numerics_status
+                = rocblas_trtri_check_numerics(rocblas_trtri_name<T>,
+                                               handle,
+                                               uplo,
+                                               n,
+                                               A,
+                                               lda,
+                                               bsa,
+                                               invA,
+                                               ldinvA,
+                                               bsinvA,
+                                               batch_count,
+                                               check_numerics,
+                                               is_input);
+            if(trtri_check_numerics_status != rocblas_status_success)
+                return trtri_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_status_success;
         if(n <= NB)
         {
             status = rocblas_trtri_small<NB, T>(handle,
@@ -108,6 +146,8 @@ namespace
                                                 0,
                                                 batch_count,
                                                 1);
+            if(status != rocblas_status_success)
+                return status;
         }
         else
         {
@@ -133,8 +173,30 @@ namespace
                                                              batch_count,
                                                              1,
                                                              (T*)w_C_tmp);
+            if(status != rocblas_status_success)
+                return status;
         }
 
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trtri_check_numerics_status
+                = rocblas_trtri_check_numerics(rocblas_trtri_name<T>,
+                                               handle,
+                                               uplo,
+                                               n,
+                                               A,
+                                               lda,
+                                               bsa,
+                                               invA,
+                                               ldinvA,
+                                               bsinvA,
+                                               batch_count,
+                                               check_numerics,
+                                               is_input);
+            if(trtri_check_numerics_status != rocblas_status_success)
+                return trtri_check_numerics_status;
+        }
         return status;
     }
 
@@ -162,8 +224,7 @@ rocblas_status rocblas_strtri_strided_batched(rocblas_handle   handle,
                                               rocblas_int      batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)
@@ -184,8 +245,7 @@ rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   handle,
                                               rocblas_int      batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)
@@ -206,8 +266,7 @@ rocblas_status rocblas_ctrtri_strided_batched(rocblas_handle               handl
                                               rocblas_int                  batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)
@@ -228,8 +287,7 @@ rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle                hand
                                               rocblas_int                   batch_count)
 try
 {
-    constexpr rocblas_int NB = 16;
-    return rocblas_trtri_strided_batched_impl<NB>(
+    return rocblas_trtri_strided_batched_impl<ROCBLAS_TRTRI_NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 catch(...)

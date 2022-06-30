@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2018-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -20,15 +38,6 @@ class host_strided_batch_vector
 {
 public:
     //!
-    //! @brief The storage type to use.
-    //!
-    typedef enum class estorage
-    {
-        block,
-        interleave
-    } storage;
-
-    //!
     //! @brief Disallow copying.
     //!
     host_strided_batch_vector(const host_strided_batch_vector&) = delete;
@@ -44,49 +53,18 @@ public:
     //! @param inc The increment.
     //! @param stride The stride.
     //! @param batch_count The batch count.
-    //! @param stg The storage format to use.
     //!
     explicit host_strided_batch_vector(size_t         n,
                                        rocblas_int    inc,
                                        rocblas_stride stride,
-                                       rocblas_int    batch_count,
-                                       storage        stg = storage::block)
-        : m_storage(stg)
-        , m_n(n)
+                                       rocblas_int    batch_count)
+        : m_n(n)
         , m_inc(inc)
         , m_stride(stride)
         , m_batch_count(batch_count)
-        , m_nmemb(calculate_nmemb(n, inc, stride, batch_count, stg))
+        , m_nmemb(calculate_nmemb(n, inc, stride, batch_count))
     {
-
-        bool valid_parameters = this->m_nmemb > 0;
-        if(valid_parameters)
-        {
-            switch(this->m_storage)
-            {
-            case storage::block:
-            {
-                if(std::abs(this->m_stride) < this->m_n * std::abs(this->m_inc))
-                {
-                    valid_parameters = false;
-                }
-                break;
-            }
-            case storage::interleave:
-            {
-                if(std::abs(this->m_inc) < std::abs(this->m_stride) * this->m_batch_count)
-                {
-                    valid_parameters = false;
-                }
-                break;
-            }
-            }
-
-            if(valid_parameters)
-            {
-                this->m_data = (T*)host_malloc_throw(this->m_nmemb, sizeof(T));
-            }
-        }
+        this->m_data = (T*)host_malloc_throw(this->m_nmemb, sizeof(T));
     }
 
     //!
@@ -248,7 +226,6 @@ public:
     }
 
 private:
-    storage        m_storage{storage::block};
     size_t         m_n{};
     rocblas_int    m_inc{};
     rocblas_stride m_stride{};
@@ -256,17 +233,10 @@ private:
     size_t         m_nmemb{};
     T*             m_data{};
 
-    static size_t calculate_nmemb(
-        size_t n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
+    static size_t
+        calculate_nmemb(size_t n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count)
     {
-        switch(st)
-        {
-        case storage::block:
-            return size_t(std::abs(stride)) * batch_count;
-        case storage::interleave:
-            return n * std::abs(inc);
-        }
-        return 0;
+        return std::abs(inc) * n + size_t(batch_count - 1) * std::abs(stride);
     }
 };
 

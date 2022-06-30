@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #pragma once
@@ -36,7 +54,7 @@ rocblas_dot_kernel_inc1(rocblas_int n,
                         rocblas_stride stridex,
                         const U __restrict__ ya,
                         rocblas_stride shifty,
-                        rocblas_int    stridey,
+                        rocblas_stride stridey,
                         V* __restrict__ workspace,
                         T* __restrict__ out)
 {
@@ -76,7 +94,7 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
                            rocblas_stride stridex,
                            const U __restrict__ ya,
                            rocblas_stride shifty,
-                           rocblas_int    stridey,
+                           rocblas_stride stridey,
                            V* __restrict__ workspace,
                            T* __restrict__ out)
 {
@@ -116,7 +134,7 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
                            rocblas_stride stridex,
                            const U __restrict__ ya,
                            rocblas_stride shifty,
-                           rocblas_int    stridey,
+                           rocblas_stride stridey,
                            V* __restrict__ workspace,
                            T* __restrict__ out)
 {
@@ -166,7 +184,7 @@ rocblas_dot_kernel(rocblas_int n,
                    const U __restrict__ ya,
                    rocblas_stride shifty,
                    rocblas_int    incy,
-                   rocblas_int    stridey,
+                   rocblas_stride stridey,
                    V* __restrict__ workspace,
                    T* __restrict__ out)
 {
@@ -283,11 +301,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
                                   rocblas_int n,
                                   const U __restrict__ x,
-                                  rocblas_int    offsetx,
+                                  rocblas_stride offsetx,
                                   rocblas_int    incx,
                                   rocblas_stride stridex,
                                   const U __restrict__ y,
-                                  rocblas_int    offsety,
+                                  rocblas_stride offsety,
                                   rocblas_int    incy,
                                   rocblas_stride stridey,
                                   rocblas_int    batch_count,

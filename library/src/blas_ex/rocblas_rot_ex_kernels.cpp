@@ -1,5 +1,23 @@
 /* ************************************************************************
- * Copyright 2016-2022 Advanced Micro Devices, Inc.
+ * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
  * ************************************************************************ */
 
 #include "../blas1/rocblas_rot.hpp"
@@ -25,11 +43,20 @@ rocblas_status rot_ex_typecasting(rocblas_handle handle,
                                   const void*    s,
                                   rocblas_int    batch_count)
 {
-    static constexpr rocblas_int    offset_0 = 0;
+    static constexpr rocblas_stride offset_0 = 0;
     static constexpr rocblas_stride stride_0 = 0;
+
+    auto           check_numerics = handle->check_numerics;
+    rocblas_status status         = rocblas_status_success;
+
     if(ISBATCHED)
     {
-        return rocblas_rot_template<NB, Tex>(handle,
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status rot_ex_check_numerics_status
+                = rocblas_rot_check_numerics("rocblas_rot_batched_ex",
+                                             handle,
                                              n,
                                              (Tx* const*)x,
                                              offset_0,
@@ -39,30 +66,119 @@ rocblas_status rot_ex_typecasting(rocblas_handle handle,
                                              offset_0,
                                              incy,
                                              stride_y,
-                                             (const Tcs*)c,
-                                             stride_0,
-                                             (const Tcs*)s,
-                                             stride_0,
-                                             batch_count);
-    }
-    else
-    {
-        return rocblas_rot_template<NB, Tex>(handle,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(rot_ex_check_numerics_status != rocblas_status_success)
+                return rot_ex_check_numerics_status;
+        }
+
+        status = rocblas_rot_template<NB, Tex>(handle,
+                                               n,
+                                               (Tx* const*)x,
+                                               offset_0,
+                                               incx,
+                                               stride_x,
+                                               (Ty* const*)y,
+                                               offset_0,
+                                               incy,
+                                               stride_y,
+                                               (const Tcs*)c,
+                                               stride_0,
+                                               (const Tcs*)s,
+                                               stride_0,
+                                               batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status rot_ex_check_numerics_status
+                = rocblas_rot_check_numerics("rocblas_rot_batched_ex",
+                                             handle,
                                              n,
-                                             (Tx*)x,
+                                             (Tx* const*)x,
                                              offset_0,
                                              incx,
                                              stride_x,
-                                             (Ty*)y,
+                                             (Ty* const*)y,
                                              offset_0,
                                              incy,
                                              stride_y,
-                                             (const Tcs*)c,
-                                             stride_0,
-                                             (const Tcs*)s,
-                                             stride_0,
-                                             batch_count);
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(rot_ex_check_numerics_status != rocblas_status_success)
+                return rot_ex_check_numerics_status;
+        }
     }
+    else
+    {
+        if(check_numerics)
+        {
+            bool           is_input                     = true;
+            rocblas_status rot_ex_check_numerics_status = rocblas_rot_check_numerics(
+                stride_x ? "rocblas_rot_strided_batched_ex" : "rocblas_rot_ex",
+                handle,
+                n,
+                (Tx*)x,
+                offset_0,
+                incx,
+                stride_x,
+                (Ty*)y,
+                offset_0,
+                incy,
+                stride_y,
+                batch_count,
+                check_numerics,
+                is_input);
+            if(rot_ex_check_numerics_status != rocblas_status_success)
+                return rot_ex_check_numerics_status;
+        }
+
+        status = rocblas_rot_template<NB, Tex>(handle,
+                                               n,
+                                               (Tx*)x,
+                                               offset_0,
+                                               incx,
+                                               stride_x,
+                                               (Ty*)y,
+                                               offset_0,
+                                               incy,
+                                               stride_y,
+                                               (const Tcs*)c,
+                                               stride_0,
+                                               (const Tcs*)s,
+                                               stride_0,
+                                               batch_count);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input                     = false;
+            rocblas_status rot_ex_check_numerics_status = rocblas_rot_check_numerics(
+                stride_x ? "rocblas_rot_strided_batched_ex" : "rocblas_rot_ex",
+                handle,
+                n,
+                (Tx*)x,
+                offset_0,
+                incx,
+                stride_x,
+                (Ty*)y,
+                offset_0,
+                incy,
+                stride_y,
+                batch_count,
+                check_numerics,
+                is_input);
+            if(rot_ex_check_numerics_status != rocblas_status_success)
+                return rot_ex_check_numerics_status;
+        }
+    }
+    return status;
 }
 
 template <rocblas_int NB, bool ISBATCHED>
