@@ -42,6 +42,10 @@ include(toolchain-options)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+if(NOT python)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  set(python "${Python3_EXECUTABLE}")
+endif()
 
 # ########################################################################
 # Main
