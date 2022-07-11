@@ -129,6 +129,11 @@ rocblas_status rocblas_trmm_outofplace_arg_check(rocblas_handle    handle,
        || (handle->pointer_mode == rocblas_pointer_mode_host && *alpha != 0 && (!a || !b)))
         return rocblas_status_invalid_pointer;
 
+    // ensuring ldb == ldc when B and C are the same
+    // matching gemm_ex behaviour
+    if(b == c && ldb != ldc)
+        return rocblas_status_invalid_size;
+
     return rocblas_status_continue;
 }
 
