@@ -13338,6 +13338,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle      
     @param[in]
     ldc   [rocblas_int]
           ldc specifies the first dimension of C. ldc >= max( 1, m).
+          If B and C pointers are to the same matrix then ldc must equal ldb or
+          rocblas_status_invalid_size will be returned.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace(rocblas_handle    handle,
@@ -13502,6 +13504,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_outofplace(rocblas_handle           
     @param[in]
     ldc   [rocblas_int]
           ldc specifies the first dimension of C. ldc >= max( 1, m).
+          If B and C pointers are to the same matrix then ldc must equal ldb or
+          rocblas_status_invalid_size will be returned.
 
     @param[in]
     batch_count [rocblas_int]
@@ -13683,6 +13687,8 @@ ROCBLAS_EXPORT rocblas_status
     @param[in]
     ldc   [rocblas_int]
           ldc specifies the first dimension of C_i. ldc >= max( 1, m).
+          If B and C pointers are to the same matrix then ldc must equal ldb or
+          rocblas_status_invalid_size will be returned.
 
     @param[in]
     stride_C  [rocblas_stride]
