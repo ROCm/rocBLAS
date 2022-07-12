@@ -60,12 +60,12 @@ public:
                                  rocblas_int inc,
                                  rocblas_int batch_count,
                                  bool        HMM = false)
-        : m_n(n)
-        , m_nmemb(n * std::abs(inc))
-        , m_inc(inc)
-        , m_batch_count(batch_count)
-        , d_vector<T>(n * std::abs(inc) * batch_count,
+        : d_vector<T>(n * std::abs(inc) * batch_count,
                       HMM) // d_vector is a single contiguous block for performance
+        , m_n(n)
+        , m_inc(inc)
+        , m_nmemb(n * std::abs(inc))
+        , m_batch_count(batch_count)
     {
         if(false == this->try_initialize_memory())
         {
@@ -226,8 +226,8 @@ public:
 
 private:
     size_t      m_n{};
-    size_t      m_nmemb{}; // in one batch
     rocblas_int m_inc{};
+    size_t      m_nmemb{}; // in one batch
     rocblas_int m_batch_count{};
     T**         m_data{};
     T**         m_device_data{};
@@ -256,14 +256,14 @@ private:
                     if(batch_index == 0)
                     {
                         success = (nullptr != (m_data[batch_index] = this->device_vector_setup()));
+                        if(!success)
+                        {
+                            break;
+                        }
                     }
                     else
                     {
                         m_data[batch_index] = m_data[0] + batch_index * m_nmemb;
-                    }
-                    if(!success)
-                    {
-                        break;
                     }
                 }
 

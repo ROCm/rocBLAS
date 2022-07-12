@@ -58,8 +58,8 @@ public:
     //!
     explicit host_batch_vector(size_t n, rocblas_int inc, rocblas_int batch_count)
         : m_n(n)
-        , m_nmemb(n * std::abs(inc))
         , m_inc(inc)
+        , m_nmemb(n * std::abs(inc))
         , m_batch_count(batch_count)
     {
         if(false == this->try_initialize_memory())
@@ -205,8 +205,8 @@ public:
 
 private:
     size_t      m_n{}; // This may hold a matrix so using size_t.
-    size_t      m_nmemb{};
     rocblas_int m_inc{};
+    size_t      m_nmemb{};
     rocblas_int m_batch_count{};
     T**         m_data{};
 
@@ -222,15 +222,14 @@ private:
                     success = (nullptr
                                != (m_data[batch_index]
                                    = (T*)host_malloc_throw(m_nmemb * m_batch_count, sizeof(T))));
+                    if(false == success)
+                    {
+                        break;
+                    }
                 }
                 else
                 {
                     m_data[batch_index] = m_data[0] + batch_index * m_nmemb;
-                }
-
-                if(false == success)
-                {
-                    break;
                 }
             }
         }
