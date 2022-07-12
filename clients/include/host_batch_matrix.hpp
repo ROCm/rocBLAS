@@ -61,6 +61,7 @@ public:
         : m_m(m)
         , m_n(n)
         , m_lda(lda)
+        , m_nmemb(n * lda)
         , m_batch_count(batch_count)
     {
         if(false == this->try_initialize_memory())
@@ -82,7 +83,7 @@ public:
     //!
     size_t m() const
     {
-        return this->m_m;
+        return m_m;
     }
 
     //!
@@ -90,7 +91,7 @@ public:
     //!
     size_t n() const
     {
-        return this->m_n;
+        return m_n;
     }
 
     //!
@@ -98,7 +99,7 @@ public:
     //!
     size_t lda() const
     {
-        return this->m_lda;
+        return m_lda;
     }
 
     //!
@@ -106,7 +107,7 @@ public:
     //!
     rocblas_int batch_count() const
     {
-        return this->m_batch_count;
+        return m_batch_count;
     }
 
     //!
@@ -117,7 +118,7 @@ public:
     T* operator[](rocblas_int batch_index)
     {
 
-        return this->m_data[batch_index];
+        return m_data[batch_index];
     }
 
     //!
@@ -128,7 +129,7 @@ public:
     const T* operator[](rocblas_int batch_index) const
     {
 
-        return this->m_data[batch_index];
+        return m_data[batch_index];
     }
 
     //!
@@ -138,7 +139,7 @@ public:
     operator T**()
     // clang-format on
     {
-        return this->m_data;
+        return m_data;
     }
 
     //!
@@ -146,7 +147,7 @@ public:
     //!
     operator const T* const *()
     {
-        return this->m_data;
+        return m_data;
     }
 
     //!
@@ -159,11 +160,9 @@ public:
         if((this->batch_count() == that.batch_count()) && (this->m() == that.m())
            && (this->n() == that.n()) && (this->lda() == that.lda()))
         {
-            size_t num_bytes = this->lda() * this->n() * sizeof(T);
-            for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
-            {
-                memcpy((*this)[batch_index], that[batch_index], num_bytes);
-            }
+            size_t num_bytes = m_nmemb * sizeof(T) * m_batch_count;
+            if(m_batch_count > 0)
+                memcpy((*this)[0], that[0], num_bytes);
             return true;
         }
         else
@@ -180,16 +179,15 @@ public:
     hipError_t transfer_from(const device_batch_matrix<T>& that)
     {
         hipError_t hip_err;
-        size_t     num_bytes = this->lda() * this->n() * sizeof(T);
+        size_t     num_bytes = m_nmemb * sizeof(T) * m_batch_count;
         if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
             return hip_err;
 
         hipMemcpyKind kind = that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost;
 
-        for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+        if(m_batch_count > 0)
         {
-            if(hipSuccess
-               != (hip_err = hipMemcpy((*this)[batch_index], that[batch_index], num_bytes, kind)))
+            if(hipSuccess != (hip_err = hipMemcpy((*this)[0], that[0], num_bytes, kind)))
             {
                 return hip_err;
             }
@@ -203,31 +201,37 @@ public:
     //!
     hipError_t memcheck() const
     {
-        return (nullptr != this->m_data) ? hipSuccess : hipErrorOutOfMemory;
+        return (nullptr != m_data) ? hipSuccess : hipErrorOutOfMemory;
     }
 
 private:
     size_t      m_m{};
     size_t      m_n{};
     size_t      m_lda{};
+    size_t      m_nmemb{};
     rocblas_int m_batch_count{};
     T**         m_data{};
 
     bool try_initialize_memory()
     {
-        bool success
-            = (nullptr != (this->m_data = (T**)host_calloc_throw(this->m_batch_count, sizeof(T*))));
+        bool success = (nullptr != (m_data = (T**)host_calloc_throw(m_batch_count, sizeof(T*))));
         if(success)
         {
-            size_t nmemb = size_t(this->m_n) * size_t(this->m_lda);
-            for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
-                success
-                    = (nullptr
-                       != (this->m_data[batch_index] = (T*)host_calloc_throw(nmemb, sizeof(T))));
-                if(false == success)
+                if(batch_index == 0)
                 {
-                    break;
+                    success = (nullptr
+                               != (m_data[batch_index]
+                                   = (T*)host_calloc_throw(m_nmemb * m_batch_count, sizeof(T))));
+                    if(false == success)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    m_data[batch_index] = m_data[0] + batch_index * m_nmemb;
                 }
             }
         }
@@ -236,19 +240,23 @@ private:
 
     void free_memory()
     {
-        if(nullptr != this->m_data)
+        if(nullptr != m_data)
         {
-            for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
-                if(nullptr != this->m_data[batch_index])
+                if(batch_index == 0 && nullptr != m_data[batch_index])
                 {
-                    free(this->m_data[batch_index]);
-                    this->m_data[batch_index] = nullptr;
+                    free(m_data[batch_index]);
+                    m_data[batch_index] = nullptr;
+                }
+                else
+                {
+                    m_data[batch_index] = nullptr;
                 }
             }
 
-            free(this->m_data);
-            this->m_data = nullptr;
+            free(m_data);
+            m_data = nullptr;
         }
     }
 };
