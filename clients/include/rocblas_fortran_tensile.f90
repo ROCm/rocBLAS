@@ -28,7 +28,7 @@ module rocblas_interface_tensile
     use iso_c_binding
     use rocblas
 
-    contains
+contains
 
     !--------!
     ! blas 2 !
@@ -40,12 +40,12 @@ module rocblas_interface_tensile
 
     ! trtri
     function rocblas_strtri_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA) &
-            result(res) &
-            bind(c, name = 'rocblas_strtri_fortran')
+                                    A, lda, invA, ldinvA) &
+        bind(c, name='rocblas_strtri_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_strtri_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -54,18 +54,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
-        integer(c_int) :: res
-        res = rocblas_strtri(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA)
+        rocblas_strtri_fortran = &
+            rocblas_strtri(handle, uplo, diag, n, &
+                           A, lda, invA, ldinvA)
     end function rocblas_strtri_fortran
 
     function rocblas_dtrtri_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA) &
-            result(res) &
-            bind(c, name = 'rocblas_dtrtri_fortran')
+                                    A, lda, invA, ldinvA) &
+        bind(c, name='rocblas_dtrtri_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtrtri_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -74,18 +74,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
-        integer(c_int) :: res
-        res = rocblas_dtrtri(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA)
+        rocblas_dtrtri_fortran = &
+            rocblas_dtrtri(handle, uplo, diag, n, &
+                           A, lda, invA, ldinvA)
     end function rocblas_dtrtri_fortran
 
     function rocblas_ctrtri_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA) &
-            result(res) &
-            bind(c, name = 'rocblas_ctrtri_fortran')
+                                    A, lda, invA, ldinvA) &
+        bind(c, name='rocblas_ctrtri_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctrtri_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -94,18 +94,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
-        integer(c_int) :: res
-        res = rocblas_ctrtri(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA)
+        rocblas_ctrtri_fortran = &
+            rocblas_ctrtri(handle, uplo, diag, n, &
+                           A, lda, invA, ldinvA)
     end function rocblas_ctrtri_fortran
 
     function rocblas_ztrtri_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA) &
-            result(res) &
-            bind(c, name = 'rocblas_ztrtri_fortran')
+                                    A, lda, invA, ldinvA) &
+        bind(c, name='rocblas_ztrtri_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztrtri_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -114,19 +114,19 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
-        integer(c_int) :: res
-        res = rocblas_ztrtri(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA)
+        rocblas_ztrtri_fortran = &
+            rocblas_ztrtri(handle, uplo, diag, n, &
+                           A, lda, invA, ldinvA)
     end function rocblas_ztrtri_fortran
 
     ! trtri_batched
     function rocblas_strtri_batched_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_strtri_batched_fortran')
+                                            A, lda, invA, ldinvA, batch_count) &
+        bind(c, name='rocblas_strtri_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_strtri_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -136,18 +136,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_strtri_batched(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count)
+        rocblas_strtri_batched_fortran = &
+            rocblas_strtri_batched(handle, uplo, diag, n, &
+                                   A, lda, invA, ldinvA, batch_count)
     end function rocblas_strtri_batched_fortran
 
     function rocblas_dtrtri_batched_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_dtrtri_batched_fortran')
+                                            A, lda, invA, ldinvA, batch_count) &
+        bind(c, name='rocblas_dtrtri_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtrtri_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -157,18 +157,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_dtrtri_batched(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count)
+        rocblas_dtrtri_batched_fortran = &
+            rocblas_dtrtri_batched(handle, uplo, diag, n, &
+                                   A, lda, invA, ldinvA, batch_count)
     end function rocblas_dtrtri_batched_fortran
 
     function rocblas_ctrtri_batched_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ctrtri_batched_fortran')
+                                            A, lda, invA, ldinvA, batch_count) &
+        bind(c, name='rocblas_ctrtri_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctrtri_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -178,18 +178,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ctrtri_batched(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count)
+        rocblas_ctrtri_batched_fortran = &
+            rocblas_ctrtri_batched(handle, uplo, diag, n, &
+                                   A, lda, invA, ldinvA, batch_count)
     end function rocblas_ctrtri_batched_fortran
 
     function rocblas_ztrtri_batched_fortran(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ztrtri_batched_fortran')
+                                            A, lda, invA, ldinvA, batch_count) &
+        bind(c, name='rocblas_ztrtri_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztrtri_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -199,19 +199,19 @@ module rocblas_interface_tensile
         type(c_ptr), value :: invA
         integer(c_int), value :: ldinvA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ztrtri_batched(handle, uplo, diag, n, &
-            A, lda, invA, ldinvA, batch_count)
+        rocblas_ztrtri_batched_fortran = &
+            rocblas_ztrtri_batched(handle, uplo, diag, n, &
+                                   A, lda, invA, ldinvA, batch_count)
     end function rocblas_ztrtri_batched_fortran
 
     ! trtri_strided_batched
     function rocblas_strtri_strided_batched_fortran(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_strtri_strided_batched_fortran')
+                                                    A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+        bind(c, name='rocblas_strtri_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_strtri_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -223,18 +223,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldinvA
         integer(c_int64_t), value :: stride_invA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_strtri_strided_batched(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
+        rocblas_strtri_strided_batched_fortran = &
+            rocblas_strtri_strided_batched(handle, uplo, diag, n, &
+                                           A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
     end function rocblas_strtri_strided_batched_fortran
 
     function rocblas_dtrtri_strided_batched_fortran(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_dtrtri_strided_batched_fortran')
+                                                    A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+        bind(c, name='rocblas_dtrtri_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtrtri_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -246,18 +246,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldinvA
         integer(c_int64_t), value :: stride_invA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_dtrtri_strided_batched(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
+        rocblas_dtrtri_strided_batched_fortran = &
+            rocblas_dtrtri_strided_batched(handle, uplo, diag, n, &
+                                           A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
     end function rocblas_dtrtri_strided_batched_fortran
 
     function rocblas_ctrtri_strided_batched_fortran(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ctrtri_strided_batched_fortran')
+                                                    A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+        bind(c, name='rocblas_ctrtri_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctrtri_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -269,18 +269,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldinvA
         integer(c_int64_t), value :: stride_invA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ctrtri_strided_batched(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
+        rocblas_ctrtri_strided_batched_fortran = &
+            rocblas_ctrtri_strided_batched(handle, uplo, diag, n, &
+                                           A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
     end function rocblas_ctrtri_strided_batched_fortran
 
     function rocblas_ztrtri_strided_batched_fortran(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ztrtri_strided_batched_fortran')
+                                                    A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+        bind(c, name='rocblas_ztrtri_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztrtri_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_fill_full)), value :: uplo
         integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -292,19 +292,19 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldinvA
         integer(c_int64_t), value :: stride_invA
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ztrtri_strided_batched(handle, uplo, diag, n, &
-            A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
+        rocblas_ztrtri_strided_batched_fortran = &
+            rocblas_ztrtri_strided_batched(handle, uplo, diag, n, &
+                                           A, lda, stride_A, invA, ldinvA, stride_invA, batch_count)
     end function rocblas_ztrtri_strided_batched_fortran
 
     ! trsm
     function rocblas_strsm_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb) &
-            result(res) &
-            bind(c, name = 'rocblas_strsm_fortran')
+                                   A, lda, B, ldb) &
+        bind(c, name='rocblas_strsm_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_strsm_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -317,18 +317,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
-        integer(c_int) :: res
-        res = rocblas_strsm(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb)
+        rocblas_strsm_fortran = &
+            rocblas_strsm(handle, side, uplo, transA, diag, m, n, alpha, &
+                          A, lda, B, ldb)
     end function rocblas_strsm_fortran
 
     function rocblas_dtrsm_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb) &
-            result(res) &
-            bind(c, name = 'rocblas_dtrsm_fortran')
+                                   A, lda, B, ldb) &
+        bind(c, name='rocblas_dtrsm_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtrsm_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -341,18 +341,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
-        integer(c_int) :: res
-        res = rocblas_dtrsm(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb)
+        rocblas_dtrsm_fortran = &
+            rocblas_dtrsm(handle, side, uplo, transA, diag, m, n, alpha, &
+                          A, lda, B, ldb)
     end function rocblas_dtrsm_fortran
 
     function rocblas_ctrsm_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb) &
-            result(res) &
-            bind(c, name = 'rocblas_ctrsm_fortran')
+                                   A, lda, B, ldb) &
+        bind(c, name='rocblas_ctrsm_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctrsm_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -365,18 +365,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
-        integer(c_int) :: res
-        res = rocblas_ctrsm(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb)
+        rocblas_ctrsm_fortran = &
+            rocblas_ctrsm(handle, side, uplo, transA, diag, m, n, alpha, &
+                          A, lda, B, ldb)
     end function rocblas_ctrsm_fortran
 
     function rocblas_ztrsm_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb) &
-            result(res) &
-            bind(c, name = 'rocblas_ztrsm_fortran')
+                                   A, lda, B, ldb) &
+        bind(c, name='rocblas_ztrsm_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztrsm_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -389,19 +389,19 @@ module rocblas_interface_tensile
         integer(c_int), value :: lda
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
-        integer(c_int) :: res
-        res = rocblas_ztrsm(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb)
+        rocblas_ztrsm_fortran = &
+            rocblas_ztrsm(handle, side, uplo, transA, diag, m, n, alpha, &
+                          A, lda, B, ldb)
     end function rocblas_ztrsm_fortran
 
     ! trsm_batched
     function rocblas_strsm_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_strsm_batched_fortran')
+                                           A, lda, B, ldb, batch_count) &
+        bind(c, name='rocblas_strsm_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_strsm_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -415,18 +415,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_strsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count)
+        rocblas_strsm_batched_fortran = &
+            rocblas_strsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                  A, lda, B, ldb, batch_count)
     end function rocblas_strsm_batched_fortran
 
     function rocblas_dtrsm_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_dtrsm_batched_fortran')
+                                           A, lda, B, ldb, batch_count) &
+        bind(c, name='rocblas_dtrsm_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtrsm_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -440,18 +440,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_dtrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count)
+        rocblas_dtrsm_batched_fortran = &
+            rocblas_dtrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                  A, lda, B, ldb, batch_count)
     end function rocblas_dtrsm_batched_fortran
 
     function rocblas_ctrsm_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ctrsm_batched_fortran')
+                                           A, lda, B, ldb, batch_count) &
+        bind(c, name='rocblas_ctrsm_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctrsm_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -465,18 +465,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ctrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count)
+        rocblas_ctrsm_batched_fortran = &
+            rocblas_ctrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                  A, lda, B, ldb, batch_count)
     end function rocblas_ctrsm_batched_fortran
 
     function rocblas_ztrsm_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ztrsm_batched_fortran')
+                                           A, lda, B, ldb, batch_count) &
+        bind(c, name='rocblas_ztrsm_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztrsm_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -490,19 +490,19 @@ module rocblas_interface_tensile
         type(c_ptr), value :: B
         integer(c_int), value :: ldb
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ztrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count)
+        rocblas_ztrsm_batched_fortran = &
+            rocblas_ztrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                  A, lda, B, ldb, batch_count)
     end function rocblas_ztrsm_batched_fortran
 
     ! trsm_strided_batched
     function rocblas_strsm_strided_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_strsm_strided_batched_fortran')
+                                                   A, lda, stride_A, B, ldb, stride_B, batch_count) &
+        bind(c, name='rocblas_strsm_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_strsm_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -518,18 +518,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldb
         integer(c_int64_t), value :: stride_B
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_strsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count)
+        rocblas_strsm_strided_batched_fortran = &
+            rocblas_strsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, batch_count)
     end function rocblas_strsm_strided_batched_fortran
 
     function rocblas_dtrsm_strided_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_dtrsm_strided_batched_fortran')
+                                                   A, lda, stride_A, B, ldb, stride_B, batch_count) &
+        bind(c, name='rocblas_dtrsm_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dtrsm_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -545,18 +545,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldb
         integer(c_int64_t), value :: stride_B
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_dtrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count)
+        rocblas_dtrsm_strided_batched_fortran = &
+            rocblas_dtrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, batch_count)
     end function rocblas_dtrsm_strided_batched_fortran
 
     function rocblas_ctrsm_strided_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ctrsm_strided_batched_fortran')
+                                                   A, lda, stride_A, B, ldb, stride_B, batch_count) &
+        bind(c, name='rocblas_ctrsm_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ctrsm_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -572,18 +572,18 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldb
         integer(c_int64_t), value :: stride_B
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ctrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count)
+        rocblas_ctrsm_strided_batched_fortran = &
+            rocblas_ctrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, batch_count)
     end function rocblas_ctrsm_strided_batched_fortran
 
     function rocblas_ztrsm_strided_batched_fortran(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count) &
-            result(res) &
-            bind(c, name = 'rocblas_ztrsm_strided_batched_fortran')
+                                                   A, lda, stride_A, B, ldb, stride_B, batch_count) &
+        bind(c, name='rocblas_ztrsm_strided_batched_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_ztrsm_strided_batched_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_full)), value :: uplo
@@ -599,9 +599,9 @@ module rocblas_interface_tensile
         integer(c_int), value :: ldb
         integer(c_int64_t), value :: stride_B
         integer(c_int), value :: batch_count
-        integer(c_int) :: res
-        res = rocblas_ztrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count)
+        rocblas_ztrsm_strided_batched_fortran = &
+            rocblas_ztrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, batch_count)
     end function rocblas_ztrsm_strided_batched_fortran
 
     !-----------------!
@@ -610,13 +610,13 @@ module rocblas_interface_tensile
 
     ! gemm_ex
     function rocblas_gemm_ex_fortran(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
-            b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
-            compute_type, algo, solution_index, flags) &
-            result(res) &
-            bind(c, name = 'rocblas_gemm_ex_fortran')
+                                     b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                     compute_type, algo, solution_index, flags) &
+        bind(c, name='rocblas_gemm_ex_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_gemm_ex_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_operation_none)), value :: transA
         integer(kind(rocblas_operation_none)), value :: transB
@@ -643,20 +643,20 @@ module rocblas_interface_tensile
         ! No unsigned types in fortran. If larger values are needed
         ! we will need a workaround.
         integer(c_int32_t), value :: flags
-        integer(c_int) :: res
-        res = rocblas_gemm_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
-            b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
-            compute_type, algo, solution_index, flags)
+        rocblas_gemm_ex_fortran = &
+            rocblas_gemm_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
+                            b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                            compute_type, algo, solution_index, flags)
     end function rocblas_gemm_ex_fortran
 
     function rocblas_gemm_batched_ex_fortran(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
-            b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
-            batch_count, compute_type, algo, solution_index, flags) &
-            result(res) &
-            bind(c, name = 'rocblas_gemm_batched_ex_fortran')
+                                             b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                             batch_count, compute_type, algo, solution_index, flags) &
+        bind(c, name='rocblas_gemm_batched_ex_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_gemm_batched_ex_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_operation_none)), value :: transA
         integer(kind(rocblas_operation_none)), value :: transB
@@ -684,20 +684,20 @@ module rocblas_interface_tensile
         ! No unsigned types in fortran. If larger values are needed
         ! we will need a workaround.
         integer(c_int32_t), value :: flags
-        integer(c_int) :: res
-        res = rocblas_gemm_batched_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
-            b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
-            batch_count, compute_type, algo, solution_index, flags)
+        rocblas_gemm_batched_ex_fortran = &
+            rocblas_gemm_batched_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
+                                    b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                    batch_count, compute_type, algo, solution_index, flags)
     end function rocblas_gemm_batched_ex_fortran
 
     function rocblas_gemm_strided_batched_ex_fortran(handle, transA, transB, m, n, k, alpha, a, a_type, lda, stride_a, &
-            b, b_type, ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, ldd, stride_d, &
-            batch_count, compute_type, algo, solution_index, flags) &
-            result(res) &
-            bind(c, name = 'rocblas_gemm_strided_batched_ex_fortran')
+                                                     b, b_type, ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, ldd, &
+                                                     stride_d, batch_count, compute_type, algo, solution_index, flags) &
+        bind(c, name='rocblas_gemm_strided_batched_ex_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_gemm_strided_batched_ex_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_operation_none)), value :: transA
         integer(kind(rocblas_operation_none)), value :: transB
@@ -729,20 +729,20 @@ module rocblas_interface_tensile
         ! No unsigned types in fortran. If larger values are needed
         ! we will need a workaround.
         integer(c_int32_t), value :: flags
-        integer(c_int) :: res
-        res = rocblas_gemm_strided_batched_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, stride_a, &
-            b, b_type, ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, ldd, stride_d, &
-            batch_count, compute_type, algo, solution_index, flags)
+        rocblas_gemm_strided_batched_ex_fortran = &
+            rocblas_gemm_strided_batched_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, stride_a, &
+                                            b, b_type, ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, ldd, &
+                                            stride_d, batch_count, compute_type, algo, solution_index, flags)
     end function rocblas_gemm_strided_batched_ex_fortran
 
     function rocblas_gemm_ext2_fortran(handle, m, n, k, alpha, a, a_type, row_stride_a, col_stride_a, &
-         b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
-         d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags) &
-            result(res) &
-            bind(c, name = 'rocblas_gemm_ext2_fortran')
+                                       b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
+                                       d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags) &
+        bind(c, name='rocblas_gemm_ext2_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_gemm_ext2_fortran
         type(c_ptr), value :: handle
         integer(c_int), value :: m
         integer(c_int), value :: n
@@ -767,20 +767,20 @@ module rocblas_interface_tensile
         ! No unsigned types in fortran. If larger values are needed
         ! we will need a workaround.
         integer(c_int32_t), value :: flags
-        integer(c_int) :: res
-        res = rocblas_gemm_ext2(handle, m, n, k, alpha, a, a_type, row_stride_a, col_stride_a, &
-             b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
-             d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags)
+        rocblas_gemm_ext2_fortran = &
+            rocblas_gemm_ext2(handle, m, n, k, alpha, a, a_type, row_stride_a, col_stride_a, &
+                              b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
+                              d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags)
     end function rocblas_gemm_ext2_fortran
 
     ! trsm_ex
     function rocblas_trsm_ex_fortran(handle, side, uplo, transA, diag, m, n, alpha, A, lda, &
-            B, ldb, invA, invA_size, compute_type) &
-            result(res) &
-            bind(c, name = 'rocblas_trsm_ex_fortran')
+                                     B, ldb, invA, invA_size, compute_type) &
+        bind(c, name='rocblas_trsm_ex_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_trsm_ex_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_upper)), value :: uplo
@@ -796,18 +796,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: invA
         integer(c_int), value :: invA_size
         integer(kind(rocblas_datatype_f16_r)), value :: compute_type
-        integer(c_int) :: res
-        res = rocblas_trsm_ex(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, invA, invA_size, compute_type)
+        rocblas_trsm_ex_fortran = &
+            rocblas_trsm_ex(handle, side, uplo, transA, diag, m, n, alpha, &
+                            A, lda, B, ldb, invA, invA_size, compute_type)
     end function rocblas_trsm_ex_fortran
 
     function rocblas_trsm_batched_ex_fortran(handle, side, uplo, transA, diag, m, n, alpha, A, lda, &
-            B, ldb, batch_count, invA, invA_size, compute_type) &
-            result(res) &
-            bind(c, name = 'rocblas_trsm_batched_ex_fortran')
+                                             B, ldb, batch_count, invA, invA_size, compute_type) &
+        bind(c, name='rocblas_trsm_batched_ex_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_trsm_batched_ex_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_upper)), value :: uplo
@@ -824,18 +824,18 @@ module rocblas_interface_tensile
         type(c_ptr), value :: invA
         integer(c_int), value :: invA_size
         integer(kind(rocblas_datatype_f16_r)), value :: compute_type
-        integer(c_int) :: res
-        res = rocblas_trsm_batched_ex(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, B, ldb, batch_count, invA, invA_size, compute_type)
+        rocblas_trsm_batched_ex_fortran = &
+            rocblas_trsm_batched_ex(handle, side, uplo, transA, diag, m, n, alpha, &
+                                    A, lda, B, ldb, batch_count, invA, invA_size, compute_type)
     end function rocblas_trsm_batched_ex_fortran
 
     function rocblas_trsm_strided_batched_ex_fortran(handle, side, uplo, transA, diag, m, n, alpha, A, lda, stride_A, &
-            B, ldb, stride_B, batch_count, invA, invA_size, stride_invA, compute_type) &
-            result(res) &
-            bind(c, name = 'rocblas_trsm_strided_batched_ex_fortran')
+                                                     B, ldb, stride_B, batch_count, invA, invA_size, stride_invA, compute_type) &
+        bind(c, name='rocblas_trsm_strided_batched_ex_fortran')
         use iso_c_binding
         use rocblas_enums
         implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_trsm_strided_batched_ex_fortran
         type(c_ptr), value :: handle
         integer(kind(rocblas_side_left)), value :: side
         integer(kind(rocblas_fill_upper)), value :: uplo
@@ -855,9 +855,10 @@ module rocblas_interface_tensile
         integer(c_int), value :: invA_size
         integer(c_int64_t), value :: stride_invA
         integer(kind(rocblas_datatype_f16_r)), value :: compute_type
-        integer(c_int) :: res
-        res = rocblas_trsm_strided_batched_ex(handle, side, uplo, transA, diag, m, n, alpha, &
-            A, lda, stride_A, B, ldb, stride_B, batch_count, invA, invA_size, stride_invA, compute_type)
+        rocblas_trsm_strided_batched_ex_fortran = &
+            rocblas_trsm_strided_batched_ex(handle, side, uplo, transA, diag, m, n, alpha, &
+                                            A, lda, stride_A, B, ldb, stride_B, batch_count, &
+                                            invA, invA_size, stride_invA, compute_type)
     end function rocblas_trsm_strided_batched_ex_fortran
 
 end module rocblas_interface_tensile
