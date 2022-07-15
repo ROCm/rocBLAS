@@ -45,13 +45,14 @@
   *
 **/
 
-template <typename T>
-ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_vector_kernel(rocblas_int               n,
-                                                              T                         xa,
-                                                              rocblas_stride            offset_x,
-                                                              rocblas_int               inc_x,
-                                                              rocblas_stride            stride_x,
-                                                              rocblas_check_numerics_t* abnormal)
+template <int DIM_X, typename T>
+ROCBLAS_KERNEL(DIM_X)
+rocblas_check_numerics_vector_kernel(rocblas_int               n,
+                                     T                         xa,
+                                     rocblas_stride            offset_x,
+                                     rocblas_int               inc_x,
+                                     rocblas_stride            stride_x,
+                                     rocblas_check_numerics_t* abnormal)
 {
     auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offset_x, stride_x);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
