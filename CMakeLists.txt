@@ -109,13 +109,13 @@ list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /
 
 # gpu arch configuration
 set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
-set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1012 gfx1030 )
+set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1012 gfx1030 gfx1100 gfx1102 )
 
 # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
 # Sets the AMDGPU_TARGETS with backward compatiblity
 if(COMMAND rocm_check_target_ids)
   rocm_check_target_ids(target_list
-      TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030"
+      TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1102"
   )
 else()
   # This section is deprecated. Please use rocm_check_target_ids for future use.
@@ -130,9 +130,9 @@ else()
     if(Tensile_LOGIC STREQUAL "aldebaran")
       # Temporary bypass: if logic aldebaran logic is selected, assume aldebaran compiler support exists
       # To be removed for ROCm 4.4
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1102")
     else()
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1012;gfx1030")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1102")
     endif()
   else()
     set(target_list "gfx803;gfx900;gfx906;gfx908")
