@@ -193,9 +193,14 @@ public:
         return device;
     }
 
-    rocblas_int getArch()
+    int getArch()
     {
         return arch;
+    }
+
+    int getArchMajor()
+    {
+        return archMajor;
     }
 
     // hipEvent_t pointers (for internal use only)
@@ -332,6 +337,7 @@ private:
 
     // Arch ID is created at handle creation time and remains in effect for the life of the handle.
     const int arch;
+    int       archMajor;
 
     // Opaque smart allocator class to perform device memory allocations
     // clang-format off

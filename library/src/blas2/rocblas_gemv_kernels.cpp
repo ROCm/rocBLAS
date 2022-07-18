@@ -155,9 +155,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
 
     //Identifying the architecture to have an appropriate optimization
-    bool is_gfx1030 = handle->getArch() == 1030 ? true : false;
-    bool is_gfx908  = handle->getArch() == 908 ? true : false;
-    bool is_gfx906  = handle->getArch() == 906 ? true : false;
+    int  arch_major       = handle->getArchMajor();
+    bool is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
+    bool is_gfx908        = handle->getArch() == 908 ? true : false;
+    bool is_gfx906        = handle->getArch() == 906 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -416,10 +417,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
 
         //Using kernel code with warp reduction for gfx1030.
-        else if(is_gfx1030
+        else if(is_arch_10_or_11
                 && (is_double || is_complex_float
                     || (is_float
-                        && (m < sgemvt_gfx1030_threshold || n < sgemvt_gfx1030_threshold))))
+                        && (m < sgemvt_gfx_arch_10_11_threshold
+                            || n < sgemvt_gfx_arch_10_11_threshold))))
         {
             //Number of threads per block
             static constexpr int NB = 256;
@@ -442,7 +444,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         }
         //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000 and for complex double in gfx1030.
         else if((is_float || m < gemvt_threshold || n < gemvt_threshold)
-                || (is_gfx1030 && is_complex_double))
+                || (is_arch_10_or_11 && is_complex_double))
         {
             //Number of threads per block
             static constexpr int NB = 256;
