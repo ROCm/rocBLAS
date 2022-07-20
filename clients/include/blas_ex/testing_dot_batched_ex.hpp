@@ -52,7 +52,7 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
     rocblas_int incx        = 1;
     rocblas_int incy        = 1;
     rocblas_int stride_y    = incy * N;
-    rocblas_int batch_count = 5;
+    rocblas_int batch_count = 2;
 
     rocblas_local_handle handle{arg};
 
@@ -67,6 +67,20 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_ex_fn)(nullptr,
+                                                      N,
+                                                      dx.ptr_on_device(),
+                                                      x_type,
+                                                      incx,
+                                                      dy.ptr_on_device(),
+                                                      y_type,
+                                                      incy,
+                                                      batch_count,
+                                                      d_rocblas_result,
+                                                      result_type,
+                                                      execution_type),
+                          rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_ex_fn)(handle,
                                                       N,
@@ -107,19 +121,6 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
                                                       result_type,
                                                       execution_type),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_ex_fn)(nullptr,
-                                                      N,
-                                                      dx.ptr_on_device(),
-                                                      x_type,
-                                                      incx,
-                                                      dy.ptr_on_device(),
-                                                      y_type,
-                                                      incy,
-                                                      batch_count,
-                                                      d_rocblas_result,
-                                                      result_type,
-                                                      execution_type),
-                          rocblas_status_invalid_handle);
 }
 
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr>

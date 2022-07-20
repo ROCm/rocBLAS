@@ -65,17 +65,19 @@ namespace
             case TRSM:
                 return !strcmp(arg.function, "trsm") || !strcmp(arg.function, "trsm_bad_arg");
             case TRSM_EX:
-                return !strcmp(arg.function, "trsm_ex");
+                return !strcmp(arg.function, "trsm_ex") || !strcmp(arg.function, "trsm_ex_bad_arg");
             case TRSM_BATCHED:
                 return !strcmp(arg.function, "trsm_batched")
                        || !strcmp(arg.function, "trsm_batched_bad_arg");
             case TRSM_BATCHED_EX:
-                return !strcmp(arg.function, "trsm_batched_ex");
+                return !strcmp(arg.function, "trsm_batched_ex")
+                       || !strcmp(arg.function, "trsm_batched_ex_bad_arg");
             case TRSM_STRIDED_BATCHED:
                 return !strcmp(arg.function, "trsm_strided_batched")
                        || !strcmp(arg.function, "trsm_strided_batched_bad_arg");
             case TRSM_STRIDED_BATCHED_EX:
-                return !strcmp(arg.function, "trsm_strided_batched_ex");
+                return !strcmp(arg.function, "trsm_strided_batched_ex")
+                       || !strcmp(arg.function, "trsm_strided_batched_ex_bad_arg");
             }
             return false;
         }

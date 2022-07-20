@@ -54,13 +54,10 @@ namespace
             }
             else
             {
-                bool is_axpy    = (BLAS1 == blas1::axpy || BLAS1 == blas1::axpy_batched
-                                || BLAS1 == blas1::axpy_strided_batched);
                 bool is_batched = (BLAS1 == blas1::axpy_batched);
                 bool is_strided = (BLAS1 == blas1::axpy_strided_batched);
 
-                if(is_axpy)
-                    name << '_' << arg.alpha << "_" << arg.alphai;
+                name << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
 
@@ -69,10 +66,7 @@ namespace
                     name << '_' << arg.stride_x;
                 }
 
-                if(is_axpy)
-                {
-                    name << '_' << arg.incy;
-                }
+                name << '_' << arg.incy;
 
                 if(BLAS1 == blas1::axpy_strided_batched)
                 {
@@ -83,11 +77,11 @@ namespace
                 {
                     name << "_" << arg.batch_count;
                 }
+            }
 
-                if(arg.fortran)
-                {
-                    name << "_F";
-                }
+            if(arg.fortran)
+            {
+                name << "_F";
             }
 
             return std::move(name);
@@ -150,8 +144,6 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(NAME)
 
 #define ARG1(Ti, To, Tc) Ti
-#define ARG2(Ti, To, Tc) Ti, To
-#define ARG3(Ti, To, Tc) Ti, To, Tc
 
     BLAS1_TESTING(axpy, ARG1)
     BLAS1_TESTING(axpy_batched, ARG1)

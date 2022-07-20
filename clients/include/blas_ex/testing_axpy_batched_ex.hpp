@@ -43,85 +43,152 @@ void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
     auto rocblas_axpy_batched_ex_fn
         = arg.fortran ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
 
-    rocblas_datatype alpha_type     = rocblas_type2datatype<Ta>();
-    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
-    rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
-    rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    rocblas_local_handle handle{arg};
+        rocblas_datatype alpha_type     = rocblas_type2datatype<Ta>();
+        rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+        rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
+        rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
 
-    rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
+        rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
-    Ta alpha(0.6);
+        device_vector<Ta> alpha_d(1), zero_d(1);
 
-    // Allocate device memory
-    device_batch_vector<Tx> dx(N, incx, batch_count);
-    device_batch_vector<Ty> dy(N, incy, batch_count);
+        const Ta alpha_h(1), zero_h(0);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        const Ta* alpha = &alpha_h;
+        const Ta* zero  = &zero_h;
+
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
+
+        // Allocate device memory
+        device_batch_vector<Tx> dx(N, incx, batch_count);
+        device_batch_vector<Ty> dy(N, incy, batch_count);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched_ex_fn(nullptr,
+                                                         N,
+                                                         &alpha,
+                                                         alpha_type,
+                                                         dx.ptr_on_device(),
+                                                         x_type,
+                                                         incx,
+                                                         dy.ptr_on_device(),
+                                                         y_type,
+                                                         incy,
+                                                         batch_count,
+                                                         execution_type),
+                              rocblas_status_invalid_handle);
 
 #ifdef GOOGLE_TEST
-    rocblas_status status;
-    status = rocblas_axpy_batched_ex_fn(handle,
-                                        N,
-                                        &alpha,
-                                        alpha_type,
-                                        nullptr,
-                                        x_type,
-                                        incx,
-                                        dy.ptr_on_device(),
-                                        y_type,
-                                        incy,
-                                        batch_count,
-                                        execution_type);
-    EXPECT_TRUE(status == rocblas_status_invalid_pointer
-                || status == rocblas_status_not_implemented);
+        rocblas_status status;
 
-    status = rocblas_axpy_batched_ex_fn(handle,
-                                        N,
-                                        &alpha,
-                                        alpha_type,
-                                        dx.ptr_on_device(),
-                                        x_type,
-                                        incx,
-                                        nullptr,
-                                        y_type,
-                                        incy,
-                                        batch_count,
-                                        execution_type);
-    EXPECT_TRUE(status == rocblas_status_invalid_pointer
-                || status == rocblas_status_not_implemented);
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            N,
+                                            nullptr,
+                                            alpha_type,
+                                            dx.ptr_on_device(),
+                                            x_type,
+                                            incx,
+                                            dy.ptr_on_device(),
+                                            y_type,
+                                            incy,
+                                            batch_count,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                    || status == rocblas_status_not_implemented);
 
-    status = rocblas_axpy_batched_ex_fn(handle,
-                                        N,
-                                        nullptr,
-                                        alpha_type,
-                                        dx.ptr_on_device(),
-                                        x_type,
-                                        incx,
-                                        dy.ptr_on_device(),
-                                        y_type,
-                                        incy,
-                                        batch_count,
-                                        execution_type);
-    EXPECT_TRUE(status == rocblas_status_invalid_pointer
-                || status == rocblas_status_not_implemented);
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            status = rocblas_axpy_batched_ex_fn(handle,
+                                                N,
+                                                alpha,
+                                                alpha_type,
+                                                nullptr,
+                                                x_type,
+                                                incx,
+                                                dy.ptr_on_device(),
+                                                y_type,
+                                                incy,
+                                                batch_count,
+                                                execution_type);
+            EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                        || status == rocblas_status_not_implemented);
+
+            status = rocblas_axpy_batched_ex_fn(handle,
+                                                N,
+                                                alpha,
+                                                alpha_type,
+                                                dx.ptr_on_device(),
+                                                x_type,
+                                                incx,
+                                                nullptr,
+                                                y_type,
+                                                incy,
+                                                batch_count,
+                                                execution_type);
+            EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                        || status == rocblas_status_not_implemented);
+        }
+
+        // If N == 0, then X and Y can be nullptr without error
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            0,
+                                            nullptr,
+                                            alpha_type,
+                                            nullptr,
+                                            x_type,
+                                            incx,
+                                            nullptr,
+                                            y_type,
+                                            incy,
+                                            batch_count,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_success || status == rocblas_status_not_implemented);
+
+        // If alpha == 0, then X and Y can be nullptr without error
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            N,
+                                            zero,
+                                            alpha_type,
+                                            nullptr,
+                                            x_type,
+                                            incx,
+                                            nullptr,
+                                            y_type,
+                                            incy,
+                                            batch_count,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_success || status == rocblas_status_not_implemented);
+
+        // If batch_count == 0, then X and Y can be nullptr without error
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            N,
+                                            nullptr,
+                                            alpha_type,
+                                            nullptr,
+                                            x_type,
+                                            incx,
+                                            nullptr,
+                                            y_type,
+                                            incy,
+                                            0,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_success || status == rocblas_status_not_implemented);
 #endif
-    EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched_ex_fn(nullptr,
-                                                     N,
-                                                     &alpha,
-                                                     alpha_type,
-                                                     dx.ptr_on_device(),
-                                                     x_type,
-                                                     incx,
-                                                     dy.ptr_on_device(),
-                                                     y_type,
-                                                     incy,
-                                                     batch_count,
-                                                     execution_type),
-                          rocblas_status_invalid_handle);
+    }
 }
 
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>

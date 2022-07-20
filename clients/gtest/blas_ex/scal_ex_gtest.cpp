@@ -75,10 +75,10 @@ namespace
 
                 if(is_batched || is_strided)
                     name << '_' << arg.batch_count;
-
-                if(arg.fortran)
-                    name << "_F";
             }
+
+            if(arg.fortran)
+                name << "_F";
 
             return std::move(name);
         }

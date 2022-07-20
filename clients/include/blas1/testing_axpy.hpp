@@ -41,37 +41,60 @@ void testing_axpy_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_fn = arg.fortran ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
 
-    rocblas_int N         = 100;
-    rocblas_int incx      = 1;
-    rocblas_int incy      = 1;
-    size_t      safe_size = 100;
-    T           alpha     = 0.6;
-    T           zero      = 0.0;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    rocblas_local_handle handle{arg};
+        rocblas_int N    = 100;
+        rocblas_int incx = 1;
+        rocblas_int incy = 1;
 
-    // Allocate device memory
-    device_vector<T> dx(N, incx);
-    device_vector<T> dy(N, incy);
+        device_vector<T> alpha_d(1), zero_d(1);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        const T alpha_h(1), zero_h(0);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, &alpha, nullptr, incx, dy, incy),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, &alpha, dx, incx, nullptr, incy),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, nullptr, dx, incx, dy, incy),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(nullptr, N, &alpha, dx, incx, dy, incy),
-                          rocblas_status_invalid_handle);
-    // If N == 0, then alpha, X and Y can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy),
-                          rocblas_status_success);
-    // If alpha == 0, then X and Y can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, &zero, nullptr, incx, nullptr, incy),
-                          rocblas_status_success);
+        const T* alpha = &alpha_h;
+        const T* zero  = &zero_h;
+
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
+
+        // Allocate device memory
+        device_vector<T> dx(N, incx);
+        device_vector<T> dy(N, incy);
+
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(nullptr, N, alpha, dx, incx, dy, incy),
+                              rocblas_status_invalid_handle);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, nullptr, dx, incx, dy, incy),
+                              rocblas_status_invalid_pointer);
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, alpha, nullptr, incx, dy, incy),
+                                  rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, alpha, dx, incx, nullptr, incy),
+                                  rocblas_status_invalid_pointer);
+        }
+
+        // If N == 0, then alpha, X and Y can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy),
+                              rocblas_status_success);
+        // If alpha == 0, then X and Y can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, zero, nullptr, incx, nullptr, incy),
+                              rocblas_status_success);
+    }
 }
 
 template <typename T>

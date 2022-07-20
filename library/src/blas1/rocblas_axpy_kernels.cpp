@@ -161,8 +161,11 @@ haxpy_mod_8_kernel(rocblas_int    n_mod_8,
                    ptrdiff_t      offset_y,
                    rocblas_stride stride_y)
 {
-    auto      alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    if(!alpha)
+        return;
+
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < n_mod_8)
     {
         auto tx = load_ptr_batch(x, hipBlockIdx_y, offset_x + tid, stride_x);

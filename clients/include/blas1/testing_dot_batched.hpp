@@ -39,61 +39,63 @@
 template <typename T, bool CONJ = false>
 void testing_dot_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dot_batched_fn
-        = FORTRAN ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
-                  : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
+    auto rocblas_dot_batched_fn
+        = arg.fortran ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
+                      : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
 
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    rocblas_int incy        = 1;
-    rocblas_int stride_y    = incy * N;
-    rocblas_int batch_count = 5;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    rocblas_local_handle handle{arg};
+        rocblas_int N           = 100;
+        rocblas_int incx        = 1;
+        rocblas_int incy        = 1;
+        rocblas_int stride_y    = incy * N;
+        rocblas_int batch_count = 5;
 
-    // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
-    device_vector<T>       d_rocblas_result(batch_count);
+        // Allocate device memory
+        device_batch_vector<T> dx(N, incx, batch_count);
+        device_batch_vector<T> dy(N, incy, batch_count);
+        device_vector<T>       d_rocblas_result(batch_count);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(nullptr,
+                                                       N,
+                                                       dx.ptr_on_device(),
+                                                       incx,
+                                                       dy.ptr_on_device(),
+                                                       incy,
+                                                       batch_count,
+                                                       d_rocblas_result),
+                              rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(handle,
-                                                   N,
-                                                   nullptr,
-                                                   incx,
-                                                   dy.ptr_on_device(),
-                                                   incy,
-                                                   batch_count,
-                                                   d_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(handle,
-                                                   N,
-                                                   dx.ptr_on_device(),
-                                                   incx,
-                                                   nullptr,
-                                                   incy,
-                                                   batch_count,
-                                                   d_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_batched_fn)(handle, N, dx, incx, dy, incy, batch_count, nullptr),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(nullptr,
-                                                   N,
-                                                   dx.ptr_on_device(),
-                                                   incx,
-                                                   dy.ptr_on_device(),
-                                                   incy,
-                                                   batch_count,
-                                                   d_rocblas_result),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(handle,
+                                                       N,
+                                                       nullptr,
+                                                       incx,
+                                                       dy.ptr_on_device(),
+                                                       incy,
+                                                       batch_count,
+                                                       d_rocblas_result),
+                              rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(handle,
+                                                       N,
+                                                       dx.ptr_on_device(),
+                                                       incx,
+                                                       nullptr,
+                                                       incy,
+                                                       batch_count,
+                                                       d_rocblas_result),
+                              rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_dot_batched_fn)(handle, N, dx, incx, dy, incy, batch_count, nullptr),
+            rocblas_status_invalid_pointer);
+    }
 }
 
 template <typename T>
@@ -105,10 +107,9 @@ void testing_dotc_batched_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dot_batched_fn
-        = FORTRAN ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
-                  : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
+    auto rocblas_dot_batched_fn
+        = arg.fortran ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
+                      : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;

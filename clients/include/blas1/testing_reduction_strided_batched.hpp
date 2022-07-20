@@ -46,28 +46,33 @@ template <typename T, typename R>
 void template_testing_reduction_strided_batched_bad_arg(
     const Arguments& arg, rocblas_reduction_strided_batched_t<T, R> func)
 {
-    rocblas_int N = 100, incx = 1, batch_count = 5;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    rocblas_stride stride_x = N * incx;
+        rocblas_int N = 100, incx = 1, batch_count = 2;
 
-    rocblas_local_handle handle{arg};
+        rocblas_stride stride_x = N * incx;
 
-    // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+        // Allocate device memory
+        device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    R h_rocblas_result;
+        R h_rocblas_result; // only quick returns so fine to use only host memory
 
-    EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, incx * N, batch_count, &h_rocblas_result),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, incx * N, batch_count, &h_rocblas_result),
+                              rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, incx * N, batch_count, nullptr),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            func(handle, N, nullptr, incx, incx * N, batch_count, &h_rocblas_result),
+            rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, incx * N, batch_count, &h_rocblas_result),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, incx * N, batch_count, nullptr),
+                              rocblas_status_invalid_pointer);
+    }
 }
 
 template <typename T, typename R>

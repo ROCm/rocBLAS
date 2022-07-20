@@ -59,26 +59,6 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
-                                                       N,
-                                                       nullptr,
-                                                       alpha_type,
-                                                       dx.ptr_on_device(),
-                                                       x_type,
-                                                       incx,
-                                                       batch_count,
-                                                       execution_type),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
-                                                       N,
-                                                       &h_alpha,
-                                                       alpha_type,
-                                                       nullptr,
-                                                       x_type,
-                                                       incx,
-                                                       batch_count,
-                                                       execution_type),
-                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(nullptr,
                                                        N,
                                                        &h_alpha,
@@ -89,6 +69,29 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
                                                        batch_count,
                                                        execution_type),
                           rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
+                                                       N,
+                                                       nullptr,
+                                                       alpha_type,
+                                                       dx.ptr_on_device(),
+                                                       x_type,
+                                                       incx,
+                                                       batch_count,
+                                                       execution_type),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
+                                                       N,
+                                                       &h_alpha,
+                                                       alpha_type,
+                                                       nullptr,
+                                                       x_type,
+                                                       incx,
+                                                       batch_count,
+                                                       execution_type),
+                          rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
                                                        N,
                                                        nullptr,

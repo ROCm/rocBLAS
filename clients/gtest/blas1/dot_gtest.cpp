@@ -89,11 +89,11 @@ namespace
                 {
                     name << "_" << arg.algo;
                 }
+            }
 
-                if(arg.fortran)
-                {
-                    name << "_F";
-                }
+            if(arg.fortran)
+            {
+                name << "_F";
             }
 
             return std::move(name);
@@ -162,8 +162,6 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(NAME)
 
 #define ARG1(Ti, To, Tc) Ti
-#define ARG2(Ti, To, Tc) Ti, To
-#define ARG3(Ti, To, Tc) Ti, To, Tc
 
     BLAS1_TESTING(dot, ARG1)
     BLAS1_TESTING(dotc, ARG1)

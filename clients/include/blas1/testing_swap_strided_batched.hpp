@@ -36,16 +36,15 @@
 template <typename T>
 void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_swap_strided_batched_fn
-        = FORTRAN ? rocblas_swap_strided_batched<T, true> : rocblas_swap_strided_batched<T, false>;
+    auto rocblas_swap_strided_batched_fn = arg.fortran ? rocblas_swap_strided_batched<T, true>
+                                                       : rocblas_swap_strided_batched<T, false>;
 
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
     rocblas_int    incy        = 1;
     rocblas_stride stride_x    = 1;
     rocblas_stride stride_y    = 1;
-    rocblas_int    batch_count = 5;
+    rocblas_int    batch_count = 2;
 
     rocblas_local_handle handle{arg};
 
@@ -58,22 +57,21 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
+                              nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
+                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
                               handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
                               handle, N, dx, incx, stride_x, nullptr, incy, stride_y, batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
-                              nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
-                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_swap_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_swap_strided_batched_fn
-        = FORTRAN ? rocblas_swap_strided_batched<T, true> : rocblas_swap_strided_batched<T, false>;
+    auto rocblas_swap_strided_batched_fn = arg.fortran ? rocblas_swap_strided_batched<T, true>
+                                                       : rocblas_swap_strided_batched<T, false>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
