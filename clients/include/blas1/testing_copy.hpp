@@ -38,33 +38,32 @@
 template <typename T>
 void testing_copy_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_copy_fn = FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
-
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
-    static const size_t safe_size = 100; //  arbitrarily set to 100
+    auto rocblas_copy_fn = arg.fortran ? rocblas_copy<T, true> : rocblas_copy<T, false>;
 
     rocblas_local_handle handle{arg};
-    device_vector<T>     dx(safe_size);
-    device_vector<T>     dy(safe_size);
+
+    rocblas_int N    = 100;
+    rocblas_int incx = 1;
+    rocblas_int incy = 1;
+
+    device_vector<T> dx(N);
+    device_vector<T> dy(N);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
+
+    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(nullptr, N, dx, incx, dy, incy),
+                          rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(handle, N, nullptr, incx, dy, incy),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(handle, N, dx, incx, nullptr, incy),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(nullptr, N, dx, incx, dy, incy),
-                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_copy(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_copy_fn = FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
+    auto rocblas_copy_fn = arg.fortran ? rocblas_copy<T, true> : rocblas_copy<T, false>;
 
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;

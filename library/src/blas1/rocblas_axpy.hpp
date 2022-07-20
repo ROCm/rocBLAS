@@ -25,6 +25,39 @@
 #include "handle.hpp"
 #include "rocblas.h"
 
+template <typename Ta, typename Tx, typename Ty>
+inline rocblas_status rocblas_axpy_arg_check(rocblas_handle handle,
+                                             rocblas_int    n,
+                                             const Ta*      alpha,
+                                             Tx             x,
+                                             rocblas_stride offset_x,
+                                             rocblas_int    incx,
+                                             rocblas_stride stride_x,
+                                             Ty             y,
+                                             rocblas_stride offset_y,
+                                             rocblas_int    incy,
+                                             rocblas_stride stride_y,
+                                             rocblas_int    batch_count)
+{
+    if(n <= 0 || batch_count <= 0)
+        return rocblas_status_success;
+
+    if(!alpha)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0)
+            return rocblas_status_success;
+
+        // pointers are validated if they need to be dereferenced
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
+
 template <typename T, typename U>
 rocblas_status rocblas_axpy_check_numerics(const char*    function_name,
                                            rocblas_handle handle,

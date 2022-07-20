@@ -45,26 +45,31 @@ template <typename T, typename R>
 void template_testing_reduction_batched_bad_arg(const Arguments&                  arg,
                                                 rocblas_reduction_batched_t<T, R> func)
 {
-    rocblas_int N = 100, incx = 1, batch_count = 5;
 
-    rocblas_local_handle handle{arg};
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
+        rocblas_int N = 100, incx = 1, batch_count = 2;
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        // Allocate device memory
+        device_batch_vector<T> dx(N, incx, batch_count);
 
-    R h_rocblas_result;
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, batch_count, &h_rocblas_result),
-                          rocblas_status_invalid_pointer);
+        R h_rocblas_result; // host address as all early returns
 
-    EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, batch_count, nullptr),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, batch_count, &h_rocblas_result),
+                              rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, batch_count, &h_rocblas_result),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, batch_count, &h_rocblas_result),
+                              rocblas_status_invalid_pointer);
+
+        EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, batch_count, nullptr),
+                              rocblas_status_invalid_pointer);
+    }
 }
 
 template <typename T, typename R>

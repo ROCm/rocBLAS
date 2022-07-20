@@ -42,33 +42,38 @@ void testing_dot_bad_arg(const Arguments& arg)
     auto rocblas_dot_fn = arg.fortran ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
                                       : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
 
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
-    static const size_t safe_size = 100; //  arbitrarily set to 100
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    rocblas_local_handle handle{arg};
+        rocblas_int N    = 100;
+        rocblas_int incx = 1;
+        rocblas_int incy = 1;
 
-    // Allocate device memory
-    device_vector<T> dx(N, incx);
-    device_vector<T> dy(N, incy);
-    device_vector<T> d_rocblas_result(1, 1);
+        // Allocate device memory
+        device_vector<T> dx(N, incx);
+        device_vector<T> dy(N, incy);
+        device_vector<T> d_rocblas_result(1, 1);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        // don't write to result so device pointer fine for both host and device mode
 
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_fn)(handle, N, nullptr, incx, dy, incy, d_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_fn)(handle, N, dx, incx, nullptr, incy, d_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_fn)(handle, N, dx, incx, dy, incy, nullptr),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_fn)(nullptr, N, dx, incx, dy, incy, d_rocblas_result),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_fn)(nullptr, N, dx, incx, dy, incy, d_rocblas_result),
+                              rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_dot_fn)(handle, N, nullptr, incx, dy, incy, d_rocblas_result),
+            rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_dot_fn)(handle, N, dx, incx, nullptr, incy, d_rocblas_result),
+            rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_fn)(handle, N, dx, incx, dy, incy, nullptr),
+                              rocblas_status_invalid_pointer);
+    }
 }
 
 template <typename T>

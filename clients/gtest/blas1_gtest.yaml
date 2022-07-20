@@ -962,7 +962,7 @@ Tests:
 # for bad_arg no arguments should be used by test code
   - name: blas1_bad_arg
     category: pre_checkin
-    # fortran: [ false, true ]
+    fortran: [ false, true ]
     function:
       - nrm2_bad_arg:  *single_double_precisions_complex_real
       - nrm2_batched_bad_arg:  *single_double_precisions_complex_real

@@ -36,6 +36,37 @@
 #include "utility.hpp"
 
 template <typename T, typename U = T>
+void testing_scal_strided_batched_bad_arg(const Arguments& arg)
+{
+    auto rocblas_scal_strided_batched_fn = arg.fortran ? rocblas_scal_strided_batched<T, U, true>
+                                                       : rocblas_scal_strided_batched<T, U, false>;
+
+    rocblas_int N           = 100;
+    rocblas_int incx        = 1;
+    rocblas_int stridex     = 100;
+    U           h_alpha     = U(1.0);
+    rocblas_int batch_count = 2;
+
+    rocblas_local_handle handle{arg};
+
+    // Allocate device memory
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+
+    // Check device memory allocation
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_scal_strided_batched_fn)(nullptr, N, &h_alpha, dx, incx, stridex, batch_count),
+        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_scal_strided_batched_fn)(handle, N, nullptr, dx, incx, stridex, batch_count),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_scal_strided_batched_fn)(handle, N, &h_alpha, nullptr, incx, stridex, batch_count),
+        rocblas_status_invalid_pointer);
+}
+
+template <typename T, typename U = T>
 void testing_scal_strided_batched(const Arguments& arg)
 {
     auto rocblas_scal_strided_batched_fn = arg.fortran ? rocblas_scal_strided_batched<T, U, true>
@@ -171,32 +202,4 @@ void testing_scal_strided_batched(const Arguments& arg)
             rocblas_error_1,
             rocblas_error_2);
     }
-}
-
-template <typename T, typename U = T>
-void testing_scal_strided_batched_bad_arg(const Arguments& arg)
-{
-    auto rocblas_scal_strided_batched_fn = arg.fortran ? rocblas_scal_strided_batched<T, U, true>
-                                                       : rocblas_scal_strided_batched<T, U, false>;
-
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    U           h_alpha     = U(1.0);
-    rocblas_int batch_count = 5;
-    rocblas_int stridex     = 50;
-
-    rocblas_local_handle handle{arg};
-
-    // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
-
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_strided_batched_fn)(handle, N, nullptr, dx, incx, stridex, batch_count),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_strided_batched_fn)(handle, N, &h_alpha, nullptr, incx, stridex, batch_count),
-        rocblas_status_invalid_pointer);
 }

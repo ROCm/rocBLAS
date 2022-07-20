@@ -42,7 +42,7 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     rocblas_int incy        = 1;
-    rocblas_int batch_count = 1;
+    rocblas_int batch_count = 2;
 
     rocblas_local_handle handle{arg};
 
@@ -55,15 +55,15 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
+        rocblas_swap_batched_fn(
+            nullptr, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
+        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
         rocblas_swap_batched_fn(handle, N, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         rocblas_swap_batched_fn(handle, N, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
         rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_swap_batched_fn(
-            nullptr, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
-        rocblas_status_invalid_handle);
 }
 
 template <typename T>

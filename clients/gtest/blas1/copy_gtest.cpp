@@ -75,11 +75,11 @@ namespace
                 {
                     name << "_" << arg.batch_count;
                 }
+            }
 
-                if(arg.fortran)
-                {
-                    name << "_F";
-                }
+            if(arg.fortran)
+            {
+                name << "_F";
             }
 
             return std::move(name);
@@ -141,8 +141,6 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(NAME)
 
 #define ARG1(Ti, To, Tc) Ti
-#define ARG2(Ti, To, Tc) Ti, To
-#define ARG3(Ti, To, Tc) Ti, To, Tc
 
     BLAS1_TESTING(copy, ARG1)
     BLAS1_TESTING(copy_batched, ARG1)

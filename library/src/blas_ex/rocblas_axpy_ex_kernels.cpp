@@ -48,10 +48,10 @@ rocblas_status axpy_ex_typecasting(const char*    name,
     {
         if(*alphat == 0)
             return rocblas_status_success;
-    }
 
-    if(!x || !y)
-        return rocblas_status_invalid_pointer;
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
+    }
 
     if(BATCHED)
     {

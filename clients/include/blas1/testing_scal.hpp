@@ -38,8 +38,7 @@
 template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_scal_fn = FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+    auto rocblas_scal_fn = arg.fortran ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
 
     rocblas_int N     = 100;
     rocblas_int incx  = 1;
@@ -53,19 +52,18 @@ void testing_scal_bad_arg(const Arguments& arg)
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, &alpha, nullptr, incx)),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, nullptr, dx, incx)),
-                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(nullptr, N, &alpha, dx, incx)),
                           rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, nullptr, dx, incx)),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, &alpha, nullptr, incx)),
+                          rocblas_status_invalid_pointer);
 }
 
 template <typename T, typename U = T>
 void testing_scal(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_scal_fn = FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+    auto rocblas_scal_fn = arg.fortran ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
 
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;

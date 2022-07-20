@@ -50,11 +50,12 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> 
 
     rocblas_int h_rocblas_result;
 
+    EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, &h_rocblas_result),
+                          rocblas_status_invalid_handle);
+
     EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, &h_rocblas_result),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, nullptr), rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, &h_rocblas_result),
-                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
