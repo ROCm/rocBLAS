@@ -326,7 +326,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             return rocblas_status_size_unchanged;
         else if(rocblas_pointer_mode_device == handle->pointer_mode && batch_count > 0)
         {
-            RETURN_IF_HIP_ERROR(hipMemset(results, 0, batch_count * sizeof(T)));
+            RETURN_IF_HIP_ERROR(
+                hipMemsetAsync(&results[0], 0, batch_count * sizeof(T), handle->get_stream()));
         }
         else
         {
