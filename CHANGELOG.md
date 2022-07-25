@@ -31,6 +31,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Fixed
 - Improved logic to #include <filesystem> vs <experimental/filesystem>.
 - install.sh -s option to build rocblas as a static library.
+- dot function now sets the device results asynchronously for N <= 0
 
 ### Deprecated
 - is_complex helper is now deprecated.  Use rocblas_is_complex instead.
