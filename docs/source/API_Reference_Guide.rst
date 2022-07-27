@@ -327,28 +327,28 @@ the enum value of rocblas_gemm_flags_fp16_alt_impl.
 Deprecations by version
 -----------------------
 
-Announced in 2.45
-^^^^^^^^^^^^^^^^^
+Announced in rocBLAS 2.45
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Replace is_complex by rocblas_is_complex
 ''''''''''''''''''''''''''''''''''''''''
 
-From 3.0 the trait is_complex will be replaces by rocblas_is_complex
+From rocBLAS 3.0 the trait is_complex will be replaces by rocblas_is_complex
 
 Replace truncate with rocblas_truncate
 ''''''''''''''''''''''''''''''''''''''
 
-From 3.0 enum truncate_t and the value truncate will be removed and replaced by rocblas_truncate_t
+From rocBLAS 3.0 enum truncate_t and the value truncate will be removed and replaced by rocblas_truncate_t
 and rocblas_truncate, respectively. The new enum rocblas_truncate_t and the value rocblas_truncate
 could be used from this ROCm release for an easy transition.
 
-Announced in 2.46
-^^^^^^^^^^^^^^^^^
+Announced in rocBLAS 2.46
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Remove ability for hipBLAS to set rocblas_int8_type_for_hipblas
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-From 3.0 remove enum rocblas_int8_type_for_hipblas and the functions rocblas_get_int8_type_for_hipblas and
+From rocBLAS 3.0 remove enum rocblas_int8_type_for_hipblas and the functions rocblas_get_int8_type_for_hipblas and
 rocblas_set_int8_type_for_hipblas. These are used by hipBLAS to select either int8_t or packed_int8x4 datatype.
 In hipBLAS the option to use packed_int8x4 will be removed, only int8_t will be available.
 
