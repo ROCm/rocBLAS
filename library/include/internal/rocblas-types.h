@@ -271,7 +271,7 @@ typedef enum rocblas_gemm_flags_
     /*! \brief Default empty flags */
     rocblas_gemm_flags_none = 0x0,
     /*! \brief Before ROCm 4.2, this flags is not implemented and rocblas uses packed-Int8x4 by default.
-    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked and is for gfx908 GPUs only */
+    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked. */
     rocblas_gemm_flags_pack_int8x4 = 0x1,
     /*! \brief Select the gemm problem with the highest efficiency per compute unit used. Useful for running multiple smaller problems
     * simultaneously. This takes precedence over the performance metric set in rocblas_handle and currently only works for
@@ -285,6 +285,15 @@ typedef enum rocblas_gemm_flags_
     * section for more details. */
     rocblas_gemm_flags_fp16_alt_impl = 0x4
 } rocblas_gemm_flags;
+
+// rocblas_int8_type_for_hipblas enum will be removed in a future release.
+// This enum is used by hipBLAS and support for pack_int8x4 datatype will be removed from hipBLAS.
+typedef enum rocblas_int8_type_for_hipblas_
+{
+    rocblas_int8_type_for_hipblas_default     = 0x0,
+    rocblas_int8_type_for_hipblas_int8        = 0x1,
+    rocblas_int8_type_for_hipblas_pack_int8x4 = 0x2
+} rocblas_int8_type_for_hipblas;
 
 /*! \brief Union for representing scalar values */
 typedef union rocblas_union_u
