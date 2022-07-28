@@ -60,7 +60,7 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
     enum truncate_t
     {
         truncate __attribute__((deprecated(
-            "From the ROCm release 6.0, The enum truncate_t and the value truncate will be "
+            "From 3.0, The enum truncate_t and the value truncate will be "
             "removed and replaced by rocblas_truncate_t and rocblas_truncate, "
             "respectively. The new enum rocblas_truncate_t and the value rocblas_truncate could "
             "be used from this ROCm release for an easy transition.")))
