@@ -558,7 +558,7 @@ inline void lapack_xsyr2(rocblas_fill uplo,
 template <typename T>
 void lapack_xpotrf2(rocblas_fill uplo, rocblas_int n, T* A, rocblas_int lda, rocblas_int info)
 {
-    rocblas_int iinfo;
+    rocblas_int iinfo = 0;
 
     if(n < 0)
         info = -2;
