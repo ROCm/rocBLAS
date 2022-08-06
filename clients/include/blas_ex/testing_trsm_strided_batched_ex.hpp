@@ -659,34 +659,63 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
 
     if(arg.timing)
     {
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
+
         // GPU rocBLAS
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+        for(int i = 0; i < number_cold_calls; i++)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_ex_fn(handle,
+                                                                   side,
+                                                                   uplo,
+                                                                   transA,
+                                                                   diag,
+                                                                   M,
+                                                                   N,
+                                                                   &alpha_h,
+                                                                   dA,
+                                                                   lda,
+                                                                   stride_A,
+                                                                   dXorB,
+                                                                   ldb,
+                                                                   stride_B,
+                                                                   batch_count,
+                                                                   dinvA,
+                                                                   size_invA,
+                                                                   stride_invA,
+                                                                   arg.compute_type));
+        }
+
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_ex_fn(handle,
-                                                               side,
-                                                               uplo,
-                                                               transA,
-                                                               diag,
-                                                               M,
-                                                               N,
-                                                               &alpha_h,
-                                                               dA,
-                                                               lda,
-                                                               stride_A,
-                                                               dXorB,
-                                                               ldb,
-                                                               stride_B,
-                                                               batch_count,
-                                                               dinvA,
-                                                               size_invA,
-                                                               stride_invA,
-                                                               arg.compute_type));
+        for(int i = 0; i < number_hot_calls; i++)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_ex_fn(handle,
+                                                                   side,
+                                                                   uplo,
+                                                                   transA,
+                                                                   diag,
+                                                                   M,
+                                                                   N,
+                                                                   &alpha_h,
+                                                                   dA,
+                                                                   lda,
+                                                                   stride_A,
+                                                                   dXorB,
+                                                                   ldb,
+                                                                   stride_B,
+                                                                   batch_count,
+                                                                   dinvA,
+                                                                   size_invA,
+                                                                   stride_invA,
+                                                                   arg.compute_type));
+        }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
