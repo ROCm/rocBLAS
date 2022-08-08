@@ -104,6 +104,8 @@ struct Arguments
 
     rocblas_initialization initialization;
 
+    rocblas_arithmetic_check arithmetic_check;
+
     rocblas_atomics_mode atomics_mode;
 
     // memory padding for testing write out of bounds
@@ -182,6 +184,7 @@ struct Arguments
     OPER(d_type) SEP                 \
     OPER(compute_type) SEP           \
     OPER(initialization) SEP         \
+    OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
     OPER(pad) SEP                    \
     OPER(threads) SEP                \
@@ -225,6 +228,9 @@ struct Arguments
 
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                      os,
                                                 std::pair<char const*, rocblas_initialization> p);
+
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                        os,
+                                                std::pair<char const*, rocblas_arithmetic_check> p);
 
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&    os,
                                                 std::pair<char const*, bool> p);
