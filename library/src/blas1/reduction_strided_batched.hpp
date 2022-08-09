@@ -88,10 +88,10 @@ rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
                                                rocblas_stride stridex,
                                                To*            workspace)
 {
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     To        sum;
 
-    const auto* x = load_ptr_batch(xvec, hipBlockIdx_y, shiftx, stridex);
+    const auto* x = load_ptr_batch(xvec, blockIdx.y, shiftx, stridex);
 
     // bound
     if(tid < n)
@@ -101,8 +101,8 @@ rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
 
     sum = rocblas_dot_block_reduce<NB, To>(sum); // sum reduction only
 
-    if(hipThreadIdx_x == 0)
-        workspace[hipBlockIdx_y * nblocks + hipBlockIdx_x] = sum;
+    if(threadIdx.x == 0)
+        workspace[blockIdx.y * nblocks + blockIdx.x] = sum;
 }
 
 // kernel 2 is used from non-strided reduction_batched see include file
@@ -112,12 +112,12 @@ template <rocblas_int NB, typename FINALIZE = rocblas_finalize_identity, typenam
 ROCBLAS_KERNEL(NB)
 rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
-    rocblas_int tx = hipThreadIdx_x;
+    rocblas_int tx = threadIdx.x;
     To          sum;
 
     if(tx < nblocks)
     {
-        To* work = workspace + hipBlockIdx_y * nblocks;
+        To* work = workspace + blockIdx.y * nblocks;
         sum      = work[tx];
 
         // bound, loop
@@ -133,7 +133,7 @@ rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspac
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[hipBlockIdx_y] = Tr(FINALIZE{}(sum));
+        result[blockIdx.y] = Tr(FINALIZE{}(sum));
 }
 
 /*! \brief

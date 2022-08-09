@@ -92,10 +92,10 @@ rocblas_rotg_kernel(T              a_in,
                     rocblas_stride offset_s,
                     rocblas_stride stride_s)
 {
-    auto a = load_ptr_batch(a_in, hipBlockIdx_x, offset_a, stride_a);
-    auto b = load_ptr_batch(b_in, hipBlockIdx_x, offset_b, stride_b);
-    auto c = load_ptr_batch(c_in, hipBlockIdx_x, offset_c, stride_c);
-    auto s = load_ptr_batch(s_in, hipBlockIdx_x, offset_s, stride_s);
+    auto a = load_ptr_batch(a_in, blockIdx.x, offset_a, stride_a);
+    auto b = load_ptr_batch(b_in, blockIdx.x, offset_b, stride_b);
+    auto c = load_ptr_batch(c_in, blockIdx.x, offset_c, stride_c);
+    auto s = load_ptr_batch(s_in, blockIdx.x, offset_s, stride_s);
     rocblas_rotg_calc(*a, *b, *c, *s);
 }
 
@@ -174,10 +174,10 @@ ROCBLAS_KERNEL_NO_BOUNDS
                                               rocblas_stride            stride_s,
                                               rocblas_check_numerics_t* abnormal)
 {
-    auto a = load_ptr_batch(a_in, hipBlockIdx_x, offset_a, stride_a);
-    auto b = load_ptr_batch(b_in, hipBlockIdx_x, offset_b, stride_b);
-    auto c = load_ptr_batch(c_in, hipBlockIdx_x, offset_c, stride_c);
-    auto s = load_ptr_batch(s_in, hipBlockIdx_x, offset_s, stride_s);
+    auto a = load_ptr_batch(a_in, blockIdx.x, offset_a, stride_a);
+    auto b = load_ptr_batch(b_in, blockIdx.x, offset_b, stride_b);
+    auto c = load_ptr_batch(c_in, blockIdx.x, offset_c, stride_c);
+    auto s = load_ptr_batch(s_in, blockIdx.x, offset_s, stride_s);
 
     //Check every element of the vectors a, b, c, s for a zero/NaN/Inf/denormal value
     if(rocblas_iszero(*a) || rocblas_iszero(*b) || rocblas_iszero(*c) || rocblas_iszero(*s))

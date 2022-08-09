@@ -37,7 +37,7 @@ __device__ void her2_kernel_calc(bool        upper,
                                  T*          A,
                                  rocblas_int lda)
 {
-    size_t i = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x; // linear area index
+    size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
     if(i >= area)
         return;
 
@@ -91,9 +91,9 @@ rocblas_her2_kernel(bool           upper,
     if(!alpha)
         return;
 
-    auto*       A = load_ptr_batch(Aa, hipBlockIdx_z, shift_A, stride_A);
-    const auto* x = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
-    const auto* y = load_ptr_batch(ya, hipBlockIdx_z, shift_y, stride_y);
+    auto*       A = load_ptr_batch(Aa, blockIdx.z, shift_A, stride_A);
+    const auto* x = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
+    const auto* y = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
 
     her2_kernel_calc(upper, n, area, alpha, x, incx, y, incy, A, lda);
 }

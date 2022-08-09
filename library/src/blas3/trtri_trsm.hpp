@@ -54,11 +54,11 @@ trtri_trsm_kernel(rocblas_fill     uplo,
     // device function only see one matrix
 
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
-    rocblas_int offA    = (2 * hipBlockIdx_x) * (IB * lda + IB) + offset_A;
-    rocblas_int offinvA = ((2 * hipBlockIdx_x) / IBD) * (NB * NB)
-                          + ((2 * hipBlockIdx_x) % IBD) * (IB * NB + IB) + offset_invA;
-    const T* a_i    = load_ptr_batch(A, hipBlockIdx_y, offA, stride_A);
-    T*       invA_i = load_ptr_batch(invA, hipBlockIdx_y, offinvA, stride_invA);
+    rocblas_int offA    = (2 * blockIdx.x) * (IB * lda + IB) + offset_A;
+    rocblas_int offinvA = ((2 * blockIdx.x) / IBD) * (NB * NB)
+                          + ((2 * blockIdx.x) % IBD) * (IB * NB + IB) + offset_invA;
+    const T* a_i    = load_ptr_batch(A, blockIdx.y, offA, stride_A);
+    T*       invA_i = load_ptr_batch(invA, blockIdx.y, offinvA, stride_invA);
 
     custom_trtri_device<IB>(uplo, diag, IB, a_i, lda, invA_i, NB);
 }

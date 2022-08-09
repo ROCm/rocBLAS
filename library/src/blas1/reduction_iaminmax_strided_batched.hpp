@@ -53,8 +53,8 @@ __inline__ __device__ T rocblas_shuffle_block_reduce_method(T val)
 {
     __shared__ T psums[warpSize];
 
-    rocblas_int wavefront = hipThreadIdx_x / warpSize;
-    rocblas_int wavelet   = hipThreadIdx_x % warpSize;
+    rocblas_int wavefront = threadIdx.x / warpSize;
+    rocblas_int wavelet   = threadIdx.x % warpSize;
 
     if(wavefront == 0)
         psums[wavelet] = T{};
@@ -68,7 +68,7 @@ __inline__ __device__ T rocblas_shuffle_block_reduce_method(T val)
 
     // ensure wavefront was run
     static constexpr rocblas_int num_wavefronts = NB / warpSize;
-    val = (hipThreadIdx_x < num_wavefronts) ? psums[wavelet] : T{};
+    val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T{};
     if(wavefront == 0)
         val = wavefront_reduce_method<num_wavefronts, REDUCE>(val); // sum wavefront sums
 
@@ -91,10 +91,10 @@ rocblas_iaminmax_reduction_strided_batched_kernel_part1(rocblas_int    n,
                                                         rocblas_stride stridex,
                                                         To*            workspace)
 {
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     To        sum;
 
-    const auto* x = load_ptr_batch(xvec, hipBlockIdx_y, shiftx, stridex);
+    const auto* x = load_ptr_batch(xvec, blockIdx.y, shiftx, stridex);
 
     // bound
     if(tid < n)
@@ -104,8 +104,8 @@ rocblas_iaminmax_reduction_strided_batched_kernel_part1(rocblas_int    n,
 
     sum = rocblas_shuffle_block_reduce_method<NB, REDUCE>(sum);
 
-    if(hipThreadIdx_x == 0)
-        workspace[hipBlockIdx_y * nblocks + hipBlockIdx_x] = sum;
+    if(threadIdx.x == 0)
+        workspace[blockIdx.y * nblocks + blockIdx.x] = sum;
 }
 
 // kernel 2 is used from non-strided reduction_batched see include file
@@ -121,12 +121,12 @@ rocblas_iaminmax_reduction_strided_batched_kernel_part2(rocblas_int nblocks,
                                                         To*         workspace,
                                                         Tr*         result)
 {
-    rocblas_int tx = hipThreadIdx_x;
+    rocblas_int tx = threadIdx.x;
     To          sum;
 
     if(tx < nblocks)
     {
-        To* work = workspace + hipBlockIdx_y * nblocks;
+        To* work = workspace + blockIdx.y * nblocks;
         sum      = work[tx];
 
         // bound, loop
@@ -142,7 +142,7 @@ rocblas_iaminmax_reduction_strided_batched_kernel_part2(rocblas_int nblocks,
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[hipBlockIdx_y] = Tr(FINALIZE{}(sum));
+        result[blockIdx.y] = Tr(FINALIZE{}(sum));
 }
 
 /*! \brief

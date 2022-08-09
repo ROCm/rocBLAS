@@ -323,7 +323,7 @@ rocblas_copy_void_ptr_vector_kernel(rocblas_int n,
                                     void*       y,
                                     rocblas_int incy)
 {
-    size_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n)
     {
         memcpy(
@@ -713,8 +713,8 @@ rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
                                     void*       b,
                                     rocblas_int ldb)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < rows && ty < cols)
         memcpy((char*)b + (tx + ldb * ty) * elem_size,

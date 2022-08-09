@@ -188,7 +188,7 @@ template <rocblas_int NB, typename T>
 ROCBLAS_KERNEL(NB)
 setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
 {
-    dst[hipBlockIdx_x] = src + hipBlockIdx_x * src_stride;
+    dst[blockIdx.x] = src + blockIdx.x * src_stride;
 }
 
 template <rocblas_int BLOCK, typename T>
@@ -209,7 +209,7 @@ setup_device_pointer_array_kernel(T*             src,
                                   T*             dst[],
                                   rocblas_int    batch_count)
 {
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < batch_count)
         dst[tid] = src + tid * src_stride;
 }

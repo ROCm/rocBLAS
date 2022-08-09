@@ -66,14 +66,14 @@ set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                      rocblas_int    lda,
                                      rocblas_stride a_st_or_of)
 {
-    ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    ptrdiff_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    ptrdiff_t tx = blockIdx.x * blockDim.x + threadIdx.x;
+    ptrdiff_t ty = blockIdx.y * blockDim.y + threadIdx.y;
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
 
     if(tx < m && ty < n && alpha == 0)
     {
-        auto* A = load_ptr_batch(Aa, hipBlockIdx_z, a_st_or_of);
+        auto* A = load_ptr_batch(Aa, blockIdx.z, a_st_or_of);
 
         A[tx + size_t(lda) * ty] = 0;
     }
@@ -167,10 +167,10 @@ rocblas_trmm_outofplace_kernel(rocblas_diagonal diag,
     constexpr bool        ITER_UPPER = (UPPER && !TRANSPOSE) || (!UPPER && TRANSPOSE);
     constexpr rocblas_int DIM        = NB / THR_DIM;
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
-    auto A     = load_ptr_batch(A_arg, hipBlockIdx_z, offset_a, stride_a);
-    auto B     = load_ptr_batch(B_arg, hipBlockIdx_z, offset_b, stride_b);
-    auto C     = load_ptr_batch(C_arg, hipBlockIdx_z, offset_c, stride_c);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
+    auto A     = load_ptr_batch(A_arg, blockIdx.z, offset_a, stride_a);
+    auto B     = load_ptr_batch(B_arg, blockIdx.z, offset_b, stride_b);
+    auto C     = load_ptr_batch(C_arg, blockIdx.z, offset_c, stride_c);
 
     if(alpha == 0)
         return;
@@ -433,12 +433,12 @@ rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(alpha == 0)
         return;
-    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, hipBlockIdx_z, c_st_or_of);
+    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
+    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
+    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
     const int nblocks = (n + NB - 1) / NB;
     const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
@@ -510,12 +510,12 @@ rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(alpha == 0)
         return;
-    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, hipBlockIdx_z, c_st_or_of);
+    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
+    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
+    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
     const int nblocks = (n + NB - 1) / NB;
     const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
@@ -600,12 +600,12 @@ rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(alpha == 0)
         return;
-    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, hipBlockIdx_z, c_st_or_of);
+    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
+    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
+    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
     const int nblocks = (m + NB - 1) / NB;
     const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
@@ -678,12 +678,12 @@ rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
     const int ty = threadIdx.y;
     const int bx = blockIdx.x;
 
-    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    T alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(alpha == 0)
         return;
-    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, a_st_or_of);
-    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, b_st_or_of);
-    auto* C = load_ptr_batch(C_arg, hipBlockIdx_z, c_st_or_of);
+    auto* A = load_ptr_batch(A_arg, blockIdx.z, a_st_or_of);
+    auto* B = load_ptr_batch(B_arg, blockIdx.z, b_st_or_of);
+    auto* C = load_ptr_batch(C_arg, blockIdx.z, c_st_or_of);
 
     const int nblocks = (m + NB - 1) / NB;
     const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;

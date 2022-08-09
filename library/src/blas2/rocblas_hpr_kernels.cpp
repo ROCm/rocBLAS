@@ -28,8 +28,8 @@ template <typename T, typename U>
 __device__ void
     hpr_kernel_calc(bool upper, rocblas_int n, U alpha, const T* x, rocblas_int incx, T* AP)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     int index = upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
 
@@ -56,7 +56,7 @@ rocblas_hpr_kernel(bool           upper,
                    rocblas_stride shift_A,
                    rocblas_stride stride_A)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the number of threads as template parameters indicate.
 
@@ -64,8 +64,8 @@ rocblas_hpr_kernel(bool           upper,
     if(!alpha)
         return;
 
-    auto*       AP = load_ptr_batch(APa, hipBlockIdx_z, shift_A, stride_A);
-    const auto* x  = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
+    auto*       AP = load_ptr_batch(APa, blockIdx.z, shift_A, stride_A);
+    const auto* x  = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
 
     hpr_kernel_calc(upper, n, alpha, x, incx, AP);
 }
