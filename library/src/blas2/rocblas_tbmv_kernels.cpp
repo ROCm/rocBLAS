@@ -168,7 +168,7 @@ ROCBLAS_KERNEL_ILF void tbmvx_kernel_calc(rocblas_operation transA,
                                           T*                x,
                                           rocblas_int       incx)
 {
-    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
     // threads are all configurated locally
     // Create "tilted" blocks. With the compaction, each diagonal,
@@ -177,7 +177,7 @@ ROCBLAS_KERNEL_ILF void tbmvx_kernel_calc(rocblas_operation transA,
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
-    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
+    rocblas_int ind = blockIdx.x * DIM_X + tx;
 
     __shared__ T sdata[DIM_X * DIM_Y];
 
@@ -198,8 +198,8 @@ ROCBLAS_KERNEL_ILF void tbmvx_kernel_calc(rocblas_operation transA,
     sdata[tx + ty * DIM_X] = res_A;
     __syncthreads();
 
-    thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
-    ind       = hipBlockIdx_x * DIM_X + thread_id;
+    thread_id = threadIdx.x + threadIdx.y * blockDim.x;
+    ind       = blockIdx.x * DIM_X + thread_id;
     if(thread_id < DIM_X && ind < m)
     {
         // Add the partial sums of each diagonal and store
@@ -265,13 +265,13 @@ tbmvx_kernel(rocblas_operation transA,
              rocblas_int       incx,
              rocblas_stride    stridex)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const auto* A        = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* w_x_copy = load_ptr_batch(w_xa_copy, hipBlockIdx_y, 0, m);
-    auto*       x        = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const auto* A        = load_ptr_batch(Aa, blockIdx.y, shifta, strideA);
+    const auto* w_x_copy = load_ptr_batch(w_xa_copy, blockIdx.y, 0, m);
+    auto*       x        = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
 
     tbmvx_kernel_calc<DIM_X, DIM_Y>(transA, upper, diag, m, k, A, lda, w_x_copy, x, incx);
 }

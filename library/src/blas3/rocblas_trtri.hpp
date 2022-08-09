@@ -69,7 +69,7 @@ ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
     if(n <= 0)
         return;
 
-    int tx = hipThreadIdx_x;
+    int tx = threadIdx.x;
 
     __shared__ T diag1[IB * IB];
     __shared__ T diag2[IB * IB];
@@ -257,7 +257,7 @@ ROCBLAS_KERNEL_ILF void trtri_device(rocblas_fill     uplo,
     if(n <= 0)
         return;
 
-    int tx = hipThreadIdx_x;
+    int tx = threadIdx.x;
 
     __shared__ T sA[NB * NB];
 
@@ -396,7 +396,7 @@ rocblas_trtri_fill(rocblas_handle handle,
 {
     // number of elements in a given matrix that will be zeroed
     size_t num_elements_total_to_zero = num_zero_elem * sub_batch_count;
-    size_t tx                         = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t tx                         = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
 
     while(tx < num_elements_total_to_zero)
     {
@@ -405,14 +405,14 @@ rocblas_trtri_fill(rocblas_handle handle,
         // determine local matrix index
         size_t idx = tx % num_zero_elem;
 
-        T* aptr = load_ptr_batch(A, hipBlockIdx_y, offset_A, stride_A);
+        T* aptr = load_ptr_batch(A, blockIdx.y, offset_A, stride_A);
 
         if(uplo == rocblas_fill_upper)
             rocblas_tritri_fill_lower(offset, idx, lda, sub_stride_A, T(0), aptr);
         else if(uplo == rocblas_fill_lower)
             rocblas_tritri_fill_upper(offset, idx, n, lda, sub_stride_A, T(0), aptr);
 
-        tx += hipBlockDim_x * hipGridDim_x;
+        tx += size_t(blockDim.x) * gridDim.x;
     }
 }
 
@@ -436,9 +436,9 @@ trtri_small_kernel(rocblas_fill     uplo,
     // get the individual matrix which is processed by device function
     // device function only see one matrix
     const T* individual_A
-        = load_ptr_batch(A, hipBlockIdx_y, offset_A, stride_A) + hipBlockIdx_x * sub_stride_A;
-    T* individual_invA = load_ptr_batch(invA, hipBlockIdx_y, offset_invA, stride_invA)
-                         + hipBlockIdx_x * sub_stride_invA;
+        = load_ptr_batch(A, blockIdx.y, offset_A, stride_A) + blockIdx.x * sub_stride_A;
+    T* individual_invA
+        = load_ptr_batch(invA, blockIdx.y, offset_invA, stride_invA) + blockIdx.x * sub_stride_invA;
 
     trtri_device<NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
 }
@@ -461,9 +461,9 @@ ROCBLAS_KERNEL_NO_BOUNDS trtri_remainder_kernel(rocblas_fill     uplo,
     // get the individual matrix which is processed by device function
     // device function only see one matrix
     const T* individual_A
-        = load_ptr_batch(A, hipBlockIdx_y, offset_A, stride_A) + hipBlockIdx_x * sub_stride_A;
-    T* individual_invA = load_ptr_batch(invA, hipBlockIdx_y, offset_invA, stride_invA)
-                         + hipBlockIdx_x * sub_stride_invA;
+        = load_ptr_batch(A, blockIdx.y, offset_A, stride_A) + blockIdx.x * sub_stride_A;
+    T* individual_invA
+        = load_ptr_batch(invA, blockIdx.y, offset_invA, stride_invA) + blockIdx.x * sub_stride_invA;
 
     trtri_device<2 * NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
 }
@@ -556,14 +556,14 @@ trtri_diagonal_kernel(rocblas_fill     uplo,
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
 
     rocblas_int tiles        = n / IB / 2;
-    const T*    individual_A = load_ptr_batch(A, hipBlockIdx_y, offset_A, stride_A)
-                            + (IB * 2 * lda + IB * 2) * (hipBlockIdx_x % tiles)
-                            + sub_stride_A * (hipBlockIdx_x / tiles);
-    T* individual_invA = load_ptr_batch(invA, hipBlockIdx_y, offset_invA, stride_invA)
-                         + (IB * 2 * ldinvA + IB * 2) * (hipBlockIdx_x % tiles)
-                         + sub_stride_invA * (hipBlockIdx_x / tiles);
+    const T*    individual_A = load_ptr_batch(A, blockIdx.y, offset_A, stride_A)
+                            + (IB * 2 * lda + IB * 2) * (blockIdx.x % tiles)
+                            + sub_stride_A * (blockIdx.x / tiles);
+    T* individual_invA = load_ptr_batch(invA, blockIdx.y, offset_invA, stride_invA)
+                         + (IB * 2 * ldinvA + IB * 2) * (blockIdx.x % tiles)
+                         + sub_stride_invA * (blockIdx.x / tiles);
 
-    auto rem = n - (hipBlockIdx_x % tiles) * IB;
+    auto rem = n - (blockIdx.x % tiles) * IB;
     custom_trtri_device<IB>(
         uplo, diag, rem < IB ? rem : IB, individual_A, lda, individual_invA, ldinvA);
 }

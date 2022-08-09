@@ -30,14 +30,14 @@ template <rocblas_int DIM_X, rocblas_int DIM_Y, bool LOWER, bool UNIT, typename 
 ROCBLAS_KERNEL_ILF void trmvn_kernel_calc(
     rocblas_int m, const T* A, rocblas_int lda, const T* x, rocblas_int incx, T* workspace)
 {
-    rocblas_int tid = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int tid = threadIdx.x + threadIdx.y * blockDim.x;
 
     // tx corresponds to row in block, good for memory coalescing
     // ty corresponds to column
-    rocblas_int tx = hipThreadIdx_x;
-    rocblas_int ty = hipThreadIdx_y;
+    rocblas_int tx = threadIdx.x;
+    rocblas_int ty = threadIdx.y;
 
-    rocblas_int row = hipBlockIdx_x * DIM_X + tx;
+    rocblas_int row = blockIdx.x * DIM_X + tx;
 
     __shared__ T sdata[DIM_X * DIM_Y];
     T            res_A = 0;
@@ -79,8 +79,8 @@ ROCBLAS_KERNEL_ILF void trmvt_kernel_calc(
     rocblas_int m, const T* A, rocblas_int lda, const T* x, rocblas_int incx, T* workspace)
 {
     // tx is assigned to rows
-    rocblas_int tx  = hipThreadIdx_x;
-    rocblas_int col = hipBlockIdx_x;
+    rocblas_int tx  = threadIdx.x;
+    rocblas_int col = blockIdx.x;
 
     if(tx < m)
         A += tx;
@@ -134,11 +134,11 @@ trmvn_kernel(rocblas_int    m,
     static constexpr ptrdiff_t shiftw = 0;
     trmvn_kernel_calc<DIM_X, DIM_Y, LOWER, UNIT>(
         m,
-        load_ptr_batch(a, hipBlockIdx_y, shifta, stridea),
+        load_ptr_batch(a, blockIdx.y, shifta, stridea),
         lda,
-        load_ptr_batch(x, hipBlockIdx_y, shiftx, stridex),
+        load_ptr_batch(x, blockIdx.y, shiftx, stridex),
         incx,
-        load_ptr_batch(workspace, hipBlockIdx_y, shiftw, stridew));
+        load_ptr_batch(workspace, blockIdx.y, shiftw, stridew));
 }
 
 template <rocblas_int NB, bool LOWER, bool CONJ, bool UNIT, typename A, typename X, typename W>
@@ -158,11 +158,11 @@ trmvt_kernel(rocblas_int    m,
     static constexpr ptrdiff_t shiftw = 0;
     trmvt_kernel_calc<NB, LOWER, CONJ, UNIT>(
         m,
-        load_ptr_batch(a, hipBlockIdx_y, shifta, stridea),
+        load_ptr_batch(a, blockIdx.y, shifta, stridea),
         lda,
-        load_ptr_batch(x, hipBlockIdx_y, shiftx, stridex),
+        load_ptr_batch(x, blockIdx.y, shiftx, stridex),
         incx,
-        load_ptr_batch(workspace, hipBlockIdx_y, shiftw, stridew));
+        load_ptr_batch(workspace, blockIdx.y, shiftw, stridew));
 }
 
 template <typename A, typename X, typename W>

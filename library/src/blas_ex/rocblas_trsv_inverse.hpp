@@ -42,10 +42,10 @@ rocblas_internal_flip_vector_kernel(U* __restrict__ data,
                                     rocblas_stride offset,
                                     rocblas_stride stride)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     if(tx < size)
     {
-        T*          pdata = load_ptr_batch(data, hipBlockIdx_y, offset, stride);
+        T*          pdata = load_ptr_batch(data, blockIdx.y, offset, stride);
         rocblas_int end   = (m - 1 - tx) * abs_incx;
         rocblas_int start = tx * abs_incx;
         T           temp  = pdata[end];
@@ -93,11 +93,11 @@ rocblas_internal_strided_vector_copy_kernel(U __restrict__ dst,
                                             rocblas_stride offset_dst = 0,
                                             rocblas_stride offset_src = 0)
 {
-    ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t tx = blockIdx.x * blockDim.x + threadIdx.x;
     if(tx < size)
     {
-        const T* __restrict__ xsrc = load_ptr_batch(src, hipBlockIdx_y, offset_src, src_stride);
-        T* __restrict__ xdst       = load_ptr_batch(dst, hipBlockIdx_y, offset_dst, dst_stride);
+        const T* __restrict__ xsrc = load_ptr_batch(src, blockIdx.y, offset_src, src_stride);
+        T* __restrict__ xdst       = load_ptr_batch(dst, blockIdx.y, offset_dst, dst_stride);
         xdst[tx * dst_incx]        = xsrc[tx * src_incx];
     }
 }

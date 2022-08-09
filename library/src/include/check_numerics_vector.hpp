@@ -54,8 +54,8 @@ rocblas_check_numerics_vector_kernel(rocblas_int               n,
                                      rocblas_stride            stride_x,
                                      rocblas_check_numerics_t* abnormal)
 {
-    auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offset_x, stride_x);
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    auto*     x   = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     //Check every element of the x vector for a NaN/zero/Inf/denormal value
     if(tid < n)

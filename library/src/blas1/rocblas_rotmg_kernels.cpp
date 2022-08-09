@@ -184,11 +184,11 @@ rocblas_rotmg_kernel(T              d1_in,
                      rocblas_stride stride_param,
                      rocblas_int    batch_count)
 {
-    auto d1 = load_ptr_batch(d1_in, hipBlockIdx_x, offset_d1, stride_d1);
-    auto d2 = load_ptr_batch(d2_in, hipBlockIdx_x, offset_d2, stride_d2);
-    auto x1 = load_ptr_batch(x1_in, hipBlockIdx_x, offset_x1, stride_x1);
-    auto y1 = load_ptr_batch(y1_in, hipBlockIdx_x, offset_y1, stride_y1);
-    auto p  = load_ptr_batch(param, hipBlockIdx_x, offset_param, stride_param);
+    auto d1 = load_ptr_batch(d1_in, blockIdx.x, offset_d1, stride_d1);
+    auto d2 = load_ptr_batch(d2_in, blockIdx.x, offset_d2, stride_d2);
+    auto x1 = load_ptr_batch(x1_in, blockIdx.x, offset_x1, stride_x1);
+    auto y1 = load_ptr_batch(y1_in, blockIdx.x, offset_y1, stride_y1);
+    auto p  = load_ptr_batch(param, blockIdx.x, offset_param, stride_param);
     rocblas_rotmg_calc(*d1, *d2, *x1, *y1, p);
 }
 
@@ -273,10 +273,10 @@ ROCBLAS_KERNEL_NO_BOUNDS
                                                rocblas_stride            stride_y1,
                                                rocblas_check_numerics_t* abnormal)
 {
-    auto d1 = load_ptr_batch(d1_in, hipBlockIdx_x, offset_d1, stride_d1);
-    auto d2 = load_ptr_batch(d2_in, hipBlockIdx_x, offset_d2, stride_d2);
-    auto x1 = load_ptr_batch(x1_in, hipBlockIdx_x, offset_x1, stride_x1);
-    auto y1 = load_ptr_batch(y1_in, hipBlockIdx_x, offset_y1, stride_y1);
+    auto d1 = load_ptr_batch(d1_in, blockIdx.x, offset_d1, stride_d1);
+    auto d2 = load_ptr_batch(d2_in, blockIdx.x, offset_d2, stride_d2);
+    auto x1 = load_ptr_batch(x1_in, blockIdx.x, offset_x1, stride_x1);
+    auto y1 = load_ptr_batch(y1_in, blockIdx.x, offset_y1, stride_y1);
 
     //Check every element of the x vector for a NaN/zero/Inf/denormal value
     if(rocblas_iszero(*d1) || rocblas_iszero(*d2) || rocblas_iszero(*x1) || rocblas_iszero(*y1))

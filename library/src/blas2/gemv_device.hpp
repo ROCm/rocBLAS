@@ -44,13 +44,13 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int m,
                                           T*          y,
                                           rocblas_int incy)
 {
-    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
     if(!alpha)
     {
         if(thread_id < DIM_X * 4)
         {
-            rocblas_int ind = hipBlockIdx_x * DIM_X * 4 + thread_id;
+            rocblas_int ind = blockIdx.x * DIM_X * 4 + thread_id;
             if(ind < m)
                 y[ind * incy] = beta ? beta * y[ind * incy] : 0;
         }
@@ -58,8 +58,8 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int m,
     }
 
     // threads are all configurated locally
-    rocblas_int tx = hipThreadIdx_x;
-    rocblas_int ty = hipThreadIdx_y;
+    rocblas_int tx = threadIdx.x;
+    rocblas_int ty = threadIdx.y;
 
     rocblas_int ind;
 
@@ -70,7 +70,7 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int m,
 
     res_A[0] = res_A[1] = res_A[2] = res_A[3] = T{0};
 
-    ind = hipBlockIdx_x * DIM_X * 4 + tx;
+    ind = blockIdx.x * DIM_X * 4 + tx;
 
     rocblas_int n_tail = n % (4 * DIM_Y);
     rocblas_int col;
@@ -183,7 +183,7 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int m,
         for(rocblas_int i = 1; i < DIM_Y; i++)
             sdata[thread_id] += sdata[thread_id + DIM_X * 4 * i];
 
-        ind = hipBlockIdx_x * DIM_X * 4 + thread_id;
+        ind = blockIdx.x * DIM_X * 4 + thread_id;
 
         if(ind < m)
             y[ind * incy]
@@ -205,13 +205,13 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int                   m,
                                           rocblas_double_complex*       y,
                                           rocblas_int                   incy)
 {
-    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
     if(!alpha)
     {
         if(thread_id < DIM_X)
         {
-            rocblas_int ind = hipBlockIdx_x * DIM_X + thread_id;
+            rocblas_int ind = blockIdx.x * DIM_X + thread_id;
             if(ind < m)
                 y[ind * incy] = beta ? beta * y[ind * incy] : 0;
         }
@@ -222,7 +222,7 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int                   m,
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
-    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
+    rocblas_int ind = blockIdx.x * DIM_X + tx;
 
     __shared__ rocblas_double_complex sdata[DIM_X * DIM_Y];
 
@@ -267,7 +267,7 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int                   m,
         for(rocblas_int i = 1; i < DIM_Y; i++)
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
-        ind = hipBlockIdx_x * DIM_X + thread_id;
+        ind = blockIdx.x * DIM_X + thread_id;
 
         if(ind < m)
         {
@@ -289,8 +289,8 @@ ROCBLAS_KERNEL_ILF void gemvt_kernel_calc(rocblas_int m,
                                           T*          y,
                                           rocblas_int incy)
 {
-    rocblas_int tx  = hipThreadIdx_x;
-    rocblas_int col = hipBlockIdx_x;
+    rocblas_int tx  = threadIdx.x;
+    rocblas_int col = blockIdx.x;
 
     if(!alpha)
     {
@@ -357,8 +357,8 @@ ROCBLAS_KERNEL_ILF void gemvt_warp_reduce_kernel_calc(rocblas_int m,
                                                       T* __restrict__ y,
                                                       rocblas_int incy)
 {
-    rocblas_int tx  = hipThreadIdx_x;
-    rocblas_int col = hipBlockIdx_x;
+    rocblas_int tx  = threadIdx.x;
+    rocblas_int col = blockIdx.x;
 
     if(!alpha)
     {
@@ -416,21 +416,21 @@ ROCBLAS_KERNEL_ILF void gemvt_sn_kernel_calc(rocblas_int m,
 {
     // skinny n kernel
 
-    rocblas_int tx = hipThreadIdx_x;
+    rocblas_int tx = threadIdx.x;
 
     // offset blocks * cols * batch
-    workspace += size_t(hipGridDim_x) * n * hipBlockIdx_y;
+    workspace += size_t(gridDim.x) * n * blockIdx.y;
 
     // We need to short-circuit if alpha==0 and not propagate NaNs
     if(!alpha)
     {
         if(tx == 0)
             for(int i = 0; i < n; i++)
-                workspace[hipBlockIdx_x + (i)*hipGridDim_x] = 0;
+                workspace[blockIdx.x + size_t(i) * gridDim.x] = 0;
         return;
     }
 
-    int row = tx * WIN + hipBlockIdx_x * NB_X * WIN;
+    int row = tx * WIN + blockIdx.x * NB_X * WIN;
     A += row;
 
     constexpr int NC = 4;
@@ -478,7 +478,7 @@ ROCBLAS_KERNEL_ILF void gemvt_sn_kernel_calc(rocblas_int m,
         if(tx == 0)
         {
             for(int k = 0; k < NC; k++)
-                workspace[hipBlockIdx_x + (k + i) * hipGridDim_x] = alpha * sum[k];
+                workspace[blockIdx.x + size_t(k + i) * gridDim.x] = alpha * sum[k];
         }
     }
     for(; i < n; i++)
@@ -509,7 +509,7 @@ ROCBLAS_KERNEL_ILF void gemvt_sn_kernel_calc(rocblas_int m,
         }
         sum[0] = rocblas_dot_block_reduce<NB_X>(sum[0]);
         if(tx == 0)
-            workspace[hipBlockIdx_x + (i)*hipGridDim_x] = alpha * sum[0];
+            workspace[blockIdx.x + size_t(i) * gridDim.x] = alpha * sum[0];
     }
 }
 
@@ -524,17 +524,17 @@ rocblas_gemvt_sn_reduce(rocblas_int    n_sums,
                         rocblas_stride stridey,
                         T* __restrict__ workspace)
 {
-    T*   y    = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
-    auto beta = load_scalar(beta_device_host, hipBlockIdx_z, stride_beta);
+    T*   y    = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
+    auto beta = load_scalar(beta_device_host, blockIdx.z, stride_beta);
 
     T sum{0};
 
-    int offset = size_t(n_sums) * hipGridDim_y * hipBlockIdx_z + hipBlockIdx_y * n_sums;
+    size_t offset = size_t(n_sums) * (gridDim.y * blockIdx.z + blockIdx.y);
     workspace += offset;
 
-    int inc = hipBlockDim_x * WIN;
+    int inc = blockDim.x * WIN;
 
-    int i         = hipThreadIdx_x * WIN;
+    int i         = threadIdx.x * WIN;
     int remainder = n_sums % WIN;
     int end       = n_sums - remainder;
     for(; i < end; i += inc) // cover all sums as 1 block
@@ -542,15 +542,16 @@ rocblas_gemvt_sn_reduce(rocblas_int    n_sums,
         for(int j = 0; j < WIN; j++)
             sum += workspace[i + j];
     }
-    if(hipThreadIdx_x < remainder)
+    if(threadIdx.x < remainder)
     {
-        sum += workspace[n_sums - 1 - hipThreadIdx_x];
+        sum += workspace[n_sums - 1 - threadIdx.x];
     }
     sum = rocblas_dot_block_reduce<NB>(sum);
 
-    if(hipThreadIdx_x == 0)
+    if(threadIdx.x == 0)
     {
-        y[hipBlockIdx_y * incy] = beta ? (y[hipBlockIdx_y * incy] * beta) + sum : sum;
+        y[ptrdiff_t(blockIdx.y) * incy]
+            = beta ? (y[ptrdiff_t(blockIdx.y) * incy] * beta) + sum : sum;
     }
 }
 
@@ -568,7 +569,7 @@ ROCBLAS_KERNEL_ILF void gemvtsm_kernel_calc(rocblas_int m,
 {
     // small m <= 64 kernel
 
-    rocblas_int tx = hipThreadIdx_x;
+    rocblas_int tx = threadIdx.x;
 
     if(!alpha)
     {
@@ -637,20 +638,20 @@ gemvn_kernel(rocblas_int    m,
              rocblas_int    incy,
              rocblas_stride stridey)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
 
     if(!alpha && beta == 1)
         return;
 
-    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const T* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    T* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     gemvn_kernel_calc<DIM_X, DIM_Y, T_lda>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
@@ -677,16 +678,16 @@ gemvt_kernel(rocblas_int    m,
              rocblas_int    incy,
              rocblas_stride stridey)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
 
     if(!alpha && beta == 1)
         return;
 
-    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const T* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    T* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     gemvt_kernel_calc<CONJ, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
@@ -713,16 +714,16 @@ gemvt_warp_reduce_kernel(rocblas_int    m,
                          rocblas_int    incy,
                          rocblas_stride stridey)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
 
     if(!alpha && beta == 1)
         return;
 
-    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const T* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    T* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     gemvt_warp_reduce_kernel_calc<CONJ, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
@@ -749,10 +750,10 @@ gemvt_sn_kernel(rocblas_int    m,
                 rocblas_stride stridex,
                 T*             workspace)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
 
-    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const T* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
     gemvt_sn_kernel_calc<CONJ, NB_X, WIN, T_lda>(m, n, alpha, A, lda, x, incx, workspace);
 }
@@ -778,17 +779,17 @@ gemvtsm_kernel(rocblas_int    m,
                rocblas_int    incy,
                rocblas_stride stridey)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_x, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_x, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.x, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.x, stride_beta);
 
     if(!alpha && beta == 1)
         return;
 
-    // batch in hipBlockIdx_x not y
-    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_x, shifta, strideA);
-    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_x, shiftx, stridex);
+    // batch in blockIdx.x not y
+    const T* A = cond_load_ptr_batch(alpha, Aa, blockIdx.x, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, blockIdx.x, shiftx, stridex);
 
-    T* y = load_ptr_batch(ya, hipBlockIdx_x, shifty, stridey);
+    T* y = load_ptr_batch(ya, blockIdx.x, shifty, stridey);
 
     gemvtsm_kernel_calc<CONJ, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }

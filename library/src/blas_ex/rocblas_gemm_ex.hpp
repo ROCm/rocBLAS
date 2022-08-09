@@ -66,8 +66,8 @@ gemm_ex_scale_kernel(rocblas_int    m,
 {
     auto beta = load_scalar(beta_host_device);
 
-    auto C = cond_load_ptr_batch(beta != 0, CP_array, hipBlockIdx_z, shift_c, stride_c);
-    auto D = load_ptr_batch(DP_array, hipBlockIdx_z, shift_d, stride_d);
+    auto C = cond_load_ptr_batch(beta != 0, CP_array, blockIdx.z, shift_c, stride_c);
+    auto D = load_ptr_batch(DP_array, blockIdx.z, shift_d, stride_d);
     gemm_ex_scale_device(m, n, beta, C, ldc, D, ldd);
 }
 

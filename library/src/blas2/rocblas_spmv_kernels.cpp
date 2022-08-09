@@ -41,11 +41,11 @@ __device__ void spmv_kernel_calc(bool        upper,
                                  T* __restrict__ y,
                                  rocblas_int incy)
 {
-    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
     if(!alpha)
     {
-        rocblas_int ind = hipBlockIdx_x * DIM_X + thread_id;
+        rocblas_int ind = blockIdx.x * DIM_X + thread_id;
         if(thread_id < DIM_X && ind < n)
         {
             y[ind * incy] = beta ? (beta * y[ind * incy]) : 0;
@@ -57,7 +57,7 @@ __device__ void spmv_kernel_calc(bool        upper,
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
-    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
+    rocblas_int ind = blockIdx.x * DIM_X + tx;
 
     __shared__ T sdata[DIM_X * DIM_Y];
     T            res_A = 0.0;
@@ -90,7 +90,7 @@ __device__ void spmv_kernel_calc(bool        upper,
 
     __syncthreads();
 
-    ind = hipBlockIdx_x * DIM_X + thread_id;
+    ind = blockIdx.x * DIM_X + thread_id;
     if(thread_id < DIM_X && ind < n)
     {
         // Add the partial sums and store
@@ -127,19 +127,19 @@ spmv_kernel(bool           upper,
             rocblas_int    incy,
             rocblas_stride stridey)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
     if(!alpha && beta == 1)
         return;
 
-    auto AP = cond_load_ptr_batch(alpha, APa, hipBlockIdx_y, shifta, strideA);
-    auto x  = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    auto AP = cond_load_ptr_batch(alpha, APa, blockIdx.y, shifta, strideA);
+    auto x  = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    auto y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    auto y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     spmv_kernel_calc<DIM_X, DIM_Y>(upper, n, alpha, AP, x, incx, beta, y, incy);
 }
