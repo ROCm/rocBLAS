@@ -40,7 +40,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="""Checks build arguments""")
 
     parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx1030",
-                        help='Set GPU architectures, e.g. all, gfx000, gfx803, gfx906:xnack-, gfx1030, gfx1100, gfx1102 (optional, default: all)')
+                        help='Set GPU architectures, e.g. all, gfx000, gfx803, gfx906:xnack-, gfx1030, gfx1100, gfx1101, gfx1102 (optional, default: all)')
 
     parser.add_argument('-b', '--branch', dest='tensile_tag', type=str, required=False, default="",
                         help='Specify the Tensile repository branch or tag to use.(eg. develop, mybranch or <commit hash> )')
