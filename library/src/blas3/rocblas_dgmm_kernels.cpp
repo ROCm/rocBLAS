@@ -40,14 +40,14 @@ dgmm_device(rocblas_int    m,
             rocblas_int    ldc,
             rocblas_stride stride_c)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
-        auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offset_a, stride_a);
-        auto* X = load_ptr_batch(Xa, hipBlockIdx_z, shift_x, stride_x);
-        auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
+        auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
+        auto* X = load_ptr_batch(Xa, blockIdx.z, shift_x, stride_x);
+        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
         if(side_right)
         {

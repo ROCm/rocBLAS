@@ -90,11 +90,11 @@ inline __device__ void sbmv_kernel_calc(rocblas_int n,
                                         T* __restrict__ y,
                                         rocblas_int incy)
 {
-    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
     if(!alpha)
     {
-        rocblas_int ind = hipBlockIdx_x * DIM_X + thread_id;
+        rocblas_int ind = blockIdx.x * DIM_X + thread_id;
         if(thread_id < DIM_X && ind < n)
         {
             y[ind * incy] = beta ? (beta * y[ind * incy]) : 0;
@@ -106,7 +106,7 @@ inline __device__ void sbmv_kernel_calc(rocblas_int n,
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
-    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
+    rocblas_int ind = blockIdx.x * DIM_X + tx;
 
     __shared__ T sdata[DIM_X * DIM_Y];
 
@@ -118,7 +118,7 @@ inline __device__ void sbmv_kernel_calc(rocblas_int n,
 
     __syncthreads();
 
-    ind = hipBlockIdx_x * DIM_X + thread_id;
+    ind = blockIdx.x * DIM_X + thread_id;
     if(thread_id < DIM_X && ind < n)
     {
         for(rocblas_int i = 1; i < DIM_Y; i++)
@@ -155,19 +155,19 @@ sbmv_kernel(rocblas_int    n,
             rocblas_int    incy,
             rocblas_stride stridey)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
     if(!alpha && beta == 1)
         return;
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     sbmv_kernel_calc<UPPER, DIM_X, DIM_Y>(n, k, alpha, A, lda, x, incx, beta, y, incy);
 }

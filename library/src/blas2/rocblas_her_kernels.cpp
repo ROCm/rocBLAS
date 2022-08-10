@@ -34,8 +34,8 @@ ROCBLAS_KERNEL_ILF void her_kernel_calc(bool        upper,
                                         T* __restrict__ A,
                                         rocblas_int lda)
 {
-    rocblas_int tx  = hipThreadIdx_x;
-    rocblas_int col = hipBlockIdx_x;
+    rocblas_int tx  = threadIdx.x;
+    rocblas_int col = blockIdx.x;
 
     if(tx < n)
         A += tx;
@@ -95,8 +95,8 @@ rocblas_her_kernel(bool           upper,
     if(!alpha)
         return;
 
-    auto*       A = load_ptr_batch(Aa, hipBlockIdx_y, shift_A, stride_A);
-    const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shift_x, stride_x);
+    auto*       A = load_ptr_batch(Aa, blockIdx.y, shift_A, stride_A);
+    const auto* x = load_ptr_batch(xa, blockIdx.y, shift_x, stride_x);
 
     her_kernel_calc<DIM_X>(upper, n, alpha, x, incx, A, lda);
 }

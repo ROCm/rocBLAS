@@ -122,8 +122,8 @@ __inline__ __device__ T rocblas_dot_block_reduce(T val)
 {
     __shared__ T psums[warpSize];
 
-    rocblas_int wavefront = hipThreadIdx_x / warpSize;
-    rocblas_int wavelet   = hipThreadIdx_x % warpSize;
+    rocblas_int wavefront = threadIdx.x / warpSize;
+    rocblas_int wavelet   = threadIdx.x % warpSize;
 
     if(wavefront == 0)
         psums[wavelet] = T(0);
@@ -137,7 +137,7 @@ __inline__ __device__ T rocblas_dot_block_reduce(T val)
 
     // ensure wavefront was run
     static constexpr rocblas_int num_wavefronts = NB / warpSize;
-    val = (hipThreadIdx_x < num_wavefronts) ? psums[wavelet] : T(0);
+    val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T(0);
     if(wavefront == 0)
         val = wavefront_reduce<num_wavefronts>(val); // sum wavefront sums
 

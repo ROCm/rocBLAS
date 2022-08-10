@@ -35,9 +35,9 @@ ROCBLAS_KERNEL_NO_BOUNDS copy_kernel(rocblas_int    n,
                                      rocblas_int    incy,
                                      rocblas_stride stridey)
 {
-    ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    const auto* x   = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    auto*       y   = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    ptrdiff_t   tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    auto*       y   = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
     if(tid < n)
     {
 
@@ -57,9 +57,9 @@ scopy_2_kernel(rocblas_int n,
                rocblas_stride shifty,
                rocblas_stride stridey)
 {
-    ptrdiff_t   tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
-    const auto* x   = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    auto*       y   = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    ptrdiff_t   tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    auto*       y   = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
     if(tid < n - 1)
     {
         for(rocblas_int j = 0; j < 2; ++j)

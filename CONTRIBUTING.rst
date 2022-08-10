@@ -249,7 +249,7 @@ Coding Guidelines
         ROCBLAS_KERNEL void axpy_kernel(rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
         {
             auto alpha = load_scalar(alpha_device_host);
-            ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+            ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
            // bound
            if(tid < n)

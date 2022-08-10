@@ -483,7 +483,7 @@ namespace
     {
         auto beta = load_scalar(beta_host_device);
 
-        auto C = load_ptr_batch(dC, hipBlockIdx_z, shift_c, stride_c);
+        auto C = load_ptr_batch(dC, blockIdx.z, shift_c, stride_c);
         gemm_scale_device(m, n, beta, C, ldc);
     }
 

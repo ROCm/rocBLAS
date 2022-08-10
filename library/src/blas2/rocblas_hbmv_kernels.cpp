@@ -112,7 +112,7 @@ __device__ void hbmvn_kernel_calc(bool        upper,
                                   T*          y,
                                   rocblas_int incy)
 {
-    rocblas_int  thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int  thread_id = threadIdx.x + threadIdx.y * blockDim.x;
     __shared__ T sdata[DIM_X * DIM_Y];
 
     if(alpha)
@@ -120,14 +120,14 @@ __device__ void hbmvn_kernel_calc(bool        upper,
         // threads are all configurated locally
         rocblas_int ty         = thread_id / DIM_X;
         rocblas_int tx         = thread_id % DIM_X;
-        rocblas_int ind        = hipBlockIdx_x * DIM_X + tx;
+        rocblas_int ind        = blockIdx.x * DIM_X + tx;
         sdata[tx + ty * DIM_X] = hbmvn_kernel_helper<DIM_Y>(ty, ind, upper, n, k, A, lda, x, incx);
         __syncthreads();
     }
 
     if(thread_id < DIM_X)
     {
-        rocblas_int ind = hipBlockIdx_x * DIM_X + thread_id;
+        rocblas_int ind = blockIdx.x * DIM_X + thread_id;
 
         if(alpha)
         {
@@ -171,7 +171,7 @@ hbmvn_kernel(bool           upper,
              rocblas_int    incy,
              rocblas_stride stridey)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
@@ -181,10 +181,10 @@ hbmvn_kernel(bool           upper,
     if(!alpha && beta == 1)
         return;
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     hbmvn_kernel_calc<DIM_X, DIM_Y>(upper, n, k, alpha, A, lda, x, incx, beta, y, incy);
 }
