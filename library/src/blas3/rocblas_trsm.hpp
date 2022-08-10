@@ -92,11 +92,11 @@ copy_matrix_trsm(rocblas_int    rows,
                  rocblas_stride offset_a,
                  rocblas_stride offset_b)
 {
-    const T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
-    T*       xb = load_ptr_batch(b, hipBlockIdx_z, offset_b, stride_b);
+    const T* xa = load_ptr_batch(a, blockIdx.z, offset_a, stride_a);
+    T*       xb = load_ptr_batch(b, blockIdx.z, offset_b, stride_b);
 
-    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < rows && ty < cols)
         xb[tx + ldb * ty] = xa[tx + lda * ty];
@@ -151,10 +151,10 @@ set_matrix_trsm(rocblas_int    rows,
                 T              val,
                 rocblas_stride offset_a)
 {
-    T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
+    T* xa = load_ptr_batch(a, blockIdx.z, offset_a, stride_a);
 
-    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    size_t tx = blockIdx.x * blockDim.x + threadIdx.x;
+    size_t ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < rows && ty < cols)
         xa[tx + lda * ty] = T(0.0);

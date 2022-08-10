@@ -30,6 +30,11 @@ Datatypes:
         trig_float: 222
         hpl: 333
         special: 444
+  - rocblas_arithmetic_check:
+      bases: [ c_int ]
+      attr:
+        none: 111
+        ieee16_ieee32: 222
   - rocblas_gemm_flags:
       bases: [ c_uint32 ]
       attr:
@@ -370,6 +375,7 @@ Arguments:
   - d_type: rocblas_datatype
   - compute_type: rocblas_datatype
   - initialization: rocblas_initialization
+  - arithmetic_check: rocblas_arithmetic_check
   - atomics_mode: rocblas_atomics_mode
   - pad: c_uint32
   - threads: c_uint16
@@ -460,6 +466,7 @@ Defaults:
   atomics_mode: atomics_allowed
   workspace_size: 0
   initialization: rand_int
+  arithmetic_check: none
   category: nightly
   known_bug_platforms: ''
   name: rocblas-bench

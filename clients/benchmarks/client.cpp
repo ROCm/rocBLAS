@@ -1165,6 +1165,7 @@ try
     std::string d_type;
     std::string compute_type;
     std::string initialization;
+    std::string arithmetic_check;
     std::string filter;
     rocblas_int device_id;
     int         flags               = 0;
@@ -1309,6 +1310,11 @@ try
          value<std::string>(&initialization)->default_value("hpl"),
          "Intialize with random integers, trig functions sin and cos, or hpl-like input. "
          "Options: rand_int, trig_float, hpl")
+
+        ("arithmetic_check",
+         value<std::string>(&arithmetic_check)->default_value("none"),
+         "Check arithmetic for mixed precision gemm_ex. "
+         "Options: ieee16_ieee32, none")
 
         ("transposeA",
          value<char>(&arg.transA)->default_value('N'),
@@ -1482,6 +1488,10 @@ try
     arg.initialization = string2rocblas_initialization(initialization);
     if(arg.initialization == static_cast<rocblas_initialization>(-1))
         throw std::invalid_argument("Invalid value for --initialization " + initialization);
+
+    arg.arithmetic_check = string2rocblas_arithmetic_check(arithmetic_check);
+    if(arg.arithmetic_check == static_cast<rocblas_arithmetic_check>(-1))
+        throw std::invalid_argument("Invalid value for --arithmetic_check " + arithmetic_check);
 
     if(arg.M < 0)
         throw std::invalid_argument("Invalid value for -m " + std::to_string(arg.M));

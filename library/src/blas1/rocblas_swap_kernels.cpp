@@ -44,9 +44,9 @@ rocblas_swap_kernel(rocblas_int    n,
                     rocblas_int    incy,
                     rocblas_stride stridey)
 {
-    auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
-    auto*     y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    auto*     x   = load_ptr_batch(xa, blockIdx.y, offsetx, stridex);
+    auto*     y   = load_ptr_batch(ya, blockIdx.y, offsety, stridey);
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n)
     {
@@ -66,9 +66,9 @@ sswap_2_kernel(rocblas_int n,
                rocblas_stride offsety,
                rocblas_stride stridey)
 {
-    ptrdiff_t tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
-    auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
-    auto*     y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
+    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    auto*     x   = load_ptr_batch(xa, blockIdx.y, offsetx, stridex);
+    auto*     y   = load_ptr_batch(ya, blockIdx.y, offsety, stridey);
     if(tid < n - 1)
     {
         for(rocblas_int j = 0; j < 2; ++j)

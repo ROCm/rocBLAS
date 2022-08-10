@@ -33,6 +33,12 @@ enum class rocblas_initialization
     special    = 444,
 };
 
+enum class rocblas_arithmetic_check
+{
+    none          = 111,
+    ieee16_ieee32 = 222,
+};
+
 /* ============================================================================================ */
 /*  Convert rocblas constants to lapack char. */
 
@@ -147,10 +153,28 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
     return "invalid";
 }
 
+constexpr auto rocblas_arithmetic_check2string(rocblas_arithmetic_check check)
+{
+    switch(check)
+    {
+    case rocblas_arithmetic_check::none:
+        return "none";
+    case rocblas_arithmetic_check::ieee16_ieee32:
+        return "ieee16_ieee32";
+    }
+    return "invalid";
+}
+
 inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
                                             rocblas_initialization    init)
 {
     return os << rocblas_initialization2string(init);
+}
+
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
+                                            rocblas_arithmetic_check  check)
+{
+    return os << rocblas_arithmetic_check2string(check);
 }
 
 /* ============================================================================================ */
@@ -228,6 +252,14 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
         value == "hpl"        ? rocblas_initialization::hpl        :
         value == "special"    ? rocblas_initialization::special        :
         static_cast<rocblas_initialization>(-1);
+}
+
+inline rocblas_arithmetic_check string2rocblas_arithmetic_check(const std::string& value)
+{
+    return
+        value == "ieee16_ieee32"   ? rocblas_arithmetic_check::ieee16_ieee32 :
+        value == "none"            ? rocblas_arithmetic_check::none :
+        static_cast<rocblas_arithmetic_check>(-1);
 }
 
 inline rocblas_datatype string2rocblas_datatype(const std::string& value)

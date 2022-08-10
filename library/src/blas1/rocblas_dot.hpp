@@ -31,12 +31,12 @@ template <bool ONE_BLOCK, typename V, typename T>
 __inline__ __device__ void
     rocblas_dot_save_sum(V sum, V* __restrict__ workspace, T* __restrict__ out)
 {
-    if(hipThreadIdx_x == 0)
+    if(threadIdx.x == 0)
     {
-        if(ONE_BLOCK || hipGridDim_x == 1) // small N avoid second kernel
-            out[hipBlockIdx_y] = T(sum);
+        if(ONE_BLOCK || gridDim.x == 1) // small N avoid second kernel
+            out[blockIdx.y] = T(sum);
         else
-            workspace[hipBlockIdx_x + hipBlockIdx_y * hipGridDim_x] = sum;
+            workspace[blockIdx.x + size_t(blockIdx.y) * gridDim.x] = sum;
     }
 }
 
@@ -58,15 +58,15 @@ rocblas_dot_kernel_inc1(rocblas_int n,
                         V* __restrict__ workspace,
                         T* __restrict__ out)
 {
-    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    const T* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    const T* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    int i = !ONE_BLOCK ? hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x : hipThreadIdx_x;
+    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
 
     V sum = 0;
 
     // sum WIN elements per thread
-    int inc = !ONE_BLOCK ? hipBlockDim_x * hipGridDim_x : hipBlockDim_x;
+    int inc = !ONE_BLOCK ? blockDim.x * gridDim.x : blockDim.x;
     for(int j = 0; j < WIN && i < n; j++, i += inc)
     {
         sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
@@ -98,15 +98,15 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
                            V* __restrict__ workspace,
                            T* __restrict__ out)
 {
-    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    const T* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    const T* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    int i = !ONE_BLOCK ? hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x : hipThreadIdx_x;
+    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
 
     V sum = 0;
 
     // sum WIN elements per thread
-    int inc = !ONE_BLOCK ? hipBlockDim_x * hipGridDim_x : hipBlockDim_x;
+    int inc = !ONE_BLOCK ? blockDim.x * gridDim.x : blockDim.x;
     for(int j = 0; j < WIN && i < n; j++, i += inc)
     {
         sum += V(y[i]) * V(CONJ ? conj(x[i]) : x[i]);
@@ -138,16 +138,16 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
                            V* __restrict__ workspace,
                            T* __restrict__ out)
 {
-    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    const T* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    const T* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    int i = !ONE_BLOCK ? hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x : hipThreadIdx_x;
+    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
     i *= 2;
 
     V sum = 0;
 
     // sum WIN elements per thread
-    int inc = !ONE_BLOCK ? hipBlockDim_x * hipGridDim_x : hipBlockDim_x;
+    int inc = !ONE_BLOCK ? blockDim.x * gridDim.x : blockDim.x;
     inc *= 2;
     for(int j = 0; j < WIN && i < n - 1; j++, i += inc)
     {
@@ -188,15 +188,15 @@ rocblas_dot_kernel(rocblas_int n,
                    V* __restrict__ workspace,
                    T* __restrict__ out)
 {
-    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    const T* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    const T* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    int i = !ONE_BLOCK ? hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x : hipThreadIdx_x;
+    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
 
     V sum = 0;
 
     // sum WIN elements per thread
-    int inc = hipBlockDim_x * hipGridDim_x;
+    int inc = blockDim.x * gridDim.x;
     for(int j = 0; j < WIN && i < n; j++, i += inc)
     {
         sum += V(y[i * incy]) * V(CONJ ? conj(x[i * incx]) : x[i * incx]);
@@ -222,14 +222,14 @@ rocblas_dot_kernel_magsq(rocblas_int n,
                          V* __restrict__ workspace,
                          T* __restrict__ out)
 {
-    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const T* x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
 
-    int i = !ONE_BLOCK ? hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x : hipThreadIdx_x;
+    int i = !ONE_BLOCK ? blockIdx.x * blockDim.x + threadIdx.x : threadIdx.x;
 
     V sum = 0;
 
     // sum WIN elements per thread
-    int inc = hipBlockDim_x * hipGridDim_x;
+    int inc = blockDim.x * gridDim.x;
     for(int j = 0; j < WIN && i < n; j++, i += inc)
     {
         sum += V(x[i * incx]) * V(CONJ ? conj(x[i * incx]) : x[i * incx]);
@@ -245,12 +245,12 @@ rocblas_dot_kernel_reduce(rocblas_int n_sums, V* __restrict__ in, T* __restrict_
 {
     V sum = 0;
 
-    int offset = hipBlockIdx_y * n_sums;
+    size_t offset = size_t(blockIdx.y) * n_sums;
     in += offset;
 
-    int inc = hipBlockDim_x * hipGridDim_x * WIN;
+    int inc = blockDim.x * gridDim.x * WIN;
 
-    int i         = hipThreadIdx_x * WIN;
+    int i         = threadIdx.x * WIN;
     int remainder = n_sums % WIN;
     int end       = n_sums - remainder;
     for(; i < end; i += inc) // cover all sums as 1 block
@@ -258,14 +258,14 @@ rocblas_dot_kernel_reduce(rocblas_int n_sums, V* __restrict__ in, T* __restrict_
         for(int j = 0; j < WIN; j++)
             sum += in[i + j];
     }
-    if(hipThreadIdx_x < remainder)
+    if(threadIdx.x < remainder)
     {
-        sum += in[n_sums - 1 - hipThreadIdx_x];
+        sum += in[n_sums - 1 - threadIdx.x];
     }
 
     sum = rocblas_dot_block_reduce<NB>(sum);
-    if(hipThreadIdx_x == 0)
-        out[hipBlockIdx_y] = T(sum);
+    if(threadIdx.x == 0)
+        out[blockIdx.y] = T(sum);
 }
 
 // work item number (WIN) of elements to process
