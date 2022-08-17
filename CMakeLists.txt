@@ -107,51 +107,25 @@ rocm_setup_version( VERSION ${VERSION_STRING} )
 # NOTE:  workaround until llvm & hip cmake modules fixes symlink logic in their config files; remove when fixed
 list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm /opt/rocm/hip )
 
+
 # gpu arch configuration
 set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
 set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1012 gfx1030 gfx1100 gfx1101 gfx1102 )
 
 # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
 # Sets the AMDGPU_TARGETS with backward compatiblity
-if(COMMAND rocm_check_target_ids)
+if (AMDGPU_TARGETS STREQUAL "all")
   rocm_check_target_ids(target_list
       TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
   )
 else()
-  # This section is deprecated. Please use rocm_check_target_ids for future use.
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
-      OUTPUT_VARIABLE CXX_OUTPUT
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_STRIP_TRAILING_WHITESPACE)
-    string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
-  endif()
-  if(TARGET_ID_SUPPORT)
-    if(Tensile_LOGIC STREQUAL "aldebaran")
-      # Temporary bypass: if logic aldebaran logic is selected, assume aldebaran compiler support exists
-      # To be removed for ROCm 4.4
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-    else()
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
-    endif()
-  else()
-    set(target_list "gfx803;gfx900;gfx906;gfx908")
-  endif()
+  rocm_check_target_ids(target_list TARGETS "${AMDGPU_TARGETS}")
 endif()
 
-set(ROCBLAS_ALL_GPUS "${target_list}" CACHE STRING "List of specific machine types for library to target")
+# must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
+# to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
+set( AMDGPU_TARGETS "${target_list}" CACHE STRING "AMD GPU targets to compile for" FORCE )
 
-# gpu architectures to build for we may FORCE overwrite expanded "all", AMDGPU_TARGETS always defined by install.sh
-if (AMDGPU_TARGETS)
-  if( AMDGPU_TARGETS STREQUAL "all" )
-    set( gpus "${ROCBLAS_ALL_GPUS}")
-  else()
-    set( gpus "${AMDGPU_TARGETS}")
-  endif()
-  # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
-  # to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
-  set( AMDGPU_TARGETS "${gpus}" CACHE STRING "AMD GPU targets to compile for" FORCE )
-endif()
 
 if(NOT SKIP_LIBRARY)
   if( BUILD_WITH_TENSILE )

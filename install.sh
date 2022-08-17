@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+declare -a input_args
+input_args+="$@"
+
 #use readlink rather than realpath for CentOS 6.10 support
 ROCBLAS_SRC_PATH=`dirname "$(readlink -m $0)"`
 
@@ -62,7 +65,7 @@ rocBLAS build & installation helper script.
     -l, --logic <arg>                Specify the Tesile logic target. (e.g., asm_full, asm_lite, etc)
 
     --[no-]lazy-library-loading      Enable on-demand loading of Tensile Library files, speeds up the rocblas initialization. (Default is enabled)
-        
+
     --library-path <blasdir>         Specify path to a pre-built rocBLAS library, when building clients only using '--clients-only' flag.
                                      (Default is /opt/rocm/rocblas)
 
@@ -87,8 +90,6 @@ rocBLAS build & installation helper script.
     -u, --use-custom-version <arg>   Ignore the Tensile version and just use the Tensile tag.
 
     --upgrade_tensile_venv_pip       Upgrade PIP version during Tensile installation.
-
-    --use-cuda                       Use installed CUDA version instead of ROCm stack.
 
     --rm-legacy-include-dir          Remove legacy include dir Packaging added for file/folder reorg backward compatibility.
 EOF
@@ -375,7 +376,6 @@ build_library=true
 build_cleanup=false
 build_clients=false
 build_clients_no_fortran=false
-use_cuda=false
 build_tensile=true
 build_release=true
 build_hip_clang=true
@@ -390,7 +390,7 @@ build_codecoverage=false
 build_release_debug=false
 build_address_sanitizer=false
 build_freorg_bkwdcomp=true
-declare -a cmake_common_options
+declare -a cmake_options
 declare -a cmake_client_options
 
 rocm_path=/opt/rocm
@@ -407,7 +407,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,use-custom-version:,skipldconf,static,relocatable,use-cuda,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures,lazy-library-loading,no-lazy-library-loading --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,jobs:,cleanup,clients,clients_no_fortran,clients-only,dependencies,debug,no_tensile,no-tensile,upgrade_tensile_venv_pip,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,use-custom-version:,skipldconf,static,relocatable,cmake_install,codecoverage,relwithdebinfo,address-sanitizer,cmake-arg:,rm-legacy-include-dir,merge-architectures,no-merge-architectures,lazy-library-loading,no-lazy-library-loading --options rnhij:cdgkl:a:o:f:b:t:su: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -492,9 +492,6 @@ while true; do
       skip_ld_conf_entry=true
       build_relocatable=true
       shift ;;
-    --use-cuda)
-        use_cuda=true
-        shift ;;
     --merge-architectures)
         tensile_separate_architectures=false
         tensile_lazy_library_loading=false
@@ -537,7 +534,7 @@ while true; do
         build_freorg_bkwdcomp=false
         shift ;;
     --cmake-arg)
-        cmake_common_options+=("${2}")
+        cmake_options+=("${2}")
         shift 2 ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
@@ -678,7 +675,7 @@ pushd .
   # configure & build
   # #################################################
 
-  cmake_common_options+=(
+  cmake_options+=(
     "-DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake"
     "-DROCM_PATH=${rocm_path}"
     "-DAMDGPU_TARGETS=${gpu_architecture}"
@@ -687,13 +684,13 @@ pushd .
   # build type
   if [[ "${build_release}" == true ]]; then
     mkdir -p ${build_dir}/release/clients && cd ${build_dir}/release
-    cmake_common_options+=("-DCMAKE_BUILD_TYPE=Release")
+    cmake_options+=("-DCMAKE_BUILD_TYPE=Release")
   elif [[ "${build_release_debug}" == true ]]; then
     mkdir -p ${build_dir}/release-debug/clients && cd ${build_dir}/release-debug
-    cmake_common_options+=("-DCMAKE_BUILD_TYPE=RelWithDebInfo")
+    cmake_options+=("-DCMAKE_BUILD_TYPE=RelWithDebInfo")
   else
     mkdir -p ${build_dir}/debug/clients && cd ${build_dir}/debug
-    cmake_common_options+=("-DCMAKE_BUILD_TYPE=Debug")
+    cmake_options+=("-DCMAKE_BUILD_TYPE=Debug")
   fi
 
   # code coverage
@@ -702,60 +699,60 @@ pushd .
           echo "Code coverage is disabled in Release mode, to enable code coverage select either Debug mode (-g|--debug) or RelWithDebInfo mode (-k|--relwithdebinfo); aborting";
           exit 1
       fi
-      cmake_common_options+=("-DBUILD_CODE_COVERAGE=ON")
+      cmake_options+=("-DBUILD_CODE_COVERAGE=ON")
   fi
 
   if [[ "${static_lib}" == true ]]; then
-    cmake_common_options+=("-DBUILD_SHARED_LIBS=OFF")
+    cmake_options+=("-DBUILD_SHARED_LIBS=OFF")
   fi
 
 
   # tensile options
   if [[ -n "${tensile_fork}" ]]; then
-    cmake_common_options+=("-Dtensile_fork=${tensile_fork}")
+    cmake_options+=("-Dtensile_fork=${tensile_fork}")
   fi
 
   if [[ -n "${tensile_tag}" ]]; then
-    cmake_common_options+=("-Dtensile_tag=${tensile_tag}")
+    cmake_options+=("-Dtensile_tag=${tensile_tag}")
   fi
 
   if [[ -n "${tensile_test_local_path}" ]]; then
-    cmake_common_options+=("-DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}")
+    cmake_options+=("-DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}")
   fi
 
   if [[ "${skip_ld_conf_entry}" == true ]]; then
-    cmake_common_options+=("-DROCM_DISABLE_LDCONFIG=ON")
+    cmake_options+=("-DROCM_DISABLE_LDCONFIG=ON")
   fi
 
   if [[ -n "${tensile_version}" ]]; then
-    cmake_common_options+=("-DTENSILE_VERSION=${tensile_version}")
+    cmake_options+=("-DTENSILE_VERSION=${tensile_version}")
   fi
 
   if [[ "${build_tensile}" == false ]]; then
-    cmake_common_options+=("-DBUILD_WITH_TENSILE=OFF")
+    cmake_options+=("-DBUILD_WITH_TENSILE=OFF")
    else
-    cmake_common_options+=("-DTensile_LOGIC=${tensile_logic}" "-DTensile_CODE_OBJECT_VERSION=${tensile_cov}")
+    cmake_options+=("-DTensile_LOGIC=${tensile_logic}" "-DTensile_CODE_OBJECT_VERSION=${tensile_cov}")
     if [[ ${build_jobs} != $(nproc) ]]; then
-      cmake_common_options+=("-DTensile_CPU_THREADS=${build_jobs}")
+      cmake_options+=("-DTensile_CPU_THREADS=${build_jobs}")
     fi
   fi
 
   if [[ "${upgrade_tensile_pip}" == true ]]; then
-    cmake_common_options+=("-DTENSILE_VENV_UPGRADE_PIP=ON")
+    cmake_options+=("-DTENSILE_VENV_UPGRADE_PIP=ON")
   fi
 
   if [[ "${tensile_separate_architectures}" == true ]]; then
-    cmake_common_options+=("-DTensile_SEPARATE_ARCHITECTURES=ON")
+    cmake_options+=("-DTensile_SEPARATE_ARCHITECTURES=ON")
   fi
 
   if [[ "${tensile_lazy_library_loading}" == true ]]; then
-    cmake_common_options+=("-DTensile_LAZY_LIBRARY_LOADING=ON")
+    cmake_options+=("-DTensile_LAZY_LIBRARY_LOADING=ON")
   fi
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
-    cmake_common_options+=("-DTensile_LIBRARY_FORMAT=msgpack")
+    cmake_options+=("-DTensile_LIBRARY_FORMAT=msgpack")
   else
-    cmake_common_options+=("-DTensile_LIBRARY_FORMAT=yaml")
+    cmake_options+=("-DTensile_LIBRARY_FORMAT=yaml")
   fi
 
 
@@ -785,31 +782,27 @@ pushd .
   fi
 
   if [[ "${build_hip_clang}" == true ]]; then
-      cmake_common_options+=("-DRUN_HEADER_TESTING=OFF")
-  fi
-
-  if [[ "${use_cuda}" == true ]]; then
-    cmake_common_options+=("-DUSE_CUDA=ON")
+      cmake_options+=("-DRUN_HEADER_TESTING=OFF")
   fi
 
   if [[ "${build_address_sanitizer}" == true ]]; then
-    cmake_common_options+=("-DBUILD_ADDRESS_SANITIZER=ON")
+    cmake_options+=("-DBUILD_ADDRESS_SANITIZER=ON")
   fi
   if [[ "${build_freorg_bkwdcomp}" == true ]]; then
-    cmake_common_options+=("-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON")
+    cmake_options+=("-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON")
   else
-    cmake_common_options+=("-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF")
+    cmake_options+=("-DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF")
   fi
 
   # Uncomment for cmake debugging
-  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+  # cmake_options+=("-Wdev" "--debug-output" "--trace")
 
-  # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_common_options[@]} ${cmake_client_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} -DCMAKE_SHARED_LINKER_FLAGS="${rocm_rpath}" ${ROCBLAS_SRC_PATH}
-  else
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} -DCMAKE_SHARED_LINKER_FLAGS="${rocm_rpath}" ${ROCBLAS_SRC_PATH}
+    cmake_options+=(${cmake_client_options[@]})
   fi
+
+  # Build library with AMD toolchain because of existence of device kernels
+  CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_options[@]} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} -DCMAKE_SHARED_LINKER_FLAGS="${rocm_rpath}" ${ROCBLAS_SRC_PATH}
   check_exit_code "$?"
 
   if [[ "${build_library}" == true ]]; then
@@ -817,6 +810,12 @@ pushd .
   else
     make -j${build_jobs}
   fi
+
+  # pushd .
+  # cd ../..
+  # python3 ./rmake.py ${input_args}
+  # popd
+
   check_exit_code "$?"
 
   # #################################################
