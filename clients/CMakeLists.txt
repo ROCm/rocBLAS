@@ -105,12 +105,6 @@ if ( NOT hip_FOUND )
   find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} )
 endif( )
 
-# The presense of hip OR CUDA is not sufficient to determine if we want a rocm or cuda backend
-if( USE_CUDA )
-  # Quietly look for CUDA, but if not found it's not an error
-  find_package( CUDA QUIET )
-endif( )
-
 if( BUILD_CLIENTS_SAMPLES )
   add_subdirectory( samples )
 endif( )
