@@ -27,6 +27,85 @@
 #include "rocblas_trmm.hpp"
 #include "trtri_trsm.hpp"
 
+/** Constants for block size of trsm **/
+// clang-format off
+#define TRSM_NUMROWS_REAL 12
+#define TRSM_NUMCOLS_REAL 16
+#define TRSM_INTERVALSROW_REAL                                          \
+    40, 56, 80, 112, 144, 176, 208, 240, 288, 352, 480
+#define TRSM_INTERVALSCOL_REAL                                          \
+    448, 768, 960, 1152, 1408, 1920, 2304, 2816, 3840, 4096, 4736,      \
+    4992, 5888, 7680, 9728
+#define TRSM_BLKSIZES_REAL                                              \
+    {1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1},    \
+    {1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, 24, 24, 24, 16},    \
+    {1,  1,  1,  1,  1,  1,  1,  1,  1, 32, 32, 32, 32, 32, 24, 16},    \
+    {1,  1,  1,  1,  1,  1,  1, 48, 48, 48, 48, 32, 32, 32, 24, 16},    \
+    {1,  1,  1,  1,  1,  1, 64, 64, 64, 48, 48, 32, 32, 32, 24, 16},    \
+    {1,  1,  1,  1,  1, 80, 80, 80, 56, 56, 40, 40, 40, 32, 32, 32},    \
+    {1,  1,  1,  1, 80, 80, 80, 80, 80, 48, 48, 48, 40, 32,  0,  0},    \
+    {1,  1,  1, 80, 80, 80, 80, 80, 56, 56, 32, 32, 32, 32,  0,  0},    \
+    {1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},    \
+    {1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},    \
+    {1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},    \
+    {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}
+
+#define TRSM_NUMROWS_COMPLEX 10
+#define TRSM_NUMCOLS_COMPLEX 12
+#define TRSM_INTERVALSROW_COMPLEX                                       \
+    40, 56, 80, 112, 144, 208, 240, 288, 480
+#define TRSM_INTERVALSCOL_COMPLEX                                       \
+    704, 960, 1344, 1920, 2304, 2816, 3200, 3840, 4864, 5888, 7680
+#define TRSM_BLKSIZES_COMPLEX                                           \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},                               \
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 24, 24, 24},                            \
+    {1, 1, 1, 1, 1, 1, 1, 1, 32, 32, 32, 32},                           \
+    {1, 1, 1, 1, 1, 72, 72, 56, 48, 32, 32, 32},                        \
+    {1, 1, 1, 1, 64, 64, 64, 64, 48, 32, 32, 32},                       \
+    {1, 1, 1, 80, 80, 80, 64, 64, 48, 32, 32, 32},                      \
+    {1, 1, 80, 80, 80, 80, 64, 64, 40, 40, 32, 32},                     \
+    {1, 1, 72, 72, 64, 64, 64, 64, 32, 32, 32, 0},                      \
+    {1, 80, 80, 80, 80, 80, 64, 64, 48, 40, 32, 0},                     \
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+#define TRSM_BATCH_NUMROWS_REAL 11
+#define TRSM_BATCH_NUMCOLS_REAL 17
+#define TRSM_BATCH_INTERVALSROW_REAL                                        \
+    20, 28, 40, 80, 112, 176, 208, 288, 352, 480
+#define TRSM_BATCH_INTERVALSCOL_REAL                                        \
+    6, 10, 12, 22, 28, 30, 36, 42, 46, 50, 60, 96, 432, 928, 960, 1472
+#define TRSM_BATCH_BLKSIZES_REAL                                            \
+    { 1,  1,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},   \
+    { 1,  1,  1,  1, 16, 16, 16,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},   \
+    { 1,  1,  1,  1, 16, 16, 16, 16, 16,  0,  0,  0,  0,  0,  0,  0,  0},   \
+    { 1, 24, 24, 24, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16},   \
+    {48, 48, 32, 32, 24, 24, 16, 16, 16, 32, 32, 32, 16, 16, 16, 16, 16},   \
+    {64, 64, 32, 32, 24, 24, 16, 16, 16, 32, 32, 32, 24, 24, 24, 24, 24},   \
+    {64, 64, 32, 32, 24, 24, 24, 24, 32, 32, 32, 32, 32, 24, 24, 24, 24},   \
+    {64, 64, 64, 32, 32, 32, 32, 40, 40, 40, 40, 32, 32, 24, 24, 32, 32},   \
+    {64, 64, 64, 32, 32, 32, 32, 40, 48, 48, 40, 32, 32, 32, 32, 32, 32},   \
+    {64, 64, 64, 32, 32, 32, 32, 40, 48, 48, 40, 32, 32, 32, 32, 32,  0},   \
+    {64, 64, 64, 32, 32, 32, 48, 48, 48, 48, 40, 32, 32, 32,  0,  0,  0}
+
+#define TRSM_BATCH_NUMROWS_COMPLEX 10
+#define TRSM_BATCH_NUMCOLS_COMPLEX 16
+#define TRSM_BATCH_INTERVALSROW_COMPLEX                                     \
+    20, 28, 40, 56, 80, 112, 144, 176, 480
+#define TRSM_BATCH_INTERVALSCOL_COMPLEX                                     \
+    4, 12, 16, 28, 32, 40, 48, 50, 60, 72, 88, 176, 232, 400, 464
+#define TRSM_BATCH_BLKSIZES_COMPLEX                                         \
+    {1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1},        \
+    {1,  1,  1,  1,  1,  1,  1,  1,  8,  1,  1,  1,  1,  1,  1,  1},        \
+    {1,  1,  1,  1, 16, 16, 16, 16,  1,  1,  1, 16, 16, 16, 16, 16},        \
+    {1,  1,  1, 24, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16},        \
+    {1,  1, 32, 32, 32, 32, 32, 32, 32, 32, 32, 16, 16, 16, 16, 16},        \
+    {1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, 48, 48, 32},        \
+    {1,  1,  1,  1,  1,  1,  1,  1,  1,  1, 64, 64, 64, 64, 64, 32},        \
+    {1,  1,  1,  1,  1,  1,  1,  1,  1,  1, 80, 80, 56, 56, 32, 32},        \
+    {1, 64, 32, 32, 32, 64, 48, 32, 32, 32, 32, 32, 32, 32, 32, 32},        \
+    {1,  1,  1,  1,  1,  1, 64, 64, 64, 64, 64, 64, 64, 48, 48, 48}
+// clang-format on
+
 template <typename T>
 static const T negative_one = T(-1);
 template <typename T>
@@ -2565,6 +2644,432 @@ void rocblas_trsm_small(rocblas_handle    handle,
     }
 }
 
+template <typename T,
+          typename SCAL,
+          typename ATYPE,
+          typename BTYPE,
+          bool TRANSA,
+          bool TRANSB,
+          bool CONJ,
+          bool UNIT>
+ROCBLAS_KERNEL_NO_BOUNDS rocblas_trsm_block_backward_substitution(int            m,
+                                                                  int            n,
+                                                                  SCAL           alpha_dev_host,
+                                                                  ATYPE          Aa,
+                                                                  rocblas_stride offset_A,
+                                                                  int            lda,
+                                                                  rocblas_stride stride_A,
+                                                                  BTYPE          Ba,
+                                                                  rocblas_stride offset_B,
+                                                                  int            ldb,
+                                                                  rocblas_stride stride_B)
+{
+    const int batchid = blockIdx.z;
+    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
+    auto      alpha   = load_scalar(alpha_dev_host);
+
+    const rocblas_int lda_norm  = TRANSA ? lda : 1;
+    const rocblas_int lda_trans = TRANSA ? 1 : lda;
+    const rocblas_int ldb_norm  = TRANSB ? ldb : 1;
+    const rocblas_int ldb_trans = TRANSB ? 1 : ldb;
+
+    const int tx   = threadIdx.x;
+    const int ty   = threadIdx.y;
+    const int offY = blockIdx.y * blockDim.y + threadIdx.y;
+
+    // passing as extern shared memory to avoid templating NB size
+    // casting fails when going from double -> double complex and otherwise
+    extern __shared__ rocblas_double_complex smem[];
+    T*                                       sB = reinterpret_cast<T*>(smem);
+
+    if(offY < n && tx < m)
+    {
+        T valB = alpha * B[offY * ldb_norm + tx * ldb_trans];
+        for(int i = m - 1; i > 0; i--)
+        {
+            // tx is row of B, ty is col of B
+            // tx is row of A, i is col of A
+            __syncthreads();
+            if(tx == i)
+            {
+                // solve cur row
+                valB   = UNIT ? valB : valB / A[tx * lda_norm + tx * lda_trans];
+                sB[ty] = valB;
+            }
+
+            __syncthreads();
+
+            if(tx < i)
+                valB -= (CONJ ? conj(A[i * lda_norm + tx * lda_trans])
+                              : A[i * lda_norm + tx * lda_trans])
+                        * sB[ty];
+        }
+
+        if(!UNIT && tx == 0)
+            valB /= A[tx * lda_norm + tx * lda_trans];
+
+        // store back to mem
+        B[offY * ldb_norm + tx * ldb_trans] = valB;
+    }
+}
+
+template <typename T,
+          typename SCAL,
+          typename ATYPE,
+          typename BTYPE,
+          bool TRANSA,
+          bool TRANSB,
+          bool CONJ,
+          bool UNIT>
+ROCBLAS_KERNEL_NO_BOUNDS rocblas_trsm_block_forward_substitution(int            m,
+                                                                 int            n,
+                                                                 SCAL           alpha_dev_host,
+                                                                 ATYPE          Aa,
+                                                                 rocblas_stride offset_A,
+                                                                 int            lda,
+                                                                 rocblas_stride stride_A,
+                                                                 BTYPE          Ba,
+                                                                 rocblas_stride offset_B,
+                                                                 int            ldb,
+                                                                 rocblas_stride stride_B)
+{
+    const rocblas_int lda_norm  = TRANSA ? 1 : lda;
+    const rocblas_int lda_trans = TRANSA ? lda : 1;
+    const rocblas_int ldb_norm  = TRANSB ? 1 : ldb;
+    const rocblas_int ldb_trans = TRANSB ? ldb : 1;
+
+    const int batchid = blockIdx.z;
+    auto      A       = load_ptr_batch(Aa, batchid, offset_A, stride_A);
+    auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
+    auto      alpha   = load_scalar(alpha_dev_host);
+
+    const int tx   = threadIdx.x;
+    const int ty   = threadIdx.y;
+    const int offY = blockIdx.y * blockDim.y + threadIdx.y;
+
+    extern __shared__ rocblas_double_complex smem[];
+    T*                                       sB = reinterpret_cast<T*>(smem);
+
+    if(offY < n && tx < m)
+    {
+        T valB = alpha * B[offY * ldb_norm + tx * ldb_trans];
+        for(int i = 0; i < m - 1; i++)
+        {
+            // tx is row of B, ty is col of B
+            // tx is row of A, i is col of A
+            __syncthreads();
+            if(tx == i)
+            {
+                // solve cur row
+                valB   = UNIT ? valB : valB / A[tx * lda_norm + tx * lda_trans];
+                sB[ty] = valB;
+            }
+            __syncthreads();
+
+            if(tx > i)
+                valB -= (CONJ ? conj(A[i * lda_norm + tx * lda_trans])
+                              : A[i * lda_norm + tx * lda_trans])
+                        * sB[ty];
+        }
+
+        if(!UNIT && tx == m - 1)
+            valB /= A[tx * lda_norm + tx * lda_trans];
+
+        // store back to mem
+        B[offY * ldb_norm + tx * ldb_trans] = valB;
+    }
+}
+
+inline rocblas_int get_index(rocblas_int* intervals, rocblas_int max, rocblas_int dim)
+{
+    rocblas_int i;
+
+    for(i = 0; i < max; ++i)
+    {
+        if(dim <= intervals[i])
+            break;
+    }
+
+    return i;
+}
+
+/** This function returns the block size for the internal blocked trsm implementation.
+ *  The block sizes and logic is taken directly from rocSOLVER.
+ */
+template <bool BATCHED, typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
+rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
+{
+    rocblas_int blk = 0;
+
+    if(BATCHED)
+    {
+        rocblas_int M                               = TRSM_BATCH_NUMROWS_REAL - 1;
+        rocblas_int N                               = TRSM_BATCH_NUMCOLS_REAL - 1;
+        rocblas_int intervalsM[]                    = {TRSM_BATCH_INTERVALSROW_REAL};
+        rocblas_int intervalsN[]                    = {TRSM_BATCH_INTERVALSCOL_REAL};
+        rocblas_int size[][TRSM_BATCH_NUMCOLS_REAL] = {TRSM_BATCH_BLKSIZES_REAL};
+        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
+    }
+    else
+    {
+        rocblas_int M                         = TRSM_NUMROWS_REAL - 1;
+        rocblas_int N                         = TRSM_NUMCOLS_REAL - 1;
+        rocblas_int intervalsM[]              = {TRSM_INTERVALSROW_REAL};
+        rocblas_int intervalsN[]              = {TRSM_INTERVALSCOL_REAL};
+        rocblas_int size[][TRSM_NUMCOLS_REAL] = {TRSM_BLKSIZES_REAL};
+        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
+    }
+
+    if(blk == 1)
+        blk = std::min(m, 512);
+
+    // Note: If blk remains zero, we won't be using the substitution method.
+    return blk;
+}
+
+template <bool BATCHED, typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
+rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
+{
+    rocblas_int blk = 0;
+
+    if(BATCHED)
+    {
+        rocblas_int M                                  = TRSM_BATCH_NUMROWS_COMPLEX - 1;
+        rocblas_int N                                  = TRSM_BATCH_NUMCOLS_COMPLEX - 1;
+        rocblas_int intervalsM[]                       = {TRSM_BATCH_INTERVALSROW_COMPLEX};
+        rocblas_int intervalsN[]                       = {TRSM_BATCH_INTERVALSCOL_COMPLEX};
+        rocblas_int size[][TRSM_BATCH_NUMCOLS_COMPLEX] = {TRSM_BATCH_BLKSIZES_COMPLEX};
+        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
+    }
+    else
+    {
+        rocblas_int M                            = TRSM_NUMROWS_COMPLEX - 1;
+        rocblas_int N                            = TRSM_NUMCOLS_COMPLEX - 1;
+        rocblas_int intervalsM[]                 = {TRSM_INTERVALSROW_COMPLEX};
+        rocblas_int intervalsN[]                 = {TRSM_INTERVALSCOL_COMPLEX};
+        rocblas_int size[][TRSM_NUMCOLS_COMPLEX] = {TRSM_BLKSIZES_COMPLEX};
+        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
+    }
+
+    if(blk == 1)
+        blk = std::min(m, 512);
+
+    return blk;
+}
+
+template <typename T,
+          typename SCAL,
+          typename ATYPE,
+          typename BTYPE,
+          bool LEFT,
+          bool UPPER,
+          bool TRANSA,
+          bool CONJ,
+          bool UNIT,
+          bool BATCHED>
+void rocblas_trsm_small_substitution(rocblas_handle handle,
+                                     rocblas_int    m,
+                                     rocblas_int    n,
+                                     SCAL           alpha,
+                                     ATYPE          dA,
+                                     rocblas_stride offset_A,
+                                     rocblas_int    lda,
+                                     rocblas_stride stride_A,
+                                     BTYPE          dB,
+                                     rocblas_stride offset_B,
+                                     rocblas_int    ldb,
+                                     rocblas_stride stride_B,
+                                     rocblas_int    batch_count,
+                                     rocblas_int    blk_size)
+{
+    constexpr bool    TRANSB = (!UPPER && TRANSA) || (UPPER && !TRANSA);
+    const rocblas_int k      = LEFT ? n : m;
+    const rocblas_int k2     = LEFT ? m : n;
+    rocblas_int       NBX    = blk_size;
+
+    rocblas_int blocks = (k - 1) / (1024 / NBX) + 1;
+
+    // for gemms
+    rocblas_operation transA = CONJ     ? rocblas_operation_conjugate_transpose
+                               : TRANSA ? rocblas_operation_transpose
+                                        : rocblas_operation_none;
+
+    // kernel params for trsm substitution/solve portion
+    dim3 grid(1, blocks, batch_count);
+    dim3 threads(NBX, 1024 / NBX, 1);
+
+    // for updating B with solved portions
+    T           negative_one = -1;
+    T           one          = 1;
+    rocblas_int j            = 0;
+    rocblas_int offA_sub, offB_sub;
+    size_t      smem_size;
+
+    // Different kernels for forward substitution vs. backward substitution
+    constexpr bool FORWARD_SUB = (LEFT && ((!TRANSA && !UPPER) || (TRANSA && UPPER)))
+                                 || (!LEFT && ((TRANSA && !UPPER) || (!TRANSA && UPPER)));
+    for(j = 0; j < k2 - NBX; j += NBX)
+    {
+        const rocblas_int j_next = j + NBX;
+
+        rocblas_int offA_gemm = LEFT ? (!TRANSA ? j * lda + j_next : j + j_next * lda)
+                                     : (!TRANSA ? j + j_next * lda : j * lda + j_next);
+        rocblas_int offB_gemm = LEFT ? j : j * ldb;
+        rocblas_int offC_gemm = LEFT ? j_next : j_next * ldb;
+        smem_size             = (1024 / NBX) * sizeof(T);
+
+        // 1. call trsm subtitution/solve
+        if(FORWARD_SUB)
+        {
+            offA_sub = j * lda + j;
+            offB_sub = LEFT ? j : j * ldb;
+            hipLaunchKernelGGL((rocblas_trsm_block_forward_substitution<T,
+                                                                        SCAL,
+                                                                        ATYPE,
+                                                                        BTYPE,
+                                                                        UPPER,
+                                                                        TRANSB,
+                                                                        CONJ,
+                                                                        UNIT>),
+                               grid,
+                               threads,
+                               smem_size,
+                               handle->get_stream(),
+                               NBX,
+                               k,
+                               j == 0 ? alpha : 1,
+                               dA,
+                               offset_A + offA_sub,
+                               lda,
+                               stride_A,
+                               dB,
+                               offset_B + offB_sub,
+                               ldb,
+                               stride_B);
+        }
+        else
+        {
+            offA_sub = LEFT ? (m - j_next) * lda + (m - j_next) : (n - j_next) * lda + (n - j_next);
+            offB_sub = LEFT ? m - j_next : (n - j_next) * ldb;
+            offA_gemm = LEFT ? (!TRANSA ? (m - j_next) * lda : m - j_next)
+                             : (!TRANSA ? n - j_next : (n - j_next) * lda);
+            offB_gemm = LEFT ? m - j_next : (n - j_next) * ldb;
+            offC_gemm = 0;
+            hipLaunchKernelGGL((rocblas_trsm_block_backward_substitution<T,
+                                                                         SCAL,
+                                                                         ATYPE,
+                                                                         BTYPE,
+                                                                         UPPER,
+                                                                         TRANSB,
+                                                                         CONJ,
+                                                                         UNIT>),
+                               grid,
+                               threads,
+                               smem_size,
+                               handle->get_stream(),
+                               NBX,
+                               k,
+                               j == 0 ? alpha : 1,
+                               dA,
+                               offset_A + offA_sub,
+                               lda,
+                               stride_A,
+                               dB,
+                               offset_B + offB_sub,
+                               ldb,
+                               stride_B);
+        }
+
+        // 2. call gemm to update B matrix
+        rocblas_internal_gemm_template<BATCHED>(handle,
+                                                LEFT ? transA : rocblas_operation_none,
+                                                LEFT ? rocblas_operation_none : transA,
+                                                LEFT ? m - j_next : m,
+                                                LEFT ? n : n - j_next,
+                                                NBX,
+                                                &negative_one,
+                                                LEFT ? dA : (ATYPE)dB,
+                                                LEFT ? offset_A + offA_gemm : offset_B + offB_gemm,
+                                                LEFT ? lda : ldb,
+                                                LEFT ? stride_A : stride_B,
+                                                LEFT ? (ATYPE)dB : dA,
+                                                LEFT ? offset_B + offB_gemm : offset_A + offA_gemm,
+                                                LEFT ? ldb : lda,
+                                                LEFT ? stride_B : stride_A,
+                                                j == 0 ? &alpha : &one,
+                                                dB,
+                                                offset_B + offC_gemm,
+                                                ldb,
+                                                stride_B,
+                                                batch_count);
+    }
+
+    // solve last diagonal
+    rocblas_int leftover = k2 - j;
+    blocks               = (k - 1) / (1024 / leftover) + 1;
+    grid                 = dim3(1, blocks, batch_count);
+    threads              = dim3(leftover, 1024 / leftover, 1);
+    smem_size            = (1024 / leftover) * sizeof(T);
+
+    if(FORWARD_SUB)
+    {
+        offA_sub = j * lda + j;
+        offB_sub = LEFT ? j : j * ldb;
+        hipLaunchKernelGGL((rocblas_trsm_block_forward_substitution<T,
+                                                                    SCAL,
+                                                                    ATYPE,
+                                                                    BTYPE,
+                                                                    UPPER,
+                                                                    TRANSB,
+                                                                    CONJ,
+                                                                    UNIT>),
+                           grid,
+                           threads,
+                           smem_size,
+                           handle->get_stream(),
+                           k2 - j,
+                           k,
+                           j == 0 ? alpha : 1,
+                           dA,
+                           offset_A + offA_sub,
+                           lda,
+                           stride_A,
+                           dB,
+                           offset_B + offB_sub,
+                           ldb,
+                           stride_B);
+    }
+    else
+    {
+        offA_sub = LEFT ? 0 : 0;
+        offB_sub = LEFT ? 0 : 0;
+        hipLaunchKernelGGL((rocblas_trsm_block_backward_substitution<T,
+                                                                     SCAL,
+                                                                     ATYPE,
+                                                                     BTYPE,
+                                                                     UPPER,
+                                                                     TRANSB,
+                                                                     CONJ,
+                                                                     UNIT>),
+                           grid,
+                           threads,
+                           smem_size,
+                           handle->get_stream(),
+                           k2 - j,
+                           k,
+                           j == 0 ? alpha : 1,
+                           dA,
+                           offset_A + offA_sub,
+                           lda,
+                           stride_A,
+                           dB,
+                           offset_B + offB_sub,
+                           ldb,
+                           stride_B);
+    }
+}
+
 /*
  * For sizes in (32, 64] we need a specialization for double complex types. This function is for all other cases where we can use the
  * regular substitution kernels.
@@ -2734,7 +3239,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(!rocblas_is_complex<T> && transA == rocblas_operation_conjugate_transpose)
         transA = rocblas_operation_transpose;
 
-    rocblas_int k = side == rocblas_side_left ? m : n;
+    rocblas_int k  = side == rocblas_side_left ? m : n;
+    rocblas_int k1 = side == rocblas_side_left ? n : m;
 
     if(n == 1 && side == rocblas_side_left)
     {
@@ -2775,6 +3281,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             return rocblas_status_success;
         }
 
+        // These small substitution kernels still seem faster than full substitution method below
         bool is_small = (k <= 32) || (m <= 64 && n <= 64);
         if(SUBSTITUTION_ENABLED && is_small)
         {
@@ -2889,6 +3396,137 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         }
         else
         {
+            // --------------------------------------------------------------
+            // See if substitution method is optimal, otherwise use inversion
+            // --------------------------------------------------------------
+
+            // from rocSOLVER profiling, if we get a blksize of 0,
+            // substitution method shouldn't be used
+            const bool  LEFT    = rocblas_side_left == side;
+            rocblas_int blksize = rocblas_trsm_blksize<BATCHED, T>(LEFT ? m : n, LEFT ? n : m);
+
+            // from various rocBLAS profiling, the following bounds
+            // have been chosen to decide between substitution method/inversion method
+            // These are just empirically found and will not always be the best choice.
+            // TODO: These are very conservative numbers and should be updated with future work.
+            //       Ideally, we can use rocblas_trsm_blksize to determine whether or not to use
+            //       the rocblas_trsm_small_substitution function or not.
+            const bool use_sub = LEFT
+                                 && ((n <= 32 && batch_count >= 16 && m < 512)
+                                     || (n > 32 && n <= 128 && m <= 340));
+
+            if(use_sub && blksize)
+            {
+#define TRSM_SUBSTITUTION_LAUNCH(T, LEFT, UPPER, TRANS, CONJ, DIAG, BATCHED)              \
+    rocblas_trsm_small_substitution<T, T, U, V, LEFT, UPPER, TRANS, CONJ, DIAG, BATCHED>( \
+        handle,                                                                           \
+        m,                                                                                \
+        n,                                                                                \
+        alpha_h,                                                                          \
+        A,                                                                                \
+        offset_A,                                                                         \
+        lda,                                                                              \
+        stride_A,                                                                         \
+        B,                                                                                \
+        offset_B,                                                                         \
+        ldb,                                                                              \
+        stride_B,                                                                         \
+        batch_count,                                                                      \
+        blksize)
+
+                // A mess of if/else statements to get the template parameters
+                if(side == rocblas_side_right && uplo == rocblas_fill_lower
+                   && transA == rocblas_operation_none && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, false, false, false, false, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_none && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, false, false, false, true, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, false, true, true, false, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, false, true, true, true, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, false, true, false, false, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_transpose && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, false, true, false, true, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_none && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, true, false, false, false, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_none && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, true, false, false, true, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, true, true, true, false, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, true, true, true, true, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, true, true, false, false, BATCHED);
+                else if(side == rocblas_side_right && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_transpose && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, false, true, true, false, true, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_none && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, false, false, false, false, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_none && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, false, false, false, true, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, false, true, true, false, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, false, true, true, true, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, false, true, false, false, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_lower
+                        && transA == rocblas_operation_transpose && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, false, true, false, true, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_none && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, true, false, false, false, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_none && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, true, false, false, true, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, true, true, true, false, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_conjugate_transpose
+                        && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, true, true, true, true, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_transpose
+                        && diag == rocblas_diagonal_non_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, true, true, false, false, BATCHED);
+                else if(side == rocblas_side_left && uplo == rocblas_fill_upper
+                        && transA == rocblas_operation_transpose && diag == rocblas_diagonal_unit)
+                    TRSM_SUBSTITUTION_LAUNCH(T, true, true, true, false, true, BATCHED);
+                else
+                    return rocblas_status_internal_error;
+
+#undef TRSM_SUBSTITUTION_LAUNCH
+
+                return rocblas_status_success;
+            }
+
             // perf_status indicates whether optimal performance is obtainable with available memory
             rocblas_status perf_status = rocblas_status_success;
 
