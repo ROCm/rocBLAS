@@ -38,42 +38,45 @@
 template <typename T>
 void testing_asum_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_asum_strided_batched_fn
-        = FORTRAN ? rocblas_asum_strided_batched<T, true> : rocblas_asum_strided_batched<T, false>;
 
-    rocblas_int    N           = 100;
-    rocblas_int    incx        = 1;
-    rocblas_stride stridex     = N;
-    rocblas_int    batch_count = 5;
-    real_t<T>      h_rocblas_result[1];
+    auto rocblas_asum_strided_batched_fn = arg.fortran ? rocblas_asum_strided_batched<T, true>
+                                                       : rocblas_asum_strided_batched<T, false>;
 
-    // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        rocblas_int    N           = 100;
+        rocblas_int    incx        = 1;
+        rocblas_stride stridex     = N;
+        rocblas_int    batch_count = 2;
+        real_t<T>      h_rocblas_result[1];
 
-    rocblas_local_handle handle{arg};
-    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        // Allocate device memory
+        device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_asum_strided_batched_fn(
-                              handle, N, nullptr, incx, stridex, batch_count, h_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, nullptr),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_asum_strided_batched_fn(
-                              nullptr, N, dx, incx, stridex, batch_count, h_rocblas_result),
-                          rocblas_status_invalid_handle);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(rocblas_asum_strided_batched_fn(
+                                  nullptr, N, dx, incx, stridex, batch_count, h_rocblas_result),
+                              rocblas_status_invalid_handle);
+
+        EXPECT_ROCBLAS_STATUS(rocblas_asum_strided_batched_fn(
+                                  handle, N, nullptr, incx, stridex, batch_count, h_rocblas_result),
+                              rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, nullptr),
+            rocblas_status_invalid_pointer);
+    }
 };
 
 template <typename T>
 void testing_asum_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_asum_strided_batched_fn
-        = FORTRAN ? rocblas_asum_strided_batched<T, true> : rocblas_asum_strided_batched<T, false>;
+    auto rocblas_asum_strided_batched_fn = arg.fortran ? rocblas_asum_strided_batched<T, true>
+                                                       : rocblas_asum_strided_batched<T, false>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;

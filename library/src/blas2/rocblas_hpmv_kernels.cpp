@@ -38,19 +38,19 @@ __device__ void hpmv_kernel_calc(bool        upper,
                                  T*          y,
                                  ptrdiff_t   incy)
 {
-    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
     // threads are all configurated locally
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
-    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
+    rocblas_int ind = blockIdx.x * DIM_X + tx;
 
     if(!alpha)
     {
         if(thread_id < DIM_X && ind < n)
         {
-            rocblas_int idx = hipBlockIdx_x * DIM_X + thread_id;
+            rocblas_int idx = blockIdx.x * DIM_X + thread_id;
             if(idx < n)
                 y[idx * incy] = beta ? beta * y[idx * incy] : 0;
         }
@@ -105,7 +105,7 @@ __device__ void hpmv_kernel_calc(bool        upper,
         for(rocblas_int i = 1; i < DIM_Y; i++)
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
-        rocblas_int idx = hipBlockIdx_x * DIM_X + thread_id;
+        rocblas_int idx = blockIdx.x * DIM_X + thread_id;
         // Update y.
         if(idx < n)
             y[idx * incy]
@@ -134,7 +134,7 @@ hpmv_kernel(bool           upper,
             rocblas_int    incy,
             rocblas_stride stridey)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
@@ -144,10 +144,10 @@ hpmv_kernel(bool           upper,
     if(!alpha && beta == 1)
         return;
 
-    auto AP = cond_load_ptr_batch(alpha, APa, hipBlockIdx_y, shifta, strideA);
-    auto x  = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    auto AP = cond_load_ptr_batch(alpha, APa, blockIdx.y, shifta, strideA);
+    auto x  = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    auto y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    auto y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     hpmv_kernel_calc<DIM_X, DIM_Y>(upper, n, alpha, AP, x, incx, beta, y, incy);
 }

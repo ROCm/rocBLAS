@@ -120,30 +120,27 @@ namespace
                             batch_count);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-
-        if(n < 0 || !incx || !incy || batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        if(!n || !batch_count)
-            return rocblas_status_success;
-
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
-        if(handle->pointer_mode == rocblas_pointer_mode_host && !*alpha)
-        {
-            if(*beta == 1)
-                return rocblas_status_success;
-        }
-        else if(!AP || !x)
-            return rocblas_status_invalid_pointer;
-
-        if(!y)
-            return rocblas_status_invalid_pointer;
-
         constexpr rocblas_stride offset_A = 0, offset_x = 0, offset_y = 0;
+
+        rocblas_status arg_status = rocblas_hpmv_arg_check(handle,
+                                                           uplo,
+                                                           n,
+                                                           alpha,
+                                                           AP,
+                                                           offset_A,
+                                                           stride_A,
+                                                           x,
+                                                           offset_x,
+                                                           incx,
+                                                           stride_x,
+                                                           beta,
+                                                           y,
+                                                           offset_y,
+                                                           incy,
+                                                           stride_y,
+                                                           batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {

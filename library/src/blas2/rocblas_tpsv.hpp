@@ -52,6 +52,7 @@ inline rocblas_status rocblas_tpsv_arg_check(rocblas_handle    handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
+    // pointers are validated if they need to be dereferenced
     if(!A || !x)
         return rocblas_status_invalid_pointer;
 

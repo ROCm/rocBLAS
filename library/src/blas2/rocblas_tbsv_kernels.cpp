@@ -225,8 +225,8 @@ rocblas_tbsv_kernel(rocblas_fill      uplo,
                     rocblas_int       incx,
                     rocblas_stride    stride_x)
 {
-    const auto* A = load_ptr_batch(Aa, hipBlockIdx_x, shift_A, stride_A);
-    auto*       x = load_ptr_batch(xa, hipBlockIdx_x, shift_x, stride_x);
+    const auto* A = load_ptr_batch(Aa, blockIdx.x, shift_A, stride_A);
+    auto*       x = load_ptr_batch(xa, blockIdx.x, shift_x, stride_x);
 
     bool is_diag = diag == rocblas_diagonal_unit;
 

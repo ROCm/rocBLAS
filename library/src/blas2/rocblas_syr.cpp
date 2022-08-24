@@ -97,7 +97,7 @@ namespace
         }
 
         rocblas_status arg_status
-            = rocblas_syr_arg_check<T>(uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, 1);
+            = rocblas_syr_arg_check<T>(handle, uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, 1);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 

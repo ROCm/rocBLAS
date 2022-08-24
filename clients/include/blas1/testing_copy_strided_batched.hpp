@@ -41,14 +41,14 @@ void testing_copy_strided_batched_bad_arg(const Arguments& arg)
     auto rocblas_copy_strided_batched_fn = arg.fortran ? rocblas_copy_strided_batched<T, true>
                                                        : rocblas_copy_strided_batched<T, false>;
 
+    rocblas_local_handle handle{arg};
+
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
     rocblas_int    incy        = 1;
     rocblas_stride stride_x    = incx * N;
     rocblas_stride stride_y    = incy * N;
-    rocblas_int    batch_count = 5;
-
-    rocblas_local_handle handle{arg};
+    rocblas_int    batch_count = 2;
 
     size_t size_x = stride_x * batch_count;
     size_t size_y = stride_y * batch_count;
@@ -62,14 +62,15 @@ void testing_copy_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched_fn(
+                              nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
+                          rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched_fn(
                               handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched_fn(
                               handle, N, dx, incx, stride_x, nullptr, incy, stride_y, batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched_fn(
-                              nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
-                          rocblas_status_invalid_handle);
 }
 
 template <typename T>

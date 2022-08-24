@@ -732,6 +732,19 @@ Tests:
 ## trsm_ex ##
 #############
 
+- name: trsm_ex_bad_arg
+  category: quick
+  function:
+    - trsm_ex_bad_arg
+    - trsm_batched_ex_bad_arg
+    - trsm_strided_batched_ex_bad_arg
+  precision: *single_precision
+  side: [L]
+  uplo: [L]
+  transA: [N]
+  diag: [N]
+  fortran: [ false, true ]
+
 # Small - quick
 - name: trsm_ex_small
   category: quick

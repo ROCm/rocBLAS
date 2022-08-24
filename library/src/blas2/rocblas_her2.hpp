@@ -25,6 +25,48 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
+template <typename TScal, typename TConstPtr, typename TPtr>
+inline rocblas_status rocblas_her2_arg_check(rocblas_handle handle,
+                                             rocblas_fill   uplo,
+                                             rocblas_int    n,
+                                             TScal          alpha,
+                                             TConstPtr      x,
+                                             rocblas_stride offset_x,
+                                             rocblas_int    incx,
+                                             rocblas_stride stride_x,
+                                             TConstPtr      y,
+                                             rocblas_stride offset_y,
+                                             rocblas_int    incy,
+                                             rocblas_stride stride_y,
+                                             TPtr           A,
+                                             rocblas_int    lda,
+                                             rocblas_stride offset_A,
+                                             rocblas_stride stride_A,
+                                             rocblas_int    batch_count)
+{
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+    if(n < 0 || !incx || !incy || batch_count < 0 || lda < 1 || lda < n)
+        return rocblas_status_invalid_size;
+    if(!n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0)
+            return rocblas_status_success;
+
+        // pointers are validated if they need to be dereferenced
+        if(!A || !x || !y)
+            return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
+
 /**
  * TScal     is always: const T* (either2 host or device)
  * TConstPtr is either2: const T* OR const T* const*

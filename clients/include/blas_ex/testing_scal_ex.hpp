@@ -58,14 +58,17 @@ void testing_scal_ex_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_ex_fn(handle, N, &alpha, alpha_type, nullptr, x_type, incx, execution_type)),
-        rocblas_status_invalid_pointer);
+        (rocblas_scal_ex_fn(nullptr, N, &alpha, alpha_type, dx, x_type, incx, execution_type)),
+        rocblas_status_invalid_handle);
+
     EXPECT_ROCBLAS_STATUS(
         (rocblas_scal_ex_fn(handle, N, nullptr, alpha_type, dx, x_type, incx, execution_type)),
         rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_ex_fn(nullptr, N, &alpha, alpha_type, dx, x_type, incx, execution_type)),
-        rocblas_status_invalid_handle);
+        (rocblas_scal_ex_fn(handle, N, &alpha, alpha_type, nullptr, x_type, incx, execution_type)),
+        rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS((rocblas_scal_ex_fn(handle,
                                               N,
                                               nullptr,

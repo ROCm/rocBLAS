@@ -25,6 +25,52 @@
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
+template <typename U, typename V, typename W>
+inline rocblas_status rocblas_hbmv_arg_check(rocblas_handle handle,
+                                             rocblas_fill   uplo,
+                                             rocblas_int    n,
+                                             rocblas_int    k,
+                                             U              alpha,
+                                             V              A,
+                                             rocblas_stride offseta,
+                                             rocblas_int    lda,
+                                             rocblas_stride strideA,
+                                             V              x,
+                                             rocblas_stride offsetx,
+                                             rocblas_int    incx,
+                                             rocblas_stride stridex,
+                                             U              beta,
+                                             W              y,
+                                             rocblas_stride offsety,
+                                             rocblas_int    incy,
+                                             rocblas_stride stridey,
+                                             rocblas_int    batch_count)
+{
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+        return rocblas_status_invalid_value;
+
+    if(n < 0 || k < 0 || lda <= k || !incx || !incy || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    if(!n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0 && *beta == 1)
+            return rocblas_status_success;
+
+        // pointers are validated if they need to be dereferenced
+        if(!y || (*alpha != 0 && (!A || !x)))
+            return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
+
 /**
   *  U is always: const T* (either host or device)
   *  V is either: const T* OR const T* const*

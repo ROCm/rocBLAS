@@ -21,9 +21,9 @@
  * ************************************************************************ */
 #include "blas1_gtest.hpp"
 
-#include "testing_swap.hpp"
-#include "testing_swap_batched.hpp"
-#include "testing_swap_strided_batched.hpp"
+#include "testing_axpy.hpp"
+#include "testing_axpy_batched.hpp"
+#include "testing_axpy_strided_batched.hpp"
 
 namespace
 {
@@ -31,12 +31,12 @@ namespace
     // BLAS1 testing template
     // ----------------------------------------------------------------------------
     template <template <typename...> class FILTER, blas1 BLAS1>
-    struct swap_test_template : public RocBLAS_Test<swap_test_template<FILTER, BLAS1>, FILTER>
+    struct axpy_test_template : public RocBLAS_Test<axpy_test_template<FILTER, BLAS1>, FILTER>
     {
         // Filter for which types apply to this suite
         static bool type_filter(const Arguments& arg)
         {
-            return rocblas_blas1_dispatch<swap_test_template::template type_filter_functor>(arg);
+            return rocblas_blas1_dispatch<axpy_test_template::template type_filter_functor>(arg);
         }
 
         // Filter for which functions apply to this suite
@@ -45,7 +45,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<swap_test_template> name(arg.name);
+            RocBLAS_TestName<axpy_test_template> name(arg.name);
             name << rocblas_datatype2string(arg.a_type);
 
             if(strstr(arg.function, "_bad_arg") != nullptr)
@@ -54,8 +54,10 @@ namespace
             }
             else
             {
-                bool is_batched = (BLAS1 == blas1::swap_batched);
-                bool is_strided = (BLAS1 == blas1::swap_strided_batched);
+                bool is_batched = (BLAS1 == blas1::axpy_batched);
+                bool is_strided = (BLAS1 == blas1::axpy_strided_batched);
+
+                name << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
 
@@ -66,7 +68,7 @@ namespace
 
                 name << '_' << arg.incy;
 
-                if(is_strided)
+                if(BLAS1 == blas1::axpy_strided_batched)
                 {
                     name << '_' << arg.stride_y;
                 }
@@ -75,11 +77,11 @@ namespace
                 {
                     name << "_" << arg.batch_count;
                 }
+            }
 
-                if(arg.fortran)
-                {
-                    name << "_F";
-                }
+            if(arg.fortran)
+            {
+                name << "_F";
             }
 
             return std::move(name);
@@ -88,14 +90,15 @@ namespace
 
     // This tells whether the BLAS1 tests are enabled
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
-    using swap_enabled
+    using axpy_enabled
         = std::integral_constant<bool,
-                                 ((BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
-                                   || BLAS1 == blas1::swap_strided_batched)
-                                  && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
-                                  && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
+                                 ((BLAS1 == blas1::axpy || BLAS1 == blas1::axpy_batched
+                                   || BLAS1 == blas1::axpy_strided_batched)
+                                  && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                                  && (std::is_same<Ti, rocblas_half>{}
                                       || std::is_same<Ti, rocblas_float_complex>{}
-                                      || std::is_same<Ti, rocblas_double_complex>{}))>;
+                                      || std::is_same<Ti, rocblas_double_complex>{}
+                                      || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
@@ -108,7 +111,7 @@ namespace
         };                                                                                    \
                                                                                               \
         template <typename Ti, typename To, typename Tc>                                      \
-        struct testing<Ti, To, Tc, std::enable_if_t<swap_enabled<blas1::NAME, Ti, To, Tc>{}>> \
+        struct testing<Ti, To, Tc, std::enable_if_t<axpy_enabled<blas1::NAME, Ti, To, Tc>{}>> \
             : rocblas_test_valid                                                              \
         {                                                                                     \
             void operator()(const Arguments& arg)                                             \
@@ -124,7 +127,7 @@ namespace
         };                                                                                    \
     };                                                                                        \
                                                                                               \
-    using NAME = swap_test_template<blas1_##NAME::template testing, blas1::NAME>;             \
+    using NAME = axpy_test_template<blas1_##NAME::template testing, blas1::NAME>;             \
                                                                                               \
     template <>                                                                               \
     inline bool NAME::function_filter(const Arguments& arg)                                   \
@@ -141,11 +144,9 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(NAME)
 
 #define ARG1(Ti, To, Tc) Ti
-#define ARG2(Ti, To, Tc) Ti, To
-#define ARG3(Ti, To, Tc) Ti, To, Tc
 
-    BLAS1_TESTING(swap, ARG1)
-    BLAS1_TESTING(swap_batched, ARG1)
-    BLAS1_TESTING(swap_strided_batched, ARG1)
+    BLAS1_TESTING(axpy, ARG1)
+    BLAS1_TESTING(axpy_batched, ARG1)
+    BLAS1_TESTING(axpy_strided_batched, ARG1)
 
 } // namespace

@@ -58,175 +58,192 @@ void testing_trsm_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsm_ex_fn = arg.fortran ? rocblas_trsm_ex_fortran : rocblas_trsm_ex;
 
-    const rocblas_int M   = 100;
-    const rocblas_int N   = 100;
-    const rocblas_int lda = 100;
-    const rocblas_int ldb = 100;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    const T alpha = 1.0;
-    const T zero  = 0.0;
+        const rocblas_int M   = 100;
+        const rocblas_int N   = 100;
+        const rocblas_int lda = 100;
+        const rocblas_int ldb = 100;
 
-    const rocblas_side      side   = rocblas_side_left;
-    const rocblas_fill      uplo   = rocblas_fill_upper;
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+        device_vector<T> alpha_d(1), zero_d(1);
 
-    rocblas_local_handle handle{arg};
+        const T alpha_h(1), zero_h(0);
 
-    rocblas_int K        = side == rocblas_side_left ? M : N;
-    size_t      sizeInvA = TRSM_BLOCK * K;
+        const T* alpha = &alpha_h;
+        const T* zero  = &zero_h;
 
-    // Allocate device memory
-    device_matrix<T> dA(K, K, lda);
-    device_matrix<T> dB(M, N, ldb);
-    device_vector<T> dinvA(TRSM_BLOCK, TRSM_BLOCK, K);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+        const rocblas_side      side   = rocblas_side_left;
+        const rocblas_fill      uplo   = rocblas_fill_upper;
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        rocblas_int K        = side == rocblas_side_left ? M : N;
+        size_t      sizeInvA = TRSM_BLOCK * K;
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             M,
-                                             N,
-                                             &alpha,
-                                             nullptr,
-                                             lda,
-                                             dB,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_f32_r),
-                          rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_matrix<T> dA(K, K, lda);
+        device_matrix<T> dB(M, N, ldb);
+        device_vector<T> dinvA(TRSM_BLOCK, TRSM_BLOCK, K);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             M,
-                                             N,
-                                             &alpha,
-                                             dA,
-                                             lda,
-                                             nullptr,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_f32_r),
-                          rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             M,
-                                             N,
-                                             nullptr,
-                                             dA,
-                                             lda,
-                                             dB,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_f32_r),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(nullptr,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 M,
+                                                 N,
+                                                 alpha,
+                                                 dA,
+                                                 lda,
+                                                 dB,
+                                                 ldb,
+                                                 dinvA,
+                                                 sizeInvA,
+                                                 rocblas_datatype_f32_r),
+                              rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(nullptr,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             M,
-                                             N,
-                                             &alpha,
-                                             dA,
-                                             lda,
-                                             dB,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_f32_r),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 M,
+                                                 N,
+                                                 nullptr,
+                                                 dA,
+                                                 lda,
+                                                 dB,
+                                                 ldb,
+                                                 dinvA,
+                                                 sizeInvA,
+                                                 rocblas_datatype_f32_r),
+                              rocblas_status_invalid_pointer);
 
-    // If M==0, then all pointers can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             0,
-                                             N,
-                                             nullptr,
-                                             nullptr,
-                                             lda,
-                                             nullptr,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_f32_r),
-                          rocblas_status_success);
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                     side,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     M,
+                                                     N,
+                                                     alpha,
+                                                     nullptr,
+                                                     lda,
+                                                     dB,
+                                                     ldb,
+                                                     dinvA,
+                                                     sizeInvA,
+                                                     rocblas_datatype_f32_r),
+                                  rocblas_status_invalid_pointer);
+        }
 
-    // If N==0, then all pointers can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             M,
-                                             0,
-                                             nullptr,
-                                             nullptr,
-                                             lda,
-                                             nullptr,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_f32_r),
-                          rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 M,
+                                                 N,
+                                                 alpha,
+                                                 dA,
+                                                 lda,
+                                                 nullptr,
+                                                 ldb,
+                                                 dinvA,
+                                                 sizeInvA,
+                                                 rocblas_datatype_f32_r),
+                              rocblas_status_invalid_pointer);
 
-    // If alpha==0, then A can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             M,
-                                             N,
-                                             &zero,
-                                             nullptr,
-                                             lda,
-                                             dB,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_f32_r),
-                          rocblas_status_success);
+        // If M==0, then all pointers can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 0,
+                                                 N,
+                                                 nullptr,
+                                                 nullptr,
+                                                 lda,
+                                                 nullptr,
+                                                 ldb,
+                                                 dinvA,
+                                                 sizeInvA,
+                                                 rocblas_datatype_f32_r),
+                              rocblas_status_success);
 
-    // Unsupported datatype
-    EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
-                                             side,
-                                             uplo,
-                                             transA,
-                                             diag,
-                                             M,
-                                             N,
-                                             &alpha,
-                                             dA,
-                                             lda,
-                                             dB,
-                                             ldb,
-                                             dinvA,
-                                             sizeInvA,
-                                             rocblas_datatype_bf16_r),
-                          rocblas_status_not_implemented);
+        // If N==0, then all pointers can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 M,
+                                                 0,
+                                                 nullptr,
+                                                 nullptr,
+                                                 lda,
+                                                 nullptr,
+                                                 ldb,
+                                                 dinvA,
+                                                 sizeInvA,
+                                                 rocblas_datatype_f32_r),
+                              rocblas_status_success);
+
+        // If alpha==0, then A can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 M,
+                                                 N,
+                                                 zero,
+                                                 nullptr,
+                                                 lda,
+                                                 dB,
+                                                 ldb,
+                                                 dinvA,
+                                                 sizeInvA,
+                                                 rocblas_datatype_f32_r),
+                              rocblas_status_success);
+
+        // Unsupported datatype
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 M,
+                                                 N,
+                                                 alpha,
+                                                 dA,
+                                                 lda,
+                                                 dB,
+                                                 ldb,
+                                                 dinvA,
+                                                 sizeInvA,
+                                                 rocblas_datatype_bf16_r),
+                              rocblas_status_not_implemented);
+    }
 }
 
 template <typename T>

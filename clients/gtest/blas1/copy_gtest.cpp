@@ -21,9 +21,9 @@
  * ************************************************************************ */
 #include "blas1_gtest.hpp"
 
-#include "testing_nrm2.hpp"
-#include "testing_nrm2_batched.hpp"
-#include "testing_nrm2_strided_batched.hpp"
+#include "testing_copy.hpp"
+#include "testing_copy_batched.hpp"
+#include "testing_copy_strided_batched.hpp"
 
 namespace
 {
@@ -31,12 +31,12 @@ namespace
     // BLAS1 testing template
     // ----------------------------------------------------------------------------
     template <template <typename...> class FILTER, blas1 BLAS1>
-    struct nrm2_test_template : public RocBLAS_Test<nrm2_test_template<FILTER, BLAS1>, FILTER>
+    struct copy_test_template : public RocBLAS_Test<copy_test_template<FILTER, BLAS1>, FILTER>
     {
         // Filter for which types apply to this suite
         static bool type_filter(const Arguments& arg)
         {
-            return rocblas_blas1_dispatch<nrm2_test_template::template type_filter_functor>(arg);
+            return rocblas_blas1_dispatch<copy_test_template::template type_filter_functor>(arg);
         }
 
         // Filter for which functions apply to this suite
@@ -45,7 +45,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<nrm2_test_template> name(arg.name);
+            RocBLAS_TestName<copy_test_template> name(arg.name);
             name << rocblas_datatype2string(arg.a_type);
 
             if(strstr(arg.function, "_bad_arg") != nullptr)
@@ -54,8 +54,8 @@ namespace
             }
             else
             {
-                bool is_batched = (BLAS1 == blas1::nrm2_batched);
-                bool is_strided = (BLAS1 == blas1::nrm2_strided_batched);
+                bool is_batched = (BLAS1 == blas1::copy_batched);
+                bool is_strided = (BLAS1 == blas1::copy_strided_batched);
 
                 name << '_' << arg.incx;
 
@@ -64,15 +64,22 @@ namespace
                     name << '_' << arg.stride_x;
                 }
 
+                name << '_' << arg.incy;
+
+                if(is_strided)
+                {
+                    name << '_' << arg.stride_y;
+                }
+
                 if(is_batched || is_strided)
                 {
                     name << "_" << arg.batch_count;
                 }
+            }
 
-                if(arg.fortran)
-                {
-                    name << "_F";
-                }
+            if(arg.fortran)
+            {
+                name << "_F";
             }
 
             return std::move(name);
@@ -81,14 +88,14 @@ namespace
 
     // This tells whether the BLAS1 tests are enabled
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
-    using nrm2_enabled
+    using copy_enabled
         = std::integral_constant<bool,
-                                 ((BLAS1 == blas1::nrm2 || BLAS1 == blas1::nrm2_batched
-                                   || BLAS1 == blas1::nrm2_strided_batched)
-                                  && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
-                                  && (std::is_same<Ti, rocblas_float_complex>{}
-                                      || std::is_same<Ti, rocblas_double_complex>{}
-                                      || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))>;
+                                 ((BLAS1 == blas1::copy || BLAS1 == blas1::copy_batched
+                                   || BLAS1 == blas1::copy_strided_batched)
+                                  && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                                  && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
+                                      || std::is_same<Ti, rocblas_float_complex>{}
+                                      || std::is_same<Ti, rocblas_double_complex>{}))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
@@ -101,7 +108,7 @@ namespace
         };                                                                                    \
                                                                                               \
         template <typename Ti, typename To, typename Tc>                                      \
-        struct testing<Ti, To, Tc, std::enable_if_t<nrm2_enabled<blas1::NAME, Ti, To, Tc>{}>> \
+        struct testing<Ti, To, Tc, std::enable_if_t<copy_enabled<blas1::NAME, Ti, To, Tc>{}>> \
             : rocblas_test_valid                                                              \
         {                                                                                     \
             void operator()(const Arguments& arg)                                             \
@@ -117,7 +124,7 @@ namespace
         };                                                                                    \
     };                                                                                        \
                                                                                               \
-    using NAME = nrm2_test_template<blas1_##NAME::template testing, blas1::NAME>;             \
+    using NAME = copy_test_template<blas1_##NAME::template testing, blas1::NAME>;             \
                                                                                               \
     template <>                                                                               \
     inline bool NAME::function_filter(const Arguments& arg)                                   \
@@ -134,11 +141,9 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(NAME)
 
 #define ARG1(Ti, To, Tc) Ti
-#define ARG2(Ti, To, Tc) Ti, To
-#define ARG3(Ti, To, Tc) Ti, To, Tc
 
-    BLAS1_TESTING(nrm2, ARG1)
-    BLAS1_TESTING(nrm2_batched, ARG1)
-    BLAS1_TESTING(nrm2_strided_batched, ARG1)
+    BLAS1_TESTING(copy, ARG1)
+    BLAS1_TESTING(copy_batched, ARG1)
+    BLAS1_TESTING(copy_strided_batched, ARG1)
 
 } // namespace

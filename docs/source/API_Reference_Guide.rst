@@ -323,136 +323,169 @@ the enum value of rocblas_gemm_flags_fp16_alt_impl.
 
    Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
 
------------------
+-----------------------
+Deprecations by version
+-----------------------
+
+Announced in rocBLAS 2.45
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Replace is_complex by rocblas_is_complex
+''''''''''''''''''''''''''''''''''''''''
+
+From rocBLAS 3.0 the trait is_complex will be replaces by rocblas_is_complex
+
+Replace truncate with rocblas_truncate
+''''''''''''''''''''''''''''''''''''''
+
+From rocBLAS 3.0 enum truncate_t and the value truncate will be removed and replaced by rocblas_truncate_t
+and rocblas_truncate, respectively. The new enum rocblas_truncate_t and the value rocblas_truncate
+could be used from this ROCm release for an easy transition.
+
+Announced in rocBLAS 2.46
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Remove ability for hipBLAS to set rocblas_int8_type_for_hipblas
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+From rocBLAS 3.0 remove enum rocblas_int8_type_for_hipblas and the functions rocblas_get_int8_type_for_hipblas and
+rocblas_set_int8_type_for_hipblas. These are used by hipBLAS to select either int8_t or packed_int8x4 datatype.
+In hipBLAS the option to use packed_int8x4 will be removed, only int8_t will be available.
+
+
+=================
 Using rocBLAS API
------------------
+=================
 
 This section describes how to use the rocBLAS library API.
 
 
+-----------------
 rocBLAS Datatypes
-^^^^^^^^^^^^^^^^^
+-----------------
 
 
 rocblas_handle
-'''''''''''''''
+^^^^^^^^^^^^^^^
 
 .. doxygentypedef:: rocblas_handle
 
 
 rocblas_int
-''''''''''''
+^^^^^^^^^^^^
 
 .. doxygentypedef:: rocblas_int
 
 
 rocblas_stride
-'''''''''''''''
+^^^^^^^^^^^^^^^
 
 .. doxygentypedef:: rocblas_stride
 
 
 rocblas_half
-''''''''''''
+^^^^^^^^^^^^
 
 .. doxygenstruct:: rocblas_half
 
 
 rocblas_bfloat16
-'''''''''''''''''
+^^^^^^^^^^^^^^^^^
 
 .. doxygenstruct:: rocblas_bfloat16
 
 
 rocblas_float_complex
-''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenstruct:: rocblas_float_complex
 
 
 rocblas_double_complex
-'''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenstruct:: rocblas_double_complex
 
 
+-------------------
 rocBLAS Enumeration
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
    Enumeration constants have numbering that is consistent with CBLAS, ACML and most standard C BLAS libraries.
 
 
 rocblas_operation
-'''''''''''''''''
+^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_operation
 
 
 rocblas_fill
-'''''''''''''
+^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_fill
 
 
 rocblas_diagonal
-'''''''''''''''''
+^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_diagonal
 
 
 rocblas_side
-''''''''''''
+^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_side
 
 
 rocblas_status
-'''''''''''''''
+^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_status
 
 
 rocblas_datatype
-'''''''''''''''''
+^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_datatype
 
 
 rocblas_pointer_mode
-'''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_pointer_mode
 
 
 rocblas_atomics_mode
-'''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_atomics_mode
 
 
 rocblas_layer_mode
-'''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_layer_mode
 
 
 rocblas_gemm_algo
-'''''''''''''''''
+^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_gemm_algo
 
 
 rocblas_gemm_flags
-'''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^
 
 .. doxygenenum:: rocblas_gemm_flags
 
 
+------------------------
 rocBLAS Helper functions
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 Auxiliary Functions
-'''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_create_handle
 .. doxygenfunction:: rocblas_destroy_handle
@@ -475,7 +508,7 @@ Auxiliary Functions
 .. doxygenfunction:: rocblas_status_to_string
 
 Device Memory Allocation Functions
-''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_start_device_memory_size_query
 .. doxygenfunction:: rocblas_stop_device_memory_size_query
@@ -488,16 +521,17 @@ Device Memory Allocation Functions
 For more detailed information refer to sections :ref:`Device Memory Allocation Usage` and :ref:`Device Memory allocation in detail`:
 
 Build Information Functions
-'''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_get_version_string_size
 .. doxygenfunction:: rocblas_get_version_string
 
+-------------------------
 rocBLAS Level-1 functions
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 rocblas_iXamax + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_isamax
    :outline:
@@ -525,7 +559,7 @@ rocblas_iXamax + batched, strided_batched
 
 
 rocblas_iXamin + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_isamin
    :outline:
@@ -552,7 +586,7 @@ rocblas_iXamin + batched, strided_batched
 .. doxygenfunction:: rocblas_izamin_strided_batched
 
 rocblas_Xasum + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sasum
    :outline:
@@ -579,7 +613,7 @@ rocblas_Xasum + batched, strided_batched
 .. doxygenfunction:: rocblas_dzasum_strided_batched
 
 rocblas_Xaxpy + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_saxpy
    :outline:
@@ -612,7 +646,7 @@ rocblas_Xaxpy + batched, strided_batched
 .. doxygenfunction:: rocblas_zaxpy_strided_batched
 
 rocblas_Xcopy + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_scopy
    :outline:
@@ -639,7 +673,7 @@ rocblas_Xcopy + batched, strided_batched
 .. doxygenfunction:: rocblas_zcopy_strided_batched
 
 rocblas_Xdot + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sdot
    :outline:
@@ -690,7 +724,7 @@ rocblas_Xdot + batched, strided_batched
 .. doxygenfunction:: rocblas_zdotc_strided_batched
 
 rocblas_Xnrm2 + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_snrm2
    :outline:
@@ -717,7 +751,7 @@ rocblas_Xnrm2 + batched, strided_batched
 .. doxygenfunction:: rocblas_dznrm2_strided_batched
 
 rocblas_Xrot + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_srot
    :outline:
@@ -756,7 +790,7 @@ rocblas_Xrot + batched, strided_batched
 .. doxygenfunction:: rocblas_zdrot_strided_batched
 
 rocblas_Xrotg + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_srotg
    :outline:
@@ -783,7 +817,7 @@ rocblas_Xrotg + batched, strided_batched
 .. doxygenfunction:: rocblas_zrotg_strided_batched
 
 rocblas_Xrotm + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_srotm
    :outline:
@@ -798,7 +832,7 @@ rocblas_Xrotm + batched, strided_batched
 .. doxygenfunction:: rocblas_drotm_strided_batched
 
 rocblas_Xrotmg + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_srotmg
    :outline:
@@ -813,7 +847,7 @@ rocblas_Xrotmg + batched, strided_batched
 .. doxygenfunction:: rocblas_drotmg_strided_batched
 
 rocblas_Xscal + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sscal
    :outline:
@@ -852,7 +886,7 @@ rocblas_Xscal + batched, strided_batched
 .. doxygenfunction:: rocblas_zdscal_strided_batched
 
 rocblas_Xswap + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sswap
    :outline:
@@ -879,11 +913,12 @@ rocblas_Xswap + batched, strided_batched
 .. doxygenfunction:: rocblas_zswap_strided_batched
 
 
+-------------------------
 rocBLAS Level-2 functions
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 rocblas_Xgbmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sgbmv
    :outline:
@@ -910,7 +945,7 @@ rocblas_Xgbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_zgbmv_strided_batched
 
 rocblas_Xgemv + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sgemv
    :outline:
@@ -937,7 +972,7 @@ rocblas_Xgemv + batched, strided_batched
 .. doxygenfunction:: rocblas_zgemv_strided_batched
 
 rocblas_Xger + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sger
    :outline:
@@ -976,7 +1011,7 @@ rocblas_Xger + batched, strided_batched
 .. doxygenfunction:: rocblas_zgerc_strided_batched
 
 rocblas_Xsbmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssbmv
    :outline:
@@ -991,7 +1026,7 @@ rocblas_Xsbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_dsbmv_strided_batched
 
 rocblas_Xspmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sspmv
    :outline:
@@ -1006,7 +1041,7 @@ rocblas_Xspmv + batched, strided_batched
 .. doxygenfunction:: rocblas_dspmv_strided_batched
 
 rocblas_Xspr + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sspr
    :outline:
@@ -1033,7 +1068,7 @@ rocblas_Xspr + batched, strided_batched
 .. doxygenfunction:: rocblas_zspr_strided_batched
 
 rocblas_Xspr2 + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sspr2
    :outline:
@@ -1048,7 +1083,7 @@ rocblas_Xspr2 + batched, strided_batched
 .. doxygenfunction:: rocblas_dspr2_strided_batched
 
 rocblas_Xsymv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssymv
    :outline:
@@ -1075,7 +1110,7 @@ rocblas_Xsymv + batched, strided_batched
 .. doxygenfunction:: rocblas_zsymv_strided_batched
 
 rocblas_Xsyr + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssyr
    :outline:
@@ -1102,7 +1137,7 @@ rocblas_Xsyr + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyr_strided_batched
 
 rocblas_Xsyr2 + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssyr2
    :outline:
@@ -1129,7 +1164,7 @@ rocblas_Xsyr2 + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyr2_strided_batched
 
 rocblas_Xtbmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_stbmv
    :outline:
@@ -1156,7 +1191,7 @@ rocblas_Xtbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztbmv_strided_batched
 
 rocblas_Xtbsv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_stbsv
    :outline:
@@ -1183,7 +1218,7 @@ rocblas_Xtbsv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztbsv_strided_batched
 
 rocblas_Xtpmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_stpmv
    :outline:
@@ -1210,7 +1245,7 @@ rocblas_Xtpmv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztpmv_strided_batched
 
 rocblas_Xtpsv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_stpsv
    :outline:
@@ -1237,7 +1272,7 @@ rocblas_Xtpsv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztpsv_strided_batched
 
 rocblas_Xtrmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_strmv
    :outline:
@@ -1264,7 +1299,7 @@ rocblas_Xtrmv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztrmv_strided_batched
 
 rocblas_Xtrsv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_strsv
    :outline:
@@ -1291,7 +1326,7 @@ rocblas_Xtrsv + batched, strided_batched
 .. doxygenfunction:: rocblas_ztrsv_strided_batched
 
 rocblas_Xhemv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_chemv
    :outline:
@@ -1306,7 +1341,7 @@ rocblas_Xhemv + batched, strided_batched
 .. doxygenfunction:: rocblas_zhemv_strided_batched
 
 rocblas_Xhbmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_chbmv
    :outline:
@@ -1321,7 +1356,7 @@ rocblas_Xhbmv + batched, strided_batched
 .. doxygenfunction:: rocblas_zhbmv_strided_batched
 
 rocblas_Xhpmv + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_chpmv
    :outline:
@@ -1336,7 +1371,7 @@ rocblas_Xhpmv + batched, strided_batched
 .. doxygenfunction:: rocblas_zhpmv_strided_batched
 
 rocblas_Xher + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_cher
    :outline:
@@ -1351,7 +1386,7 @@ rocblas_Xher + batched, strided_batched
 .. doxygenfunction:: rocblas_zher_strided_batched
 
 rocblas_Xher2 + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_cher2
    :outline:
@@ -1366,7 +1401,7 @@ rocblas_Xher2 + batched, strided_batched
 .. doxygenfunction:: rocblas_zher2_strided_batched
 
 rocblas_Xhpr + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_chpr
    :outline:
@@ -1381,7 +1416,7 @@ rocblas_Xhpr + batched, strided_batched
 .. doxygenfunction:: rocblas_zhpr_strided_batched
 
 rocblas_Xhpr2 + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_chpr2
    :outline:
@@ -1396,11 +1431,12 @@ rocblas_Xhpr2 + batched, strided_batched
 .. doxygenfunction:: rocblas_zhpr2_strided_batched
 
 
+-------------------------
 rocBLAS Level-3 functions
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 rocblas_Xgemm + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sgemm
    :outline:
@@ -1433,7 +1469,7 @@ rocblas_Xgemm + batched, strided_batched
 .. doxygenfunction:: rocblas_zgemm_strided_batched
 
 rocblas_Xsymm + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssymm
    :outline:
@@ -1460,7 +1496,7 @@ rocblas_Xsymm + batched, strided_batched
 .. doxygenfunction:: rocblas_zsymm_strided_batched
 
 rocblas_Xsyrk + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssyrk
    :outline:
@@ -1487,7 +1523,7 @@ rocblas_Xsyrk + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyrk_strided_batched
 
 rocblas_Xsyr2k + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssyr2k
    :outline:
@@ -1514,7 +1550,7 @@ rocblas_Xsyr2k + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyr2k_strided_batched
 
 rocblas_Xsyrkx + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_ssyrkx
    :outline:
@@ -1541,7 +1577,7 @@ rocblas_Xsyrkx + batched, strided_batched
 .. doxygenfunction:: rocblas_zsyrkx_strided_batched
 
 rocblas_Xtrmm + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_strmm
    :outline:
@@ -1569,7 +1605,7 @@ rocblas_Xtrmm + batched, strided_batched
 
 
 rocblas_Xtrsm + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_strsm
    :outline:
@@ -1596,7 +1632,7 @@ rocblas_Xtrsm + batched, strided_batched
 .. doxygenfunction:: rocblas_ztrsm_strided_batched
 
 rocblas_Xhemm + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_chemm
    :outline:
@@ -1611,7 +1647,7 @@ rocblas_Xhemm + batched, strided_batched
 .. doxygenfunction:: rocblas_zhemm_strided_batched
 
 rocblas_Xherk + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_cherk
    :outline:
@@ -1626,7 +1662,7 @@ rocblas_Xherk + batched, strided_batched
 .. doxygenfunction:: rocblas_zherk_strided_batched
 
 rocblas_Xher2k + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_cher2k
    :outline:
@@ -1641,7 +1677,7 @@ rocblas_Xher2k + batched, strided_batched
 .. doxygenfunction:: rocblas_zher2k_strided_batched
 
 rocblas_Xherkx + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_cherkx
    :outline:
@@ -1656,7 +1692,7 @@ rocblas_Xherkx + batched, strided_batched
 .. doxygenfunction:: rocblas_zherkx_strided_batched
 
 rocblas_Xtrtri + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_strtri
    :outline:
@@ -1671,72 +1707,73 @@ rocblas_Xtrtri + batched, strided_batched
 .. doxygenfunction:: rocblas_dtrtri_strided_batched
 
 
+-----------------
 rocBLAS Extension
-^^^^^^^^^^^^^^^^^
+-----------------
 
 rocblas_axpy_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_axpy_ex
 .. doxygenfunction:: rocblas_axpy_batched_ex
 .. doxygenfunction:: rocblas_axpy_strided_batched_ex
 
 rocblas_dot_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_dot_ex
 .. doxygenfunction:: rocblas_dot_batched_ex
 .. doxygenfunction:: rocblas_dot_strided_batched_ex
 
 rocblas_dotc_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_dotc_ex
 .. doxygenfunction:: rocblas_dotc_batched_ex
 .. doxygenfunction:: rocblas_dotc_strided_batched_ex
 
 rocblas_nrm2_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_nrm2_ex
 .. doxygenfunction:: rocblas_nrm2_batched_ex
 .. doxygenfunction:: rocblas_nrm2_strided_batched_ex
 
 rocblas_rot_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_rot_ex
 .. doxygenfunction:: rocblas_rot_batched_ex
 .. doxygenfunction:: rocblas_rot_strided_batched_ex
 
 rocblas_scal_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_scal_ex
 .. doxygenfunction:: rocblas_scal_batched_ex
 .. doxygenfunction:: rocblas_scal_strided_batched_ex
 
 rocblas_gemm_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_gemm_ex
 .. doxygenfunction:: rocblas_gemm_batched_ex
 .. doxygenfunction:: rocblas_gemm_strided_batched_ex
 
 rocblas_gemm_ext2
-'''''''''''''''''
+^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_gemm_ext2
 
 rocblas_trsm_ex + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_trsm_ex
 .. doxygenfunction:: rocblas_trsm_batched_ex
 .. doxygenfunction:: rocblas_trsm_strided_batched_ex
 
 rocblas_Xgeam + batched, strided_batched
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sgeam
    :outline:
@@ -1764,7 +1801,7 @@ rocblas_Xgeam + batched, strided_batched
 
 
 rocblas_Xdgmm + batched, strided_batched
-''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. doxygenfunction:: rocblas_sdgmm
    :outline:
@@ -1792,8 +1829,9 @@ rocblas_Xdgmm + batched, strided_batched
 
 .. _Device Memory Allocation Usage:
 
+-----------------------------------
 Device Memory Allocation in rocBLAS
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 The following computational functions use temporary device memory.
 
@@ -1838,26 +1876,26 @@ For temporary device memory rocBLAS uses a per-handle memory allocation with out
 The default scheme has the disadvantage that allocation is synchronizing, so if there is not enough memory in the handle, a synchronizing deallocation and allocation occurs.
 
 Environment Variable for Preallocating
-'''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The environment variable ROCBLAS_DEVICE_MEMORY_SIZE is used to set how much memory to preallocate:
 
 - if > 0, sets the default handle device memory size to the specified size (in bytes)
 - if == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MB), and expanding it when necessary
 
 Functions for manually setting memory size
-''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - rocblas_set_device_memory_size
 - rocblas_get_device_memory_size
 - rocblas_is_user_managing_device_memory
 
 Function for setting user owned workspace
-'''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - rocblas_set_workspace
 
 Functions for finding how much memory is required
-'''''''''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - rocblas_start_device_memory_size_query
 - rocblas_stop_device_memory_size_query
@@ -1866,7 +1904,7 @@ Functions for finding how much memory is required
 See the API section for information on the above functions.
 
 rocBLAS Function Return Values for insufficient device memory
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the user preallocates or manually allocates, then that size is used as the limit, and no resizing or synchronizing ever occurs. The following two function return values indicate insufficient memory:
 
@@ -1874,8 +1912,9 @@ If the user preallocates or manually allocates, then that size is used as the li
 - rocblas_status == rocblas_status_perf_degraded: indicates that a slower algorthm was used because of insufficient device memory for the optimal algorithm
 
 
+------------------
 Logging in rocBLAS
-^^^^^^^^^^^^^^^^^^
+------------------
 
 **Note that performance will degrade when logging is enabled.**
 
@@ -1934,8 +1973,9 @@ When profile logging is enabled, memory usage will increase. If the
 program exits abnormally, then it is possible that profile logging will
 not be outputted before the program exits.
 
+----------
 References
-^^^^^^^^^^
+----------
 
 .. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
 

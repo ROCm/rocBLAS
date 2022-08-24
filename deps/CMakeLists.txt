@@ -36,7 +36,6 @@ endif()
 project( rocblas-dependencies NONE )
 
 option( BUILD_GTEST "Download and build googletest library" ON )
-option( BUILD_LAPACK "Download and build lapack library" ON )
 # option( BUILD_VERBOSE "Print helpful build debug information" OFF )
 
 # if( BUILD_VERBOSE )
@@ -61,22 +60,12 @@ if( BUILD_GTEST )
   set( gtest_install_target COMMAND cd ${GTEST_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . --target install )
 endif( )
 
-if( BUILD_LAPACK )
-  include( external-lapack )
-
-  list( APPEND rocblas_dependencies lapack )
-  set( lapack_custom_target COMMAND cd ${LAPACK_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . )
-  set( lapack_install_target COMMAND cd ${LAPACK_BINARY_ROOT}$<SEMICOLON> ${CMAKE_COMMAND} --build . --target install )
-endif( )
-
 add_custom_target( build_deps
   ${gtest_custom_target}
-  ${lapack_custom_target}
   DEPENDS ${rocblas_dependencies}
 )
 
 add_custom_target( install_deps
   ${gtest_install_target}
-  ${lapack_install_target}
   DEPENDS ${build_deps}
 )

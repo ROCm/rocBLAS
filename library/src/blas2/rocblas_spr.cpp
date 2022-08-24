@@ -84,17 +84,23 @@ namespace
                 log_profile(handle, rocblas_spr_name<T>, "uplo", uplo_letter, "N", n, "incx", incx);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-        if(n < 0 || !incx)
-            return rocblas_status_invalid_size;
-        if(!n)
-            return rocblas_status_success;
-        if(!x || !AP || !alpha)
-            return rocblas_status_invalid_pointer;
-
         static constexpr rocblas_int    batch_count = 1;
         static constexpr rocblas_stride offset_x = 0, offset_A = 0, stride_x = 0, stride_A = 0;
+
+        rocblas_status arg_status = rocblas_spr_arg_check(handle,
+                                                          uplo,
+                                                          n,
+                                                          alpha,
+                                                          x,
+                                                          offset_x,
+                                                          incx,
+                                                          stride_x,
+                                                          AP,
+                                                          offset_A,
+                                                          stride_A,
+                                                          batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {

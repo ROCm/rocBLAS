@@ -45,70 +45,74 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
                                               : (CONJ ? rocblas_dotc_strided_batched<T, false>
                                                       : rocblas_dot_strided_batched<T, false>);
 
-    rocblas_int          N           = 100;
-    rocblas_int          incx        = 1;
-    rocblas_int          incy        = 1;
-    rocblas_int          stride_x    = incx * N;
-    rocblas_int          stride_y    = incy * N;
-    rocblas_int          batch_count = 5;
-    rocblas_local_handle handle{arg};
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-    device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
-    device_vector<T>               d_rocblas_result(batch_count);
+        rocblas_int N           = 100;
+        rocblas_int incx        = 1;
+        rocblas_int incy        = 1;
+        rocblas_int stride_x    = incx * N;
+        rocblas_int stride_y    = incy * N;
+        rocblas_int batch_count = 2;
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
-    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        // Allocate device memory
+        device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+        device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
+        device_vector<T>               d_rocblas_result(batch_count);
 
-    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
-                                                           N,
-                                                           nullptr,
-                                                           incx,
-                                                           stride_x,
-                                                           dy,
-                                                           incy,
-                                                           stride_y,
-                                                           batch_count,
-                                                           d_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
-                                                           N,
-                                                           dx,
-                                                           incx,
-                                                           stride_x,
-                                                           nullptr,
-                                                           incy,
-                                                           stride_y,
-                                                           batch_count,
-                                                           d_rocblas_result),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
-                                                           N,
-                                                           dx,
-                                                           incx,
-                                                           stride_x,
-                                                           dy,
-                                                           incy,
-                                                           stride_y,
-                                                           batch_count,
-                                                           nullptr),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(nullptr,
-                                                           N,
-                                                           dx,
-                                                           incx,
-                                                           stride_x,
-                                                           dy,
-                                                           incy,
-                                                           stride_y,
-                                                           batch_count,
-                                                           d_rocblas_result),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(nullptr,
+                                                               N,
+                                                               dx,
+                                                               incx,
+                                                               stride_x,
+                                                               dy,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count,
+                                                               d_rocblas_result),
+                              rocblas_status_invalid_handle);
+
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                               N,
+                                                               nullptr,
+                                                               incx,
+                                                               stride_x,
+                                                               dy,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count,
+                                                               d_rocblas_result),
+                              rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                               N,
+                                                               dx,
+                                                               incx,
+                                                               stride_x,
+                                                               nullptr,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count,
+                                                               d_rocblas_result),
+                              rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                               N,
+                                                               dx,
+                                                               incx,
+                                                               stride_x,
+                                                               dy,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count,
+                                                               nullptr),
+                              rocblas_status_invalid_pointer);
+    }
 }
 
 template <typename T>

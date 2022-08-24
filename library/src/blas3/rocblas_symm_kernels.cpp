@@ -66,7 +66,7 @@ symm_scale_kernel(rocblas_int    m,
     if(beta == 1)
         return;
 
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
+    auto C = load_ptr_batch(CP_array, blockIdx.z, shift_c, stride_c);
     symm_scale_device(m, n, beta, C, ldc);
 }
 
@@ -234,9 +234,9 @@ symm_hemm_kernel(bool           upper,
     if(alpha == 0)
         return;
 
-    auto A = load_ptr_batch(AP_array, hipBlockIdx_z, shift_a, stride_a);
-    auto B = load_ptr_batch(BP_array, hipBlockIdx_z, shift_b, stride_b);
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
+    auto A = load_ptr_batch(AP_array, blockIdx.z, shift_a, stride_a);
+    auto B = load_ptr_batch(BP_array, blockIdx.z, shift_b, stride_b);
+    auto C = load_ptr_batch(CP_array, blockIdx.z, shift_c, stride_c);
 
     // compute matrix multiplies and accumulate on the fly into C
     // when HERM does ^H in place of ^T for A fetches to symmetric empty side

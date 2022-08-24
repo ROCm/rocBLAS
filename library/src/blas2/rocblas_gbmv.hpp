@@ -26,6 +26,55 @@
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 
+template <typename T, typename U, typename V>
+inline rocblas_status rocblas_gbmv_arg_check(rocblas_handle    handle,
+                                             rocblas_operation transA,
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             rocblas_int       kl,
+                                             rocblas_int       ku,
+                                             const T*          alpha,
+                                             U                 A,
+                                             rocblas_stride    offseta,
+                                             rocblas_int       lda,
+                                             rocblas_stride    strideA,
+                                             U                 x,
+                                             rocblas_stride    offsetx,
+                                             rocblas_int       incx,
+                                             rocblas_stride    stridex,
+                                             const T*          beta,
+                                             V                 y,
+                                             rocblas_stride    offsety,
+                                             rocblas_int       incy,
+                                             rocblas_stride    stridey,
+                                             rocblas_int       batch_count)
+{
+    if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+       && transA != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
+    if(m < 0 || n < 0 || lda < ku + kl + 1 || !incx || !incy || kl < 0 || ku < 0 || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0 && *beta == 1)
+            return rocblas_status_success;
+
+        // pointers are validated if they need to be dereferenced
+        if(!y || (*alpha != 0 && (!A || !x)))
+            return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
+
 /**
   *  Here, U is either a `const T* const*` or a `const T*`
   *  V is either a `T*` or a `T* const*`

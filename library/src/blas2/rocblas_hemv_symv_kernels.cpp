@@ -185,8 +185,7 @@ ROCBLAS_KERNEL_ILF void hemvn_kernel_upper_calc(rocblas_int n,
     }
 
     // offset blocks * cols * batch
-    workspace
-        += size_t(hipGridDim_x) * n * hipBlockIdx_y; // workspace is workspace(0, 0, batch_count)
+    workspace += size_t(gridDim.x) * n * blockIdx.y; // workspace is workspace(0, 0, batch_count)
 
     // --------------------
     // move to block row
@@ -601,10 +600,13 @@ hemvn_kernel_upper_block_sum(rocblas_int    n,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
 
-    auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    if(!alpha && beta == 1)
+        return;
+
+    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     int tx      = threadIdx.x;
     int blk     = blockIdx.x;
@@ -619,8 +621,7 @@ hemvn_kernel_upper_block_sum(rocblas_int    n,
     }
 
     // offset blocks * cols * batch
-    workspace
-        += size_t(hipGridDim_x) * n * hipBlockIdx_y; // workspace is workspace(0, 0, batch_count)
+    workspace += size_t(gridDim.x) * n * blockIdx.y; // workspace is workspace(0, 0, batch_count)
 
     // Don't write outside [0, ..., n)
     if(ind < n)
@@ -729,8 +730,7 @@ ROCBLAS_KERNEL_ILF void hemvn_kernel_lower_calc(rocblas_int n,
 
     // --------------------
     // offset blocks * cols * batch
-    workspace
-        += size_t(hipGridDim_x) * n * hipBlockIdx_y; // workspace is workspace(0, 0, batch_count)
+    workspace += size_t(gridDim.x) * n * blockIdx.y; // workspace is workspace(0, 0, batch_count)
 
     // move to block row
     workspace += blk * n; // workspace is workspace(0, blk)
@@ -1123,10 +1123,13 @@ hemvn_kernel_lower_block_sum(rocblas_int    n,
                              rocblas_stride stridey,
                              W* __restrict__ workspace)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
 
-    auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    if(!alpha && beta == 1)
+        return;
+
+    auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
     int tx      = threadIdx.x;
     int blk     = blockIdx.x;
@@ -1143,8 +1146,7 @@ hemvn_kernel_lower_block_sum(rocblas_int    n,
     }
 
     // offset blocks * cols * batch
-    workspace
-        += size_t(hipGridDim_x) * n * hipBlockIdx_y; // workspace is workspace(0, 0, batch_count)
+    workspace += size_t(gridDim.x) * n * blockIdx.y; // workspace is workspace(0, 0, batch_count)
 
     // Don't write outside [0, ..., n)
     if(ind < n)
@@ -1187,19 +1189,19 @@ hemvn_kernel_upper(rocblas_int    n,
                    rocblas_stride stride_beta,
                    W              workspace)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
 
     if(NB_X * NB_Y != num_threads)
         return;
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
 
     if(!alpha && beta == 1)
         return;
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
     hemvn_kernel_upper_calc<IS_HEMV, NB_X, bank_shift, half_NB_X, quarter_NB_X, T_lda>(
         n, alpha, A, lda, x, incx, workspace);
@@ -1231,19 +1233,19 @@ hemvn_kernel_lower(rocblas_int    n,
                    rocblas_stride stride_beta,
                    W              workspace)
 {
-    rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
 
     if(NB_X * NB_Y != num_threads)
         return;
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, blockIdx.y, stride_beta);
 
     if(!alpha && beta == 1)
         return;
 
-    const auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
+    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
     hemvn_kernel_lower_calc<IS_HEMV, NB_X, bank_shift, half_NB_X, quarter_NB_X, T_lda>(
         n, alpha, A, lda, x, incx, workspace);

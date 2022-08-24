@@ -52,7 +52,7 @@ syr2k_scale_kernel(bool           upper,
     if(beta == 1)
         return;
 
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, c_st_or_of);
+    auto C = load_ptr_batch(CP_array, blockIdx.z, c_st_or_of);
     syr2k_scale_device(upper, n, beta, C, ldc);
 }
 
@@ -76,7 +76,7 @@ her2k_scale_kernel(bool           upper,
     if(beta == 1 && (k == 0 || alpha == 0)) // if alpha not zero we need imaginary clear on diagonal
         return;
 
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, c_st_or_of);
+    auto C = load_ptr_batch(CP_array, blockIdx.z, c_st_or_of);
     herk_scale_device(upper, n, beta, C, ldc);
 }
 
@@ -259,9 +259,9 @@ syr2k_her2k_kernel(bool              upper,
     if(alpha == 0)
         return;
 
-    auto A = load_ptr_batch(AP_array, hipBlockIdx_z, a_st_or_of);
-    auto B = load_ptr_batch(BP_array, hipBlockIdx_z, b_st_or_of);
-    auto C = load_ptr_batch(CP_array, hipBlockIdx_z, c_st_or_of);
+    auto A = load_ptr_batch(AP_array, blockIdx.z, a_st_or_of);
+    auto B = load_ptr_batch(BP_array, blockIdx.z, b_st_or_of);
+    auto C = load_ptr_batch(CP_array, blockIdx.z, c_st_or_of);
 
     // compute matrix multiplies and accumulate on the fly into C
     // when HERM does ^H in place of ^T

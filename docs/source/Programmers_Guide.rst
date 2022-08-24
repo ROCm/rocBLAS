@@ -563,9 +563,13 @@ rocBLAS has the following differences when compared to Legacy BLAS
 
 - The first argument is a ``rocblas_handle`` argument, an opaque pointer to rocBLAS resources, corresponding to a single HIP stream.
 
-- Scalar arguments like alpha and beta are pointers on either the host or device, controlled by the rocBLAS handle's pointer mode.
+- Scalar arguments like alpha and beta are pointers on either the host or device, controlled by the rocBLAS handle's pointer mode.  In cases where the other arguments do not dictate an early return, if the alpha and beta pointers are NULL the function will return ``rocblas_status_invalid_pointer``.
 
 - Vector and matrix arguments are always pointers to device memory.
+
+- When ``rocblas_pointer_mode == rocblas_pointer_mode_host`` alpha and beta values are inspected and based on their values it is deteremined which vector and matrix pointers must be dereferenced.  If these pointers will be dereferenced a NULL pointer will lead to a return value ``rocblas_status_invalid_pointer``.
+
+- Otherwise if ``rocblas_pointer_mode == rocblas_pointer_mode_device`` we do NOT check if these vector or matrix pointers will dereference a NULL pointer as we do not want to slow execution to fetch and inspect alpha and beta values.
 
 - The ``ROCBLAS_LAYER`` environment variable controls the option to log argument values.
 
@@ -643,7 +647,7 @@ rocBLAS control flow
 
      - Else, return ``rocblas_status_success``
 
-9. Return ``rocblas_status_invalid_pointer`` if any pointers not checked in #7 are NULL.
+9. If any pointers not checked in #7 are NULL and MUST be dereferenced return ``rocblas_status_invalid_pointer``; only when in ``rocblas_pointer_mode == rocblas_pointer_mode_host`` can it be determined efficiently if some vector/matrix arguments must be dereferenced.
 
 10. (Optional.) Allocate device memory, returning ``rocblas_status_memory_error`` if the allocation fails.
 
@@ -1434,7 +1438,21 @@ and accepts a ``const Arguments&`` parameter. For example:
    // ...
    }
 
-This function should be generalized with template parameters as much as possible,
+This function is used for yaml file driven argument testing.  It will be invoked by the dispatch code for each permutation of the yaml driven parameters.
+Additionally a template function for bad argument handling tests should be created.  For example:
+
+.. code-block::
+
+  template <typename T>
+  void testing_gemv_bad_arg(const Arguments& arg)
+  {
+  // ...
+  }
+
+These bad_arg test function templates should be used to set arguments programmatically where it is simpler than the yaml approach.  E.g. to pass NULL pointers.
+It is expected that member variable values in the Arguments parameter will not be utilized with the common exception of arg.fortran which can drive selection of C and FORTRAN API bad argument tests.
+
+All functions should be generalized with template parameters as much as possible,
 to avoid copy-and-paste code.
 
 In this function, use the following macros and functions to check results:

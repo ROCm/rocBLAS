@@ -47,22 +47,23 @@
   *
 **/
 
-template <typename T>
-ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
-                                                                 rocblas_int               n,
-                                                                 T                         Aa,
-                                                                 rocblas_stride            offset_a,
-                                                                 rocblas_int               lda,
-                                                                 rocblas_stride            stride_a,
-                                                                 rocblas_check_numerics_t* abnormal)
+template <int DIM_X, int DIM_Y, typename T>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
+                                        rocblas_int               n,
+                                        T                         Aa,
+                                        rocblas_stride            offset_a,
+                                        rocblas_int               lda,
+                                        rocblas_stride            stride_a,
+                                        rocblas_check_numerics_t* abnormal)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     //Check every element of the A matrix for a NaN/zero/Inf/denormal value
     if(tx < m && ty < n)
     {
-        auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offset_a, stride_a);
+        auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
 
         ptrdiff_t tid   = tx + ptrdiff_t(lda) * ty;
         auto      value = A[tid];
@@ -99,23 +100,23 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_check_numerics_ge_matrix_kernel(rocblas_int    
   *
 **/
 
-template <typename T>
-ROCBLAS_KERNEL_NO_BOUNDS
-    rocblas_check_numerics_sym_herm_tri_matrix_kernel(bool                      is_upper,
-                                                      rocblas_int               n,
-                                                      T                         Aa,
-                                                      rocblas_stride            offset_a,
-                                                      rocblas_int               lda,
-                                                      rocblas_stride            stride_a,
-                                                      rocblas_check_numerics_t* abnormal)
+template <int DIM_X, int DIM_Y, typename T>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+rocblas_check_numerics_sym_herm_tri_matrix_kernel(bool                      is_upper,
+                                                  rocblas_int               n,
+                                                  T                         Aa,
+                                                  rocblas_stride            offset_a,
+                                                  rocblas_int               lda,
+                                                  rocblas_stride            stride_a,
+                                                  rocblas_check_numerics_t* abnormal)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     //Check every element of the A matrix for a NaN/zero/Inf/denormal value
     if(is_upper ? ty < n && tx <= ty : tx < n && ty <= tx)
     {
-        auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offset_a, stride_a);
+        auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
 
         ptrdiff_t tid   = tx + ptrdiff_t(lda) * ty;
         auto      value = A[tid];

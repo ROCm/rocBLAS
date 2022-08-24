@@ -42,17 +42,17 @@ axpy_kernel(rocblas_int    n,
             rocblas_int    incy,
             rocblas_stride stride_y)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
     if(!alpha)
     {
         return;
     }
 
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n)
     {
-        auto tx = load_ptr_batch(x, hipBlockIdx_y, offset_x + tid * incx, stride_x);
-        auto ty = load_ptr_batch(y, hipBlockIdx_y, offset_y + tid * incy, stride_y);
+        auto tx = load_ptr_batch(x, blockIdx.y, offset_x + tid * incx, stride_x);
+        auto ty = load_ptr_batch(y, blockIdx.y, offset_y + tid * incy, stride_y);
 
         *ty = (*ty) + Tex(alpha) * (*tx);
     }
@@ -74,15 +74,15 @@ saxpy_2_kernel(rocblas_int    n,
                rocblas_stride offset_y,
                rocblas_stride stride_y)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
     if(!alpha)
     {
         return;
     }
-    auto* tx = load_ptr_batch(x, hipBlockIdx_y, offset_x, stride_x);
-    auto* ty = load_ptr_batch(y, hipBlockIdx_y, offset_y, stride_y);
+    auto* tx = load_ptr_batch(x, blockIdx.y, offset_x, stride_x);
+    auto* ty = load_ptr_batch(y, blockIdx.y, offset_y, stride_y);
 
-    ptrdiff_t tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
+    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
 
     if(tid < n - 1)
     {
@@ -118,15 +118,15 @@ axpy_kernel_batched(rocblas_int    n,
                     rocblas_stride stride_y,
                     rocblas_int    batch_count)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
     if(!alpha)
     {
         return;
     }
     Tex ex_alph = Tex(alpha);
 
-    ptrdiff_t tid = hipBlockIdx_x * DIM_X + hipThreadIdx_x;
-    int       bid = 4 * (hipBlockIdx_y * DIM_Y + hipThreadIdx_y);
+    ptrdiff_t tid = blockIdx.x * DIM_X + threadIdx.x;
+    int       bid = 4 * (blockIdx.y * DIM_Y + threadIdx.y);
     if(tid < n)
     {
         offset_x += tid * incx;
@@ -161,12 +161,15 @@ haxpy_mod_8_kernel(rocblas_int    n_mod_8,
                    ptrdiff_t      offset_y,
                    rocblas_stride stride_y)
 {
-    auto      alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
-    ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+    if(!alpha)
+        return;
+
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n_mod_8)
     {
-        auto tx = load_ptr_batch(x, hipBlockIdx_y, offset_x + tid, stride_x);
-        auto ty = load_ptr_batch(y, hipBlockIdx_y, offset_y + tid, stride_y);
+        auto tx = load_ptr_batch(x, blockIdx.y, offset_x + tid, stride_x);
+        auto ty = load_ptr_batch(y, blockIdx.y, offset_y + tid, stride_y);
         *ty += alpha * (*tx);
     }
 }
@@ -187,7 +190,7 @@ haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
                    rocblas_stride stride_y)
 {
     // Load alpha into both sides of a rocblas_half2 for fma instructions.
-    auto alpha_value = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    auto alpha_value = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
     union
     {
         rocblas_half2 value;
@@ -199,7 +202,7 @@ haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
         return;
     }
 
-    ptrdiff_t t8id = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
+    ptrdiff_t t8id = threadIdx.x + blockIdx.x * blockDim.x;
 
     rocblas_half2 y0, y1, y2, y3;
     rocblas_half2 x0, x1, x2, x3;
@@ -216,9 +219,8 @@ haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
         // Then we can consider it is acceptable.
         //
         const rocblas_half8* ax
-            = (const rocblas_half8*)load_ptr_batch(x, hipBlockIdx_y, offset_x + tid, stride_x);
-        rocblas_half8* ay
-            = (rocblas_half8*)load_ptr_batch(y, hipBlockIdx_y, offset_y + tid, stride_y);
+            = (const rocblas_half8*)load_ptr_batch(x, blockIdx.y, offset_x + tid, stride_x);
+        rocblas_half8* ay = (rocblas_half8*)load_ptr_batch(y, blockIdx.y, offset_y + tid, stride_y);
 
         y0[0] = (*ay)[0];
         y0[1] = (*ay)[1];

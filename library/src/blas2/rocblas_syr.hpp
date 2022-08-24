@@ -28,7 +28,8 @@
 #include "rocblas.h"
 
 template <typename T, typename U, typename V, typename W>
-inline rocblas_status rocblas_syr_arg_check(rocblas_fill   uplo,
+inline rocblas_status rocblas_syr_arg_check(rocblas_handle handle,
+                                            rocblas_fill   uplo,
                                             rocblas_int    n,
                                             U              alpha,
                                             rocblas_stride stride_alpha,
@@ -51,8 +52,18 @@ inline rocblas_status rocblas_syr_arg_check(rocblas_fill   uplo,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    if(!alpha || !x || !A)
+    if(!alpha)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0)
+            return rocblas_status_success;
+
+        // pointers are validated if they need to be dereferenced
+        if(!A || !x)
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }

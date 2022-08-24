@@ -84,10 +84,11 @@ static inline int getActiveArch(int deviceId)
  * constructor
  ******************************************************************************/
 _rocblas_handle::_rocblas_handle()
-    : device(getActiveDevice())
-    , // active device is handle device
-    arch(getActiveArch(device))
+    : device(getActiveDevice()) // active device is handle device
+    , arch(getActiveArch(device))
 {
+    archMajor = arch / 100; // this may need to switch to string handling in the future
+
     // Device memory size
     const char* env = read_env("ROCBLAS_DEVICE_MEMORY_SIZE");
     if(env)

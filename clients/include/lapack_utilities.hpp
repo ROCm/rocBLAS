@@ -462,7 +462,55 @@ void lapack_xsymv(rocblas_fill uplo,
     }
 }
 
-// No complex implementation of syr2, make a local version.
+// cblas_xspr doesn't have complex support so implementation below for float/double complex
+template <typename T>
+void lapack_xspr(rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A)
+{
+    if(n <= 0 || alpha == 0)
+        return;
+
+    T*          x  = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
+    rocblas_int kk = 0, k = 0;
+    T           tmpx = T(0);
+    if(uplo == rocblas_fill_upper)
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            if(x[j * incx] != 0)
+            {
+                tmpx = alpha * x[j * incx];
+                k    = kk;
+                for(int i = 0; i < j; ++i)
+                {
+                    A[k] = A[k] + x[i * incx] * tmpx;
+                    k    = k + 1;
+                }
+                A[kk + j] += x[j * incx] * tmpx;
+            }
+            kk += j + 1;
+        }
+    }
+    else
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            if(x[j * incx] != 0)
+            {
+                tmpx = alpha * x[j * incx];
+                A[kk] += x[j * incx] * tmpx;
+                k = kk + 1;
+                for(int i = j + 1; i < n; ++i)
+                {
+                    A[k] = A[k] + x[i * incx] * tmpx;
+                    k    = k + 1;
+                }
+            }
+            kk += (n - 1) - j + 1;
+        }
+    }
+}
+
+// cblas_xsyr2 doesn't have complex support so implementation below for float/double complex
 template <typename T>
 inline void lapack_xsyr2(rocblas_fill uplo,
                          rocblas_int  n,
@@ -501,6 +549,463 @@ inline void lapack_xsyr2(rocblas_fill uplo,
             for(int i = j; i < n; ++i)
             {
                 A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmpy + y[i * incy] * tmpx;
+            }
+        }
+    }
+}
+
+// cblas doesn't have potrf2 implementation for now so using the lapack potrf2 implementation below
+template <typename T>
+void lapack_xpotrf2(rocblas_fill uplo, rocblas_int n, T* A, rocblas_int lda, rocblas_int info)
+{
+    rocblas_int iinfo = 0;
+
+    if(n < 0)
+        info = -2;
+
+    if(n == 0)
+        return;
+
+    if(n == 1)
+    {
+        //Test for non-positive-definiteness
+        double A_real = std::real(A[0]);
+        if(A_real <= 0 || rocblas_isnan(A_real))
+        {
+            info = 1;
+            return;
+        }
+        //Factor
+        A[0] = std::sqrt(A_real);
+    }
+    else
+    {
+        rocblas_int N1 = n / 2;
+        rocblas_int N2 = n - N1;
+
+        //Factor A11
+        lapack_xpotrf2(uplo, N1, A, lda, iinfo);
+        if(iinfo != 0)
+        {
+            info = iinfo;
+            return;
+        }
+        //Compute the Cholesky factorization A = U**H*U
+        if(uplo == rocblas_fill_upper)
+        {
+            //Update and scale A12
+            cblas_trsm(rocblas_side_left,
+                       rocblas_fill_upper,
+                       rocblas_is_complex<T> ? rocblas_operation_conjugate_transpose
+                                             : rocblas_operation_transpose,
+                       rocblas_diagonal_non_unit,
+                       N1,
+                       N2,
+                       T(1.0),
+                       A,
+                       lda,
+                       A + ((N1 * lda)),
+                       lda);
+
+            //Update and factor A22
+            if(rocblas_is_complex<T>)
+            {
+                cblas_herk(uplo,
+                           rocblas_operation_conjugate_transpose,
+                           N2,
+                           N1,
+                           real_t<T>(-1.0),
+                           A + (N1 * lda),
+                           lda,
+                           real_t<T>(1.0),
+                           A + (N1 + N1 * lda),
+                           lda);
+            }
+            else
+            {
+                cblas_syrk(uplo,
+                           rocblas_operation_transpose,
+                           N2,
+                           N1,
+                           T(-1.0),
+                           A + (N1 * lda),
+                           lda,
+                           T(1.0),
+                           A + (N1 + N1 * lda),
+                           lda);
+            }
+            lapack_xpotrf2(uplo, N2, A + (N1 + N1 * lda), lda, iinfo);
+            if(iinfo != 0)
+            {
+                info = iinfo + N1;
+                return;
+            }
+        }
+        else
+        {
+            //Update and scale A21
+            cblas_trsm(rocblas_side_right,
+                       rocblas_fill_lower,
+                       rocblas_is_complex<T> ? rocblas_operation_conjugate_transpose
+                                             : rocblas_operation_transpose,
+                       rocblas_diagonal_non_unit,
+                       N2,
+                       N1,
+                       T(1.0),
+                       A,
+                       lda,
+                       A + N1,
+                       lda);
+
+            //Update and factor A22
+            if(rocblas_is_complex<T>)
+            {
+                cblas_herk(uplo,
+                           rocblas_operation_none,
+                           N2,
+                           N1,
+                           real_t<T>(-1.0),
+                           A + N1,
+                           lda,
+                           real_t<T>(1.0),
+                           A + (N1 + N1 * lda),
+                           lda);
+            }
+            else
+            {
+                cblas_syrk(uplo,
+                           rocblas_operation_none,
+                           N2,
+                           N1,
+                           T(-1.0),
+                           A + N1,
+                           lda,
+                           T(1.0),
+                           A + (N1 + N1 * lda),
+                           lda);
+            }
+            lapack_xpotrf2(uplo, N2, A + (N1 + N1 * lda), lda, iinfo);
+
+            if(iinfo != 0)
+            {
+                info = iinfo + N1;
+                return;
+            }
+        }
+    }
+}
+
+// cblas doesn't have potrf implementation for now so using the lapack potrf implementation below
+template <typename T>
+void lapack_xpotrf(rocblas_fill uplo, rocblas_int n, T* A, rocblas_int lda, rocblas_int info)
+{
+    info = 0;
+
+    if(n < 0)
+        info = -2;
+
+    if(n == 0)
+        return;
+
+    rocblas_int NB = 64;
+    if(NB <= 1 || NB >= n)
+    {
+        lapack_xpotrf2(uplo, n, A, lda, info);
+    }
+
+    if(uplo == rocblas_fill_upper)
+    {
+        //Compute the Cholesky factorization A = U**H *U.
+        for(int j = 0; j < n; j += NB)
+        {
+            //Update and factorize the current diagonal block and test for non-positive-definiteness.
+            rocblas_int jb = std::min(NB, n - j);
+            if(rocblas_is_complex<T>)
+            {
+                cblas_herk(uplo,
+                           rocblas_operation_conjugate_transpose,
+                           jb,
+                           j,
+                           real_t<T>(-1.0),
+                           A + (j * lda),
+                           lda,
+                           real_t<T>(1.0),
+                           A + (j + j * lda),
+                           lda);
+            }
+            else
+            {
+                cblas_syrk(uplo,
+                           rocblas_operation_transpose,
+                           jb,
+                           j,
+                           T(-1.0),
+                           A + (j * lda),
+                           lda,
+                           T(1.0),
+                           A + (j + j * lda),
+                           lda);
+            }
+
+            lapack_xpotrf2(uplo, jb, A + (j + j * lda), lda, info);
+            if(info == 0)
+            {
+                info = info + j - 1;
+                return;
+            }
+            if(j + jb <= n)
+            {
+                cblas_gemm(rocblas_is_complex<T> ? rocblas_operation_conjugate_transpose
+                                                 : rocblas_operation_transpose,
+                           rocblas_operation_none,
+                           jb,
+                           n - j - jb,
+                           j,
+                           T(-1.0),
+                           A + (j * lda),
+                           lda,
+                           A + ((j + jb) * lda),
+                           lda,
+                           T(1.0),
+                           A + (j + (j + jb) * lda),
+                           lda);
+
+                cblas_trsm(rocblas_side_left,
+                           uplo,
+                           rocblas_is_complex<T> ? rocblas_operation_conjugate_transpose
+                                                 : rocblas_operation_transpose,
+                           rocblas_diagonal_non_unit,
+                           jb,
+                           n - j - jb,
+                           T(1.0),
+                           A + (j + j * lda),
+                           lda,
+                           A + (j + (j + jb) * lda),
+                           lda);
+            }
+        }
+    }
+    else
+    {
+        //Compute the Cholesky factorization A = U**H *U.
+        for(int j = 0; j < n; j += NB)
+        {
+            //Update and factorize the current diagonal block and test for non-positive-definiteness.
+            rocblas_int jb = std::min(NB, n - j);
+            if(rocblas_is_complex<T>)
+            {
+                cblas_herk(uplo,
+                           rocblas_operation_none,
+                           jb,
+                           j,
+                           real_t<T>(-1.0),
+                           A + j,
+                           lda,
+                           real_t<T>(1.0),
+                           A + (j + j * lda),
+                           lda);
+            }
+            else
+            {
+                cblas_syrk(uplo,
+                           rocblas_operation_none,
+                           jb,
+                           j,
+                           T(-1.0),
+                           A + j,
+                           lda,
+                           T(1.0),
+                           A + (j + j * lda),
+                           lda);
+            }
+
+            lapack_xpotrf2(uplo, jb, A + (j + j * lda), lda, info);
+            if(info == 0)
+            {
+                info = info + j - 1;
+                return;
+            }
+            if(j + jb <= n)
+            {
+                cblas_gemm(rocblas_operation_none,
+                           rocblas_is_complex<T> ? rocblas_operation_conjugate_transpose
+                                                 : rocblas_operation_transpose,
+                           n - j - jb,
+                           jb,
+                           j,
+                           T(-1.0),
+                           A + (j + jb),
+                           lda,
+                           A + j,
+                           lda,
+                           T(1.0),
+                           A + ((j + jb) + j * lda),
+                           lda);
+
+                cblas_trsm(rocblas_side_right,
+                           uplo,
+                           rocblas_is_complex<T> ? rocblas_operation_conjugate_transpose
+                                                 : rocblas_operation_transpose,
+                           rocblas_diagonal_non_unit,
+                           n - j - jb,
+                           jb,
+                           T(1.0),
+                           A + (j + j * lda),
+                           lda,
+                           A + ((j + jb) + j * lda),
+                           lda);
+            }
+        }
+    }
+}
+
+template <typename T, typename U>
+void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx);
+
+// cblas doesn't have trti2 implementation for now so using the lapack trti2 implementation below
+template <typename T>
+void lapack_xtrti2(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
+{
+    if(n < 0)
+        return;
+
+    T AJJ = T(0);
+
+    if(uplo == 'U')
+    {
+        for(int j = 0; j < n; j++)
+        {
+            if(diag == 'N')
+            {
+                A[j + j * lda] = T(1.0) / A[j + j * lda];
+                AJJ            = -A[j + j * lda];
+            }
+            else
+            {
+                AJJ = T(-1.0);
+            }
+            //Compute elements 0:j-1 of j-th column.
+            cblas_trmv(rocblas_fill_upper,
+                       rocblas_operation_none,
+                       char2rocblas_diagonal(diag),
+                       j,
+                       A,
+                       lda,
+                       A + (j * lda),
+                       1);
+            cblas_scal(j, AJJ, A + (j * lda), 1);
+        }
+    }
+    else
+    {
+        for(int j = n - 1; j >= 0; j--)
+        {
+            if(diag == 'N')
+            {
+                A[j + j * lda] = T(1.0) / A[j + j * lda];
+                AJJ            = -A[j + j * lda];
+            }
+            else
+            {
+                AJJ = T(-1.0);
+            }
+            if(j < n - 1)
+            {
+                //Compute elements 0:j-1 of j-th column.
+                cblas_trmv(rocblas_fill_lower,
+                           rocblas_operation_none,
+                           char2rocblas_diagonal(diag),
+                           n - j - 1,
+                           A + ((j + 1) + (j + 1) * lda),
+                           lda,
+                           A + ((j + 1) + j * lda),
+                           1);
+                cblas_scal(n - j - 1, AJJ, A + ((j + 1) + j * lda), 1);
+            }
+        }
+    }
+}
+
+// cblas doesn't have trtri implementation for now so using the lapack trtri implementation below
+template <typename T>
+void lapack_xtrtri(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
+{
+    if(n <= 0)
+        return;
+
+    rocblas_int NB = 64;
+    rocblas_int JB = 0;
+    if(NB <= 1 || NB >= n)
+    {
+        lapack_xtrti2(uplo, diag, n, A, lda);
+    }
+    else
+    {
+        if(uplo == 'U')
+        {
+            // Compute inverse of upper triangular matrix
+            for(int j = 0; j < n; j += NB)
+            {
+                JB = std::min(NB, n - j);
+
+                // Compute rows 0:j-1 of current block column
+                cblas_trmm(rocblas_side_left,
+                           rocblas_fill_upper,
+                           rocblas_operation_none,
+                           char2rocblas_diagonal(diag),
+                           j,
+                           JB,
+                           T(1.0),
+                           A,
+                           lda,
+                           A + (j * lda),
+                           lda);
+                cblas_trsm(rocblas_side_right,
+                           rocblas_fill_upper,
+                           rocblas_operation_none,
+                           char2rocblas_diagonal(diag),
+                           j,
+                           JB,
+                           T(-1.0),
+                           A + (j + j * lda),
+                           lda,
+                           A + j * lda,
+                           lda);
+                lapack_xtrti2(uplo, diag, JB, A + (j + j * lda), lda);
+            }
+        }
+        else
+        {
+            rocblas_int NN = ((n - 1) / NB) * NB;
+            for(int j = NN; j >= 0; j -= NB)
+            {
+                JB = std::min(NB, n - j);
+                if(j + JB <= n)
+                {
+                    cblas_trmm(rocblas_side_left,
+                               rocblas_fill_lower,
+                               rocblas_operation_none,
+                               char2rocblas_diagonal(diag),
+                               n - j - JB,
+                               JB,
+                               T(1.0),
+                               A + ((j + JB) + (j + JB) * lda),
+                               lda,
+                               A + ((j + JB) + j * lda),
+                               lda);
+                    cblas_trsm(rocblas_side_right,
+                               rocblas_fill_lower,
+                               rocblas_operation_none,
+                               char2rocblas_diagonal(diag),
+                               n - j - JB,
+                               JB,
+                               T(-1.0),
+                               A + (j + j * lda),
+                               lda,
+                               A + ((j + JB) + j * lda),
+                               lda);
+                }
+                lapack_xtrti2(uplo, diag, JB, A + (j + j * lda), lda);
             }
         }
     }
