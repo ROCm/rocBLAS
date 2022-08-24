@@ -41,9 +41,9 @@ __device__ void rotm_kernel_calc(rocblas_int    n,
                                  U              h12,
                                  U              h22)
 {
-    auto      x   = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
-    auto      y   = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    auto      x   = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
+    auto      y   = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n && flag != -2)
     {
@@ -90,7 +90,7 @@ rotm_kernel_batched(rocblas_int    n,
                     rocblas_stride offset_param,
                     rocblas_stride stride_param)
 {
-    auto p    = load_ptr_batch(param, hipBlockIdx_y, offset_param, stride_param);
+    auto p    = load_ptr_batch(param, blockIdx.y, offset_param, stride_param);
     auto flag = p[0];
     auto h11  = p[1];
     auto h21  = p[2];

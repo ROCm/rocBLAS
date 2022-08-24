@@ -54,38 +54,38 @@ ger_kernel(rocblas_int    m,
     __shared__ T xdata[DIM_X];
     __shared__ T ydata[DIM_Y * WIN];
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(!alpha)
         return;
 
-    const T* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_z, shiftx, stridex);
-    const T* __restrict__ y = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
+    const T* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
+    const T* __restrict__ y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
 
-    T* __restrict__ A = load_ptr_batch(Aa, hipBlockIdx_z, shifta, strideA);
+    T* __restrict__ A = load_ptr_batch(Aa, blockIdx.z, shifta, strideA);
 
-    int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    int ty = blockIdx.y * blockDim.y + threadIdx.y;
     ty *= WIN;
 
     // shared data base index
-    int tyi = hipThreadIdx_y * WIN;
+    int tyi = threadIdx.y * WIN;
 
-    if(hipThreadIdx_y == 0)
+    if(threadIdx.y == 0)
     {
-        xdata[hipThreadIdx_x] = tx < m ? x[tx * incx] : 0;
+        xdata[threadIdx.x] = tx < m ? x[tx * incx] : 0;
     }
 
-    if(hipThreadIdx_x < WIN)
+    if(threadIdx.x < WIN)
     {
-        ydata[tyi + hipThreadIdx_x]
-            = (ty + hipThreadIdx_x < n) ? y[(ty + hipThreadIdx_x) * incy] : 0;
+        ydata[tyi + threadIdx.x]
+            = (ty + ptrdiff_t(threadIdx.x) < n) ? y[(ty + ptrdiff_t(threadIdx.x)) * incy] : 0;
     }
 
     __syncthreads();
 
     if(tx < m)
     {
-        T x_value = alpha * xdata[hipThreadIdx_x];
+        T x_value = alpha * xdata[threadIdx.x];
 
         for(int i = 0; i < WIN; i++)
         {
@@ -117,23 +117,23 @@ sger_kernel(rocblas_int    m,
             rocblas_int    lda,
             rocblas_stride strideA)
 {
-    rocblas_int tx  = hipThreadIdx_x;
-    rocblas_int col = hipBlockIdx_x;
+    rocblas_int tx  = threadIdx.x;
+    rocblas_int col = blockIdx.x;
 
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
 
     if(!alpha)
         return;
 
-    const T* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    const T* __restrict__ y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    const T* __restrict__ x = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
+    const T* __restrict__ y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    T* __restrict__ A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+    T* __restrict__ A = load_ptr_batch(Aa, blockIdx.y, shifta, strideA);
 
     if(tx < m)
         A += tx;
 
-    //Each hipBlockIdx_x takes care of the computation of each column of matrix 'A'
+    //Each blockIdx.x takes care of the computation of each column of matrix 'A'
     A += col * size_t(lda);
 
     const T res_y = y[col * incy] * alpha;

@@ -28,6 +28,54 @@
 #include "handle.hpp"
 #include "rocblas_gemv_threshold.hpp"
 
+template <typename T, typename U, typename V, typename W>
+inline rocblas_status rocblas_internal_gemv_arg_check(rocblas_handle    handle,
+                                                      rocblas_operation transA,
+                                                      rocblas_int       m,
+                                                      rocblas_int       n,
+                                                      const U*          alpha,
+                                                      rocblas_stride    stride_alpha,
+                                                      const V*          A,
+                                                      rocblas_stride    offseta,
+                                                      rocblas_int       lda,
+                                                      rocblas_stride    strideA,
+                                                      const V*          x,
+                                                      rocblas_stride    offsetx,
+                                                      rocblas_int       incx,
+                                                      rocblas_stride    stridex,
+                                                      const U*          beta,
+                                                      rocblas_stride    stride_beta,
+                                                      W*                y,
+                                                      rocblas_stride    offsety,
+                                                      rocblas_int       incy,
+                                                      rocblas_stride    stridey,
+                                                      rocblas_int       batch_count)
+{
+    if(transA != rocblas_operation_none && transA != rocblas_operation_transpose
+       && transA != rocblas_operation_conjugate_transpose)
+        return rocblas_status_invalid_value;
+
+    if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(*alpha == 0 && *beta == 1)
+            return rocblas_status_success;
+
+        if(!y || (*alpha != 0 && (!A || !x)))
+            return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
+
 template <typename To>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_size(
     rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int batch_count = 1);

@@ -28,7 +28,7 @@ module rocblas_enums
     !    rocBLAS types    !
     !!!!!!!!!!!!!!!!!!!!!!!
     enum, bind(c)
-      enumerator :: rocblas_operation_none = 111
+        enumerator :: rocblas_operation_none = 111
         enumerator :: rocblas_operation_transpose = 112
         enumerator :: rocblas_operation_conjugate_transpose = 113
     end enum
@@ -36,51 +36,51 @@ module rocblas_enums
     enum, bind(c)
         enumerator :: rocblas_fill_upper = 121
         enumerator :: rocblas_fill_lower = 122
-        enumerator :: rocblas_fill_full  = 123
+        enumerator :: rocblas_fill_full = 123
     end enum
 
     enum, bind(c)
         enumerator :: rocblas_diagonal_non_unit = 131
-        enumerator :: rocblas_diagonal_unit     = 132
+        enumerator :: rocblas_diagonal_unit = 132
     end enum
 
     enum, bind(c)
-        enumerator :: rocblas_side_left  = 141
+        enumerator :: rocblas_side_left = 141
         enumerator :: rocblas_side_right = 142
-        enumerator :: rocblas_side_both  = 143
+        enumerator :: rocblas_side_both = 143
     end enum
 
     enum, bind(c)
-        enumerator :: rocblas_status_success         = 0
-        enumerator :: rocblas_status_invalid_handle  = 1
+        enumerator :: rocblas_status_success = 0
+        enumerator :: rocblas_status_invalid_handle = 1
         enumerator :: rocblas_status_not_implemented = 2
         enumerator :: rocblas_status_invalid_pointer = 3
-        enumerator :: rocblas_status_invalid_size    = 4
-        enumerator :: rocblas_status_memory_error    = 5
-        enumerator :: rocblas_status_internal_error  = 6
-        enumerator :: rocblas_status_perf_degraded   = 7
+        enumerator :: rocblas_status_invalid_size = 4
+        enumerator :: rocblas_status_memory_error = 5
+        enumerator :: rocblas_status_internal_error = 6
+        enumerator :: rocblas_status_perf_degraded = 7
         enumerator :: rocblas_status_size_query_mismatch = 8
-        enumerator :: rocblas_status_size_increased      = 9
-        enumerator :: rocblas_status_size_unchanged      = 10
-        enumerator :: rocblas_status_invalid_value       = 11
-        enumerator :: rocblas_status_continue            = 12
+        enumerator :: rocblas_status_size_increased = 9
+        enumerator :: rocblas_status_size_unchanged = 10
+        enumerator :: rocblas_status_invalid_value = 11
+        enumerator :: rocblas_status_continue = 12
     end enum
 
     enum, bind(c)
-        enumerator :: rocblas_datatype_f16_r  = 150
-        enumerator :: rocblas_datatype_f32_r  = 151
-        enumerator :: rocblas_datatype_f64_r  = 152
-        enumerator :: rocblas_datatype_f16_c  = 153
-        enumerator :: rocblas_datatype_f32_c  = 154
-        enumerator :: rocblas_datatype_f64_c  = 155
-        enumerator :: rocblas_datatype_i8_r   = 160
-        enumerator :: rocblas_datatype_u8_r   = 161
-        enumerator :: rocblas_datatype_i32_r  = 162
-        enumerator :: rocblas_datatype_u32_r  = 163
-        enumerator :: rocblas_datatype_i8_c   = 164
-        enumerator :: rocblas_datatype_u8_c   = 165
-        enumerator :: rocblas_datatype_i32_c  = 166
-        enumerator :: rocblas_datatype_u32_c  = 167
+        enumerator :: rocblas_datatype_f16_r = 150
+        enumerator :: rocblas_datatype_f32_r = 151
+        enumerator :: rocblas_datatype_f64_r = 152
+        enumerator :: rocblas_datatype_f16_c = 153
+        enumerator :: rocblas_datatype_f32_c = 154
+        enumerator :: rocblas_datatype_f64_c = 155
+        enumerator :: rocblas_datatype_i8_r = 160
+        enumerator :: rocblas_datatype_u8_r = 161
+        enumerator :: rocblas_datatype_i32_r = 162
+        enumerator :: rocblas_datatype_u32_r = 163
+        enumerator :: rocblas_datatype_i8_c = 164
+        enumerator :: rocblas_datatype_u8_c = 165
+        enumerator :: rocblas_datatype_i32_c = 166
+        enumerator :: rocblas_datatype_u32_c = 167
         enumerator :: rocblas_datatype_bf16_r = 168
         enumerator :: rocblas_datatype_bf16_c = 169
     end enum
@@ -105,30 +105,33 @@ module rocblas
 
     interface
         function rocblas_create_handle(handle) &
-                result(c_int) &
-                bind(c, name = 'rocblas_create_handle')
+            bind(c, name='rocblas_create_handle')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_create_handle
             type(c_ptr), value :: handle
         end function rocblas_create_handle
     end interface
 
     interface
         function rocblas_destroy_handle(handle) &
-                result(c_int) &
-                bind(c, name = 'rocblas_destroy_handle')
+            bind(c, name='rocblas_destroy_handle')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_destroy_handle
             type(c_ptr), value :: handle
         end function rocblas_destroy_handle
     end interface
 
     interface
         function rocblas_set_stream(handle, stream) &
-                result(c_int) &
-                bind(c, name = 'rocblas_set_stream')
+            bind(c, name='rocblas_set_stream')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_set_stream
             type(c_ptr), value :: handle
             type(c_ptr), value :: stream
         end function rocblas_set_stream
@@ -136,10 +139,11 @@ module rocblas
 
     interface
         function rocblas_get_stream(handle, stream) &
-                result(c_int) &
-                bind(c, name = 'rocblas_get_stream')
+            bind(c, name='rocblas_get_stream')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_get_stream
             type(c_ptr), value :: handle
             type(c_ptr), value :: stream
         end function rocblas_get_stream
@@ -147,10 +151,11 @@ module rocblas
 
     interface
         function rocblas_set_pointer_mode(handle, pointer_mode) &
-                result(c_int) &
-                bind(c, name = 'rocblas_set_pointer_mode')
+            bind(c, name='rocblas_set_pointer_mode')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_set_pointer_mode
             type(c_ptr), value :: handle
             integer(c_int), value :: pointer_mode
         end function rocblas_set_pointer_mode
@@ -158,31 +163,56 @@ module rocblas
 
     interface
         function rocblas_get_pointer_mode(handle, pointer_mode) &
-                result(c_int) &
-                bind(c, name = 'rocblas_get_pointer_mode')
+            bind(c, name='rocblas_get_pointer_mode')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_get_pointer_mode
             type(c_ptr), value :: handle
             integer(c_int) :: pointer_mode
         end function rocblas_get_pointer_mode
     end interface
 
     interface
-        function rocblas_pointer_to_mode(ptr) &
+        function rocblas_set_int8_type_for_hipblas(handle, int8_datatype) &
                 result(c_int) &
-                bind(c, name = 'rocblas_pointer_to_mode')
+                bind(c, name = 'rocblas_set_int8_type_for_hipblas')
             use iso_c_binding
             implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: int8_datatype
+        end function rocblas_set_int8_type_for_hipblas
+    end interface
+
+    interface
+        function rocblas_get_int8_type_for_hipblas(handle, int8_datatype) &
+                result(c_int) &
+                bind(c, name = 'rocblas_get_int8_type_for_hipblas')
+            use iso_c_binding
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int) :: int8_datatype
+        end function rocblas_get_int8_type_for_hipblas
+    end interface
+
+    interface
+        function rocblas_pointer_to_mode(ptr) &
+            bind(c, name='rocblas_pointer_to_mode')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_pointer_to_mode
             type(c_ptr), value :: ptr
         end function rocblas_pointer_to_mode
     end interface
 
     interface
         function rocblas_set_vector(n, elem_size, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_set_vector')
+            bind(c, name='rocblas_set_vector')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_set_vector
             integer(c_int), value :: n
             integer(c_int), value :: elem_size
             type(c_ptr), value :: x
@@ -194,10 +224,11 @@ module rocblas
 
     interface
         function rocblas_get_vector(n, elem_size, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_get_vector')
+            bind(c, name='rocblas_get_vector')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_get_vector
             integer(c_int), value :: n
             integer(c_int), value :: elem_size
             type(c_ptr), value :: x
@@ -209,10 +240,11 @@ module rocblas
 
     interface
         function rocblas_set_matrix(rows, cols, elem_size, a, lda, b, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_set_matrix')
+            bind(c, name='rocblas_set_matrix')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_set_matrix
             integer(c_int), value :: rows
             integer(c_int), value :: cols
             integer(c_int), value :: elem_size
@@ -225,10 +257,11 @@ module rocblas
 
     interface
         function rocblas_get_matrix(rows, cols, elem_size, a, lda, b, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_get_matrix')
+            bind(c, name='rocblas_get_matrix')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_get_matrix
             integer(c_int), value :: rows
             integer(c_int), value :: cols
             integer(c_int), value :: elem_size
@@ -241,10 +274,11 @@ module rocblas
 
     interface
         function rocblas_set_vector_async(n, elem_size, x, incx, y, incy, stream) &
-                result(c_int) &
-                bind(c, name = 'rocblas_set_vector_async')
+            bind(c, name='rocblas_set_vector_async')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_set_vector_async
             integer(c_int), value :: n
             integer(c_int), value :: elem_size
             type(c_ptr), value :: x
@@ -257,10 +291,11 @@ module rocblas
 
     interface
         function rocblas_get_vector_async(n, elem_size, x, incx, y, incy, stream) &
-                result(c_int) &
-                bind(c, name = 'rocblas_get_vector_async')
+            bind(c, name='rocblas_get_vector_async')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_get_vector_async
             integer(c_int), value :: n
             integer(c_int), value :: elem_size
             type(c_ptr), value :: x
@@ -273,10 +308,11 @@ module rocblas
 
     interface
         function rocblas_set_matrix_async(rows, cols, elem_size, a, lda, b, ldb, stream) &
-                result(c_int) &
-                bind(c, name = 'rocblas_set_matrix_async')
+            bind(c, name='rocblas_set_matrix_async')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_set_matrix_async
             integer(c_int), value :: rows
             integer(c_int), value :: cols
             integer(c_int), value :: elem_size
@@ -290,10 +326,11 @@ module rocblas
 
     interface
         function rocblas_get_matrix_async(rows, cols, elem_size, a, lda, b, ldb, stream) &
-                result(c_int) &
-                bind(c, name = 'rocblas_get_matrix_async')
+            bind(c, name='rocblas_get_matrix_async')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_get_matrix_async
             integer(c_int), value :: rows
             integer(c_int), value :: cols
             integer(c_int), value :: elem_size
@@ -307,10 +344,11 @@ module rocblas
 
     interface
         function rocblas_set_start_stop_events(handle, start_event, stop_event) &
-                result(c_int) &
-                bind(c, name = 'rocblas_set_start_stop_events')
+            bind(c, name='rocblas_set_start_stop_events')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_set_start_stop_events
             type(c_ptr), value :: handle
             type(c_ptr), value :: start_event
             type(c_ptr), value :: stop_event
@@ -328,10 +366,11 @@ module rocblas
     ! scal
     interface
         function rocblas_sscal(handle, n, alpha, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sscal')
+            bind(c, name='rocblas_sscal')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sscal
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -342,10 +381,11 @@ module rocblas
 
     interface
         function rocblas_dscal(handle, n, alpha, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dscal')
+            bind(c, name='rocblas_dscal')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dscal
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -356,10 +396,11 @@ module rocblas
 
     interface
         function rocblas_cscal(handle, n, alpha, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cscal')
+            bind(c, name='rocblas_cscal')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cscal
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -370,10 +411,11 @@ module rocblas
 
     interface
         function rocblas_zscal(handle, n, alpha, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zscal')
+            bind(c, name='rocblas_zscal')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zscal
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -384,10 +426,11 @@ module rocblas
 
     interface
         function rocblas_csscal(handle, n, alpha, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csscal')
+            bind(c, name='rocblas_csscal')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csscal
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -398,10 +441,11 @@ module rocblas
 
     interface
         function rocblas_zdscal(handle, n, alpha, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdscal')
+            bind(c, name='rocblas_zdscal')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdscal
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -413,10 +457,11 @@ module rocblas
     ! scal_batched
     interface
         function rocblas_sscal_batched(handle, n, alpha, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sscal_batched')
+            bind(c, name='rocblas_sscal_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sscal_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -428,10 +473,11 @@ module rocblas
 
     interface
         function rocblas_dscal_batched(handle, n, alpha, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dscal_batched')
+            bind(c, name='rocblas_dscal_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dscal_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -443,10 +489,11 @@ module rocblas
 
     interface
         function rocblas_cscal_batched(handle, n, alpha, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cscal_batched')
+            bind(c, name='rocblas_cscal_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cscal_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -458,10 +505,11 @@ module rocblas
 
     interface
         function rocblas_zscal_batched(handle, n, alpha, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zscal_batched')
+            bind(c, name='rocblas_zscal_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zscal_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -473,10 +521,11 @@ module rocblas
 
     interface
         function rocblas_csscal_batched(handle, n, alpha, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csscal_batched')
+            bind(c, name='rocblas_csscal_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csscal_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -488,10 +537,11 @@ module rocblas
 
     interface
         function rocblas_zdscal_batched(handle, n, alpha, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdscal_batched')
+            bind(c, name='rocblas_zdscal_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdscal_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -504,10 +554,11 @@ module rocblas
     ! scal_strided_batched
     interface
         function rocblas_sscal_strided_batched(handle, n, alpha, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sscal_strided_batched')
+            bind(c, name='rocblas_sscal_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sscal_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -520,10 +571,11 @@ module rocblas
 
     interface
         function rocblas_dscal_strided_batched(handle, n, alpha, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dscal_strided_batched')
+            bind(c, name='rocblas_dscal_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dscal_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -536,10 +588,11 @@ module rocblas
 
     interface
         function rocblas_cscal_strided_batched(handle, n, alpha, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cscal_strided_batched')
+            bind(c, name='rocblas_cscal_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cscal_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -552,10 +605,11 @@ module rocblas
 
     interface
         function rocblas_zscal_strided_batched(handle, n, alpha, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zscal_strided_batched')
+            bind(c, name='rocblas_zscal_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zscal_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -568,10 +622,11 @@ module rocblas
 
     interface
         function rocblas_csscal_strided_batched(handle, n, alpha, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csscal_strided_batched')
+            bind(c, name='rocblas_csscal_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csscal_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -584,10 +639,11 @@ module rocblas
 
     interface
         function rocblas_zdscal_strided_batched(handle, n, alpha, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdscal_strided_batched')
+            bind(c, name='rocblas_zdscal_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdscal_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -601,10 +657,11 @@ module rocblas
     ! copy
     interface
         function rocblas_scopy(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scopy')
+            bind(c, name='rocblas_scopy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scopy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -616,10 +673,11 @@ module rocblas
 
     interface
         function rocblas_dcopy(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dcopy')
+            bind(c, name='rocblas_dcopy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dcopy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -631,10 +689,11 @@ module rocblas
 
     interface
         function rocblas_ccopy(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ccopy')
+            bind(c, name='rocblas_ccopy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ccopy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -646,10 +705,11 @@ module rocblas
 
     interface
         function rocblas_zcopy(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zcopy')
+            bind(c, name='rocblas_zcopy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zcopy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -662,10 +722,11 @@ module rocblas
     ! copy_batched
     interface
         function rocblas_scopy_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scopy_batched')
+            bind(c, name='rocblas_scopy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scopy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -678,10 +739,11 @@ module rocblas
 
     interface
         function rocblas_dcopy_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dcopy_batched')
+            bind(c, name='rocblas_dcopy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dcopy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -694,10 +756,11 @@ module rocblas
 
     interface
         function rocblas_ccopy_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ccopy_batched')
+            bind(c, name='rocblas_ccopy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ccopy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -710,10 +773,11 @@ module rocblas
 
     interface
         function rocblas_zcopy_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zcopy_batched')
+            bind(c, name='rocblas_zcopy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zcopy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -727,10 +791,11 @@ module rocblas
     ! copy_strided_batched
     interface
         function rocblas_scopy_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scopy_strided_batched')
+            bind(c, name='rocblas_scopy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scopy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -745,10 +810,11 @@ module rocblas
 
     interface
         function rocblas_dcopy_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dcopy_strided_batched')
+            bind(c, name='rocblas_dcopy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dcopy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -763,10 +829,11 @@ module rocblas
 
     interface
         function rocblas_ccopy_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ccopy_strided_batched')
+            bind(c, name='rocblas_ccopy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ccopy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -781,10 +848,11 @@ module rocblas
 
     interface
         function rocblas_zcopy_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zcopy_strided_batched')
+            bind(c, name='rocblas_zcopy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zcopy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -800,10 +868,11 @@ module rocblas
     ! dot
     interface
         function rocblas_sdot(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sdot')
+            bind(c, name='rocblas_sdot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sdot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -816,10 +885,11 @@ module rocblas
 
     interface
         function rocblas_ddot(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ddot')
+            bind(c, name='rocblas_ddot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ddot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -832,10 +902,11 @@ module rocblas
 
     interface
         function rocblas_hdot(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_hdot')
+            bind(c, name='rocblas_hdot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hdot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -848,10 +919,11 @@ module rocblas
 
     interface
         function rocblas_bfdot(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_bfdot')
+            bind(c, name='rocblas_bfdot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_bfdot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -864,10 +936,11 @@ module rocblas
 
     interface
         function rocblas_cdotu(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdotu')
+            bind(c, name='rocblas_cdotu')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdotu
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -880,10 +953,11 @@ module rocblas
 
     interface
         function rocblas_cdotc(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdotc')
+            bind(c, name='rocblas_cdotc')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdotc
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -896,10 +970,11 @@ module rocblas
 
     interface
         function rocblas_zdotu(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdotu')
+            bind(c, name='rocblas_zdotu')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdotu
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -912,10 +987,11 @@ module rocblas
 
     interface
         function rocblas_zdotc(handle, n, x, incx, y, incy, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdotc')
+            bind(c, name='rocblas_zdotc')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdotc
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -929,10 +1005,11 @@ module rocblas
     ! dot_batched
     interface
         function rocblas_sdot_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sdot_batched')
+            bind(c, name='rocblas_sdot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sdot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -946,10 +1023,11 @@ module rocblas
 
     interface
         function rocblas_ddot_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ddot_batched')
+            bind(c, name='rocblas_ddot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ddot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -963,10 +1041,11 @@ module rocblas
 
     interface
         function rocblas_hdot_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_hdot_batched')
+            bind(c, name='rocblas_hdot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hdot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -980,10 +1059,11 @@ module rocblas
 
     interface
         function rocblas_bfdot_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_bfdot_batched')
+            bind(c, name='rocblas_bfdot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_bfdot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -997,10 +1077,11 @@ module rocblas
 
     interface
         function rocblas_cdotu_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdotu_batched')
+            bind(c, name='rocblas_cdotu_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdotu_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1014,10 +1095,11 @@ module rocblas
 
     interface
         function rocblas_cdotc_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdotc_batched')
+            bind(c, name='rocblas_cdotc_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdotc_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1031,10 +1113,11 @@ module rocblas
 
     interface
         function rocblas_zdotu_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdotu_batched')
+            bind(c, name='rocblas_zdotu_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdotu_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1048,10 +1131,11 @@ module rocblas
 
     interface
         function rocblas_zdotc_batched(handle, n, x, incx, y, incy, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdotc_batched')
+            bind(c, name='rocblas_zdotc_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdotc_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1066,10 +1150,11 @@ module rocblas
     ! dot_strided_batched
     interface
         function rocblas_sdot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sdot_strided_batched')
+            bind(c, name='rocblas_sdot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sdot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1085,10 +1170,11 @@ module rocblas
 
     interface
         function rocblas_ddot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ddot_strided_batched')
+            bind(c, name='rocblas_ddot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ddot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1104,10 +1190,11 @@ module rocblas
 
     interface
         function rocblas_hdot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_hdot_strided_batched')
+            bind(c, name='rocblas_hdot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hdot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1123,10 +1210,11 @@ module rocblas
 
     interface
         function rocblas_bfdot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_bfdot_strided_batched')
+            bind(c, name='rocblas_bfdot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_bfdot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1142,10 +1230,11 @@ module rocblas
 
     interface
         function rocblas_cdotu_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdotu_strided_batched')
+            bind(c, name='rocblas_cdotu_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdotu_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1161,10 +1250,11 @@ module rocblas
 
     interface
         function rocblas_cdotc_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdotc_strided_batched')
+            bind(c, name='rocblas_cdotc_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdotc_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1180,10 +1270,11 @@ module rocblas
 
     interface
         function rocblas_zdotu_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdotu_strided_batched')
+            bind(c, name='rocblas_zdotu_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdotu_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1199,10 +1290,11 @@ module rocblas
 
     interface
         function rocblas_zdotc_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdotc_strided_batched')
+            bind(c, name='rocblas_zdotc_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdotc_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1219,10 +1311,11 @@ module rocblas
     ! swap
     interface
         function rocblas_sswap(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sswap')
+            bind(c, name='rocblas_sswap')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sswap
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1234,10 +1327,11 @@ module rocblas
 
     interface
         function rocblas_dswap(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dswap')
+            bind(c, name='rocblas_dswap')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dswap
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1249,10 +1343,11 @@ module rocblas
 
     interface
         function rocblas_cswap(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cswap')
+            bind(c, name='rocblas_cswap')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cswap
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1264,10 +1359,11 @@ module rocblas
 
     interface
         function rocblas_zswap(handle, n, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zswap')
+            bind(c, name='rocblas_zswap')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zswap
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1280,10 +1376,11 @@ module rocblas
     ! swap_batched
     interface
         function rocblas_sswap_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sswap_batched')
+            bind(c, name='rocblas_sswap_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sswap_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1296,10 +1393,11 @@ module rocblas
 
     interface
         function rocblas_dswap_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dswap_batched')
+            bind(c, name='rocblas_dswap_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dswap_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1312,10 +1410,11 @@ module rocblas
 
     interface
         function rocblas_cswap_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cswap_batched')
+            bind(c, name='rocblas_cswap_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cswap_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1328,10 +1427,11 @@ module rocblas
 
     interface
         function rocblas_zswap_batched(handle, n, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zswap_batched')
+            bind(c, name='rocblas_zswap_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zswap_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1345,10 +1445,11 @@ module rocblas
     ! swap_strided_batched
     interface
         function rocblas_sswap_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sswap_strided_batched')
+            bind(c, name='rocblas_sswap_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sswap_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1363,10 +1464,11 @@ module rocblas
 
     interface
         function rocblas_dswap_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dswap_strided_batched')
+            bind(c, name='rocblas_dswap_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dswap_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1381,10 +1483,11 @@ module rocblas
 
     interface
         function rocblas_cswap_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cswap_strided_batched')
+            bind(c, name='rocblas_cswap_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cswap_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1399,10 +1502,11 @@ module rocblas
 
     interface
         function rocblas_zswap_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zswap_strided_batched')
+            bind(c, name='rocblas_zswap_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zswap_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1418,10 +1522,11 @@ module rocblas
     ! axpy
     interface
         function rocblas_haxpy(handle, n, alpha, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_haxpy')
+            bind(c, name='rocblas_haxpy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_haxpy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1434,10 +1539,11 @@ module rocblas
 
     interface
         function rocblas_saxpy(handle, n, alpha, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_saxpy')
+            bind(c, name='rocblas_saxpy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_saxpy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1450,10 +1556,11 @@ module rocblas
 
     interface
         function rocblas_daxpy(handle, n, alpha, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_daxpy')
+            bind(c, name='rocblas_daxpy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_daxpy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1466,10 +1573,11 @@ module rocblas
 
     interface
         function rocblas_caxpy(handle, n, alpha, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_caxpy')
+            bind(c, name='rocblas_caxpy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_caxpy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1482,10 +1590,11 @@ module rocblas
 
     interface
         function rocblas_zaxpy(handle, n, alpha, x, incx, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zaxpy')
+            bind(c, name='rocblas_zaxpy')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zaxpy
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1499,10 +1608,11 @@ module rocblas
     ! axpy_batched
     interface
         function rocblas_haxpy_batched(handle, n, alpha, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_haxpy_batched')
+            bind(c, name='rocblas_haxpy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_haxpy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1516,10 +1626,11 @@ module rocblas
 
     interface
         function rocblas_saxpy_batched(handle, n, alpha, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_saxpy_batched')
+            bind(c, name='rocblas_saxpy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_saxpy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1533,10 +1644,11 @@ module rocblas
 
     interface
         function rocblas_daxpy_batched(handle, n, alpha, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_daxpy_batched')
+            bind(c, name='rocblas_daxpy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_daxpy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1550,10 +1662,11 @@ module rocblas
 
     interface
         function rocblas_caxpy_batched(handle, n, alpha, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_caxpy_batched')
+            bind(c, name='rocblas_caxpy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_caxpy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1567,10 +1680,11 @@ module rocblas
 
     interface
         function rocblas_zaxpy_batched(handle, n, alpha, x, incx, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zaxpy_batched')
+            bind(c, name='rocblas_zaxpy_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zaxpy_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1585,10 +1699,11 @@ module rocblas
     ! axpy_strided_batched
     interface
         function rocblas_haxpy_strided_batched(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_haxpy_strided_batched')
+            bind(c, name='rocblas_haxpy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_haxpy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1604,10 +1719,11 @@ module rocblas
 
     interface
         function rocblas_saxpy_strided_batched(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_saxpy_strided_batched')
+            bind(c, name='rocblas_saxpy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_saxpy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1623,10 +1739,11 @@ module rocblas
 
     interface
         function rocblas_daxpy_strided_batched(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_daxpy_strided_batched')
+            bind(c, name='rocblas_daxpy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_daxpy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1642,10 +1759,11 @@ module rocblas
 
     interface
         function rocblas_caxpy_strided_batched(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_caxpy_strided_batched')
+            bind(c, name='rocblas_caxpy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_caxpy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1661,10 +1779,11 @@ module rocblas
 
     interface
         function rocblas_zaxpy_strided_batched(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zaxpy_strided_batched')
+            bind(c, name='rocblas_zaxpy_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zaxpy_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -1681,10 +1800,11 @@ module rocblas
     ! asum
     interface
         function rocblas_sasum(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sasum')
+            bind(c, name='rocblas_sasum')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sasum
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1695,10 +1815,11 @@ module rocblas
 
     interface
         function rocblas_dasum(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dasum')
+            bind(c, name='rocblas_dasum')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dasum
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1709,10 +1830,11 @@ module rocblas
 
     interface
         function rocblas_scasum(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scasum')
+            bind(c, name='rocblas_scasum')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scasum
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1723,10 +1845,11 @@ module rocblas
 
     interface
         function rocblas_dzasum(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dzasum')
+            bind(c, name='rocblas_dzasum')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dzasum
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1738,10 +1861,11 @@ module rocblas
     ! asum_batched
     interface
         function rocblas_sasum_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sasum_batched')
+            bind(c, name='rocblas_sasum_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sasum_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1753,10 +1877,11 @@ module rocblas
 
     interface
         function rocblas_dasum_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dasum_batched')
+            bind(c, name='rocblas_dasum_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dasum_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1768,10 +1893,11 @@ module rocblas
 
     interface
         function rocblas_scasum_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scasum_batched')
+            bind(c, name='rocblas_scasum_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scasum_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1783,10 +1909,11 @@ module rocblas
 
     interface
         function rocblas_dzasum_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dzasum_batched')
+            bind(c, name='rocblas_dzasum_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dzasum_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1799,10 +1926,11 @@ module rocblas
     ! asum_strided_batched
     interface
         function rocblas_sasum_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sasum_strided_batched')
+            bind(c, name='rocblas_sasum_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sasum_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1815,10 +1943,11 @@ module rocblas
 
     interface
         function rocblas_dasum_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dasum_strided_batched')
+            bind(c, name='rocblas_dasum_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dasum_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1831,10 +1960,11 @@ module rocblas
 
     interface
         function rocblas_scasum_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scasum_strided_batched')
+            bind(c, name='rocblas_scasum_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scasum_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1847,10 +1977,11 @@ module rocblas
 
     interface
         function rocblas_dzasum_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dzasum_strided_batched')
+            bind(c, name='rocblas_dzasum_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dzasum_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1864,10 +1995,11 @@ module rocblas
     ! nrm2
     interface
         function rocblas_snrm2(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_snrm2')
+            bind(c, name='rocblas_snrm2')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_snrm2
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1878,10 +2010,11 @@ module rocblas
 
     interface
         function rocblas_dnrm2(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dnrm2')
+            bind(c, name='rocblas_dnrm2')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dnrm2
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1892,10 +2025,11 @@ module rocblas
 
     interface
         function rocblas_scnrm2(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scnrm2')
+            bind(c, name='rocblas_scnrm2')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scnrm2
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1906,10 +2040,11 @@ module rocblas
 
     interface
         function rocblas_dznrm2(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dznrm2')
+            bind(c, name='rocblas_dznrm2')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dznrm2
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1921,10 +2056,11 @@ module rocblas
     ! nrm2_batched
     interface
         function rocblas_snrm2_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_snrm2_batched')
+            bind(c, name='rocblas_snrm2_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_snrm2_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1936,10 +2072,11 @@ module rocblas
 
     interface
         function rocblas_dnrm2_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dnrm2_batched')
+            bind(c, name='rocblas_dnrm2_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dnrm2_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1951,10 +2088,11 @@ module rocblas
 
     interface
         function rocblas_scnrm2_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scnrm2_batched')
+            bind(c, name='rocblas_scnrm2_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scnrm2_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1966,10 +2104,11 @@ module rocblas
 
     interface
         function rocblas_dznrm2_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dznrm2_batched')
+            bind(c, name='rocblas_dznrm2_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dznrm2_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1982,10 +2121,11 @@ module rocblas
     ! nrm2_strided_batched
     interface
         function rocblas_snrm2_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_snrm2_strided_batched')
+            bind(c, name='rocblas_snrm2_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_snrm2_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -1998,10 +2138,11 @@ module rocblas
 
     interface
         function rocblas_dnrm2_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dnrm2_strided_batched')
+            bind(c, name='rocblas_dnrm2_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dnrm2_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2014,10 +2155,11 @@ module rocblas
 
     interface
         function rocblas_scnrm2_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scnrm2_strided_batched')
+            bind(c, name='rocblas_scnrm2_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scnrm2_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2030,10 +2172,11 @@ module rocblas
 
     interface
         function rocblas_dznrm2_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dznrm2_strided_batched')
+            bind(c, name='rocblas_dznrm2_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dznrm2_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2047,10 +2190,11 @@ module rocblas
     ! amax
     interface
         function rocblas_isamax(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_isamax')
+            bind(c, name='rocblas_isamax')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_isamax
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2061,10 +2205,11 @@ module rocblas
 
     interface
         function rocblas_idamax(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_idamax')
+            bind(c, name='rocblas_idamax')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_idamax
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2075,10 +2220,11 @@ module rocblas
 
     interface
         function rocblas_icamax(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_icamax')
+            bind(c, name='rocblas_icamax')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_icamax
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2089,10 +2235,11 @@ module rocblas
 
     interface
         function rocblas_izamax(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_izamax')
+            bind(c, name='rocblas_izamax')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_izamax
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2104,10 +2251,11 @@ module rocblas
     ! amax_batched
     interface
         function rocblas_isamax_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_isamax_batched')
+            bind(c, name='rocblas_isamax_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_isamax_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2119,10 +2267,11 @@ module rocblas
 
     interface
         function rocblas_idamax_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_idamax_batched')
+            bind(c, name='rocblas_idamax_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_idamax_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2134,10 +2283,11 @@ module rocblas
 
     interface
         function rocblas_icamax_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_icamax_batched')
+            bind(c, name='rocblas_icamax_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_icamax_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2149,10 +2299,11 @@ module rocblas
 
     interface
         function rocblas_izamax_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_izamax_batched')
+            bind(c, name='rocblas_izamax_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_izamax_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2165,10 +2316,11 @@ module rocblas
     ! amax_strided_batched
     interface
         function rocblas_isamax_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_isamax_strided_batched')
+            bind(c, name='rocblas_isamax_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_isamax_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2181,10 +2333,11 @@ module rocblas
 
     interface
         function rocblas_idamax_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_idamax_strided_batched')
+            bind(c, name='rocblas_idamax_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_idamax_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2197,10 +2350,11 @@ module rocblas
 
     interface
         function rocblas_icamax_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_icamax_strided_batched')
+            bind(c, name='rocblas_icamax_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_icamax_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2213,10 +2367,11 @@ module rocblas
 
     interface
         function rocblas_izamax_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_izamax_strided_batched')
+            bind(c, name='rocblas_izamax_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_izamax_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2230,10 +2385,11 @@ module rocblas
     ! amin
     interface
         function rocblas_isamin(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_isamin')
+            bind(c, name='rocblas_isamin')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_isamin
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2244,10 +2400,11 @@ module rocblas
 
     interface
         function rocblas_idamin(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_idamin')
+            bind(c, name='rocblas_idamin')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_idamin
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2258,10 +2415,11 @@ module rocblas
 
     interface
         function rocblas_icamin(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_icamin')
+            bind(c, name='rocblas_icamin')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_icamin
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2272,10 +2430,11 @@ module rocblas
 
     interface
         function rocblas_izamin(handle, n, x, incx, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_izamin')
+            bind(c, name='rocblas_izamin')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_izamin
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2287,10 +2446,11 @@ module rocblas
     ! amin_batched
     interface
         function rocblas_isamin_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_isamin_batched')
+            bind(c, name='rocblas_isamin_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_isamin_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2302,10 +2462,11 @@ module rocblas
 
     interface
         function rocblas_idamin_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_idamin_batched')
+            bind(c, name='rocblas_idamin_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_idamin_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2317,10 +2478,11 @@ module rocblas
 
     interface
         function rocblas_icamin_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_icamin_batched')
+            bind(c, name='rocblas_icamin_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_icamin_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2332,10 +2494,11 @@ module rocblas
 
     interface
         function rocblas_izamin_batched(handle, n, x, incx, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_izamin_batched')
+            bind(c, name='rocblas_izamin_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_izamin_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2348,10 +2511,11 @@ module rocblas
     ! amin_strided_batched
     interface
         function rocblas_isamin_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_isamin_strided_batched')
+            bind(c, name='rocblas_isamin_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_isamin_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2364,10 +2528,11 @@ module rocblas
 
     interface
         function rocblas_idamin_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_idamin_strided_batched')
+            bind(c, name='rocblas_idamin_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_idamin_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2380,10 +2545,11 @@ module rocblas
 
     interface
         function rocblas_icamin_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_icamin_strided_batched')
+            bind(c, name='rocblas_icamin_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_icamin_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2396,10 +2562,11 @@ module rocblas
 
     interface
         function rocblas_izamin_strided_batched(handle, n, x, incx, stride_x, batch_count, result) &
-                result(c_int) &
-                bind(c, name = 'rocblas_izamin_strided_batched')
+            bind(c, name='rocblas_izamin_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_izamin_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2413,10 +2580,11 @@ module rocblas
     ! rot
     interface
         function rocblas_srot(handle, n, x, incx, y, incy, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srot')
+            bind(c, name='rocblas_srot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2430,10 +2598,11 @@ module rocblas
 
     interface
         function rocblas_drot(handle, n, x, incx, y, incy, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drot')
+            bind(c, name='rocblas_drot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2447,10 +2616,11 @@ module rocblas
 
     interface
         function rocblas_crot(handle, n, x, incx, y, incy, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_crot')
+            bind(c, name='rocblas_crot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_crot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2464,10 +2634,11 @@ module rocblas
 
     interface
         function rocblas_csrot(handle, n, x, incx, y, incy, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csrot')
+            bind(c, name='rocblas_csrot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csrot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2481,10 +2652,11 @@ module rocblas
 
     interface
         function rocblas_zrot(handle, n, x, incx, y, incy, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zrot')
+            bind(c, name='rocblas_zrot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zrot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2498,10 +2670,11 @@ module rocblas
 
     interface
         function rocblas_zdrot(handle, n, x, incx, y, incy, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdrot')
+            bind(c, name='rocblas_zdrot')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdrot
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2516,10 +2689,11 @@ module rocblas
     ! rot_batched
     interface
         function rocblas_srot_batched(handle, n, x, incx, y, incy, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srot_batched')
+            bind(c, name='rocblas_srot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2534,10 +2708,11 @@ module rocblas
 
     interface
         function rocblas_drot_batched(handle, n, x, incx, y, incy, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drot_batched')
+            bind(c, name='rocblas_drot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2552,10 +2727,11 @@ module rocblas
 
     interface
         function rocblas_crot_batched(handle, n, x, incx, y, incy, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_crot_batched')
+            bind(c, name='rocblas_crot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_crot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2570,10 +2746,11 @@ module rocblas
 
     interface
         function rocblas_csrot_batched(handle, n, x, incx, y, incy, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csrot_batched')
+            bind(c, name='rocblas_csrot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csrot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2588,10 +2765,11 @@ module rocblas
 
     interface
         function rocblas_zrot_batched(handle, n, x, incx, y, incy, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zrot_batched')
+            bind(c, name='rocblas_zrot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zrot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2606,10 +2784,11 @@ module rocblas
 
     interface
         function rocblas_zdrot_batched(handle, n, x, incx, y, incy, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdrot_batched')
+            bind(c, name='rocblas_zdrot_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdrot_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2625,10 +2804,11 @@ module rocblas
     ! rot_strided_batched
     interface
         function rocblas_srot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srot_strided_batched')
+            bind(c, name='rocblas_srot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2645,10 +2825,11 @@ module rocblas
 
     interface
         function rocblas_drot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drot_strided_batched')
+            bind(c, name='rocblas_drot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2665,10 +2846,11 @@ module rocblas
 
     interface
         function rocblas_crot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_crot_strided_batched')
+            bind(c, name='rocblas_crot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_crot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2685,10 +2867,11 @@ module rocblas
 
     interface
         function rocblas_csrot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csrot_strided_batched')
+            bind(c, name='rocblas_csrot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csrot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2705,10 +2888,11 @@ module rocblas
 
     interface
         function rocblas_zrot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zrot_strided_batched')
+            bind(c, name='rocblas_zrot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zrot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2725,10 +2909,11 @@ module rocblas
 
     interface
         function rocblas_zdrot_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdrot_strided_batched')
+            bind(c, name='rocblas_zdrot_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdrot_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2746,10 +2931,11 @@ module rocblas
     ! rotg
     interface
         function rocblas_srotg(handle, a, b, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotg')
+            bind(c, name='rocblas_srotg')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotg
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2760,10 +2946,11 @@ module rocblas
 
     interface
         function rocblas_drotg(handle, a, b, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotg')
+            bind(c, name='rocblas_drotg')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotg
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2774,10 +2961,11 @@ module rocblas
 
     interface
         function rocblas_crotg(handle, a, b, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_crotg')
+            bind(c, name='rocblas_crotg')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_crotg
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2788,10 +2976,11 @@ module rocblas
 
     interface
         function rocblas_zrotg(handle, a, b, c, s) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zrotg')
+            bind(c, name='rocblas_zrotg')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zrotg
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2803,10 +2992,11 @@ module rocblas
     ! rotg_batched
     interface
         function rocblas_srotg_batched(handle, a, b, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotg_batched')
+            bind(c, name='rocblas_srotg_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotg_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2818,10 +3008,11 @@ module rocblas
 
     interface
         function rocblas_drotg_batched(handle, a, b, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotg_batched')
+            bind(c, name='rocblas_drotg_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotg_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2833,10 +3024,11 @@ module rocblas
 
     interface
         function rocblas_crotg_batched(handle, a, b, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_crotg_batched')
+            bind(c, name='rocblas_crotg_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_crotg_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2848,10 +3040,11 @@ module rocblas
 
     interface
         function rocblas_zrotg_batched(handle, a, b, c, s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zrotg_batched')
+            bind(c, name='rocblas_zrotg_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zrotg_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             type(c_ptr), value :: b
@@ -2864,10 +3057,11 @@ module rocblas
     ! rotg_strided_batched
     interface
         function rocblas_srotg_strided_batched(handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotg_strided_batched')
+            bind(c, name='rocblas_srotg_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotg_strided_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             integer(c_int64_t), value :: stride_a
@@ -2883,10 +3077,11 @@ module rocblas
 
     interface
         function rocblas_drotg_strided_batched(handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotg_strided_batched')
+            bind(c, name='rocblas_drotg_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotg_strided_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             integer(c_int64_t), value :: stride_a
@@ -2902,10 +3097,11 @@ module rocblas
 
     interface
         function rocblas_crotg_strided_batched(handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_crotg_strided_batched')
+            bind(c, name='rocblas_crotg_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_crotg_strided_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             integer(c_int64_t), value :: stride_a
@@ -2921,10 +3117,11 @@ module rocblas
 
     interface
         function rocblas_zrotg_strided_batched(handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zrotg_strided_batched')
+            bind(c, name='rocblas_zrotg_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zrotg_strided_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: a
             integer(c_int64_t), value :: stride_a
@@ -2941,10 +3138,11 @@ module rocblas
     ! rotm
     interface
         function rocblas_srotm(handle, n, x, incx, y, incy, param) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotm')
+            bind(c, name='rocblas_srotm')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotm
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2957,10 +3155,11 @@ module rocblas
 
     interface
         function rocblas_drotm(handle, n, x, incx, y, incy, param) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotm')
+            bind(c, name='rocblas_drotm')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotm
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2974,10 +3173,11 @@ module rocblas
     ! rotm_batched
     interface
         function rocblas_srotm_batched(handle, n, x, incx, y, incy, param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotm_batched')
+            bind(c, name='rocblas_srotm_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotm_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -2991,10 +3191,11 @@ module rocblas
 
     interface
         function rocblas_drotm_batched(handle, n, x, incx, y, incy, param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotm_batched')
+            bind(c, name='rocblas_drotm_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotm_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -3009,10 +3210,11 @@ module rocblas
     ! rotm_strided_batched
     interface
         function rocblas_srotm_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, param, stride_param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotm_strided_batched')
+            bind(c, name='rocblas_srotm_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotm_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -3029,10 +3231,11 @@ module rocblas
 
     interface
         function rocblas_drotm_strided_batched(handle, n, x, incx, stride_x, y, incy, stride_y, param, stride_param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotm_strided_batched')
+            bind(c, name='rocblas_drotm_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotm_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -3050,10 +3253,11 @@ module rocblas
     ! rotmg
     interface
         function rocblas_srotmg(handle, d1, d2, x1, y1, param) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotmg')
+            bind(c, name='rocblas_srotmg')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotmg
             type(c_ptr), value :: handle
             type(c_ptr), value :: d1
             type(c_ptr), value :: d2
@@ -3065,10 +3269,11 @@ module rocblas
 
     interface
         function rocblas_drotmg(handle, d1, d2, x1, y1, param) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotmg')
+            bind(c, name='rocblas_drotmg')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotmg
             type(c_ptr), value :: handle
             type(c_ptr), value :: d1
             type(c_ptr), value :: d2
@@ -3081,10 +3286,11 @@ module rocblas
     ! rotmg_batched
     interface
         function rocblas_srotmg_batched(handle, d1, d2, x1, y1, param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotmg_batched')
+            bind(c, name='rocblas_srotmg_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotmg_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: d1
             type(c_ptr), value :: d2
@@ -3097,10 +3303,11 @@ module rocblas
 
     interface
         function rocblas_drotmg_batched(handle, d1, d2, x1, y1, param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotmg_batched')
+            bind(c, name='rocblas_drotmg_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotmg_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: d1
             type(c_ptr), value :: d2
@@ -3114,11 +3321,12 @@ module rocblas
     ! rotmg_strided_batched
     interface
         function rocblas_srotmg_strided_batched(handle, d1, stride_d1, d2, stride_d2, x1, stride_x1, &
-             y1, stride_y1, param, stride_param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_srotmg_strided_batched')
+                                                y1, stride_y1, param, stride_param, batch_count) &
+            bind(c, name='rocblas_srotmg_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_srotmg_strided_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: d1
             integer(c_int64_t), value :: stride_d1
@@ -3136,11 +3344,12 @@ module rocblas
 
     interface
         function rocblas_drotmg_strided_batched(handle, d1, stride_d1, d2, stride_d2, x1, stride_x1, &
-             y1, stride_y1, param, stride_param, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_drotmg_strided_batched')
+                                                y1, stride_y1, param, stride_param, batch_count) &
+            bind(c, name='rocblas_drotmg_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_drotmg_strided_batched
             type(c_ptr), value :: handle
             type(c_ptr), value :: d1
             integer(c_int64_t), value :: stride_d1
@@ -3163,11 +3372,11 @@ module rocblas
     ! gbmv
     interface
         function rocblas_sgbmv(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgbmv')
+            bind(c, name='rocblas_sgbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3187,11 +3396,11 @@ module rocblas
 
     interface
         function rocblas_dgbmv(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgbmv')
+            bind(c, name='rocblas_dgbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3211,11 +3420,11 @@ module rocblas
 
     interface
         function rocblas_cgbmv(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgbmv')
+            bind(c, name='rocblas_cgbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3235,11 +3444,11 @@ module rocblas
 
     interface
         function rocblas_zgbmv(handle, trans, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgbmv')
+            bind(c, name='rocblas_zgbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3260,12 +3469,12 @@ module rocblas
     ! gbmv_batched
     interface
         function rocblas_sgbmv_batched(handle, trans, m, n, kl, ku, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_sgbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3286,12 +3495,12 @@ module rocblas
 
     interface
         function rocblas_dgbmv_batched(handle, trans, m, n, kl, ku, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_dgbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3312,12 +3521,12 @@ module rocblas
 
     interface
         function rocblas_cgbmv_batched(handle, trans, m, n, kl, ku, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_cgbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3338,12 +3547,12 @@ module rocblas
 
     interface
         function rocblas_zgbmv_batched(handle, trans, m, n, kl, ku, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zgbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3365,12 +3574,12 @@ module rocblas
     ! gbmv_strided_batched
     interface
         function rocblas_sgbmv_strided_batched(handle, trans, m, n, kl, ku, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_sgbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3394,12 +3603,12 @@ module rocblas
 
     interface
         function rocblas_dgbmv_strided_batched(handle, trans, m, n, kl, ku, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dgbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3423,12 +3632,12 @@ module rocblas
 
     interface
         function rocblas_cgbmv_strided_batched(handle, trans, m, n, kl, ku, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_cgbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3452,12 +3661,12 @@ module rocblas
 
     interface
         function rocblas_zgbmv_strided_batched(handle, trans, m, n, kl, ku, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zgbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3482,12 +3691,12 @@ module rocblas
     ! gemv
     interface
         function rocblas_sgemv(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgemv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_sgemv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3505,12 +3714,12 @@ module rocblas
 
     interface
         function rocblas_dgemv(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgemv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_dgemv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3528,12 +3737,12 @@ module rocblas
 
     interface
         function rocblas_cgemv(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgemv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_cgemv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3551,12 +3760,12 @@ module rocblas
 
     interface
         function rocblas_zgemv(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgemv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_zgemv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemv
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3575,12 +3784,12 @@ module rocblas
     ! gemv_batched
     interface
         function rocblas_sgemv_batched(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgemv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_sgemv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3599,12 +3808,12 @@ module rocblas
 
     interface
         function rocblas_dgemv_batched(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgemv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_dgemv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3623,12 +3832,12 @@ module rocblas
 
     interface
         function rocblas_cgemv_batched(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgemv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_cgemv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3647,12 +3856,12 @@ module rocblas
 
     interface
         function rocblas_zgemv_batched(handle, trans, m, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgemv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zgemv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3672,12 +3881,12 @@ module rocblas
     ! gemv_strided_batched
     interface
         function rocblas_sgemv_strided_batched(handle, trans, m, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgemv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_sgemv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3699,12 +3908,12 @@ module rocblas
 
     interface
         function rocblas_dgemv_strided_batched(handle, trans, m, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgemv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dgemv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3726,12 +3935,12 @@ module rocblas
 
     interface
         function rocblas_cgemv_strided_batched(handle, trans, m, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgemv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_cgemv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3753,12 +3962,12 @@ module rocblas
 
     interface
         function rocblas_zgemv_strided_batched(handle, trans, m, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgemv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zgemv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: trans
             integer(c_int), value :: m
@@ -3781,12 +3990,12 @@ module rocblas
     ! hbmv
     interface
         function rocblas_chbmv(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chbmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_chbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3804,12 +4013,12 @@ module rocblas
 
     interface
         function rocblas_zhbmv(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhbmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_zhbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3828,12 +4037,12 @@ module rocblas
     ! hbmv_batched
     interface
         function rocblas_chbmv_batched(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_chbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3852,12 +4061,12 @@ module rocblas
 
     interface
         function rocblas_zhbmv_batched(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zhbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3877,12 +4086,12 @@ module rocblas
     ! hbmv_strided_batched
     interface
         function rocblas_chbmv_strided_batched(handle, uplo, n, k, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_chbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3904,12 +4113,12 @@ module rocblas
 
     interface
         function rocblas_zhbmv_strided_batched(handle, uplo, n, k, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zhbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3932,12 +4141,12 @@ module rocblas
     ! hemv
     interface
         function rocblas_chemv(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chemv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_chemv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3954,12 +4163,12 @@ module rocblas
 
     interface
         function rocblas_zhemv(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhemv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_zhemv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -3977,12 +4186,12 @@ module rocblas
     ! hemv_batched
     interface
         function rocblas_chemv_batched(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chemv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_chemv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4000,12 +4209,12 @@ module rocblas
 
     interface
         function rocblas_zhemv_batched(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhemv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zhemv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4024,12 +4233,12 @@ module rocblas
     ! hemv_strided_batched
     interface
         function rocblas_chemv_strided_batched(handle, uplo, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chemv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_chemv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4050,12 +4259,12 @@ module rocblas
 
     interface
         function rocblas_zhemv_strided_batched(handle, uplo, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhemv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zhemv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4077,12 +4286,12 @@ module rocblas
     ! her
     interface
         function rocblas_cher(handle, uplo, n, alpha, &
-                x, incx, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher')
+                              x, incx, A, lda) &
+            bind(c, name='rocblas_cher')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4096,12 +4305,12 @@ module rocblas
 
     interface
         function rocblas_zher(handle, uplo, n, alpha, &
-                x, incx, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher')
+                              x, incx, A, lda) &
+            bind(c, name='rocblas_zher')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4116,12 +4325,12 @@ module rocblas
     ! her_batched
     interface
         function rocblas_cher_batched(handle, uplo, n, alpha, &
-                x, incx, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher_batched')
+                                      x, incx, A, lda, batch_count) &
+            bind(c, name='rocblas_cher_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4136,12 +4345,12 @@ module rocblas
 
     interface
         function rocblas_zher_batched(handle, uplo, n, alpha, &
-                x, incx, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher_batched')
+                                      x, incx, A, lda, batch_count) &
+            bind(c, name='rocblas_zher_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4157,12 +4366,12 @@ module rocblas
     ! her_strided_batched
     interface
         function rocblas_cher_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher_strided_batched')
+                                              x, incx, stride_x, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_cher_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4179,12 +4388,12 @@ module rocblas
 
     interface
         function rocblas_zher_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher_strided_batched')
+                                              x, incx, stride_x, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_zher_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4202,12 +4411,12 @@ module rocblas
     ! her2
     interface
         function rocblas_cher2(handle, uplo, n, alpha, &
-                x, incx, y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher2')
+                               x, incx, y, incy, A, lda) &
+            bind(c, name='rocblas_cher2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4223,12 +4432,12 @@ module rocblas
 
     interface
         function rocblas_zher2(handle, uplo, n, alpha, &
-                x, incx, y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher2')
+                               x, incx, y, incy, A, lda) &
+            bind(c, name='rocblas_zher2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4245,12 +4454,12 @@ module rocblas
     ! her2_batched
     interface
         function rocblas_cher2_batched(handle, uplo, n, alpha, &
-                x, incx, y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher2_batched')
+                                       x, incx, y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_cher2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4267,12 +4476,12 @@ module rocblas
 
     interface
         function rocblas_zher2_batched(handle, uplo, n, alpha, &
-                x, incx, y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher2_batched')
+                                       x, incx, y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_zher2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4290,12 +4499,12 @@ module rocblas
     ! her2_strided_batched
     interface
         function rocblas_cher2_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher2_strided_batched')
+                                               x, incx, stride_x, y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_cher2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4315,12 +4524,12 @@ module rocblas
 
     interface
         function rocblas_zher2_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher2_strided_batched')
+                                               x, incx, stride_x, y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_zher2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4341,12 +4550,12 @@ module rocblas
     ! hpmv
     interface
         function rocblas_chpmv(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_chpmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4362,12 +4571,12 @@ module rocblas
 
     interface
         function rocblas_zhpmv(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_zhpmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4384,12 +4593,12 @@ module rocblas
     ! hpmv_batched
     interface
         function rocblas_chpmv_batched(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_chpmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4406,12 +4615,12 @@ module rocblas
 
     interface
         function rocblas_zhpmv_batched(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zhpmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4429,12 +4638,12 @@ module rocblas
     ! hpmv_strided_batched
     interface
         function rocblas_chpmv_strided_batched(handle, uplo, n, alpha, AP, stride_AP, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_chpmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4454,12 +4663,12 @@ module rocblas
 
     interface
         function rocblas_zhpmv_strided_batched(handle, uplo, n, alpha, AP, stride_AP, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zhpmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4480,12 +4689,12 @@ module rocblas
     ! hpr
     interface
         function rocblas_chpr(handle, uplo, n, alpha, &
-                x, incx, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpr')
+                              x, incx, AP) &
+            bind(c, name='rocblas_chpr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4498,12 +4707,12 @@ module rocblas
 
     interface
         function rocblas_zhpr(handle, uplo, n, alpha, &
-                x, incx, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpr')
+                              x, incx, AP) &
+            bind(c, name='rocblas_zhpr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4517,12 +4726,12 @@ module rocblas
     ! hpr_batched
     interface
         function rocblas_chpr_batched(handle, uplo, n, alpha, &
-                x, incx, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpr_batched')
+                                      x, incx, AP, batch_count) &
+            bind(c, name='rocblas_chpr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4536,12 +4745,12 @@ module rocblas
 
     interface
         function rocblas_zhpr_batched(handle, uplo, n, alpha, &
-                x, incx, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpr_batched')
+                                      x, incx, AP, batch_count) &
+            bind(c, name='rocblas_zhpr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4556,12 +4765,12 @@ module rocblas
     ! hpr_strided_batched
     interface
         function rocblas_chpr_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpr_strided_batched')
+                                              x, incx, stride_x, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_chpr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4577,12 +4786,12 @@ module rocblas
 
     interface
         function rocblas_zhpr_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpr_strided_batched')
+                                              x, incx, stride_x, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_zhpr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4599,12 +4808,12 @@ module rocblas
     ! hpr2
     interface
         function rocblas_chpr2(handle, uplo, n, alpha, &
-                x, incx, y, incy, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpr2')
+                               x, incx, y, incy, AP) &
+            bind(c, name='rocblas_chpr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4619,12 +4828,12 @@ module rocblas
 
     interface
         function rocblas_zhpr2(handle, uplo, n, alpha, &
-                x, incx, y, incy, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpr2')
+                               x, incx, y, incy, AP) &
+            bind(c, name='rocblas_zhpr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4640,12 +4849,12 @@ module rocblas
     ! hpr2_batched
     interface
         function rocblas_chpr2_batched(handle, uplo, n, alpha, &
-                x, incx, y, incy, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpr2_batched')
+                                       x, incx, y, incy, AP, batch_count) &
+            bind(c, name='rocblas_chpr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4661,12 +4870,12 @@ module rocblas
 
     interface
         function rocblas_zhpr2_batched(handle, uplo, n, alpha, &
-                x, incx, y, incy, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpr2_batched')
+                                       x, incx, y, incy, AP, batch_count) &
+            bind(c, name='rocblas_zhpr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4683,12 +4892,12 @@ module rocblas
     ! hpr2_strided_batched
     interface
         function rocblas_chpr2_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, y, incy, stride_y, AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chpr2_strided_batched')
+                                               x, incx, stride_x, y, incy, stride_y, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_chpr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chpr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4707,12 +4916,12 @@ module rocblas
 
     interface
         function rocblas_zhpr2_strided_batched(handle, uplo, n, alpha, &
-                x, incx, stride_x, y, incy, stride_y, AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhpr2_strided_batched')
+                                               x, incx, stride_x, y, incy, stride_y, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_zhpr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhpr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -4732,12 +4941,12 @@ module rocblas
     ! trmv
     interface
         function rocblas_strmv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_strmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4752,12 +4961,12 @@ module rocblas
 
     interface
         function rocblas_dtrmv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_dtrmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4772,12 +4981,12 @@ module rocblas
 
     interface
         function rocblas_ctrmv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ctrmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4792,12 +5001,12 @@ module rocblas
 
     interface
         function rocblas_ztrmv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ztrmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4813,12 +5022,12 @@ module rocblas
     ! trmv_batched
     interface
         function rocblas_strmv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_strmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4834,12 +5043,12 @@ module rocblas
 
     interface
         function rocblas_dtrmv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_dtrmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4855,12 +5064,12 @@ module rocblas
 
     interface
         function rocblas_ctrmv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ctrmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4876,12 +5085,12 @@ module rocblas
 
     interface
         function rocblas_ztrmv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ztrmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4898,12 +5107,12 @@ module rocblas
     ! trmv_strided_batched
     interface
         function rocblas_strmv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_strmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4921,12 +5130,12 @@ module rocblas
 
     interface
         function rocblas_dtrmv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_dtrmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4944,12 +5153,12 @@ module rocblas
 
     interface
         function rocblas_ctrmv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ctrmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4967,12 +5176,12 @@ module rocblas
 
     interface
         function rocblas_ztrmv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ztrmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -4991,12 +5200,12 @@ module rocblas
     ! tpmv
     interface
         function rocblas_stpmv(handle, uplo, transA, diag, m, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stpmv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_stpmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stpmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5010,12 +5219,12 @@ module rocblas
 
     interface
         function rocblas_dtpmv(handle, uplo, transA, diag, m, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtpmv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_dtpmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtpmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5029,12 +5238,12 @@ module rocblas
 
     interface
         function rocblas_ctpmv(handle, uplo, transA, diag, m, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctpmv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_ctpmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctpmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5048,12 +5257,12 @@ module rocblas
 
     interface
         function rocblas_ztpmv(handle, uplo, transA, diag, m, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztpmv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_ztpmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztpmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5068,12 +5277,12 @@ module rocblas
     ! tpmv_batched
     interface
         function rocblas_stpmv_batched(handle, uplo, transA, diag, m, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stpmv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_stpmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stpmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5088,12 +5297,12 @@ module rocblas
 
     interface
         function rocblas_dtpmv_batched(handle, uplo, transA, diag, m, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtpmv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_dtpmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtpmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5108,12 +5317,12 @@ module rocblas
 
     interface
         function rocblas_ctpmv_batched(handle, uplo, transA, diag, m, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctpmv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_ctpmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctpmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5128,12 +5337,12 @@ module rocblas
 
     interface
         function rocblas_ztpmv_batched(handle, uplo, transA, diag, m, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztpmv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_ztpmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztpmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5149,12 +5358,12 @@ module rocblas
     ! tpmv_strided_batched
     interface
         function rocblas_stpmv_strided_batched(handle, uplo, transA, diag, m, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stpmv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_stpmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stpmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5171,12 +5380,12 @@ module rocblas
 
     interface
         function rocblas_dtpmv_strided_batched(handle, uplo, transA, diag, m, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtpmv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_dtpmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtpmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5193,12 +5402,12 @@ module rocblas
 
     interface
         function rocblas_ctpmv_strided_batched(handle, uplo, transA, diag, m, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctpmv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ctpmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctpmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5215,12 +5424,12 @@ module rocblas
 
     interface
         function rocblas_ztpmv_strided_batched(handle, uplo, transA, diag, m, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztpmv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ztpmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztpmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5238,12 +5447,12 @@ module rocblas
     ! tbmv
     interface
         function rocblas_stbmv(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stbmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_stbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5259,12 +5468,12 @@ module rocblas
 
     interface
         function rocblas_dtbmv(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtbmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_dtbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5280,12 +5489,12 @@ module rocblas
 
     interface
         function rocblas_ctbmv(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctbmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ctbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5301,12 +5510,12 @@ module rocblas
 
     interface
         function rocblas_ztbmv(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztbmv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ztbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5323,12 +5532,12 @@ module rocblas
     ! tbmv_batched
     interface
         function rocblas_stbmv_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stbmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_stbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5345,12 +5554,12 @@ module rocblas
 
     interface
         function rocblas_dtbmv_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtbmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_dtbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5367,12 +5576,12 @@ module rocblas
 
     interface
         function rocblas_ctbmv_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctbmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ctbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5389,12 +5598,12 @@ module rocblas
 
     interface
         function rocblas_ztbmv_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztbmv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ztbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5412,12 +5621,12 @@ module rocblas
     ! tbmv_strided_batched
     interface
         function rocblas_stbmv_strided_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stbmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_stbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5436,12 +5645,12 @@ module rocblas
 
     interface
         function rocblas_dtbmv_strided_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtbmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_dtbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5460,12 +5669,12 @@ module rocblas
 
     interface
         function rocblas_ctbmv_strided_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctbmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ctbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5484,12 +5693,12 @@ module rocblas
 
     interface
         function rocblas_ztbmv_strided_batched(handle, uplo, transA, diag, m, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztbmv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ztbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5509,12 +5718,12 @@ module rocblas
     ! tbsv
     interface
         function rocblas_stbsv(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stbsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_stbsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stbsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5530,12 +5739,12 @@ module rocblas
 
     interface
         function rocblas_dtbsv(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtbsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_dtbsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtbsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5551,12 +5760,12 @@ module rocblas
 
     interface
         function rocblas_ctbsv(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctbsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ctbsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctbsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5572,12 +5781,12 @@ module rocblas
 
     interface
         function rocblas_ztbsv(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztbsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ztbsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztbsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5594,12 +5803,12 @@ module rocblas
     ! tbsv_batched
     interface
         function rocblas_stbsv_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stbsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_stbsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stbsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5616,12 +5825,12 @@ module rocblas
 
     interface
         function rocblas_dtbsv_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtbsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_dtbsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtbsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5638,12 +5847,12 @@ module rocblas
 
     interface
         function rocblas_ctbsv_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctbsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ctbsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctbsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5660,12 +5869,12 @@ module rocblas
 
     interface
         function rocblas_ztbsv_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztbsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ztbsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztbsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5683,12 +5892,12 @@ module rocblas
     ! tbsv_strided_batched
     interface
         function rocblas_stbsv_strided_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stbsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_stbsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stbsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5707,12 +5916,12 @@ module rocblas
 
     interface
         function rocblas_dtbsv_strided_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtbsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_dtbsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtbsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5731,12 +5940,12 @@ module rocblas
 
     interface
         function rocblas_ctbsv_strided_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctbsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ctbsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctbsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5755,12 +5964,12 @@ module rocblas
 
     interface
         function rocblas_ztbsv_strided_batched(handle, uplo, transA, diag, n, k, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztbsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ztbsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztbsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5780,12 +5989,12 @@ module rocblas
     ! trsv
     interface
         function rocblas_strsv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_strsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5800,12 +6009,12 @@ module rocblas
 
     interface
         function rocblas_dtrsv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_dtrsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5820,12 +6029,12 @@ module rocblas
 
     interface
         function rocblas_ctrsv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ctrsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5840,12 +6049,12 @@ module rocblas
 
     interface
         function rocblas_ztrsv(handle, uplo, transA, diag, m, &
-                A, lda, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrsv')
+                               A, lda, x, incx) &
+            bind(c, name='rocblas_ztrsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5861,12 +6070,12 @@ module rocblas
     ! trsv_batched
     interface
         function rocblas_strsv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_strsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5882,12 +6091,12 @@ module rocblas
 
     interface
         function rocblas_dtrsv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_dtrsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5903,12 +6112,12 @@ module rocblas
 
     interface
         function rocblas_ctrsv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ctrsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5924,12 +6133,12 @@ module rocblas
 
     interface
         function rocblas_ztrsv_batched(handle, uplo, transA, diag, m, &
-                A, lda, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrsv_batched')
+                                       A, lda, x, incx, batch_count) &
+            bind(c, name='rocblas_ztrsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5946,12 +6155,12 @@ module rocblas
     ! trsv_strided_batched
     interface
         function rocblas_strsv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_strsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5969,12 +6178,12 @@ module rocblas
 
     interface
         function rocblas_dtrsv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_dtrsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -5992,12 +6201,12 @@ module rocblas
 
     interface
         function rocblas_ctrsv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ctrsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6015,12 +6224,12 @@ module rocblas
 
     interface
         function rocblas_ztrsv_strided_batched(handle, uplo, transA, diag, m, &
-                A, lda, stride_A, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrsv_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ztrsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6039,12 +6248,12 @@ module rocblas
     ! tpsv
     interface
         function rocblas_stpsv(handle, uplo, transA, diag, n, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stpsv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_stpsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stpsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6058,12 +6267,12 @@ module rocblas
 
     interface
         function rocblas_dtpsv(handle, uplo, transA, diag, n, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtpsv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_dtpsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtpsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6077,12 +6286,12 @@ module rocblas
 
     interface
         function rocblas_ctpsv(handle, uplo, transA, diag, n, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctpsv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_ctpsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctpsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6096,12 +6305,12 @@ module rocblas
 
     interface
         function rocblas_ztpsv(handle, uplo, transA, diag, n, &
-                AP, x, incx) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztpsv')
+                               AP, x, incx) &
+            bind(c, name='rocblas_ztpsv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztpsv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6116,12 +6325,12 @@ module rocblas
     ! tpsv_batched
     interface
         function rocblas_stpsv_batched(handle, uplo, transA, diag, n, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stpsv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_stpsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stpsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6136,12 +6345,12 @@ module rocblas
 
     interface
         function rocblas_dtpsv_batched(handle, uplo, transA, diag, n, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtpsv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_dtpsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtpsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6156,12 +6365,12 @@ module rocblas
 
     interface
         function rocblas_ctpsv_batched(handle, uplo, transA, diag, n, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctpsv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_ctpsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctpsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6176,12 +6385,12 @@ module rocblas
 
     interface
         function rocblas_ztpsv_batched(handle, uplo, transA, diag, n, &
-                AP, x, incx, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztpsv_batched')
+                                       AP, x, incx, batch_count) &
+            bind(c, name='rocblas_ztpsv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztpsv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6197,12 +6406,12 @@ module rocblas
     ! tpsv_strided_batched
     interface
         function rocblas_stpsv_strided_batched(handle, uplo, transA, diag, n, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_stpsv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_stpsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_stpsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6219,12 +6428,12 @@ module rocblas
 
     interface
         function rocblas_dtpsv_strided_batched(handle, uplo, transA, diag, n, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtpsv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_dtpsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtpsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6241,12 +6450,12 @@ module rocblas
 
     interface
         function rocblas_ctpsv_strided_batched(handle, uplo, transA, diag, n, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctpsv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ctpsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctpsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6263,12 +6472,12 @@ module rocblas
 
     interface
         function rocblas_ztpsv_strided_batched(handle, uplo, transA, diag, n, &
-                AP, stride_AP, x, incx, stride_x, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztpsv_strided_batched')
+                                               AP, stride_AP, x, incx, stride_x, batch_count) &
+            bind(c, name='rocblas_ztpsv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztpsv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -6286,12 +6495,12 @@ module rocblas
     ! symv
     interface
         function rocblas_ssymv(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssymv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_ssymv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6308,12 +6517,12 @@ module rocblas
 
     interface
         function rocblas_dsymv(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsymv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_dsymv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6330,12 +6539,12 @@ module rocblas
 
     interface
         function rocblas_csymv(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csymv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_csymv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6352,12 +6561,12 @@ module rocblas
 
     interface
         function rocblas_zsymv(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsymv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_zsymv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6375,12 +6584,12 @@ module rocblas
     ! symv_batched
     interface
         function rocblas_ssymv_batched(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssymv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_ssymv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6398,12 +6607,12 @@ module rocblas
 
     interface
         function rocblas_dsymv_batched(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsymv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_dsymv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6421,12 +6630,12 @@ module rocblas
 
     interface
         function rocblas_csymv_batched(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csymv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_csymv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6444,12 +6653,12 @@ module rocblas
 
     interface
         function rocblas_zsymv_batched(handle, uplo, n, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsymv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_zsymv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6468,12 +6677,12 @@ module rocblas
     ! symv_strided_batched
     interface
         function rocblas_ssymv_strided_batched(handle, uplo, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssymv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_ssymv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6494,12 +6703,12 @@ module rocblas
 
     interface
         function rocblas_dsymv_strided_batched(handle, uplo, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsymv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dsymv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6520,12 +6729,12 @@ module rocblas
 
     interface
         function rocblas_csymv_strided_batched(handle, uplo, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csymv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_csymv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6546,12 +6755,12 @@ module rocblas
 
     interface
         function rocblas_zsymv_strided_batched(handle, uplo, n, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsymv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zsymv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6573,12 +6782,12 @@ module rocblas
     ! spmv
     interface
         function rocblas_sspmv(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_sspmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6594,12 +6803,12 @@ module rocblas
 
     interface
         function rocblas_dspmv(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_dspmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6616,12 +6825,12 @@ module rocblas
     ! spmv_batched
     interface
         function rocblas_sspmv_batched(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_sspmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6638,12 +6847,12 @@ module rocblas
 
     interface
         function rocblas_dspmv_batched(handle, uplo, n, alpha, AP, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_dspmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6661,12 +6870,12 @@ module rocblas
     ! spmv_strided_batched
     interface
         function rocblas_sspmv_strided_batched(handle, uplo, n, alpha, AP, stride_AP, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_sspmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6686,12 +6895,12 @@ module rocblas
 
     interface
         function rocblas_dspmv_strided_batched(handle, uplo, n, alpha, AP, stride_AP, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dspmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6712,12 +6921,12 @@ module rocblas
     ! sbmv
     interface
         function rocblas_ssbmv(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssbmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_ssbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6735,12 +6944,12 @@ module rocblas
 
     interface
         function rocblas_dsbmv(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsbmv')
+                               x, incx, beta, y, incy) &
+            bind(c, name='rocblas_dsbmv')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsbmv
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6759,12 +6968,12 @@ module rocblas
     ! sbmv_batched
     interface
         function rocblas_ssbmv_batched(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_ssbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6783,12 +6992,12 @@ module rocblas
 
     interface
         function rocblas_dsbmv_batched(handle, uplo, n, k, alpha, A, lda, &
-                x, incx, beta, y, incy, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsbmv_batched')
+                                       x, incx, beta, y, incy, batch_count) &
+            bind(c, name='rocblas_dsbmv_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsbmv_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6808,12 +7017,12 @@ module rocblas
     ! sbmv_strided_batched
     interface
         function rocblas_ssbmv_strided_batched(handle, uplo, n, k, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_ssbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6835,12 +7044,12 @@ module rocblas
 
     interface
         function rocblas_dsbmv_strided_batched(handle, uplo, n, k, alpha, A, lda, stride_A, &
-                x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsbmv_strided_batched')
+                                               x, incx, stride_x, beta, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dsbmv_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsbmv_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -6863,11 +7072,12 @@ module rocblas
     ! ger
     interface
         function rocblas_sger(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sger')
+                              y, incy, A, lda) &
+            bind(c, name='rocblas_sger')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sger
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -6883,11 +7093,12 @@ module rocblas
 
     interface
         function rocblas_dger(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dger')
+                              y, incy, A, lda) &
+            bind(c, name='rocblas_dger')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dger
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -6903,11 +7114,12 @@ module rocblas
 
     interface
         function rocblas_cgeru(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgeru')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_cgeru')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgeru
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -6923,11 +7135,12 @@ module rocblas
 
     interface
         function rocblas_cgerc(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgerc')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_cgerc')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgerc
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -6943,11 +7156,12 @@ module rocblas
 
     interface
         function rocblas_zgeru(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgeru')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_zgeru')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgeru
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -6963,11 +7177,12 @@ module rocblas
 
     interface
         function rocblas_zgerc(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgerc')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_zgerc')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgerc
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -6984,11 +7199,12 @@ module rocblas
     ! ger_batched
     interface
         function rocblas_sger_batched(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sger_batched')
+                                      y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_sger_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sger_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7005,11 +7221,12 @@ module rocblas
 
     interface
         function rocblas_dger_batched(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dger_batched')
+                                      y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_dger_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dger_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7026,11 +7243,12 @@ module rocblas
 
     interface
         function rocblas_cgeru_batched(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgeru_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_cgeru_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgeru_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7047,11 +7265,12 @@ module rocblas
 
     interface
         function rocblas_cgerc_batched(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgerc_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_cgerc_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgerc_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7068,11 +7287,12 @@ module rocblas
 
     interface
         function rocblas_zgeru_batched(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgeru_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_zgeru_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgeru_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7089,11 +7309,12 @@ module rocblas
 
     interface
         function rocblas_zgerc_batched(handle, m, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgerc_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_zgerc_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgerc_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7111,11 +7332,12 @@ module rocblas
     ! ger_strided_batched
     interface
         function rocblas_sger_strided_batched(handle, m, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sger_strided_batched')
+                                              y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_sger_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sger_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7135,11 +7357,12 @@ module rocblas
 
     interface
         function rocblas_dger_strided_batched(handle, m, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dger_strided_batched')
+                                              y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_dger_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dger_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7159,11 +7382,12 @@ module rocblas
 
     interface
         function rocblas_cgeru_strided_batched(handle, m, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgeru_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_cgeru_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgeru_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7183,11 +7407,12 @@ module rocblas
 
     interface
         function rocblas_cgerc_strided_batched(handle, m, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgerc_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_cgerc_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgerc_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7207,11 +7432,12 @@ module rocblas
 
     interface
         function rocblas_zgeru_strided_batched(handle, m, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgeru_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_zgeru_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgeru_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7231,11 +7457,12 @@ module rocblas
 
     interface
         function rocblas_zgerc_strided_batched(handle, m, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgerc_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_zgerc_strided_batched')
             use iso_c_binding
+            use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgerc_strided_batched
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -7256,11 +7483,11 @@ module rocblas
     ! spr
     interface
         function rocblas_sspr(handle, uplo, n, alpha, x, incx, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspr')
+            bind(c, name='rocblas_sspr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7273,11 +7500,11 @@ module rocblas
 
     interface
         function rocblas_dspr(handle, uplo, n, alpha, x, incx, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspr')
+            bind(c, name='rocblas_dspr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7290,11 +7517,11 @@ module rocblas
 
     interface
         function rocblas_cspr(handle, uplo, n, alpha, x, incx, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cspr')
+            bind(c, name='rocblas_cspr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cspr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7307,11 +7534,11 @@ module rocblas
 
     interface
         function rocblas_zspr(handle, uplo, n, alpha, x, incx, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zspr')
+            bind(c, name='rocblas_zspr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zspr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7325,11 +7552,11 @@ module rocblas
     ! spr_batched
     interface
         function rocblas_sspr_batched(handle, uplo, n, alpha, x, incx, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspr_batched')
+            bind(c, name='rocblas_sspr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7343,11 +7570,11 @@ module rocblas
 
     interface
         function rocblas_dspr_batched(handle, uplo, n, alpha, x, incx, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspr_batched')
+            bind(c, name='rocblas_dspr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7361,11 +7588,11 @@ module rocblas
 
     interface
         function rocblas_cspr_batched(handle, uplo, n, alpha, x, incx, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cspr_batched')
+            bind(c, name='rocblas_cspr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cspr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7379,11 +7606,11 @@ module rocblas
 
     interface
         function rocblas_zspr_batched(handle, uplo, n, alpha, x, incx, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zspr_batched')
+            bind(c, name='rocblas_zspr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zspr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7398,12 +7625,12 @@ module rocblas
     ! spr_strided_batched
     interface
         function rocblas_sspr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspr_strided_batched')
+                                              AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_sspr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7419,12 +7646,12 @@ module rocblas
 
     interface
         function rocblas_dspr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspr_strided_batched')
+                                              AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_dspr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7440,12 +7667,12 @@ module rocblas
 
     interface
         function rocblas_cspr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cspr_strided_batched')
+                                              AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_cspr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cspr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7461,12 +7688,12 @@ module rocblas
 
     interface
         function rocblas_zspr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zspr_strided_batched')
+                                              AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_zspr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zspr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7483,12 +7710,12 @@ module rocblas
     ! spr2
     interface
         function rocblas_sspr2(handle, uplo, n, alpha, x, incx, &
-                y, incy, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspr2')
+                               y, incy, AP) &
+            bind(c, name='rocblas_sspr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7503,12 +7730,12 @@ module rocblas
 
     interface
         function rocblas_dspr2(handle, uplo, n, alpha, x, incx, &
-                y, incy, AP) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspr2')
+                               y, incy, AP) &
+            bind(c, name='rocblas_dspr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7524,12 +7751,12 @@ module rocblas
     ! spr2_batched
     interface
         function rocblas_sspr2_batched(handle, uplo, n, alpha, x, incx, &
-                y, incy, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspr2_batched')
+                                       y, incy, AP, batch_count) &
+            bind(c, name='rocblas_sspr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7545,12 +7772,12 @@ module rocblas
 
     interface
         function rocblas_dspr2_batched(handle, uplo, n, alpha, x, incx, &
-                y, incy, AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspr2_batched')
+                                       y, incy, AP, batch_count) &
+            bind(c, name='rocblas_dspr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7567,12 +7794,12 @@ module rocblas
     ! spr2_strided_batched
     interface
         function rocblas_sspr2_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sspr2_strided_batched')
+                                               y, incy, stride_y, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_sspr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sspr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7591,12 +7818,12 @@ module rocblas
 
     interface
         function rocblas_dspr2_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, AP, stride_AP, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dspr2_strided_batched')
+                                               y, incy, stride_y, AP, stride_AP, batch_count) &
+            bind(c, name='rocblas_dspr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dspr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7616,11 +7843,11 @@ module rocblas
     ! syr
     interface
         function rocblas_ssyr(handle, uplo, n, alpha, x, incx, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr')
+            bind(c, name='rocblas_ssyr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7634,11 +7861,11 @@ module rocblas
 
     interface
         function rocblas_dsyr(handle, uplo, n, alpha, x, incx, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr')
+            bind(c, name='rocblas_dsyr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7652,11 +7879,11 @@ module rocblas
 
     interface
         function rocblas_csyr(handle, uplo, n, alpha, x, incx, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr')
+            bind(c, name='rocblas_csyr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7670,11 +7897,11 @@ module rocblas
 
     interface
         function rocblas_zsyr(handle, uplo, n, alpha, x, incx, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr')
+            bind(c, name='rocblas_zsyr')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7689,11 +7916,11 @@ module rocblas
     ! syr_batched
     interface
         function rocblas_ssyr_batched(handle, uplo, n, alpha, x, incx, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr_batched')
+            bind(c, name='rocblas_ssyr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7708,11 +7935,11 @@ module rocblas
 
     interface
         function rocblas_dsyr_batched(handle, uplo, n, alpha, x, incx, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr_batched')
+            bind(c, name='rocblas_dsyr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7727,11 +7954,11 @@ module rocblas
 
     interface
         function rocblas_csyr_batched(handle, uplo, n, alpha, x, incx, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr_batched')
+            bind(c, name='rocblas_csyr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7746,11 +7973,11 @@ module rocblas
 
     interface
         function rocblas_zsyr_batched(handle, uplo, n, alpha, x, incx, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr_batched')
+            bind(c, name='rocblas_zsyr_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7766,12 +7993,12 @@ module rocblas
     ! syr_strided_batched
     interface
         function rocblas_ssyr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr_strided_batched')
+                                              A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_ssyr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7788,12 +8015,12 @@ module rocblas
 
     interface
         function rocblas_dsyr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr_strided_batched')
+                                              A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_dsyr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7810,12 +8037,12 @@ module rocblas
 
     interface
         function rocblas_csyr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr_strided_batched')
+                                              A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_csyr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7832,12 +8059,12 @@ module rocblas
 
     interface
         function rocblas_zsyr_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr_strided_batched')
+                                              A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_zsyr_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7855,12 +8082,12 @@ module rocblas
     ! syr2
     interface
         function rocblas_ssyr2(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr2')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_ssyr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7876,12 +8103,12 @@ module rocblas
 
     interface
         function rocblas_dsyr2(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr2')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_dsyr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7897,12 +8124,12 @@ module rocblas
 
     interface
         function rocblas_csyr2(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr2')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_csyr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7918,12 +8145,12 @@ module rocblas
 
     interface
         function rocblas_zsyr2(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr2')
+                               y, incy, A, lda) &
+            bind(c, name='rocblas_zsyr2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7940,12 +8167,12 @@ module rocblas
     ! syr2_batched
     interface
         function rocblas_ssyr2_batched(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr2_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_ssyr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7962,12 +8189,12 @@ module rocblas
 
     interface
         function rocblas_dsyr2_batched(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr2_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_dsyr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -7984,12 +8211,12 @@ module rocblas
 
     interface
         function rocblas_csyr2_batched(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr2_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_csyr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -8006,12 +8233,12 @@ module rocblas
 
     interface
         function rocblas_zsyr2_batched(handle, uplo, n, alpha, x, incx, &
-                y, incy, A, lda, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr2_batched')
+                                       y, incy, A, lda, batch_count) &
+            bind(c, name='rocblas_zsyr2_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -8029,12 +8256,12 @@ module rocblas
     ! syr2_strided_batched
     interface
         function rocblas_ssyr2_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr2_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_ssyr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -8054,12 +8281,12 @@ module rocblas
 
     interface
         function rocblas_dsyr2_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr2_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_dsyr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -8079,12 +8306,12 @@ module rocblas
 
     interface
         function rocblas_csyr2_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr2_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_csyr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -8104,12 +8331,12 @@ module rocblas
 
     interface
         function rocblas_zsyr2_strided_batched(handle, uplo, n, alpha, x, incx, stride_x, &
-                y, incy, stride_y, A, lda, stride_A, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr2_strided_batched')
+                                               y, incy, stride_y, A, lda, stride_A, batch_count) &
+            bind(c, name='rocblas_zsyr2_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(c_int), value :: n
@@ -8134,12 +8361,12 @@ module rocblas
     ! hemm
     interface
         function rocblas_chemm(handle, side, uplo, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chemm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_chemm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8158,12 +8385,12 @@ module rocblas
 
     interface
         function rocblas_zhemm(handle, side, uplo, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhemm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zhemm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8183,12 +8410,12 @@ module rocblas
     ! hemm_batched
     interface
         function rocblas_chemm_batched(handle, side, uplo, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chemm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_chemm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8208,12 +8435,12 @@ module rocblas
 
     interface
         function rocblas_zhemm_batched(handle, side, uplo, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhemm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zhemm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8234,12 +8461,12 @@ module rocblas
     ! hemm_strided_batched
     interface
         function rocblas_chemm_strided_batched(handle, side, uplo, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_chemm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_chemm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_chemm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8262,12 +8489,12 @@ module rocblas
 
     interface
         function rocblas_zhemm_strided_batched(handle, side, uplo, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zhemm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zhemm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zhemm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8291,12 +8518,12 @@ module rocblas
     ! herk
     interface
         function rocblas_cherk(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cherk')
+                               A, lda, beta, C, ldc) &
+            bind(c, name='rocblas_cherk')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cherk
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8313,12 +8540,12 @@ module rocblas
 
     interface
         function rocblas_zherk(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zherk')
+                               A, lda, beta, C, ldc) &
+            bind(c, name='rocblas_zherk')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zherk
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8336,12 +8563,12 @@ module rocblas
     ! herk_batched
     interface
         function rocblas_cherk_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cherk_batched')
+                                       A, lda, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_cherk_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cherk_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8359,12 +8586,12 @@ module rocblas
 
     interface
         function rocblas_zherk_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zherk_batched')
+                                       A, lda, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zherk_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zherk_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8383,12 +8610,12 @@ module rocblas
     ! herk_strided_batched
     interface
         function rocblas_cherk_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cherk_strided_batched')
+                                               A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_cherk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cherk_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8408,12 +8635,12 @@ module rocblas
 
     interface
         function rocblas_zherk_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zherk_strided_batched')
+                                               A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zherk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zherk_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8434,12 +8661,12 @@ module rocblas
     ! her2k
     interface
         function rocblas_cher2k(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher2k')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_cher2k')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher2k
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8458,12 +8685,12 @@ module rocblas
 
     interface
         function rocblas_zher2k(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher2k')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zher2k')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher2k
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8483,12 +8710,12 @@ module rocblas
     ! her2k_batched
     interface
         function rocblas_cher2k_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher2k_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_cher2k_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher2k_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8508,12 +8735,12 @@ module rocblas
 
     interface
         function rocblas_zher2k_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher2k_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zher2k_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher2k_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8534,12 +8761,12 @@ module rocblas
     ! her2k_strided_batched
     interface
         function rocblas_cher2k_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cher2k_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_cher2k_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cher2k_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8562,12 +8789,12 @@ module rocblas
 
     interface
         function rocblas_zher2k_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zher2k_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zher2k_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zher2k_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8591,12 +8818,12 @@ module rocblas
     ! herkx
     interface
         function rocblas_cherkx(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cherkx')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_cherkx')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cherkx
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8615,12 +8842,12 @@ module rocblas
 
     interface
         function rocblas_zherkx(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zherkx')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zherkx')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zherkx
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8640,12 +8867,12 @@ module rocblas
     ! herkx_batched
     interface
         function rocblas_cherkx_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cherkx_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_cherkx_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cherkx_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8665,12 +8892,12 @@ module rocblas
 
     interface
         function rocblas_zherkx_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zherkx_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zherkx_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zherkx_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8691,12 +8918,12 @@ module rocblas
     ! herkx_strided_batched
     interface
         function rocblas_cherkx_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cherkx_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_cherkx_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cherkx_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8719,12 +8946,12 @@ module rocblas
 
     interface
         function rocblas_zherkx_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zherkx_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zherkx_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zherkx_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -8748,12 +8975,12 @@ module rocblas
     ! symm
     interface
         function rocblas_ssymm(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssymm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_ssymm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8772,12 +8999,12 @@ module rocblas
 
     interface
         function rocblas_dsymm(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsymm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_dsymm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8796,12 +9023,12 @@ module rocblas
 
     interface
         function rocblas_csymm(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csymm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_csymm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8820,12 +9047,12 @@ module rocblas
 
     interface
         function rocblas_zsymm(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsymm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zsymm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8845,12 +9072,12 @@ module rocblas
     ! symm_batched
     interface
         function rocblas_ssymm_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssymm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_ssymm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8870,12 +9097,12 @@ module rocblas
 
     interface
         function rocblas_dsymm_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsymm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dsymm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8895,12 +9122,12 @@ module rocblas
 
     interface
         function rocblas_csymm_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csymm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_csymm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8920,12 +9147,12 @@ module rocblas
 
     interface
         function rocblas_zsymm_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsymm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zsymm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8946,12 +9173,12 @@ module rocblas
     ! symm_strided_batched
     interface
         function rocblas_ssymm_strided_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssymm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ssymm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssymm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -8974,12 +9201,12 @@ module rocblas
 
     interface
         function rocblas_dsymm_strided_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsymm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dsymm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsymm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -9002,12 +9229,12 @@ module rocblas
 
     interface
         function rocblas_csymm_strided_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csymm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_csymm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csymm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -9030,12 +9257,12 @@ module rocblas
 
     interface
         function rocblas_zsymm_strided_batched(handle, side, uplo, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsymm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zsymm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsymm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -9059,12 +9286,12 @@ module rocblas
     ! syrk
     interface
         function rocblas_ssyrk(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyrk')
+                               A, lda, beta, C, ldc) &
+            bind(c, name='rocblas_ssyrk')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrk
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9081,12 +9308,12 @@ module rocblas
 
     interface
         function rocblas_dsyrk(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyrk')
+                               A, lda, beta, C, ldc) &
+            bind(c, name='rocblas_dsyrk')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrk
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9103,12 +9330,12 @@ module rocblas
 
     interface
         function rocblas_csyrk(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyrk')
+                               A, lda, beta, C, ldc) &
+            bind(c, name='rocblas_csyrk')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrk
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9125,12 +9352,12 @@ module rocblas
 
     interface
         function rocblas_zsyrk(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyrk')
+                               A, lda, beta, C, ldc) &
+            bind(c, name='rocblas_zsyrk')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrk
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9148,12 +9375,12 @@ module rocblas
     ! syrk_batched
     interface
         function rocblas_ssyrk_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyrk_batched')
+                                       A, lda, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_ssyrk_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrk_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9171,12 +9398,12 @@ module rocblas
 
     interface
         function rocblas_dsyrk_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyrk_batched')
+                                       A, lda, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dsyrk_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrk_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9194,12 +9421,12 @@ module rocblas
 
     interface
         function rocblas_csyrk_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyrk_batched')
+                                       A, lda, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_csyrk_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrk_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9217,12 +9444,12 @@ module rocblas
 
     interface
         function rocblas_zsyrk_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyrk_batched')
+                                       A, lda, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zsyrk_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrk_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9241,12 +9468,12 @@ module rocblas
     ! syrk_strided_batched
     interface
         function rocblas_ssyrk_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyrk_strided_batched')
+                                               A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ssyrk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrk_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9266,12 +9493,12 @@ module rocblas
 
     interface
         function rocblas_dsyrk_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyrk_strided_batched')
+                                               A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dsyrk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrk_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9291,12 +9518,12 @@ module rocblas
 
     interface
         function rocblas_csyrk_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyrk_strided_batched')
+                                               A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_csyrk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrk_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9316,12 +9543,12 @@ module rocblas
 
     interface
         function rocblas_zsyrk_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyrk_strided_batched')
+                                               A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zsyrk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrk_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9342,12 +9569,12 @@ module rocblas
     ! syr2k
     interface
         function rocblas_ssyr2k(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr2k')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_ssyr2k')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2k
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9366,12 +9593,12 @@ module rocblas
 
     interface
         function rocblas_dsyr2k(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr2k')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_dsyr2k')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2k
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9390,12 +9617,12 @@ module rocblas
 
     interface
         function rocblas_csyr2k(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr2k')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_csyr2k')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2k
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9414,12 +9641,12 @@ module rocblas
 
     interface
         function rocblas_zsyr2k(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr2k')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zsyr2k')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2k
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9439,12 +9666,12 @@ module rocblas
     ! syr2k_batched
     interface
         function rocblas_ssyr2k_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr2k_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_ssyr2k_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2k_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9464,12 +9691,12 @@ module rocblas
 
     interface
         function rocblas_dsyr2k_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr2k_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dsyr2k_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2k_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9489,12 +9716,12 @@ module rocblas
 
     interface
         function rocblas_csyr2k_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr2k_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_csyr2k_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2k_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9514,12 +9741,12 @@ module rocblas
 
     interface
         function rocblas_zsyr2k_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr2k_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zsyr2k_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2k_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9540,12 +9767,12 @@ module rocblas
     ! syr2k_strided_batched
     interface
         function rocblas_ssyr2k_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyr2k_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ssyr2k_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyr2k_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9568,12 +9795,12 @@ module rocblas
 
     interface
         function rocblas_dsyr2k_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyr2k_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dsyr2k_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyr2k_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9596,12 +9823,12 @@ module rocblas
 
     interface
         function rocblas_csyr2k_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyr2k_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_csyr2k_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyr2k_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9624,12 +9851,12 @@ module rocblas
 
     interface
         function rocblas_zsyr2k_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyr2k_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zsyr2k_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyr2k_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9653,12 +9880,12 @@ module rocblas
     ! syrkx
     interface
         function rocblas_ssyrkx(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyrkx')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_ssyrkx')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrkx
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9677,12 +9904,12 @@ module rocblas
 
     interface
         function rocblas_dsyrkx(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyrkx')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_dsyrkx')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrkx
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9701,12 +9928,12 @@ module rocblas
 
     interface
         function rocblas_csyrkx(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyrkx')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_csyrkx')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrkx
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9725,12 +9952,12 @@ module rocblas
 
     interface
         function rocblas_zsyrkx(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyrkx')
+                                A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zsyrkx')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrkx
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9750,12 +9977,12 @@ module rocblas
     ! syrkx_batched
     interface
         function rocblas_ssyrkx_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyrkx_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_ssyrkx_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrkx_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9775,12 +10002,12 @@ module rocblas
 
     interface
         function rocblas_dsyrkx_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyrkx_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dsyrkx_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrkx_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9800,12 +10027,12 @@ module rocblas
 
     interface
         function rocblas_csyrkx_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyrkx_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_csyrkx_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrkx_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9825,12 +10052,12 @@ module rocblas
 
     interface
         function rocblas_zsyrkx_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyrkx_batched')
+                                        A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zsyrkx_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrkx_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9851,12 +10078,12 @@ module rocblas
     ! syrkx_strided_batched
     interface
         function rocblas_ssyrkx_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ssyrkx_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ssyrkx_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ssyrkx_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9879,12 +10106,12 @@ module rocblas
 
     interface
         function rocblas_dsyrkx_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dsyrkx_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dsyrkx_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dsyrkx_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9907,12 +10134,12 @@ module rocblas
 
     interface
         function rocblas_csyrkx_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_csyrkx_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_csyrkx_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_csyrkx_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9935,12 +10162,12 @@ module rocblas
 
     interface
         function rocblas_zsyrkx_strided_batched(handle, uplo, transA, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zsyrkx_strided_batched')
+                                                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zsyrkx_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zsyrkx_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_operation_none)), value :: transA
@@ -9964,12 +10191,12 @@ module rocblas
     ! trmm
     interface
         function rocblas_strmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_strmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -9987,12 +10214,12 @@ module rocblas
 
     interface
         function rocblas_dtrmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_dtrmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10010,12 +10237,12 @@ module rocblas
 
     interface
         function rocblas_ctrmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_ctrmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10033,12 +10260,12 @@ module rocblas
 
     interface
         function rocblas_ztrmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_ztrmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10057,12 +10284,12 @@ module rocblas
     ! trmm_batched
     interface
         function rocblas_strmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_strmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10081,12 +10308,12 @@ module rocblas
 
     interface
         function rocblas_dtrmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_dtrmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10105,12 +10332,12 @@ module rocblas
 
     interface
         function rocblas_ctrmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_ctrmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10129,12 +10356,12 @@ module rocblas
 
     interface
         function rocblas_ztrmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_ztrmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10154,12 +10381,12 @@ module rocblas
     ! trmm_strided_batched
     interface
         function rocblas_strmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_strmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10180,12 +10407,12 @@ module rocblas
 
     interface
         function rocblas_dtrmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_dtrmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10206,12 +10433,12 @@ module rocblas
 
     interface
         function rocblas_ctrmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_ctrmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10232,12 +10459,12 @@ module rocblas
 
     interface
         function rocblas_ztrmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_ztrmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10259,12 +10486,12 @@ module rocblas
     ! trmm
     interface
         function rocblas_strmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmm_outofplace')
+                                          A, lda, B, ldb, C, ldc) &
+            bind(c, name='rocblas_strmm_outofplace')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmm_outofplace
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10284,12 +10511,12 @@ module rocblas
 
     interface
         function rocblas_dtrmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmm_outofplace')
+                                          A, lda, B, ldb, C, ldc) &
+            bind(c, name='rocblas_dtrmm_outofplace')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_outofplace
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10309,12 +10536,12 @@ module rocblas
 
     interface
         function rocblas_ctrmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmm_outofplace')
+                                          A, lda, B, ldb, C, ldc) &
+            bind(c, name='rocblas_ctrmm_outofplace')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_outofplace
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10334,12 +10561,12 @@ module rocblas
 
     interface
         function rocblas_ztrmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmm_outofplace')
+                                          A, lda, B, ldb, C, ldc) &
+            bind(c, name='rocblas_ztrmm_outofplace')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_outofplace
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10360,12 +10587,12 @@ module rocblas
     ! trmm_outofplace_batched
     interface
         function rocblas_strmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmm_outofplace_batched')
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_strmm_outofplace_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmm_outofplace_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10386,12 +10613,12 @@ module rocblas
 
     interface
         function rocblas_dtrmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmm_outofplace_batched')
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_dtrmm_outofplace_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_outofplace_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10412,12 +10639,12 @@ module rocblas
 
     interface
         function rocblas_ctrmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmm_outofplace_batched')
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_ctrmm_outofplace_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_outofplace_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10438,12 +10665,12 @@ module rocblas
 
     interface
         function rocblas_ztrmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmm_outofplace_batched')
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_ztrmm_outofplace_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_outofplace_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10465,12 +10692,12 @@ module rocblas
     ! trmm_outofplace_strided_batched
     interface
         function rocblas_strmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strmm_outofplace_strided_batched')
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_strmm_outofplace_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strmm_outofplace_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10494,12 +10721,12 @@ module rocblas
 
     interface
         function rocblas_dtrmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrmm_outofplace_strided_batched')
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dtrmm_outofplace_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_outofplace_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10523,12 +10750,12 @@ module rocblas
 
     interface
         function rocblas_ctrmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrmm_outofplace_strided_batched')
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ctrmm_outofplace_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_outofplace_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10552,12 +10779,12 @@ module rocblas
 
     interface
         function rocblas_ztrmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrmm_outofplace_strided_batched')
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ztrmm_outofplace_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_outofplace_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10582,12 +10809,12 @@ module rocblas
     ! trtri
     interface
         function rocblas_strtri(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strtri')
+                                A, lda, invA, ldinvA) &
+            bind(c, name='rocblas_strtri')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strtri
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10601,12 +10828,12 @@ module rocblas
 
     interface
         function rocblas_dtrtri(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrtri')
+                                A, lda, invA, ldinvA) &
+            bind(c, name='rocblas_dtrtri')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrtri
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10620,12 +10847,12 @@ module rocblas
 
     interface
         function rocblas_ctrtri(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrtri')
+                                A, lda, invA, ldinvA) &
+            bind(c, name='rocblas_ctrtri')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrtri
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10639,12 +10866,12 @@ module rocblas
 
     interface
         function rocblas_ztrtri(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrtri')
+                                A, lda, invA, ldinvA) &
+            bind(c, name='rocblas_ztrtri')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrtri
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10659,12 +10886,12 @@ module rocblas
     ! trtri_batched
     interface
         function rocblas_strtri_batched(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strtri_batched')
+                                        A, lda, invA, ldinvA, batch_count) &
+            bind(c, name='rocblas_strtri_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strtri_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10679,12 +10906,12 @@ module rocblas
 
     interface
         function rocblas_dtrtri_batched(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrtri_batched')
+                                        A, lda, invA, ldinvA, batch_count) &
+            bind(c, name='rocblas_dtrtri_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrtri_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10699,12 +10926,12 @@ module rocblas
 
     interface
         function rocblas_ctrtri_batched(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrtri_batched')
+                                        A, lda, invA, ldinvA, batch_count) &
+            bind(c, name='rocblas_ctrtri_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrtri_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10719,12 +10946,12 @@ module rocblas
 
     interface
         function rocblas_ztrtri_batched(handle, uplo, diag, n, &
-                A, lda, invA, ldinvA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrtri_batched')
+                                        A, lda, invA, ldinvA, batch_count) &
+            bind(c, name='rocblas_ztrtri_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrtri_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10740,12 +10967,12 @@ module rocblas
     ! trtri_strided_batched
     interface
         function rocblas_strtri_strided_batched(handle, uplo, diag, n, &
-                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strtri_strided_batched')
+                                                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+            bind(c, name='rocblas_strtri_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strtri_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10762,12 +10989,12 @@ module rocblas
 
     interface
         function rocblas_dtrtri_strided_batched(handle, uplo, diag, n, &
-                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrtri_strided_batched')
+                                                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+            bind(c, name='rocblas_dtrtri_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrtri_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10784,12 +11011,12 @@ module rocblas
 
     interface
         function rocblas_ctrtri_strided_batched(handle, uplo, diag, n, &
-                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrtri_strided_batched')
+                                                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+            bind(c, name='rocblas_ctrtri_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrtri_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10806,12 +11033,12 @@ module rocblas
 
     interface
         function rocblas_ztrtri_strided_batched(handle, uplo, diag, n, &
-                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrtri_strided_batched')
+                                                A, lda, stride_A, invA, ldinvA, stride_invA, batch_count) &
+            bind(c, name='rocblas_ztrtri_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrtri_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_fill_full)), value :: uplo
             integer(kind(rocblas_diagonal_unit)), value :: diag
@@ -10829,12 +11056,12 @@ module rocblas
     ! trsm
     interface
         function rocblas_strsm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strsm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_strsm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10852,12 +11079,12 @@ module rocblas
 
     interface
         function rocblas_dtrsm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrsm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_dtrsm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10875,12 +11102,12 @@ module rocblas
 
     interface
         function rocblas_ctrsm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrsm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_ctrsm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10898,12 +11125,12 @@ module rocblas
 
     interface
         function rocblas_ztrsm(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrsm')
+                               A, lda, B, ldb) &
+            bind(c, name='rocblas_ztrsm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10922,12 +11149,12 @@ module rocblas
     ! trsm_batched
     interface
         function rocblas_strsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strsm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_strsm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10946,12 +11173,12 @@ module rocblas
 
     interface
         function rocblas_dtrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrsm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_dtrsm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10970,12 +11197,12 @@ module rocblas
 
     interface
         function rocblas_ctrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrsm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_ctrsm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -10994,12 +11221,12 @@ module rocblas
 
     interface
         function rocblas_ztrsm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, B, ldb, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrsm_batched')
+                                       A, lda, B, ldb, batch_count) &
+            bind(c, name='rocblas_ztrsm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -11019,12 +11246,12 @@ module rocblas
     ! trsm_strided_batched
     interface
         function rocblas_strsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_strsm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_strsm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_strsm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -11045,12 +11272,12 @@ module rocblas
 
     interface
         function rocblas_dtrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dtrsm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_dtrsm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dtrsm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -11071,12 +11298,12 @@ module rocblas
 
     interface
         function rocblas_ctrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ctrsm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_ctrsm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ctrsm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -11097,12 +11324,12 @@ module rocblas
 
     interface
         function rocblas_ztrsm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ztrsm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+            bind(c, name='rocblas_ztrsm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ztrsm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_full)), value :: uplo
@@ -11124,12 +11351,12 @@ module rocblas
     ! gemm
     interface
         function rocblas_hgemm(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_hgemm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_hgemm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hgemm
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11149,12 +11376,12 @@ module rocblas
 
     interface
         function rocblas_sgemm(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgemm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_sgemm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemm
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11174,12 +11401,12 @@ module rocblas
 
     interface
         function rocblas_dgemm(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgemm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_dgemm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemm
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11199,12 +11426,12 @@ module rocblas
 
     interface
         function rocblas_cgemm(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgemm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_cgemm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemm
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11224,12 +11451,12 @@ module rocblas
 
     interface
         function rocblas_zgemm(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgemm')
+                               A, lda, B, ldb, beta, C, ldc) &
+            bind(c, name='rocblas_zgemm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemm
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11250,12 +11477,12 @@ module rocblas
     ! gemm_batched
     interface
         function rocblas_hgemm_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_hgemm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_hgemm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hgemm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11276,12 +11503,12 @@ module rocblas
 
     interface
         function rocblas_sgemm_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgemm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_sgemm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11302,12 +11529,12 @@ module rocblas
 
     interface
         function rocblas_dgemm_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgemm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_dgemm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11328,12 +11555,12 @@ module rocblas
 
     interface
         function rocblas_cgemm_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgemm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_cgemm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11354,12 +11581,12 @@ module rocblas
 
     interface
         function rocblas_zgemm_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, B, ldb, beta, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgemm_batched')
+                                       A, lda, B, ldb, beta, C, ldc, batch_count) &
+            bind(c, name='rocblas_zgemm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11381,12 +11608,12 @@ module rocblas
     ! gemm_strided_batched
     interface
         function rocblas_hgemm_strided_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_hgemm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_hgemm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_hgemm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11410,12 +11637,12 @@ module rocblas
 
     interface
         function rocblas_sgemm_strided_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgemm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_sgemm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgemm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11439,12 +11666,12 @@ module rocblas
 
     interface
         function rocblas_dgemm_strided_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgemm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dgemm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgemm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11468,12 +11695,12 @@ module rocblas
 
     interface
         function rocblas_cgemm_strided_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgemm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_cgemm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgemm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11497,12 +11724,12 @@ module rocblas
 
     interface
         function rocblas_zgemm_strided_batched(handle, transA, transB, m, n, k, alpha, &
-                A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgemm_strided_batched')
+                                               A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zgemm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgemm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11527,12 +11754,12 @@ module rocblas
     ! dgmm
     interface
         function rocblas_sdgmm(handle, side, m, n, &
-                A, lda, x, incx, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sdgmm')
+                               A, lda, x, incx, C, ldc) &
+            bind(c, name='rocblas_sdgmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sdgmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11548,12 +11775,12 @@ module rocblas
 
     interface
         function rocblas_ddgmm(handle, side, m, n, &
-                A, lda, x, incx, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ddgmm')
+                               A, lda, x, incx, C, ldc) &
+            bind(c, name='rocblas_ddgmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ddgmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11569,12 +11796,12 @@ module rocblas
 
     interface
         function rocblas_cdgmm(handle, side, m, n, &
-                A, lda, x, incx, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdgmm')
+                               A, lda, x, incx, C, ldc) &
+            bind(c, name='rocblas_cdgmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdgmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11590,12 +11817,12 @@ module rocblas
 
     interface
         function rocblas_zdgmm(handle, side, m, n, &
-                A, lda, x, incx, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdgmm')
+                               A, lda, x, incx, C, ldc) &
+            bind(c, name='rocblas_zdgmm')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdgmm
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11612,12 +11839,12 @@ module rocblas
     ! dgmm_batched
     interface
         function rocblas_sdgmm_batched(handle, side, m, n, &
-                A, lda, x, incx, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sdgmm_batched')
+                                       A, lda, x, incx, C, ldc, batch_count) &
+            bind(c, name='rocblas_sdgmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sdgmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11634,12 +11861,12 @@ module rocblas
 
     interface
         function rocblas_ddgmm_batched(handle, side, m, n, &
-                A, lda, x, incx, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ddgmm_batched')
+                                       A, lda, x, incx, C, ldc, batch_count) &
+            bind(c, name='rocblas_ddgmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ddgmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11656,12 +11883,12 @@ module rocblas
 
     interface
         function rocblas_cdgmm_batched(handle, side, m, n, &
-                A, lda, x, incx, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdgmm_batched')
+                                       A, lda, x, incx, C, ldc, batch_count) &
+            bind(c, name='rocblas_cdgmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdgmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11678,12 +11905,12 @@ module rocblas
 
     interface
         function rocblas_zdgmm_batched(handle, side, m, n, &
-                A, lda, x, incx, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdgmm_batched')
+                                       A, lda, x, incx, C, ldc, batch_count) &
+            bind(c, name='rocblas_zdgmm_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdgmm_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11701,12 +11928,12 @@ module rocblas
     ! dgmm_strided_batched
     interface
         function rocblas_sdgmm_strided_batched(handle, side, m, n, &
-                A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sdgmm_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_sdgmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sdgmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11726,12 +11953,12 @@ module rocblas
 
     interface
         function rocblas_ddgmm_strided_batched(handle, side, m, n, &
-                A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_ddgmm_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_ddgmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ddgmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11751,12 +11978,12 @@ module rocblas
 
     interface
         function rocblas_cdgmm_strided_batched(handle, side, m, n, &
-                A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cdgmm_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_cdgmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cdgmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11776,12 +12003,12 @@ module rocblas
 
     interface
         function rocblas_zdgmm_strided_batched(handle, side, m, n, &
-                A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zdgmm_strided_batched')
+                                               A, lda, stride_A, x, incx, stride_x, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zdgmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zdgmm_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(c_int), value :: m
@@ -11802,12 +12029,12 @@ module rocblas
     ! geam
     interface
         function rocblas_sgeam(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgeam')
+                               A, lda, beta, B, ldb, C, ldc) &
+            bind(c, name='rocblas_sgeam')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgeam
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11826,12 +12053,12 @@ module rocblas
 
     interface
         function rocblas_dgeam(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgeam')
+                               A, lda, beta, B, ldb, C, ldc) &
+            bind(c, name='rocblas_dgeam')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgeam
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11850,12 +12077,12 @@ module rocblas
 
     interface
         function rocblas_cgeam(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgeam')
+                               A, lda, beta, B, ldb, C, ldc) &
+            bind(c, name='rocblas_cgeam')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgeam
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11874,12 +12101,12 @@ module rocblas
 
     interface
         function rocblas_zgeam(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgeam')
+                               A, lda, beta, B, ldb, C, ldc) &
+            bind(c, name='rocblas_zgeam')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgeam
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11899,12 +12126,12 @@ module rocblas
     ! geam_batched
     interface
         function rocblas_sgeam_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgeam_batched')
+                                       A, lda, beta, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_sgeam_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgeam_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11924,12 +12151,12 @@ module rocblas
 
     interface
         function rocblas_dgeam_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgeam_batched')
+                                       A, lda, beta, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_dgeam_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgeam_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11949,12 +12176,12 @@ module rocblas
 
     interface
         function rocblas_cgeam_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgeam_batched')
+                                       A, lda, beta, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_cgeam_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgeam_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -11974,12 +12201,12 @@ module rocblas
 
     interface
         function rocblas_zgeam_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, beta, B, ldb, C, ldc, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgeam_batched')
+                                       A, lda, beta, B, ldb, C, ldc, batch_count) &
+            bind(c, name='rocblas_zgeam_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgeam_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12000,12 +12227,12 @@ module rocblas
     ! geam_strided_batched
     interface
         function rocblas_sgeam_strided_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_sgeam_strided_batched')
+                                               A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_sgeam_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_sgeam_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12028,12 +12255,12 @@ module rocblas
 
     interface
         function rocblas_dgeam_strided_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dgeam_strided_batched')
+                                               A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_dgeam_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dgeam_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12056,12 +12283,12 @@ module rocblas
 
     interface
         function rocblas_cgeam_strided_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_cgeam_strided_batched')
+                                               A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_cgeam_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_cgeam_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12084,12 +12311,12 @@ module rocblas
 
     interface
         function rocblas_zgeam_strided_batched(handle, transA, transB, m, n, alpha, &
-                A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-                result(c_int) &
-                bind(c, name = 'rocblas_zgeam_strided_batched')
+                                               A, lda, stride_A, beta, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
+            bind(c, name='rocblas_zgeam_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zgeam_strided_batched
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12117,12 +12344,12 @@ module rocblas
     ! axpy_ex
     interface
         function rocblas_axpy_ex(handle, n, alpha, alpha_type, x, x_type, incx, &
-                y, y_type, incy, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_axpy_ex')
+                                 y, y_type, incy, execution_type) &
+            bind(c, name='rocblas_axpy_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_axpy_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -12139,12 +12366,12 @@ module rocblas
 
     interface
         function rocblas_axpy_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, &
-                y, y_type, incy, batch_count, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_axpy_batched_ex')
+                                         y, y_type, incy, batch_count, execution_type) &
+            bind(c, name='rocblas_axpy_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_axpy_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -12162,12 +12389,12 @@ module rocblas
 
     interface
         function rocblas_axpy_strided_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, stridex, &
-                y, y_type, incy, stridey, batch_count, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_axpy_strided_batched_ex')
+                                                 y, y_type, incy, stridey, batch_count, execution_type) &
+            bind(c, name='rocblas_axpy_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_axpy_strided_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -12188,12 +12415,12 @@ module rocblas
     ! dot_ex
     interface
         function rocblas_dot_ex(handle, n, x, x_type, incx, y, y_type, incy, &
-                result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dot_ex')
+                                result, result_type, execution_type) &
+            bind(c, name='rocblas_dot_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dot_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12210,12 +12437,12 @@ module rocblas
 
     interface
         function rocblas_dotc_ex(handle, n, x, x_type, incx, y, y_type, incy, &
-                result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dotc_ex')
+                                 result, result_type, execution_type) &
+            bind(c, name='rocblas_dotc_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dotc_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12232,12 +12459,12 @@ module rocblas
 
     interface
         function rocblas_dot_batched_ex(handle, n, x, x_type, incx, y, y_type, incy, &
-                batch_count, result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dot_batched_ex')
+                                        batch_count, result, result_type, execution_type) &
+            bind(c, name='rocblas_dot_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dot_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12255,12 +12482,12 @@ module rocblas
 
     interface
         function rocblas_dotc_batched_ex(handle, n, x, x_type, incx, y, y_type, incy, &
-                batch_count, result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dotc_batched_ex')
+                                         batch_count, result, result_type, execution_type) &
+            bind(c, name='rocblas_dotc_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dotc_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12278,12 +12505,12 @@ module rocblas
 
     interface
         function rocblas_dot_strided_batched_ex(handle, n, x, x_type, incx, stride_x, &
-                y, y_type, incy, stride_y, batch_count, result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dot_strided_batched_ex')
+                                                y, y_type, incy, stride_y, batch_count, result, result_type, execution_type) &
+            bind(c, name='rocblas_dot_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dot_strided_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12303,12 +12530,12 @@ module rocblas
 
     interface
         function rocblas_dotc_strided_batched_ex(handle, n, x, x_type, incx, stride_x, &
-                y, y_type, incy, stride_y, batch_count, result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_dotc_strided_batched_ex')
+                                                 y, y_type, incy, stride_y, batch_count, result, result_type, execution_type) &
+            bind(c, name='rocblas_dotc_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dotc_strided_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12329,11 +12556,11 @@ module rocblas
     ! nrm2_ex
     interface
         function rocblas_nrm2_ex(handle, n, x, x_type, incx, result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_nrm2_ex')
+            bind(c, name='rocblas_nrm2_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_nrm2_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12347,12 +12574,12 @@ module rocblas
 
     interface
         function rocblas_nrm2_batched_ex(handle, n, x, x_type, incx, batch_count, &
-                    result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_nrm2_batched_ex')
+                                         result, result_type, execution_type) &
+            bind(c, name='rocblas_nrm2_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_nrm2_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12367,12 +12594,12 @@ module rocblas
 
     interface
         function rocblas_nrm2_strided_batched_ex(handle, n, x, x_type, incx, stride_x, batch_count, &
-                    result, result_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_nrm2_strided_batched_ex')
+                                                 result, result_type, execution_type) &
+            bind(c, name='rocblas_nrm2_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_nrm2_strided_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12389,12 +12616,12 @@ module rocblas
     ! rot_ex
     interface
         function rocblas_rot_ex(handle, n, x, x_type, incx, y, y_type, incy, c, s, &
-                cs_type, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_rot_ex')
+                                cs_type, execution_type) &
+            bind(c, name='rocblas_rot_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_rot_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12412,12 +12639,12 @@ module rocblas
 
     interface
         function rocblas_rot_batched_ex(handle, n, x, x_type, incx, y, y_type, incy, c, s, &
-                cs_type, batch_count, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_rot_batched_ex')
+                                        cs_type, batch_count, execution_type) &
+            bind(c, name='rocblas_rot_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_rot_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12436,12 +12663,12 @@ module rocblas
 
     interface
         function rocblas_rot_strided_batched_ex(handle, n, x, x_type, incx, stride_x, &
-                y, y_type, incy, stride_y, c, s, cs_type, batch_count, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_rot_strided_batched_ex')
+                                                y, y_type, incy, stride_y, c, s, cs_type, batch_count, execution_type) &
+            bind(c, name='rocblas_rot_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_rot_strided_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: x
@@ -12463,11 +12690,11 @@ module rocblas
     ! scal_ex
     interface
         function rocblas_scal_ex(handle, n, alpha, alpha_type, x, x_type, incx, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scal_ex')
+            bind(c, name='rocblas_scal_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scal_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -12481,12 +12708,12 @@ module rocblas
 
     interface
         function rocblas_scal_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, &
-                batch_count, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scal_batched_ex')
+                                         batch_count, execution_type) &
+            bind(c, name='rocblas_scal_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scal_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -12501,12 +12728,12 @@ module rocblas
 
     interface
         function rocblas_scal_strided_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, stridex, &
-                batch_count, execution_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_scal_strided_batched_ex')
+                                                 batch_count, execution_type) &
+            bind(c, name='rocblas_scal_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scal_strided_batched_ex
             type(c_ptr), value :: handle
             integer(c_int), value :: n
             type(c_ptr), value :: alpha
@@ -12523,13 +12750,13 @@ module rocblas
     ! gemm_ex
     interface
         function rocblas_gemm_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
-                b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
-                compute_type, algo, solution_index, flags) &
-                result(c_int) &
-                bind(c, name = 'rocblas_gemm_ex')
+                                 b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                 compute_type, algo, solution_index, flags) &
+            bind(c, name='rocblas_gemm_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_gemm_ex
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12561,13 +12788,13 @@ module rocblas
 
     interface
         function rocblas_gemm_batched_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
-                b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
-                batch_count, compute_type, algo, solution_index, flags) &
-                result(c_int) &
-                bind(c, name = 'rocblas_gemm_batched_ex')
+                                         b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                         batch_count, compute_type, algo, solution_index, flags) &
+            bind(c, name='rocblas_gemm_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_gemm_batched_ex
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12600,13 +12827,13 @@ module rocblas
 
     interface
         function rocblas_gemm_strided_batched_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, stride_a, &
-                b, b_type, ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, ldd, stride_d, &
-                batch_count, compute_type, algo, solution_index, flags) &
-                result(c_int) &
-                bind(c, name = 'rocblas_gemm_strided_batched_ex')
+                                                 b, b_type, ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, &
+                                                 ldd, stride_d, batch_count, compute_type, algo, solution_index, flags) &
+            bind(c, name='rocblas_gemm_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_gemm_strided_batched_ex
             type(c_ptr), value :: handle
             integer(kind(rocblas_operation_none)), value :: transA
             integer(kind(rocblas_operation_none)), value :: transB
@@ -12643,13 +12870,13 @@ module rocblas
 
     interface
         function rocblas_gemm_ext2(handle, m, n, k, alpha, a, a_type, row_stride_a, col_stride_a, &
-             b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
-             d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags) &
-                result(c_int) &
-                bind(c, name = 'rocblas_gemm_ext2')
+                                   b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
+                                   d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags) &
+            bind(c, name='rocblas_gemm_ext2')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_gemm_ext2
             type(c_ptr), value :: handle
             integer(c_int), value :: m
             integer(c_int), value :: n
@@ -12680,12 +12907,12 @@ module rocblas
     ! trsm_ex
     interface
         function rocblas_trsm_ex(handle, side, uplo, transA, diag, m, n, alpha, A, lda, &
-                B, ldb, invA, invA_size, compute_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_trsm_ex')
+                                 B, ldb, invA, invA_size, compute_type) &
+            bind(c, name='rocblas_trsm_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_trsm_ex
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_upper)), value :: uplo
@@ -12706,12 +12933,12 @@ module rocblas
 
     interface
         function rocblas_trsm_batched_ex(handle, side, uplo, transA, diag, m, n, alpha, A, lda, &
-                B, ldb, batch_count, invA, invA_size, compute_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_trsm_batched_ex')
+                                         B, ldb, batch_count, invA, invA_size, compute_type) &
+            bind(c, name='rocblas_trsm_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_trsm_batched_ex
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_upper)), value :: uplo
@@ -12733,12 +12960,12 @@ module rocblas
 
     interface
         function rocblas_trsm_strided_batched_ex(handle, side, uplo, transA, diag, m, n, alpha, A, lda, stride_A, &
-                B, ldb, stride_B, batch_count, invA, invA_size, stride_invA, compute_type) &
-                result(c_int) &
-                bind(c, name = 'rocblas_trsm_strided_batched_ex')
+                                                 B, ldb, stride_B, batch_count, invA, invA_size, stride_invA, compute_type) &
+            bind(c, name='rocblas_trsm_strided_batched_ex')
             use iso_c_binding
             use rocblas_enums
             implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_trsm_strided_batched_ex
             type(c_ptr), value :: handle
             integer(kind(rocblas_side_left)), value :: side
             integer(kind(rocblas_fill_upper)), value :: uplo
@@ -12760,6 +12987,5 @@ module rocblas
             integer(kind(rocblas_datatype_f16_r)), value :: compute_type
         end function rocblas_trsm_strided_batched_ex
     end interface
-
 
 end module rocblas

@@ -38,13 +38,11 @@
 template <typename T>
 void testing_swap_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_swap_fn = FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+    auto rocblas_swap_fn = arg.fortran ? rocblas_swap<T, true> : rocblas_swap<T, false>;
 
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
-    static const size_t safe_size = 100; //  arbitrarily set to 100
+    rocblas_int N    = 100;
+    rocblas_int incx = 1;
+    rocblas_int incy = 1;
 
     rocblas_local_handle handle{arg};
 
@@ -56,19 +54,18 @@ void testing_swap_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_fn(nullptr, N, dx, incx, dy, incy),
+                          rocblas_status_invalid_handle);
     EXPECT_ROCBLAS_STATUS(rocblas_swap_fn(handle, N, nullptr, incx, dy, incy),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_swap_fn(handle, N, dx, incx, nullptr, incy),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_fn(nullptr, N, dx, incx, dy, incy),
-                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_swap(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_swap_fn = FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+    auto rocblas_swap_fn = arg.fortran ? rocblas_swap<T, true> : rocblas_swap<T, false>;
 
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;

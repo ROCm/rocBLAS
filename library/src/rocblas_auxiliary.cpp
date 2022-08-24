@@ -82,6 +82,47 @@ catch(...)
 }
 
 /*******************************************************************************
+ * ! \brief get int8 datatype, can be int8_t or rocblas_int8x4
+ ******************************************************************************/
+extern "C" rocblas_status
+    rocblas_get_int8_type_for_hipblas(rocblas_handle                 handle,
+                                      rocblas_int8_type_for_hipblas* int8_type)
+try
+{
+    // if handle not valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    *int8_type = handle->rocblas_int8_type;
+    if(handle->layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, "rocblas_get_int8_type_for_hipblas", *int8_type);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * ! \brief set int8 datatype, can be int8_t or rocblas_int8x4
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_int8_type_for_hipblas(rocblas_handle                handle,
+                                                            rocblas_int8_type_for_hipblas int8_type)
+try
+{
+    // if handle not valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(handle->layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, "rocblas_set_int8_type_for_hipblas", int8_type);
+    handle->rocblas_int8_type = int8_type;
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
  * ! \brief get atomics mode
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_atomics_mode(rocblas_handle        handle,
@@ -125,12 +166,38 @@ catch(...)
  ******************************************************************************/
 extern "C" rocblas_status rocblas_query_int8_layout_flag(rocblas_handle      handle,
                                                          rocblas_gemm_flags* flag)
+
+// This funnction is called by hipBLAS. The default is to use int8_t only
+// for gfx908. Other architectures use int8x4. This was the behavior before
+// ROCm 4.2. Support for int8_t for all architectures was provided by
+// by the following PRs for ROCm 4.2:
+// - Tensile PR 680
+// - rocBLAS-internal PR 1328
+// Setting rocblas_int8_type in the handle will result in this function
+// selecting int8_t or int8x4 regardless of architecture. It does this by
+// either setting or clearing the rocblas_gemm_flags_pack_int8x4 bit of flags.
 try
 {
-    // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
-    *flag = handle->getArch() == 908 ? rocblas_gemm_flags_none : rocblas_gemm_flags_pack_int8x4;
+
+    if(rocblas_int8_type_for_hipblas_default == handle->rocblas_int8_type)
+    {
+        *flag = handle->getArch() == 908 ? rocblas_gemm_flags_none : rocblas_gemm_flags_pack_int8x4;
+    }
+    else if(rocblas_int8_type_for_hipblas_int8 == handle->rocblas_int8_type)
+    {
+        *flag = rocblas_gemm_flags(*flag & (~rocblas_gemm_flags_pack_int8x4));
+    }
+    else if(rocblas_int8_type_for_hipblas_pack_int8x4 == handle->rocblas_int8_type)
+    {
+        *flag = rocblas_gemm_flags(*flag | rocblas_gemm_flags_pack_int8x4);
+    }
+    else
+    {
+        return rocblas_status_invalid_value;
+    }
+    // clear the rocblas_gemm_flags_pack_int8x4 bit
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_query_int8_layout_flag", *flag);
     return rocblas_status_success;
@@ -256,7 +323,7 @@ rocblas_copy_void_ptr_vector_kernel(rocblas_int n,
                                     void*       y,
                                     rocblas_int incy)
 {
-    size_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n)
     {
         memcpy(
@@ -646,8 +713,8 @@ rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
                                     void*       b,
                                     rocblas_int ldb)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < rows && ty < cols)
         memcpy((char*)b + (tx + ldb * ty) * elem_size,

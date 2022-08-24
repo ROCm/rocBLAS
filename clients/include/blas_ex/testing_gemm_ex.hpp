@@ -430,7 +430,7 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_init_matrix<To>(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{}
-       && arg.initialization != rocblas_initialization::special)
+       && arg.arithmetic_check == rocblas_arithmetic_check::ieee16_ieee32)
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38

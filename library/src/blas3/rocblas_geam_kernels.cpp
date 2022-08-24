@@ -32,12 +32,12 @@ geam_zero_matrix_device(rocblas_int    m,
                         rocblas_int    ldc,
                         rocblas_stride stride_c)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
-        auto*  C       = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
+        auto*  C       = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
         size_t c_index = tx + size_t(ldc) * ty;
         C[c_index]     = 0.0;
     }
@@ -65,17 +65,17 @@ geam_device(rocblas_operation transA,
             rocblas_int       ldc,
             rocblas_stride    stride_c)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
         auto alpha = load_scalar(alpha_device_host);
         auto beta  = load_scalar(beta_device_host);
 
-        auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_z, offset_a, stride_a);
-        auto* B = cond_load_ptr_batch(beta, Ba, hipBlockIdx_z, offset_b, stride_b);
-        auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
+        auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.z, offset_a, stride_a);
+        auto* B = cond_load_ptr_batch(beta, Ba, blockIdx.z, offset_b, stride_b);
+        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
         size_t a_index;
         size_t b_index;
@@ -127,14 +127,14 @@ geam_2matrix_device(rocblas_operation transA,
                     rocblas_int       ldc,
                     rocblas_stride    stride_c)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
         auto alpha = load_scalar(alpha_device_host);
 
-        auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
+        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
         size_t c_index = tx + size_t(ldc) * ty;
         if(alpha == 0)
@@ -143,7 +143,7 @@ geam_2matrix_device(rocblas_operation transA,
         }
         else
         {
-            auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offset_a, stride_a);
+            auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
 
             size_t a_index;
 
@@ -182,14 +182,14 @@ geam_1D_device(size_t         size,
                rocblas_stride offset_c,
                rocblas_stride stride_c)
 {
-    size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
+    size_t tx = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if(tx < size)
     {
         auto alpha = load_scalar(alpha_device_host);
         auto beta  = load_scalar(beta_device_host);
 
-        auto* C = load_ptr_batch(Ca, hipBlockIdx_y, offset_c, stride_c);
+        auto* C = load_ptr_batch(Ca, blockIdx.y, offset_c, stride_c);
 
         if(alpha == 0 && beta == 0)
         {
@@ -197,8 +197,8 @@ geam_1D_device(size_t         size,
         }
         else
         {
-            auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, offset_a, stride_a);
-            auto* B = cond_load_ptr_batch(beta, Ba, hipBlockIdx_y, offset_b, stride_b);
+            auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, offset_a, stride_a);
+            auto* B = cond_load_ptr_batch(beta, Ba, blockIdx.y, offset_b, stride_b);
 
             C[tx] = (beta ? beta * B[tx] : 0) + (alpha ? alpha * A[tx] : 0);
         }
@@ -220,13 +220,13 @@ geam_1D_2matrix_device(size_t         size,
                        rocblas_stride offset_c,
                        rocblas_stride stride_c)
 {
-    size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
+    size_t tx = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if(tx < size)
     {
         auto alpha = load_scalar(alpha_device_host);
 
-        auto* C = load_ptr_batch(Ca, hipBlockIdx_y, offset_c, stride_c);
+        auto* C = load_ptr_batch(Ca, blockIdx.y, offset_c, stride_c);
 
         if(alpha == 0)
         {
@@ -234,7 +234,7 @@ geam_1D_2matrix_device(size_t         size,
         }
         else
         {
-            auto* A = load_ptr_batch(Aa, hipBlockIdx_y, offset_a, stride_a);
+            auto* A = load_ptr_batch(Aa, blockIdx.y, offset_a, stride_a);
             C[tx]   = alpha * A[tx];
         }
     }
@@ -258,15 +258,15 @@ geam_inplace_device(rocblas_operation transB,
                     rocblas_int       ldc,
                     rocblas_stride    stride_c)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
+    rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < m && ty < n)
     {
         auto alpha = load_scalar(alpha_device_host);
         auto beta  = load_scalar(beta_device_host);
 
-        auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
+        auto* C = load_ptr_batch(Ca, blockIdx.z, offset_c, stride_c);
 
         size_t b_index;
         size_t c_index = tx + size_t(ldc) * ty;
@@ -277,7 +277,7 @@ geam_inplace_device(rocblas_operation transB,
         }
         else
         {
-            auto* B = load_ptr_batch(Ba, hipBlockIdx_z, offset_b, stride_b);
+            auto* B = load_ptr_batch(Ba, blockIdx.z, offset_b, stride_b);
 
             if(transB == rocblas_operation_none)
             {

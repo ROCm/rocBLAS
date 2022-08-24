@@ -115,23 +115,23 @@ namespace
                         "batch",
                         batch_count);
 
-        if(n <= 0 || batch_count <= 0) // Quick return if possible. Not Argument error
-            return rocblas_status_success;
-
-        if(!alpha)
-            return rocblas_status_invalid_pointer;
-
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
-        {
-            if(*alpha == 0)
-                return rocblas_status_success;
-        }
-
-        if(!x || !y)
-            return rocblas_status_invalid_pointer;
-
         static constexpr rocblas_stride stride_0 = 0;
         static constexpr rocblas_stride offset_0 = 0;
+
+        rocblas_status arg_status = rocblas_axpy_arg_check(handle,
+                                                           n,
+                                                           alpha,
+                                                           x,
+                                                           offset_0,
+                                                           incx,
+                                                           stride_0,
+                                                           y,
+                                                           offset_0,
+                                                           incy,
+                                                           stride_0,
+                                                           batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         if(check_numerics)
         {

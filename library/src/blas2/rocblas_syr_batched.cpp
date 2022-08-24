@@ -103,8 +103,8 @@ namespace
                             batch_count);
         }
 
-        rocblas_status arg_status
-            = rocblas_syr_arg_check<T>(uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, batch_count);
+        rocblas_status arg_status = rocblas_syr_arg_check<T>(
+            handle, uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 

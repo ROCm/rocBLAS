@@ -136,26 +136,26 @@ namespace
             }
         }
 
-        rocblas_status arg_status = rocblas_symv_arg_check<T>(handle,
-                                                              uplo,
-                                                              n,
-                                                              alpha,
-                                                              0,
-                                                              A,
-                                                              0,
-                                                              lda,
-                                                              strideA,
-                                                              x,
-                                                              0,
-                                                              incx,
-                                                              stridex,
-                                                              beta,
-                                                              0,
-                                                              y,
-                                                              0,
-                                                              incy,
-                                                              stridey,
-                                                              batch_count);
+        rocblas_status arg_status = rocblas_hemv_symv_arg_check<T>(handle,
+                                                                   uplo,
+                                                                   n,
+                                                                   alpha,
+                                                                   0,
+                                                                   A,
+                                                                   0,
+                                                                   lda,
+                                                                   strideA,
+                                                                   x,
+                                                                   0,
+                                                                   incx,
+                                                                   stridex,
+                                                                   beta,
+                                                                   0,
+                                                                   y,
+                                                                   0,
+                                                                   incy,
+                                                                   stridey,
+                                                                   batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 

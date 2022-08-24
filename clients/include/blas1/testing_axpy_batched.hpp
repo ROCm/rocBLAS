@@ -42,49 +42,79 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
     auto rocblas_axpy_batched_fn
         = arg.fortran ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
 
-    rocblas_local_handle handle{arg};
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
+        rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
-    T alpha = 0.6, zero = 0.0;
+        device_vector<T> alpha_d(1), zero_d(1);
 
-    // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
+        const T alpha_h(1), zero_h(0);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        const T* alpha = &alpha_h;
+        const T* zero  = &zero_h;
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched_fn(
-            handle, N, &alpha, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
-        rocblas_status_invalid_pointer);
+        if(pointer_mode == rocblas_pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+        }
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched_fn(
-            handle, N, &alpha, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
-        rocblas_status_invalid_pointer);
+        // Allocate device memory
+        device_batch_vector<T> dx(N, incx, batch_count);
+        device_batch_vector<T> dy(N, incy, batch_count);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched_fn(
-            handle, N, nullptr, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
-        rocblas_status_invalid_pointer);
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched_fn(
-            nullptr, N, &alpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
-        rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(
+                nullptr, N, alpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
+            rocblas_status_invalid_handle);
 
-    // When N==0, alpha, X and Y can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy, batch_count),
-        rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched_fn(handle,
+                                                      N,
+                                                      nullptr,
+                                                      dx.ptr_on_device(),
+                                                      incx,
+                                                      dy.ptr_on_device(),
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
 
-    // When alpha==0, X and Y can be nullptr without error
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched_fn(handle, N, &zero, nullptr, incx, nullptr, incy, batch_count),
-        rocblas_status_success);
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_axpy_batched_fn(
+                    handle, N, alpha, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
+                rocblas_status_invalid_pointer);
+
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_axpy_batched_fn(
+                    handle, N, alpha, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
+                rocblas_status_invalid_pointer);
+        }
+
+        // When N==0, alpha, X and Y can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_status_success);
+
+        // When alpha==0, X and Y can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(handle, N, zero, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_status_success);
+
+        // When batch_count==0, alpha, X and Y can be nullptr without error
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(handle, N, nullptr, nullptr, incx, nullptr, incy, 0),
+            rocblas_status_success);
+    }
 }
 
 template <typename T>

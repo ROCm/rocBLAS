@@ -33,7 +33,7 @@ template <typename Tex,
 __device__ void
     rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n)
     {
@@ -55,7 +55,7 @@ template <typename Tex,
 __device__ void
     rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n)
     {
@@ -84,10 +84,10 @@ rot_kernel(rocblas_int    n,
            Ts             s_in,
            rocblas_stride s_stride)
 {
-    auto c = std::real(load_scalar(c_in, hipBlockIdx_y, c_stride));
-    auto s = load_scalar(s_in, hipBlockIdx_y, s_stride);
-    auto x = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
-    auto y = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
+    auto c = std::real(load_scalar(c_in, blockIdx.y, c_stride));
+    auto s = load_scalar(s_in, blockIdx.y, s_stride);
+    auto x = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
+    auto y = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
 
     rot_kernel_calc<Tex>(n, x, incx, y, incy, c, s);
 }

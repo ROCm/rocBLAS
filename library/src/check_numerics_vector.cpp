@@ -120,7 +120,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     dim3                  blocks((n - 1) / NB + 1, batch_count);
     dim3                  threads(NB);
 
-    hipLaunchKernelGGL(rocblas_check_numerics_vector_kernel,
+    hipLaunchKernelGGL((rocblas_check_numerics_vector_kernel<NB>),
                        blocks,
                        threads,
                        0,
@@ -142,7 +142,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         function_name, check_numerics, is_input, &h_abnormal);
 }
 
-//ADDED INSTANTIATION TO SUPPORT T* AND T* CONST*
+// INSTANTIATIONS TO SUPPORT output: T*, T* const*, and input: const T*, const T* const*
 
 #ifdef INST
 #error INST IS ALREADY DEFINED
@@ -160,27 +160,33 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                         const int      check_numerics, \
                                                         bool           is_input)
 INST(float*);
-INST(double*);
 INST(float* const*);
-INST(double* const*);
 INST(float const*);
+INST(float const* const*);
+
+INST(double*);
+INST(double* const*);
 INST(double const*);
-INST(const float* const*);
-INST(const double* const*);
+INST(double const* const*);
+
 INST(rocblas_float_complex*);
-INST(rocblas_double_complex*);
 INST(rocblas_float_complex* const*);
-INST(rocblas_double_complex* const*);
-INST(const rocblas_float_complex* const*);
-INST(const rocblas_double_complex* const*);
 INST(rocblas_float_complex const*);
+INST(rocblas_float_complex const* const*);
+
+INST(rocblas_double_complex*);
+INST(rocblas_double_complex* const*);
 INST(rocblas_double_complex const*);
+INST(rocblas_double_complex const* const*);
+
 INST(rocblas_half*);
-INST(rocblas_bfloat16*);
 INST(rocblas_half* const*);
-INST(rocblas_bfloat16* const*);
-INST(const rocblas_half* const*);
-INST(const rocblas_bfloat16* const*);
 INST(rocblas_half const*);
+INST(rocblas_half const* const*);
+
+INST(rocblas_bfloat16*);
+INST(rocblas_bfloat16* const*);
 INST(rocblas_bfloat16 const*);
+INST(rocblas_bfloat16 const* const*);
+
 #undef INST

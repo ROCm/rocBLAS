@@ -41,32 +41,35 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
     auto rocblas_asum_batched_fn
         = arg.fortran ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
 
-    rocblas_int         N                = 100;
-    rocblas_int         incx             = 1;
-    rocblas_int         batch_count      = 5;
-    static const size_t safe_size        = 100;
-    real_t<T>           rocblas_result   = 10;
-    real_t<T>*          h_rocblas_result = &rocblas_result;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        rocblas_local_handle handle{arg};
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    rocblas_local_handle handle{arg};
+        rocblas_int N                = 100;
+        rocblas_int incx             = 1;
+        rocblas_int batch_count      = 2;
+        real_t<T>   rocblas_result   = 10;
+        real_t<T>*  h_rocblas_result = &rocblas_result;
 
-    // Allocate device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
+        // Allocate device memory
+        device_batch_vector<T> dx(N, incx, batch_count);
 
-    // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        // Check device memory allocation
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_asum_batched_fn(
+                nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result),
+            rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_asum_batched_fn(handle, N, nullptr, incx, batch_count, h_rocblas_result),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_asum_batched_fn(
-                              nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_asum_batched_fn(handle, N, nullptr, incx, batch_count, h_rocblas_result),
+            rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr),
+            rocblas_status_invalid_pointer);
+    }
 }
 
 template <typename T>

@@ -39,14 +39,14 @@ rocblas_syr_kernel_inc1(rocblas_int    n,
                         rocblas_int    lda,
                         rocblas_stride strideA)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(!alpha)
         return;
 
-    const auto* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_z, shiftx, stridex);
-    T* __restrict__ A          = load_ptr_batch(Aa, hipBlockIdx_z, shiftA, strideA);
+    const auto* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
+    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, strideA);
 
-    size_t i = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x; // linear area index
+    size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
     if(i >= area)
         return;
 
@@ -86,14 +86,14 @@ rocblas_syr_kernel(rocblas_int    n,
                    rocblas_int    lda,
                    rocblas_stride strideA)
 {
-    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
     if(!alpha)
         return;
 
-    const auto* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_z, shiftx, stridex);
-    T* __restrict__ A          = load_ptr_batch(Aa, hipBlockIdx_z, shiftA, strideA);
+    const auto* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
+    T* __restrict__ A          = load_ptr_batch(Aa, blockIdx.z, shiftA, strideA);
 
-    size_t i = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x; // linear area index
+    size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
     if(i >= area)
         return;
 

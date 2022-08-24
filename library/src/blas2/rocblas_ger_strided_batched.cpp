@@ -154,7 +154,8 @@ namespace
                         "batch_count",
                         batch_count);
 
-        rocblas_status arg_status = rocblas_ger_arg_check<CONJ, T>(m,
+        rocblas_status arg_status = rocblas_ger_arg_check<CONJ, T>(handle,
+                                                                   m,
                                                                    n,
                                                                    alpha,
                                                                    0,

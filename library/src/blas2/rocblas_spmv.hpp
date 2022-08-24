@@ -44,16 +44,12 @@ inline rocblas_status rocblas_spmv_arg_check(rocblas_handle handle,
                                              rocblas_stride stridex,
                                              const V*       beta,
                                              rocblas_stride stride_beta,
-                                             const W*       y,
+                                             W*             y,
                                              rocblas_stride offsety,
                                              rocblas_int    incy,
                                              rocblas_stride stridey,
                                              rocblas_int    batch_count)
 {
-    // only supports stride_alpha and stride_beta for device memory alpha/beta
-    if((handle->pointer_mode == rocblas_pointer_mode_host) && (stride_alpha || stride_beta))
-        return rocblas_status_not_implemented;
-
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
 
@@ -63,8 +59,22 @@ inline rocblas_status rocblas_spmv_arg_check(rocblas_handle handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    if(!A || !x || !y || !alpha || !beta)
+    if(!beta || !alpha)
         return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        // only supports stride_alpha and stride_beta for device memory alpha/beta
+        if(stride_alpha || stride_beta)
+            return rocblas_status_not_implemented;
+
+        if(*alpha == 0 && *beta == 1)
+            return rocblas_status_success;
+
+        // pointers are validated if they need to be dereferenced
+        if(!y || (*alpha != 0 && (!A || !x)))
+            return rocblas_status_invalid_pointer;
+    }
 
     return rocblas_status_continue;
 }
