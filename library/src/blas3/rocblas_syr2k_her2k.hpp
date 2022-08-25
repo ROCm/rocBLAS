@@ -24,7 +24,7 @@
 
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
-#include "herk_scale_device.hpp"
+#include "herk_syrk_device.hpp"
 
 template <bool        BATCHED,
           bool        TWOK,
@@ -169,66 +169,35 @@ inline rocblas_status rocblas_her2k_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
-/**
-  *  TScal     is always: const T* (either host or device)
-  *  TConstPtr is either: const T* OR const T* const*
-  *  TPtr      is either:       T* OR       T* const*
-  */
-template <bool BATCHED, bool TWOK, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_syr2k_template(rocblas_handle    handle,
-                                    rocblas_fill      uplo,
-                                    rocblas_operation trans,
-                                    rocblas_int       n,
-                                    rocblas_int       k,
-                                    TScal             alpha,
-                                    TConstPtr         AP,
-                                    rocblas_stride    offsetA,
-                                    rocblas_int       lda,
-                                    rocblas_stride    strideA,
-                                    TConstPtr         BP,
-                                    rocblas_stride    offsetB,
-                                    rocblas_int       ldb,
-                                    rocblas_stride    strideB,
-                                    TScal             beta,
-                                    TPtr              CP,
-                                    rocblas_stride    offsetC,
-                                    rocblas_int       ldc,
-                                    rocblas_stride    strideC,
-                                    rocblas_int       batch_count);
-
-/**
-  *  TScal     is always: const T* (either host or device)
-  *  TConstPtr is either: const T* OR const T* const*
-  *  TPtr      is either:       T* OR       T* const*
-  */
-template <bool BATCHED,
-          bool TWOK,
-          typename TScal,
+template <rocblas_int MIN_NB,
+          bool        BATCHED,
+          bool        TWOK,
+          bool        HERK,
+          typename T,
+          typename U,
           typename TConstPtr,
-          typename UScal,
           typename TPtr>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_her2k_template(rocblas_handle    handle,
-                                    rocblas_fill      uplo,
-                                    rocblas_operation trans,
-                                    rocblas_int       n,
-                                    rocblas_int       k,
-                                    TScal             alpha,
-                                    TConstPtr         AP,
-                                    rocblas_stride    offsetA,
-                                    rocblas_int       lda,
-                                    rocblas_stride    strideA,
-                                    TConstPtr         BP,
-                                    rocblas_stride    offsetB,
-                                    rocblas_int       ldb,
-                                    rocblas_stride    strideB,
-                                    UScal             beta,
-                                    TPtr              CP,
-                                    rocblas_stride    offsetC,
-                                    rocblas_int       ldc,
-                                    rocblas_stride    strideC,
-                                    rocblas_int       batch_count);
+    rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
+                                          rocblas_fill      uplo,
+                                          rocblas_operation trans,
+                                          rocblas_int       n,
+                                          rocblas_int       k,
+                                          const T*          alpha,
+                                          TConstPtr         dA_in,
+                                          rocblas_stride    offset_a,
+                                          rocblas_int       lda,
+                                          rocblas_stride    stride_a,
+                                          TConstPtr         dB_in,
+                                          rocblas_stride    offset_b,
+                                          rocblas_int       ldb,
+                                          rocblas_stride    stride_b,
+                                          const U*          beta,
+                                          TPtr              dC_in,
+                                          rocblas_stride    offset_c,
+                                          rocblas_int       ldc,
+                                          rocblas_stride    stride_c,
+                                          rocblas_int       batch_count);
 
 template <bool HERM, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_name,
@@ -249,3 +218,21 @@ rocblas_status rocblas_her2k_syr2k_check_numerics(const char*       function_nam
                                                   rocblas_int       batch_count,
                                                   const int         check_numerics,
                                                   bool              is_input);
+
+template <bool TWOK, bool HERM, rocblas_int DIM_XYT, typename T, typename TConstPtr, typename TPtr>
+void syr2k_her2k_dispatch(rocblas_fill      uplo,
+                          rocblas_operation trans,
+                          rocblas_int       n,
+                          rocblas_int       k,
+                          const T           alpha,
+                          TConstPtr*        dA,
+                          rocblas_int       lda,
+                          rocblas_stride    stride_a,
+                          TConstPtr*        dB,
+                          rocblas_int       ldb,
+                          rocblas_stride    stride_b,
+                          TPtr*             dC,
+                          rocblas_int       ldc,
+                          rocblas_stride    stride_c,
+                          rocblas_int       batch_count,
+                          hipStream_t       stream);

@@ -19,7 +19,9 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+#include "Tensile/gemm.hpp"
 #include "logging.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_syr2k_her2k.hpp"
 #include "utility.hpp"
 
@@ -36,7 +38,7 @@ namespace
     template <>
     constexpr char rocblas_syr2k_name<rocblas_double_complex>[] = "rocblas_zsyr2k";
 
-    template <typename T>
+    template <rocblas_int MIN_NB, typename T>
     rocblas_status rocblas_syr2k_impl(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation transA,
@@ -55,6 +57,14 @@ namespace
             return rocblas_status_invalid_handle;
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
+        // Copy alpha and beta to host if on device. This is because gemm is called and it
+        // requires alpha and beta to be on host
+        T alpha_h;
+        T beta_h;
+        RETURN_IF_ROCBLAS_ERROR(
+            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
@@ -178,27 +188,28 @@ namespace
 
         static constexpr bool is2K    = true;
         static constexpr bool BATCHED = false;
+        static constexpr bool HERK    = false;
         rocblas_status        status  = rocblas_status_success;
-        status                        = rocblas_internal_syr2k_template<BATCHED, is2K>(handle,
-                                                                uplo,
-                                                                transA,
-                                                                n,
-                                                                k,
-                                                                alpha,
-                                                                A,
-                                                                offset_A,
-                                                                lda,
-                                                                stride_A,
-                                                                B,
-                                                                offset_B,
-                                                                ldb,
-                                                                stride_B,
-                                                                beta,
-                                                                C,
-                                                                offset_C,
-                                                                ldc,
-                                                                stride_C,
-                                                                batch_count);
+        status = rocblas_internal_syr2k_her2k_template<MIN_NB, BATCHED, is2K, HERK, T>(handle,
+                                                                                       uplo,
+                                                                                       transA,
+                                                                                       n,
+                                                                                       k,
+                                                                                       alpha,
+                                                                                       A,
+                                                                                       offset_A,
+                                                                                       lda,
+                                                                                       stride_A,
+                                                                                       B,
+                                                                                       offset_B,
+                                                                                       ldb,
+                                                                                       stride_B,
+                                                                                       beta,
+                                                                                       C,
+                                                                                       offset_C,
+                                                                                       ldc,
+                                                                                       stride_C,
+                                                                                       batch_count);
 
         if(status != rocblas_status_success)
             return status;
@@ -245,7 +256,7 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                               \
+#define IMPL(routine_name_, T_, MIN_NB)                                       \
     rocblas_status routine_name_(rocblas_handle    handle,                    \
                                  rocblas_fill      uplo,                      \
                                  rocblas_operation transA,                    \
@@ -261,7 +272,7 @@ extern "C" {
                                  rocblas_int       ldc)                       \
     try                                                                       \
     {                                                                         \
-        return rocblas_syr2k_impl(                                            \
+        return rocblas_syr2k_impl<MIN_NB>(                                    \
             handle, uplo, transA, n, k, alpha, A, lda, B, ldb, beta, C, ldc); \
     }                                                                         \
     catch(...)                                                                \
@@ -269,10 +280,10 @@ extern "C" {
         return exception_to_rocblas_status();                                 \
     }
 
-IMPL(rocblas_ssyr2k, float);
-IMPL(rocblas_dsyr2k, double);
-IMPL(rocblas_csyr2k, rocblas_float_complex);
-IMPL(rocblas_zsyr2k, rocblas_double_complex);
+IMPL(rocblas_ssyr2k, float, ROCBLAS_SSYR2K_NB);
+IMPL(rocblas_dsyr2k, double, ROCBLAS_DCZSYR2K_NB);
+IMPL(rocblas_csyr2k, rocblas_float_complex, ROCBLAS_DCZSYR2K_NB);
+IMPL(rocblas_zsyr2k, rocblas_double_complex, ROCBLAS_DCZSYR2K_NB);
 
 #undef IMPL
 
