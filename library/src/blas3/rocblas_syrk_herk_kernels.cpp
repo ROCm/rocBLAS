@@ -21,7 +21,6 @@
  * ************************************************************************ */
 
 #include "handle.hpp"
-#include "herk_scale_device.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_syrk_herk.hpp"
 #include "rocblas_syrkx.hpp"
