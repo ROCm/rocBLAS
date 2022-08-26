@@ -34,11 +34,11 @@ namespace
     {
         void operator()(const Arguments&)
         {
-            rocblas_atomics_mode mode = rocblas_atomics_mode(-1);
-            rocblas_handle       handle;
+            rocblas_handle handle;
             CHECK_ROCBLAS_ERROR(rocblas_create_handle(&handle));
 
             // Make sure the default atomics_mode is rocblas_atomics_allowed
+            rocblas_atomics_mode mode = rocblas_atomics_not_allowed;
             CHECK_ROCBLAS_ERROR(rocblas_get_atomics_mode(handle, &mode));
             EXPECT_EQ(rocblas_atomics_allowed, mode);
 

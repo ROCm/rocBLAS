@@ -1462,35 +1462,35 @@ try
 
     std::transform(precision.begin(), precision.end(), precision.begin(), ::tolower);
     auto prec = string2rocblas_datatype(precision);
-    if(prec == static_cast<rocblas_datatype>(-1))
+    if(prec == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --precision " + precision);
 
     arg.a_type = a_type == "" ? prec : string2rocblas_datatype(a_type);
-    if(arg.a_type == static_cast<rocblas_datatype>(-1))
+    if(arg.a_type == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --a_type " + a_type);
 
     arg.b_type = b_type == "" ? prec : string2rocblas_datatype(b_type);
-    if(arg.b_type == static_cast<rocblas_datatype>(-1))
+    if(arg.b_type == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --b_type " + b_type);
 
     arg.c_type = c_type == "" ? prec : string2rocblas_datatype(c_type);
-    if(arg.c_type == static_cast<rocblas_datatype>(-1))
+    if(arg.c_type == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --c_type " + c_type);
 
     arg.d_type = d_type == "" ? prec : string2rocblas_datatype(d_type);
-    if(arg.d_type == static_cast<rocblas_datatype>(-1))
+    if(arg.d_type == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --d_type " + d_type);
 
     arg.compute_type = compute_type == "" ? prec : string2rocblas_datatype(compute_type);
-    if(arg.compute_type == static_cast<rocblas_datatype>(-1))
+    if(arg.compute_type == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --compute_type " + compute_type);
 
     arg.initialization = string2rocblas_initialization(initialization);
-    if(arg.initialization == static_cast<rocblas_initialization>(-1))
+    if(arg.initialization == static_cast<rocblas_initialization>(0)) // zero not in enum
         throw std::invalid_argument("Invalid value for --initialization " + initialization);
 
     arg.arithmetic_check = string2rocblas_arithmetic_check(arithmetic_check);
-    if(arg.arithmetic_check == static_cast<rocblas_arithmetic_check>(-1))
+    if(arg.arithmetic_check == static_cast<rocblas_arithmetic_check>(0)) // zero not in enum
         throw std::invalid_argument("Invalid value for --arithmetic_check " + arithmetic_check);
 
     if(arg.M < 0)
