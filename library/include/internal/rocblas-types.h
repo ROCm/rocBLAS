@@ -169,6 +169,32 @@ typedef enum rocblas_side_
     rocblas_side_both  = 143
 } rocblas_side;
 
+/*! parameter constants.
+ *  numbering continues into next free decimal range but not shared with other BLAS libraries
+ */
+
+/*! \brief Indicates the precision width of data stored in a blas type. */
+typedef enum rocblas_datatype_
+{
+    rocblas_datatype_f16_r   = 150, /**< 16 bit floating point, real */
+    rocblas_datatype_f32_r   = 151, /**< 32 bit floating point, real */
+    rocblas_datatype_f64_r   = 152, /**< 64 bit floating point, real */
+    rocblas_datatype_f16_c   = 153, /**< 16 bit floating point, complex */
+    rocblas_datatype_f32_c   = 154, /**< 32 bit floating point, complex */
+    rocblas_datatype_f64_c   = 155, /**< 64 bit floating point, complex */
+    rocblas_datatype_i8_r    = 160, /**<  8 bit signed integer, real */
+    rocblas_datatype_u8_r    = 161, /**<  8 bit unsigned integer, real */
+    rocblas_datatype_i32_r   = 162, /**< 32 bit signed integer, real */
+    rocblas_datatype_u32_r   = 163, /**< 32 bit unsigned integer, real */
+    rocblas_datatype_i8_c    = 164, /**<  8 bit signed integer, complex */
+    rocblas_datatype_u8_c    = 165, /**<  8 bit unsigned integer, complex */
+    rocblas_datatype_i32_c   = 166, /**< 32 bit signed integer, complex */
+    rocblas_datatype_u32_c   = 167, /**< 32 bit unsigned integer, complex */
+    rocblas_datatype_bf16_r  = 168, /**< 16 bit bfloat, real */
+    rocblas_datatype_bf16_c  = 169, /**< 16 bit bfloat, complex */
+    rocblas_datatype_invalid = 255, /**< invalid datatype value, do not use */
+} rocblas_datatype;
+
 /* ============================================================================================ */
 /**
  *   @brief rocblas status codes definition
@@ -191,27 +217,6 @@ typedef enum rocblas_status_
     rocblas_status_check_numerics_fail
     = 13, /**< will be set if the vector/matrix has a NaN/Infinity/denormal value */
 } rocblas_status;
-
-/*! \brief Indicates the precision width of data stored in a blas type. */
-typedef enum rocblas_datatype_
-{
-    rocblas_datatype_f16_r  = 150, /**< 16 bit floating point, real */
-    rocblas_datatype_f32_r  = 151, /**< 32 bit floating point, real */
-    rocblas_datatype_f64_r  = 152, /**< 64 bit floating point, real */
-    rocblas_datatype_f16_c  = 153, /**< 16 bit floating point, complex */
-    rocblas_datatype_f32_c  = 154, /**< 32 bit floating point, complex */
-    rocblas_datatype_f64_c  = 155, /**< 64 bit floating point, complex */
-    rocblas_datatype_i8_r   = 160, /**<  8 bit signed integer, real */
-    rocblas_datatype_u8_r   = 161, /**<  8 bit unsigned integer, real */
-    rocblas_datatype_i32_r  = 162, /**< 32 bit signed integer, real */
-    rocblas_datatype_u32_r  = 163, /**< 32 bit unsigned integer, real */
-    rocblas_datatype_i8_c   = 164, /**<  8 bit signed integer, complex */
-    rocblas_datatype_u8_c   = 165, /**<  8 bit unsigned integer, complex */
-    rocblas_datatype_i32_c  = 166, /**< 32 bit signed integer, complex */
-    rocblas_datatype_u32_c  = 167, /**< 32 bit unsigned integer, complex */
-    rocblas_datatype_bf16_r = 168, /**< 16 bit bfloat, real */
-    rocblas_datatype_bf16_c = 169, /**< 16 bit bfloat, complex */
-} rocblas_datatype;
 
 /*! \brief Indicates if scalar pointers are on host or device. This is used for
 *    scalars alpha and beta and for scalar function return values. */
