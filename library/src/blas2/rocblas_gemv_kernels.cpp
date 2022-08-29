@@ -295,7 +295,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey, irregular_cols, mod_row,  \
         mod_column
-                const int block_x = (m / thread_x) + (mod_row != 0);
+                const int block_x = (m / thread_x) + 1;
                 dim3      gemvn_threads(thread_x, thread_y);
                 dim3      gemvn_grid(block_x, block_y, batch_count);
                 const int irregular_cols = mod_column % elements_per_thread;
