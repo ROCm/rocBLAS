@@ -550,31 +550,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     const T one        = 1;
     const T alpha_conj = conj(*alpha);
 
-    TPtr           dC;
-    TConstPtr      dB;
-    TConstPtr      dA;
-    rocblas_stride a_st_or_of;
-    rocblas_stride b_st_or_of;
-    rocblas_stride c_st_or_of;
-
-    if(BATCHED)
-    {
-        dC         = dC_in;
-        dB         = dB_in;
-        dA         = dA_in;
-        a_st_or_of = offset_a;
-        b_st_or_of = offset_b;
-        c_st_or_of = offset_c;
-    }
-    else
-    {
-        dC         = dC_in + offset_c;
-        dB         = dB_in + offset_b;
-        dA         = dA_in + offset_a;
-        a_st_or_of = stride_a;
-        b_st_or_of = stride_b;
-        c_st_or_of = stride_c;
-    }
+    TPtr      dC = dC_in;
+    TConstPtr dB = dB_in;
+    TConstPtr dA = dA_in;
 
     static constexpr int syr2k_SCALE_DIM_X = 128;
     static constexpr int syr2k_SCALE_DIM_Y = 8;
@@ -596,7 +574,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                        *beta,
                        dC,
                        ldc,
-                       c_st_or_of);
+                       BATCHED ? offset_c : stride_c);
 
     if(k == 0)
         return rocblas_status_success;
