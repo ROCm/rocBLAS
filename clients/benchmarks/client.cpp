@@ -914,9 +914,13 @@ struct perf_blas_rotg<
     }
 };
 
-int run_bench_test(Arguments& arg, const std::string& filter, bool any_stride, bool yaml = false)
+int run_bench_test(
+    bool init, Arguments& arg, const std::string& filter, bool any_stride, bool yaml = false)
 {
-    static int runOnce = (rocblas_client_initialize(), 0); // Initialize rocBLAS
+    if(init)
+    {
+        static int runOnce = (rocblas_client_initialize(), 0); // Initialize rocBLAS
+    }
 
     rocblas_cout << std::setiosflags(std::ios::fixed)
                  << std::setprecision(7); // Set precision to 7 digits
@@ -1131,9 +1135,64 @@ int rocblas_bench_datafile(const std::string& filter, bool any_stride)
 {
     int ret = 0;
     for(Arguments arg : RocBLAS_TestData())
-        ret |= run_bench_test(arg, filter, any_stride, true);
+        ret |= run_bench_test(true, arg, filter, any_stride, true);
     test_cleanup::cleanup();
     return ret;
+}
+
+void gpu_thread_init_device(int                id,
+                            const Arguments&   arg,
+                            const std::string& filter,
+                            bool               any_stride)
+{
+    CHECK_HIP_ERROR(hipSetDevice(id));
+
+    rocblas_client_initialize();
+
+    Arguments a(arg);
+    a.cold_iters = 1;
+    a.iters      = 0;
+    run_bench_test(false, a, filter, any_stride, false);
+}
+
+void gpu_thread_run_bench(int id, const Arguments& arg, const std::string& filter, bool any_stride)
+{
+    CHECK_HIP_ERROR(hipSetDevice(id));
+
+    Arguments a(arg);
+    run_bench_test(false, a, filter, any_stride, false);
+}
+
+int run_bench_gpu_test(int                parallel_devices,
+                       Arguments&         arg,
+                       const std::string& filter,
+                       bool               any_stride)
+{
+    int count;
+    CHECK_HIP_ERROR(hipGetDeviceCount(&count));
+
+    if(parallel_devices > count || parallel_devices < 1)
+        return 1;
+
+    // initialization
+    auto thread_init = std::make_unique<std::thread[]>(parallel_devices);
+
+    for(int id = 0; id < parallel_devices; ++id)
+        thread_init[id] = std::thread(::gpu_thread_init_device, id, arg, filter, any_stride);
+
+    for(int id = 0; id < parallel_devices; ++id)
+        thread_init[id].join();
+
+    // synchronzied launch of cold & hot calls
+    auto thread = std::make_unique<std::thread[]>(parallel_devices);
+
+    for(int id = 0; id < parallel_devices; ++id)
+        thread[id] = std::thread(::gpu_thread_run_bench, id, arg, filter, any_stride);
+
+    for(int id = 0; id < parallel_devices; ++id)
+        thread[id].join();
+
+    return 0;
 }
 
 // Replace --batch with --batch_count for backward compatibility
@@ -1168,6 +1227,7 @@ try
     std::string arithmetic_check;
     std::string filter;
     rocblas_int device_id;
+    rocblas_int parallel_devices;
     int         flags               = 0;
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
@@ -1376,6 +1436,10 @@ try
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
 
+        ("parallel_devices",
+         value<rocblas_int>(&parallel_devices)->default_value(0),
+         "Set number of devices used for parallel runs (device 0 to parallel_devices-1)")
+
         ("c_noalias_d",
          bool_switch(&arg.c_noalias_d)->default_value(false),
          "C and D are stored in separate memory")
@@ -1451,7 +1515,8 @@ try
     rocblas_cout << std::endl;
     if(device_count <= device_id)
         throw std::invalid_argument("Invalid Device ID");
-    set_device(device_id);
+    if(device_id >= 0)
+        set_device(device_id);
 
     if(datafile)
         return rocblas_bench_datafile(filter, any_stride);
@@ -1504,7 +1569,10 @@ try
     if(copied <= 0 || copied >= sizeof(arg.function))
         throw std::invalid_argument("Invalid value for --function");
 
-    return run_bench_test(arg, filter, any_stride);
+    if(!parallel_devices)
+        return run_bench_test(true, arg, filter, any_stride);
+    else
+        return run_bench_gpu_test(parallel_devices, arg, filter, any_stride);
 }
 catch(const std::invalid_argument& exp)
 {
