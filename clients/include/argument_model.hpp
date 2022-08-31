@@ -141,6 +141,9 @@ public:
                   double                    norm3     = ArgumentLogging::NA_value,
                   double                    norm4     = ArgumentLogging::NA_value)
     {
+        if(arg.iters < 1)
+            return; // warmup test only
+
         rocblas_internal_ostream name_list;
         rocblas_internal_ostream value_list;
         value_list.set_csv(true);
