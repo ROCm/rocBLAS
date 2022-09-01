@@ -10051,7 +10051,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_strided_batched(rocblas_handle      
     @param[in]
     A       pointer storing matrix A on the GPU.
             Matrix dimension is ( lda, k ) when if transA = rocblas_operation_none, otherwise (lda, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     lda     [rocblas_int]
@@ -10068,6 +10067,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_strided_batched(rocblas_handle      
     @param[in]
     C       pointer storing matrix C on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10160,6 +10160,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk(rocblas_handle                handle
     @param[in]
     C       device array of device pointers storing each matrix C_i on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10262,6 +10263,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle              
     @param[in]
     C       Device pointer to the first matrix C_1 on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10352,7 +10354,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
     @param[in]
     A       pointer storing matrix A on the GPU.
             Matrix dimension is ( lda, k ) when if trans = rocblas_operation_none, otherwise (lda, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     lda     [rocblas_int]
@@ -10364,7 +10365,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
     @param[in]
     B       pointer storing matrix B on the GPU.
             Matrix dimension is ( ldb, k ) when if trans = rocblas_operation_none, otherwise (ldb, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldb     [rocblas_int]
@@ -10381,6 +10381,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
     @param[in]
     C       pointer storing matrix C on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10486,6 +10487,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k(rocblas_handle                handl
     @param[in]
     C       device array of device pointers storing each matrix C_i on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10606,6 +10608,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_batched(rocblas_handle             
     @param[in]
     C       Device pointer to the first matrix C_1 on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10704,7 +10707,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_strided_batched(rocblas_handle     
     @param[in]
     A       pointer storing matrix A on the GPU.
             Matrix dimension is ( lda, k ) when if trans = rocblas_operation_none, otherwise (lda, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     lda     [rocblas_int]
@@ -10715,7 +10717,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_strided_batched(rocblas_handle     
     @param[in]
     B       pointer storing matrix B on the GPU.
             Matrix dimension is ( ldb, k ) when if trans = rocblas_operation_none, otherwise (ldb, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldb     [rocblas_int]
@@ -10732,6 +10733,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_strided_batched(rocblas_handle     
     @param[in]
     C       pointer storing matrix C on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10841,6 +10843,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx(rocblas_handle                handl
     @param[in]
     C       device array of device pointers storing each matrix C_i on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -10964,6 +10967,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_batched(rocblas_handle             
     @param[in]
     C       Device pointer to the first matrix C_1 on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -11494,7 +11498,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_strided_batched(rocblas_handle      
     @param[in]
     A       pointer storing matrix A on the GPU.
             Matrix dimension is ( lda, k ) when if transA = rocblas_operation_none, otherwise (lda, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     lda     [rocblas_int]
@@ -11510,6 +11513,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_strided_batched(rocblas_handle      
 
     @param[in]
     C       pointer storing matrix C on the GPU.
+            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -11629,6 +11633,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk(rocblas_handle                handle
 
     @param[in]
     C       device array of device pointers storing each matrix C_i on the GPU.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -11759,6 +11764,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle              
 
     @param[in]
     C       Device pointer to the first matrix C_1 on the GPU. on the GPU.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -12334,7 +12340,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
     @param[in]
     A       pointer storing matrix A on the GPU.
             Matrix dimension is ( lda, k ) when if trans = rocblas_operation_none, otherwise (lda, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     lda     [rocblas_int]
@@ -12346,7 +12351,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
     @param[in]
     B       pointer storing matrix B on the GPU.
             Matrix dimension is ( ldb, k ) when if trans = rocblas_operation_none, otherwise (ldb, n)
-            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldb     [rocblas_int]
@@ -12362,6 +12366,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
 
     @param[in]
     C       pointer storing matrix C on the GPU.
+            only the upper/lower triangular part is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -12502,6 +12507,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
 
     @param[in]
     C       device array of device pointers storing each matrix C_i on the GPU.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
@@ -12658,6 +12664,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
 
     @param[in]
     C       Device pointer to the first matrix C_1 on the GPU.
+            only the upper/lower triangular part of each C_i is accessed.
 
     @param[in]
     ldc    [rocblas_int]
