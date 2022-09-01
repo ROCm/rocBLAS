@@ -255,7 +255,7 @@ void testing_herk(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     rocblas_init_matrix(
-        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true, true);
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true, true);
     rocblas_init_matrix(
         hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_hermitian_matrix, false, true);
 
