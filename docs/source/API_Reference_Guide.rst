@@ -12,10 +12,10 @@ implemented in the `HIP programming language <https://github.com/ROCm-Developer-
 
 The aim of rocBLAS is to provide:
 
-- functionality similar to Legacy BLAS, adapted to run on GPUs
-- high performance robust implementation
+- Functionality similar to Legacy BLAS, adapted to run on GPUs
+- High-performance robust implementation
 
-rocBLAS is written in C++17 and HIP. It uses AMD's ROCm runtime to run on GPU devices.
+rocBLAS is written in C++17 and HIP. It uses the AMD ROCm runtime to run on GPU devices.
 
 The rocBLAS API is a thin C99 API using the Hourglass Pattern. It contains:
 
@@ -25,40 +25,40 @@ The rocBLAS API is a thin C99 API using the Hourglass Pattern. It contains:
 - Device Memory functions
 
 .. note::
-  - The official rocBLAS API is the C99 API defined in rocblas.h and therefore the use of any other public symbols is discouraged. All other C/C++ interfaces may not follow a deprecation model and so can change without warning from one release to the next.
-  - rocBLAS array storage format is column major and one based. This is to maintain compatibility with the Legacy BLAS code which is written in Fortran.
-  - rocBLAS calls AMD's library `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`_ for Level 3 BLAS matrix multiplication.
+  - The official rocBLAS API is the C99 API defined in rocblas.h. Therefore the use of any other public symbols is discouraged. All other C/C++ interfaces may not follow a deprecation model and so can change without warning from one release to the next.
+  - rocBLAS array storage format is column major and one based. This is to maintain compatibility with the Legacy BLAS code, which is written in Fortran.
+  - rocBLAS calls the AMD library `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`_ for Level 3 BLAS matrix multiplication.
 
 --------------------------------------
-rocBLAS API and Legacy BLAS functions
+rocBLAS API and Legacy BLAS Functions
 --------------------------------------
 
-rocBLAS is initialized by calling rocblas_create_handle and it is terminated by calling rocblas_destroy_handle. The rocblas_handle is persistent and it contains
+rocBLAS is initialized by calling rocblas_create_handle, and it is terminated by calling rocblas_destroy_handle. The rocblas_handle is persistent, and it contains:
 
 - HIP stream
-- temporary device work space
-- mode for enabling or disabling logging (default is logging disabled)
+- Temporary device work space
+- Mode for enabling or disabling logging (default is logging disabled)
 
-rocBLAS functions run on the host and they call HIP to launch rocBLAS kernels that run on the device in a HIP stream. The kernels are asynchronous unless:
+rocBLAS functions run on the host, and they call HIP to launch rocBLAS kernels that run on the device in a HIP stream. The kernels are asynchronous unless:
 
-- the function returns a scalar result from device to host
-- temporary device memory is allocated
+- The function returns a scalar result from device to host
+- Temporary device memory is allocated
 
 In both cases above, the launch can be made asynchronous by:
 
-- use rocblas_pointer_mode_device to keep the scalar result on the device. Note that it is only the following Level1 BLAS functions that return a scalar result: Xdot, Xdotu, Xnrm2, Xasum, iXamax, iXamin.
+- Use rocblas_pointer_mode_device to keep the scalar result on the device. Note that it is only the following Level1 BLAS functions that return a scalar result: Xdot, Xdotu, Xnrm2, Xasum, iXamax, iXamin.
 
-- use the provided device memory functions to allocate device memory that persists in the handle. Note that most rocBLAS functions do not allocate temporary device memory.
+- Use the provided device memory functions to allocate device memory that persists in the handle. Note that most rocBLAS functions do not allocate temporary device memory.
 
-Before calling a rocBLAS function arrays must be copied to the device. Integer scalars like m, n, k are stored on the host. Floating point scalars like alpha and beta can be on host or device.
+Before calling a rocBLAS function, arrays must be copied to the device. Integer scalars like m, n, k are stored on the host. Floating point scalars like alpha and beta can be on host or device.
 
 Error handling is by returning a rocblas_status. Functions conform to the Legacy BLAS argument checking.
 
 
-Rules for obtaining rocBLAS API from Legacy BLAS
+Rules for Obtaining rocBLAS API from Legacy BLAS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. The Legacy BLAS routine name is changed to lower case, and prefixed
+1. The Legacy BLAS routine name is changed to lowercase and prefixed
    by rocblas\_. For example: Legacy BLAS routine SSCAL, scales a vector by a constant, is converted to rocblas_sscal.
 
 2. A first argument rocblas_handle handle is added to all rocBLAS
@@ -72,8 +72,8 @@ Rules for obtaining rocBLAS API from Legacy BLAS
 5. Array arguments are passed by reference on the device.
 
 6. Scalar arguments are passed by value on the host with the following
-   two exceptions. See the section Pointer Mode for more information on
-   these two exceptions.
+   exceptions. See the section Pointer Mode for more information on
+   these exceptions:
 
 -  Scalar values alpha and beta are passed by reference on either the
    host or the device.
@@ -90,7 +90,7 @@ Rules for obtaining rocBLAS API from Legacy BLAS
 Example Code
 ^^^^^^^^^^^^
 
-Below is a simple example code for calling function rocblas_sscal.
+Below is a simple example code for calling function rocblas_sscal:
 
 .. code-block:: c++
 
@@ -148,53 +148,50 @@ Below is a simple example code for calling function rocblas_sscal.
    }
 
 
-LP64 interface
+LP64 Interface
 ^^^^^^^^^^^^^^
 
 The rocBLAS library is LP64, so rocblas_int arguments are 32 bit and
 rocblas_long arguments are 64 bit.
 
 
-Column-major storage and 1 based indexing
+Column-major Storage and 1 Based Indexing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-rocBLAS uses column-major storage for 2D arrays, and 1 based indexing
+rocBLAS uses column-major storage for 2D arrays, and 1-based indexing
 for the functions xMAX and xMIN. This is the same as Legacy BLAS and
 cuBLAS.
 
-If you need row-major and 0 based indexing (used in C language arrays)
-download the file cblas.tgz from the Netlib Repository.
-Look at the CBLAS functions that provide a thin interface to
-Legacy BLAS. They convert from row-major, 0 based, to column-major, 1
-based. This is done by swapping the order of function arguments. It is
-not necessary to transpose matrices.
+If you need row-major and 0-based indexing (used in C language arrays), download the file cblas.tgz from the Netlib Repository.
+Look at the CBLAS functions that provide a thin interface to Legacy BLAS. They convert from row-major, 0 based, to column-major, 1
+based. This is done by swapping the order of function arguments. It is not necessary to transpose matrices.
 
 
-Pointer mode
+Pointer Mode
 ^^^^^^^^^^^^
 
 The auxiliary functions rocblas_set_pointer and rocblas_get_pointer are
 used to set and get the value of the state variable
 rocblas_pointer_mode. This variable is stored in rocblas_handle. If rocblas_pointer_mode ==
-rocblas_pointer_mode_host then scalar parameters must be allocated on
+rocblas_pointer_mode_host, then scalar parameters must be allocated on
 the host. If rocblas_pointer_mode == rocblas_pointer_mode_device, then
 scalar parameters must be allocated on the device.
 
 There are two types of scalar parameter:
 
-* scaling parameters like alpha and beta used in functions like axpy, gemv, gemm 2
+* Scaling parameters like alpha and beta used in functions like axpy, gemv, gemm 2
 
-* scalar results from functions amax, amin, asum, dot, nrm2
+* Scalar results from functions amax, amin, asum, dot, nrm2
 
 For scalar parameters like alpha and beta when rocblas_pointer_mode ==
-rocblas_pointer_mode_host they can be allocated on the host heap or
-stack. The kernel launch is asynchronous, and if they are on the heap
+rocblas_pointer_mode_host, they can be allocated on the host heap or
+stack. The kernel launch is asynchronous, and if they are on the heap,
 they can be freed after the return from the kernel launch. When
 rocblas_pointer_mode == rocblas_pointer_mode_device they must not be
 changed till the kernel completes.
 
 For scalar results, when rocblas_pointer_mode ==
-rocblas_pointer_mode_host then the function blocks the CPU till the GPU
+rocblas_pointer_mode_host, then the function blocks the CPU till the GPU
 has copied the result back to the host. When rocblas_pointer_mode ==
 rocblas_pointer_mode_device the function will return after the
 asynchronous launch. Similarly to vector and matrix results, the scalar
@@ -206,14 +203,14 @@ Asynchronous API
 
 rocBLAS functions will be asynchronous unless:
 
-* the function needs to allocate device memory
+* The function needs to allocate device memory
 
-* the function returns a scalar result from GPU to CPU
+* The function returns a scalar result from GPU to CPU
 
 The order of operations in the asynchronous functions is as in the figure
 below. The argument checking, calculation of process grid, and kernel
 launch take very little time. The asynchronous kernel running on the GPU
-does not block the CPU. After the kernel launch the CPU keeps processing
+does not block the CPU. After the kernel launch, the CPU keeps processing
 the next instructions.
 
 .. asynch_blocks
@@ -224,28 +221,28 @@ the next instructions.
    Order of operations in asynchronous functions
 
 
-The above order of operations will change if there is logging, or if the
+The above order of operations will change if there is logging or the
 function is synchronous. Logging requires system calls, and the program
-will need to wait for them to complete before executing the next instruction.
+must wait for them to complete before executing the next instruction.
 See the Logging section for more information.
 
 .. note:: The default is no logging.
 
-If the cpu needs to allocate device memory, it needs to wait till this is complete before
+If the cpu needs to allocate device memory, it must wait till this is complete before
 executing the next instruction. See the Device Memory Allocation section for more information.
 
-.. note:: Memory can be pre-allocated. This will make the function asynchronous as it removes the need for the function to allocate memory.
+.. note:: Memory can be preallocated. This will make the function asynchronous, as it removes the need for the function to allocate memory.
 
 The following functions copy a scalar result from GPU to CPU if
 rocblas_pointer_mode == rocblas_pointer_mode_host: asum, dot, max, min, nrm2.
 
-This makes the function synchronous, as the program will need to wait
+This makes the function synchronous, as the program must wait
 for the copy before executing the next instruction. See the section on
-Pointer Mode for more information
+Pointer Mode for more information.
 
-.. note:: Set rocblas_pointer_mode to rocblas_pointer_mode_device make the function asynchronous by keeping the result on the GPU.
+.. note:: Set rocblas_pointer_mode to rocblas_pointer_mode_device makes the function asynchronous by keeping the result on the GPU.
 
-The order of operations with logging, device memory allocation and return of a scalar
+The order of operations with logging, device memory allocation, and return of a scalar
 result is as in the figure below:
 
 .. asynch_blocks
@@ -259,16 +256,16 @@ result is as in the figure below:
 Complex Number Data Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Data types for rocBLAS complex numbers in the API are a special case.  For C compiler users, gcc and other non-hipcc compiler users these types
+Data types for rocBLAS complex numbers in the API are a special case.  For C compiler users, gcc, and other non-hipcc compiler users, these types
 are exposed as a struct with x and y components and identical memory layout to std::complex for float and double precision.   Internally a templated
-C++ class is defined but it should be considered deprecated for external use.   For simplified usage with hipified code there is an option
+C++ class is defined, but it should be considered deprecated for external use.   For simplified usage with Hipified code there is an option
 to interpret the API as using hipFloatComplex and hipDoubleComplex types (i.e. typedef hipFloatComplex rocblas_float_complex).  This is provided
-for users to avoid casting when using the hip complex types in their code.  As the memory layout is consistent across all three types
+for users to avoid casting when using the hip complex types in their code.  As the memory layout is consistent across all three types,
 it is safe to cast arguments to API calls between the 3 types: hipFloatComplex, std::complex<float>, and rocblas_float_complex, as well as for
-the double precision variants.  In order to expose the API as using the hip defined complex types, either a compiler define or inlined
-#define ROCM_MATHLIBS_API_USE_HIP_COMPLEX can be used before including the header file <rocblas.h>.  Thus the API is compatible with both forms but
+the double precision variants. To expose the API as using the hip defined complex types, user can use either a compiler define or inlined
+#define ROCM_MATHLIBS_API_USE_HIP_COMPLEX before including the header file <rocblas.h>.  Thus the API is compatible with both forms, but
 recompilation is required to avoid casting if switching to pass in the hip complex types.  Most device memory pointers are passed with void*
-types to hip utility functions (e.g. hipMemcpy) so uploading memory from std::complex arrays or hipFloatComplex arrays requires no changes
+types to hip utility functions (e.g. hipMemcpy), so uploading memory from std::complex arrays or hipFloatComplex arrays requires no changes
 regardless of complex data type API choice.
 
 
@@ -277,15 +274,15 @@ MI100 (gfx908) Considerations
 
 On nodes with the MI100 (gfx908), MFMA (Matrix-Fused-Multiply-Add)
 instructions are available to substantially speed up matrix operations.
-This hardware feature is used in all gemm and gemm based functions in
+This hardware feature is used in all gemm and gemm-based functions in
 rocBLAS with 32-bit or shorter base datatypes with an associated 32-bit
-compute_type (f32_r, i32_r or f32_c as appropriate).
+compute_type (f32_r, i32_r, or f32_c as appropriate).
 
 Specifically, rocBLAS takes advantage of MI100's MFMA instructions for
-three real base types f16_r, bf16_r and f32_r with compute_type f32_r,
+three real base types f16_r, bf16_r, and f32_r with compute_type f32_r,
 one integral base type i8_r with compute_type i32_r, and one complex
 base type f32_c with compute_type f32_c.  In summary, all GEMM APIs and
-APIs for GEMM based functions using these five base types and their
+APIs for GEMM-based functions using these five base types and their
 associated compute_type (explicit or implicit) take advantage of MI100's
 MFMA instructions.
 
@@ -293,7 +290,7 @@ MFMA instructions.
 
    The use of MI100's MFMA instructions is automatic.  There is no user control for on/off.
 
-   Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
+   Not all problem sizes may select MFMA-based kernels; additional tuning may be needed to get good performance.
 
 
 MI200 (gfx90a) Considerations
@@ -301,9 +298,9 @@ MI200 (gfx90a) Considerations
 
 On nodes with the MI200 (gfx90a), MFMA_F64 instructions are available to
 substantially speed up double precision matrix operations.  This
-hardware feature is used in all GEMM and GEMM based functions in
+hardware feature is used in all GEMM and GEMM-based functions in
 rocBLAS with 64-bit floating-point datatype, namely DGEMM, ZGEMM,
-DTRSM, ZTRSM, DTRMM, ZTRMM, DSYRKX and ZSYRKX.
+DTRSM, ZTRSM, DTRMM, ZTRMM, DSYRKX, and ZSYRKX.
 
 The MI200 MFMA_F16, MFMA_BF16 and MFMA_BF16_1K instructions
 flush subnormal input/output data ("denorms") to zero. It is observed that
@@ -311,7 +308,7 @@ certain use cases utilizing the HPA (High Precision Accumulate) HGEMM
 kernels where a_type=b_type=c_type=d_type=f16_r and compute_type=f32_r
 do not tolerate the MI200's flush-denorms-to-zero behavior well
 due to F16's limited exponent range. An alternate implementation of the
-HPA HGEMM kernel utilizing the MFMA_BF16_1K instruction is provided which
+HPA HGEMM kernel utilizing the MFMA_BF16_1K instruction is provided which,
 takes advantage of BF16's much larger exponent range, albeit with reduced
 accuracy.  To select the alternate implementation of HPA HGEMM with the
 gemm_ex/gemm_strided_batched_ex functions, for the flags argument, use
@@ -321,7 +318,7 @@ the enum value of rocblas_gemm_flags_fp16_alt_impl.
 
    The use of MI200's MFMA instructions (including MFMA_F64) is automatic.  There is no user control for on/off.
 
-   Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
+   Not all problem sizes may select MFMA-based kernels; additional tuning may be needed to get good performance.
 
 -----------------------
 Deprecations by version
@@ -351,6 +348,15 @@ Remove ability for hipBLAS to set rocblas_int8_type_for_hipblas
 From rocBLAS 3.0 remove enum rocblas_int8_type_for_hipblas and the functions rocblas_get_int8_type_for_hipblas and
 rocblas_set_int8_type_for_hipblas. These are used by hipBLAS to select either int8_t or packed_int8x4 datatype.
 In hipBLAS the option to use packed_int8x4 will be removed, only int8_t will be available.
+
+.. only:: html
+
+   **References:**
+.. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
+
+.. [Level2] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1--17
+
+.. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18--32
 
 
 =================
@@ -411,7 +417,7 @@ rocblas_double_complex
 rocBLAS Enumeration
 -------------------
 
-   Enumeration constants have numbering that is consistent with CBLAS, ACML and most standard C BLAS libraries.
+   Enumeration constants have numbering that is consistent with CBLAS, ACML, most standard C BLAS libraries
 
 
 rocblas_operation
@@ -518,7 +524,7 @@ Device Memory Allocation Functions
 .. doxygenfunction:: rocblas_is_managing_device_memory
 .. doxygenfunction:: rocblas_is_user_managing_device_memory
 
-For more detailed information refer to sections :ref:`Device Memory Allocation Usage` and :ref:`Device Memory allocation in detail`:
+For more detailed informationt, refer to sections :ref:`Device Memory Allocation Usage` and :ref:`Device Memory allocation in detail`.
 
 Build Information Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1866,35 +1872,35 @@ The following computational functions use temporary device memory.
 +------------------------------------+------------------------------------------------+
 
 
-For temporary device memory rocBLAS uses a per-handle memory allocation with out-of-band management. The temporary device memory is stored in the handle. This allows for recycling temporary device memory across multiple computational kernels that use the same handle. Each handle has a single stream, and kernels execute in order in the stream, with each kernel completing before the next kernel in the stream starts. There are 4 schemes for temporary device memory:
+For temporary device memory, rocBLAS uses a per-handle memory allocation with out-of-band management. The temporary device memory is stored in the handle. This allows for recycling temporary device memory across multiple computational kernels that use the same handle. Each handle has a single stream, and kernels execute in order in the stream, with each kernel completing before the next kernel in the stream starts. There are 4 schemes for temporary device memory:
 
 #. **rocBLAS_managed**: This is the default scheme. If there is not enough memory in the handle, computational functions allocate the memory they require. Note that any memory allocated persists in the handle, so it is available for later computational functions that use the handle.
-#. **user_managed, preallocate**: An environment variable is set before the rocBLAS handle is created and thereafter there are no more allocations or deallocations.
+#. **user_managed, preallocate**: An environment variable is set before the rocBLAS handle is created, and thereafter there are no more allocations or deallocations.
 #. **user_managed, manual**:  The user calls helper functions to get or set memory size throughout the program, thereby controlling when allocation and deallocation occur.
-#. **user_owned**:  User allocates workspace and calls a helper function to allow rocBLAS to access the workspace.
+#. **user_owned**:  The user allocates workspace and calls a helper function to allow rocBLAS to access the workspace.
 
-The default scheme has the disadvantage that allocation is synchronizing, so if there is not enough memory in the handle, a synchronizing deallocation and allocation occurs.
+The default scheme has the disadvantage that allocation is synchronizing, so if there is not enough memory in the handle, a synchronizing deallocation and allocation occur.
 
 Environment Variable for Preallocating
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The environment variable ROCBLAS_DEVICE_MEMORY_SIZE is used to set how much memory to preallocate:
 
-- if > 0, sets the default handle device memory size to the specified size (in bytes)
-- if == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MB), and expanding it when necessary
+- If > 0, sets the default handle device memory size to the specified size (in bytes)
+- If == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MB), and expanding it when necessary
 
-Functions for manually setting memory size
+Functions for Manually Setting Memory Size
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - rocblas_set_device_memory_size
 - rocblas_get_device_memory_size
 - rocblas_is_user_managing_device_memory
 
-Function for setting user owned workspace
+Function for Setting User Owned Workspace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - rocblas_set_workspace
 
-Functions for finding how much memory is required
+Functions for Finding How Much Memory Is Required
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - rocblas_start_device_memory_size_query
@@ -1903,13 +1909,13 @@ Functions for finding how much memory is required
 
 See the API section for information on the above functions.
 
-rocBLAS Function Return Values for insufficient device memory
+rocBLAS Function Return Values for Insufficient Device Memory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the user preallocates or manually allocates, then that size is used as the limit, and no resizing or synchronizing ever occurs. The following two function return values indicate insufficient memory:
 
 - rocblas_status == rocblas_status_memory_error: indicates there is not sufficient device memory for a rocBLAS function
-- rocblas_status == rocblas_status_perf_degraded: indicates that a slower algorthm was used because of insufficient device memory for the optimal algorithm
+- rocblas_status == rocblas_status_perf_degraded: indicates that a slower algorithm was used because of insufficient device memory for the optimal algorithm
 
 
 ------------------
@@ -1918,7 +1924,7 @@ Logging in rocBLAS
 
 **Note that performance will degrade when logging is enabled.**
 
-Four environment variables can be set to control logging:
+User can set four environment variables to control logging:
 
 * ``ROCBLAS_LAYER``
 
@@ -1930,13 +1936,13 @@ Four environment variables can be set to control logging:
 
 ``ROCBLAS_LAYER`` is a bitwise OR of zero or more bit masks as follows:
 
-*  If ``ROCBLAS_LAYER`` is not set, then there is no logging
+*  If ``ROCBLAS_LAYER`` is not set, then there is no logging.
 
-*  If ``(ROCBLAS_LAYER & 1) != 0``, then there is trace logging
+*  If ``(ROCBLAS_LAYER & 1) != 0``, then there is trace logging.
 
-*  If ``(ROCBLAS_LAYER & 2) != 0``, then there is bench logging
+*  If ``(ROCBLAS_LAYER & 2) != 0``, then there is bench logging.
 
-*  If ``(ROCBLAS_LAYER & 4) != 0``, then there is profile logging
+*  If ``(ROCBLAS_LAYER & 4) != 0``, then there is profile logging.
 
 Trace logging outputs a line each time a rocBLAS function is called. The
 line contains the function name and the values of arguments.
@@ -1953,32 +1959,22 @@ with those arguments (the ``call_count``). Some arguments, such as
 the category that the argument falls in, such as ``-1``, ``0``, ``1``,
 or ``2``. The number of categories, and the values representing them,
 may change over time, depending on how many categories are needed to
-adequately represent all of the values which can affect the performance
+adequately represent all the values that can affect the performance
 of the function.
 
 The default stream for logging output is standard error. Three
 environment variables can set the full path name for a log file:
 
-* ``ROCBLAS_LOG_TRACE_PATH`` sets the full path name for trace logging
-* ``ROCBLAS_LOG_BENCH_PATH`` sets the full path name for bench logging
-* ``ROCBLAS_LOG_PROFILE_PATH`` sets the full path name for profile logging
+* ``ROCBLAS_LOG_TRACE_PATH`` sets the full path name for trace logging.
+* ``ROCBLAS_LOG_BENCH_PATH`` sets the full path name for bench logging.
+* ``ROCBLAS_LOG_PROFILE_PATH`` sets the full path name for profile logging.
 
 If one of these environment variables is not set, then ``ROCBLAS_LOG_PATH``
 sets the full path for the corresponding logging, if it is set.
 
-If neither the above nor ``ROCBLAS_LOG_PATH`` are set, then the
+If neither the above nor ``ROCBLAS_LOG_PATH`` is set, then the
 corresponding logging output is streamed to standard error.
 
-When profile logging is enabled, memory usage will increase. If the
+When profile logging is enabled, memory usage increases. If the
 program exits abnormally, then it is possible that profile logging will
 not be outputted before the program exits.
-
-----------
-References
-----------
-
-.. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
-
-.. [Level2] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1--17
-
-.. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18--32

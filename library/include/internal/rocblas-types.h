@@ -51,7 +51,7 @@
     ROCBLAS_EXPORT __attribute__((noinline)) ROCBLAS_INTERNAL_DEPRECATION
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
- * It must be initialized using rocblas_create_handle()
+ * It must be initialized using rocblas_create_handle(),
  * and the returned handle must be passed
  * to all subsequent library function calls.
  * It should be destroyed at the end using rocblas_destroy_handle().
@@ -127,7 +127,7 @@ typedef struct
 
 /* ============================================================================================ */
 
-/*! parameter constants.
+/*! Parameter constants.
  *  numbering is consistent with CBLAS, ACML and most standard C BLAS libraries
  */
 
@@ -141,7 +141,7 @@ typedef enum rocblas_operation_
 } rocblas_operation;
 
 /*! \brief Used by the Hermitian, symmetric and triangular matrix
- * routines to specify whether the upper or lower triangle is being referenced.
+ * routines to specify whether the upper, or lower triangle is being referenced.
  */
 typedef enum rocblas_fill_
 {
@@ -163,36 +163,36 @@ typedef enum rocblas_diagonal_
 typedef enum rocblas_side_
 {
     rocblas_side_left  = 141, /**< Multiply general matrix by symmetric,
-                        Hermitian or triangular matrix on the left. */
+                        Hermitian, or triangular matrix on the left. */
     rocblas_side_right = 142, /**< Multiply general matrix by symmetric,
-                        Hermitian or triangular matrix on the right. */
+                        Hermitian, or triangular matrix on the right. */
     rocblas_side_both  = 143
 } rocblas_side;
 
-/*! parameter constants.
- *  numbering continues into next free decimal range but not shared with other BLAS libraries
+/*! Parameter constants.
+ *  Numbering continues into next free decimal range but not shared with other BLAS libraries
  */
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
 typedef enum rocblas_datatype_
 {
-    rocblas_datatype_f16_r   = 150, /**< 16 bit floating point, real */
-    rocblas_datatype_f32_r   = 151, /**< 32 bit floating point, real */
-    rocblas_datatype_f64_r   = 152, /**< 64 bit floating point, real */
-    rocblas_datatype_f16_c   = 153, /**< 16 bit floating point, complex */
-    rocblas_datatype_f32_c   = 154, /**< 32 bit floating point, complex */
-    rocblas_datatype_f64_c   = 155, /**< 64 bit floating point, complex */
-    rocblas_datatype_i8_r    = 160, /**<  8 bit signed integer, real */
-    rocblas_datatype_u8_r    = 161, /**<  8 bit unsigned integer, real */
-    rocblas_datatype_i32_r   = 162, /**< 32 bit signed integer, real */
-    rocblas_datatype_u32_r   = 163, /**< 32 bit unsigned integer, real */
-    rocblas_datatype_i8_c    = 164, /**<  8 bit signed integer, complex */
-    rocblas_datatype_u8_c    = 165, /**<  8 bit unsigned integer, complex */
-    rocblas_datatype_i32_c   = 166, /**< 32 bit signed integer, complex */
-    rocblas_datatype_u32_c   = 167, /**< 32 bit unsigned integer, complex */
-    rocblas_datatype_bf16_r  = 168, /**< 16 bit bfloat, real */
-    rocblas_datatype_bf16_c  = 169, /**< 16 bit bfloat, complex */
-    rocblas_datatype_invalid = 255, /**< invalid datatype value, do not use */
+    rocblas_datatype_f16_r   = 150, /**< 16-bit floating point, real */
+    rocblas_datatype_f32_r   = 151, /**< 32-bit floating point, real */
+    rocblas_datatype_f64_r   = 152, /**< 64-bit floating point, real */
+    rocblas_datatype_f16_c   = 153, /**< 16-bit floating point, complex */
+    rocblas_datatype_f32_c   = 154, /**< 32-bit floating point, complex */
+    rocblas_datatype_f64_c   = 155, /**< 64-bit floating point, complex */
+    rocblas_datatype_i8_r    = 160, /**<  8-bit signed integer, real */
+    rocblas_datatype_u8_r    = 161, /**<  8-bit unsigned integer, real */
+    rocblas_datatype_i32_r   = 162, /**< 32-bit signed integer, real */
+    rocblas_datatype_u32_r   = 163, /**< 32-bit unsigned integer, real */
+    rocblas_datatype_i8_c    = 164, /**<  8-bit signed integer, complex */
+    rocblas_datatype_u8_c    = 165, /**<  8-bit unsigned integer, complex */
+    rocblas_datatype_i32_c   = 166, /**< 32-bit signed integer, complex */
+    rocblas_datatype_u32_c   = 167, /**< 32-bit unsigned integer, complex */
+    rocblas_datatype_bf16_r  = 168, /**< 16-bit bfloat, real */
+    rocblas_datatype_bf16_c  = 169, /**< 16-bit bfloat, complex */
+    rocblas_datatype_invalid = 255, /**< Invalid datatype value, do not use */
 } rocblas_datatype;
 
 /* ============================================================================================ */
@@ -201,30 +201,30 @@ typedef enum rocblas_datatype_
  */
 typedef enum rocblas_status_
 {
-    rocblas_status_success         = 0, /**< success */
-    rocblas_status_invalid_handle  = 1, /**< handle not initialized, invalid or null */
-    rocblas_status_not_implemented = 2, /**< function is not implemented */
-    rocblas_status_invalid_pointer = 3, /**< invalid pointer argument */
-    rocblas_status_invalid_size    = 4, /**< invalid size argument */
-    rocblas_status_memory_error    = 5, /**< failed internal memory allocation, copy or dealloc */
-    rocblas_status_internal_error  = 6, /**< other internal library failure */
-    rocblas_status_perf_degraded   = 7, /**< performance degraded due to low device memory */
-    rocblas_status_size_query_mismatch = 8, /**< unmatched start/stop size query */
-    rocblas_status_size_increased      = 9, /**< queried device memory size increased */
-    rocblas_status_size_unchanged      = 10, /**< queried device memory size unchanged */
-    rocblas_status_invalid_value       = 11, /**< passed argument not valid */
-    rocblas_status_continue            = 12, /**< nothing preventing function to proceed */
+    rocblas_status_success         = 0, /**< Success */
+    rocblas_status_invalid_handle  = 1, /**< Handle not initialized, invalid or null */
+    rocblas_status_not_implemented = 2, /**< Function is not implemented */
+    rocblas_status_invalid_pointer = 3, /**< Invalid pointer argument */
+    rocblas_status_invalid_size    = 4, /**< Invalid size argument */
+    rocblas_status_memory_error    = 5, /**< Failed internal memory allocation, copy or dealloc */
+    rocblas_status_internal_error  = 6, /**< Other internal library failure */
+    rocblas_status_perf_degraded   = 7, /**< Performance degraded due to low device memory */
+    rocblas_status_size_query_mismatch = 8, /**< Unmatched start/stop size query */
+    rocblas_status_size_increased      = 9, /**< Queried device memory size increased */
+    rocblas_status_size_unchanged      = 10, /**< Queried device memory size unchanged */
+    rocblas_status_invalid_value       = 11, /**< Passed argument not valid */
+    rocblas_status_continue            = 12, /**< Nothing preventing function to proceed */
     rocblas_status_check_numerics_fail
-    = 13, /**< will be set if the vector/matrix has a NaN/Infinity/denormal value */
+    = 13, /**< Will be set if the vector/matrix has a NaN/Infinity/denormal value */
 } rocblas_status;
 
 /*! \brief Indicates if scalar pointers are on host or device. This is used for
 *    scalars alpha and beta and for scalar function return values. */
 typedef enum rocblas_pointer_mode_
 {
-    /*! \brief Scalar values affected by this variable will be located on the host. */
+    /*! \brief Scalar values affected by this variable are located on the host. */
     rocblas_pointer_mode_host = 0,
-    /*! \brief Scalar values affected by this variable will be located on the device. */
+    /*! \brief Scalar values affected by this variable are located on the device. */
     rocblas_pointer_mode_device = 1
 } rocblas_pointer_mode;
 
@@ -286,7 +286,7 @@ typedef enum rocblas_gemm_flags_
     * (High Precision Accumulate) GEMM kernel utilizing the BF16 matrix
     * instructions with reduced accuracy in cases where computation cannot
     * tolerate the FP16 matrix instructions flushing subnormal FP16
-    * input/output data to zero. See "MI200 (gfx90a) Considerations"
+    * input/output data to zero. See the "MI200 (gfx90a) Considerations"
     * section for more details. */
     rocblas_gemm_flags_fp16_alt_impl = 0x4
 } rocblas_gemm_flags;

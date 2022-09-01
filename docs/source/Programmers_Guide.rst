@@ -11,10 +11,12 @@ The rocBLAS code is split into three major parts:
 
 - The `library` directory contains all source code for the library.
 - The `clients` directory contains all test code and code to build clients.
-- Infrastructure
+- Infrastructure.
 
-The `library` directory
+The `library` Directory
 ^^^^^^^^^^^^^^^^^^^^^^^
+
+The `library` directory contains all source code for the library.
 
 library/include
 '''''''''''''''
@@ -25,42 +27,44 @@ comments that document the API.
 library/src/blas[1,2,3]
 '''''''''''''''''''''''
 
-Source code for Level 1, 2 and 3 BLAS functions in '.cpp' and '.hpp' files.
+Source code for Level 1, 2, and 3 BLAS functions in `.cpp` and `.hpp` files.
 
-- The '.cpp' files contain
+- The `.cpp` files contain
 
-  - external C functions that call templated functions with an '_impl' extension.
-  - The _impl functions have argument checking and logging, and they in turn call functions with a '_template' extension.
+  - External C functions that call templated functions with an `_impl` extension
+  - The `_impl` functions have argument checking and logging, and they in turn call functions with a `_template` extension
 
-- The '_kernels.cpp' files contain
+- The `_kernels.cpp` files contain
 
-  - '_template' functions that set up the workgroup and call HIP launch to run '_kernel' functions.
-  - '_kernel' functions that run on the device.
+  - `_template` functions that set up the workgroup and call HIP launch to run `_kernel` functions
+  - `_kernel` functions that run on the device
 
 library/src/blas3/Tensile
 '''''''''''''''''''''''''
 
-Code for calling Tensile from rocBLAS, and YAML files with Tensile tuning configurations.
+Code for calling Tensile from rocBLAS, and YAML files with Tensile tuning configurations
 
 library/src/blas_ex
 ''''''''''''''''''''
 
-Source code for mixed precision BLAS.
+Source code for mixed precision BLAS
 
 library/src/include
 '''''''''''''''''''
 
 Internal include files for:
 
-- handle code
-- device memory allocation
-- logging
-- numerical checking
-- utility code
+- Handle code
+- Device memory allocation
+- Logging
+- Numerical checking
+- Utility code
 
 
-The `clients` directory
+The `clients` Directory
 ^^^^^^^^^^^^^^^^^^^^^^^
+
+The `clients` directory contains all test code and code to build clients.
 
 clients/gtest
 '''''''''''''
@@ -75,17 +79,17 @@ Code for client rocblas-benchmark. This client is used to benchmark rocBLAS func
 clients/include
 '''''''''''''''
 
-Code for testing and benchmarking individual rocBLAS functions, and utility code for testing.
+Code for testing and benchmarking individual rocBLAS functions, and utility code for testing
 
 clients/common
 ''''''''''''''
 
-Common code used by both rocblas-benchmark and rocblas-test.
+Common code used by both rocblas-benchmark and rocblas-test
 
 clients/samples
 '''''''''''''''
 
-Sample code for calling rocBLAS functions.
+Sample code for calling rocBLAS functions
 
 
 Infrastructure
@@ -95,7 +99,7 @@ Infrastructure
 - Doxygen/Breathe/Sphinx/ReadTheDocs are used to produce documentation. Content for the documentation is from:
 
   - Doxygen comments in include files in the directory library/include
-  - files in the directory docs/source.
+  - Files in the directory docs/source.
 
 - Jenkins is used to automate Continuous Integration testing.
 - clang-format is used to format C++ code.
@@ -116,7 +120,7 @@ This can be done with:
     rocblas_handle handle;
     if(rocblas_create_handle(&handle) != rocblas_status_success) return EXIT_FAILURE;
 
-The created handle should be destroyed when the user has completed calling rocBLAS functions. This can be done with:
+The created handle should be destroyed when the users have completed calling rocBLAS functions. This can be done with:
 
 ::
 
@@ -143,9 +147,9 @@ stream and the non-default device, then call:
     if(rocblas_set_stream(handle, stream) != rocblas_status_success) return EXIT_FAILURE;
 
 
-For the library to use a non default device within a host thread, the device must be set using hipSetDevice() before creating the handle.
+For the library to use a non-default device within a host thread, the device must be set using hipSetDevice() before creating the handle.
 
-The device in the host thread should not be changed between hipStreamCreate and hipStreamDestroy. If the device in the host thread is changed between creating and destroying the stream the behavior is undefined.
+The device in the host thread should not be changed between hipStreamCreate and hipStreamDestroy. If the device in the host thread is changed between creating and destroying, then the stream the behavior is undefined.
 
 If the user created a non-default stream, it is the user's responsibility to synchronize the non-default stream before destroying it:
 
@@ -173,7 +177,7 @@ When a user changes the stream from one non-default stream to another non-defaul
     if(rocblas_set_stream(handle, new_stream) != rocblas_status_success) return EXIT_FAILURE;
 
 The above ``hipStreamSynchronize`` is necessary because the rocBLAS handle contains allocated device
-memory which must not be shared by multiple asynchronous streams at the same time.
+memory that must not be shared by multiple asynchronous streams at the same time.
 
 If either the old or new stream is the default (NULL) stream, it is not necessary to
 synchronize the old stream before destroying it, or before setting the new stream,
@@ -208,15 +212,14 @@ stream, maintained by the system. Users cannot create or destroy the default
 stream. However, users can create a new non-default stream and bind it to the rocBLAS handle with the
 two commands: ``hipStreamCreate()`` and ``rocblas_set_stream()``.
 
-If the user creates a
-stream, they are responsible for destroying it with ``hipStreamDestroy()``. If the handle
-is switching from one non-default stream to another, then the old stream needs to be synchronized. Next, the user needs to create and set the new non-default stream using ``hipStreamCreate()`` and ``rocblas_set_stream()`` respectively. Then the user can optionally destroy the old stream.
+If the user creates a stream, they are responsible for destroying it with ``hipStreamDestroy()``. If the handle
+is switching from one non-default stream to another, then the old stream needs to be synchronized. Next, the user needs to create and set the new non-default stream using ``hipStreamCreate()`` and ``rocblas_set_stream()``, respectively. Then the user can optionally destroy the old stream.
 
-HIP has two important device management functions ``hipSetDevice()`` and ``hipGetDevice()``.
+HIP has two important device management functions, ``hipSetDevice()``, and ``hipGetDevice()``.
 
-1. ``hipSetDevice()``: Set default device to be used for subsequent hip API calls from this thread.
+- ``hipSetDevice()``: Set default device to be used for subsequent hip API calls from this thread.
 
-2. ``hipGetDevice()``: Return the default device id for the calling host thread.
+- ``hipGetDevice()``: Return the default device id for the calling host thread.
 
 The device which was set using ``hipSetDevice()`` at the time of calling
 ``hipStreamCreate()`` is the one that is associated with a stream. But, if the device was not set using ``hipSetDevice()``, then, the default device will be used.
@@ -227,7 +230,7 @@ If users want to use another device, they should create another stream.
 rocBLAS never sets a device, it only queries using ``hipGetDevice()``. If rocBLAS does not see a
 valid device, it returns an error message to users.
 
-Multiple streams and Multiple devices
+Multiple Streams and Multiple Devices
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If a machine has ``num`` GPU devices, they will have deviceID numbers 0, 1, 2, ... (``num`` - 1). The
@@ -257,34 +260,34 @@ In all above schemes, temporary device memory needs to be held by the rocblas_ha
 Design
 ^^^^^^
 
-- rocBLAS uses per-handle device memory allocation with out-of-band management
-- The state of the device memory is stored in the rocblas_handle
+- rocBLAS uses per-handle device memory allocation with out-of-band management.
+- The state of the device memory is stored in the rocblas_handle.
 - For the user of rocBLAS:
 
-  - Functions are provided to query how much device memory a function needs
-  - An environment variable is provided to pre-allocate when the rocblas_handle is created
-  - Functions are provided to manually allocate and deallocate after the rocblas_handle is created
-  - The following two values are added to the rocblas_status enum to indicate how a rocBLAS function is changing the state of the temporary device memory in the rocBLAS handle
+  - Functions are provided to query how much device memory a function needs.
+  - An environment variable is provided to preallocate when the rocblas_handle is created.
+  - Functions are provided to manually allocate and deallocate after the rocblas_handle is created.
+  - The following two values are added to the rocblas_status enum to indicate how a rocBLAS function is changing the state of the temporary device memory in the rocBLAS handle :
 
      - rocblas_status_size_unchanged
      - rocblas_status_size_increased
 
 - For the rocBLAS developer:
 
-  - Functions are provided to answer device memory size queries
-  - Functions are provided to allocate temporary device memory
-  - opaque RAII objects are used to hold the temorary device memory, and allocated memory is returned to the handle automatically when it is no longer needed.
+  - Functions are provided to answer device memory size queries.
+  - Functions are provided to allocate temporary device memory.
+  - opaque RAII objects are used to hold the temporary device memory, and allocated memory is returned to the handle automatically when it is no longer needed.
 
 The functions for the rocBLAS user are described in the User Guide. The functions for the rocBLAS developer are described below.
 
 
-Answering Device Memory Size Queries In Function That Needs Memory
+Answering Device Memory Size Queries in Function That Needs Memory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Example
 '''''''
 
-Functions should contain code like below to answer a query on how much temporary device memory is required. In this case ``m * n * sizeof(T)`` bytes of memory is required:
+Functions should contain code like below to answer a query on how much temporary device memory is required. In this case, ``m * n * sizeof(T)`` bytes of memory is required:
 
 .. code-block:: c++
 
@@ -309,7 +312,7 @@ Function
 
     bool _rocblas_handle::is_device_memory_size_query() const
 
-Indicates if the current function call is collecting information about the optimal device memory allocation size.
+Indicates if the current function call is collecting information about the optimal device memory allocation size
 
 return value:
 
@@ -327,9 +330,9 @@ Sets the optimal size(s) of device memory buffer(s) in bytes for this function. 
 
 return value:
 
-- **rocblas_status_size_unchanged** if he maximum optimal device memory size did not change, this is the case where the function does not use device memory
-- **rocblas_satus_size_increased** if the maximum optimal device memory size increased
-- **rocblas_status_internal_error** if this function is not suposed to be collecting size information
+- **rocblas_status_size_unchanged** If he maximum optimal device memory size did not change, this is the case where the function does not use device memory.
+- **rocblas_satus_size_increased** If the maximum optimal device memory size increased.
+- **rocblas_status_internal_error** If this function is not suposed to be collecting size information.
 
 Function
 ''''''''
@@ -338,10 +341,10 @@ Function
 
     size_t rocblas_sizeof_datatype(rocblas_datatype type)
 
-Returns size of a rocBLAS runtime data type.
+Returns size of a rocBLAS runtime data type
 
 
-Answering Device Memory Size Queries In Function That Does Not Needs Memory
+Answering Device Memory Size Queries in Function That Does Not Need Memory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Example
@@ -365,7 +368,7 @@ Macro
 
     RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle)
 
-A convenience macro that returns rocblas_status_size_unchanged if the function call is a memory size query.
+A convenience macro that returns rocblas_status_size_unchanged if the function call is a memory size query
 
 
 rocBLAS Kernel Device Memory Allocation
@@ -385,7 +388,7 @@ Device memory can be allocated for n floats using device_malloc as follows:
 Example
 '''''''
 
-To allocate multiple buffers
+To allocate multiple buffers:
 
 .. code-block:: c++
 
@@ -408,12 +411,12 @@ Function
     auto workspace = handle->device_malloc(size...)
 
 - Returns an opaque RAII object lending allocated device memory to a particular rocBLAS function.
-- The object returned is convertible to ``void *`` or other pointer types if only one size is specified
-- The individual pointers can be accessed with the subscript ``operator[]``
-- The lifetime of the returned object is the lifetime of the borrowed device memory (RAII)
-- To simplify and optimize the code, only one successful allocation object can be alive at a time
-- If the handle's device memory is currently being managed by rocBLAS, as in the default scheme, it is expanded in size as necessary
-- If the user allocated (or pre-allocated) an explicit size of device memory, then that size is used as the limit, and no resizing or synchronization ever occurs
+- The object returned is convertible to ``void *`` or other pointer types if only one size is specified.
+- The individual pointers can be accessed with the subscript ``operator[]``.
+- The lifetime of the returned object is the lifetime of the borrowed device memory (RAII).
+- To simplify and optimize the code, only one successful allocation object can be alive at a time.
+- If the handle's device memory is currently being managed by rocBLAS, as in the default scheme, it is expanded in size as necessary.
+- If the user allocated (or pre-allocated) an explicit size of device memory, then that size is used as the limit, and no resizing or synchronization ever occurs.
 
 Parameters:
 
@@ -421,11 +424,11 @@ Parameters:
 
 return value:
 
-- **On success**, returns an opaque RAII object which evaluates to ``true`` when converted to ``bool``
-- **On failure**, returns an opaque RAII object which evaluates to ``false`` when converted to ``bool``
+- **On success**, returns an opaque RAII object that evaluates to ``true`` when converted to ``bool``
+- **On failure**, returns an opaque RAII object that evaluates to ``false`` when converted to ``bool``
 
 
-Performance degrade
+Performance Degrade
 ^^^^^^^^^^^^^^^^^^^
 
 The rocblas_status enum value ``rocblas_status_perf_degraded`` is used to indicate that a slower algorithm was used because of insufficient device memory for the optimal algorithm.
@@ -466,13 +469,13 @@ Thread Safe Logging
 
 rocBLAS has thread safe logging. This prevents garbled output when multiple threads are writing to the same file.
 
-Thread safe logging is obtained from using rocblas_internal_ostream, a class which can be used similarly to std::ostream. It provides standardized methods for formatted output to either strings or files. The default constructor of rocblas_internal_ostream writes to strings, which are thread-safe because they are owned by the calling thread. There are also rocblas_internal_ostream constructors for writing to files. The rocblas_internal_ostream::yaml_on and rocblas_internal_ostream::yaml_off IO modifiers turn YAML formatting mode on and off.
+Thread safe logging is obtained from using rocblas_internal_ostream, a class that can be used similarly to std::ostream. It provides standardized methods for formatted output to either strings or files. The default constructor of rocblas_internal_ostream writes to strings, which are thread-safe because they are owned by the calling thread. There are also rocblas_internal_ostream constructors for writing to files. The rocblas_internal_ostream::yaml_on and rocblas_internal_ostream::yaml_off IO modifiers turn YAML formatting mode on and off.
 
 rocblas_cout and rocblas_cerr are the thread-safe versions of std::cout and std::cerr.
 
 Many output identifiers have been marked "poisoned" in rocblas-test and rocblas-bench, to catch the use of non-thread-safe IO. These include std::cout, std::cerr, printf, fprintf, fputs, puts, and others. The poisoning is not turned on in the library itself or in the samples, because we cannot impose restrictions on the use of these symbols on outside users.
 
-rocblas_handle contains 3 rocblas_internal_ostream pointers for logging output
+rocblas_handle contains three rocblas_internal_ostream pointers for logging output:
 
 - static rocblas_internal_ostream* log_trace_os
 - static rocblas_internal_ostream* log_bench_os
@@ -482,7 +485,7 @@ The user can also create rocblas_internal_ostream pointers/objects outside of th
 
 Each rocblas_internal_ostream associated with a file points to a single rocblas_internal_ostream::worker with a std::shared_ptr, for writing to the file. The worker is mapped from the device id and inode corresponding to the file. More than one rocblas_internal_ostream can point to the same worker.
 
-This means that if more than one rocblas_internal_ostream is writing to a single output file, they will share the same rocblas_internal_ostream::worker.
+This means if more than one rocblas_internal_ostream is writing to a single output file, they will share the same rocblas_internal_ostream::worker.
 
 The << operator for rocblas_internal_ostream is overloaded. Output is first accumulated in rocblas_internal_ostream::os, a std::ostringstream buffer. Each rocblas_internal_ostream has its own os std::ostringstream buffer, so strings in os will not be garbled.
 
@@ -500,19 +503,19 @@ rocBLAS Numerical Checking
 **Note that performance will degrade when numerical checking is enabled.**
 
 rocBLAS provides the environment variable ``ROCBLAS_CHECK_NUMERICS``, which allows users to debug numerical abnormalities. Setting a value of ``ROCBLAS_CHECK_NUMERICS`` enables checks on the input and the output vectors/matrices
-of the rocBLAS functions for (not-a-number) NaN's, zeros, infinities and denormal/subnormal values. Numerical checking is available to check the input and the output vectors for all level 1 and 2 functions.
+of the rocBLAS functions for (not-a-number) NaN's, zeros, infinities, and denormal/subnormal values. Numerical checking is available to check the input and the output vectors for all level 1 and 2 functions.
 In level 2 functions, only the general (ge) type input and the output matrix can be checked for numerical abnormalities. In level 3, GEMM is the only function to have numerical checking.
 
 
 ``ROCBLAS_CHECK_NUMERICS`` is a bitwise OR of zero or more bit masks as follows:
 
-* ``ROCBLAS_CHECK_NUMERICS = 0``: Is not set, then there is no numerical checking
+* ``ROCBLAS_CHECK_NUMERICS = 0``: is not set, then there is no numerical checking
 
-* ``ROCBLAS_CHECK_NUMERICS = 1``: Fully informative message, print's the results of numerical checking whether the input and the output Matrices/Vectors have NaN's/zeros/infinities/denormal values to the console
+* ``ROCBLAS_CHECK_NUMERICS = 1``: fully informative message, prints the results of numerical checking whether the input and the output Matrices/Vectors have NaN's/zeros/infinities/denormal values to the console
 
-* ``ROCBLAS_CHECK_NUMERICS = 2``: Print's result of numerical checking only if the input and the output Matrices/Vectors has a NaN/infinity/denormal value
+* ``ROCBLAS_CHECK_NUMERICS = 2``: prints result of numerical checking only if the input and the output Matrices/Vectors has a NaN/infinity/denormal value
 
-* ``ROCBLAS_CHECK_NUMERICS = 4``: Return ``rocblas_status_check_numeric_fail`` status if there is a NaN/infinity/denormal value
+* ``ROCBLAS_CHECK_NUMERICS = 4``: return ``rocblas_status_check_numeric_fail`` status if there is a NaN/infinity/denormal value
 
 An example usage of ``ROCBLAS_CHECK_NUMERICS`` is shown below,
 
@@ -524,7 +527,7 @@ The above command will return a ``rocblas_status_check_numeric_fail``if the inpu
 If there are no numerical abnormalities, then ``rocblas_status_success`` is returned.
 
 -----------------------------------------------
-rocBLAS order of argument checking and logging
+rocBLAS Order of Argument Checking and Logging
 -----------------------------------------------
 
 Legacy BLAS
@@ -532,34 +535,34 @@ Legacy BLAS
 
 Legacy BLAS has two types of argument checking:
 
-1. Error-return for incorrect argument (Legacy BLAS implement this with a call to the function ``XERBLA``).
+- Error-return for incorrect argument (Legacy BLAS implement this with a call to the function ``XERBLA``)
 
-2. Quick-return-success when an argument allows for the subprogram to be a no-operation or a constant result.
+- Quick-return-success when an argument allows for the subprogram to be a no-operation or a constant result
 
-Level 2 and Level 3 BLAS subprograms have both error-return and quick-return-success. Level 1 BLAS subprograms have only quick-return-success.
+Level 2 and Level 3 BLAS subprograms have both error-return and quick-return-success. Level 1 BLAS subprograms have only quick-return-success
 
 rocBLAS
 ^^^^^^^
 
 rocBLAS has 5 types of argument checking:
 
-1. ``rocblas_status_invalid_handle`` if the handle is a NULL pointer
+- ``rocblas_status_invalid_handle`` if the handle is a NULL pointer
 
-2. ``rocblas_status_invalid_size`` for invalid size, increment or leading dimension argument
+- ``rocblas_status_invalid_size`` for invalid size, increment or leading dimension argument
 
-3. ``rocblas_status_invalid_value`` for unsupported enum value
+- ``rocblas_status_invalid_value`` for unsupported enum value
 
-4. ``rocblas_status_success`` for quick-return-success
+- ``rocblas_status_success`` for quick-return-success
 
-5. ``rocblas_status_invalid_pointer`` for NULL argument pointers
+- ``rocblas_status_invalid_pointer`` for NULL argument pointers
 
 
-rocBLAS has the following differences when compared to Legacy BLAS
+rocBLAS has the Following Differences When Compared To Legacy BLAS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - It is a C API, returning a ``rocblas_status`` type indicating the success of the call.
 
-- In legacy BLAS the following functions return a scalar result: dot, nrm2, asum, amax and amin. In rocBLAS a pointers to scalar return value  is passed as the last argument.
+- In legacy BLAS, the following functions return a scalar result: dot, nrm2, asum, amax, and amin. In rocBLAS, a pointers to scalar return value  is passed as the last argument.
 
 - The first argument is a ``rocblas_handle`` argument, an opaque pointer to rocBLAS resources, corresponding to a single HIP stream.
 
@@ -581,14 +584,14 @@ rocBLAS has the following differences when compared to Legacy BLAS
 
   - mixed precision in gemm_ex, gemm_batched_ex, and gemm_strided_batched_ex
 
-To accommodate the additions
+To Accommodate the Additions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- See Logging, below.
+- See Logging below.
 
-- For batched and strided_batched L2 and L3 functions there is a quick-return-success for ``batch_count == 0``, and an invalid size error for ``batch_count < 0``.
+- For batched and strided_batched L2 and L3 functions, there is a quick-return-success for ``batch_count == 0``, and an invalid size error for ``batch_count < 0``.
 
-- For batched and strided_batched L1 functions there is a quick-return-success for ``batch_count <= 0``
+- For batched and strided_batched L1 functions, there is a quick-return-success for ``batch_count <= 0``
 
 - When ``rocblas_pointer_mode == rocblas_pointer_mode_device`` alpha and beta are not copied from device to host for quick-return-success checks. In this case, the quick-return-success checks are omitted. This will still give a correct result, but the operation will be slower.
 
@@ -611,19 +614,19 @@ Logging
 
 - There is logging before a quick-return-success or error-return, except:
 
-  - when ``handle == nullptr``, return ``rocblas_status_invalid_handle``
-  - when ``handle->is_device_memory_size_query()`` returns ``true``
+  - When ``handle == nullptr``, return ``rocblas_status_invalid_handle``.
+  - When ``handle->is_device_memory_size_query()`` returns ``true``.
 
-- Vectors and matrices are logged with their addresses, and are always on device memory.
+- Vectors and matrices are logged with their addresses and are always on device memory.
 
 - Scalar values in device memory are logged as their addresses. Scalar values in host memory are logged as their values, with a ``nullptr`` logged as ``NaN`` (``std::numeric_limits<T>::quiet_NaN()``).
 
-rocBLAS control flow
+rocBLAS Control Flow
 ^^^^^^^^^^^^^^^^^^^^
 
-1. If ``handle == nullptr``, return ``rocblas_status_invalid_handle``.
+1. If ``handle == nullptr``, then return ``rocblas_status_invalid_handle``.
 
-2. If the function does not require temporary device memory, call the macro ``RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);``.
+2. If the function does not require temporary device memory, then call the macro ``RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);``.
 
 3. If the function requires temporary device memory, and ``handle->is_device_memory_size_query()`` is ``true``, then validate any pointers and arguments required to determine the optimal size of temporary device memory, returning ``rocblas_status_invalid_pointer`` or ``rocblas_status_invalid_size`` if the arguments are invalid, and otherwise ``return handle->set_optimal_device_memory_size(size...);``, where ``size...`` is a list of one or more sizes of temporary buffers, which are allocated with ``handle->device_malloc(size...)`` later.
 
@@ -637,7 +640,7 @@ rocBLAS control flow
 
 8. If quick return conditions are met:
 
-   - if there is no return value
+   - If there is no return value
 
      - Return ``rocblas_status_success``
 
@@ -657,7 +660,7 @@ rocBLAS control flow
 Legacy L1 BLAS "single vector"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Below are four code snippets from NETLIB for "single vector" legacy L1 BLAS. They have quick-return-success for (n <= 0) || (incx <= 0)
+Below are four code snippets from NETLIB for "single vector" legacy L1 BLAS. They have quick-return-success for (n <= 0) || (incx <= 0):
 
 .. code-block:: bash
 
@@ -680,7 +683,7 @@ Below are four code snippets from NETLIB for "single vector" legacy L1 BLAS. The
 Legacy L1 BLAS "two vector"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Below are seven legacy L1 BLAS codes from NETLIB. There is quick-return-success for (n <= 0). In addition, for DAXPY, there is quick-return-success for (alpha == 0)
+Below are seven legacy L1 BLAS codes from NETLIB. There is quick-return-success for (n <= 0). In addition, for DAXPY, there is quick-return-success for (alpha == 0):
 
 .. code-block::
 
@@ -710,7 +713,7 @@ Below are seven legacy L1 BLAS codes from NETLIB. There is quick-return-success 
 Legacy L2 BLAS
 ^^^^^^^^^^^^^^
 
-Below are code snippets from NETLIB for legacy L2 BLAS. They have both argument checking and quick-return-success.
+Below are code snippets from NETLIB for legacy L2 BLAS. They have both argument checking and quick-return-success:
 
 .. code-block::
 
@@ -808,7 +811,7 @@ Below are code snippets from NETLIB for legacy L2 BLAS. They have both argument 
 Legacy L3 BLAS
 ^^^^^^^^^^^^^^
 
-Below is a code snippet from NETLIB for legacy L3 BLAS dgemm. It has both argument checking and quick-return-success.
+Below is a code snippet from NETLIB for legacy L3 BLAS dgemm. It has both argument checking and quick-return-success:
 
 .. code-block::
 
@@ -864,15 +867,15 @@ Below is a code snippet from NETLIB for legacy L3 BLAS dgemm. It has both argume
 
     \newpage
 
-------------------------------
-rocBLAS Benchmarking & Testing
-------------------------------
+--------------------------------
+rocBLAS Benchmarking and Testing
+--------------------------------
 
-There are two client executables that can be used with rocBLAS. They are,
+There are two client executables that can be used with rocBLAS. They are:
 
-1. rocblas-bench
+- rocblas-bench
 
-2. rocblas-test
+- rocblas-test
 
 These two clients can be built by following the instructions in the Building and Installing section of the User Guide. After building the rocBLAS clients, they can be found in the directory ``rocBLAS/build/release/clients/staging``.
 
@@ -881,7 +884,7 @@ The next two sections will cover a brief explanation and the usage of each rocBL
 rocblas-bench
 ^^^^^^^^^^^^^
 
-rocblas-bench is used to measure performance and to verify the correctness of rocBLAS functions.
+rocblas-bench is used to measure performance and verify the correctness of rocBLAS functions.
 
 It has a command line interface. For more information:
 
@@ -1378,7 +1381,7 @@ rocblas-test
 
 rocblas-test is used in performing rocBLAS unit tests and it uses Googletest framework.
 
-The tests are in 4 categories:
+The tests are in four categories:
 
 - quick
 - pre_checkin
@@ -1413,7 +1416,7 @@ The number of lines of output can be reduced with:
 
 
 
-Add new rocBLAS unit test
+Add New rocBLAS Unit Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To add new data-driven tests to the rocBLAS Google Test Framework:
@@ -1428,7 +1431,7 @@ routine. Examples:
    testing_gemm_ex.hpp
 
 In this ``testing_*.hpp`` file, create a templated function which returns ``void``
-and accepts a ``const Arguments&`` parameter. For example:
+and accepts a ``const Arguments&`` parameter. Example:
 
 .. code-block::
 
@@ -1439,7 +1442,7 @@ and accepts a ``const Arguments&`` parameter. For example:
    }
 
 This function is used for yaml file driven argument testing.  It will be invoked by the dispatch code for each permutation of the yaml driven parameters.
-Additionally a template function for bad argument handling tests should be created.  For example:
+Additionally a template function for bad argument handling tests should be created.  Example:
 
 .. code-block::
 
@@ -1478,7 +1481,7 @@ guarded by ``#ifdef GOOGLE_TEST``\ :
 
 Note: The ``device_vector`` template allocates memory on the device. You must check whether
 converting the ``device_vector`` to ``bool`` returns ``false``\ , and if so, report a HIP memory
-error and then exit the current function. For example:
+error and then exit the current function. Example:
 
 .. code-block::
 
@@ -1508,7 +1511,7 @@ The general outline of the function should be:
 
 **II**. Create a C++ file with the name ``<function>_gtest.cpp`` in the ``gtest``
 subdirectory, where ``<function>`` is a non-type-specific shorthand for the
-function(s) being tested. Examples:
+function(s) being tested. Example:
 
 .. code-block::
 
@@ -1516,10 +1519,10 @@ function(s) being tested. Examples:
    trsm_gtest.cpp
    blas1_gtest.cpp
 
-In the C++ file, perform these steps:
+In the C++ file, follow these steps:
 
 A. Include the header files related to the tests, as well as ``type_dispatch.hpp``.
-For example:
+Example:
 
 .. code-block:: c++
 
@@ -1545,13 +1548,13 @@ Unless the number of type parameters is greater than one and is always
 fixed, then later type parameters should default to earlier ones, so that
 a subset of type arguments can used, and so that code which works for
 functions which take one type parameter may be used for functions which
-take one or more type parameters. For example:
+take one or more type parameters. Example:
 
 .. code-block:: c++
 
    template< typename Ti, typename To = Ti, typename Tc = To, typename = void>
 
-Make the primary definition of this class template derive from the ``rocblas_test_invalid`` class. For example:
+Make the primary definition of this class template derive from the ``rocblas_test_invalid`` class. Example:
 
 .. code-block:: c++
 
@@ -1566,7 +1569,7 @@ If the first type argument is ``void``\ , then these partial specializations mus
 
 In the partial specialization(s), derive from the ``rocblas_test_valid`` class.
 
-In the partial specialization(s), create a functional ``operator()`` which takes a ``const Arguments&`` parameter and calls templated test functions (usually in ``include/testing_*.hpp``\ ) with the specialization's template arguments when the ``arg.function`` string matches the function name. If ``arg.function`` does not match any function related to this test, mark it as a test failure. For example:
+In the partial specialization(s), create a functional ``operator()`` which takes a ``const Arguments&`` parameter and calls templated test functions (usually in ``include/testing_*.hpp``\ ) with the specialization's template arguments when the ``arg.function`` string matches the function name. If ``arg.function`` does not match any function related to this test, mark it as a test failure. Example:
 
 .. code-block:: c++
 
@@ -1596,7 +1599,7 @@ The combinations of types handled by this "runtime type to template type instant
 The return type of this function needs to be ``auto``\ , picking up the return type of the functor.
 
 If the runtime type combinations do not apply, then this function should return ``TEST<void>{}(arg)``\ , where ``TEST`` is the template parameter. However, this is less important than step D above in excluding invalid type
-combinations with ``enable_if``\ , since this only excludes them at run-time, and they need to be excluded by step D at compile-time in order to avoid unresolved references or invalid instantiations. For example:
+combinations with ``enable_if``\ , since this only excludes them at run-time, and they need to be excluded by step D at compile-time in order to avoid unresolved references or invalid instantiations. Example:
 
 .. code-block:: c++
 
@@ -1631,7 +1634,7 @@ In this class, implement three static functions:
 
 This is usually implemented simply by calling the dispatch function in step E, passing it the helper ``type_filter_functor`` template class defined in ``RocBLAS_Test``. This functor uses the same runtime type checks as are used to instantiate test functions with particular type arguments, but instead, this returns ``true`` or ``false`` depending on whether a function would have been called. It is used to filter out tests whose runtime parameters do not match a valid test.
 
-Since ``RocBLAS_Test`` is a dependent base class if this test implementation class is templated, you may need to use a fully-qualified name (\ ``A::B``\ ) to resolve ``type_filter_functor``\ , and in the last part of this name, the keyword ``template`` needs to precede ``type_filter_functor``. The first half of the fully-qualified name can be this class itself, or the full instantation of ``RocBLAS_Test<...>``. For example:
+Since ``RocBLAS_Test`` is a dependent base class if this test implementation class is templated, you may need to use a fully-qualified name (\ ``A::B``\ ) to resolve ``type_filter_functor``\ , and in the last part of this name, the keyword ``template`` needs to precede ``type_filter_functor``. The first half of the fullyqualified name can be this class itself, or the full instantation of ``RocBLAS_Test<...>``. Example:
 
 .. code-block:: c++
 
@@ -1642,7 +1645,7 @@ Since ``RocBLAS_Test`` is a dependent base class if this test implementation cla
    }
 
 
-``static bool function_filter(const Arguments& arg)`` returns ``true`` if the function name in ``Arguments`` matches one of the functions handled by this test. For example:
+``static bool function_filter(const Arguments& arg)`` returns ``true`` if the function name in ``Arguments`` matches one of the functions handled by this test. Example:
 
 .. code-block:: c++
 
@@ -1655,15 +1658,15 @@ Since ``RocBLAS_Test`` is a dependent base class if this test implementation cla
 
 ``static std::string name_suffix(const Arguments& arg)`` returns a string which will be used as the Google Test name's suffix. It will provide an alphanumeric representation of the test's arguments.
 
-The ``RocBLAS_TestName`` helper class template should be used to create the name. It accepts ostream output (like ``std::cout``\ ), and can be automatically converted to ``std::string`` after all of the text of the name has been streamed to it.
+Use the ``RocBLAS_TestName`` helper class template to create the name. It accepts ostream output (like ``std::cout``\ ), and can be automatically converted to ``std::string`` after all of the text of the name has been streamed to it.
 
 The ``RocBLAS_TestName`` helper class constructor accepts a string argument which will be included in the test name. It is generally passed the ``Arguments`` structure's ``name`` member.
 
-The ``RocBLAS_TestName`` helper class template should be passed the name of this test implementation class (including any implicit template arguments) as a template argument, so that every instantiation of this test implementation class creates a unique instantiation of ``RocBLAS_TestName``. ``RocBLAS_TestName`` has some static data which needs to be kept local to each test.
+The ``RocBLAS_TestName`` helper class template should be passed the name of this test implementation class (including any implicit template arguments) as a template argument, so that every instantiation of this test implementation class creates a unique instantiation of ``RocBLAS_TestName``. ``RocBLAS_TestName`` has some static data that needs to be kept local to each test.
 
  ``RocBLAS_TestName`` converts non-alphanumeric characters into suitable replacements, and disambiguates test names when the same arguments appear more than once.
 
- Since the conversion of the stream into a ``std::string`` is a destructive one-time operation, the ``RocBLAS_TestName`` value converted to ``std::string`` needs to be an rvalue. For example:
+ Since the conversion of the stream into a ``std::string`` is a destructive one-time operation, the ``RocBLAS_TestName`` value converted to ``std::string`` needs to be an rvalue. Example:
 
 .. code-block:: c++
 
@@ -1703,7 +1706,7 @@ G. Choose a non-type-specific shorthand name for the test, which will be display
 
 H. Pass the name created in step G to the ``TEST_P`` macro, along with a broad test category name that this test belongs to (so that Google Test filtering can be used to select all tests in a category). The broad test category suffix should be _tensile if it requires Tensile.
 
-In the body following this ``TEST_P`` macro, call the dispatch function from step E, passing it the class from step C as a template template argument, passing the result of ``GetParam()`` as an ``Arguments`` structure, and wrapping the call in the ``CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES()`` macro. For example:
+In the body following this ``TEST_P`` macro, call the dispatch function from step E, passing it the class from step C as a template template argument, passing the result of ``GetParam()`` as an ``Arguments`` structure, and wrapping the call in the ``CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES()`` macro. Example:
 
 .. code-block:: c++
 
@@ -1711,7 +1714,7 @@ In the body following this ``TEST_P`` macro, call the dispatch function from ste
 
 The ``CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES()`` macro detects signals such as ``SIGSEGV`` and uncaught C++ exceptions returned from rocBLAS C APIs as failures, without terminating the test program.
 
-I. Call the ``INSTANTIATE_TEST_CATEGORIES`` macro which instantiates the Google Tests across all test categories (\ ``quick``\ , ``pre_checkin``\ , ``nightly``\ , ``known_bug``\ ), passing it the same test name as in steps G and H. For example:
+I. Call the ``INSTANTIATE_TEST_CATEGORIES`` macro which instantiates the Google Tests across all test categories (\ ``quick``\ , ``pre_checkin``\ , ``nightly``\ , ``known_bug``\ ), passing it the same test name as in steps G and H. Example:
 
 .. code-block:: c++
 
@@ -1737,13 +1740,13 @@ J. Don't forget to close the anonymous namespace:
    The syntax and idioms of the YAML files is best described by looking at the
    existing ``*_gtest.yaml`` files as examples.
 
-**IV.** Add the YAML file to ``rocblas_gtest.yaml``\ , to be included. For examnple:
+**IV.** Add the YAML file to ``rocblas_gtest.yaml``\ , to be included. Examnple:
 
 .. code-block:: yaml
 
    include: blas1_gtest.yaml
 
-**V.** Add the YAML file to the list of dependencies for ``rocblas_gtest.data`` in ``CMakeLists.txt``.  For example:
+**V.** Add the YAML file to the list of dependencies for ``rocblas_gtest.data`` in ``CMakeLists.txt``.  Example:
 
 .. code-block:: cmake
 
@@ -1752,7 +1755,7 @@ J. Don't forget to close the anonymous namespace:
                        DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_batched_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml
                        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-**VI.** Add the ``.cpp`` file to the list of sources for ``rocblas-test`` in ``CMakeLists.txt``. For example:
+**VI.** Add the ``.cpp`` file to the list of sources for ``rocblas-test`` in ``CMakeLists.txt``. Example:
 
 .. code-block:: c++
 
