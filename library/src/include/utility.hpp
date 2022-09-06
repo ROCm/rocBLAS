@@ -706,3 +706,21 @@ ROCBLAS_INTERNAL_EXPORT std::string rocblas_internal_get_arch_name();
 
 // for internal use during testing, whether to skip actual kernel launch
 ROCBLAS_INTERNAL_EXPORT bool rocblas_internal_tensile_debug_skip_launch();
+
+template <typename T>
+struct rocblas_internal_val_ptr
+{
+    union
+    {
+        T        value;
+        const T* ptr;
+    };
+
+    inline rocblas_internal_val_ptr(bool host_mode, const T* val_ptr)
+    {
+        if(host_mode)
+            value = *val_ptr;
+        else
+            ptr = val_ptr;
+    }
+};

@@ -76,7 +76,7 @@ template <typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_spr2_template(rocblas_handle handle,
                                      rocblas_fill   uplo,
                                      rocblas_int    n,
-                                     TScal          alpha,
+                                     TScal const*   alpha,
                                      TConstPtr      x,
                                      rocblas_stride offset_x,
                                      rocblas_int    incx,
