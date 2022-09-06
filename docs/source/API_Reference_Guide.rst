@@ -1917,6 +1917,26 @@ If the user preallocates or manually allocates, then that size is used as the li
 - rocblas_status == rocblas_status_memory_error: indicates there is not sufficient device memory for a rocBLAS function
 - rocblas_status == rocblas_status_perf_degraded: indicates that a slower algorithm was used because of insufficient device memory for the optimal algorithm
 
+.. _stream order alloc:
+
+Stream-Ordered Memory Allocation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Stream-ordered device memory allocation is added to rocBLAS. Asynchronous allocators ( hipMallocAsync() and hipFreeAsync() ) are used to allow allocation and free to be stream order.
+
+This is a non-default beta option enabled by setting the environment variable ROCBLAS_STREAM_ORDER_ALLOC.
+
+A user may check if the device supports stream-order allocation by calling hipDeviceGetAttribute() with device attribute hipDeviceAttributeMemoryPoolsSupported.
+
+Environment Variable to Enable Stream-Ordered Memory Allocation
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+On supported platforms, environment variable ROCBLAS_STREAM_ORDER_ALLOC is used to enable stream-ordered memory allocation.
+
+- if > 0, sets the allocation to be stream-ordered, uses hipMallocAsync/hipFreeAsync to manage device memory.
+- if == 0 or unset, uses hipMalloc/hipFree to manage device memory.
+
+Supports Switching Streams Without Any Synchronization
+''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Stream-order memory allocation allows swithcing of streams without the need to call hipStreamSynchronize().
 
 ------------------
 Logging in rocBLAS
