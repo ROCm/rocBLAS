@@ -324,6 +324,8 @@ private:
     rocblas_device_memory_ownership device_memory_owner;
     size_t                          device_memory_query_size;
 
+    bool stream_order_alloc = false;
+
     // Solution fitness query (used for internal testing)
     double* solution_fitness_query = nullptr;
 
@@ -352,6 +354,8 @@ private:
         size_t         prev_device_memory_in_use;
         size_t         size;
         bool           success;
+        void*          dev_mem = nullptr;
+        hipStream_t    stream_in_use;
 
     private:
         std::vector<void*> pointers; // Important: must come last
@@ -365,26 +369,44 @@ private:
             // size contains the total of all sizes at the end of the calculation of offsets.
             size = 0;
             size_t old;
-            size_t offsets[] = {(old = size, size += roundup_device_memory_size(sizes), old)...};
+            const size_t offsets[] = {(old = size, size += roundup_device_memory_size(sizes), old)...};
+            char* addr = nullptr;
 
-#if ROCBLAS_REALLOC_ON_DEMAND
-            success = handle->device_allocator(size);
-#else
-            success = size <= handle->device_memory_size - handle->device_memory_in_use;
-#endif
+            if(handle->stream_order_alloc &&
+                handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed)
+            {
+                if(!size)
+                    return decltype(pointers)(sizeof...(sizes));
 
-            // If allocation failed, return an array of nullptr's
-            // If total size is 0, return an array of nullptr's, but leave it marked as successful
-            if(!success || !size)
-                return decltype(pointers)(sizeof...(sizes));
+                hipError_t hipStatus = hipMallocAsync(&dev_mem, size, stream_in_use);
+                if(hipStatus != hipSuccess)
+                {
+                    success = false;
+                    rocblas_cerr << " rocBLAS internal error: hipMallocAsync() failed to allocate memory of size : " << size << std::endl;
+                    return decltype(pointers)(sizeof...(sizes));
+                }
+                addr = static_cast<char*>(dev_mem);
+            }
+            else
+            {
+    #if ROCBLAS_REALLOC_ON_DEMAND
+                success = handle->device_allocator(size);
+    #else
+                success = size <= handle->device_memory_size - handle->device_memory_in_use;
+    #endif
+                // If allocation failed, return an array of nullptr's
+                // If total size is 0, return an array of nullptr's, but leave it marked as successful
+                if(!success || !size)
+                    return decltype(pointers)(sizeof...(sizes));
 
-            // We allocate the total amount needed, taking it from the available device memory.
-            char* addr = static_cast<char*>(handle->device_memory) + handle->device_memory_in_use;
-            handle->device_memory_in_use += size;
-
+                // We allocate the total amount needed, taking it from the available device memory.
+                addr = static_cast<char*>(handle->device_memory) + handle->device_memory_in_use;
+                handle->device_memory_in_use += size;
+            }
             // An array of pointers to all of the allocated arrays is formed.
             // If a size is 0, the corresponding pointer is nullptr
             size_t i = 0;
+            // cppcheck-suppress arrayIndexOutOfBounds
             return {!sizes ? i++, nullptr : addr + offsets[i++]...};
         }
 
@@ -395,9 +417,11 @@ private:
             : handle(handle)
             , prev_device_memory_in_use(handle->device_memory_in_use)
             , size(0)
-            , success(false)
+            , stream_in_use(handle->stream)
+            , success(true)
             , pointers(allocate_pointers(size_t(sizes)...))
         {
+
         }
 
         // Constructor for allocating count pointers of a certain total size
@@ -405,20 +429,32 @@ private:
             : handle(handle)
             , prev_device_memory_in_use(handle->device_memory_in_use)
             , size(roundup_device_memory_size(total))
-            , success(
-                    #if ROCBLAS_REALLOC_ON_DEMAND
-                        handle->device_allocator(size)
-                    #else
-                        size <= handle->device_memory_size - handle->device_memory_in_use
-                    #endif
-                     )
-            , pointers(count,
-                       success ? static_cast<char*>(handle->device_memory)
-                                     + handle->device_memory_in_use
-                               : nullptr)
+            , stream_in_use(handle->stream)
+            , success(true)
         {
+            if(handle->stream_order_alloc &&
+                handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed)
+            {
+                bool status = hipMallocAsync(&dev_mem, size, stream_in_use) == hipSuccess ;
+
+                for(auto i= 0 ; i < count ; i++)
+                    pointers.push_back(status ? dev_mem : nullptr);
+            }
+            else
+            {
+#if ROCBLAS_REALLOC_ON_DEMAND
+            success = handle->device_allocator(size);
+#else
+            success = size <= handle->device_memory_size - handle->device_memory_in_use;
+#endif
+            for(auto i= 0 ; i < count ; i++)
+            {    pointers.push_back(success ? static_cast<char*>(handle->device_memory)
+                                         + handle->device_memory_in_use : nullptr);
+            }
+
             if(success)
                 handle->device_memory_in_use += size;
+            }
         }
 
         // Move constructor
@@ -432,7 +468,9 @@ private:
             : handle(other.handle)
             , prev_device_memory_in_use(other.prev_device_memory_in_use)
             , size(other.size)
+            , stream_in_use(other.stream_in_use)
             , success(other.success)
+            , dev_mem(other.dev_mem)
             , pointers(std::move(other.pointers))
         {
             other.success = false;
@@ -456,20 +494,38 @@ private:
             // If success == false or size == 0, the destructor is a no-op
             if(success && size)
             {
-                // Subtract size from the handle's device_memory_in_use, making sure
-                // it matches the device_memory_in_use when this object was created.
-                if((handle->device_memory_in_use -= size) != prev_device_memory_in_use)
+                if(handle->stream_order_alloc &&
+                    handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed)
                 {
-                    rocblas_cerr
-                        << "rocBLAS internal error: device_malloc() RAII object not "
-                           "destroyed in LIFO order.\n"
-                           "Objects returned by device_malloc() must be 0-sized, "
-                           "unsuccessfully allocated,\n"
-                           "or destroyed in the reverse order that they are created.\n"
-                           "device_malloc() objects cannot be assigned to unless they are 0-sized\n"
-                           "or they were unsuccessfully allocated previously."
-                        << std::endl;
-                    rocblas_abort();
+                    if(dev_mem)
+                    {
+                        bool status = hipFreeAsync(dev_mem, stream_in_use) == hipSuccess ;
+                        if(!status)
+                        {
+                            rocblas_cerr << " rocBLAS internal error: hipFreeAsync() Failed, "
+                            "device memory could not be released to default memory pool" << std::endl;
+                            rocblas_abort();
+                        }
+                        dev_mem = nullptr;
+                    }
+                }
+                else
+                {
+                    // Subtract size from the handle's device_memory_in_use, making sure
+                    // it matches the device_memory_in_use when this object was created.
+                    if((handle->device_memory_in_use -= size) != prev_device_memory_in_use)
+                    {
+                        rocblas_cerr
+                            << "rocBLAS internal error: device_malloc() RAII object not "
+                            "destroyed in LIFO order.\n"
+                            "Objects returned by device_malloc() must be 0-sized, "
+                            "unsuccessfully allocated,\n"
+                            "or destroyed in the reverse order that they are created.\n"
+                            "device_malloc() objects cannot be assigned to unless they are 0-sized\n"
+                            "or they were unsuccessfully allocated previously."
+                            << std::endl;
+                        rocblas_abort();
+                    }
                 }
             }
         }
@@ -501,33 +557,7 @@ private:
     };
     // clang-format on
 
-    // For HPA kernel calls, all available device memory is allocated and passed to Tensile
-    // clang-format off
-    class [[nodiscard]] _gsu_malloc final : _device_malloc
-    {
-    public:
-        explicit _gsu_malloc(rocblas_handle handle)
-            : _device_malloc(handle, handle->device_memory_size - handle->device_memory_in_use)
-        {
-            handle->gsu_workspace_size = success ? size : 0;
-            handle->gsu_workspace      = static_cast<void*>(*this);
-        }
-
-        ~_gsu_malloc()
-        {
-            if(success)
-            {
-                handle->gsu_workspace_size = 0;
-                handle->gsu_workspace      = nullptr;
-            }
-        }
-
-        // Move constructor allows initialization by rvalues and returns from functions
-        _gsu_malloc(_gsu_malloc&&) = default;
-    };
-    // clang-format on
-
-    // allocate workspace for GSU based on the needs.
+    // Allocate workspace for GSU based on the needs.
     // clang-format off
     class [[nodiscard]] _gsu_malloc_by_size final : _device_malloc
     {
@@ -572,13 +602,6 @@ public:
     // Variables holding state of GSU device memory allocation
     size_t gsu_workspace_size = 0;
     void*  gsu_workspace      = nullptr;
-
-    // gsu_malloc() returns a proxy object which manages GSU memory for the handle.
-    // The returned object needs to be kept alive for as long as the GSU memory is needed.
-    auto gsu_malloc()
-    {
-        return _gsu_malloc(this);
-    };
 
     auto gsu_malloc_by_size(size_t requested_Workspace_Size)
     {
