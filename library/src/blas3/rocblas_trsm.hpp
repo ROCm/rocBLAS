@@ -106,6 +106,24 @@
     {1,  1,  1,  1,  1,  1, 64, 64, 64, 64, 64, 64, 64, 48, 48, 48}
 // clang-format on
 
+static constexpr rocblas_int trsm_intervals_row_real_batch[] = {TRSM_BATCH_INTERVALSROW_REAL};
+static constexpr rocblas_int trsm_intervals_col_real_batch[] = {TRSM_BATCH_INTERVALSCOL_REAL};
+static constexpr rocblas_int trsm_blksizes_real_batch[][TRSM_BATCH_NUMCOLS_REAL]
+    = {TRSM_BATCH_BLKSIZES_REAL};
+static constexpr rocblas_int trsm_intervals_row_real_nonbatch[] = {TRSM_INTERVALSROW_REAL};
+static constexpr rocblas_int trsm_intervals_col_real_nonbatch[] = {TRSM_INTERVALSCOL_REAL};
+static constexpr rocblas_int trsm_blksizes_real_nonbatch[][TRSM_NUMCOLS_REAL]
+    = {TRSM_BLKSIZES_REAL};
+
+static constexpr rocblas_int trsm_intervals_row_complex_batch[] = {TRSM_BATCH_INTERVALSROW_COMPLEX};
+static constexpr rocblas_int trsm_intervals_col_complex_batch[] = {TRSM_BATCH_INTERVALSCOL_COMPLEX};
+static constexpr rocblas_int trsm_blksizes_complex_batch[][TRSM_BATCH_NUMCOLS_COMPLEX]
+    = {TRSM_BATCH_BLKSIZES_COMPLEX};
+static constexpr rocblas_int trsm_intervals_row_complex_nonbatch[] = {TRSM_INTERVALSROW_COMPLEX};
+static constexpr rocblas_int trsm_intervals_col_complex_nonbatch[] = {TRSM_INTERVALSCOL_COMPLEX};
+static constexpr rocblas_int trsm_blksizes_complex_nonbatch[][TRSM_NUMCOLS_COMPLEX]
+    = {TRSM_BLKSIZES_COMPLEX};
+
 template <typename T>
 static const T negative_one = T(-1);
 template <typename T>
@@ -1525,6 +1543,90 @@ inline bool trsm_use_special_kernel(rocblas_side      side,
     return total_regular_kernel_req_mem > rocblas_internal_trsm_reg_kernel_mem_limit;
 }
 
+inline bool rocblas_internal_trsm_use_substitution(rocblas_side side,
+                                                   rocblas_int  m,
+                                                   rocblas_int  n,
+                                                   rocblas_int  batch_count)
+{
+    // from various rocBLAS profiling, the following bounds
+    // have been chosen to decide between substitution method/inversion method
+    // These are just empirically found and will not always be the best choice.
+    // TODO: These are very conservative numbers and should be updated with future work.
+    //       Ideally, we can use rocblas_trsm_blksize to determine whether or not to use
+    //       the rocblas_trsm_small_substitution function or not.
+    return side == rocblas_side_left
+           && ((n <= 32 && batch_count >= 16 && m < 512) || (n > 32 && n <= 128 && m <= 340));
+}
+
+inline rocblas_int get_index(const rocblas_int* intervals, rocblas_int max, rocblas_int dim)
+{
+    rocblas_int i;
+
+    for(i = 0; i < max; ++i)
+    {
+        if(dim <= intervals[i])
+            break;
+    }
+
+    return i;
+}
+
+/** This function returns the block size for the internal blocked trsm implementation.
+ *  The block sizes and logic is taken directly from rocSOLVER.
+ */
+template <bool BATCHED, typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
+rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
+{
+    rocblas_int blk = 0;
+
+    if(BATCHED)
+    {
+        rocblas_int M = TRSM_BATCH_NUMROWS_REAL - 1;
+        rocblas_int N = TRSM_BATCH_NUMCOLS_REAL - 1;
+        blk           = trsm_blksizes_real_batch[get_index(trsm_intervals_row_real_batch, M, m)]
+                                      [get_index(trsm_intervals_col_real_batch, N, n)];
+    }
+    else
+    {
+        rocblas_int M = TRSM_NUMROWS_REAL - 1;
+        rocblas_int N = TRSM_NUMCOLS_REAL - 1;
+        blk = trsm_blksizes_real_nonbatch[get_index(trsm_intervals_row_real_nonbatch, M, m)]
+                                         [get_index(trsm_intervals_col_real_nonbatch, N, n)];
+    }
+
+    if(blk == 1)
+        blk = std::min(m, 512);
+
+    // Note: If blk remains zero, we won't be using the substitution method.
+    return blk;
+}
+
+template <bool BATCHED, typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
+rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
+{
+    rocblas_int blk = 0;
+
+    if(BATCHED)
+    {
+        rocblas_int M = TRSM_BATCH_NUMROWS_COMPLEX - 1;
+        rocblas_int N = TRSM_BATCH_NUMCOLS_COMPLEX - 1;
+        blk = trsm_blksizes_complex_batch[get_index(trsm_intervals_row_complex_batch, M, m)]
+                                         [get_index(trsm_intervals_col_complex_batch, N, n)];
+    }
+    else
+    {
+        rocblas_int M = TRSM_NUMROWS_COMPLEX - 1;
+        rocblas_int N = TRSM_NUMCOLS_COMPLEX - 1;
+        blk = trsm_blksizes_complex_nonbatch[get_index(trsm_intervals_row_complex_nonbatch, M, m)]
+                                            [get_index(trsm_intervals_col_complex_nonbatch, N, n)];
+    }
+
+    if(blk == 1)
+        blk = std::min(m, 512);
+
+    return blk;
+}
+
 /*! \brief rocblas_internal_trsm_workspace_size
     Calculates needed memory allocation for trsm, does not allocate any memory.
     Note that for the batched version of trsm, we are also allocating memory to store the
@@ -1601,6 +1703,21 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(is_small)
     {
         // return rocblas_status_continue indicating no memory needed
+        *w_x_tmp_size        = 0;
+        *w_x_tmp_arr_size    = 0;
+        *w_invA_size         = 0;
+        *w_invA_arr_size     = 0;
+        *w_x_tmp_size_backup = 0;
+        return rocblas_status_continue;
+    }
+
+    // no memory needed for substitution method, only used for specific sizes
+    const bool  LEFT    = rocblas_side_left == side;
+    rocblas_int blksize = rocblas_trsm_blksize<BATCHED, T>(LEFT ? m : n, LEFT ? n : m);
+    const bool  use_sub = rocblas_internal_trsm_use_substitution(side, m, n, batch_count);
+
+    if(use_sub && blksize)
+    {
         *w_x_tmp_size        = 0;
         *w_x_tmp_arr_size    = 0;
         *w_invA_size         = 0;
@@ -2781,83 +2898,6 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_trsm_block_forward_substitution(int            
     }
 }
 
-inline rocblas_int get_index(rocblas_int* intervals, rocblas_int max, rocblas_int dim)
-{
-    rocblas_int i;
-
-    for(i = 0; i < max; ++i)
-    {
-        if(dim <= intervals[i])
-            break;
-    }
-
-    return i;
-}
-
-/** This function returns the block size for the internal blocked trsm implementation.
- *  The block sizes and logic is taken directly from rocSOLVER.
- */
-template <bool BATCHED, typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
-rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
-{
-    rocblas_int blk = 0;
-
-    if(BATCHED)
-    {
-        rocblas_int M                               = TRSM_BATCH_NUMROWS_REAL - 1;
-        rocblas_int N                               = TRSM_BATCH_NUMCOLS_REAL - 1;
-        rocblas_int intervalsM[]                    = {TRSM_BATCH_INTERVALSROW_REAL};
-        rocblas_int intervalsN[]                    = {TRSM_BATCH_INTERVALSCOL_REAL};
-        rocblas_int size[][TRSM_BATCH_NUMCOLS_REAL] = {TRSM_BATCH_BLKSIZES_REAL};
-        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
-    }
-    else
-    {
-        rocblas_int M                         = TRSM_NUMROWS_REAL - 1;
-        rocblas_int N                         = TRSM_NUMCOLS_REAL - 1;
-        rocblas_int intervalsM[]              = {TRSM_INTERVALSROW_REAL};
-        rocblas_int intervalsN[]              = {TRSM_INTERVALSCOL_REAL};
-        rocblas_int size[][TRSM_NUMCOLS_REAL] = {TRSM_BLKSIZES_REAL};
-        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
-    }
-
-    if(blk == 1)
-        blk = std::min(m, 512);
-
-    // Note: If blk remains zero, we won't be using the substitution method.
-    return blk;
-}
-
-template <bool BATCHED, typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
-rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
-{
-    rocblas_int blk = 0;
-
-    if(BATCHED)
-    {
-        rocblas_int M                                  = TRSM_BATCH_NUMROWS_COMPLEX - 1;
-        rocblas_int N                                  = TRSM_BATCH_NUMCOLS_COMPLEX - 1;
-        rocblas_int intervalsM[]                       = {TRSM_BATCH_INTERVALSROW_COMPLEX};
-        rocblas_int intervalsN[]                       = {TRSM_BATCH_INTERVALSCOL_COMPLEX};
-        rocblas_int size[][TRSM_BATCH_NUMCOLS_COMPLEX] = {TRSM_BATCH_BLKSIZES_COMPLEX};
-        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
-    }
-    else
-    {
-        rocblas_int M                            = TRSM_NUMROWS_COMPLEX - 1;
-        rocblas_int N                            = TRSM_NUMCOLS_COMPLEX - 1;
-        rocblas_int intervalsM[]                 = {TRSM_INTERVALSROW_COMPLEX};
-        rocblas_int intervalsN[]                 = {TRSM_INTERVALSCOL_COMPLEX};
-        rocblas_int size[][TRSM_NUMCOLS_COMPLEX] = {TRSM_BLKSIZES_COMPLEX};
-        blk = size[get_index(intervalsM, M, m)][get_index(intervalsN, N, n)];
-    }
-
-    if(blk == 1)
-        blk = std::min(m, 512);
-
-    return blk;
-}
-
 template <typename T,
           typename SCAL,
           typename ATYPE,
@@ -3231,8 +3271,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offset_invA        = 0,
                                    rocblas_stride    stride_invA        = 0)
 {
-    bool SUBSTITUTION_ENABLED = true;
-
     if(batch_count == 0)
         return rocblas_status_success;
 
@@ -3283,7 +3321,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         // These small substitution kernels still seem faster than full substitution method below
         bool is_small = (k <= 32) || (m <= 64 && n <= 64);
-        if(SUBSTITUTION_ENABLED && is_small)
+        if(is_small)
         {
             if(k <= 2)
                 rocblas_trsm_small<T, T, U, V, 2>(handle,
@@ -3405,15 +3443,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             const bool  LEFT    = rocblas_side_left == side;
             rocblas_int blksize = rocblas_trsm_blksize<BATCHED, T>(LEFT ? m : n, LEFT ? n : m);
 
-            // from various rocBLAS profiling, the following bounds
-            // have been chosen to decide between substitution method/inversion method
-            // These are just empirically found and will not always be the best choice.
-            // TODO: These are very conservative numbers and should be updated with future work.
-            //       Ideally, we can use rocblas_trsm_blksize to determine whether or not to use
-            //       the rocblas_trsm_small_substitution function or not.
-            const bool use_sub = LEFT
-                                 && ((n <= 32 && batch_count >= 16 && m < 512)
-                                     || (n > 32 && n <= 128 && m <= 340));
+            const bool use_sub = rocblas_internal_trsm_use_substitution(side, m, n, batch_count);
 
             if(use_sub && blksize)
             {
