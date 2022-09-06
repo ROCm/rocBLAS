@@ -43,11 +43,12 @@ __device__ void spr2_kernel_calc(bool        upper,
         AP[index] += alpha * x[tx * incx] * y[ty * incy] + alpha * y[tx * incy] * x[ty * incx];
 }
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TStruct, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-rocblas_spr2_kernel(bool           upper,
+rocblas_spr2_kernel(bool           host_ptr_mode,
+                    bool           upper,
                     rocblas_int    n,
-                    TScal          alphaa,
+                    TStruct        alpha_device_host,
                     TConstPtr      xa,
                     rocblas_stride shift_x,
                     rocblas_int    incx,
@@ -60,11 +61,7 @@ rocblas_spr2_kernel(bool           upper,
                     rocblas_stride shift_A,
                     rocblas_stride stride_A)
 {
-    rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
-    if(DIM_X * DIM_Y != num_threads)
-        return; // need to launch exactly the number of threads as template parameters indicate.
-
-    auto alpha = load_scalar(alphaa);
+    auto alpha = host_ptr_mode ? alpha_device_host.value : load_scalar(alpha_device_host.ptr);
     if(!alpha)
         return;
 
@@ -85,7 +82,7 @@ template <typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_spr2_template(rocblas_handle handle,
                                      rocblas_fill   uplo,
                                      rocblas_int    n,
-                                     TScal          alpha,
+                                     TScal const*   alpha,
                                      TConstPtr      x,
                                      rocblas_stride offset_x,
                                      rocblas_int    incx,
@@ -115,46 +112,29 @@ rocblas_status rocblas_spr2_template(rocblas_handle handle,
     dim3 spr2_grid(blocksX, blocksY, batch_count);
     dim3 spr2_threads(SPR2_DIM_X, SPR2_DIM_Y);
 
-    if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL((rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>),
-                           spr2_grid,
-                           spr2_threads,
-                           0,
-                           handle->get_stream(),
-                           uplo == rocblas_fill_upper,
-                           n,
-                           alpha,
-                           x,
-                           shift_x,
-                           incx,
-                           stride_x,
-                           y,
-                           shift_y,
-                           incy,
-                           stride_y,
-                           AP,
-                           offset_A,
-                           stride_A);
-    else
-        hipLaunchKernelGGL((rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>),
-                           spr2_grid,
-                           spr2_threads,
-                           0,
-                           handle->get_stream(),
-                           uplo == rocblas_fill_upper,
-                           n,
-                           *alpha,
-                           x,
-                           shift_x,
-                           incx,
-                           stride_x,
-                           y,
-                           shift_y,
-                           incy,
-                           stride_y,
-                           AP,
-                           offset_A,
-                           stride_A);
+    bool                            host_mode = handle->pointer_mode == rocblas_pointer_mode_host;
+    rocblas_internal_val_ptr<TScal> alpha_device_host(host_mode, alpha);
+
+    hipLaunchKernelGGL((rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>),
+                       spr2_grid,
+                       spr2_threads,
+                       0,
+                       handle->get_stream(),
+                       host_mode,
+                       uplo == rocblas_fill_upper,
+                       n,
+                       alpha_device_host,
+                       x,
+                       shift_x,
+                       incx,
+                       stride_x,
+                       y,
+                       shift_y,
+                       incy,
+                       stride_y,
+                       AP,
+                       offset_A,
+                       stride_A);
 
     return rocblas_status_success;
 }
@@ -221,7 +201,7 @@ template rocblas_status rocblas_spr2_template<TScal_, TConstPtr_, TPtr_> \
                                     (rocblas_handle handle,              \
                                      rocblas_fill   uplo,                \
                                      rocblas_int    n,                   \
-                                     TScal_          alpha,              \
+                                     TScal_ const * alpha,               \
                                      TConstPtr_      x,                  \
                                      rocblas_stride    offset_x,            \
                                      rocblas_int    incx,                \
@@ -235,10 +215,10 @@ template rocblas_status rocblas_spr2_template<TScal_, TConstPtr_, TPtr_> \
                                      rocblas_stride stride_A,            \
                                      rocblas_int    batch_count);
 
-INSTANTIATE_SPR2_TEMPLATE(float const*, float const*, float*)
-INSTANTIATE_SPR2_TEMPLATE(double const*, double const*, double*)
-INSTANTIATE_SPR2_TEMPLATE(float const*, float const* const*, float* const*)
-INSTANTIATE_SPR2_TEMPLATE(double const*, double const* const*, double* const*)
+INSTANTIATE_SPR2_TEMPLATE(float , float const*, float*)
+INSTANTIATE_SPR2_TEMPLATE(double , double const*, double*)
+INSTANTIATE_SPR2_TEMPLATE(float , float const* const*, float* const*)
+INSTANTIATE_SPR2_TEMPLATE(double , double const* const*, double* const*)
 
 #undef INSTANTIATE_SPR2_TEMPLATE
 
