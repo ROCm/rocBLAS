@@ -183,6 +183,10 @@ If either the old or new stream is the default (NULL) stream, it is not necessar
 synchronize the old stream before destroying it, or before setting the new stream,
 because the synchronization is implicit.
 
+.. note::
+  A user can switch from one non-default stream to another without calling hipStreamSynchronize() by enabling stream-order memory allocation.
+  Refer to section :ref:`stream order alloc`.
+
 Creating the handle will incur a startup cost. There is an additional startup cost for
 gemm functions to load gemm kernels for a specific device. Users can shift the
 gemm startup cost to occur after setting the device by calling ``rocblas_initialize()``
