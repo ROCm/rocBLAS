@@ -27,16 +27,6 @@
 #include "rocblas_gemv.hpp"
 #include "rocblas_gemv_threshold.hpp"
 
-// The rocblas_gemv_bx() coresponds to the number of threads per block in gemv_double_buffered kernel.
-// The reason it is warpSize * 2 is that each SMs takes care of the computation of a particular thread block
-// and when one warp does the load operations, the other warp does the computation. The idea behind that is
-// SMs interleave execution of thread warps to hide the latency of stalled threads,
-// increasing parallelism would lead to more latency hiding.
-constexpr int rocblas_gemv_bx()
-{
-    return warpSize * 2;
-}
-
 // gemvt_sn is skinny n matrix optimizations
 constexpr int rocblas_gemvt_sn_WIN()
 {
@@ -159,18 +149,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
 
     //Identifying the precision to have an appropriate optimization
-    static constexpr bool is_float          = std::is_same<T, float>{};
-    static constexpr bool is_double         = std::is_same<T, double>{};
-    static constexpr bool is_complex_float  = std::is_same<T, rocblas_float_complex>{};
-    static constexpr bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
-    const bool is_atomics_allowed = handle->atomics_mode == rocblas_atomics_allowed ? true : false;
+    bool is_float          = std::is_same<T, float>{};
+    bool is_double         = std::is_same<T, double>{};
+    bool is_complex_float  = std::is_same<T, rocblas_float_complex>{};
+    bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
 
     //Identifying the architecture to have an appropriate optimization
     int  arch_major       = handle->getArchMajor();
     bool is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
     bool is_gfx908        = handle->getArch() == 908 ? true : false;
     bool is_gfx906        = handle->getArch() == 906 ? true : false;
-    bool is_gfx90a        = handle->getArch() == 910 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -210,116 +198,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 else
                     hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t, T>),
                                        gemvn_KARGS(*alpha, *beta));
-            }
-        }
-        //optimized gemvn kernel with double buffered loads for gfx90a and gfx908.
-        else if(is_atomics_allowed && (is_float || is_double)
-                && (((is_gfx908 || is_gfx90a) && (m == n) && m % rocblas_gemv_bx() == 0)
-                    || (is_gfx908 && (n <= xgemvn_gfx908_upper_threshold) && (n >= m))
-                    || (is_gfx90a && (n <= xgemvn_gfx90a_upper_threshold) && (n >= m))))
-        {
-            // The following gemv_scal_kernel does the `y = y*beta` computation
-            static constexpr int NB               = 256;
-            const int            gemv_scal_blocks = (m - 1) / NB + 1;
-            dim3                 grid(gemv_scal_blocks, batch_count);
-            dim3                 threads(NB);
-            if(handle->pointer_mode == rocblas_pointer_mode_device)
-            {
-                hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
-                                   grid,
-                                   threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
-            }
-            else
-            {
-                if(*beta != 1)
-                    hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
-                                       grid,
-                                       threads,
-                                       0,
-                                       rocblas_stream,
-                                       m,
-                                       *beta,
-                                       stride_beta,
-                                       y,
-                                       shifty,
-                                       incy,
-                                       stridey);
-            }
-
-            // The following kernel does the `y += A * x` computation
-            static constexpr int thread_x            = rocblas_gemv_bx();
-            const int            mod_row             = m % thread_x;
-            const int            mod_column          = n % thread_x;
-            static constexpr int block_y             = 8;
-            static constexpr int thread_y            = is_float ? 8 : 4;
-            static constexpr int elements_per_thread = thread_x / (2 * thread_y);
-
-            if(mod_row == 0 && mod_column == 0)
-            {
-#define gemvn_double_buffered_KARGS(alpha_)                                                    \
-    gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey
-                const int block_x = m / thread_x;
-                dim3      gemvn_threads(thread_x, thread_y);
-                dim3      gemvn_grid(block_x, block_y, batch_count);
-
-                if(handle->pointer_mode == rocblas_pointer_mode_device)
-                {
-                    hipLaunchKernelGGL(
-                        (gemvn_double_buffered_kernel<thread_x, thread_y, elements_per_thread, T>),
-                        gemvn_double_buffered_KARGS(alpha));
-                }
-                else
-                {
-                    if(!*alpha)
-                        return rocblas_status_success;
-
-                    hipLaunchKernelGGL(
-                        (gemvn_double_buffered_kernel<thread_x, thread_y, elements_per_thread, T>),
-                        gemvn_double_buffered_KARGS(*alpha));
-                }
-#undef gemvn_double_buffered_KARGS
-            }
-            else
-            {
-#define gemvn_double_buffered_generic_KARGS(alpha_)                                            \
-    gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey, irregular_cols, mod_row,  \
-        mod_column
-                const int block_x = (m / thread_x) + 1;
-                dim3      gemvn_threads(thread_x, thread_y);
-                dim3      gemvn_grid(block_x, block_y, batch_count);
-                const int irregular_cols = mod_column % elements_per_thread;
-
-                if(handle->pointer_mode == rocblas_pointer_mode_device)
-                {
-                    hipLaunchKernelGGL((gemvn_double_buffered_generic_kernel<thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread,
-                                                                             T>),
-                                       gemvn_double_buffered_generic_KARGS(alpha));
-                }
-                else
-                {
-                    if(!*alpha)
-                        return rocblas_status_success;
-
-                    hipLaunchKernelGGL((gemvn_double_buffered_generic_kernel<thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread,
-                                                                             T>),
-                                       gemvn_double_buffered_generic_KARGS(*alpha));
-                }
-#undef gemvn_double_buffered_generic_KARGS
             }
         }
         //optimized gemvn kernel for gfx906 and gfx908.
