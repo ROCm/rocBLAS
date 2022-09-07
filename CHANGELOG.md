@@ -2,6 +2,26 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+## (Unreleased) rocBLAS 2.46.0
+### Added
+- client smoke test dataset added for quick validation using command rocblas-test --yaml rocblas_smoke.yaml
+- Added stream order device memory allocation as a non-default beta option.
+
+### Optimized
+- Improved trsm performance for small sizes by using a substitution method technique
+- Improved syr2k and her2k performance significantly by using a block-recursive algorithm
+
+### Changed
+- Level 2, Level 1, and Extension functions: argument checking when the handle is set to rocblas_pointer_mode_host now returns the status of rocblas_status_invalid_pointer only for pointers that must be dereferenced based on the alpha and beta argument values.  With handle mode rocblas_pointer_mode_device only pointers that are always dereferenced regardless of alpha and beta values are checked and so may lead to a return status of rocblas_status_invalid_pointer.   This improves consistency with legacy BLAS behaviour.
+- Add variable to turn on/off ieee16/ieee32 tests for mixed precision gemm
+- Allow hipBLAS to select int8 datatype
+- Disallow B == C && ldb != ldc in rocblas_xtrmm_outofplace
+
+### Fixed
+- FORTRAN interfaces generalized for FORTRAN compilers other than gfortran
+- fix for trsm_strided_batched rocblas-bench performance gathering
+- Fix for rocm-smi path in commandrunner.py script to match ROCm 5.2 and above
+
 ## (Unreleased) rocBLAS 2.45.0
 ### Added
 - install.sh option --upgrade_tensile_venv_pip to upgrade Pip in Tensile Virtual Environment. The corresponding CMake option is TENSILE_VENV_UPGRADE_PIP.
@@ -9,7 +29,6 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - install.sh option --lazy-library-loading to enable on-demand loading of tensile library files at runtime to speedup rocBLAS initialization.
 - Support for RHEL9 and CS9.
 - Added Numerical checking routine for symmetric, Hermitian, and triangular matrices, so that they could be checked for any numerical abnormalities such as NaN, Zero, infinity and denormal value.
-
 
 ### Optimizations
 - trmm_outofplace performance improvements for all sizes and data types using block-recursive algorithm.
