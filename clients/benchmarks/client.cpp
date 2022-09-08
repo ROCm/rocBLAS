@@ -1255,12 +1255,12 @@ try
          "the number of columns in A and rows in B.")
 
         ("kl",
-         value<rocblas_int>(&arg.KL)->default_value(128),
+         value<rocblas_int>(&arg.KL)->default_value(32),
          "Specific matrix size: kl is only applicable to BLAS-2: The number of sub-diagonals "
          "of the banded matrix A.")
 
         ("ku",
-         value<rocblas_int>(&arg.KU)->default_value(128),
+         value<rocblas_int>(&arg.KU)->default_value(32),
          "Specific matrix size: ku is only applicable to BLAS-2: The number of super-diagonals "
          "of the banded matrix A.")
 
