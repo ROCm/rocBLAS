@@ -32,7 +32,7 @@
 
 namespace
 {
-    // possible gemv test cases
+    // possible herk test cases
     enum herk_test_type
     {
         HERK,
@@ -40,7 +40,7 @@ namespace
         HERK_STRIDED_BATCHED,
     };
 
-    //ger test template
+    //herk test template
     template <template <typename...> class FILTER, herk_test_type HERK_TYPE>
     struct herk_template : RocBLAS_Test<herk_template<FILTER, HERK_TYPE>, FILTER>
     {

@@ -32,7 +32,7 @@
 
 namespace
 {
-    // possible gemv test cases
+    // possible geru test cases
     enum geru_test_type
     {
         GERU,
@@ -40,7 +40,7 @@ namespace
         GERU_STRIDED_BATCHED,
     };
 
-    //ger test template
+    //geru test template
     template <template <typename...> class FILTER, geru_test_type GERU_TYPE>
     struct geru_template : RocBLAS_Test<geru_template<FILTER, GERU_TYPE>, FILTER>
     {

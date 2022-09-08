@@ -32,7 +32,7 @@
 
 namespace
 {
-    // possible gemv test cases
+    // possible syrk test cases
     enum syrk_test_type
     {
         SYRK,
@@ -40,7 +40,7 @@ namespace
         SYRK_STRIDED_BATCHED,
     };
 
-    //ger test template
+    // syrk test template
     template <template <typename...> class FILTER, syrk_test_type SYRK_TYPE>
     struct syrk_template : RocBLAS_Test<syrk_template<FILTER, SYRK_TYPE>, FILTER>
     {
