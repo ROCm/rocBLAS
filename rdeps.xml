@@ -1,0 +1,20 @@
+
+<dependencies>
+  <fileversion>0.1</fileversion>
+  <os names="Windows">
+    <vcpkg>
+      <pkg name="google test">gtest:x64-windows</pkg>
+      <pkg name="msgpackc">msgpack:x64-windows</pkg>
+      <pkg name="OpenBLAS">openblas:x64-windows</pkg>
+    </vcpkg>
+  </os>
+  <os names="all">
+    <pip>
+      <pkg name="PyYAML">pyyaml</pkg>
+      <pkg name="msgpack">msgpack</pkg>
+      <pkg name="six">six</pkg>
+      <pkg name="wheel">wheel</pkg>
+      <pkg name="virtualenv">virtualenv</pkg>
+    </pip>
+  </os>
+</dependencies>

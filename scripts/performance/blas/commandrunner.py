@@ -73,6 +73,7 @@ import string
 import subprocess
 import sys
 import time
+from decimal import Decimal
 
 import getspecs
 
@@ -114,8 +115,13 @@ def import_rocm_smi(install_path):
     global smi_imported
     if not smi_imported:
         smi_imported = True
+        host_rocm_ver = Decimal('.'.join(getspecs.getrocmversion().split('.')[0:2])) # get host's rocm major.minor version
+        rocm_5_2_ver = Decimal('5.2')
         try:
-            sys.path.append(os.path.join(install_path, 'bin'))
+            if rocm_5_2_ver.compare(host_rocm_ver) == 1:
+                sys.path.append(os.path.join(install_path, 'bin')) # For versions below ROCm 5.2
+            else:
+                sys.path.append(os.path.join(install_path, 'libexec/rocm_smi')) # For versions equal or above ROCm 5.2
             import rocm_smi
             smi = rocm_smi
 

@@ -37,13 +37,14 @@ template <rocblas_argument... Args>
 class ArgumentModel
 {
     // Whether model has a particular parameter
-    // TODO: Replace with C++17 fold expression ((Args == param) || ...)
     static constexpr bool has(rocblas_argument param)
     {
         for(auto x : {Args...})
             if(x == param)
                 return true;
         return false;
+        // TODO: Replace with C++17 fold expression, a C++17 extension
+        // return ((Args == param) || ...);
     }
 
 public:
@@ -140,8 +141,12 @@ public:
                   double                    norm3     = ArgumentLogging::NA_value,
                   double                    norm4     = ArgumentLogging::NA_value)
     {
+        if(arg.iters < 1)
+            return; // warmup test only
+
         rocblas_internal_ostream name_list;
         rocblas_internal_ostream value_list;
+        value_list.set_csv(true);
 
         if(ArgumentModel_get_log_function_name())
         {
@@ -177,7 +182,7 @@ public:
         // apply is a templated lambda for C++17 and a templated fuctor for C++14
         //
         // For rocblas_ddot, the following template specialization of apply will be called:
-        // apply<e_N>(print, arg, T{}), apply<e_incx>(print, arg, T{}),, apply<e_incy>(print, arg, T{})
+        // apply<e_N>(print, arg, T{}), apply<e_incx>(print, arg, T{}), apply<e_incy>(print, arg, T{})
         //
         // apply in turn calls print with a string corresponding to the enum, for example "N" and the value of N
         //

@@ -460,15 +460,14 @@ void testing_syr2k_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
 
     rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix);
 
     if(TWOK)
     {
         rocblas_init_matrix(
-            hB, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, false, true);
+            hB, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, false, true);
     }
     else
     { // using syrk as syrkx reference so testing with B = A

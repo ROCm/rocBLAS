@@ -32,9 +32,6 @@ option( BUILD_VERBOSE "Output additional build information" OFF )
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 
-option( BUILD_TESTING "Build tests for rocBLAS" ON )
-
-
 # Building tensile can add significant compile time; this option allows to build
 # library without tensile to allow for rapid iteration without GEMM functionality
 option( BUILD_WITH_TENSILE "Build full functionality which requires tensile?" ON )
@@ -56,7 +53,7 @@ option(BUILD_CODE_COVERAGE "Build rocBLAS with code coverage enabled" OFF)
 option(BUILD_ADDRESS_SANITIZER "Build with address sanitizer enabled" OFF)
 
 # FOR OPTIONAL HEADER TESTSING
-option(RUN_HEADER_TESTING "Build with header testing disabled" OFF)
+option(RUN_HEADER_TESTING "Post build header compatibility testing" OFF)
 
 if( BUILD_WITH_TENSILE )
 

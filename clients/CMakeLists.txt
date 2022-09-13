@@ -77,7 +77,10 @@ find_package(OpenMP)
 
 if (TARGET OpenMP::OpenMP_CXX)
   set( COMMON_LINK_LIBS "OpenMP::OpenMP_CXX")
-  list( APPEND COMMON_LINK_LIBS "-L${HIP_CLANG_ROOT}/lib;-Wl,-rpath=${HIP_CLANG_ROOT}/lib")
+  list( APPEND COMMON_LINK_LIBS "-L${HIP_CLANG_ROOT}/lib")
+  if (NOT WIN32)
+    list( APPEND COMMON_LINK_LIBS "-Wl,-rpath=${HIP_CLANG_ROOT}/lib")
+  endif()
 endif()
 
 if (TARGET Threads::Threads)
@@ -105,12 +108,6 @@ if ( NOT hip_FOUND )
   find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} )
 endif( )
 
-# The presense of hip OR CUDA is not sufficient to determine if we want a rocm or cuda backend
-if( USE_CUDA )
-  # Quietly look for CUDA, but if not found it's not an error
-  find_package( CUDA QUIET )
-endif( )
-
 if( BUILD_CLIENTS_SAMPLES )
   add_subdirectory( samples )
 endif( )
@@ -127,10 +124,14 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
   else() # WIN32
     set( BLAS_INCLUDE_DIR ${OPENBLAS_DIR}/include CACHE PATH "OpenBLAS library include path" )
     find_library( BLAS_LIBRARY libopenblas
-                    PATHS ${OPENBLAS_DIR}/lib
-                    REQUIRED
-                    NO_DEFAULT_PATH
+                  PATHS ${OPENBLAS_DIR}/lib
+                  NO_DEFAULT_PATH
                 )
+    if (NOT BLAS_LIBRARY)
+      find_package( OPENBLAS CONFIG REQUIRED )
+      set( BLAS_LIBRARY OpenBLAS::OpenBLAS )
+      set( BLAS_INCLUDE_DIR "" )
+    endif()
   endif()
 
   # common source files used in subdirectories benchmarks and gtest thus ../common

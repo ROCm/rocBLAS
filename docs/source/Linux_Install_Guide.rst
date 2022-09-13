@@ -7,43 +7,44 @@ Introduction
 ------------
 
 This document contains instructions for installing, using, and contributing to rocBLAS.
-The quickest way to install is from prebuilt packages. Alternatively, there are instructions to build from source. The document also contains an API Reference Guide, Programmer's Guide, and Contributor's Guides.
+The quickest way to install is from prebuilt packages. Alternatively, there are instructions to build from source. The document also contains an API Reference Guide, Programmer's Guide, and Contributor's Guide.
 
 Documentation Roadmap
 ^^^^^^^^^^^^^^^^^^^^^
 The following is a list of rocBLAS documents in the suggested reading order:
 
- - Getting Started Guide (this document): Describes how to install and configure the rocBLAS library; designed to get users up and running quickly with the library.
- - API Reference Guide : Provides detailed information about rocBLAS functions, data types and other programming constructs.
- - Programmer's Guide: Describes the code organization, Desing implementation detail, Optimizations used in the library and those that should be considered for new development and Testing & Benchmarking detail.
- - Contributor's Guide : Describes coding guidelines for contributors.
+ - Getting Started Guide (this document): Describes how to install and configure the rocBLAS library; designed to get users up and running quickly with the library
+ - API Reference Guide : Provides detailed information about rocBLAS functions, data types and other programming constructs
+ - Programmer's Guide: Describes the code organization, Design implementation detail, Optimizations used in the library, and those that should be considered for new development and Testing & Benchmarking detail
+ - Contributor's Guide : Describes coding guidelines for contributors
 
 -------------
 Prerequisites
 -------------
 
--  A ROCm enabled platform, more information `here <https://docs.amd.com/>`_. rocBLAS is supported on the same Linux versions that are supported by ROCm.
+- A ROCm enabled platform. More information `here <https://docs.amd.com/>`_
+- rocBLAS is supported on the same Linux versions that are supported by ROCm
 
 
 -----------------------------
-Installing pre-built packages
+Installing Prebuilt Packages
 -----------------------------
 
-rocBLAS can be installed on Ubuntu or Debian using
+rocBLAS can be installed on Ubuntu(R) or Debian using:
 
 ::
 
    sudo apt-get update
    sudo apt-get install rocblas
 
-rocBLAS can be installed on CentOS using
+rocBLAS can be installed on CentOS using:
 
 ::
 
     sudo yum update
     sudo yum install rocblas
 
-rocBLAS can be installed on SLES using
+rocBLAS can be installed on SLES using:
 
 ::
 
@@ -51,28 +52,27 @@ rocBLAS can be installed on SLES using
     sudo dnf install rocblas
 
 Once installed, rocBLAS can be used just like any other library with a C API.
-The rocblas.h header file will need to be included in the user code in order to make calls
+The rocblas.h header file must be included in the user code to make calls
 into rocBLAS, and the rocBLAS shared library will become link-time and run-time
-dependent for the user applciation.
+dependent for the user application.
 
-Once installed, rocblas.h and rocblas_module.f90 can be found in the /opt/rocm/include
-directory. Only these two installed files should be used when needed in user code.
-Other rocBLAS files can be found in /opt/rocm/include/internal, however these files
-should not be directly included.
+Once installed, find rocblas.h and rocblas_module.f90 in the /opt/rocm/include
+directory. Only use these two installed files when needed in user code.
+Find other rocBLAS files in /opt/rocm/include/internal, However, do not include these files directly.
 
 
 -------------------------------
 Building and Installing rocBLAS
 -------------------------------
 
-For most users building from source is not necessary, as rocBLAS can be used after installing the pre-built
-packages as described above. If desired, the following instructions can be used to build rocBLAS from source.
+For most users, building from source is not necessary, as rocBLAS can be used after installing the prebuilt
+packages as described above. If desired, users can use following instructions to build rocBLAS from source.
 
 
 Requirements
 ^^^^^^^^^^^^
 
-As a general rule, 64GB of system memory is required for a full rocBLAS build. This value can be lower if
+As a rule, 64GB of system memory is required for a full rocBLAS build. This value can be lower if
 rocBLAS is built with a different Tensile logic target (see the --logic command for ./install.sh). This value
 may also increase in the future as more functions are added to rocBLAS and dependencies such as Tensile grow.
 
@@ -80,30 +80,30 @@ may also increase in the future as more functions are added to rocBLAS and depen
 Download rocBLAS
 ^^^^^^^^^^^^^^^^
 
-The rocBLAS source code is available at the `rocBLAS github page <https://github.com/ROCmSoftwarePlatform/rocBLAS>`_. Check the ROCm Version on your system. For Ubuntu use
+The rocBLAS source code is available at the `rocBLAS github page <https://github.com/ROCmSoftwarePlatform/rocBLAS>`_. Check the ROCm version on your system. For Ubuntu(R), use:
 
 ::
 
     apt show rocm-libs -a
 
-For Centos use
+For Centos, use:
 
 ::
 
     yum info rocm-libs
 
-The ROCm version has major, minor, and patch fields, possibly followed by a build specific identifier. For example the ROCm version could be 4.0.0.40000-23, this corresponds to major = 4, minor = 0, patch = 0, build identifier 40000-23.
-There are GitHub branches at the rocBLAS site with names rocm-major.minor.x where major and minor are the same as in the ROCm version. For ROCm version 4.0.0.40000-23 you need to use the following to download rocBLAS:
+The ROCm version has major, minor, and patch fields, possibly followed by a build specific identifier. For example, ROCm version could be 4.0.0.40000-23; this corresponds to major = 4, minor = 0, patch = 0, build identifier 40000-23.
+There are GitHub branches at the rocBLAS site with names rocm-major.minor.x where major and minor are the same as in the ROCm version. For ROCm version 4.0.0.40000-23, you must use the following to download rocBLAS:
 
 ::
 
    git clone -b release/rocm-rel-x.y https://github.com/ROCmSoftwarePlatform/rocBLAS.git
    cd rocBLAS
 
-Replace x.y in the above command with the version of ROCm installed on your machine. For example: if you have ROCm 5.0 installed, then replace release/rocm-rel-x.y with release/rocm-rel-5.0
+Replace x.y in the above command with the version of ROCm installed on your machine. For example, if you have ROCm 5.0 installed, then replace release/rocm-rel-x.y with release/rocm-rel-5.0.
 
 
-Below are steps to build using `install.sh` script, the user can build either
+Below are steps to build using `install.sh` script. The user can build either:
 
 * dependencies + library
 
@@ -120,11 +120,11 @@ Dependencies are listed in the script install.sh. The -d flag to install.sh inst
 CMake has a minimum version requirement listed in the file install.sh. See --cmake_install flag in install.sh to upgrade automatically.
 
 
-Build library dependencies + library
+Build Library dependencies + Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Common uses of install.sh to build (library dependencies + library) are
-in the table below.
+in the table below:
 
 .. tabularcolumns::
    |\X{1}{4}|\X{3}{4}|
@@ -163,10 +163,10 @@ in the table below.
 +----------------------+--------------------------+
 
 
-Build library dependencies + client dependencies + library + client
+Build Library Dependencies + Client Dependencies + Library + Client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The client contains executables in the table below.
+The client contains executables in the table below:
 
 =============== ====================================================
 executable name description
@@ -177,7 +177,7 @@ example-sscal   example C code calling rocblas_sscal function
 =============== ====================================================
 
 Common uses of install.sh to build (dependencies + library + client) are
-in the table below.
+in the table below:
 
 .. tabularcolumns::
    |\X{1}{4}|\X{3}{4}|
@@ -233,12 +233,12 @@ in the table below.
 |                        | need the -i flag.        |
 +------------------------+--------------------------+
 
-Build clients without library
+Build Clients without Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The rocBLAS clients can be built on their own using `install.sh` with a preexisting rocBLAS library.
 
-Note that the version of the rocBLAS clients being built should match the version of the installed rocBLAS. The version of the installed rocBLAS can be found in the installed rocBLAS directory, in the file include/internal/rocblas-version.h. The version of rocBLAS being built can be found by running ``grep"VERSION_STRING" CMakeLists.txt`` in the rocBLAS directory being built.
+Note that the version of the rocBLAS clients being built should match the version of the installed rocBLAS. Find the version of the installed rocBLAS in the installed rocBLAS directory in the file include/internal/rocblas-version.h. Find the version of rocBLAS being built by running ``grep"VERSION_STRING" CMakeLists.txt`` in the rocBLAS directory being built.
 
 .. tabularcolumns::
    |\X{1}{4}|\X{3}{4}|
@@ -263,7 +263,7 @@ Use of Tensile
 
 The rocBLAS library uses
 `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`__, which
-supplies the high-performance implementation of xGEMM. Tensile is
-downloaded by cmake during library configuration and automatically
-configured as part of the build, so no further action is required by the
+supplies the high-performance implementation of xGEMM. CMake downloads
+Tensile during library configuration and automatically
+configures it as part of the build, so no further action is required by the
 user to set it up.

@@ -291,12 +291,12 @@ void testing_her2k(const Arguments& arg)
 
     // Initialize data on host memory
     rocblas_init_matrix(
-        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true);
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_matrix(hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_hermitian_matrix);
     if(TWOK)
     {
         rocblas_init_matrix(
-            hB, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, false, true);
+            hB, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, false, true);
     }
     else
     { // require symmetric A*B^H so testing with B = A

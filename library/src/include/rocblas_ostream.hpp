@@ -184,6 +184,9 @@ class ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream
     // Flag indicating whether YAML mode is turned on
     bool m_yaml = false;
 
+    // Flag for CSV output avoid commas in any value representation
+    bool m_csv = false;
+
     // Get worker for file descriptor
     static std::shared_ptr<worker> get_worker(int fd);
 
@@ -246,6 +249,12 @@ public:
     // Flush the output
     void flush();
 
+    // csv friendly output set true
+    void set_csv(bool flag)
+    {
+        m_csv = flag;
+    }
+
     // Destroy the rocblas_internal_ostream
     virtual ~rocblas_internal_ostream();
 
@@ -266,6 +275,34 @@ public:
     // Abort function which safely flushes all IO
     friend void rocblas_abort_once();
 
+    // stream output is required to allow csv override of std::forward
+    // which will use of rocblas_*_complex operators
+    template <typename T>
+    void stream_output(rocblas_internal_ostream& os, T&& x)
+    {
+        os.m_os << std::forward<T>(x);
+    }
+
+    template <>
+    void stream_output<rocblas_double_complex>(rocblas_internal_ostream& os,
+                                               rocblas_double_complex&&  x)
+    {
+        if(!m_csv)
+            os.m_os << x; // complex operator<<
+        else
+            os << x; // local override not complex operator
+    }
+
+    template <>
+    void stream_output<rocblas_float_complex>(rocblas_internal_ostream& os,
+                                              rocblas_float_complex&&   x)
+    {
+        if(!m_csv)
+            os.m_os << x; // complex operator<<
+        else
+            os << x; // local override not complex operator
+    }
+
     /*************************************************************************
      * Non-member friend functions for formatted output                      *
      *************************************************************************/
@@ -274,7 +311,7 @@ public:
     template <typename T, std::enable_if_t<!std::is_enum<std::decay_t<T>>{}, int> = 0>
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, T&& x)
     {
-        os.m_os << std::forward<T>(x);
+        os.stream_output(os, x);
         return os;
     }
 
@@ -299,10 +336,12 @@ public:
 
     // Complex output
     template <typename T>
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&     os,
-                                                const rocblas_complex_num<T>& x)
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
+                                                rocblas_complex_num<T>    x)
     {
-        if(os.m_yaml)
+        if(os.m_csv)
+            os.m_os << "(" << std::real(x) << ": " << std::imag(x) << ")";
+        else if(os.m_yaml)
             os.m_os << "'(" << std::real(x) << "," << std::imag(x) << ")'";
         else
             os.m_os << x;
