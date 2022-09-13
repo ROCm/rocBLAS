@@ -133,6 +133,8 @@ constexpr auto rocblas_datatype2string(rocblas_datatype type)
         return "bf16_r";
     case rocblas_datatype_bf16_c:
         return "bf16_c";
+    case rocblas_datatype_invalid:
+        return "invalid";
     }
     return "invalid";
 }
@@ -194,7 +196,7 @@ constexpr rocblas_operation char2rocblas_operation(char value)
     case 'c':
         return rocblas_operation_conjugate_transpose;
     default:
-        return static_cast<rocblas_operation>(-1);
+        return static_cast<rocblas_operation>(0); // zero not in enum
     }
 }
 
@@ -209,7 +211,7 @@ constexpr rocblas_fill char2rocblas_fill(char value)
     case 'l':
         return rocblas_fill_lower;
     default:
-        return static_cast<rocblas_fill>(-1);
+        return static_cast<rocblas_fill>(0); // zero not in enum
     }
 }
 
@@ -224,7 +226,7 @@ constexpr rocblas_diagonal char2rocblas_diagonal(char value)
     case 'n':
         return rocblas_diagonal_non_unit;
     default:
-        return static_cast<rocblas_diagonal>(-1);
+        return static_cast<rocblas_diagonal>(0); // zero not in enum
     }
 }
 
@@ -239,7 +241,7 @@ constexpr rocblas_side char2rocblas_side(char value)
     case 'r':
         return rocblas_side_right;
     default:
-        return static_cast<rocblas_side>(-1);
+        return static_cast<rocblas_side>(0); // zero not in enum
     }
 }
 
@@ -250,8 +252,8 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
         value == "rand_int"   ? rocblas_initialization::rand_int   :
         value == "trig_float" ? rocblas_initialization::trig_float :
         value == "hpl"        ? rocblas_initialization::hpl        :
-        value == "special"    ? rocblas_initialization::special        :
-        static_cast<rocblas_initialization>(-1);
+        value == "special"    ? rocblas_initialization::special    :
+        static_cast<rocblas_initialization>(0); // zero not in enum
 }
 
 inline rocblas_arithmetic_check string2rocblas_arithmetic_check(const std::string& value)
@@ -259,7 +261,7 @@ inline rocblas_arithmetic_check string2rocblas_arithmetic_check(const std::strin
     return
         value == "ieee16_ieee32"   ? rocblas_arithmetic_check::ieee16_ieee32 :
         value == "none"            ? rocblas_arithmetic_check::none :
-        static_cast<rocblas_arithmetic_check>(-1);
+        static_cast<rocblas_arithmetic_check>(0); // zero not in enum
 }
 
 inline rocblas_datatype string2rocblas_datatype(const std::string& value)
@@ -281,6 +283,6 @@ inline rocblas_datatype string2rocblas_datatype(const std::string& value)
         value == "u32_r"                 ? rocblas_datatype_u32_r  :
         value == "u8_c"                  ? rocblas_datatype_u8_c   :
         value == "u32_c"                 ? rocblas_datatype_u32_c  :
-        static_cast<rocblas_datatype>(-1);
+        rocblas_datatype_invalid;
 }
 // clang-format on

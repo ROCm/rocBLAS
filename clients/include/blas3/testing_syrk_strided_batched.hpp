@@ -417,7 +417,7 @@ void testing_syrk_strided_batched(const Arguments& arg)
 
     // Initialize data on host memory
     rocblas_init_matrix(
-        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true, true);
+        hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true, true);
     rocblas_init_matrix(
         hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_symmetric_matrix, true, true);
 

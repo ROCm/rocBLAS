@@ -107,51 +107,25 @@ rocm_setup_version( VERSION ${VERSION_STRING} )
 # NOTE:  workaround until llvm & hip cmake modules fixes symlink logic in their config files; remove when fixed
 list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm /opt/rocm/hip )
 
+
 # gpu arch configuration
 set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
 set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1012 gfx1030 gfx1100 gfx1102 )
 
 # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
 # Sets the AMDGPU_TARGETS with backward compatiblity
-if(COMMAND rocm_check_target_ids)
+if (AMDGPU_TARGETS STREQUAL "all")
   rocm_check_target_ids(target_list
       TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1102"
   )
 else()
-  # This section is deprecated. Please use rocm_check_target_ids for future use.
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
-      OUTPUT_VARIABLE CXX_OUTPUT
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_STRIP_TRAILING_WHITESPACE)
-    string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
-  endif()
-  if(TARGET_ID_SUPPORT)
-    if(Tensile_LOGIC STREQUAL "aldebaran")
-      # Temporary bypass: if logic aldebaran logic is selected, assume aldebaran compiler support exists
-      # To be removed for ROCm 4.4
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1102")
-    else()
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1102")
-    endif()
-  else()
-    set(target_list "gfx803;gfx900;gfx906;gfx908")
-  endif()
+  rocm_check_target_ids(target_list TARGETS "${AMDGPU_TARGETS}")
 endif()
 
-set(ROCBLAS_ALL_GPUS "${target_list}" CACHE STRING "List of specific machine types for library to target")
+# must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
+# to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
+set( AMDGPU_TARGETS "${target_list}" CACHE STRING "AMD GPU targets to compile for" FORCE )
 
-# gpu architectures to build for we may FORCE overwrite expanded "all", AMDGPU_TARGETS always defined by install.sh
-if (AMDGPU_TARGETS)
-  if( AMDGPU_TARGETS STREQUAL "all" )
-    set( gpus "${ROCBLAS_ALL_GPUS}")
-  else()
-    set( gpus "${AMDGPU_TARGETS}")
-  endif()
-  # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
-  # to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
-  set( AMDGPU_TARGETS "${gpus}" CACHE STRING "AMD GPU targets to compile for" FORCE )
-endif()
 
 if(NOT SKIP_LIBRARY)
   if( BUILD_WITH_TENSILE )
@@ -182,7 +156,7 @@ if(NOT SKIP_LIBRARY)
     if (TENSILE_VERSION)
       find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     else()
-      find_package(Tensile 4.34.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+      find_package(Tensile 4.35.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     endif()
   endif()
 endif()
@@ -208,14 +182,18 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
     rocm_read_os_release(CLIENTS_OS_VERSION VERSION_ID)
   endif()
   message(STATUS "OS: ${CLIENTS_OS} ${CLIENTS_OS_VERSION}")
-  set(OPENMP_PKG "libgomp")
-  set(GFORTRAN_PKG "gcc-gfortran")
-  if(CLIENTS_OS STREQUAL "sles")
-    set(OPENMP_PKG "libgomp1")
-    set(GFORTRAN_PKG "gcc-fortran")
-  endif()
-  if(CLIENTS_OS STREQUAL "centos" AND CLIENTS_OS_VERSION EQUAL 7)
-    set(GFORTRAN_PKG "devtoolset-7-gcc-gfortran")
+  set(OPENMP_RPM "libgomp")
+  set(OPENMP_DEB "libomp-dev")
+  set(GFORTRAN_RPM "libgfortran4")
+  set(GFORTRAN_DEB "libgfortran4")
+  if(CLIENTS_OS STREQUAL "centos" OR CLIENTS_OS STREQUAL "rhel")
+    if(CLIENTS_OS_VERSION VERSION_GREATER_EQUAL "8")
+      set(GFORTRAN_RPM "libgfortran")
+    endif()
+  elseif(CLIENTS_OS STREQUAL "ubuntu" AND CLIENTS_OS_VERSION VERSION_GREATER_EQUAL "20.04")
+    set(GFORTRAN_DEB "libgfortran5")
+  elseif(CLIENTS_OS STREQUAL "sles")
+    set(OPENMP_RPM "libgomp1")
   endif()
 
   set( BUILD_CLIENTS ON )
@@ -226,8 +204,8 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
       tests
       DEPENDS
         COMPONENT clients-common
-        DEB "libomp-dev >= 5.0.1"
-        RPM "${OPENMP_PKG}"
+        DEB "${OPENMP_DEB}"
+        RPM "${OPENMP_RPM}"
     )
   endif()
   if(BUILD_CLIENTS_BENCHMARKS)
@@ -235,15 +213,15 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
       benchmarks
       DEPENDS
         COMPONENT clients-common
-        DEB "libomp-dev >= 5.0.1"
-        RPM "${OPENMP_PKG}"
+        DEB "${OPENMP_DEB}"
+        RPM "${OPENMP_RPM}"
     )
   endif()
   if(BUILD_FORTRAN_CLIENTS)
-    rocm_package_add_rpm_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_PKG}")
-    rocm_package_add_deb_dependencies(COMPONENT tests DEPENDS "gfortran >= 7.4.0")
-    rocm_package_add_rpm_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_PKG}")
-    rocm_package_add_deb_dependencies(COMPONENT benchmarks DEPENDS "gfortran >= 7.4.0")
+    rocm_package_add_rpm_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_RPM}")
+    rocm_package_add_deb_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_DEB}")
+    rocm_package_add_rpm_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_RPM}")
+    rocm_package_add_deb_dependencies(COMPONENT benchmarks DEPENDS "${GFORTRAN_DEB}")
   endif()
 endif()
 

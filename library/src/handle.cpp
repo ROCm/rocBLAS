@@ -89,6 +89,15 @@ _rocblas_handle::_rocblas_handle()
 {
     archMajor = arch / 100; // this may need to switch to string handling in the future
 
+    //ROCBLAS_STREAM_ORDER_ALLOC
+    const char* stream_order_alloc_env = read_env("ROCBLAS_STREAM_ORDER_ALLOC");
+
+    if(stream_order_alloc_env)
+    {
+        int stream_order_alloc_env_val = strtoul(stream_order_alloc_env, nullptr, 0);
+        stream_order_alloc             = stream_order_alloc_env_val ? true : false;
+    }
+
     // Device memory size
     const char* env = read_env("ROCBLAS_DEVICE_MEMORY_SIZE");
     if(env)
@@ -116,9 +125,22 @@ _rocblas_handle::_rocblas_handle()
         }
     }
 
-    // Allocate device memory
-    if(device_memory_size)
-        THROW_IF_HIP_ERROR((hipMalloc)(&device_memory, device_memory_size));
+    if(!stream_order_alloc)
+    { // Allocate device memory
+        if(device_memory_size)
+            THROW_IF_HIP_ERROR((hipMalloc)(&device_memory, device_memory_size));
+    }
+    else
+    {
+        // The following allocation & free of device memory using hipMallocAsync/hipFreeAsync will allocate memory from
+        // the OS and release it to default memory pool. Further allocation of memory using hipMallocAsync
+        // will be from the memory pool and it will be faster.
+        THROW_IF_HIP_ERROR((hipMallocAsync)(&device_memory, device_memory_size, stream));
+
+        THROW_IF_HIP_ERROR((hipFreeAsync)(device_memory, stream));
+
+        device_memory = nullptr;
+    }
 
     // Initialize logging
     init_logging();
@@ -139,16 +161,30 @@ _rocblas_handle::~_rocblas_handle()
             << std::endl;
         rocblas_abort();
     }
-
     // Free device memory unless it's user-owned
     if(device_memory_owner != rocblas_device_memory_ownership::user_owned)
     {
-        auto hipStatus = (hipFree)(device_memory);
+        hipError_t hipStatus;
+        if(!stream_order_alloc)
+            hipStatus = (hipFree)(device_memory);
+        else
+        {
+            hipStatus = (device_memory) ? (hipFreeAsync)(device_memory, stream) : hipSuccess;
+            hipMemPool_t mem_pool;
+            int          device;
+            hipGetDevice(&device);
+            hipDeviceGetDefaultMemPool(&mem_pool, device);
+
+            //Releases device memory back to OS
+            hipMemPoolTrimTo(mem_pool, 0);
+        }
+
         if(hipStatus != hipSuccess)
         {
-            rocblas_cerr << "rocBLAS error during hipFree in handle destructor: "
-                         << rocblas_status_to_string(get_rocblas_status_for_hip_status(hipStatus))
-                         << std::endl;
+            rocblas_cerr
+                << "rocBLAS error during freeing of allocated memory in handle destructor: "
+                << rocblas_status_to_string(get_rocblas_status_for_hip_status(hipStatus))
+                << "Stream Order Allocation : " << stream_order_alloc << std::endl;
             rocblas_abort();
         };
     }
@@ -259,8 +295,14 @@ static rocblas_status free_existing_device_memory(rocblas_handle handle)
         return rocblas_status_internal_error;
 
     // Free existing device memory in handle, unless owned by user
-    if(handle->device_memory_owner != rocblas_device_memory_ownership::user_owned)
-        RETURN_IF_HIP_ERROR((hipFree)(handle->device_memory));
+    if(handle->device_memory
+       && handle->device_memory_owner != rocblas_device_memory_ownership::user_owned)
+    {
+        if(!handle->stream_order_alloc)
+            RETURN_IF_HIP_ERROR((hipFree)(handle->device_memory));
+        else
+            RETURN_IF_HIP_ERROR((hipFreeAsync)(handle->device_memory, handle->stream));
+    }
 
     // Clear the memory size and address, and set the memory to be rocBLAS-managed
     handle->device_memory_size  = 0;
@@ -293,8 +335,13 @@ try
         return rocblas_status_success;
 
     // Allocate size rounded up to MIN_CHUNK_SIZE
-    size           = roundup_device_memory_size(size);
-    auto hipStatus = (hipMalloc)(&handle->device_memory, size);
+    size = roundup_device_memory_size(size);
+
+    hipError_t hipStatus;
+    if(!handle->stream_order_alloc)
+        hipStatus = (hipMalloc)(&handle->device_memory, size);
+    else
+        hipStatus = (hipMallocAsync)(&handle->device_memory, size, handle->stream);
 
     if(hipStatus != hipSuccess)
     {

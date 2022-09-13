@@ -24,7 +24,7 @@ Definitions:
     - { M:   600, N:   500, lda:   600, ldb:   600 }
     - { M:   800, N:   700, lda:   801, ldb:   701 }
 
-  # - &substitution_size_range
+  # - &small_substitution_size_range
     - { M:  2, N:  1, lda: 30, ldb: 30 }
     - { M:  1, N:  2, lda: 30, ldb: 30 }
 
@@ -41,6 +41,12 @@ Definitions:
     # not small
     - { M: 8, N: 128, lda: 200, ldb: 200 }
     - { M: 128, N: 8, lda: 200, ldb: 200 }
+
+  - &large_substitution_size_range
+    - { M: 500, N: 32, lda: 500, ldb: 500 }
+    - { M: 450, N: 19, lda: 500, ldb: 500 }
+    - { M: 300, N: 100, lda: 300, ldb: 300 }
+    - { M: 340, N: 128, lda: 340, ldb: 340 }
 
   - &medium_matrix_size_extra
     - { M:   256, N:   14848, lda:   256, ldb:   256 }
@@ -408,6 +414,29 @@ Tests:
   stride_scale: [ 3 ]
   batch_count: [ 3 ]
   user_allocated_workspace: [0, 20000000]
+
+- name: trsm_medium_substitution
+  category: pre_checkin
+  function: trsm
+  precision: *single_double_precisions_complex_real
+  side: [L]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *large_substitution_size_range
+  alpha_beta: *alpha_range_sub
+
+- name: trsm_batched_medium_substitution
+  category: pre_checkin
+  function: trsm_batched
+  precision: *single_double_precisions_complex_real
+  side: [L]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *large_substitution_size_range
+  batch_count: [ 16 ]
+  alpha_beta: *alpha_range_sub
 
 # nightly
 - name: trsm_medium_multi_gpu
