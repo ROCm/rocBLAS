@@ -132,6 +132,9 @@ _rocblas_handle::_rocblas_handle()
     }
     else
     {
+// hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
+// Support for default stream added in hip version 5.3.0
+#if HIP_VERSION >= 50300000
         // The following allocation & free of device memory using hipMallocAsync/hipFreeAsync will allocate memory from
         // the OS and release it to default memory pool. Further allocation of memory using hipMallocAsync
         // will be from the memory pool and it will be faster.
@@ -140,6 +143,12 @@ _rocblas_handle::_rocblas_handle()
         THROW_IF_HIP_ERROR((hipFreeAsync)(device_memory, stream));
 
         device_memory = nullptr;
+#else
+        rocblas_cerr
+            << "rocBLAS internal error: Stream order allocation is supported on ROCm 5.3 and above."
+            << std::endl;
+        rocblas_abort();
+#endif
     }
 
     // Initialize logging
@@ -169,6 +178,9 @@ _rocblas_handle::~_rocblas_handle()
             hipStatus = (hipFree)(device_memory);
         else
         {
+// hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
+// Support for default stream added in hip version 5.3.0
+#if HIP_VERSION >= 50300000
             hipStatus = (device_memory) ? (hipFreeAsync)(device_memory, stream) : hipSuccess;
             hipMemPool_t mem_pool;
             int          device;
@@ -177,6 +189,7 @@ _rocblas_handle::~_rocblas_handle()
 
             //Releases device memory back to OS
             hipMemPoolTrimTo(mem_pool, 0);
+#endif
         }
 
         if(hipStatus != hipSuccess)
@@ -300,8 +313,12 @@ static rocblas_status free_existing_device_memory(rocblas_handle handle)
     {
         if(!handle->stream_order_alloc)
             RETURN_IF_HIP_ERROR((hipFree)(handle->device_memory));
+// hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
+// Support for default stream added in hip version 5.3.0
+#if HIP_VERSION >= 50300000
         else
             RETURN_IF_HIP_ERROR((hipFreeAsync)(handle->device_memory, handle->stream));
+#endif
     }
 
     // Clear the memory size and address, and set the memory to be rocBLAS-managed
@@ -340,8 +357,12 @@ try
     hipError_t hipStatus;
     if(!handle->stream_order_alloc)
         hipStatus = (hipMalloc)(&handle->device_memory, size);
+// hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
+// Support for default stream added in hip version 5.3.0
+#if HIP_VERSION >= 50300000
     else
         hipStatus = (hipMallocAsync)(&handle->device_memory, size, handle->stream);
+#endif
 
     if(hipStatus != hipSuccess)
     {

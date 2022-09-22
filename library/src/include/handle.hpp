@@ -375,6 +375,9 @@ private:
             if(handle->stream_order_alloc &&
                 handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed)
             {
+// hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
+// Support for default stream added in hip version 5.3.0
+#if HIP_VERSION >= 50300000
                 if(!size)
                     return decltype(pointers)(sizeof...(sizes));
 
@@ -386,6 +389,7 @@ private:
                     return decltype(pointers)(sizeof...(sizes));
                 }
                 addr = static_cast<char*>(dev_mem);
+#endif
             }
             else
             {
@@ -435,10 +439,14 @@ private:
             if(handle->stream_order_alloc &&
                 handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed)
             {
+// hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
+// Support for default stream added in hip version 5.3.0
+#if HIP_VERSION >= 50300000
                 bool status = hipMallocAsync(&dev_mem, size, stream_in_use) == hipSuccess ;
 
                 for(auto i= 0 ; i < count ; i++)
                     pointers.push_back(status ? dev_mem : nullptr);
+#endif
             }
             else
             {
@@ -497,6 +505,9 @@ private:
                 if(handle->stream_order_alloc &&
                     handle->device_memory_owner == rocblas_device_memory_ownership::rocblas_managed)
                 {
+// hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
+// Support for default stream added in hip version 5.3.0
+#if HIP_VERSION >= 50300000
                     if(dev_mem)
                     {
                         bool status = hipFreeAsync(dev_mem, stream_in_use) == hipSuccess ;
@@ -508,6 +519,7 @@ private:
                         }
                         dev_mem = nullptr;
                     }
+#endif
                 }
                 else
                 {
