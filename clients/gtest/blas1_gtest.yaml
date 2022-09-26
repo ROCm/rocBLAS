@@ -721,10 +721,10 @@ Tests:
     incx_incy: *incx_incy_range_small
     algo: 1
     function:
-      - dot:   *single_double_precisions_complex
-      - dotc:  *single_double_precisions_complex
-      - dot_ex:   *single_double_precisions_complex
-      - dotc_ex:   *single_double_precisions_complex
+      - dot:   *bfloat_single_double_complex_real_precisions
+      - dotc:  *bfloat_single_double_complex_real_precisions
+      - dot_ex:   *bfloat_single_double_complex_real_precisions
+      - dotc_ex:   *bfloat_single_double_complex_real_precisions
 
   - name: blas1_batched
     category: quick
@@ -733,10 +733,10 @@ Tests:
     batch_count: [-1, 0, 257]
     algo: 1
     function:
-      - dot_batched:   *single_double_precisions_complex
-      - dotc_batched:  *single_double_precisions_complex
-      - dot_batched_ex:   *single_double_precisions_complex
-      - dotc_batched_ex:   *single_double_precisions_complex
+      - dot_batched:   *bfloat_single_double_complex_real_precisions
+      - dotc_batched:  *bfloat_single_double_complex_real_precisions
+      - dot_batched_ex:   *bfloat_single_double_complex_real_precisions
+      - dotc_batched_ex:   *bfloat_single_double_complex_real_precisions
 
   - name: blas1_strided_batched
     category: quick
@@ -746,10 +746,46 @@ Tests:
     stride_scale: [ 1 ]
     algo: 1
     function:
-      - dot_strided_batched:   *single_double_precisions_complex
-      - dotc_strided_batched:  *single_double_precisions_complex
-      - dot_strided_batched_ex:   *single_double_precisions_complex
-      - dotc_strided_batched_ex:   *single_double_precisions_complex
+      - dot_strided_batched:   *bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:  *bfloat_single_double_complex_real_precisions
+      - dot_strided_batched_ex:   *bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_ex:   *bfloat_single_double_complex_real_precisions
+
+  - name: blas1
+    category: quick
+    N: [-1, 0, 511] # N is kept less than 512 to avoid rounding errors in half precision
+    incx_incy: *incx_incy_range_small
+    algo: 1
+    function:
+      - dot:   *half_precision
+      - dotc:  *half_precision
+      - dot_ex:   *half_precision
+      - dotc_ex:   *half_precision
+
+  - name: blas1_batched
+    category: quick
+    N: [-1, 0, 511] # N is kept less than 512 to avoid rounding errors in half precision
+    incx_incy: *incx_incy_range_small
+    batch_count: [-1, 0, 257]
+    algo: 1
+    function:
+      - dot_batched:   *half_precision
+      - dotc_batched:  *half_precision
+      - dot_batched_ex:   *half_precision
+      - dotc_batched_ex:   *half_precision
+
+  - name: blas1_strided_batched
+    category: quick
+    N: [-1, 0, 511] # N is kept less than 512 to avoid rounding errors in half precision
+    incx_incy: *incx_incy_range_small
+    batch_count: [-1, 0, 125]
+    stride_scale: [ 1 ]
+    algo: 1
+    function:
+      - dot_strided_batched:   *half_precision
+      - dotc_strided_batched:  *half_precision
+      - dot_strided_batched_ex:   *half_precision
+      - dotc_strided_batched_ex:   *half_precision
 
 # pre_checkin
   - name: blas1

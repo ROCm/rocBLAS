@@ -303,6 +303,17 @@ Half bfloat single double complex real: &half_bfloat_single_double_complex_real_
   - *double_precision_complex
 
 #############################################
+#           Used for Dot (algo=1)           #
+#############################################
+Half bfloat single double complex real: &bfloat_single_double_complex_real_precisions
+  - *hpa_bf16_precision
+  - *hpa_bf16_in_single_out_precision
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
+  - *double_precision_complex
+
+#############################################
 #           Used for axpy_ex                #
 #############################################
 Hpa single double complex real: &half_single_double_complex_real_precisions
