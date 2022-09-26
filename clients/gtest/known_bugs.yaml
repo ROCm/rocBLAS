@@ -1,8 +1,30 @@
 # A list of known bugs/failures. The bug can be specific or general.
 # A test case is considered as matching if all indicated parameters match.
 # Wildcards can be used for the function
+# Only include arguments like in the commented out examples. You cannot use the logging output from ROCBLAS_LAYER=4.
 
 Known bugs:
+
+#- { function: gemm_strided_batched, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 50176, stride_b: 0, stride_c: 200704, stride_d: 200704, M: 196, N: 1024, K: 256, lda: 196, ldb: 1024, ldc: 196, ldd: 196, batch_count: 2, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 200704, stride_b: 0, stride_c: 50176, stride_d: 50176, M: 196, N: 256, K: 1024, lda: 196, ldb: 256, ldc: 196, ldd: 196, batch_count: 2, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 50176, stride_b: 0, stride_c: 200704, stride_d: 200704, M: 196, N: 1024, K: 256, lda: 196, ldb: 1024, ldc: 196, ldd: 196, batch_count: 4, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 200704, stride_b: 0, stride_c: 50176, stride_d: 50176, M: 196, N: 256, K: 1024, lda: 196, ldb: 256, ldc: 196, ldd: 196, batch_count: 4, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 341056, stride_b: 0, stride_c: 852640, stride_d: 852640, M: 5329, N: 160, K: 64, lda: 5329, ldb: 160, ldc: 5329, ldd: 5329, batch_count: 4, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched_ex, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 50176, stride_b: 0, stride_c: 200704, stride_d: 200704, M: 196, N: 1024, K: 256, lda: 196, ldb: 1024, ldc: 196, ldd: 196, batch_count: 2, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched_ex, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 200704, stride_b: 0, stride_c: 50176, stride_d: 50176, M: 196, N: 256, K: 1024, lda: 196, ldb: 256, ldc: 196, ldd: 196, batch_count: 2, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched_ex, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 50176, stride_b: 0, stride_c: 200704, stride_d: 200704, M: 196, N: 1024, K: 256, lda: 196, ldb: 1024, ldc: 196, ldd: 196, batch_count: 4, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched_ex, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 200704, stride_b: 0, stride_c: 50176, stride_d: 50176, M: 196, N: 256, K: 1024, lda: 196, ldb: 256, ldc: 196, ldd: 196, batch_count: 4, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+
+#- { function: gemm_strided_batched_ex, alpha: 1.0, alphai: 0.0, beta: 0.0, betai: 0.0, stride_a: 341056, stride_b: 0, stride_c: 852640, stride_d: 852640, M: 5329, N: 160, K: 64, lda: 5329, ldb: 160, ldc: 5329, ldd: 5329, batch_count: 4, a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r }
+
 #- { function: gemm_ex, a_type: bf16_r, b_type: bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r, transA: C, transB: N, M: 512, N: 512, K: 512, lda: 512, ldb: 512, ldc: 512, ldd: 512, alpha: 5.0, alphai: 0.0, beta: 0.0, betai: 0.0, known_bug_platforms: gfx908 }
 #- { function: gemm_ex, a_type: bf16_r, b_type: bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r, transA: C, transB: N, M: 512, N: 512, K: 512, lda: 512, ldb: 512, ldc: 512, ldd: 512, alpha: 0.0, alphai: 0.0, beta: 3.0, betai: 0.0, known_bug_platforms: gfx908 }
 #- { function: gemm_ex, a_type: bf16_r, b_type: bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r, transA: C, transB: N, M: 512, N: 512, K: 512, lda: 512, ldb: 512, ldc: 512, ldd: 512, alpha: 1.0, alphai: 0.0, beta: 3.0, betai: 0.0, known_bug_platforms: gfx908 }
