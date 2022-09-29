@@ -204,6 +204,125 @@ ROCBLAS_KERNEL_ILF void gemvn_double_buffered_kernel_calc(rocblas_int rows,
 {
 }
 
+template <bool CONJ,
+          int  DIM_X,
+          int  elements_per_thread,
+          typename T,
+          std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
+ROCBLAS_KERNEL_ILF void gemvt_double_buffered_kernel_calc(rocblas_int rows,
+                                                          rocblas_int cols,
+                                                          T           alpha,
+                                                          const T* __restrict__ A,
+                                                          rocblas_int lda,
+                                                          const T* __restrict__ x,
+                                                          rocblas_int incx,
+                                                          T* __restrict__ y,
+                                                          rocblas_int incy)
+{
+    const int tx  = threadIdx.x;
+    const int ty  = threadIdx.y;
+    const int bx  = blockIdx.x;
+    const int by  = blockIdx.y;
+    const int td  = (DIM_X * ty) + tx;
+    const int tx_ = td % (DIM_X / 2);
+    const int ty_ = td / (DIM_X / 2);
+
+    __shared__ T la[DIM_X * (DIM_X / 2)];
+
+    T Areg_upper[elements_per_thread];
+    T Areg_lower[elements_per_thread];
+    T treg[elements_per_thread] = {T(0)};
+
+    int count = (rows / DIM_X) / gridDim.y + (by < (rows / DIM_X) % gridDim.y);
+    {
+        int start = by * ((rows / DIM_X) / gridDim.y) + min(by, (rows / DIM_X) % gridDim.y);
+
+        // Advance 'A' to start a block column
+        A += DIM_X * bx * size_t(lda);
+        A += start * DIM_X;
+
+        // Advance 'x'
+        x += start * DIM_X * incx;
+
+        // Advance 'y'
+        y += (bx * DIM_X) * incy;
+    }
+
+    if(count == 0)
+        return;
+
+    const int j = ty_ * elements_per_thread * lda + tx_;
+
+// read upper
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        Areg_upper[k] = A[j + k * lda];
+
+    for(int Vblocks = 0; Vblocks < count; Vblocks++)
+    {
+// read lower
+#pragma unroll
+        for(int k = 0; k < elements_per_thread; k++)
+            Areg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+
+// compute upper
+#pragma unroll
+        for(int k = 0; k < elements_per_thread; k++)
+            treg[k] += (CONJ ? conj(Areg_upper[k]) : Areg_upper[k]) * x[tx_ * incx];
+
+        A += DIM_X;
+
+        // read upper from next block
+        if(Vblocks != count - 1)
+        {
+#pragma unroll
+            for(int k = 0; k < elements_per_thread; k++)
+                Areg_upper[k] = A[j + k * lda];
+        }
+
+//compute lower
+#pragma unroll
+        for(int k = 0; k < elements_per_thread; k++)
+            treg[k] += (CONJ ? conj(Areg_lower[k]) : Areg_lower[k]) * x[(tx_ + (DIM_X / 2)) * incx];
+
+        x += DIM_X * incx;
+    }
+
+// final reduction
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        la[(ty_ * elements_per_thread + k) * (DIM_X / 2) + tx_] = treg[k];
+
+    __syncthreads();
+
+    if(ty == 0)
+    {
+        treg[0] = T(0);
+#pragma unroll
+        for(int j = tx; j < tx + (DIM_X / 2); j++)
+            treg[0] += la[tx * (DIM_X / 2) + (j % (DIM_X / 2))];
+
+        atomicAdd(&y[tx * incy], (treg[0] * alpha)); //y[tx] = treg[0];
+    }
+}
+
+template <bool CONJ,
+          int  DIM_X,
+          int  elements_per_thread,
+          typename T,
+          std::enable_if_t<rocblas_is_complex<T>, int> = 0>
+ROCBLAS_KERNEL_ILF void gemvt_double_buffered_kernel_calc(rocblas_int rows,
+                                                          rocblas_int cols,
+                                                          T           alpha,
+                                                          const T* __restrict__ A,
+                                                          rocblas_int lda,
+                                                          const T* __restrict__ x,
+                                                          rocblas_int incx,
+                                                          T* __restrict__ y,
+                                                          rocblas_int incy)
+{
+}
+
 template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
           typename T_lda,
@@ -824,6 +943,46 @@ gemvn_double_buffered_kernel(rocblas_int    m,
     T* y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
 
     gemvn_double_buffered_kernel_calc<DIM_X, DIM_Y, elements_per_thread>(
+        m, n, alpha, A, lda, x, incx, y, incy);
+}
+
+template <bool        CONJ,
+          rocblas_int DIM_X,
+          rocblas_int DIM_Y,
+          rocblas_int elements_per_thread,
+          typename T,
+          typename U,
+          typename V,
+          typename W>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+gemvt_double_buffered_kernel(rocblas_int    m,
+                             rocblas_int    n,
+                             U              alpha_device_host,
+                             rocblas_stride stride_alpha,
+                             const V*       Aa,
+                             rocblas_stride shifta,
+                             rocblas_int    lda,
+                             rocblas_stride strideA,
+                             const V*       xa,
+                             rocblas_stride shiftx,
+                             rocblas_int    incx,
+                             rocblas_stride stridex,
+                             W*             ya,
+                             rocblas_stride shifty,
+                             rocblas_int    incy,
+                             rocblas_stride stridey)
+{
+    auto alpha = load_scalar(alpha_device_host, blockIdx.z, stride_alpha);
+
+    if(!alpha)
+        return;
+
+    const T* A = cond_load_ptr_batch(alpha, Aa, blockIdx.z, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, blockIdx.z, shiftx, stridex);
+
+    T* y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
+
+    gemvt_double_buffered_kernel_calc<CONJ, DIM_X, elements_per_thread, T>(
         m, n, alpha, A, lda, x, incx, y, incy);
 }
 
