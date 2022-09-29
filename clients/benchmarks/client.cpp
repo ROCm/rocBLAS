@@ -1232,6 +1232,7 @@ try
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
     bool        log_function_name   = false;
+    bool        log_datatype        = false;
     bool        any_stride          = false;
 
     arg.init(); // set all defaults
@@ -1454,7 +1455,11 @@ try
 
         ("log_function_name",
          bool_switch(&log_function_name)->default_value(false),
-         "Function name precedes other itmes.")
+         "Function name precedes other items.")
+
+         ("log_datatype",
+         bool_switch(&log_datatype)->default_value(false),
+         "Include datatypes used in output.")
 
         ("function_filter",
          value<std::string>(&filter),
@@ -1508,6 +1513,8 @@ try
     arg.flags = rocblas_gemm_flags(flags);
 
     ArgumentModel_set_log_function_name(log_function_name);
+
+    ArgumentModel_set_log_datatype(log_datatype);
 
     // Device Query
     rocblas_int device_count = query_device_property();

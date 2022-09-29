@@ -1,0 +1,15 @@
+---
+include: ../../../../clients/include/rocblas_common.yaml
+
+Tests:
+  - name: axpy_bench
+    category: bench
+    function: axpy
+    precision: *single_precision
+    # transA: [ N, T ]
+    alpha: 1
+    iters: 20
+    N: 32..2016..32 # lower..upper..increment
+    incx: 1
+    incy: 1
+...
