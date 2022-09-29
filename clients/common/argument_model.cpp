@@ -35,3 +35,15 @@ bool ArgumentModel_get_log_function_name()
 {
     return log_function_name;
 }
+
+static bool log_datatype = false;
+
+void ArgumentModel_set_log_datatype(bool d)
+{
+    log_datatype = d;
+}
+
+bool ArgumentModel_get_log_datatype()
+{
+    return log_datatype;
+}
