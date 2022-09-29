@@ -33,3 +33,7 @@ constexpr int gemvt_threshold               = 6000;
 
 // Threshold values of (M, N) in gfx10 and gfx11
 constexpr int sgemvt_gfx_arch_10_11_threshold = 4000;
+
+// Double buffered load optimized for single and double precision for gemv (transpose)
+constexpr int sgemvt_gfx908_lower_threshold = 7000;
+constexpr int dgemvt_gfx908_lower_threshold = 3000;
