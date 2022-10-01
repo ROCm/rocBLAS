@@ -249,10 +249,6 @@ else()
   rocm_package_add_dependencies(DEPENDS "hip-rocclr >= 4.0.0")
 endif()
 
-if( OS_ID_sles )
-  rocm_package_add_rpm_dependencies(DEPENDS "libLLVM7 >= 7.0.1")
-endif()
-
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md" )
 set( CPACK_RPM_PACKAGE_LICENSE "MIT and BSD")
 

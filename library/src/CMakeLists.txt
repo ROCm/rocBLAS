@@ -448,16 +448,7 @@ if( BUILD_WITH_TENSILE )
 
     # recreate LLVM static dependencies
     if (${Tensile_LIBRARY_FORMAT} STREQUAL "yaml")
-      find_package(LLVM 6.0 QUIET CONFIG)
-      if(NOT LLVM_FOUND)
-          find_package(LLVM 7.0 QUIET CONFIG)
-          if(NOT LLVM_FOUND)
-              find_package(LLVM 9.0 QUIET CONFIG)
-              if(NOT LLVM_FOUND)
-                  find_package(LLVM REQUIRED CONFIG)
-              endif()
-          endif()
-      endif()
+      find_package(LLVM REQUIRED CONFIG)
       find_library(LLVMObjectYAML_LIBRARY
         NAMES LLVMObjectYAML
         PATHS ${LLVM_LIBRARY_DIR})
@@ -607,6 +598,7 @@ else()
       NAMESPACE roc::
       )
   else()
+    # yaml based Tensile uses LLVM
     rocm_export_targets(
       TARGETS roc::rocblas
       DEPENDS PACKAGE hip
