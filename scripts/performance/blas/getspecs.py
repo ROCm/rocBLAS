@@ -18,6 +18,10 @@
    CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import os
+from pathlib import Path as path
+
+
 def _subprocess_helper(cmd, *args, **kwargs):
     import subprocess
     import tempfile
@@ -109,15 +113,14 @@ def getdistro():
 
 # Get the version number for rocm
 def getrocmversion():
-    cmd = ["apt", "show", "rocm-libs"]
-    success, cout = _subprocess_helper(cmd)
-    if not success:
+    if os.path.isfile("/opt/rocm/.info/version-utils"):
+        rocm_info = path("/opt/rocm/.info/version-utils").read_text()
+    elif os.path.isfile("/opt/rocm/.info/version"):
+        rocm_info = path("/opt/rocm/.info/version").read_text()
+    else:
         return "N/A"
-    searchstr = "Version:"
-    for line in cout.split("\n"):
-        if line.startswith(searchstr):
-            return line[len(searchstr):].strip()
 
+    return rocm_info.strip()
 
 # Get the vbios version for the specified device
 def getvbios(devicenum, cuda):
