@@ -36,6 +36,7 @@ add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
 add_executable( example-solver-rocblas example_solver_rocblas.cpp ${rocblas_samples_common} )
 add_executable( example-hip-complex-her2 example_hip_complex_her2.cpp )
+add_executable( example-gemv-graph-capture example_gemv_graph_capture.cpp )
 
 if ( BUILD_FORTRAN_CLIENTS )
   # Fortran examples
@@ -57,7 +58,7 @@ else( )
 endif( )
 
 set( sample_list_c example-c-dgeam )
-set( sample_list_base example-sscal example-scal-template example-solver-rocblas example-hip-complex-her2 )
+set( sample_list_base example-sscal example-scal-template example-solver-rocblas example-hip-complex-her2 example-gemv-graph-capture)
 
 set( sample_list_all ${sample_list_base} ${sample_list_tensile} ${sample_list_fortran} ${sample_list_c} )
 set( sample_list_hip_device ${sample_list_base} ${sample_list_tensile} )
