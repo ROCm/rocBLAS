@@ -22,7 +22,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - fix for trsm_strided_batched rocblas-bench performance gathering
 - Fix for rocm-smi path in commandrunner.py script to match ROCm 5.2 and above
 
-## (Unreleased) rocBLAS 2.45.0
+## rocBLAS 2.45.0 for ROCm 5.3.0
 ### Added
 - install.sh option --upgrade_tensile_venv_pip to upgrade Pip in Tensile Virtual Environment. The corresponding CMake option is TENSILE_VENV_UPGRADE_PIP.
 - install.sh option --relocatable or -r adds rpath and removes ldconf entry on rocBLAS build.
