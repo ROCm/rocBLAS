@@ -147,6 +147,107 @@ sger_kernel(rocblas_int    m,
     }
 }
 
+//optimized double buffered load kernel for GER
+template <bool        CONJ,
+          rocblas_int DIM_X,
+          rocblas_int DIM_Y,
+          rocblas_int elements_per_thread,
+          typename T,
+          typename TStruct,
+          typename U,
+          typename W>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+ger_double_buffered_kernel(bool           host_ptr_mode,
+                           rocblas_int    m,
+                           rocblas_int    n,
+                           TStruct        alpha_device_host,
+                           rocblas_stride stride_alpha,
+                           const U __restrict__ xa,
+                           rocblas_stride shiftx,
+                           rocblas_int    incx,
+                           rocblas_stride stridex,
+                           const U __restrict__ ya,
+                           rocblas_stride shifty,
+                           rocblas_int    incy,
+                           rocblas_stride stridey,
+                           W __restrict__ Aa,
+                           rocblas_stride shifta,
+                           rocblas_int    lda,
+                           rocblas_stride strideA)
+{
+    auto alpha              = host_ptr_mode ? alpha_device_host.value
+                                            : load_scalar(alpha_device_host.ptr, blockIdx.z, stride_alpha);
+    const T* __restrict__ x = load_ptr_batch(xa, blockIdx.z, shiftx, stridex);
+    const T* __restrict__ y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
+
+    T* __restrict__ A = load_ptr_batch(Aa, blockIdx.z, shifta, strideA);
+
+    if(!alpha)
+        return;
+
+    const int tx  = threadIdx.x;
+    const int ty  = threadIdx.y;
+    const int bx  = blockIdx.x;
+    const int by  = blockIdx.y;
+    const int td  = (DIM_X * ty) + tx;
+    const int tx_ = td % (DIM_X / 2);
+    const int ty_ = td / (DIM_X / 2);
+
+    T x_reg_upper = 0.0;
+    T x_reg_lower = 0.0;
+    T areg_upper[elements_per_thread];
+    T areg_lower[elements_per_thread];
+    T y_reg[elements_per_thread];
+
+    // Advance 'A'
+    A += DIM_X * bx;
+    A += by * DIM_X * size_t(lda);
+
+    // Advance 'x'
+    x += (bx * DIM_X) * incx;
+
+    // Advance 'y'
+    y += (by * DIM_X) * incy;
+
+    const int j = ty_ * elements_per_thread * lda + tx_;
+
+    x_reg_upper = x[tx_ * incx] * alpha;
+    x_reg_lower = x[((DIM_X / 2) + tx_) * incx] * alpha;
+
+// read upper
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        areg_upper[k] = A[j + k * lda];
+
+// read lower
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+    {
+        areg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+        y_reg[k]      = y[(ty_ * elements_per_thread + k) * incy];
+    }
+
+// compute upper
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        areg_upper[k] += x_reg_upper * (CONJ ? conj(y_reg[k]) : y_reg[k]);
+
+// store upper
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        A[j + k * lda] = areg_upper[k];
+
+// compute lower
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        areg_lower[k] += x_reg_lower * (CONJ ? conj(y_reg[k]) : y_reg[k]);
+
+// store lower
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        A[(DIM_X / 2) + j + k * lda] = areg_lower[k];
+}
+
 template <bool CONJ, typename T, typename U, typename V, typename W>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_ger_template(rocblas_handle handle,
@@ -179,14 +280,57 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
     //Identifying the precision to have an appropriate optimization
-    bool is_float = std::is_same<T, float>{};
+    static constexpr bool is_float         = std::is_same<T, float>{};
+    static constexpr bool is_double        = std::is_same<T, double>{};
+    static constexpr bool is_complex_float = std::is_same<T, rocblas_float_complex>{};
+
+    bool is_gfx90a = handle->getArch() == 910 ? true : false;
 
 #define ger_KARGS(alpha_)                                                                  \
     ger_grid, ger_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, x, shiftx, incx, \
         stridex, y, shifty, incy, stridey, A, offsetA, lda, strideA
 
-    //optimized sger kernel
-    if(is_float && m > 1024)
+    //optimized double buffered loads kernel for float, double and float_complex precisions in gfx90a
+    if(is_gfx90a && (m > 2000) && (m == n)
+       && ((m % 64 == 0 && (is_double || is_complex_float)) || ((m % 128 == 0) && is_float)))
+    {
+        //The following ger_double_buffered_kernel is only valid for the multiples of DIM_X
+        static constexpr int DIM_X               = is_float ? 128 : 64;
+        static constexpr int DIM_Y               = is_float ? 8 : 16;
+        static constexpr int elements_per_thread = DIM_X / (2 * DIM_Y);
+
+        const int block_x = m / DIM_X;
+        const int block_y = n / DIM_X;
+        dim3      ger_threads(DIM_X, DIM_Y);
+        dim3      ger_grid(block_x, block_y, batch_count);
+
+        bool host_ptr_mode = handle->pointer_mode == rocblas_pointer_mode_host;
+        rocblas_internal_val_ptr<V> alpha_device_host(host_ptr_mode, alpha);
+
+        hipLaunchKernelGGL((ger_double_buffered_kernel<CONJ, DIM_X, DIM_Y, elements_per_thread, T>),
+                           ger_grid,
+                           ger_threads,
+                           0,
+                           rocblas_stream,
+                           host_ptr_mode,
+                           m,
+                           n,
+                           alpha_device_host,
+                           stride_alpha,
+                           x,
+                           shiftx,
+                           incx,
+                           stridex,
+                           y,
+                           shifty,
+                           incy,
+                           stridey,
+                           A,
+                           offsetA,
+                           lda,
+                           strideA);
+    }
+    else if(is_float && m > 1024)
     {
         static constexpr int DIM_X = 1024;
         dim3                 ger_grid(n, batch_count);
