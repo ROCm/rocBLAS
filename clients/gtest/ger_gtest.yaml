@@ -38,6 +38,9 @@ Definitions:
     - { M: 1025, N: 4011, lda: 1025, stride_a:   4111275 }
     - { M: 7000, N: 2000, lda: 7000, stride_a:   14000000 }
 
+  - &double_buffered_size_range
+    - { M:  2560, N:  2560, lda:  2570, stride_a:  6579200 }
+
   - &incx_incy_range
     - { incx:   1, incy:   1}
     - { incx:  -1, incy:  -1}
@@ -119,6 +122,14 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
+
+- name: ger_medium
+  category: pre_checkin
+  function: ger
+  precision: *single_double_precisions
+  matrix_size: *double_buffered_size_range
+  incx_incy: *incx_incy_range
+  alpha: [ -0.5 ]
 
 - name: ger_large
   category: nightly
@@ -216,6 +227,16 @@ Tests:
   alpha: [ -0.5, 0.0 ]
   stride_scale: [ 1 ]
   batch_count: [ 1, 10 ]
+
+- name: ger_strided_batched_medium
+  category: pre_checkin
+  function: ger_strided_batched
+  precision: *single_double_precisions
+  matrix_size: *double_buffered_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 5 ]
 
 - name: ger_strided_batched_large
   category: nightly
