@@ -3,7 +3,7 @@
 Datatypes:
   - rocblas_int: c_int
   - rocblas_datatype:
-      bases: [ c_int ]
+      bases: [ c_uint32 ]
       attr:
         f16_r: 150
         f32_r: 151
@@ -24,23 +24,23 @@ Datatypes:
   - { half: f16_r, single: f32_r, double: f64_r }
   - { half complex: f16_c, single complex: f32_c, double complex: f64_c }
   - rocblas_initialization:
-      bases: [ c_int ]
+      bases: [ c_uint32 ]
       attr:
         rand_int: 111
         trig_float: 222
         hpl: 333
         special: 444
   - rocblas_arithmetic_check:
-      bases: [ c_int ]
+      bases: [ c_uint32 ]
       attr:
-        none: 111
+        no_check: 111
         ieee16_ieee32: 222
   - rocblas_gemm_flags:
       bases: [ c_uint32 ]
       attr:
         none: 0
   - rocblas_atomics_mode:
-      bases: [ c_int ]
+      bases: [ c_uint32 ]
       attr:
         atomics_not_allowed: 0
         atomics_allowed: 1
@@ -477,7 +477,7 @@ Defaults:
   atomics_mode: atomics_allowed
   workspace_size: 0
   initialization: rand_int
-  arithmetic_check: none
+  arithmetic_check: no_check
   category: nightly
   known_bug_platforms: ''
   name: rocblas-bench
