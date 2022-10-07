@@ -3463,19 +3463,22 @@ Tests:
   beta:  [ 0.0, 0.5, 1.0 ]
   fortran: [ false, true ]
 
-# This is disabled until the sizes are supported by Tensile,
+# Commented out as the category known_bug has no value in adding only to be excluded
+# gemm_ext2 may be deprecated and removed in the future
+#
+# This is category known_bug until the sizes are supported by Tensile,
 # since they take too long with a naive host-side algorithm.
-- name: gemm_ext2_large
-  category: known_bug
-  transA: N
-  transB: N
-  function:
-    - gemm_ext2: *hpa_half_single_precisions
-  matrix_size:
-    - { M: 4096, N: 4096, K: 4096 }
-  c_noalias_d: true
-  alpha: [ 0.0, 0.5, 1.0 ]
-  beta:  [ 0.0, 0.5, 1.0 ]
-  fortran: [ false, true ]
+# - name: gemm_ext2_large
+#   category: known_bug
+#   transA: N
+#   transB: N
+#   function:
+#     - gemm_ext2: *hpa_half_single_precisions
+#   matrix_size:
+#     - { M: 4096, N: 4096, K: 4096 }
+#   c_noalias_d: true
+#   alpha: [ 0.0, 0.5, 1.0 ]
+#   beta:  [ 0.0, 0.5, 1.0 ]
+#   fortran: [ false, true ]
 
 ...

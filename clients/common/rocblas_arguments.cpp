@@ -91,7 +91,7 @@ void Arguments::init()
 
     initialization = rocblas_initialization::hpl;
 
-    arithmetic_check = rocblas_arithmetic_check::none;
+    arithmetic_check = rocblas_arithmetic_check::no_check;
 
     atomics_mode = rocblas_atomics_allowed;
 
@@ -119,67 +119,6 @@ void Arguments::init()
     HMM         = false;
     fortran     = false;
 }
-
-#ifdef WIN32
-// Clang specific code
-template <typename T>
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, std::pair<char const*, T> p)
-{
-    os << p.first << ":";
-    os << p.second;
-    return os;
-}
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                os,
-                                     std::pair<char const*, rocblas_datatype> p)
-{
-    os << p.first << ":";
-    os << rocblas_datatype_string(p.second);
-    return os;
-}
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                      os,
-                                     std::pair<char const*, rocblas_initialization> p)
-{
-    os << p.first << ":";
-#define CASE(x) \
-    case x:     \
-        return os << #x
-    switch(p.second)
-    {
-        CASE(rocblas_initialization::rand_int);
-        CASE(rocblas_initialization::trig_float);
-        CASE(rocblas_initialization::hpl);
-        CASE(rocblas_initialization::special);
-    }
-    return os << "unknown";
-}
-#undef CASE
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                        os,
-                                     std::pair<char const*, rocblas_arithmetic_check> p)
-{
-    os << p.first << ":";
-#define CASE(x) \
-    case x:     \
-        return os << #x
-    switch(p.second)
-    {
-        CASE(rocblas_arithmetic_check::ieee16_ieee32);
-        CASE(rocblas_arithmetic_check::none);
-    }
-    return os << "unknown";
-}
-#undef CASE
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, std::pair<char const*, bool> p)
-{
-    os << p.first << ":";
-    os << (p.second ? "true" : "false");
-    return os;
-}
-// End of Clang specific code
-#endif
 
 // Function to print Arguments out to stream in YAML format
 rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Arguments& arg)
