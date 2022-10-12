@@ -1373,9 +1373,9 @@ try
          "Options: rand_int, trig_float, hpl")
 
         ("arithmetic_check",
-         value<std::string>(&arithmetic_check)->default_value("none"),
+         value<std::string>(&arithmetic_check)->default_value("no_check"),
          "Check arithmetic for mixed precision gemm_ex. "
-         "Options: ieee16_ieee32, none")
+         "Options: ieee16_ieee32, no_check")
 
         ("transposeA",
          value<char>(&arg.transA)->default_value('N'),
