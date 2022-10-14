@@ -182,6 +182,16 @@ inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
     return os << rocblas_arithmetic_check2string(check);
 }
 
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, uint8_t val)
+{
+    return os << (unsigned int)(val); // avoid 0 btye in stream as passed to gtest
+}
+
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, int8_t val)
+{
+    return os << (int)(val); // avoid 0 btye in stream as passed to gtest
+}
+
 // these next two << instantiations for std::pair simply allow the enums to be logged without quotes
 // like the rocblas API enums
 
