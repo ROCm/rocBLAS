@@ -120,6 +120,14 @@ void Arguments::init()
     fortran     = false;
 }
 
+static Arguments& getDefaultArgs()
+{
+    static Arguments defaultArguments;
+    static int       once = (defaultArguments.init(), 1);
+    return defaultArguments;
+}
+static Arguments& gDefArgs = getDefaultArgs();
+
 // Function to print Arguments out to stream in YAML format
 rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Arguments& arg)
 {
@@ -129,8 +137,11 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Argumen
         delim = ", ";
     };
 
-    // Print each (name, value) tuple pair
-#define NAME_VALUE_PAIR(NAME) print_pair(#NAME, arg.NAME)
+    // Print each (name, value) tuple pair if not default value
+#define NAME_VALUE_PAIR(NAME)     \
+    if(arg.NAME != gDefArgs.NAME) \
+    print_pair(#NAME, arg.NAME)
+
     // cppcheck-suppress unknownMacro
     FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, ;);
 
