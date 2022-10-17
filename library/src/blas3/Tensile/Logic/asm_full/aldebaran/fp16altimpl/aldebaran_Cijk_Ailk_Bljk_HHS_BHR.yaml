@@ -63636,7 +63636,7 @@
     AssertBetaValue: false
     AssertCEqualsD: false
     AssertFree0ElementMultiple: 1
-    AssertFree1ElementMultiple: 4
+    AssertFree1ElementMultiple: 1
     AssertMinApproxSize: 0
     AssertSizeEqual: {}
     AssertSizeGreaterThan: {}
@@ -63656,7 +63656,7 @@
     CheckTensorDimAsserts: false
     CodeObjectVersion: V3
     CustomKernelName: ''
-    DepthU: 32
+    DepthU: 64
     DepthULdsDivisor: 1
     DirectToLds: false
     DirectToLdsA: false
@@ -63681,8 +63681,8 @@
     GlobalReadCoalesceVectorB: true
     GlobalReadPerMfma: 1
     GlobalReadVectorWidth: 1
-    GlobalSplitU: 16
-    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: SingleBuffer
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 1
@@ -63694,24 +63694,24 @@
     InterleaveAlpha: 0
     KernelLanguage: Source
     LSCA: 4
-    LSCB: 32
+    LSCB: 64
     LSPA: 16
-    LSPB: 2
+    LSPB: 1
     LVCA: 4
-    LVCB: 32
+    LVCB: 64
     LVPA: 16
-    LVPB: 2
+    LVPB: 1
     LdcEqualsLdd: false
     LdsBlockSizePerPad: 0
     LdsBlockSizePerPadA: 0
     LdsBlockSizePerPadB: 0
     LdsInitCVgprs: false
-    LdsNumElements: 1024
+    LdsNumElements: 1280
     LdsOffsetA: 0
-    LdsOffsetB: 128
+    LdsOffsetB: 256
     LdsPadA: 0
     LdsPadB: 0
-    LocalDotLayout: 4
+    LocalDotLayout: 2
     LocalRead2A: true
     LocalRead2B: true
     LocalReadVectorWidth: 1
@@ -63721,10 +63721,10 @@
     LocalWritePerMfma: -1
     LocalWriteUseSgprA: false
     LocalWriteUseSgprB: false
-    LoopDoWhile: true
-    LoopIters: 2
+    LoopDoWhile: false
+    LoopIters: 4
     LoopTail: true
-    LoopUnroll: 2
+    LoopUnroll: 4
     MACInstruction: FMA
     MIArchVgpr: false
     MacroTile0: 4
@@ -63748,12 +63748,12 @@
     NumElementsPerBatchStore: 0
     NumElementsPerThread: 1
     NumGlobalWriteVectorsPerThread: 1
-    NumLoadsA: 2
-    NumLoadsB: 8
+    NumLoadsA: 4
+    NumLoadsB: 16
     NumLoadsCoalescedA: 1
     NumLoadsCoalescedB: 1
-    NumLoadsPerpendicularA: 2
-    NumLoadsPerpendicularB: 8
+    NumLoadsPerpendicularA: 4
+    NumLoadsPerpendicularB: 16
     NumThreads: 64
     OptNoLoadLoop: 1
     OptPreLoopVmcnt: 0
@@ -63831,9 +63831,8 @@
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
     SolutionIndex: 239
-    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT4x16x32_SN_GSU16_LDL4_PGR0
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT4x16x64_SN_LDL2
     SourceSwap: false
-    SplitGlobalRead: 1
     StaggerU: 32
     StaggerUMapping: 0
     StaggerUStride: 256
@@ -63864,7 +63863,7 @@
     UseInstOffsetForGRO: 0
     UseSgprForGRO: -1
     Valid: true
-    VectorAtomicWidth: 1
+    VectorAtomicWidth: 2
     VectorStore: -1
     VectorWidth: 1
     WaveSeparateGlobalReadA: 0
@@ -63873,13 +63872,13 @@
     WorkGroup: [1, 4, 16]
     WorkGroupMapping: 1
     WorkGroupMappingType: B
-    _DepthULds: 32
-    _GlobalAccumulation: MultipleBuffer
+    _DepthULds: 64
+    _GlobalAccumulation: null
     _UseSgprForGRO: false
     _VectorStore: 1
-    _WorkspaceSizePerElemC: 64
-    _staggerStrideShift: 2
-    allowLRVWBforTLUandMI: false
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 1
+    allowLRVWforTLUandMI: false
   - 1LDSBuffer: 0
     AggressivePerfMode: 1
     AssertAlphaValue: false
@@ -70429,7 +70428,7 @@
   - - [64, 224, 80, 224]
     - [193, 12.476]
   - - [1, 2048, 1, 9217]
-    - [239, 0.34]
+    - [239, 0.555]
   - - [32, 851, 2048, 160]
     - [223, 20.349]
   - - [32, 379, 2048, 160]
