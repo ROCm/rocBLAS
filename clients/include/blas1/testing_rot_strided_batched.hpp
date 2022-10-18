@@ -175,9 +175,10 @@ void testing_rot_strided_batched(const Arguments& arg)
 
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
-
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_fn(
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, hc, hs, batch_count)));
+            handle.post_test(arg);
 
             host_strided_batch_vector<T> rx(N, incx ? incx : 1, stride_x, batch_count);
             host_strided_batch_vector<T> ry(N, incy ? incy : 1, stride_y, batch_count);
@@ -206,9 +207,10 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dy.transfer_from(hy));
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
-
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_fn(
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count)));
+            handle.post_test(arg);
 
             host_strided_batch_vector<T> rx(N, incx ? incx : 1, stride_x, batch_count);
             host_strided_batch_vector<T> ry(N, incy ? incy : 1, stride_y, batch_count);

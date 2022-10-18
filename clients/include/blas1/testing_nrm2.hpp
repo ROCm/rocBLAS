@@ -141,7 +141,9 @@ void testing_nrm2(const Arguments& arg)
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2));
+        handle.post_test(arg);
 
         CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 

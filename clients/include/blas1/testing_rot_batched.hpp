@@ -172,7 +172,7 @@ void testing_rot_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
-
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_batched_fn(handle,
                                                         N,
                                                         dx.ptr_on_device(),
@@ -182,6 +182,7 @@ void testing_rot_batched(const Arguments& arg)
                                                         hc,
                                                         hs,
                                                         batch_count)));
+            handle.post_test(arg);
 
             host_batch_vector<T> rx(N, incx ? incx : 1, batch_count);
             host_batch_vector<T> ry(N, incy ? incy : 1, batch_count);
@@ -210,6 +211,7 @@ void testing_rot_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
 
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_batched_fn(handle,
                                                         N,
                                                         dx.ptr_on_device(),
@@ -219,6 +221,7 @@ void testing_rot_batched(const Arguments& arg)
                                                         dc,
                                                         ds,
                                                         batch_count)));
+            handle.post_test(arg);
 
             host_batch_vector<T> rx(N, incx ? incx : 1, batch_count);
             host_batch_vector<T> ry(N, incy ? incy : 1, batch_count);

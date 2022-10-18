@@ -123,8 +123,10 @@ void testing_swap(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
+        handle.pre_test(arg);
         // GPU BLAS
         CHECK_ROCBLAS_ERROR(rocblas_swap_fn(handle, N, dx, incx, dy, incy));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hx.transfer_from(dx));
         CHECK_HIP_ERROR(hy.transfer_from(dy));
 

@@ -123,9 +123,11 @@ void testing_copy_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
+        handle.pre_test(arg);
         // GPU BLAS
         CHECK_ROCBLAS_ERROR(rocblas_copy_batched_fn(
             handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
+        handle.post_test(arg);
 
         CHECK_HIP_ERROR(hy.transfer_from(dy));
 

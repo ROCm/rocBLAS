@@ -139,9 +139,9 @@ void testing_rot(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
-
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_fn(handle, N, dx, incx, dy, incy, hc, hs)));
-
+            handle.post_test(arg);
             // Allocate host memory
             host_vector<T> rx(N, incx ? incx : 1);
             host_vector<T> ry(N, incy ? incy : 1);
@@ -167,8 +167,9 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(dy.transfer_from(hy));
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
-
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_fn(handle, N, dx, incx, dy, incy, dc, ds)));
+            handle.post_test(arg);
 
             // Allocate host memory
             host_vector<T> rx(N, incx ? incx : 1);

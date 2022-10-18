@@ -121,7 +121,9 @@ void testing_rotg(const Arguments& arg)
             host_vector<U> hc = c;
             host_vector<T> hs = s;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, ha, hb, hc, hs)));
+            handle.post_test(arg);
 
             if(arg.unit_check)
             {
@@ -164,7 +166,9 @@ void testing_rotg(const Arguments& arg)
             CHECK_HIP_ERROR(ds.transfer_from(s));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, da, db, dc, ds)));
+            handle.post_test(arg);
 
             host_vector<T> ha(1);
             host_vector<T> hb(1);

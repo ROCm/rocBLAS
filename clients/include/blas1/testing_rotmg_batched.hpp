@@ -184,9 +184,10 @@ void testing_rotmg_batched(const Arguments& arg)
             rparams.copy_from(hparams);
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(
                 rocblas_rotgm_batched_fn(handle, rd1, rd2, rx, ry, rparams, batch_count));
+            handle.post_test(arg);
 
             if(arg.unit_check)
             {
@@ -231,6 +232,7 @@ void testing_rotmg_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dparams.transfer_from(hparams));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(rocblas_rotgm_batched_fn(handle,
                                                          dd1.ptr_on_device(),
                                                          dd2.ptr_on_device(),
@@ -238,6 +240,7 @@ void testing_rotmg_batched(const Arguments& arg)
                                                          dy.ptr_on_device(),
                                                          dparams.ptr_on_device(),
                                                          batch_count));
+            handle.post_test(arg);
 
             host_batch_vector<T> rd1(1, 1, batch_count);
             host_batch_vector<T> rd2(1, 1, batch_count);

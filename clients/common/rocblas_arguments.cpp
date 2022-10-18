@@ -118,6 +118,7 @@ void Arguments::init()
     c_noalias_d = false;
     HMM         = false;
     fortran     = false;
+    graph_test  = false;
 }
 
 static Arguments& getDefaultArgs()
