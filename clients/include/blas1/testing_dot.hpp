@@ -163,12 +163,16 @@ void testing_dot(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, &rocblas_result_1));
+        handle.post_test(arg);
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(
             hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T), hipMemcpyDeviceToHost));
 

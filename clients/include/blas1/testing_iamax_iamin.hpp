@@ -142,7 +142,9 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, d_rocblas_result));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hipMemcpy(
             &h_rocblas_result_2, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
 

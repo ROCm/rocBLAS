@@ -131,9 +131,11 @@ void testing_copy_strided_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
+        handle.pre_test(arg);
         // GPU BLAS
         CHECK_ROCBLAS_ERROR(rocblas_copy_strided_batched_fn(
             handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hy.transfer_from(dy));
 
         // CPU BLAS

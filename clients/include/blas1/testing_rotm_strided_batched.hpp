@@ -234,6 +234,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(dx.transfer_from(hx));
                 CHECK_HIP_ERROR(dy.transfer_from(hy));
                 CHECK_HIP_ERROR(dparam.transfer_from(hparam));
+                handle.pre_test(arg);
 
                 CHECK_ROCBLAS_ERROR((rocblas_rotm_strided_batched_fn(handle,
                                                                      N,
@@ -246,6 +247,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
                                                                      dparam,
                                                                      stride_param,
                                                                      batch_count)));
+                handle.post_test(arg);
 
                 host_strided_batch_vector<T> rx(N, incx ? incx : 1, stride_x, batch_count);
                 host_strided_batch_vector<T> ry(N, incy ? incy : 1, stride_y, batch_count);

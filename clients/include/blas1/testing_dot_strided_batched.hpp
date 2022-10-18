@@ -237,6 +237,7 @@ void testing_dot_strided_batched(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(handle,
                                                              N,
                                                              dx,
@@ -247,9 +248,11 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                              stride_y,
                                                              batch_count,
                                                              rocblas_result_1));
+        handle.post_test(arg);
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(handle,
                                                              N,
                                                              dx,
@@ -260,6 +263,7 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                              stride_y,
                                                              batch_count,
                                                              d_rocblas_result_2));
+        handle.post_test(arg);
 
         CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 

@@ -131,6 +131,7 @@ struct Arguments
     bool c_noalias_d;
     bool HMM;
     bool fortran;
+    bool graph_test;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -200,7 +201,8 @@ struct Arguments
     OPER(diag) SEP                   \
     OPER(c_noalias_d) SEP            \
     OPER(HMM) SEP                    \
-    OPER(fortran)
+    OPER(fortran) SEP                \
+    OPER(graph_test)
 
     // clang-format on
 
