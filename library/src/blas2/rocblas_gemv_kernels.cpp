@@ -25,7 +25,7 @@
 #include "gemv_device.hpp"
 #include "handle.hpp"
 #include "rocblas_gemv.hpp"
-#include "rocblas_gemv_threshold.hpp"
+#include "rocblas_level2_threshold.hpp"
 
 // The warpSize * 2 corresponds to the number of x-dimension threads per block optimized for better performance in the double_buffered_kernels.
 constexpr int rocblas_gemv_bx()
