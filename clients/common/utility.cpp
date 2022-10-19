@@ -37,6 +37,8 @@
 
 #ifdef WIN32
 #define strcasecmp(A, B) _stricmp(A, B)
+#define setenv(A, B, C) _putenv_s(A, B)
+#define unsetenv(A) _putenv_s(A, "")
 
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
