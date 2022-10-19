@@ -22,6 +22,10 @@ Definitions:
     - { N:    33, lda:   33 }
     - { N:   300, lda:  600 }
 
+  - &double_buffered_loads_size_range
+    - { N:  256, lda:  256 }
+    - { N: 1024, lda: 1028 }
+
   - &large_matrix_size_range
     - { N:  4011, lda:  4011 }
     - { N:  7000, lda:  7000 }
@@ -91,6 +95,15 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
 
+- name: symv_medium_double_buffered
+  category: pre_checkin
+  function: symv
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *double_buffered_loads_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *complex_alpha_beta_range
+
 - name: symv_large
   category: nightly
   function: symv
@@ -137,6 +150,16 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
   batch_count: [ 1, 257 ]
+
+- name: symv_batched_medium_double_buffered
+  category: pre_checkin
+  function: symv_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *double_buffered_loads_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *complex_alpha_beta_range
+  batch_count: [ 25 ]
 
 - name: symv_batched_large
   category: nightly
@@ -185,6 +208,16 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
   batch_count: [ 1, 257 ]
+
+- name: symv_strided_batched_medium
+  category: pre_checkin
+  function: symv_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *double_buffered_loads_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *complex_alpha_beta_range
+  batch_count: [ 26 ]
 
 - name: symv_strided_batched_large
   category: nightly

@@ -1,4 +1,4 @@
-/* ************************************************************************
+/*************************************************************************
  * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,42 +18,70 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * ************************************************************************ */
+ * Copyright (c) 2012-, King Abdullah University of Science and Technology
+ * All rights reserved.
+
+ * Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * -- Innovative Computing Laboratory
+ * -- Electrical Engineering and Computer Science Department
+ * -- University of Tennessee
+ * -- (C) Copyright (C) 2009-2020
+
+ * Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+  * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+  * Neither the name of the University of Tennessee, Knoxville nor the
+    names of its contributors may be used to endorse or promote products
+    derived from this software without specific prior written permission.
+
+ * This software is provided by the copyright holders and contributors
+ * ``as is'' and any express or implied warranties, including, but not
+ * limited to, the implied warranties of merchantability and fitness for
+ * a particular purpose are disclaimed. In no event shall the copyright
+ * holders or contributors be liable for any direct, indirect, incidental,
+ * special, exemplary, or consequential damages (including, but not
+ * limited to, procurement of substitute goods or services; loss of use,
+ * data, or profits; or business interruption) however caused and on any
+ * theory of liability, whether in contract, strict liability, or tort
+ * (including negligence or otherwise) arising in any way out of the use
+ * of this software, even if advised of the possibility of such damage.
+ **************************************************************************/
 
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "rocblas_hemv_symv.hpp"
-
-//-- Innovative Computing Laboratory
-//  -- Electrical Engineering and Computer Science Department
-//  -- University of Tennessee
-//  -- (C) Copyright (C) 2009-2020
-//
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions
-//  are met:
-//
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of the University of Tennessee, Knoxville nor the
-//    names of its contributors may be used to endorse or promote products
-//    derived from this software without specific prior written permission.
-//
-//  This software is provided by the copyright holders and contributors
-//  ``as is'' and any express or implied warranties, including, but not
-//  limited to, the implied warranties of merchantability and fitness for
-//  a particular purpose are disclaimed. In no event shall the copyright
-//  holders or contributors be liable for any direct, indirect, incidental,
-//  special, exemplary, or consequential damages (including, but not
-//  limited to, procurement of substitute goods or services; loss of use,
-//  data, or profits; or business interruption) however caused and on any
-//  theory of liability, whether in contract, strict liability, or tort
-//  (including negligence or otherwise) arising in any way out of the use
-//  of this software, even if advised of the possibility of such damage.
+#include "rocblas_level2_threshold.hpp"
 
 constexpr int rocblas_hemv_DIM_X()
 {
@@ -1163,6 +1191,278 @@ hemvn_kernel_lower_block_sum(rocblas_int    n,
 }
 // end hemvn_kernel_lower_block_sum_calc
 
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
+ROCBLAS_KERNEL_ILF void symv_kernel_upper_double_buffered_diagonal_calc(rocblas_int n,
+                                                                        T           alpha,
+                                                                        const T* __restrict__ A,
+                                                                        rocblas_int lda,
+                                                                        const T* __restrict__ x,
+                                                                        rocblas_int incx,
+                                                                        T           beta,
+                                                                        T* __restrict__ y,
+                                                                        int incy)
+{
+    const int tx   = threadIdx.x;
+    const int ty   = threadIdx.y;
+    const int blkc = blockIdx.x;
+    const int td   = (DIM_X * ty) + tx;
+
+    T res  = T(0);
+    T yold = T(0);
+
+    __shared__ T la[DIM_X * DIM_X];
+    __shared__ T buff[DIM_X];
+    __shared__ T accum[DIM_X * (2 * DIM_Y)];
+
+    // Advance 'A' to start of diagonal blocks first
+    A += DIM_X * blkc * (size_t(lda) + 1);
+
+    // Advance 'A' to start row for each thread inside the diagonal block
+    A += ty * lda + tx;
+
+    // Advance 'x'
+    x += (blkc * DIM_X) * incx;
+
+    // Advance 'y'
+    y += (blkc * DIM_X) * incy;
+
+    if(ty == 0)
+    {
+        buff[tx] = x[incx * tx];
+        yold     = beta * y[incy * tx];
+    }
+
+    // load first chunk
+    if(tx < (DIM_X / 2))
+    {
+#pragma unroll
+        for(int j = 0; j < (DIM_X / 2); j += DIM_Y)
+            la[td + j * DIM_X] = A[j * lda];
+    }
+
+    // Advance to second chunk
+    A += (DIM_X / 2) * lda;
+
+// load second chunk first
+#pragma unroll
+    for(int j = 0; j < (DIM_X / 2); j += DIM_Y)
+        la[DIM_X * ((DIM_X / 2) + j + ty) + tx] = A[j * lda];
+
+    __syncthreads();
+
+// mirror second chunk
+#pragma unroll
+    for(int j = 0; j < (DIM_X / 2); j += DIM_Y)
+        if(abs(tx - ty) > (j + (DIM_X / 2)))
+            la[DIM_X * ((DIM_X / 2) + j + ty) + tx] = la[DIM_X * tx + (DIM_X / 2) + j + ty];
+
+    // mirror first chunk
+    if(ty <= tx)
+        la[td] = la[tx * DIM_X + ty];
+
+#pragma unroll
+    for(int j = DIM_Y; j < (DIM_X / 2); j += DIM_Y)
+        if(abs(tx - ty) > j)
+            la[tx + (ty + j) * DIM_X] = la[ty + j + tx * DIM_X];
+
+    __syncthreads();
+
+// compute first chunk
+#pragma unroll
+    for(int j = 0; j < (DIM_X / 2); j += DIM_Y)
+        res += la[(ty + j) * DIM_X + tx] * buff[j + ty];
+
+// compute second chunk
+#pragma unroll
+    for(int j = (DIM_X / 2); j < 2 * (DIM_X / 2); j += DIM_Y)
+        res += la[(ty + j) * DIM_X + tx] * buff[j + ty];
+
+    accum[td] = res;
+    __syncthreads();
+
+    if(ty == 0)
+    {
+        res = T(0);
+#pragma unroll
+        for(int j = 0; j < DIM_Y; j++)
+            res += accum[j * DIM_X + tx];
+
+        res *= alpha;
+        y[tx * incy] = yold + res;
+    }
+}
+
+template <rocblas_int DIM_X,
+          rocblas_int DIM_Y,
+          rocblas_int elements_per_thread,
+          typename T,
+          std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
+ROCBLAS_KERNEL_ILF void symv_kernel_upper_double_buffered_non_diagonal_calc(rocblas_int n,
+                                                                            T           alpha,
+                                                                            const T* __restrict__ A,
+                                                                            rocblas_int lda,
+                                                                            const T*    x,
+                                                                            ptrdiff_t   incx,
+                                                                            T*          y,
+                                                                            int         incy)
+{
+    const int tx   = threadIdx.x;
+    const int ty   = threadIdx.y;
+    const int td   = (DIM_X * ty) + tx;
+    const int tx_  = td % (DIM_X / 2);
+    const int ty_  = td / (DIM_X / 2);
+    const int blkc = blockIdx.x;
+    const int by   = blockIdx.y;
+
+    // compute how many matrix blocks to be processed
+    int count = blkc / gridDim.y;
+
+    T res_1_ = T(0);
+    T res_2_ = T(0);
+    T x1, x2;
+
+    const T* xcopy;
+    T*       ycopy;
+
+    __shared__ T la[DIM_X * (DIM_X / 2)];
+    __shared__ T accum[DIM_X * (2 * DIM_Y)];
+    __shared__ T xbuff[DIM_X];
+
+    T A_reg_upper[elements_per_thread];
+    T A_reg_lower[elements_per_thread];
+    T treg[elements_per_thread] = {T(0)};
+
+    // Advance 'A' to the start a non-diagonal block
+    A += DIM_X * blkc * size_t(lda);
+
+    // divide the work among y-direction of the grid
+    A += (by * count) * DIM_X;
+
+    xcopy = x + (blkc * DIM_X) * incx;
+    x += (by * count * DIM_X) * incx;
+
+    if(blkc == 0)
+        return;
+
+    if(ty == 0)
+        xbuff[tx] = xcopy[tx * incx];
+
+    // Advance 'y'
+    ycopy = y;
+    y += (blkc * DIM_X) * incy;
+    ycopy += (by * count * DIM_X) * incy;
+
+    if(by == gridDim.y - 1)
+        count += blkc % gridDim.y;
+
+    if(count == 0)
+        return;
+
+    const int j = ty_ * elements_per_thread * lda + tx_;
+
+    __syncthreads();
+
+// prefetch upper
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        A_reg_upper[k] = A[j + k * lda];
+
+    x1 = x[incx * tx_];
+
+    //#pragma unroll
+    for(int Vblocks = 0; Vblocks < count; Vblocks++)
+    {
+        res_1_ = T(0);
+        res_2_ = T(0);
+
+        x2 = x[incx * (tx_ + (DIM_X / 2))];
+
+// prefetch lower
+#pragma unroll
+        for(int k = 0; k < elements_per_thread; k++)
+            A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+
+// compute upper
+#pragma unroll
+        for(int k = 0; k < elements_per_thread; k++)
+        {
+            res_1_ += A_reg_upper[k] * xbuff[ty_ * elements_per_thread + k];
+            treg[k] += A_reg_upper[k] * x1;
+        }
+
+        // Advance to next block in A
+        A += DIM_X;
+        x += DIM_X * incx;
+
+        if(Vblocks != count - 1)
+        {
+// prefetch upper of next block
+#pragma unroll
+            for(int k = 0; k < elements_per_thread; k++)
+                A_reg_upper[k] = A[j + k * lda];
+
+            x1 = x[incx * tx_];
+        }
+
+#pragma unroll
+        for(int k = 0; k < elements_per_thread; k++)
+        {
+            res_2_ += A_reg_lower[k] * xbuff[ty_ * elements_per_thread + k];
+            treg[k] += A_reg_lower[k] * x2;
+        }
+
+        // Horizontal block should be stored in global memory
+        __syncthreads();
+        accum[ty_ * DIM_X + tx_]               = res_1_;
+        accum[ty_ * DIM_X + tx_ + (DIM_X / 2)] = res_2_;
+        __syncthreads();
+        if(ty == 0)
+        {
+            res_1_ = T(0);
+#pragma unroll
+            for(int k = 0; k < (2 * DIM_Y); k++)
+                res_1_ += accum[k * DIM_X + tx];
+
+            // use atomics
+            atomicAdd(&ycopy[incy * tx], res_1_ * alpha);
+            ycopy += DIM_X * incy;
+        }
+    } // end of for loop on blocks
+
+#pragma unroll
+    for(int k = 0; k < elements_per_thread; k++)
+        la[(ty_ * elements_per_thread + k) * (DIM_X / 2) + tx_] = treg[k];
+
+    __syncthreads(); // important
+
+    if(ty == 0)
+    {
+        treg[0] = T(0);
+#pragma unroll
+        for(int j = tx; j < tx + (DIM_X / 2); j++)
+            treg[0] += la[tx * (DIM_X / 2) + (j % (DIM_X / 2))];
+
+        // use atomics
+        atomicAdd(&y[tx * incy], treg[0] * alpha);
+    }
+}
+
+template <rocblas_int DIM_X,
+          rocblas_int DIM_Y,
+          rocblas_int elements_per_thread,
+          typename T,
+          std::enable_if_t<rocblas_is_complex<T>, int> = 0>
+ROCBLAS_KERNEL_ILF void symv_kernel_upper_double_buffered_non_diagonal_calc(rocblas_int n,
+                                                                            T           alpha,
+                                                                            const T* __restrict__ A,
+                                                                            rocblas_int lda,
+                                                                            const T* __restrict__ x,
+                                                                            ptrdiff_t incx,
+                                                                            T* __restrict__ y,
+                                                                            int incy)
+{
+}
+
 template <bool        IS_HEMV,
           rocblas_int NB_X,
           rocblas_int NB_Y,
@@ -1251,6 +1551,81 @@ hemvn_kernel_lower(rocblas_int    n,
         n, alpha, A, lda, x, incx, workspace);
 }
 
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TStruct, typename V, typename TPtr>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+symv_kernel_upper_double_buffered_diagonal(bool           host_ptr_mode,
+                                           rocblas_int    n,
+                                           TStruct        alpha_device_host,
+                                           rocblas_stride stride_alpha,
+                                           V              Aa,
+                                           rocblas_stride shifta,
+                                           rocblas_int    lda,
+                                           rocblas_stride strideA,
+                                           V              xa,
+                                           rocblas_stride shiftx,
+                                           rocblas_int    incx,
+                                           rocblas_stride stridex,
+                                           TStruct        beta_device_host,
+                                           rocblas_stride stride_beta,
+                                           TPtr __restrict__ ya,
+                                           rocblas_stride shifty,
+                                           rocblas_int    incy,
+                                           rocblas_stride stridey)
+{
+    const auto alpha = host_ptr_mode ? alpha_device_host.value
+                                     : load_scalar(alpha_device_host.ptr, blockIdx.y, stride_alpha);
+    const auto beta  = host_ptr_mode ? beta_device_host.value
+                                     : load_scalar(beta_device_host.ptr, blockIdx.y, stride_beta);
+
+    if(!alpha && beta == 1)
+        return;
+
+    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
+    auto*       y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
+
+    symv_kernel_upper_double_buffered_diagonal_calc<DIM_X, DIM_Y>(
+        n, alpha, A, lda, x, incx, beta, y, incy);
+}
+
+template <rocblas_int DIM_X,
+          rocblas_int DIM_Y,
+          rocblas_int elements_per_thread,
+          typename TStruct,
+          typename V,
+          typename TPtr>
+ROCBLAS_KERNEL(DIM_X* DIM_Y)
+symv_kernel_upper_double_buffered_non_diagonal(bool           host_ptr_mode,
+                                               rocblas_int    n,
+                                               TStruct        alpha_device_host,
+                                               rocblas_stride stride_alpha,
+                                               V              Aa,
+                                               rocblas_stride shifta,
+                                               rocblas_int    lda,
+                                               rocblas_stride strideA,
+                                               V              xa,
+                                               rocblas_stride shiftx,
+                                               rocblas_int    incx,
+                                               rocblas_stride stridex,
+                                               TPtr __restrict__ ya,
+                                               rocblas_stride shifty,
+                                               rocblas_int    incy,
+                                               rocblas_stride stridey)
+{
+    const auto alpha = host_ptr_mode ? alpha_device_host.value
+                                     : load_scalar(alpha_device_host.ptr, blockIdx.z, stride_alpha);
+
+    if(!alpha)
+        return;
+
+    const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.z, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.z, shiftx, stridex);
+    auto*       y = load_ptr_batch(ya, blockIdx.z, shifty, stridey);
+
+    symv_kernel_upper_double_buffered_non_diagonal_calc<DIM_X, DIM_Y, elements_per_thread>(
+        n, alpha, A, lda, x, incx, y, incy);
+}
+
 /**
   *  V is either: const T* OR const T* const*
   *  W is either:       T* OR       T* const*
@@ -1291,7 +1666,21 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
+    //Identifying the precision to have an appropriate optimization
+    static constexpr bool is_float
+        = std::is_same<TPtr, rocblas_float*>{} || std::is_same<TPtr, rocblas_float* const*>{};
+
+    static constexpr bool is_double
+        = std::is_same<TPtr, double*>{} || std::is_same<TPtr, double* const*>{};
+
+    //static constexpr bool is_double   = std::is_same<TPtr, double>{};
     bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
+
+    const bool is_atomics_allowed = handle->atomics_mode == rocblas_atomics_allowed ? true : false;
+
+    //Identifying the specific architecture to have an appropriate optimization
+    bool is_gfx90a = handle->getArch() == 910 ? true : false;
+    bool is_gfx908 = handle->getArch() == 908 ? true : false;
 
     static constexpr int HEMV_DIM_X         = rocblas_hemv_DIM_X();
     static constexpr int HEMV_DIM_Y         = 4;
@@ -1314,68 +1703,141 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     if(uplo == rocblas_fill_upper)
     {
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        if(is_atomics_allowed && (n % 32 == 0)
+           && ((is_gfx90a
+                && ((is_float && n < ssymv_U_gfx908_gfx90a_higher_threshold)
+                    || (is_double && n < dsymv_U_gfx90a_higher_threshold)))
+               || (is_gfx908
+                   && ((is_float && n < ssymv_U_gfx908_gfx90a_higher_threshold)
+                       || (is_double && n < dsymv_U_gfx908_higher_threshold)))))
         {
-            if(i64_indices)
-            {
-                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
-                                                       HEMV_DIM_X,
-                                                       HEMV_DIM_Y,
-                                                       bank_shift,
-                                                       half_HEMV_DIM_X,
-                                                       quarter_HEMV_DIM_X,
-                                                       size_t>),
-                                   hemv_kernel_KARGS(alpha, beta));
+            //The following symv_kernel_upper_double_buffered is only valid for the multiples of DIM_X
+            static constexpr rocblas_int DIM_X               = 32;
+            static constexpr rocblas_int DIM_Y               = 4;
+            static constexpr rocblas_int elements_per_thread = (DIM_X / (2 * DIM_Y));
+            const int                    block_x             = n / DIM_X;
+            static constexpr rocblas_int block_y             = 8;
 
-                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                                   hemv_kernel_sum_KARGS(alpha, beta));
-            }
-            else
-            {
-                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
-                                                       HEMV_DIM_X,
-                                                       HEMV_DIM_Y,
-                                                       bank_shift,
-                                                       half_HEMV_DIM_X,
-                                                       quarter_HEMV_DIM_X,
-                                                       rocblas_int>),
-                                   hemv_kernel_KARGS(alpha, beta));
+            dim3 threads(DIM_X, DIM_Y);
+            dim3 grid(block_x, batch_count);
+            dim3 grid_(block_x, block_y, batch_count);
 
-                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                                   hemv_kernel_sum_KARGS(alpha, beta));
-            }
+            bool host_ptr_mode = handle->pointer_mode == rocblas_pointer_mode_host;
+            rocblas_internal_val_ptr<U> alpha_device_host(host_ptr_mode, alpha);
+            rocblas_internal_val_ptr<U> beta_device_host(host_ptr_mode, beta);
+
+            hipLaunchKernelGGL((symv_kernel_upper_double_buffered_diagonal<DIM_X, DIM_Y>),
+                               grid,
+                               threads,
+                               0,
+                               rocblas_stream,
+                               host_ptr_mode,
+                               n,
+                               alpha_device_host,
+                               stride_alpha,
+                               A,
+                               offseta,
+                               lda,
+                               strideA,
+                               x,
+                               shiftx,
+                               incx,
+                               stridex,
+                               beta_device_host,
+                               stride_beta,
+                               y,
+                               shifty,
+                               incy,
+                               stridey);
+
+            hipLaunchKernelGGL(
+                (symv_kernel_upper_double_buffered_non_diagonal<DIM_X, DIM_Y, elements_per_thread>),
+                grid_,
+                threads,
+                0,
+                rocblas_stream,
+                host_ptr_mode,
+                n,
+                alpha_device_host,
+                stride_alpha,
+                A,
+                offseta,
+                lda,
+                strideA,
+                x,
+                shiftx,
+                incx,
+                stridex,
+                y,
+                shifty,
+                incy,
+                stridey);
         }
         else
         {
-            if(!*alpha && *beta == 1)
-                return rocblas_status_success;
-            if(i64_indices)
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
-                                                       HEMV_DIM_X,
-                                                       HEMV_DIM_Y,
-                                                       bank_shift,
-                                                       half_HEMV_DIM_X,
-                                                       quarter_HEMV_DIM_X,
-                                                       size_t>),
-                                   hemv_kernel_KARGS(*alpha, *beta));
+                if(i64_indices)
+                {
+                    hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                           HEMV_DIM_X,
+                                                           HEMV_DIM_Y,
+                                                           bank_shift,
+                                                           half_HEMV_DIM_X,
+                                                           quarter_HEMV_DIM_X,
+                                                           size_t>),
+                                       hemv_kernel_KARGS(alpha, beta));
 
-                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                                   hemv_kernel_sum_KARGS(*alpha, *beta));
+                    hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                       hemv_kernel_sum_KARGS(alpha, beta));
+                }
+                else
+                {
+                    hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                           HEMV_DIM_X,
+                                                           HEMV_DIM_Y,
+                                                           bank_shift,
+                                                           half_HEMV_DIM_X,
+                                                           quarter_HEMV_DIM_X,
+                                                           rocblas_int>),
+                                       hemv_kernel_KARGS(alpha, beta));
+
+                    hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                       hemv_kernel_sum_KARGS(alpha, beta));
+                }
             }
             else
             {
-                hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
-                                                       HEMV_DIM_X,
-                                                       HEMV_DIM_Y,
-                                                       bank_shift,
-                                                       half_HEMV_DIM_X,
-                                                       quarter_HEMV_DIM_X,
-                                                       rocblas_int>),
-                                   hemv_kernel_KARGS(*alpha, *beta));
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+                if(i64_indices)
+                {
+                    hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                           HEMV_DIM_X,
+                                                           HEMV_DIM_Y,
+                                                           bank_shift,
+                                                           half_HEMV_DIM_X,
+                                                           quarter_HEMV_DIM_X,
+                                                           size_t>),
+                                       hemv_kernel_KARGS(*alpha, *beta));
 
-                hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                                   hemv_kernel_sum_KARGS(*alpha, *beta));
+                    hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                       hemv_kernel_sum_KARGS(*alpha, *beta));
+                }
+                else
+                {
+                    hipLaunchKernelGGL((hemvn_kernel_upper<IS_HEMV,
+                                                           HEMV_DIM_X,
+                                                           HEMV_DIM_Y,
+                                                           bank_shift,
+                                                           half_HEMV_DIM_X,
+                                                           quarter_HEMV_DIM_X,
+                                                           rocblas_int>),
+                                       hemv_kernel_KARGS(*alpha, *beta));
+
+                    hipLaunchKernelGGL((hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                                       hemv_kernel_sum_KARGS(*alpha, *beta));
+                }
             }
         }
     }
