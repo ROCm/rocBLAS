@@ -18,7 +18,7 @@ Definitions:
     - { incx:  2, incy:  1 }
     - { incx:  1, incy: -1 }
     - { incx: -1, incy:  1 }
-    - { incx: -1, incy: -1 }
+    - { incx: -3, incy: -3 }
     - { incx:  0, incy:  1 }
     - { incx:  0, incy:  0 }
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
@@ -28,8 +28,8 @@ Definitions:
     - { incx:  1, incy:  2 }
     - { incx:  2, incy:  1 }
     - { incx:  1, incy: -1 }
-    - { incx: -1, incy:  1 }
-    - { incx: -1, incy: -1 }
+    - { incx: -3, incy:  1 }
+    - { incx: -3, incy: -3 }
     # - { incx:  0, incy:  0 } # Indeterminate for swap
     # - { incx:  0, incy:  1 } # Indeterminate when x is output (swap)
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
@@ -38,16 +38,16 @@ Definitions:
     - { incx:  1, incy:  1 }
     - { incx:  1, incy:  2 }
     - { incx:  2, incy:  1 }
-    - { incx:  1, incy: -1 }
+    - { incx:  1, incy: -3 }
     - { incx: -1, incy:  1 }
-    - { incx: -1, incy: -1 }
+    - { incx: -3, incy: -3 }
     - { incx:  0, incy:  1 }
     # - { incx:  0, incy:  0 } # Indeterminate for axpy
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
 
   - &incx_incy_range_small
     - { incx: 1, incy: 1 }
-    - { incx: -1, incy: -1 }
+    - { incx: -3, incy: -3 }
 
   - &alpha_beta_range
     - { alpha:  1.0, beta:  0.0 }
