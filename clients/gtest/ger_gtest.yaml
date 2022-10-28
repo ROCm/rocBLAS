@@ -247,4 +247,18 @@ Tests:
   alpha: [ -0.5, 0.0 ]
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
+
+- name: ger_graph_test
+  category: pre_checkin
+  function:
+        - ger
+        - ger_batched
+        - ger_strided_batched
+  precision: *single_double_precisions
+  matrix_size:
+        - { M:   33, N:   32, lda:   33, stride_a: 1056 }
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 5 ]
+  graph_test: true
 ...

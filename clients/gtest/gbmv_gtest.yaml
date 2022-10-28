@@ -256,4 +256,19 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
+
+- name: gbmv_graph_test
+  category: pre_checkin
+  function:
+        - gbmv
+        - gbmv_batched
+        - gbmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  transA: N
+  matrix_size:
+        - { M: 100, N: 200, lda: 200, KL: 20, KU: 8}
+  incx_incy: *incx_incy_range_tiny
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 5 ]
+  graph_test: true
 ...

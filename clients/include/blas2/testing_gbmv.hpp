@@ -317,12 +317,16 @@ void testing_gbmv(const Arguments& arg)
         d_beta.transfer_from(hbeta);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, &h_alpha, dAb, lda, dx, incx, &h_beta, dy_1, incy));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, d_alpha, dAb, lda, dx, incx, d_beta, dy_2, incy));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

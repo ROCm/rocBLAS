@@ -217,12 +217,16 @@ void testing_spr_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_spr_strided_batched_fn(
             handle, uplo, N, &h_alpha, dx, incx, stride_x, dAp_1, stride_A, batch_count));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_spr_strided_batched_fn(
             handle, uplo, N, d_alpha, dx, incx, stride_x, dAp_2, stride_A, batch_count));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

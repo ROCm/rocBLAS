@@ -167,5 +167,18 @@ Tests:
   batch_count: [ 1, 3 ]
   stride_scale: [1]
 
-
+- name: sbmv_graph_test
+  category: pre_checkin
+  function:
+        - sbmv
+        - sbmv_batched
+        - sbmv_strided_batched
+  precision: *single_double_precisions
+  matrix_size: *tiny_matrix
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 5 ]
+  graph_test: true
 ...
