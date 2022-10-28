@@ -395,6 +395,7 @@ void testing_gemv_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_gemv_batched_fn(handle,
                                                     transA,
                                                     M,
@@ -408,8 +409,10 @@ void testing_gemv_batched(const Arguments& arg)
                                                     dy_1.ptr_on_device(),
                                                     incy,
                                                     batch_count));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_gemv_batched_fn(handle,
                                                     transA,
                                                     M,
@@ -423,6 +426,7 @@ void testing_gemv_batched(const Arguments& arg)
                                                     dy_2.ptr_on_device(),
                                                     incy,
                                                     batch_count));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

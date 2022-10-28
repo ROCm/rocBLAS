@@ -187,6 +187,7 @@ void testing_tbmv_batched(const Arguments& arg)
     {
         // pointer mode shouldn't matter here
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_tbmv_batched_fn(handle,
                                                     uplo,
                                                     transA,
@@ -198,6 +199,7 @@ void testing_tbmv_batched(const Arguments& arg)
                                                     dx.ptr_on_device(),
                                                     incx,
                                                     batch_count));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

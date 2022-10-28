@@ -162,4 +162,18 @@ Tests:
   incx: [ -1, 1, 2, 3 ]
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
+
+- name: trsv_graph_test
+  category: pre_checkin
+  function:
+        - trsv
+        - trsv_batched
+        - trsv_strided_batched
+  arguments: *common_args
+  matrix_size:
+    - { M:   192, lda:   192, stride_a: 36864 }
+  incx: [ 1 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
+  graph_test: true
 ...

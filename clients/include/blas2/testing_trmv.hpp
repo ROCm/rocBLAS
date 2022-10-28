@@ -146,8 +146,10 @@ void testing_trmv(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
 
+        handle.pre_test(arg);
         // ROCBLAS
         CHECK_ROCBLAS_ERROR(rocblas_trmv_fn(handle, uplo, transA, diag, M, dA, lda, dx, incx));
+        handle.post_test(arg);
 
         // CPU BLAS
         {

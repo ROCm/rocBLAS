@@ -178,4 +178,19 @@ Tests:
   incx: [ 1 ]
   stride_scale: [ 1 ]
   batch_count: [ 2 ]
+
+- name: tpsv_graph_test
+  category: pre_checkin
+  function:
+        - tpsv
+        - tpsv_batched
+        - tpsv_strided_batched
+  arguments: *common_args
+  matrix_size:
+    - { N:    32 }
+  incx: [ 1 ]
+  incx: [ 1 ]
+  stride_scale: [ 2 ]
+  batch_count: [ 3 ]
+  graph_test: true
 ...

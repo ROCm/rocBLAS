@@ -181,4 +181,15 @@ Tests:
   incx: [ 1 ]
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
+
+- name: tbsv_graph_test
+  category: pre_checkin
+  function: tbsv_strided_batched
+  arguments: *common_args
+  matrix_size:
+    - { N:   128, K:   1, lda: 128 }
+  incx: [ 1 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
+  graph_test: true
 ...

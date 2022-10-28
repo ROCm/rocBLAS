@@ -177,9 +177,10 @@ void testing_tbsv(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAb, lda, dx_or_b, incx));
+        handle.post_test(arg);
 
         CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
@@ -187,8 +188,10 @@ void testing_tbsv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
 
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAb, lda, dx_or_b, incx));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b

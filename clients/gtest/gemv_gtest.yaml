@@ -448,4 +448,19 @@ Tests:
   matrix_size: *size_t_index
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
+
+- name: gemv_graph_test
+  category: pre_checkin
+  function:
+        - gemv
+        - gemv_batched
+        - gemv_strided_batched
+  precision: *single_double_precisions_complex_real
+  transA: N
+  matrix_size:
+        - { M:   100, N:   200, lda:  200, stride_a:    40000 }
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 5 ]
+  graph_test: true
 ...
