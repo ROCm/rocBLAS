@@ -294,13 +294,15 @@ constexpr double gbmv_gflop_count<rocblas_double_complex>(
 template <typename T>
 constexpr double gemv_gflop_count(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
-    return (2.0 * double(m) * n + 2.0 * double(m)) / 1e9;
+    return (2.0 * double(m) * n + 2.0 * (transA == rocblas_operation_none ? double(m) : double(n)))
+           / 1e9;
 }
 template <>
 constexpr double
     gemv_gflop_count<rocblas_float_complex>(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
-    return (8.0 * double(m) * n + 6.0 * (double(m) + n)) / 1e9;
+    return (8.0 * double(m) * n + 6.0 * (transA == rocblas_operation_none ? double(m) : double(n)))
+           / 1e9;
 }
 
 template <>
