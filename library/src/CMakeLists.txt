@@ -591,7 +591,7 @@ if( BUILD_SHARED_LIBS )
     )
 else()
   # static
-  if (DEFINED Tensile_LIBRARY_FORMAT AND ${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
+  if (NOT BUILD_WITH_TENSILE OR (Tensile_LIBRARY_FORMAT MATCHES "msgpack"))
     # header only tensile usage of msgpack
     rocm_export_targets(
       TARGETS roc::rocblas
