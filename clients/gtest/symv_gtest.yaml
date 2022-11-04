@@ -15,7 +15,8 @@ Definitions:
     - { N:  0, lda: 1, incx: 1, incy: 1, batch_count: -1 }
 
   - &tiny_matrix_size
-    - { N:    33, lda:   33 }
+    - { N:    32, lda:   32 }
+    - { N:    33, lda:   33 } # Covers the special case double buffered kernel testing
 
   - &medium_matrix_size_range
     - { N:    10, lda:    2 }

@@ -1214,6 +1214,17 @@ ROCBLAS_KERNEL_ILF void symv_kernel_upper_double_buffered_diagonal_calc(rocblas_
     __shared__ T buff[DIM_X];
     __shared__ T accum[DIM_X * (2 * DIM_Y)];
 
+    // Advance 'y'
+    y += (bx * DIM_X) * incy;
+
+    // Early return when alpha == 0
+    if(!alpha)
+    {
+        if(ty == 0)
+            y[incy * tx] *= beta;
+        return;
+    }
+
     // Advance 'A' to start of diagonal blocks first
     A += DIM_X * bx * (size_t(lda) + 1);
 
@@ -1223,13 +1234,13 @@ ROCBLAS_KERNEL_ILF void symv_kernel_upper_double_buffered_diagonal_calc(rocblas_
     // Advance 'x'
     x += (bx * DIM_X) * incx;
 
-    // Advance 'y'
-    y += (bx * DIM_X) * incy;
-
     if(ty == 0)
     {
+        // skip beta * y when beta == 0
+        if(beta)
+            yold = beta * y[incy * tx];
+
         buff[tx] = x[incx * tx];
-        yold     = beta * y[incy * tx];
     }
 
     // load first chunk
@@ -1288,7 +1299,11 @@ ROCBLAS_KERNEL_ILF void symv_kernel_upper_double_buffered_diagonal_calc(rocblas_
             res += accum[j * DIM_X + tx];
 
         res *= alpha;
-        y[tx * incy] = yold + res;
+
+        if(beta)
+            res += yold;
+
+        y[tx * incy] = res;
     }
 }
 
@@ -1486,6 +1501,17 @@ ROCBLAS_KERNEL_ILF void symv_kernel_lower_double_buffered_diagonal_calc(rocblas_
     __shared__ T buff[DIM_X];
     __shared__ T accum[DIM_X * (2 * DIM_Y)];
 
+    // Advance 'y'
+    y += (bx * DIM_X) * incy;
+
+    // Early return when alpha == 0
+    if(!alpha)
+    {
+        if(ty == 0)
+            y[incy * tx] *= beta;
+        return;
+    }
+
     // Advance 'A' to start of diagonal blocks first
     A += DIM_X * bx * (size_t(lda) + 1);
 
@@ -1495,12 +1521,11 @@ ROCBLAS_KERNEL_ILF void symv_kernel_lower_double_buffered_diagonal_calc(rocblas_
     // Advance 'x'
     x += (bx * DIM_X) * incx;
 
-    // Advance 'y'
-    y += (bx * DIM_X) * incy;
-
     if(ty == 0)
     {
-        yold     = beta * y[incy * tx];
+        // skip beta * y when beta == 0
+        if(beta)
+            yold = beta * y[incy * tx];
         buff[tx] = x[incx * tx];
     }
 
@@ -1562,7 +1587,9 @@ ROCBLAS_KERNEL_ILF void symv_kernel_lower_double_buffered_diagonal_calc(rocblas_
         for(int k = 0; k < DIM_Y; k++)
             res += accum[k * DIM_X + tx];
         res *= alpha;
-        res += yold;
+
+        if(beta)
+            res += yold;
 
         y[incy * tx] = res;
     }
