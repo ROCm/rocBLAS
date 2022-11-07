@@ -101,7 +101,7 @@ ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_double_complex
 
 #define NEAR_ASSERT_HALF(a, b, err) ASSERT_NEAR(double(a), double(b), err)
 
-#define NEAR_ASSERT_BF16(a, b, err) ASSERT_NEAR(double(a), double(b), err)
+#define NEAR_ASSERT_BF16(a, b, err) ASSERT_NEAR(double(rocblas_bfloat16(a)), double(b), err)
 
 #define NEAR_ASSERT_COMPLEX(a, b, err)                  \
     do                                                  \
