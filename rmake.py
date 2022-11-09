@@ -128,7 +128,7 @@ def parse_args():
     parser.add_argument(      '--run_header_testing', required=False, default=False, action='store_true',
                         help='Run post build header testing. (options, default: False')
 
-    parser.add_argument(      '--skip_ld_conf_entry', required=False, default=False,
+    parser.add_argument(      '--skip_ld_conf_entry', required=False, default=False, action='store_true',
                         help='Linux only: Skip ld.so.conf entry.')
 
     parser.add_argument('-s', '--static', required=False, default=False, dest='static_lib', action='store_true',
