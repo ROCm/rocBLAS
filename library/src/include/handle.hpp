@@ -362,13 +362,13 @@ private:
     class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
     protected:
-        // Order is important:
+        // Order is important (pointers member declared last):
         rocblas_handle handle;
         size_t         prev_device_memory_in_use;
         size_t         size;
-        bool           success;
         void*          dev_mem = nullptr;
         hipStream_t    stream_in_use;
+        bool           success;
 
     private:
         std::vector<void*> pointers; // Important: must come last
@@ -489,9 +489,9 @@ private:
             : handle(other.handle)
             , prev_device_memory_in_use(other.prev_device_memory_in_use)
             , size(other.size)
+            , dev_mem(other.dev_mem)
             , stream_in_use(other.stream_in_use)
             , success(other.success)
-            , dev_mem(other.dev_mem)
             , pointers(std::move(other.pointers))
         {
             other.success = false;
