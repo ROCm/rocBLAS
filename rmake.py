@@ -140,7 +140,7 @@ def parse_args():
     parser.add_argument('-t', '--test_local_path', dest='tensile_test_local_path', type=str, required=False, default="",
                         help='Use a local path for Tensile instead of remote GIT repo (optional)')
 
-    parser.add_argument(      '--upgrade_tensile_venv_pip', required=False, default=False,
+    parser.add_argument(      '--upgrade_tensile_venv_pip', required=False, default=False, action='store_true',
                         help='Upgrade python pip version during Tensile installation (optional, default: False)')
 
     parser.add_argument('-u', '--use-custom-version', dest='tensile_version', type=str, required=False, default="",
