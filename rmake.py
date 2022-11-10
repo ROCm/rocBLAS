@@ -128,7 +128,7 @@ def parse_args():
     parser.add_argument(      '--run_header_testing', required=False, default=False, action='store_true',
                         help='Run post build header testing. (options, default: False')
 
-    parser.add_argument(      '--skip_ld_conf_entry', required=False, default=False, action='store_true',
+    parser.add_argument(      '--skipldconf', dest='skip_ld_conf_entry', required=False, default=False, action='store_true',
                         help='Linux only: Skip ld.so.conf entry.')
 
     parser.add_argument('-s', '--static', required=False, default=False, dest='static_lib', action='store_true',
@@ -319,7 +319,7 @@ def config_cmd():
             cmake_options.append(f"-DBUILD_FORTRAN_CLIENTS=OFF")
 
     # not just for tensile
-    cmake_options.append(f"-DAMDGPU_TARGETS={args.gpu_architecture}")
+    cmake_options.append(f'-DAMDGPU_TARGETS=\"{args.gpu_architecture}\"')
 
     if not args.build_tensile:
         cmake_options.append(f"-DBUILD_WITH_TENSILE=OFF")
