@@ -364,7 +364,13 @@ void testing_gemm_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_half>{} && K > 10000)
+            if(std::is_same<T, rocblas_half>{} && (rocblas_handle(handle)->getArchMajor() == 11))
+            {
+                const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
+                near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
+            }
+            else if(std::is_same<T, rocblas_half>{} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
