@@ -643,7 +643,15 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<Tc, rocblas_half>{} && K > 10000)
+            if((rocblas_handle(handle)->getArchMajor() == 11) && (sizeof(Ti) == 2))
+            {
+                const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
+                near_check_general<To, To_hpa>(
+                    M, N, ldd, stride_d, hD_gold, hD_1, batch_count, tol);
+                near_check_general<To, To_hpa>(
+                    M, N, ldd, stride_d, hD_gold, hD_2, batch_count, tol);
+            }
+            else if(std::is_same<Tc, rocblas_half>{} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
