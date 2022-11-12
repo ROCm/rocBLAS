@@ -50,8 +50,8 @@ def parse_args():
     parser.add_argument(      '--build_dir', type=str, required=False, default = "build",
                         help='Specify path to configure & build process output directory.(optional, default: ./build)')
 
-    # parser.add_argument(      '--cleanup', required=False, default=False, action='store_true',
-    #                     help='Remove intermediary build files after build to reduce disk usage. (Linux only handled by install.sh)')
+    parser.add_argument(      '--cleanup', required=False, default=False, action='store_true',
+                        help='Remove intermediary build files after build to reduce disk usage. (Linux only handled by install.sh)')
 
     parser.add_argument('-c', '--clients', dest='build_clients', required=False, default=False, action='store_true',
                         help='Build the library clients benchmark and gtest (optional, default: False, Generated binaries will be located at <build_dir>/clients/staging)')
@@ -68,11 +68,14 @@ def parse_args():
     parser.add_argument(      '--cmake-darg', dest='cmake_dargs', required=False, action='append', default=[],
                         help='List of additional cmake defines for builds (optional, e.g. CMAKE_)')
 
+    parser.add_argument(      '--cmake_install', required=False, default=False, action='store_true',
+                        help='Linux only: Handled by install.sh')
+
     parser.add_argument(      '--codecoverage', required=False, default=False, action='store_true',
                         help='Code coverage build. Requires Debug (-g|--debug) or RelWithDebInfo mode (-k|--relwithdebinfo), (optional, default: False)')
 
     parser.add_argument( '-d', '--dependencies', required=False, default=False, action='store_true',
-                        help=' Build and install external dependencies. (Handled by install.sh and on Windows rdeps.py')
+                        help='Build and install external dependencies. (Handled by install.sh and on Windows rdeps.py')
 
     parser.add_argument('-f', '--fork', dest='tensile_fork', type=str, required=False, default="",
                         help='Specify the username to fork the Tensile GitHub repository (e.g., ROCmSoftwarePlatform or MyUserName)')

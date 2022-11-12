@@ -446,7 +446,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
   if [ -z "$CMAKE_VERSION" ] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
       if $update_cmake == true; then
-        pushd
+        pushd .
         printf "\033[32mBuilding \033[33mcmake\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
         CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
         mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
