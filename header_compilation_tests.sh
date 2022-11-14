@@ -46,7 +46,7 @@ fi
 
 HCC=${rocm_path}/hcc/bin/hcc
 
-HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/hip/include -isystem ${rocm_path}/hsa/include -isystem ${rocm_path}/hcc/include -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
+HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/include -isystem ${rocm_path}/hcc/include -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
 
 GPU_OPTS="-Wno-unused-command-line-argument -fvisibility=hidden -fvisibility-inlines-hidden -hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
