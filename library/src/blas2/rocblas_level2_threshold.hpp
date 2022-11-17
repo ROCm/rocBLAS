@@ -50,3 +50,6 @@ constexpr int dsymv_U_gfx90a_higher_threshold        = 16000;
 // Double buffered load optimized for single and double precision for symv (lower)
 constexpr int ssymv_L_gfx90a_higher_threshold = 29000;
 constexpr int dsymv_L_gfx90a_higher_threshold = 20000;
+
+// Double buffered load optimized for double precision for symv (lower) generic cases
+constexpr int dsymv_L_gfx90a_generic_higher_threshold = 26000;
