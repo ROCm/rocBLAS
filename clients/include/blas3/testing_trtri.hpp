@@ -221,7 +221,7 @@ void testing_trtri(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            const double rel_error = get_epsilon<T>() * 1000;
+            const double rel_error = trtri_tolerance<T>(N);
             near_check_general<T>(N, N, lda, hB, hA, rel_error);
         }
 
