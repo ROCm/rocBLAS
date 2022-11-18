@@ -4,9 +4,9 @@ if (NOT python)
 endif()
 
 if (DEFINED ENV{ROCM_PATH})
-  set(rocm_bin "$ENV{ROCM_PATH}/hip/bin")
+  set(rocm_bin "$ENV{ROCM_PATH}/bin")
 else()
-  set(rocm_bin "/opt/rocm/hip/bin")
+  set(rocm_bin "/opt/rocm/bin")
 endif()
 
 # relying on env and path for backward compatibility with external recipes
