@@ -23,6 +23,8 @@
 #pragma once
 #include "rocblas.h"
 
+/*********************************************************************gemv**********************************************************************/
+
 // Threshold values of (M, N) in gfx908 and gfx906 below which the threads per block should be 512 or less to get better performance
 constexpr int gemvn_gfx908_threshold        = 15000;
 constexpr int zgemvn_gfx908_threshold       = 18000;
@@ -33,3 +35,18 @@ constexpr int gemvt_threshold               = 6000;
 
 // Threshold values of (M, N) in gfx10 and gfx11
 constexpr int sgemvt_gfx_arch_10_11_threshold = 4000;
+
+// Double buffered load optimized for single and double precision for gemv (transpose)
+constexpr int sgemvt_gfx908_lower_threshold = 7000;
+constexpr int dgemvt_gfx908_lower_threshold = 3000;
+
+/*********************************************************************symv**********************************************************************/
+
+// Double buffered load optimized for single and double precision for symv (upper)
+constexpr int ssymv_U_gfx908_gfx90a_higher_threshold = 23000;
+constexpr int dsymv_U_gfx908_higher_threshold        = 23000;
+constexpr int dsymv_U_gfx90a_higher_threshold        = 16000;
+
+// Double buffered load optimized for single and double precision for symv (lower)
+constexpr int ssymv_L_gfx90a_higher_threshold = 29000;
+constexpr int dsymv_L_gfx90a_higher_threshold = 20000;

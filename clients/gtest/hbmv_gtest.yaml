@@ -239,4 +239,18 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
   stride_scale: [ 1 ]
+
+- name: hbmv_graph_test
+  category: pre_checkin
+  function:
+        - hbmv
+        - hbmv_batched
+        - hbmv_strided_batched
+  precision: *single_double_precisions_complex
+  matrix_size: *tiny_matrix_size
+  uplo: [ U ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 5 ]
+  graph_test: true
 ...

@@ -174,8 +174,10 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(dx.transfer_from(hx));
                 CHECK_HIP_ERROR(dy.transfer_from(hy));
                 CHECK_HIP_ERROR(dparam.transfer_from(hparam));
+                handle.pre_test(arg);
 
                 CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam));
+                handle.post_test(arg);
 
                 host_vector<T> rx(N, incx ? incx : 1);
                 host_vector<T> ry(N, incy ? incy : 1);

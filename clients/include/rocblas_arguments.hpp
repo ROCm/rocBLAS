@@ -131,6 +131,7 @@ struct Arguments
     bool c_noalias_d;
     bool HMM;
     bool fortran;
+    bool graph_test;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -200,7 +201,8 @@ struct Arguments
     OPER(diag) SEP                   \
     OPER(c_noalias_d) SEP            \
     OPER(HMM) SEP                    \
-    OPER(fortran)
+    OPER(fortran) SEP                \
+    OPER(graph_test)
 
     // clang-format on
 
@@ -216,26 +218,6 @@ struct Arguments
 
     // Function to read Arguments data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg);
-
-#ifdef WIN32
-    // Clang specific code
-    template <typename T>
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
-                                                std::pair<char const*, T> p);
-
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                os,
-                                                std::pair<char const*, rocblas_datatype> p);
-
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                      os,
-                                                std::pair<char const*, rocblas_initialization> p);
-
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                        os,
-                                                std::pair<char const*, rocblas_arithmetic_check> p);
-
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&    os,
-                                                std::pair<char const*, bool> p);
-// End of Clang specific code
-#endif
 
     // Convert (alpha, alphai) and (beta, betai) to a particular type
     // Return alpha, beta adjusted to 0 for when they are NaN

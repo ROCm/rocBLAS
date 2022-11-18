@@ -1,0 +1,76 @@
+---
+include: ../../../../clients/include/rocblas_common.yaml
+
+Definitions:
+  - &multiples_of_32_sizes
+    - {N:  2048, lda:  2048 }
+    - {N:  4096, lda:  4096 }
+    - {N:  6144, lda:  6144 }
+    - {N:  8192, lda:  8192 }
+    - {N: 10240, lda: 10240 }
+    - {N: 12288, lda: 12288 }
+    - {N: 14336, lda: 14336 }
+    - {N: 16384, lda: 16384 }
+    - {N: 18432, lda: 18432 }
+    - {N: 20480, lda: 20480 }
+
+  - &generic_sizes
+    - {N:  100, lda:  100 }
+    - {N:  233, lda:  233 }
+    - {N:  573, lda:  573 }
+    - {N:  1023, lda:  1023 }
+    - {N:  3057, lda:  3057 }
+    - {N:  5143, lda:  5143 }
+    - {N:  7343, lda:  7343 }
+    - {N:  11331, lda: 11331 }
+    - {N: 13289, lda: 13289 }
+    - {N: 16384, lda: 16384 }
+    - {N: 20383, lda: 20383 }
+    - {N: 25631, lda: 25631 }
+    - {N: 31987, lda: 31987 }
+
+Tests:
+  - name: symv_upper_multiples_of_32_sizes
+    category: bench
+    function: symv
+    precision: *single_double_precisions
+    uplo: U
+    alpha: 1
+    beta: 1
+    incx: 1
+    incy: 1
+    matrix_size: *multiples_of_32_sizes
+
+  - name: symv_upper_generic_sizes
+    category: bench
+    function: symv
+    precision: *single_double_precisions
+    uplo: U
+    alpha: 1
+    beta: 1
+    incx: 1
+    incy: 1
+    matrix_size: *generic_sizes
+
+  - name: symv_lower_multiples_of_32_sizes
+    category: bench
+    function: symv
+    precision: *single_double_precisions
+    uplo: L
+    alpha: 1
+    beta: 1
+    incx: 1
+    incy: 1
+    matrix_size: *multiples_of_32_sizes
+
+  - name: symv_lower_generic_sizes
+    category: bench
+    function: symv
+    precision: *single_double_precisions
+    uplo: L
+    alpha: 1
+    beta: 1
+    incx: 1
+    incy: 1
+    matrix_size: *generic_sizes
+...

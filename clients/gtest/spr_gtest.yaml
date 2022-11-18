@@ -214,4 +214,19 @@ Tests:
   stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 
+- name: spr_graph_test
+  category: pre_checkin
+  function:
+        - spr
+        - spr_batched
+        - spr_strided_batched
+  precision: *single_double_precisions_complex_real
+  matrix_size:
+        - { N : 33 }
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 5 ]
+  graph_test: true
 ...

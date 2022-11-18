@@ -25,6 +25,9 @@
 #include "rocblas.h"
 #include <string>
 
+// these enum should have unique value names including those defined in the rocblas library
+// API enums as yaml data file processing doesn't have class scoping so can get confused to values
+
 enum class rocblas_initialization
 {
     rand_int   = 111,
@@ -35,7 +38,7 @@ enum class rocblas_initialization
 
 enum class rocblas_arithmetic_check
 {
-    none          = 111,
+    no_check      = 111,
     ieee16_ieee32 = 222,
 };
 
@@ -159,8 +162,8 @@ constexpr auto rocblas_arithmetic_check2string(rocblas_arithmetic_check check)
 {
     switch(check)
     {
-    case rocblas_arithmetic_check::none:
-        return "none";
+    case rocblas_arithmetic_check::no_check:
+        return "no_check";
     case rocblas_arithmetic_check::ieee16_ieee32:
         return "ieee16_ieee32";
     }
@@ -178,6 +181,53 @@ inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
 {
     return os << rocblas_arithmetic_check2string(check);
 }
+
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, uint8_t val)
+{
+    return os << (unsigned int)(val); // avoid 0 btye in stream as passed to gtest
+}
+
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, int8_t val)
+{
+    return os << (int)(val); // avoid 0 btye in stream as passed to gtest
+}
+
+// these next two << instantiations for std::pair simply allow the enums to be logged without quotes
+// like the rocblas API enums
+
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                      os,
+                                            std::pair<char const*, rocblas_initialization> p)
+{
+    os << p.first << ": ";
+#define CASE(x) \
+    case x:     \
+        return os << rocblas_initialization2string(x)
+    switch(p.second)
+    {
+        CASE(rocblas_initialization::rand_int);
+        CASE(rocblas_initialization::trig_float);
+        CASE(rocblas_initialization::hpl);
+        CASE(rocblas_initialization::special);
+    }
+    return os << "invalid";
+}
+#undef CASE
+
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                        os,
+                                            std::pair<char const*, rocblas_arithmetic_check> p)
+{
+    os << p.first << ": ";
+#define CASE(x) \
+    case x:     \
+        return os << rocblas_arithmetic_check2string(x)
+    switch(p.second)
+    {
+        CASE(rocblas_arithmetic_check::ieee16_ieee32);
+        CASE(rocblas_arithmetic_check::no_check);
+    }
+    return os << "invalid";
+}
+#undef CASE
 
 /* ============================================================================================ */
 /*  Convert lapack char constants to rocblas type. */
@@ -260,7 +310,7 @@ inline rocblas_arithmetic_check string2rocblas_arithmetic_check(const std::strin
 {
     return
         value == "ieee16_ieee32"   ? rocblas_arithmetic_check::ieee16_ieee32 :
-        value == "none"            ? rocblas_arithmetic_check::none :
+        value == "no_check"        ? rocblas_arithmetic_check::no_check :
         static_cast<rocblas_arithmetic_check>(0); // zero not in enum
 }
 

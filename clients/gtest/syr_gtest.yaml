@@ -213,4 +213,19 @@ Tests:
   alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
+- name: syr_graph_test
+  category: pre_checkin
+  function:
+        - syr
+        - syr_batched
+        - syr_strided_batched
+  precision: *single_double_precisions_complex_real
+  matrix_size:
+        - { N:    33, lda:    32 }
+  uplo: [ U ]
+  incx: [ 1 ]
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 5 ]
+  graph_test: true
 ...

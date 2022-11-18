@@ -253,4 +253,20 @@ Tests:
   stride_scale: [ 1.5 ]
   batch_count: [256]
 
+- name: tbmv_graph_test
+  category: pre_checkin
+  function:
+        - tbmv
+        - tbmv_batched
+        - tbmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  matrix_size:
+          - { M:   100, K:    60, lda:   65  }
+  uplo: [ U ]
+  transA: [ N ]
+  diag: [ N ]
+  stride_scale: [ 1 ]
+  batch_count: [3]
+  incx_incy: *incx_range
+  graph_test: true
 ...

@@ -227,6 +227,7 @@ void testing_rotm_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(dx.transfer_from(hx));
                 CHECK_HIP_ERROR(dy.transfer_from(hy));
                 CHECK_HIP_ERROR(dparam.transfer_from(hparam));
+                handle.pre_test(arg);
 
                 CHECK_ROCBLAS_ERROR((rocblas_rotm_batched_fn(handle,
                                                              N,
@@ -236,6 +237,7 @@ void testing_rotm_batched(const Arguments& arg)
                                                              incy,
                                                              dparam.ptr_on_device(),
                                                              batch_count)));
+                handle.post_test(arg);
 
                 host_batch_vector<T> rx(N, incx ? incx : 1, batch_count);
                 host_batch_vector<T> ry(N, incy ? incy : 1, batch_count);

@@ -1,4 +1,5 @@
 /* ************************************************************************
+ *
  * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -92,6 +93,8 @@
 #define TOO_MANY_DEVICES_STRING_GTEST "Skipped\n" TOO_MANY_DEVICES_STRING
 #define HMM_NOT_SUPPORTED_GTEST "Skipped\n" HMM_NOT_SUPPORTED
 
+#define NOOP (void)0
+
 /*!
  * Initialize rocBLAS for the current HIP device and report
  * the time taken to complete the initialization. This is used to
@@ -106,6 +109,11 @@ class rocblas_local_handle
 {
     rocblas_handle m_handle;
     void*          m_memory = nullptr;
+    hipStream_t    graph_stream;
+    hipStream_t    old_stream;
+
+    void rocblas_stream_begin_capture();
+    void rocblas_stream_end_capture();
 
 public:
     rocblas_local_handle();
@@ -127,6 +135,16 @@ public:
     operator const rocblas_handle&() const
     {
         return m_handle;
+    }
+
+    void pre_test(const Arguments& arg)
+    {
+        arg.graph_test ? rocblas_stream_begin_capture() : NOOP;
+    }
+
+    void post_test(const Arguments& arg)
+    {
+        arg.graph_test ? rocblas_stream_end_capture() : NOOP;
     }
 };
 

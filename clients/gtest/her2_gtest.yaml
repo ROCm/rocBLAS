@@ -243,4 +243,19 @@ Tests:
   stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 
+- name: her2_graph_test
+  category: pre_checkin
+  function:
+        - her2
+        - her2_batched
+        - her2_strided_batched
+  precision: *single_double_precisions_complex
+  matrix_size:
+        - { N:    33, lda:  35 }
+  uplo: [ U ]
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 5 ]
+  graph_test: true
 ...

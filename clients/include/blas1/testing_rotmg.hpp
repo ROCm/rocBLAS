@@ -102,8 +102,10 @@ void testing_rotmg(const Arguments& arg)
             // Allocate host memory
             host_vector<T> hparams = params;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(rocblas_rotgm_fn(
                 handle, &hparams[0], &hparams[1], &hparams[2], &hparams[3], &hparams[4]));
+            handle.post_test(arg);
 
             if(arg.unit_check)
                 near_check_general<T>(1, 9, 1, hparams_gold, hparams, rel_error);
@@ -123,9 +125,11 @@ void testing_rotmg(const Arguments& arg)
             CHECK_HIP_ERROR(dparams.transfer_from(params));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
 
             CHECK_ROCBLAS_ERROR(rocblas_rotgm_fn(
                 handle, dparams, dparams + 1, dparams + 2, dparams + 3, dparams + 4));
+            handle.post_test(arg);
 
             host_vector<T> hparams(9, 1);
 

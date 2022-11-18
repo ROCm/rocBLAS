@@ -1989,11 +1989,14 @@ environment variables can set the full path name for a log file:
 * ``ROCBLAS_LOG_BENCH_PATH`` sets the full path name for bench logging.
 * ``ROCBLAS_LOG_PROFILE_PATH`` sets the full path name for profile logging.
 
-If one of these environment variables is not set, then ``ROCBLAS_LOG_PATH``
-sets the full path for the corresponding logging, if it is set.
+For example, in Bash shell, to output bench logging to the file
+``bench_logging.txt`` in your present working directory:
 
-If neither the above nor ``ROCBLAS_LOG_PATH`` is set, then the
-corresponding logging output is streamed to standard error.
+* ``export ROCBLAS_LOG_BENCH_PATH=$PWD/bench_logging.txt``
+
+Note that a full path is required, not a relative path. In the above
+command $PWD expands to the full path of your present working directory.
+If paths are not set, then the logging output is streamed to standard error.
 
 When profile logging is enabled, memory usage increases. If the
 program exits abnormally, then it is possible that profile logging will

@@ -74,6 +74,7 @@ extern "C" void rocblas_shutdown();
 #if __has_include(<filesystem>)
 #include <filesystem>
 namespace fs = std::filesystem;
+// cppcheck-suppress preprocessorErrorDirective
 #elif __has_include(<experimental/filesystem>)
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;

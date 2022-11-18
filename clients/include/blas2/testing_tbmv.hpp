@@ -158,7 +158,9 @@ void testing_tbmv(const Arguments& arg)
     {
         // pointer mode shouldn't matter here
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, dAb, lda, dx, incx));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

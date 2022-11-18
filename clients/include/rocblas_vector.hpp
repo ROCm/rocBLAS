@@ -52,9 +52,9 @@ inline void rocblas_init_vector(host_strided_batch_vector<T>& hx,
 {
     for(rocblas_int batch_index = 0; batch_index < hx.batch_count(); ++batch_index)
     {
-        auto*  x    = hx[batch_index];
-        size_t incx = std::abs(hx.inc());
-        auto   N    = hx.n();
+        auto*       x    = hx[batch_index];
+        rocblas_int incx = hx.inc();
+        rocblas_int N    = hx.n();
         if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
         {
             rocblas_init_vector(random_nan_generator<T>, x, N, incx);
@@ -101,9 +101,9 @@ inline void rocblas_init_vector(host_batch_vector<T>&  hx,
 {
     for(rocblas_int batch_index = 0; batch_index < hx.batch_count(); ++batch_index)
     {
-        auto*  x    = hx[batch_index];
-        size_t incx = std::abs(hx.inc());
-        auto   N    = hx.n();
+        auto*       x    = hx[batch_index];
+        rocblas_int incx = hx.inc();
+        rocblas_int N    = hx.n();
         if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
         {
             rocblas_init_vector(random_nan_generator<T>, x, N, incx);
@@ -152,7 +152,7 @@ inline void rocblas_init_vector(host_vector<T>&        hx,
         rocblas_seedrand();
 
     rocblas_int N    = hx.n();
-    size_t      incx = std::abs(hx.inc());
+    rocblas_int incx = hx.inc();
 
     if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
     {

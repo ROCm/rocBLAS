@@ -410,6 +410,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
         //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_sbmv_strided_batched_fn(handle,
                                                             uplo,
                                                             N,
@@ -426,6 +427,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                                                             incy,
                                                             stridey,
                                                             batch_count));
+        handle.post_test(arg);
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy));
@@ -439,6 +441,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
 
         dy.transfer_from(hy_2);
 
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_sbmv_strided_batched_fn(handle,
                                                             uplo,
                                                             N,
@@ -455,6 +458,7 @@ void testing_sbmv_strided_batched(const Arguments& arg)
                                                             incy,
                                                             stridey,
                                                             batch_count));
+        handle.post_test(arg);
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_2.transfer_from(dy));

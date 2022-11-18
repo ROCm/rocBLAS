@@ -268,6 +268,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_trsv_strided_batched_fn(handle,
                                                             uplo,
                                                             transA,
@@ -280,6 +281,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                             incx,
                                                             stride_x,
                                                             batch_count));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device

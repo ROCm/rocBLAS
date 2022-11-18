@@ -224,12 +224,16 @@ void testing_hpmv(const Arguments& arg)
         CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dAp, dx, incx, &h_beta, dy_1, incy));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_hpmv_fn(handle, uplo, N, d_alpha, dAp, dx, incx, d_beta, dy_2, incy));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

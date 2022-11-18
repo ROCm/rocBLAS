@@ -144,7 +144,9 @@ void testing_asum(const Arguments& arg)
         CHECK_HIP_ERROR(dx.transfer_from(hx));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, dr));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2, dr, sizeof(real_t<T>), hipMemcpyDeviceToHost));
 
         // CPU BLAS

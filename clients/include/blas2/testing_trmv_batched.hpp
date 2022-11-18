@@ -168,9 +168,11 @@ void testing_trmv_batched(const Arguments& arg)
      =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
+        handle.pre_test(arg);
         // GPU BLAS
         CHECK_ROCBLAS_ERROR(rocblas_trmv_batched_fn(
             handle, uplo, transA, diag, M, dA_on_device, lda, dx_on_device, incx, batch_count));
+        handle.post_test(arg);
 
         // CPU BLAS
         {

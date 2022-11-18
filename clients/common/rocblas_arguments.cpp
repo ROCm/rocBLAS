@@ -91,7 +91,7 @@ void Arguments::init()
 
     initialization = rocblas_initialization::hpl;
 
-    arithmetic_check = rocblas_arithmetic_check::none;
+    arithmetic_check = rocblas_arithmetic_check::no_check;
 
     atomics_mode = rocblas_atomics_allowed;
 
@@ -118,68 +118,16 @@ void Arguments::init()
     c_noalias_d = false;
     HMM         = false;
     fortran     = false;
+    graph_test  = false;
 }
 
-#ifdef WIN32
-// Clang specific code
-template <typename T>
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, std::pair<char const*, T> p)
+static Arguments& getDefaultArgs()
 {
-    os << p.first << ":";
-    os << p.second;
-    return os;
+    static Arguments defaultArguments;
+    static int       once = (defaultArguments.init(), 1);
+    return defaultArguments;
 }
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                os,
-                                     std::pair<char const*, rocblas_datatype> p)
-{
-    os << p.first << ":";
-    os << rocblas_datatype_string(p.second);
-    return os;
-}
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                      os,
-                                     std::pair<char const*, rocblas_initialization> p)
-{
-    os << p.first << ":";
-#define CASE(x) \
-    case x:     \
-        return os << #x
-    switch(p.second)
-    {
-        CASE(rocblas_initialization::rand_int);
-        CASE(rocblas_initialization::trig_float);
-        CASE(rocblas_initialization::hpl);
-        CASE(rocblas_initialization::special);
-    }
-    return os << "unknown";
-}
-#undef CASE
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                        os,
-                                     std::pair<char const*, rocblas_arithmetic_check> p)
-{
-    os << p.first << ":";
-#define CASE(x) \
-    case x:     \
-        return os << #x
-    switch(p.second)
-    {
-        CASE(rocblas_arithmetic_check::ieee16_ieee32);
-        CASE(rocblas_arithmetic_check::none);
-    }
-    return os << "unknown";
-}
-#undef CASE
-
-rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, std::pair<char const*, bool> p)
-{
-    os << p.first << ":";
-    os << (p.second ? "true" : "false");
-    return os;
-}
-// End of Clang specific code
-#endif
+static Arguments& gDefArgs = getDefaultArgs();
 
 // Function to print Arguments out to stream in YAML format
 rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Arguments& arg)
@@ -190,8 +138,11 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Argumen
         delim = ", ";
     };
 
-    // Print each (name, value) tuple pair
-#define NAME_VALUE_PAIR(NAME) print_pair(#NAME, arg.NAME)
+    // Print each (name, value) tuple pair if not default value
+#define NAME_VALUE_PAIR(NAME)     \
+    if(arg.NAME != gDefArgs.NAME) \
+    print_pair(#NAME, arg.NAME)
+
     // cppcheck-suppress unknownMacro
     FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, ;);
 

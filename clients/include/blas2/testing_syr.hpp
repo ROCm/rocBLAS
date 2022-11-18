@@ -169,10 +169,14 @@ void testing_syr(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_syr_fn(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_syr_fn(handle, uplo, N, d_alpha, dx, incx, dA_2, lda));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

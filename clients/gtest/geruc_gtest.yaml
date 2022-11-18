@@ -39,6 +39,9 @@ Definitions:
     - { M: 1025, N: 4011, lda: 1025, stride_a:   4111275 }
     - { M: 7000, N: 2000, lda: 7000, stride_a:   14000000 }
 
+  - &double_buffered_size_range
+    - { M:  2752, N:  2752, lda:  2760, stride_a:  7595520 }
+
   - &incx_incy_range
     - { incx:   1, incy:   1}
     - { incx:  -1, incy:   1}
@@ -117,6 +120,17 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 1.0 ]
+  alphai: [ -0.5 ]
+
+- name: geruc_medium
+  category: pre_checkin
+  function:
+  - geru
+  - gerc
+  precision: *single_precision_complex
+  matrix_size: *double_buffered_size_range
+  incx_incy: *incx_incy_range
+  alpha: [ -0.5 ]
   alphai: [ -0.5 ]
 
 - name: geruc_large
@@ -245,6 +259,19 @@ Tests:
   alphai: [ 1.0 ]
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
+
+- name: geruc_strided_batched_medium
+  category: pre_checkin
+  function:
+  - geru_strided_batched
+  - gerc_strided_batched
+  precision: *single_precision_complex
+  matrix_size: *double_buffered_size_range
+  incx_incy: *incx_incy_range
+  alpha: [ 2.0 ]
+  alphai: [ 1.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 7 ]
 
 - name: geruc_strided_batched_large
   category: nightly

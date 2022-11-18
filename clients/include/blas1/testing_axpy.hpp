@@ -162,11 +162,15 @@ void testing_axpy(const Arguments& arg)
 
         // ROCBLAS pointer mode host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy_1, incy));
+        handle.post_test(arg);
 
         // ROCBLAS pointer mode device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, d_alpha, dx, incx, dy_2, incy));
+        handle.post_test(arg);
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));

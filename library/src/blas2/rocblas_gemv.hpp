@@ -26,7 +26,7 @@
 #include "check_numerics_vector.hpp"
 #include "gemv_device.hpp"
 #include "handle.hpp"
-#include "rocblas_gemv_threshold.hpp"
+#include "rocblas_level2_threshold.hpp"
 
 template <typename T, typename U, typename V, typename W>
 inline rocblas_status rocblas_internal_gemv_arg_check(rocblas_handle    handle,

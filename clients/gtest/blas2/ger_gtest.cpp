@@ -33,7 +33,7 @@
 
 namespace
 {
-    // possible gemv test cases
+    // possible ger test cases
     enum ger_test_type
     {
         GER,

@@ -309,8 +309,7 @@ template <>
 constexpr double
     gemv_gflop_count<rocblas_double_complex>(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
-    return (8.0 * double(m) * n + 6.0 * (transA == rocblas_operation_none ? double(m) : double(n)))
-           / 1e9;
+    return gemv_gflop_count<rocblas_float_complex>(transA, m, n);
 }
 
 /* \brief floating point counts of HBMV */
@@ -485,18 +484,6 @@ constexpr double spr_gflop_count(rocblas_int n)
     return (double(n) * (n + 1.0) + n) / 1e9;
 }
 
-template <>
-constexpr double spr_gflop_count<rocblas_float_complex>(rocblas_int n)
-{
-    return (6.0 * double(n) + 4.0 * n * (double(n) + 1.0)) / 1e9;
-}
-
-template <>
-constexpr double spr_gflop_count<rocblas_double_complex>(rocblas_int n)
-{
-    return spr_gflop_count<rocblas_float_complex>(n);
-}
-
 /* \brief floating point counts of SPR2 */
 template <typename T>
 constexpr double spr2_gflop_count(rocblas_int n)
@@ -530,35 +517,11 @@ constexpr double syr_gflop_count(rocblas_int n)
     return (n * (double(n) + 1.0) + n) / 1e9;
 }
 
-template <>
-constexpr double syr_gflop_count<rocblas_float_complex>(rocblas_int n)
-{
-    return 4.0 * syr_gflop_count<float>(n);
-}
-
-template <>
-constexpr double syr_gflop_count<rocblas_double_complex>(rocblas_int n)
-{
-    return syr_gflop_count<rocblas_float_complex>(n);
-}
-
 /* \brief floating point counts of SYR2 */
 template <typename T>
 constexpr double syr2_gflop_count(rocblas_int n)
 {
     return (2.0 * (double(n) + 1.0) * n + 2.0 * double(n)) / 1e9;
-}
-
-template <>
-constexpr double syr2_gflop_count<rocblas_float_complex>(rocblas_int n)
-{
-    return (8 * (double(n) + 1.0) * n + 12.0 * double(n)) / 1e9;
-}
-
-template <>
-constexpr double syr2_gflop_count<rocblas_double_complex>(rocblas_int n)
-{
-    return syr2_gflop_count<rocblas_float_complex>(n);
 }
 
 /*
@@ -635,28 +598,28 @@ template <typename T>
 constexpr double hemm_gflop_count(rocblas_side side, rocblas_int m, rocblas_int n)
 {
     int k = side == rocblas_side_left ? m : n;
-    return (8.0 * m * k * n) / 1e9;
+    return (8.0 * double(m) * k * n) / 1e9;
 }
 
 /* \brief floating point counts of HERK */
 template <typename T>
 constexpr double herk_gflop_count(rocblas_int n, rocblas_int k)
 {
-    return (4.0 * n * n * k) / 1e9;
+    return (4.0 * double(n) * n * k) / 1e9;
 }
 
 /* \brief floating point counts of HER2K */
 template <typename T>
 constexpr double her2k_gflop_count(rocblas_int n, rocblas_int k)
 {
-    return (8.0 * n * n * k) / 1e9;
+    return (8.0 * double(n) * n * k) / 1e9;
 }
 
 /* \brief floating point counts of HERKX */
 template <typename T>
 constexpr double herkx_gflop_count(rocblas_int n, rocblas_int k)
 {
-    return (4.0 * n * n * k) / 1e9;
+    return (4.0 * double(n) * n * k) / 1e9;
 }
 
 /* \brief floating point counts of SYMM */
@@ -664,7 +627,7 @@ template <typename T>
 constexpr double symm_gflop_count(rocblas_side side, rocblas_int m, rocblas_int n)
 {
     int k = side == rocblas_side_left ? m : n;
-    return (2.0 * m * k * n) / 1e9;
+    return (2.0 * double(m) * k * n) / 1e9;
 }
 
 template <>
@@ -704,7 +667,7 @@ constexpr double syrk_gflop_count<rocblas_double_complex>(rocblas_int n, rocblas
 template <typename T>
 constexpr double syr2k_gflop_count(rocblas_int n, rocblas_int k)
 {
-    return (2.0 * n * n * k) / 1e9;
+    return (2.0 * double(n) * n * k) / 1e9;
 }
 
 template <>

@@ -198,6 +198,7 @@ void testing_her_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_her_batched_fn(handle,
                                                    uplo,
                                                    N,
@@ -207,8 +208,10 @@ void testing_her_batched(const Arguments& arg)
                                                    dA_1.ptr_on_device(),
                                                    lda,
                                                    batch_count));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_her_batched_fn(handle,
                                                    uplo,
                                                    N,
@@ -218,6 +221,7 @@ void testing_her_batched(const Arguments& arg)
                                                    dA_2.ptr_on_device(),
                                                    lda,
                                                    batch_count));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
