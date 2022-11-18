@@ -327,7 +327,7 @@ def config_cmd():
     if not args.build_tensile:
         cmake_options.append(f"-DBUILD_WITH_TENSILE=OFF")
     else:
-        cmake_options.append(f"-DTensile_CODE_OBJECT_VERSION=V3")
+        cmake_options.append(f"-DTensile_CODE_OBJECT_VERSION=default")
         if args.tensile_logic:
             cmake_options.append(f"-DTensile_LOGIC={args.tensile_logic}")
         if args.tensile_fork:

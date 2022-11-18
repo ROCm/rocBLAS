@@ -60,12 +60,12 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_CPU_THREADS "" CACHE STRING "Number of threads for Tensile parallel build")
 
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
-  set( Tensile_CODE_OBJECT_VERSION "V3" CACHE STRING "Tensile code_object_version")
+  set( Tensile_CODE_OBJECT_VERSION "default" CACHE STRING "Tensile code_object_version")
   set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")
   set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
 
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS aldebaran asm_full asm_lite asm_miopen hip_lite other )
-  set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
+  set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS default V4 V5 )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
   set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
 

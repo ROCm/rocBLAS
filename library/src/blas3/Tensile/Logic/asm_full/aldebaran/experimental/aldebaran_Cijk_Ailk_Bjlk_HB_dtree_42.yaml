@@ -83,7 +83,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 16
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -285,7 +285,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 16
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -487,7 +487,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 8
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -689,7 +689,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 16
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -891,7 +891,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 8
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -1093,7 +1093,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 8
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -1295,7 +1295,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 16
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -1497,7 +1497,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 16
   DepthULdsDivisor: 1
   DirectToLds: false
@@ -1699,7 +1699,7 @@ Solutions:
   BufferStore: true
   CheckDimOverflow: 0
   CheckTensorDimAsserts: false
-  CodeObjectVersion: V3
+  CodeObjectVersion: default
   DepthU: 16
   DepthULdsDivisor: 1
   DirectToLds: false

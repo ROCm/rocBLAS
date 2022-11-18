@@ -67,7 +67,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 16
     DirectToLds: false
     DirectToLdsA: false
