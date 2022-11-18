@@ -1232,6 +1232,7 @@ try
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
     bool        log_function_name   = false;
+    bool        log_datatype        = false;
     bool        any_stride          = false;
 
     arg.init(); // set all defaults
@@ -1255,12 +1256,12 @@ try
          "the number of columns in A and rows in B.")
 
         ("kl",
-         value<rocblas_int>(&arg.KL)->default_value(128),
+         value<rocblas_int>(&arg.KL)->default_value(32),
          "Specific matrix size: kl is only applicable to BLAS-2: The number of sub-diagonals "
          "of the banded matrix A.")
 
         ("ku",
-         value<rocblas_int>(&arg.KU)->default_value(128),
+         value<rocblas_int>(&arg.KU)->default_value(32),
          "Specific matrix size: ku is only applicable to BLAS-2: The number of super-diagonals "
          "of the banded matrix A.")
 
@@ -1372,9 +1373,9 @@ try
          "Options: rand_int, trig_float, hpl")
 
         ("arithmetic_check",
-         value<std::string>(&arithmetic_check)->default_value("none"),
+         value<std::string>(&arithmetic_check)->default_value("no_check"),
          "Check arithmetic for mixed precision gemm_ex. "
-         "Options: ieee16_ieee32, none")
+         "Options: ieee16_ieee32, no_check")
 
         ("transposeA",
          value<char>(&arg.transA)->default_value('N'),
@@ -1454,7 +1455,11 @@ try
 
         ("log_function_name",
          bool_switch(&log_function_name)->default_value(false),
-         "Function name precedes other itmes.")
+         "Function name precedes other items.")
+
+         ("log_datatype",
+         bool_switch(&log_datatype)->default_value(false),
+         "Include datatypes used in output.")
 
         ("function_filter",
          value<std::string>(&filter),
@@ -1508,6 +1513,8 @@ try
     arg.flags = rocblas_gemm_flags(flags);
 
     ArgumentModel_set_log_function_name(log_function_name);
+
+    ArgumentModel_set_log_datatype(log_datatype);
 
     // Device Query
     rocblas_int device_count = query_device_property();

@@ -190,12 +190,16 @@ void testing_her2(const Arguments& arg)
         CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             (rocblas_her2<T>)(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1, lda));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             (rocblas_her2<T>)(handle, uplo, N, d_alpha, dx, incx, dy, incy, dA_2, lda));
+        handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

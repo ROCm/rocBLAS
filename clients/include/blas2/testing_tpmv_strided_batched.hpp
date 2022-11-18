@@ -173,9 +173,11 @@ void testing_tpmv_strided_batched(const Arguments& arg)
      =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
+        handle.pre_test(arg);
         // GPU BLAS
         CHECK_ROCBLAS_ERROR(rocblas_tpmv_strided_batched_fn(
             handle, uplo, transA, diag, M, dAp, stride_a, dx, incx, stride_x, batch_count));
+        handle.post_test(arg);
 
         // CPU BLAS
         {

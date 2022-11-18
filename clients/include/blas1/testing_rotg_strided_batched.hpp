@@ -177,8 +177,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
             rs.copy_from(hs);
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, ra, stride_a, rb, stride_b, rc, stride_c, rs, stride_s, batch_count)));
+            handle.post_test(arg);
 
             if(arg.unit_check)
             {
@@ -225,8 +227,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(ds.transfer_from(hs));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)));
+            handle.post_test(arg);
 
             host_strided_batch_vector<T> ra(1, 1, stride_a, batch_count);
             host_strided_batch_vector<T> rb(1, 1, stride_b, batch_count);

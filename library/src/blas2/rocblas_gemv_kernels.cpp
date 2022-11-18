@@ -25,7 +25,13 @@
 #include "gemv_device.hpp"
 #include "handle.hpp"
 #include "rocblas_gemv.hpp"
-#include "rocblas_gemv_threshold.hpp"
+#include "rocblas_level2_threshold.hpp"
+
+// The warpSize * 2 corresponds to the number of x-dimension threads per block optimized for better performance in the double_buffered_kernels.
+constexpr int rocblas_gemv_bx()
+{
+    return warpSize * 2;
+}
 
 // gemvt_sn is skinny n matrix optimizations
 constexpr int rocblas_gemvt_sn_WIN()
@@ -149,16 +155,18 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
 
     //Identifying the precision to have an appropriate optimization
-    bool is_float          = std::is_same<T, float>{};
-    bool is_double         = std::is_same<T, double>{};
-    bool is_complex_float  = std::is_same<T, rocblas_float_complex>{};
-    bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
+    static constexpr bool is_float          = std::is_same<T, float>{};
+    static constexpr bool is_double         = std::is_same<T, double>{};
+    static constexpr bool is_complex_float  = std::is_same<T, rocblas_float_complex>{};
+    static constexpr bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
+    const bool is_atomics_allowed = handle->atomics_mode == rocblas_atomics_allowed ? true : false;
 
     //Identifying the architecture to have an appropriate optimization
     int  arch_major       = handle->getArchMajor();
     bool is_arch_10_or_11 = arch_major == 10 || arch_major == 11 ? true : false;
     bool is_gfx908        = handle->getArch() == 908 ? true : false;
     bool is_gfx906        = handle->getArch() == 906 ? true : false;
+    bool is_gfx90a        = handle->getArch() == 910 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -199,6 +207,78 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                     hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t, T>),
                                        gemvn_KARGS(*alpha, *beta));
             }
+        }
+        //optimized gemvn kernel with double buffered loads for gfx90a.
+        else if(is_atomics_allowed && is_gfx90a && (is_float || is_double) && (m == n)
+                && (m % rocblas_gemv_bx() == 0))
+        {
+            // The following gemv_scal_kernel does the `y = y*beta` computation
+            static constexpr int NB               = 256;
+            const int            gemv_scal_blocks = (m - 1) / NB + 1;
+            dim3                 grid(gemv_scal_blocks, batch_count);
+            dim3                 threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(*beta != 1)
+                    hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
+                                       grid,
+                                       threads,
+                                       0,
+                                       rocblas_stream,
+                                       m,
+                                       *beta,
+                                       stride_beta,
+                                       y,
+                                       shifty,
+                                       incy,
+                                       stridey);
+            }
+
+#define gemvn_double_buffered_KARGS(alpha_)                                                    \
+    gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
+        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey
+
+            // The following kernel does the `y += A * x` computation
+            static constexpr int thread_x            = rocblas_gemv_bx();
+            static constexpr int block_y             = 8;
+            static constexpr int thread_y            = is_float ? 8 : 4;
+            static constexpr int elements_per_thread = thread_x / (2 * thread_y);
+
+            const int block_x = m / thread_x;
+            dim3      gemvn_threads(thread_x, thread_y);
+            dim3      gemvn_grid(block_x, block_y, batch_count);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL(
+                    (gemvn_double_buffered_kernel<thread_x, thread_y, elements_per_thread, T>),
+                    gemvn_double_buffered_KARGS(alpha));
+            }
+            else
+            {
+                if(!*alpha)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL(
+                    (gemvn_double_buffered_kernel<thread_x, thread_y, elements_per_thread, T>),
+                    gemvn_double_buffered_KARGS(*alpha));
+            }
+#undef gemvn_double_buffered_KARGS
         }
         //optimized gemvn kernel for gfx906 and gfx908.
         else if((is_gfx908
@@ -412,6 +492,86 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #undef gemvt_sn_KARGS
         }
+        //optimized gemvt kernel with double buffered loads for gfx908.
+        else if(is_atomics_allowed && (m == n) && (m % rocblas_gemv_bx() == 0)
+                && (is_gfx908
+                    && ((is_float && m > sgemvt_gfx908_lower_threshold)
+                        || (is_double && m > dgemvt_gfx908_lower_threshold))))
+        {
+            // The following gemv_scal_kernel does the `y = y*beta` computation
+            static constexpr int NB               = 256;
+            const int            gemv_scal_blocks = (n - 1) / NB + 1;
+            dim3                 grid(gemv_scal_blocks, batch_count);
+            dim3                 threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   rocblas_stream,
+                                   n,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(*beta != 1)
+                    hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
+                                       grid,
+                                       threads,
+                                       0,
+                                       rocblas_stream,
+                                       n,
+                                       *beta,
+                                       stride_beta,
+                                       y,
+                                       shifty,
+                                       incy,
+                                       stridey);
+            }
+            // The following kernel does the `y += A * x` computation
+            static constexpr int thread_x            = rocblas_gemv_bx();
+            static constexpr int block_y             = is_float ? 8 : 16;
+            static constexpr int thread_y            = is_float ? 8 : 4;
+            static constexpr int elements_per_thread = thread_x / (2 * thread_y);
+
+            const int block_x = n / thread_x;
+            dim3      gemvt_threads(thread_x, thread_y);
+            dim3      gemvt_grid(block_x, block_y, batch_count);
+
+#define gemvt_double_buffered_KARGS(alpha_)                                                    \
+    gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
+        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvt_double_buffered_kernel<CONJ,
+                                                                 thread_x,
+                                                                 thread_y,
+                                                                 elements_per_thread,
+                                                                 T>),
+                                   gemvt_double_buffered_KARGS(alpha));
+            }
+            else
+            {
+                if(!*alpha)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvt_double_buffered_kernel<CONJ,
+                                                                 thread_x,
+                                                                 thread_y,
+                                                                 elements_per_thread,
+                                                                 T>),
+                                   gemvt_double_buffered_KARGS(*alpha));
+            }
+#undef gemvt_double_buffered_KARGS
+        }
+
 #define gemvt_KARGS(alpha_, beta_)                                                             \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
@@ -620,6 +780,86 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #undef gemvt_sn_KARGS
         }
+        //optimized gemvt kernel with double buffered loads for gfx908.
+        else if(is_atomics_allowed && (m == n) && (m % rocblas_gemv_bx() == 0)
+                && (is_gfx908
+                    && ((is_float && m > sgemvt_gfx908_lower_threshold)
+                        || (is_double && m > dgemvt_gfx908_lower_threshold))))
+        {
+            // The following gemv_scal_kernel does the `y = y*beta` computation
+            static constexpr int NB               = 256;
+            const int            gemv_scal_blocks = (n - 1) / NB + 1;
+            dim3                 grid(gemv_scal_blocks, batch_count);
+            dim3                 threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   rocblas_stream,
+                                   n,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(*beta != 1)
+                    hipLaunchKernelGGL((gemv_scal_kernel<NB, T>),
+                                       grid,
+                                       threads,
+                                       0,
+                                       rocblas_stream,
+                                       n,
+                                       *beta,
+                                       stride_beta,
+                                       y,
+                                       shifty,
+                                       incy,
+                                       stridey);
+            }
+            // The following kernel does the `y += A * x` computation
+            static constexpr int thread_x            = rocblas_gemv_bx();
+            static constexpr int block_y             = is_float ? 8 : 16;
+            static constexpr int thread_y            = is_float ? 8 : 4;
+            static constexpr int elements_per_thread = thread_x / (2 * thread_y);
+
+            const int block_x = n / thread_x;
+            dim3      gemvt_threads(thread_x, thread_y);
+            dim3      gemvt_grid(block_x, block_y, batch_count);
+
+#define gemvt_double_buffered_KARGS(alpha_)                                                    \
+    gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
+        strideA, x, shiftx, incx, stridex, y, shifty, incy, stridey
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvt_double_buffered_kernel<CONJ,
+                                                                 thread_x,
+                                                                 thread_y,
+                                                                 elements_per_thread,
+                                                                 T>),
+                                   gemvt_double_buffered_KARGS(alpha));
+            }
+            else
+            {
+                if(!*alpha)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvt_double_buffered_kernel<CONJ,
+                                                                 thread_x,
+                                                                 thread_y,
+                                                                 elements_per_thread,
+                                                                 T>),
+                                   gemvt_double_buffered_KARGS(*alpha));
+            }
+#undef gemvt_double_buffered_KARGS
+        }
+
 #define gemvt_KARGS(alpha_, beta_)                                                             \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey

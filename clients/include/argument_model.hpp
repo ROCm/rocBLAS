@@ -32,6 +32,9 @@ namespace ArgumentLogging
 void ArgumentModel_set_log_function_name(bool f);
 bool ArgumentModel_get_log_function_name();
 
+void ArgumentModel_set_log_datatype(bool d);
+bool ArgumentModel_get_log_datatype();
+
 // ArgumentModel template has a variadic list of argument enums
 template <rocblas_argument... Args>
 class ArgumentModel
@@ -153,6 +156,21 @@ public:
             auto delim = ",";
             name_list << "function" << delim;
             value_list << arg.function << delim;
+        }
+
+        if(ArgumentModel_get_log_datatype())
+        {
+            auto delim = ",";
+            name_list << "a_type" << delim;
+            value_list << rocblas_datatype2string(arg.a_type) << delim;
+            name_list << "b_type" << delim;
+            value_list << rocblas_datatype2string(arg.b_type) << delim;
+            name_list << "c_type" << delim;
+            value_list << rocblas_datatype2string(arg.c_type) << delim;
+            name_list << "d_type" << delim;
+            value_list << rocblas_datatype2string(arg.d_type) << delim;
+            name_list << "compute_type" << delim;
+            value_list << rocblas_datatype2string(arg.compute_type) << delim;
         }
 
         // Output (name, value) pairs to name_list and value_list

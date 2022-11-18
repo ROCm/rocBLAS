@@ -22,19 +22,9 @@
 
 #pragma once
 
+#include "fetch_template.hpp"
 #include "rocblas_reduction_template.hpp"
 
-template <typename T, std::enable_if_t<!std::is_same<T, rocblas_half>{}, int> = 0>
-__device__ __host__ inline auto fetch_abs2(T A)
-{
-    return std::norm(A);
-}
-
-template <typename T, std::enable_if_t<std::is_same<T, rocblas_half>{}, int> = 0>
-__device__ __host__ inline auto fetch_abs2(T A)
-{
-    return A * A;
-}
 template <class To>
 struct rocblas_fetch_nrm2
 {

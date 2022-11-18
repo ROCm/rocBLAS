@@ -131,10 +131,13 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
 
 // Initialize vector so adjacent entries have alternating sign.
 template <typename T>
-void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, size_t N, size_t incx)
+void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, rocblas_int N, rocblas_stride incx)
 {
+    if(incx < 0)
+        x -= (N - 1) * incx;
+
 #pragma omp parallel for
-    for(size_t j = 0; j < N; ++j)
+    for(rocblas_int j = 0; j < N; ++j)
     {
         auto value  = rand_gen();
         x[j * incx] = j & 1 ? T(value) : T(negate(value));
@@ -321,10 +324,13 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 // Initialize vectors with rand_int/hpl/NaN values
 
 template <typename T>
-void rocblas_init_vector(T rand_gen(), T* x, size_t N, size_t incx)
+void rocblas_init_vector(T rand_gen(), T* x, rocblas_int N, rocblas_stride incx)
 {
+    if(incx < 0)
+        x -= (N - 1) * incx;
+
 #pragma omp parallel for
-    for(size_t j = 0; j < N; ++j)
+    for(rocblas_int j = 0; j < N; ++j)
         x[j * incx] = rand_gen();
 }
 
@@ -522,10 +528,13 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
 // Initialize vector with rand_int/hpl/NaN values
 
 template <typename T>
-void rocblas_init_vector_trig(T* x, size_t N, size_t incx, bool seedReset = false)
+void rocblas_init_vector_trig(T* x, rocblas_int N, rocblas_stride incx, bool seedReset = false)
 {
+    if(incx < 0)
+        x -= (N - 1) * incx;
+
 #pragma omp parallel for
-    for(size_t j = 0; j < N; ++j)
+    for(rocblas_int j = 0; j < N; ++j)
         x[j * incx] = T(seedReset ? cos(j * incx) : sin(j * incx));
 }
 
@@ -766,7 +775,6 @@ template <typename T>
 void rocblas_packInt8(host_vector<T>& A, size_t M, size_t N, size_t lda)
 {
     /* Assumes original matrix provided in column major order, where N is a multiple of 4
-
         ---------- N ----------
    |  | 00 05 10 15 20 25 30 35      |00 05 10 15|20 25 30 35|
    |  | 01 06 11 16 21 26 31 36      |01 06 11 16|21 26 31 36|
@@ -775,10 +783,8 @@ void rocblas_packInt8(host_vector<T>& A, size_t M, size_t N, size_t lda)
    a  | 04 09 14 19 24 29 34 39      |04 09 14 19|24 29 34 39|
    |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
    |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
-
      Input :  00 01 02 03 04 ** ** 05   ...  38 39 ** **
      Output:  00 05 10 15 01 06 11 16   ...  ** ** ** **
-
    */
 
     //  call general code with batch_count = 1 and stride_a = 0

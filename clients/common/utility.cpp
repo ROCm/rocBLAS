@@ -37,6 +37,8 @@
 
 #ifdef WIN32
 #define strcasecmp(A, B) _stricmp(A, B)
+#define setenv(A, B, C) _putenv_s(A, B)
+#define unsetenv(A) _putenv_s(A, "")
 
 #ifdef __cpp_lib_filesystem
 #include <filesystem>
@@ -308,6 +310,45 @@ rocblas_local_handle::~rocblas_local_handle()
     if(m_memory)
         (hipFree)(m_memory);
     rocblas_destroy_handle(m_handle);
+}
+
+void rocblas_local_handle::rocblas_stream_begin_capture()
+{
+    int setenv_status;
+    setenv_status = setenv("ROCBLAS_STREAM_ORDER_ALLOC", "1", true);
+#ifdef GOOGLE_TEST
+    ASSERT_EQ(setenv_status, 0);
+#endif
+
+    CHECK_HIP_ERROR(hipStreamCreate(&this->graph_stream));
+    CHECK_ROCBLAS_ERROR(rocblas_get_stream(*this, &this->old_stream));
+    CHECK_ROCBLAS_ERROR(rocblas_set_stream(*this, this->graph_stream));
+
+    // BEGIN GRAPH CAPTURE
+    CHECK_HIP_ERROR(hipStreamBeginCapture(this->graph_stream, hipStreamCaptureModeGlobal));
+}
+
+void rocblas_local_handle::rocblas_stream_end_capture()
+{
+    hipGraph_t     graph;
+    hipGraphExec_t instance;
+
+    // END GRAPH CAPTURE
+    CHECK_HIP_ERROR(hipStreamEndCapture(this->graph_stream, &graph));
+    CHECK_HIP_ERROR(hipGraphInstantiate(&instance, graph, NULL, NULL, 0));
+
+    CHECK_HIP_ERROR(hipGraphDestroy(graph));
+    CHECK_HIP_ERROR(hipGraphLaunch(instance, this->graph_stream));
+
+    CHECK_HIP_ERROR(hipGraphExecDestroy(instance));
+
+    CHECK_ROCBLAS_ERROR(rocblas_set_stream(*this, this->old_stream));
+    CHECK_HIP_ERROR(hipStreamDestroy(this->graph_stream));
+
+    int setenv_status = unsetenv("ROCBLAS_STREAM_ORDER_ALLOC");
+#ifdef GOOGLE_TEST
+    ASSERT_EQ(setenv_status, 0);
+#endif
 }
 
 /*!

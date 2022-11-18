@@ -170,7 +170,7 @@ bool match_test_category(const Arguments& arg, const char* category);
                                                RocBLAS_TestData::end()),                          \
                              testclass::PrintToStringParamName());
 
-#if !defined(WIN32) && defined(GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST)
+#if defined(GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST)
 #define ROCBLAS_ALLOW_UNINSTANTIATED_GTEST(testclass) \
     GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(testclass);
 #else

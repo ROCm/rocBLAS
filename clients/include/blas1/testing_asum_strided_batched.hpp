@@ -157,8 +157,10 @@ void testing_asum_strided_batched(const Arguments& arg)
 
         // GPU BgdLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, dr));
+        handle.post_test(arg);
 
         CHECK_HIP_ERROR(hr_1.transfer_from(dr));
 

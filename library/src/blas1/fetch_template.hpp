@@ -46,13 +46,13 @@ __device__ __host__ inline auto fetch_asum(const rocblas_double_complex& A)
     return asum(A);
 }
 
-template <typename T, std::enable_if_t<!std::is_same<T, rocblas_half>{}, int> = 0>
+template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline auto fetch_abs2(T A)
 {
     return std::norm(A);
 }
 
-template <typename T, std::enable_if_t<std::is_same<T, rocblas_half>{}, int> = 0>
+template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
 __device__ __host__ inline auto fetch_abs2(T A)
 {
     return A * A;

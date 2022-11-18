@@ -166,15 +166,15 @@ in the table below:
 Build Library Dependencies + Client Dependencies + Library + Client
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The client contains executables in the table below:
+Some client executables are listed in the table below:
 
-=============== ====================================================
-executable name description
-=============== ====================================================
-rocblas-test    runs Google Tests to test the library
-rocblas-bench   executable to benchmark or test individual functions
-example-sscal   example C code calling rocblas_sscal function
-=============== ====================================================
+====================== =================================================
+executable name        description
+====================== =================================================
+rocblas-test           runs Google Tests to test the library
+rocblas-bench          executable to benchmark or test functions
+rocblas-example-sscal  example C code calling rocblas_sscal function
+====================== =================================================
 
 Common uses of install.sh to build (dependencies + library + client) are
 in the table below:

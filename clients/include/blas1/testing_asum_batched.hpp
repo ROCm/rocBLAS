@@ -152,8 +152,10 @@ void testing_asum_batched(const Arguments& arg)
 
         // GPU BLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
+        handle.post_test(arg);
 
         //
         // Transfer from device to host.

@@ -155,7 +155,9 @@ void template_testing_reduction_strided_batched(
         // GPU BLAS, rocblas_pointer_mode_device
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, stridex, batch_count, dr));
+            handle.post_test(arg);
 
             // Copy result back to host.
             CHECK_HIP_ERROR(hr2.transfer_from(dr));

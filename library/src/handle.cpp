@@ -175,13 +175,47 @@ _rocblas_handle::~_rocblas_handle()
     {
         hipError_t hipStatus;
         if(!stream_order_alloc)
+        {
             hipStatus = (hipFree)(device_memory);
+            if(hipStatus != hipSuccess)
+            {
+                rocblas_cerr
+                    << "rocBLAS error during freeing of allocated memory in handle destructor: "
+                    << rocblas_status_to_string(get_rocblas_status_for_hip_status(hipStatus))
+                    << std::endl;
+                rocblas_abort();
+            };
+        }
         else
         {
 // hipMallocAsync and hipFreeAsync are defined in hip version 5.2.0
 // Support for default stream added in hip version 5.3.0
 #if HIP_VERSION >= 50300000
             hipStatus = (device_memory) ? (hipFreeAsync)(device_memory, stream) : hipSuccess;
+            if(hipStatus != hipSuccess)
+            {
+                rocblas_cerr << "rocBLAS error during freeing of allocated memory in handle "
+                                "destructor (stream order allocation): "
+                             << rocblas_status_to_string(
+                                    get_rocblas_status_for_hip_status(hipStatus))
+                             << std::endl;
+                rocblas_abort();
+            };
+
+            for(auto dev_mem : dev_mem_pointers)
+            {
+                hipStatus = (dev_mem) ? (hipFreeAsync)(dev_mem, stream) : hipSuccess;
+
+                if(hipStatus != hipSuccess)
+                {
+                    rocblas_cerr << "rocBLAS error during freeing of allocated memory (during "
+                                    "stream capture) in handle destructor: "
+                                 << rocblas_status_to_string(
+                                        get_rocblas_status_for_hip_status(hipStatus))
+                                 << std::endl;
+                    rocblas_abort();
+                };
+            }
             hipMemPool_t mem_pool;
             int          device;
             hipGetDevice(&device);
@@ -191,15 +225,6 @@ _rocblas_handle::~_rocblas_handle()
             hipMemPoolTrimTo(mem_pool, 0);
 #endif
         }
-
-        if(hipStatus != hipSuccess)
-        {
-            rocblas_cerr
-                << "rocBLAS error during freeing of allocated memory in handle destructor: "
-                << rocblas_status_to_string(get_rocblas_status_for_hip_status(hipStatus))
-                << "Stream Order Allocation : " << stream_order_alloc << std::endl;
-            rocblas_abort();
-        };
     }
 }
 

@@ -92,7 +92,9 @@ void template_testing_reduction_batched(
         CHECK_HIP_ERROR(h_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, batch_count, d_rocblas_result));
+        handle.post_test(arg);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, batch_count, h_rocblas_result));

@@ -171,14 +171,18 @@ void testing_tpsv(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_tpsv_fn(handle, uplo, transA, diag, N, dAp, dx_or_b, incx));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
 
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_tpsv_fn(handle, uplo, transA, diag, N, dAp, dx_or_b, incx));
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
         max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx, hx_or_b_1));

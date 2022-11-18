@@ -149,8 +149,10 @@ void testing_tpmv(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
 
+        handle.pre_test(arg);
         // ROCBLAS
         CHECK_ROCBLAS_ERROR(rocblas_tpmv_fn(handle, uplo, transA, diag, M, dAp, dx, incx));
+        handle.post_test(arg);
 
         // CPU BLAS
         {

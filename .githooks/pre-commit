@@ -81,7 +81,7 @@ if command -v cppcheck >/dev/null; then
         if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'; then
             echo "cppcheck for $file"
             cppcheck --enable=all --inconclusive --library=googletest --inline-suppr \
-                    -i./build --suppressions-list=./CppCheckSuppressions.txt \
+                    -I ./library/src/include/ -i./build --suppressions-list=./CppCheckSuppressions.txt \
                     --template="{file}:{line}: {severity}: {id} :{message}" \
                     --error-exitcode=1 "$file"
             bad=$?

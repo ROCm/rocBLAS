@@ -343,6 +343,7 @@ set( rocblas_blas1_source
   blas1/rocblas_copy_batched.cpp
   blas1/rocblas_copy_strided_batched.cpp
   blas1/rocblas_dot.cpp
+  blas1/rocblas_dot_kernels.cpp
   blas1/rocblas_dot_strided_batched.cpp
   blas1/rocblas_dot_batched.cpp
   blas1/rocblas_nrm2.cpp
@@ -448,16 +449,7 @@ if( BUILD_WITH_TENSILE )
 
     # recreate LLVM static dependencies
     if (${Tensile_LIBRARY_FORMAT} STREQUAL "yaml")
-      find_package(LLVM 6.0 QUIET CONFIG)
-      if(NOT LLVM_FOUND)
-          find_package(LLVM 7.0 QUIET CONFIG)
-          if(NOT LLVM_FOUND)
-              find_package(LLVM 9.0 QUIET CONFIG)
-              if(NOT LLVM_FOUND)
-                  find_package(LLVM REQUIRED CONFIG)
-              endif()
-          endif()
-      endif()
+      find_package(LLVM REQUIRED CONFIG)
       find_library(LLVMObjectYAML_LIBRARY
         NAMES LLVMObjectYAML
         PATHS ${LLVM_LIBRARY_DIR})
@@ -599,7 +591,7 @@ if( BUILD_SHARED_LIBS )
     )
 else()
   # static
-  if (DEFINED Tensile_LIBRARY_FORMAT AND ${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
+  if (NOT BUILD_WITH_TENSILE OR (Tensile_LIBRARY_FORMAT MATCHES "msgpack"))
     # header only tensile usage of msgpack
     rocm_export_targets(
       TARGETS roc::rocblas
@@ -607,6 +599,7 @@ else()
       NAMESPACE roc::
       )
   else()
+    # yaml based Tensile uses LLVM
     rocm_export_targets(
       TARGETS roc::rocblas
       DEPENDS PACKAGE hip

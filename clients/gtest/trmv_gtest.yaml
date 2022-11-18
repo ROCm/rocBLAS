@@ -231,4 +231,21 @@ Tests:
   incx: *incx_range_small
   batch_count: [ 3 ]
   stride_scale: [ 1.2 ]
+
+- name: trmv_graph_test
+  category: pre_checkin
+  function:
+        - trmv
+        - trmv_batched
+        - trmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U ]
+  transA: [N ]
+  diag: [ N ]
+  matrix_size:
+    - { M:    10, lda:    2, stride_a:      20 }
+  incx: *incx_range
+  batch_count: [ 3 ]
+  stride_scale: [ 1.2 ]
+  graph_test: true
 ...

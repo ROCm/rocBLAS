@@ -1,0 +1,75 @@
+---
+include: ../../../../clients/include/rocblas_common.yaml
+
+Definitions:
+  # TODO: Is there a way to make this easier in YAML? In rocblas_gentest.py?
+  - &m_equals_n_range
+    - { M:  32, N:  32, lda:  32 }
+    - { M:  64, N:  64, lda:  32 }
+    - { M: 128, N: 128, lda: 128 }
+    - { M: 160, N: 160, lda: 160 }
+    - { M: 192, N: 192, lda: 192 }
+    - { M: 224, N: 224, lda: 224 }
+    - { M: 256, N: 256, lda: 256 }
+    - { M: 288, N: 288, lda: 288 }
+    - { M: 320, N: 320, lda: 320 }
+    - { M: 352, N: 352, lda: 352 }
+    - { M: 384, N: 384, lda: 384 }
+    - { M: 416, N: 416, lda: 416 }
+    - { M: 448, N: 448, lda: 448 }
+    - { M: 480, N: 480, lda: 480 }
+    - { M: 512, N: 512, lda: 512 }
+    - { M: 544, N: 544, lda: 544 }
+    - { M: 576, N: 576, lda: 576 }
+    - { M: 608, N: 608, lda: 608 }
+    - { M: 640, N: 640, lda: 640 }
+    - { M: 672, N: 672, lda: 672 }
+    - { M: 704, N: 704, lda: 704 }
+    - { M: 736, N: 736, lda: 736 }
+    - { M: 768, N: 768, lda: 768 }
+    - { M: 800, N: 800, lda: 800 }
+    - { M: 832, N: 832, lda: 832 }
+    - { M: 864, N: 864, lda: 864 }
+    - { M: 896, N: 896, lda: 896 }
+    - { M: 928, N: 928, lda: 928 }
+    - { M: 960, N: 960, lda: 960 }
+    - { M: 992, N: 992, lda: 992 }
+
+Tests:
+  - name: gemv_bench_const_n
+    category: bench
+    function: gemv
+    precision: *single_precision
+    transA: [ N, T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    N: 32
+    M: 32..480..32
+    lda: 480 # TODO: easy way to increment lda in lockstep with M?
+    iters: 20
+
+  - name: gemv_bench_const_m
+    category: bench
+    function: gemv
+    precision: *single_precision
+    transA: [ N, T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    N: 32..480..32
+    M: 32
+    lda: 32
+    iters: 20
+
+  - name: gemv_bench_m_equals_n
+    category: bench
+    function: gemv
+    precision: *single_precision
+    transA: [ N, T ]
+    alpha: 1
+    incx: 1
+    incy: 1
+    matrix_size: *m_equals_n_range
+    iters: 20
+...
