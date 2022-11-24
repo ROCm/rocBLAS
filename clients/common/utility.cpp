@@ -339,11 +339,12 @@ void rocblas_local_handle::rocblas_stream_end_capture()
 
     CHECK_HIP_ERROR(hipGraphDestroy(graph));
     CHECK_HIP_ERROR(hipGraphLaunch(instance, this->graph_stream));
-
+    CHECK_HIP_ERROR(hipStreamSynchronize(this->graph_stream));
     CHECK_HIP_ERROR(hipGraphExecDestroy(instance));
 
     CHECK_ROCBLAS_ERROR(rocblas_set_stream(*this, this->old_stream));
     CHECK_HIP_ERROR(hipStreamDestroy(this->graph_stream));
+    this->graph_stream = nullptr;
 
     int setenv_status = unsetenv("ROCBLAS_STREAM_ORDER_ALLOC");
 #ifdef GOOGLE_TEST
