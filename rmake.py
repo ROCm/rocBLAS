@@ -230,8 +230,9 @@ def config_cmd():
         generator = f"-G Ninja"
         cmake_options.append(generator)
 
-        # not really rocm path as none exist, HIP_DIR set in toolchain is more important
-        rocm_path = os.getenv('ROCM_CMAKE_PATH', "C:/github/rocm-cmake-master/share/rocm")
+        # CMAKE_PREFIX_PATH set to rocm_path and HIP_PATH set BY SDK Installer
+        raw_rocm_path = cmake_path(os.getenv('HIP_PATH', "C:/hip"))
+        rocm_path = f'"{raw_rocm_path}"' # guard against spaces in path
         # CPACK_PACKAGING_INSTALL_PREFIX= defined as blank as it is appended to end of path for archive creation
         cmake_platform_opts.append(f"-DCPACK_PACKAGING_INSTALL_PREFIX=")
         cmake_platform_opts.append(f'-DCMAKE_INSTALL_PREFIX="C:/hipSDK"')
