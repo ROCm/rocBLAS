@@ -89,8 +89,8 @@ def runTestCommand (platform, project, boolean debug=false)
                 ${setupBranch}
                 python3 scripts/performance/pts/write_pts_report.py build/release/clients/staging/rocblas-bench rocBLAS_PTS_Benchmarks/ build-new scripts/performance/pts/benchmarks/gemv_problems.yaml scripts/performance/pts/benchmarks/axpy_problems.yaml scripts/performance/pts/benchmarks/gemm_problems.yaml scripts/performance/pts/benchmarks/trsm_problems.yaml scripts/performance/pts/benchmarks/symv_problems.yaml
                 python3 scripts/performance/pts/write_pts_report.py ref-repo/build/release/clients/staging/rocblas-bench rocBLAS_PTS_Benchmarks/ build-reference scripts/performance/pts/benchmarks/gemv_problems.yaml scripts/performance/pts/benchmarks/axpy_problems.yaml scripts/performance/pts/benchmarks/gemm_problems.yaml scripts/performance/pts/benchmarks/trsm_problems.yaml scripts/performance/pts/benchmarks/symv_problems.yaml
-                for dataset in ../rocBLAS_PTS_Benchmarks/*/;
-                    do python3 ../record_pts.py --dataset-path \$dataset --reference-dataset build-reference --new-dataset build-new -l pts_rocblas_benchmark_data
+                for dataset in ./rocBLAS_PTS_Benchmarks/*/;
+                    do python3 ./record_pts.py --dataset-path \$dataset --reference-dataset build-reference --new-dataset build-new -l pts_rocblas_benchmark_data
                 done
             """
     withCredentials([usernamePassword(credentialsId: 'PTS_API_ID_KEY_PROD', usernameVariable: 'PTS_API_ID', passwordVariable: 'PTS_API_KEY')])
