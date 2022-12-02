@@ -267,7 +267,8 @@ typedef enum rocblas_layer_mode_
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_gemm_algo_
 {
-    rocblas_gemm_algo_standard = 0x0,
+    rocblas_gemm_algo_standard       = 0x0,
+    rocblas_gemm_algo_solution_index = 0x1,
 } rocblas_gemm_algo;
 
 /*! \brief Control flags passed into gemm algorithms invoked by Tensile Host */
@@ -288,7 +289,8 @@ typedef enum rocblas_gemm_flags_
     * tolerate the FP16 matrix instructions flushing subnormal FP16
     * input/output data to zero. See the "MI200 (gfx90a) Considerations"
     * section for more details. */
-    rocblas_gemm_flags_fp16_alt_impl = 0x4
+    rocblas_gemm_flags_fp16_alt_impl        = 0x4,
+    rocblas_gemm_flags_check_solution_index = 0x8
 } rocblas_gemm_flags;
 
 // rocblas_int8_type_for_hipblas enum will be removed in a future release.

@@ -467,7 +467,7 @@ if( BUILD_WITH_TENSILE )
   target_compile_definitions( rocblas PRIVATE ${TENSILE_DEFINES} )
 endif()
 
-target_compile_definitions( rocblas PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
+target_compile_definitions( rocblas PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_BETA_FEATURES_API )
 
 rocm_set_soversion( rocblas ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES CXX_EXTENSIONS NO )

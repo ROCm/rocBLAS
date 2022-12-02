@@ -15811,7 +15811,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
     @param[in]
     solution_index
               [int32_t]
-              reserved for future use.
+              if algo is rocblas_gemm_algo_solution_index, this controls which solution is used.
+              When algo is not rocblas_gemm_algo_solution_index, or if solution_index <= 0, the default solution is used.
+              This parameter was unused in previous releases and instead always used the default solution
     @param[in]
     flags     [uint32_t]
               optional gemm flags.
@@ -16059,7 +16061,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     @param[in]
     solution_index
               [int32_t]
-              reserved for future use.
+              if algo is rocblas_gemm_algo_solution_index, this controls which solution is used.
+              When algo is not rocblas_gemm_algo_solution_index, or if solution_index <= 0, the default solution is used.
+              This parameter was unused in previous releases and instead always used the default solution
     @param[in]
     flags     [uint32_t]
               optional gemm flags.
@@ -16272,7 +16276,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     @param[in]
     solution_index
               [int32_t]
-              reserved for future use.
+              if algo is rocblas_gemm_algo_solution_index, this controls which solution is used.
+              When algo is not rocblas_gemm_algo_solution_index, or if solution_index <= 0, the default solution is used.
+              This parameter was unused in previous releases and instead always used the default solution
     @param[in]
     flags     [uint32_t]
               optional gemm flags.
