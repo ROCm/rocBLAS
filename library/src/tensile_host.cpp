@@ -833,7 +833,9 @@ namespace
  * by RocblasContractionProblem                                               *
  ******************************************************************************/
 template <typename Ti, typename To, typename Tc>
-rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& prob)
+rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& prob,
+                                     rocblas_gemm_algo                            algo,
+                                     int32_t                                      solution_index)
 {
     rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
@@ -852,13 +854,33 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
         auto  handle        = prob.handle;
         auto* fitness_query = handle->get_solution_fitness_query();
 
-        solution = library->findBestSolution(tensile_prob, *hardware, fitness_query);
+        if(algo == rocblas_gemm_algo_solution_index && solution_index > 0)
+        {
+            solution = library->getSolutionByIndex(solution_index - 1);
+            // load solution if not already loaded
+            if(!solution)
+            {
+                library->findAllSolutions(tensile_prob, *hardware);
+                solution = library->getSolutionByIndex(solution_index - 1);
+            }
+        }
+        else
+        {
+            solution = library->findBestSolution(tensile_prob, *hardware, fitness_query);
+        }
 
         if(!solution)
         {
-            rocblas_internal_ostream msg;
-            print_once(msg << "\nrocBLAS error: No Tensile solution found for " << prob);
-            status = rocblas_status_not_implemented;
+            if(solution_index > 0)
+            {
+                status = rocblas_status_invalid_value;
+            }
+            else
+            {
+                rocblas_internal_ostream msg;
+                print_once(msg << "\nrocBLAS error: No Tensile solution found for " << prob);
+                status = rocblas_status_not_implemented;
+            }
         }
         else
         {
@@ -878,12 +900,20 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
                 size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob);
                 auto   gsu_malloc    = prob.handle->gsu_malloc_by_size(WorkspaceSize);
 
-                adapter.launchKernels(
-                    solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
-                    handle->get_stream(),
-                    handle->startEvent,
-                    handle->stopEvent);
-                status = rocblas_status_success;
+                if(solution->canSolve(tensile_prob, *hardware))
+                {
+                    if(!(prob.flags & rocblas_gemm_flags_check_solution_index))
+                    {
+                        adapter.launchKernels(
+                            solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
+                            handle->get_stream(),
+                            handle->startEvent,
+                            handle->stopEvent);
+                    }
+                    status = rocblas_status_success;
+                }
+                else
+                    status = rocblas_status_invalid_value;
             }
         }
     }
@@ -900,6 +930,60 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
                        << "Tensile solution found, but unknown exception thrown for " << prob);
     }
 
+    return status;
+}
+
+template <typename Ti, typename To, typename Tc>
+rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob,
+                               rocblas_int*                                 list_array,
+                               rocblas_int*                                 list_size)
+{
+    rocblas_status                                          status = rocblas_status_internal_error;
+    std::set<std::shared_ptr<Tensile::ContractionSolution>> solutions;
+    try
+    {
+        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
+        std::shared_ptr<hipDeviceProp_t>                                             deviceProp;
+        std::shared_ptr<Tensile::Hardware>                                           hardware;
+
+        auto& adapter = get_library_and_adapter(&library, &deviceProp, prob.handle->getDevice());
+        hardware      = Tensile::hip::GetDevice(*deviceProp);
+        auto tensile_prob = ConstructTensileProblem(prob);
+
+        solutions = library->findAllSolutions(tensile_prob, *hardware);
+
+        if(list_size == nullptr)
+        {
+            status = rocblas_status_invalid_pointer;
+        }
+        else if(list_array == nullptr)
+        {
+            *list_size = solutions.size();
+            status     = rocblas_status_success;
+        }
+        else
+        {
+            rocblas_int i  = 0;
+            auto        it = solutions.begin();
+            while(i < *list_size && it != solutions.end())
+            {
+                list_array[i] = it->get()->index + 1;
+                ++it;
+                ++i;
+            }
+            status = rocblas_status_success;
+        }
+    }
+    catch(const std::exception& e)
+    {
+        rocblas_internal_ostream msg;
+        print_once(msg << "\nrocBLAS error: exception thrown for " << prob << e.what());
+    }
+    catch(...)
+    {
+        rocblas_internal_ostream msg;
+        print_once(msg << "\nrocBLAS error: unknown exception thrown for " << prob);
+    }
     return status;
 }
 
@@ -920,36 +1004,110 @@ extern "C" void rocblas_initialize()
  ******************************************************************************/
 
 // Non-EX types
-template rocblas_status runContractionProblem(const RocblasContractionProblem<rocblas_half>&);
+template rocblas_status runContractionProblem(const RocblasContractionProblem<rocblas_half>&,
+                                              rocblas_gemm_algo algo,
+                                              int32_t           solution_index);
 
-template rocblas_status runContractionProblem(const RocblasContractionProblem<float>&);
+template rocblas_status runContractionProblem(const RocblasContractionProblem<float>&,
+                                              rocblas_gemm_algo algo,
+                                              int32_t           solution_index);
 
-template rocblas_status runContractionProblem(const RocblasContractionProblem<double>&);
+template rocblas_status runContractionProblem(const RocblasContractionProblem<double>&,
+                                              rocblas_gemm_algo algo,
+                                              int32_t           solution_index);
 
 template rocblas_status
-    runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&,
+                          rocblas_gemm_algo algo,
+                          int32_t           solution_index);
 
 template rocblas_status
-    runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&,
+                          rocblas_gemm_algo algo,
+                          int32_t           solution_index);
 
 // EX types
 template rocblas_status
-    runContractionProblem(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
+                          rocblas_gemm_algo algo,
+                          int32_t           solution_index);
 
 template rocblas_status
-    runContractionProblem(const RocblasContractionProblem<rocblas_half, float, float>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_half, float, float>&,
+                          rocblas_gemm_algo algo,
+                          int32_t           solution_index);
 
 template rocblas_status runContractionProblem(
-    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
+    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&,
+    rocblas_gemm_algo algo,
+    int32_t           solution_index);
 
 template rocblas_status
-    runContractionProblem(const RocblasContractionProblem<rocblas_bfloat16, float, float>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_bfloat16, float, float>&,
+                          rocblas_gemm_algo algo,
+                          int32_t           solution_index);
 
 template rocblas_status
-    runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
+    runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&,
+                          rocblas_gemm_algo algo,
+                          int32_t           solution_index);
 
 template rocblas_status
-    runContractionProblem(const RocblasContractionProblem<rocblas_int8x4, int32_t, int32_t>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_int8x4, int32_t, int32_t>&,
+                          rocblas_gemm_algo algo,
+                          int32_t           solution_index);
+
+// ********** get all solutions explicits ********
+// Non-EX types
+template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_half>&,
+                                        rocblas_int* list_array,
+                                        rocblas_int* list_size);
+
+template rocblas_status getAllSolutions(const RocblasContractionProblem<float>&,
+                                        rocblas_int* list_array,
+                                        rocblas_int* list_size);
+
+template rocblas_status getAllSolutions(const RocblasContractionProblem<double>&,
+                                        rocblas_int* list_array,
+                                        rocblas_int* list_size);
+
+template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_float_complex>&,
+                                        rocblas_int* list_array,
+                                        rocblas_int* list_size);
+
+template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_double_complex>&,
+                                        rocblas_int* list_array,
+                                        rocblas_int* list_size);
+
+// EX types
+template rocblas_status
+    getAllSolutions(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
+                    rocblas_int* list_array,
+                    rocblas_int* list_size);
+
+template rocblas_status
+    getAllSolutions(const RocblasContractionProblem<rocblas_half, float, float>&,
+                    rocblas_int* list_array,
+                    rocblas_int* list_size);
+
+template rocblas_status
+    getAllSolutions(const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&,
+                    rocblas_int* list_array,
+                    rocblas_int* list_size);
+
+template rocblas_status
+    getAllSolutions(const RocblasContractionProblem<rocblas_bfloat16, float, float>&,
+                    rocblas_int* list_array,
+                    rocblas_int* list_size);
+
+template rocblas_status getAllSolutions(const RocblasContractionProblem<int8_t, int32_t, int32_t>&,
+                                        rocblas_int* list_array,
+                                        rocblas_int* list_size);
+
+template rocblas_status
+    getAllSolutions(const RocblasContractionProblem<rocblas_int8x4, int32_t, int32_t>&,
+                    rocblas_int* list_array,
+                    rocblas_int* list_size);
 
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
