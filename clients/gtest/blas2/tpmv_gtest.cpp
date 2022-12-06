@@ -135,21 +135,21 @@ namespace
     using tpmv = tpmv_template<tpmv_testing, TPMV>;
     TEST_P(tpmv, blas2)
     {
-        rocblas_simple_dispatch<tpmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tpmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(tpmv);
 
     using tpmv_batched = tpmv_template<tpmv_testing, TPMV_BATCHED>;
     TEST_P(tpmv_batched, blas2)
     {
-        rocblas_simple_dispatch<tpmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tpmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(tpmv_batched);
 
     using tpmv_strided_batched = tpmv_template<tpmv_testing, TPMV_STRIDED_BATCHED>;
     TEST_P(tpmv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<tpmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tpmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(tpmv_strided_batched);
 
