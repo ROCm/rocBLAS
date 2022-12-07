@@ -762,3 +762,10 @@ constexpr double trtri_gflop_count<rocblas_double_complex>(rocblas_int n)
 {
     return (8.0 * n * n * n) / 3e9;
 }
+
+/* \brief floating point counts of GEAM_MIN_PLUS and GEAM_PLUS_MIN in geam_ex*/
+template <typename T>
+constexpr double geam_min_plus_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
+{
+    return (2.0 * m * n * k) / 1e9;
+}

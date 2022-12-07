@@ -94,6 +94,8 @@ struct Arguments
     uint32_t algo;
     int32_t  solution_index;
 
+    rocblas_geam_ex_operation geam_ex_op;
+
     rocblas_gemm_flags flags;
 
     rocblas_datatype a_type;
@@ -178,6 +180,7 @@ struct Arguments
     OPER(cold_iters) SEP             \
     OPER(algo) SEP                   \
     OPER(solution_index) SEP         \
+    OPER(geam_ex_op) SEP             \
     OPER(flags) SEP                  \
     OPER(a_type) SEP                 \
     OPER(b_type) SEP                 \

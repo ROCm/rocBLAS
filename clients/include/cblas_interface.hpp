@@ -2762,6 +2762,41 @@ inline void cblas_her2k(rocblas_fill                  uplo,
                  ldc);
 }
 
+// cblas_geam_min_plus doesn't exist. implementation in cpp
+template <typename T>
+void cblas_geam_min_plus(rocblas_operation transA,
+                         rocblas_operation transB,
+                         rocblas_int       m,
+                         rocblas_int       n,
+                         rocblas_int       k,
+                         const T           alpha,
+                         const T*          A,
+                         rocblas_int       lda,
+                         const T*          B,
+                         rocblas_int       ldb,
+                         const T           beta,
+                         const T*          C,
+                         rocblas_int       ldc,
+                         T*                D,
+                         rocblas_int       ldd);
+
+template <typename T>
+void cblas_geam_plus_min(rocblas_operation transA,
+                         rocblas_operation transB,
+                         rocblas_int       m,
+                         rocblas_int       n,
+                         rocblas_int       k,
+                         const T           alpha,
+                         const T*          A,
+                         rocblas_int       lda,
+                         const T*          B,
+                         rocblas_int       ldb,
+                         const T           beta,
+                         const T*          C,
+                         rocblas_int       ldc,
+                         T*                D,
+                         rocblas_int       ldd);
+
 // cblas_herkx doesn't exist. implementation in cpp
 template <typename T, typename U = real_t<T>>
 void cblas_herkx(rocblas_fill      uplo,

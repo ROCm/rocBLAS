@@ -271,6 +271,13 @@ typedef enum rocblas_gemm_algo_
     rocblas_gemm_algo_solution_index = 0x1,
 } rocblas_gemm_algo;
 
+/*! \brief Which mathematical geam-like operation to perform for geam_ex */
+typedef enum rocblas_geam_ex_operation_
+{
+    rocblas_geam_ex_operation_min_plus = 0x0, // Cij = min(Aik + Bkj, Cij)
+    rocblas_geam_ex_operation_plus_min = 0x1, // Cij = min(Aik, Bkj) + Cij
+} rocblas_geam_ex_operation;
+
 /*! \brief Control flags passed into gemm algorithms invoked by Tensile Host */
 typedef enum rocblas_gemm_flags_
 {

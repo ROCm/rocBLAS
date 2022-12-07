@@ -94,6 +94,11 @@ module rocblas_enums
         enumerator :: rocblas_gemm_algo_standard = 0
     end enum
 
+    enum, bind(c)
+        enumerator :: rocblas_geam_ex_operation_min_plus = 0
+        enumerator :: rocblas_geam_ex_operation_plus_min = 1
+    end enum
+
 end module rocblas_enums
 
 module rocblas
@@ -12902,6 +12907,41 @@ module rocblas
             ! we will need a workaround.
             integer(c_int32_t), value :: flags
         end function rocblas_gemm_ext2
+    end interface
+
+    ! geam_ex
+    interface
+        function rocblas_geam_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
+                                 b, b_type, ldb, beta, c, c_type, ldc, d, d_type, ldd, &
+                                 compute_type, geam_ex_op) &
+            bind(c, name='rocblas_geam_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_geam_ex
+            type(c_ptr), value :: handle
+            integer(kind(rocblas_operation_none)), value :: transA
+            integer(kind(rocblas_operation_none)), value :: transB
+            integer(c_int), value :: m
+            integer(c_int), value :: n
+            integer(c_int), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: a
+            integer(kind(rocblas_datatype_f16_r)), value :: a_type
+            integer(c_int), value :: lda
+            type(c_ptr), value :: b
+            integer(kind(rocblas_datatype_f16_r)), value :: b_type
+            integer(c_int), value :: ldb
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: c
+            integer(kind(rocblas_datatype_f16_r)), value :: c_type
+            integer(c_int), value :: ldc
+            type(c_ptr), value :: d
+            integer(kind(rocblas_datatype_f16_r)), value :: d_type
+            integer(c_int), value :: ldd
+            integer(kind(rocblas_datatype_f16_r)), value :: compute_type
+            integer(kind(rocblas_geam_ex_operation_plus_min)), value :: geam_ex_op
+        end function rocblas_geam_ex
     end interface
 
     ! trsm_ex
