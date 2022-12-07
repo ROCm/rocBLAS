@@ -238,7 +238,8 @@ def config_cmd():
         cmake_platform_opts.append(f'-DCMAKE_INSTALL_PREFIX="C:/hipSDK"')
         toolchain = os.path.join(src_path, "toolchain-windows.cmake")
     else:
-        rocm_path = os.getenv('ROCM_PATH', "/opt/rocm")
+        rocm_raw_path = os.getenv('ROCM_PATH', "/opt/rocm")
+        rocm_path = rocm_raw_path
         cmake_platform_opts.append(f"-DROCM_DIR:PATH={rocm_path} -DCPACK_PACKAGING_INSTALL_PREFIX={rocm_path}")
         cmake_platform_opts.append(f'-DCMAKE_INSTALL_PREFIX="rocblas-install"')
         toolchain = "toolchain-linux.cmake"
@@ -308,7 +309,7 @@ def config_cmd():
         if args.library_dir_installed:
             library_dir = args.library_dir_installed
         else:
-            library_dir = f"{rocm_path}/rocblas"
+            library_dir = f"{rocm_path}"
         cmake_lib_dir = cmake_path(library_dir)
         cmake_options.append(f"-DSKIP_LIBRARY=ON -DROCBLAS_LIBRARY_DIR={cmake_lib_dir}")
 
