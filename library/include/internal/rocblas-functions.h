@@ -16508,6 +16508,129 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
     \brief <b> BLAS EX API </b>
 
     \details
+    geam_ex performs one of the matrix-matrix operations:
+
+        Dij = min(alpha * (Aik + Bkj), beta * Cij)
+        Dij = min(alpha * Aik, alpha * Bkj) + beta * Cij
+
+    alpha and beta are scalars, and A, B, C, and D are matrices, with
+    op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
+    C and D may point to the same matrix if their type and leading dimensions are identical.
+
+    Aik refers to the element at the i-th row and k-th column of op( A ), Bkj refers to
+    the element at the k-th row and j-th column of op( B ), and Cij/Dij refers to the element
+    at the i-th row and j-th column of C/D.
+
+    Supported types are as follows:
+        - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    transA    [rocblas_operation]
+              specifies the form of op( A ).
+    @param[in]
+    transB    [rocblas_operation]
+              specifies the form of op( B ).
+    @param[in]
+    m         [rocblas_int]
+              matrix dimension m.
+    @param[in]
+    n         [rocblas_int]
+              matrix dimension n.
+    @param[in]
+    k         [rocblas_int]
+              matrix dimension k.
+    @param[in]
+    alpha     [const void *]
+              device pointer or host pointer specifying the scalar alpha. Same datatype as compute_type.
+    @param[in]
+    A         [void *]
+              device pointer storing matrix A.
+    @param[in]
+    a_type    [rocblas_datatype]
+              specifies the datatype of matrix A.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A
+
+              if transA == N, must have lda >= max(1, m)
+              otherwise, must have lda >= max(1, k)
+    @param[in]
+    B         [void *]
+              device pointer storing matrix B.
+    @param[in]
+    b_type    [rocblas_datatype]
+              specifies the datatype of matrix B.
+    @param[in]
+    ldb       [rocblas_int]
+              specifies the leading dimension of B
+
+              if transB == N, must have ldb >= max(1, k)
+              otherwise, must have ldb >= max(1, n)
+    @param[in]
+    beta      [const void *]
+              device pointer or host pointer specifying the scalar beta. Same datatype as compute_type.
+    @param[in]
+    C         [void *]
+              device pointer storing matrix C.
+    @param[in]
+    c_type    [rocblas_datatype]
+              specifies the datatype of matrix C.
+    @param[in]
+    ldc       [rocblas_int]
+              specifies the leading dimension of C, must have ldc >= max(1, m).
+    @param[out]
+    D         [void *]
+              device pointer storing matrix D.
+              If D and C pointers are to the same matrix then d_type must equal c_type and ldd must equal ldc
+              or the respective invalid status will be returned.
+    @param[in]
+    d_type    [rocblas_datatype]
+              specifies the datatype of matrix D.
+    @param[in]
+    ldd       [rocblas_int]
+              specifies the leading dimension of D, must have ldd >= max(1, m).
+    @param[in]
+    compute_type
+              [rocblas_datatype]
+              specifies the datatype of computation.
+    @param[in]
+    geam_ex_op [rocblas_geam_ex_operation]
+              enumerant specifying the operation type, support for rocblas_geam_ex_operation_min_plus and rocblas_geam_ex_operation_plus_min.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_geam_ex(rocblas_handle            handle,
+                                              rocblas_operation         transA,
+                                              rocblas_operation         transB,
+                                              rocblas_int               m,
+                                              rocblas_int               n,
+                                              rocblas_int               k,
+                                              const void*               alpha,
+                                              const void*               A,
+                                              rocblas_datatype          a_type,
+                                              rocblas_int               lda,
+                                              const void*               B,
+                                              rocblas_datatype          b_type,
+                                              rocblas_int               ldb,
+                                              const void*               beta,
+                                              const void*               C,
+                                              rocblas_datatype          c_type,
+                                              rocblas_int               ldc,
+                                              void*                     D,
+                                              rocblas_datatype          d_type,
+                                              rocblas_int               ldd,
+                                              rocblas_datatype          compute_type,
+                                              rocblas_geam_ex_operation geam_ex_op);
+//! @}
+
+/*! @{
+    \brief <b> BLAS EX API </b>
+
+    \details
     trsm_ex solves:
 
         op(A)*X = alpha*B or X*op(A) = alpha*B,

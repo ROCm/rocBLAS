@@ -172,6 +172,7 @@
 #include "testing_dgmm_strided_batched.hpp"
 #include "testing_geam.hpp"
 #include "testing_geam_batched.hpp"
+#include "testing_geam_ex.hpp"
 #include "testing_geam_strided_batched.hpp"
 #include "testing_her2k.hpp"
 #include "testing_her2k_batched.hpp"
@@ -349,6 +350,7 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"geam", testing_geam<T>},
                 {"geam_batched", testing_geam_batched<T>},
                 {"geam_strided_batched", testing_geam_strided_batched<T>},
+                {"geam_ex", testing_geam_ex<T>},
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
@@ -461,6 +463,7 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_half>{}>> : rocb
                 {"dot", testing_dot<T>},
                 {"dot_batched", testing_dot_batched<T>},
                 {"dot_strided_batched", testing_dot_strided_batched<T>},
+                {"geam_ex", testing_geam_ex<T>},
 #if BUILD_WITH_TENSILE
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
@@ -1229,6 +1232,7 @@ try
     rocblas_int device_id;
     rocblas_int parallel_devices;
     int         flags               = 0;
+    int         geam_ex_op          = 0;
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
     bool        log_function_name   = false;
@@ -1425,6 +1429,10 @@ try
          value<int32_t>(&arg.solution_index)->default_value(0),
          "extended precision gemm solution index")
 
+        ("geam_ex_op",
+         value<int>(&geam_ex_op)->default_value(rocblas_geam_ex_operation_min_plus),
+         "geam_ex_operation, 0: min_plus operation, 1: plus_min operation")
+
         ("flags",
          value<int>(&flags)->default_value(rocblas_gemm_flags_none),
          "gemm_ex flags, 1: Use packed-i8, 0: (default) uses unpacked-i8, available on matrix-inst-supported device")
@@ -1511,6 +1519,8 @@ try
         flags &= ~rocblas_gemm_flags_fp16_alt_impl;
 
     arg.flags = rocblas_gemm_flags(flags);
+
+    arg.geam_ex_op = rocblas_geam_ex_operation(geam_ex_op);
 
     ArgumentModel_set_log_function_name(log_function_name);
 
