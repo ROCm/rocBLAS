@@ -72,6 +72,8 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
+  option( Tensile_SEPARATE_ARCHITECTURES "Tensile to use GPU architecture specific files?" ON )
+  option( Tensile_LAZY_LIBRARY_LOADING "Tensile to load kernels on demand?" ON )
 
   if(Tensile_LIBRARY_FORMAT MATCHES "yaml")
     option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." ON)
