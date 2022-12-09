@@ -6,7 +6,12 @@ Installation and Building for Linux
 Prerequisites
 -------------
 
-- A ROCm enabled platform. More information `here <https://docs.amd.com/>`_
+- A ROCm enabled platform. More information in `ROCm Documentation <https://docs.amd.com/>`_. To build ROCm from the source, follow the previous link and navigate to How to install ROCm. This page will provide steps to install ROCm for specific operating systems. After following these steps to download the installer amdgpu-install, use the below command to install ROCm.
+
+::
+
+   sudo amdgpu-install --usecase=rocm
+
 - rocBLAS is supported on the same Linux versions that are supported by ROCm
 
 
@@ -51,6 +56,11 @@ Building and Installing rocBLAS
 
 For most users, building from source is not necessary, as rocBLAS can be used after installing the prebuilt
 packages as described above. If desired, users can use following instructions to build rocBLAS from source.
+Note the change in the --usecase command argument below to install the base ROCm developer stack in-order to build rocBLAS from the source.
+
+::
+
+   sudo amdgpu-install --usecase=rocmdev
 
 
 Requirements
