@@ -6,8 +6,8 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ### Added
 - added functionality rocblas_geam_ex for matrix-matrix minimum operations
-- added HIP Graph support as beta feature for rocBLAS Level 1, Level 2, and Level 3 (pointer mode host only) functions
-- added beta features API. Exposed whith define ROCBLAS_BETA_FEATURES_API
+- added HIP Graph support as beta feature for rocBLAS Level 1, Level 2 functions
+- added beta features API. Exposed using compiler define ROCBLAS_BETA_FEATURES_API
 - added support for vector initialization in the rocBLAS test framework with negative increments
 - added windows build documentation for forthcoming support using ROCm HIP SDK
 - added scripts to plot performance for multiple functions
