@@ -100,7 +100,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.47.0" )
+set ( VERSION_STRING "2.48.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
