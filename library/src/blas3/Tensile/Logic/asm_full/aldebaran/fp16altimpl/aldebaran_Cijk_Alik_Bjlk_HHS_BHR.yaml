@@ -77,7 +77,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 4
     DepthULdsDivisor: 1
@@ -322,7 +322,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -583,7 +583,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -844,7 +844,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -1105,7 +1105,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -1366,7 +1366,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -1627,7 +1627,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -1888,7 +1888,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -2149,7 +2149,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -2410,7 +2410,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -2671,7 +2671,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -2932,7 +2932,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -3193,7 +3193,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -3454,7 +3454,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -3715,7 +3715,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -3976,7 +3976,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -4237,7 +4237,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -4498,7 +4498,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -4759,7 +4759,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -5020,7 +5020,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -5281,7 +5281,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -5542,7 +5542,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -5803,7 +5803,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -6064,7 +6064,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -6325,7 +6325,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -6586,7 +6586,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -6847,7 +6847,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -7111,7 +7111,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -7375,7 +7375,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 4
     DepthULdsDivisor: 1
@@ -7630,7 +7630,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 8
     DepthULdsDivisor: 1
@@ -7885,7 +7885,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 4
     DepthULdsDivisor: 1
@@ -8144,7 +8144,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 4
     DepthULdsDivisor: 1
@@ -8399,7 +8399,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 4
     DepthULdsDivisor: 1
@@ -8867,6 +8867,38 @@
     - [28, 0.006]
   - - [61440, 1, 1, 96]
     - [31, 0.077]
+  - - [192, 196, 128, 192]
+    - [27, 19.403]
+  - - [192, 196, 352, 192]
+    - [27, 23.918]
+  - - [192, 196, 464, 192]
+    - [26, 24.542]
+  - - [192, 784, 128, 192]
+    - [27, 31.36]
+  - - [192, 784, 352, 192]
+    - [26, 33.97]
+  - - [192, 784, 464, 192]
+    - [26, 34.244]
+  - - [64, 3136, 128, 64]
+    - [27, 17.591]
+  - - [64, 3136, 352, 64]
+    - [26, 18.646]
+  - - [64, 3136, 464, 64]
+    - [26, 18.704]
+  - - [64, 784, 128, 64]
+    - [26, 12.687]
+  - - [64, 784, 352, 64]
+    - [26, 16.079]
+  - - [64, 784, 464, 64]
+    - [26, 16.687]
+  - - [192, 196, 256, 192]
+    - [27, 22.193]
+  - - [192, 784, 256, 192]
+    - [27, 33.517]
+  - - [64, 3136, 256, 64]
+    - [26, 18.57]
+  - - [64, 784, 256, 64]
+    - [26, 15.385]
 - null
 - null
 - DeviceEfficiency

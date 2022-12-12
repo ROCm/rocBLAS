@@ -94,6 +94,8 @@ struct Arguments
     uint32_t algo;
     int32_t  solution_index;
 
+    rocblas_geam_ex_operation geam_ex_op;
+
     rocblas_gemm_flags flags;
 
     rocblas_datatype a_type;
@@ -178,6 +180,7 @@ struct Arguments
     OPER(cold_iters) SEP             \
     OPER(algo) SEP                   \
     OPER(solution_index) SEP         \
+    OPER(geam_ex_op) SEP             \
     OPER(flags) SEP                  \
     OPER(a_type) SEP                 \
     OPER(b_type) SEP                 \
@@ -219,20 +222,6 @@ struct Arguments
     // Function to read Arguments data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg);
 
-    // Convert (alpha, alphai) and (beta, betai) to a particular type
-    // Return alpha, beta adjusted to 0 for when they are NaN
-    template <typename T>
-    T get_alpha() const
-    {
-        return alpha_isnan<T>() ? T(0) : convert_alpha_beta<T>(alpha, alphai);
-    }
-
-    template <typename T>
-    T get_beta() const
-    {
-        return beta_isnan<T>() ? T(0) : convert_alpha_beta<T>(beta, betai);
-    }
-
     template <typename T>
     bool alpha_isnan() const
     {
@@ -246,16 +235,45 @@ struct Arguments
     }
 
 private:
-    template <typename T, typename U, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
-    static T convert_alpha_beta(U r, U i)
+    // conversion helpers
+    template <typename T>
+    inline static T convert_alpha_beta(double r, double i)
     {
         return T(r);
     }
 
-    template <typename T, typename U, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
-    static T convert_alpha_beta(U r, U i)
+    template <>
+    inline rocblas_half convert_alpha_beta(double r, double i)
     {
-        return T(r, i);
+        // constructor with double silently converted to zero without cast to float
+        return rocblas_half((float)r);
+    }
+
+    template <>
+    inline rocblas_float_complex convert_alpha_beta(double r, double i)
+    {
+        return rocblas_float_complex(r, i);
+    }
+
+    template <>
+    inline rocblas_double_complex convert_alpha_beta(double r, double i)
+    {
+        return rocblas_double_complex(r, i);
+    }
+
+public:
+    // Convert (alpha, alphai) and (beta, betai) to a particular type
+    // Return alpha, beta adjusted to 0 for when they are NaN
+    template <typename T>
+    T get_alpha() const
+    {
+        return alpha_isnan<T>() ? T(0) : convert_alpha_beta<T>(alpha, alphai);
+    }
+
+    template <typename T>
+    T get_beta() const
+    {
+        return beta_isnan<T>() ? T(0) : convert_alpha_beta<T>(beta, betai);
     }
 };
 

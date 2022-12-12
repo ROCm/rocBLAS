@@ -37,10 +37,10 @@ param = {}
 OS_info = {}
 var_subs = {}
 
-vcpkg_script = [ 'mkdir %IDIR%', 'cd %IDIR%', 'tdir %IDIR%\\vcpkg',
-                'git clone -b 2022.05.10 https://github.com/microsoft/vcpkg', 'cd vcpkg', 'bootstrap-vcpkg.bat -disableMetrics' ]
+vcpkg_script = ['tdir %IDIR%', 
+                'git clone -b 2022.05.10 https://github.com/microsoft/vcpkg %IDIR%', 'cd %IDIR%', 'bootstrap-vcpkg.bat -disableMetrics' ]
 
-xml_script = [ 'cd %IDIR%', '%XML%' ]
+xml_script = [ '%XML%' ]
 
 
 def parse_args():
@@ -50,8 +50,8 @@ def parse_args():
     """)
     # parser.add_argument('--install', required=False, default = True,  action='store_true',
     #                     help='Install dependencies (optional, default: True)')
-    parser.add_argument('-i', '--install_dir', type=str, required=False, default = ("C:\\github" if os.name == "nt" else "./build/deps"),
-                        help='Install directory path (optional, default: C:\\github)')
+    parser.add_argument('-i', '--install_dir', type=str, required=False, default = ("" if os.name == "nt" else "./build/deps"),
+                        help='Install directory path (optional, windows default: C:\\github\\vcpkg, linux default: ./build/deps)')
     # parser.add_argument('-v', '--verbose', required=False, default = False, action='store_true',
     #                     help='Verbose install (optional, default: False)')
     return parser.parse_args()
@@ -102,11 +102,12 @@ def run_cmd(cmd):
 def install_deps( os_node ):
     global var_subs
 
+    cwd = pathlib.Path.absolute(pathlib.Path(os.curdir))
+
     if os.name == "nt":
         vc_node = os_node.getElementsByTagName('vcpkg')
         if vc_node:
-            cwd = pathlib.os.curdir
-            cmdline = "cd %IDIR%\\vcpkg"
+            cmdline = "cd %IDIR%"
             cd_vcpkg = cmdline.replace('%IDIR%', args.install_dir)
             run_cmd(cd_vcpkg)
             for p in vc_node[0].getElementsByTagName('pkg'):
@@ -117,12 +118,11 @@ def install_deps( os_node ):
                 raw_cmd = p.firstChild.data
                 var_cmd = raw_cmd.format_map(var_subs)
                 error = run_cmd( f'vcpkg.exe install {var_cmd}')
-            os.chdir(cwd)
     else:
-        cwd = pathlib.os.curdir
         create_dir( args.install_dir )
         # TODO
-        os.chdir( cwd )
+
+    os.chdir(cwd)
 
     pip_node = os_node.getElementsByTagName('pip')
     if pip_node:
@@ -134,6 +134,15 @@ def install_deps( os_node ):
             raw_cmd = p.firstChild.data
             var_cmd = raw_cmd.format_map(var_subs)
             error = run_cmd( f'pip install {var_cmd}')
+        for p in pip_node[0].getElementsByTagName('req'):
+            name = p.getAttribute('name')
+            package = p.firstChild.data
+            if name:
+                print( f'***\n*** Pip Requirements: {name}\n***' )
+            raw_cmd = p.firstChild.data
+            var_cmd = raw_cmd.format_map(var_subs)
+            requirements_file = os.path.abspath( os.path.join( cwd, var_cmd ) )
+            error = run_cmd( f'pip install -r {requirements_file}')
 
 def run_install_script(script, xml):
     '''executes a simple batch style install script, the scripts are defined at top of file'''
@@ -141,15 +150,17 @@ def run_install_script(script, xml):
     global args
     global var_subs
     #
-    cwd = pathlib.os.curdir
+    cwd = pathlib.Path.absolute(pathlib.Path(os.getcwd()))
 
     fail = False
+    last_cmd_index = 0
     for i in range(len(script)):
+        last_cmd_index = i
         cmdline = script[i]
         cmd = cmdline.replace('%IDIR%', args.install_dir)
         if cmd.startswith('tdir '):
             if pathlib.Path(cmd[5:]).exists():
-                return 0 # all further cmds skipped
+                break # all further cmds skipped
             else:
                 continue
         error = False
@@ -183,18 +194,18 @@ def run_install_script(script, xml):
         else:
             error = run_cmd(cmd)
         fail = fail or error
+        if fail:
+            break
 
+    os.chdir( cwd )
     if (fail):
-        if (cmd == "%XML%"):
+        if (script[last_cmd_index] == "%XML%"):
             print(f"FAILED xml dependency installation!")
         else:
-            print(f"ERROR running: {cmd}")
-        if (os.curdir != cwd):
-            os.chdir( cwd )
+            print(f"ERROR running: {script[last_cmd_index]}")
         return 1
-    if (os.curdir != cwd):
-        os.chdir( cwd )
-    return 0
+    else:
+        return 0
 
 def installation():
     global vcpkg_script
@@ -202,7 +213,7 @@ def installation():
     global xmlDoc
 
     # install
-    cwd = os.curdir
+    cwd = os.getcwd()
 
     xmlPath = os.path.join( cwd, 'rdeps.xml')
     xmlDoc = minidom.parse( xmlPath )
@@ -216,11 +227,9 @@ def installation():
     for i in scripts:
         if (run_install_script(i, xmlDoc)):
             #print("Failure in script. ABORTING")
-            if (os.curdir != cwd):
-                os.chdir( cwd )
+            os.chdir( cwd )
             return 1
-    if (os.curdir != cwd):
-        os.chdir( cwd )
+    os.chdir( cwd )
     return 0
 
 def main():
@@ -228,6 +237,10 @@ def main():
 
     os_detect()
     args = parse_args()
+
+    if os.name == "nt" and not args.install_dir:
+        vcpkg_root = os.getenv( 'VCPKG_PATH', "C:\\github\\vcpkg")
+        args.install_dir = vcpkg_root
 
     installation()
 

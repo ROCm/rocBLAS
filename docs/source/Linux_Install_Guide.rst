@@ -1,34 +1,23 @@
-===============================
-Getting Started Guide for Linux
-===============================
-
-------------
-Introduction
-------------
-
-This document contains instructions for installing, using, and contributing to rocBLAS.
-The quickest way to install is from prebuilt packages. Alternatively, there are instructions to build from source. The document also contains an API Reference Guide, Programmer's Guide, and Contributor's Guide.
-
-Documentation Roadmap
-^^^^^^^^^^^^^^^^^^^^^
-The following is a list of rocBLAS documents in the suggested reading order:
-
- - Getting Started Guide (this document): Describes how to install and configure the rocBLAS library; designed to get users up and running quickly with the library
- - API Reference Guide : Provides detailed information about rocBLAS functions, data types and other programming constructs
- - Programmer's Guide: Describes the code organization, Design implementation detail, Optimizations used in the library, and those that should be considered for new development and Testing & Benchmarking detail
- - Contributor's Guide : Describes coding guidelines for contributors
+===================================
+Installation and Building for Linux
+===================================
 
 -------------
 Prerequisites
 -------------
 
-- A ROCm enabled platform. More information `here <https://docs.amd.com/>`_
+- A ROCm enabled platform. More information in `ROCm Documentation <https://docs.amd.com/>`_. To build ROCm from the source, follow the previous link and navigate to How to install ROCm. This page will provide steps to install ROCm for specific operating systems. After following these steps to download the installer amdgpu-install, use the below command to install ROCm.
+
+::
+
+   sudo amdgpu-install --usecase=rocm
+
 - rocBLAS is supported on the same Linux versions that are supported by ROCm
 
 
------------------------------
+----------------------------
 Installing Prebuilt Packages
------------------------------
+----------------------------
 
 rocBLAS can be installed on Ubuntu(R) or Debian using:
 
@@ -67,6 +56,11 @@ Building and Installing rocBLAS
 
 For most users, building from source is not necessary, as rocBLAS can be used after installing the prebuilt
 packages as described above. If desired, users can use following instructions to build rocBLAS from source.
+Note the change in the --usecase command argument below to install the base ROCm developer stack in-order to build rocBLAS from the source.
+
+::
+
+   sudo amdgpu-install --usecase=rocmdev
 
 
 Requirements
@@ -257,13 +251,3 @@ Note that the version of the rocBLAS clients being built should match the versio
 |                                     | library at the specified |
 |                                     | location.                |
 +-------------------------------------+--------------------------+
-
-Use of Tensile
-^^^^^^^^^^^^^^
-
-The rocBLAS library uses
-`Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`__, which
-supplies the high-performance implementation of xGEMM. CMake downloads
-Tensile during library configuration and automatically
-configures it as part of the build, so no further action is required by the
-user to set it up.

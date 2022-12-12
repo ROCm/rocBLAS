@@ -173,6 +173,8 @@ set (rocblas_ex_source_no_tensile
     blas_ex/rocblas_trmm_outofplace.cpp
     blas_ex/rocblas_trmm_outofplace_batched.cpp
     blas_ex/rocblas_trmm_outofplace_strided_batched.cpp
+    blas_ex/rocblas_geam_ex.cpp
+    blas_ex/rocblas_geam_ex_kernels.cpp
 )
 
 set( rocblas_blas3_source_no_tensile
@@ -467,7 +469,7 @@ if( BUILD_WITH_TENSILE )
   target_compile_definitions( rocblas PRIVATE ${TENSILE_DEFINES} )
 endif()
 
-target_compile_definitions( rocblas PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
+target_compile_definitions( rocblas PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_BETA_FEATURES_API )
 
 rocm_set_soversion( rocblas ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES CXX_EXTENSIONS NO )

@@ -504,3 +504,21 @@ constexpr auto get_epsilon()
 {
     return get_epsilon<decltype(std::real(T{}))>();
 }
+
+template <typename T,
+          std::enable_if_t<!std::is_same<T, double>{} && !std::is_same<T, rocblas_double_complex>{},
+                           int> = 0>
+inline double trtri_tolerance(rocblas_int N)
+{
+    // Algorithm propagates results so use N when large
+    return (get_epsilon<T>() * std::max(1000.0, double(N)));
+}
+
+template <typename T,
+          std::enable_if_t<std::is_same<T, double>{} || std::is_same<T, rocblas_double_complex>{},
+                           int> = 0>
+inline double trtri_tolerance(rocblas_int N)
+{
+    return (get_epsilon<T>()
+            * std::max(10000.0, double(N))); // allow one more decimal place for double
+}

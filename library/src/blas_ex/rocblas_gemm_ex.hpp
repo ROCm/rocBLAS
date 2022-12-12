@@ -199,6 +199,8 @@ rocblas_status gemm_ex_batched_template(rocblas_handle     handle,
                                         rocblas_int        ldd,
                                         rocblas_stride     stride_d,
                                         rocblas_int        batch_count,
+                                        rocblas_gemm_algo  algo,
+                                        int32_t            solution_index,
                                         rocblas_gemm_flags flags)
 {
 #if 0
@@ -228,7 +230,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle     handle,
         offset_b, beta,    nullptr,  c,        ldc,         stride_c, offset_c, nullptr,
         d,        ldd,     stride_d, offset_d, batch_count, false,    flags};
 
-    return runContractionProblem(problem);
+    return runContractionProblem(problem, algo, solution_index);
 }
 
 template <typename Ti, typename To, typename Tc>
@@ -257,6 +259,8 @@ rocblas_status gemm_ex_batched_template(rocblas_handle     handle,
                                         rocblas_int        ldd,
                                         rocblas_stride     stride_d,
                                         rocblas_int        batch_count,
+                                        rocblas_gemm_algo  algo,
+                                        int32_t            solution_index,
                                         rocblas_gemm_flags flags)
 {
     RocblasContractionProblem<Ti, To, Tc> problem{
@@ -265,7 +269,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle     handle,
         offset_b, beta,    c,        nullptr,  ldc,         stride_c, offset_c, d,
         nullptr,  ldd,     stride_d, offset_d, batch_count, true,     flags};
 
-    return runContractionProblem(problem);
+    return runContractionProblem(problem, algo, solution_index);
 }
 
 template <bool BATCHED, typename Ti, typename To = Ti, typename Tc = To>
@@ -294,6 +298,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
                                    rocblas_int        ldd,
                                    rocblas_stride     stride_d,
                                    rocblas_int        batch_count,
+                                   rocblas_gemm_algo  algo,
+                                   int32_t            solution_index,
                                    rocblas_gemm_flags flags)
 {
     Tc alpha_h, beta_h;
@@ -366,6 +372,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
                                           ldd,
                                           stride_d,
                                           batch_count,
+                                          algo,
+                                          solution_index,
                                           flags);
         if(status != rocblas_status_success)
             return status;
@@ -457,6 +465,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
                                           ldd,
                                           stride_d,
                                           batch_count,
+                                          algo,
+                                          solution_index,
                                           flags);
         if(status != rocblas_status_success)
             return status;
@@ -653,6 +663,8 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count,
                                         rocblas_datatype  compute_type,
+                                        rocblas_gemm_algo algo,
+                                        int32_t           solution_index,
                                         uint32_t          flags)
 {
     // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
@@ -672,7 +684,7 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
 #define EX_TYPECASTING_PARM                                                                    \
     handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb,  \
         stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count, \
-        rocblas_gemm_flags(flags)
+        algo, solution_index, rocblas_gemm_flags(flags)
 
     if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r

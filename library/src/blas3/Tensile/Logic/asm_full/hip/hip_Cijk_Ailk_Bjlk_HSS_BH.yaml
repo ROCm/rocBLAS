@@ -66,7 +66,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 8
     DirectToLds: false
     DirectToLdsA: false
@@ -276,7 +276,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 8
     DirectToLds: false
     DirectToLdsA: false
@@ -486,7 +486,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 16
     DirectToLds: false
     DirectToLdsA: false
@@ -696,7 +696,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 16
     DirectToLds: false
     DirectToLdsA: false
@@ -906,7 +906,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 16
     DirectToLds: false
     DirectToLdsA: false
@@ -1116,7 +1116,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 64
     DirectToLds: false
     DirectToLdsA: false
@@ -1326,7 +1326,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 64
     DirectToLds: false
     DirectToLdsA: false
@@ -1536,7 +1536,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 64
     DirectToLds: false
     DirectToLdsA: false
@@ -1746,7 +1746,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 64
     DirectToLds: false
     DirectToLdsA: false
@@ -1956,7 +1956,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 64
     DirectToLds: false
     DirectToLdsA: false
@@ -2166,7 +2166,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 64
     DirectToLds: false
     DirectToLdsA: false
@@ -2376,7 +2376,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     DepthU: 64
     DirectToLds: false
     DirectToLdsA: false

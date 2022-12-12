@@ -27,7 +27,11 @@
 
 #ifndef ROCBLAS_NO_DEPRECATED_WARNINGS
 #ifndef ROCBLAS_DEPRECATED_MSG
+#ifndef _MSC_VER
 #define ROCBLAS_DEPRECATED_MSG(MSG) __attribute__((deprecated(#MSG)))
+#else
+#define ROCBLAS_DEPRECATED_MSG(MSG) __declspec(deprecated(#MSG))
+#endif
 #endif
 #else
 #ifndef ROCBLAS_DEPRECATED_MSG

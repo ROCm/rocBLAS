@@ -1,0 +1,44 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &transA_transB_range
+    - { transA: N, transB: N }
+    - { transA: N, transB: T }
+    - { transA: C, transB: N }
+    - { transA: T, transB: C }
+
+Tests:
+- name: gemm_ex_get_solutions
+  category: pre_checkin
+  function: gemm_ex_get_solutions
+  M: 250
+  N: 250
+  K: 250
+  alpha_beta: { alpha:  1, beta:  1 }
+  transA_transB: *transA_transB_range
+  precision : *real_precisions
+
+- name: gemm_strided_batched_ex_get_solutions
+  category: pre_checkin
+  function: gemm_strided_batched_ex_get_solutions
+  M: 250
+  N: 250
+  K: 250
+  alpha_beta: { alpha:  1, beta:  1 }
+  transA_transB: *transA_transB_range
+  precision : *complex_precisions
+  batch_count: [ 1, 3 ]
+
+- name: gemm_batched_ex_get_solutions
+  category: pre_checkin
+  function: gemm_batched_ex_get_solutions
+  M: 250
+  N: 250
+  K: 250
+  alpha_beta: { alpha:  1, beta:  1 }
+  transA_transB: *transA_transB_range
+  precision : *single_double_precisions
+  batch_count: [ 1, 3 ]
+...

@@ -30,6 +30,7 @@ Definitions:
   - &large_matrix_size_range
     - { N:  4011, lda:  4011 }
     - { N:  7000, lda:  7000 }
+    - { N:  19001, lda: 19001 }
 
   - &incx_incy_range
     - { incx:   2, incy:   1 }

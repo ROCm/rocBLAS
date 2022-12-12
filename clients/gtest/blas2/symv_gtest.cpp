@@ -158,14 +158,14 @@ namespace
     using symv_batched = symv_template<symv_testing, SYMV_BATCHED>;
     TEST_P(symv_batched, blas2)
     {
-        rocblas_simple_dispatch<symv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<symv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(symv_batched);
 
     using symv_strided_batched = symv_template<symv_testing, SYMV_STRIDED_BATCHED>;
     TEST_P(symv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<symv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<symv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(symv_strided_batched);
 

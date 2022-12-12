@@ -1835,6 +1835,24 @@ rocblas_Xdgmm + batched, strided_batched
 
 .. _Device Memory Allocation Usage:
 
+---------------------
+rocBLAS Beta Features
+---------------------
+
+To allow for future growth and changes, the features in this section are not subject to the same
+level of backwards compatibility and support as the normal rocBLAS API. These features are subject
+to change and/or removal in future release of rocBLAS.
+
+To use the beta features, ROCBLAS_BETA_FEATURES_API must be defined before including rocblas.h.
+
+rocblas_gemm_ex_get_solutions + batched, strided_batched
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: rocblas_gemm_ex_get_solutions
+.. doxygenfunction:: rocblas_gemm_batched_ex_get_solutions
+.. doxygenfunction:: rocblas_gemm_strided_batched_ex_get_solutions
+
+
 -----------------------------------
 Device Memory Allocation in rocBLAS
 -----------------------------------

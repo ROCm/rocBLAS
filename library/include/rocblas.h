@@ -34,4 +34,8 @@
 #include "internal/rocblas-types.h"
 #include "internal/rocblas-version.h"
 
+#ifdef ROCBLAS_BETA_FEATURES_API
+#include "internal/rocblas-beta.h"
+#endif
+
 #endif // _ROCBLAS_H_
