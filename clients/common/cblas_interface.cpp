@@ -874,6 +874,82 @@ void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation transA,
         C[i] = static_cast<int32_t>(C_double[i]);
 }
 
+template <typename T>
+void cblas_geam_min_plus(rocblas_operation transA,
+                         rocblas_operation transB,
+                         rocblas_int       m,
+                         rocblas_int       n,
+                         rocblas_int       k,
+                         const T           alpha,
+                         const T*          A,
+                         rocblas_int       lda,
+                         const T*          B,
+                         rocblas_int       ldb,
+                         const T           beta,
+                         const T*          C,
+                         rocblas_int       ldc,
+                         T*                D,
+                         rocblas_int       ldd)
+{
+    bool TRANSA = transA != rocblas_operation_none;
+    bool TRANSB = transB != rocblas_operation_none;
+
+#pragma omp parallel for
+    for(int n1 = 0; n1 < n; n1++)
+    {
+        for(int m1 = 0; m1 < m; m1++)
+        {
+            size_t idxC = size_t(ldc) * n1 + m1;
+            size_t idxD = size_t(ldd) * n1 + m1;
+            D[idxD]     = beta * C[idxC];
+            for(int k1 = 0; k1 < k; k1++)
+            {
+                size_t idxA = TRANSA ? size_t(lda) * m1 + k1 : size_t(lda) * k1 + m1;
+                size_t idxB = TRANSB ? size_t(ldb) * k1 + n1 : size_t(ldb) * n1 + k1;
+                D[idxD]     = std::min(alpha * (A[idxA] + B[idxB]), D[idxD]);
+            }
+        }
+    }
+}
+
+template <typename T>
+void cblas_geam_plus_min(rocblas_operation transA,
+                         rocblas_operation transB,
+                         rocblas_int       m,
+                         rocblas_int       n,
+                         rocblas_int       k,
+                         const T           alpha,
+                         const T*          A,
+                         rocblas_int       lda,
+                         const T*          B,
+                         rocblas_int       ldb,
+                         const T           beta,
+                         const T*          C,
+                         rocblas_int       ldc,
+                         T*                D,
+                         rocblas_int       ldd)
+{
+    bool TRANSA = transA != rocblas_operation_none;
+    bool TRANSB = transB != rocblas_operation_none;
+
+#pragma omp parallel for
+    for(int n1 = 0; n1 < n; n1++)
+    {
+        for(int m1 = 0; m1 < m; m1++)
+        {
+            size_t idxC = size_t(ldc) * n1 + m1;
+            size_t idxD = size_t(ldd) * n1 + m1;
+            D[idxD]     = beta * C[idxC];
+            for(int k1 = 0; k1 < k; k1++)
+            {
+                size_t idxA = TRANSA ? size_t(lda) * m1 + k1 : size_t(lda) * k1 + m1;
+                size_t idxB = TRANSB ? size_t(ldb) * k1 + n1 : size_t(ldb) * n1 + k1;
+                D[idxD] += std::min(alpha * A[idxA], alpha * B[idxB]);
+            }
+        }
+    }
+}
+
 template <typename T, typename U>
 void cblas_herkx(rocblas_fill      uplo,
                  rocblas_operation transA,
@@ -992,6 +1068,102 @@ void cblas_herkx(rocblas_fill      uplo,
 }
 
 // instantiations
+template void cblas_geam_min_plus<float>(rocblas_operation transA,
+                                         rocblas_operation transB,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       k,
+                                         const float       alpha,
+                                         const float*      A,
+                                         rocblas_int       lda,
+                                         const float*      B,
+                                         rocblas_int       ldb,
+                                         const float       beta,
+                                         const float*      C,
+                                         rocblas_int       ldc,
+                                         float*            D,
+                                         rocblas_int       ldd);
+
+template void cblas_geam_min_plus<double>(rocblas_operation transA,
+                                          rocblas_operation transB,
+                                          rocblas_int       m,
+                                          rocblas_int       n,
+                                          rocblas_int       k,
+                                          const double      alpha,
+                                          const double*     A,
+                                          rocblas_int       lda,
+                                          const double*     B,
+                                          rocblas_int       ldb,
+                                          const double      beta,
+                                          const double*     C,
+                                          rocblas_int       ldc,
+                                          double*           D,
+                                          rocblas_int       ldd);
+
+template void cblas_geam_min_plus<rocblas_half>(rocblas_operation   transA,
+                                                rocblas_operation   transB,
+                                                rocblas_int         m,
+                                                rocblas_int         n,
+                                                rocblas_int         k,
+                                                const rocblas_half  alpha,
+                                                const rocblas_half* A,
+                                                rocblas_int         lda,
+                                                const rocblas_half* B,
+                                                rocblas_int         ldb,
+                                                const rocblas_half  beta,
+                                                const rocblas_half* C,
+                                                rocblas_int         ldc,
+                                                rocblas_half*       D,
+                                                rocblas_int         ldd);
+
+template void cblas_geam_plus_min<float>(rocblas_operation transA,
+                                         rocblas_operation transB,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       k,
+                                         const float       alpha,
+                                         const float*      A,
+                                         rocblas_int       lda,
+                                         const float*      B,
+                                         rocblas_int       ldb,
+                                         const float       beta,
+                                         const float*      C,
+                                         rocblas_int       ldc,
+                                         float*            D,
+                                         rocblas_int       ldd);
+
+template void cblas_geam_plus_min<double>(rocblas_operation transA,
+                                          rocblas_operation transB,
+                                          rocblas_int       m,
+                                          rocblas_int       n,
+                                          rocblas_int       k,
+                                          const double      alpha,
+                                          const double*     A,
+                                          rocblas_int       lda,
+                                          const double*     B,
+                                          rocblas_int       ldb,
+                                          const double      beta,
+                                          const double*     C,
+                                          rocblas_int       ldc,
+                                          double*           D,
+                                          rocblas_int       ldd);
+
+template void cblas_geam_plus_min<rocblas_half>(rocblas_operation   transA,
+                                                rocblas_operation   transB,
+                                                rocblas_int         m,
+                                                rocblas_int         n,
+                                                rocblas_int         k,
+                                                const rocblas_half  alpha,
+                                                const rocblas_half* A,
+                                                rocblas_int         lda,
+                                                const rocblas_half* B,
+                                                rocblas_int         ldb,
+                                                const rocblas_half  beta,
+                                                const rocblas_half* C,
+                                                rocblas_int         ldc,
+                                                rocblas_half*       D,
+                                                rocblas_int         ldd);
+
 template void cblas_herkx<rocblas_float_complex, float>(rocblas_fill                 uplo,
                                                         rocblas_operation            transA,
                                                         rocblas_int                  n,

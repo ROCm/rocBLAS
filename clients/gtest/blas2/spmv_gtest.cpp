@@ -146,21 +146,21 @@ namespace
     using spmv = spmv_template<spmv_testing, SPMV>;
     TEST_P(spmv, blas2)
     {
-        rocblas_simple_dispatch<spmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<spmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(spmv);
 
     using spmv_batched = spmv_template<spmv_testing, SPMV_BATCHED>;
     TEST_P(spmv_batched, blas2)
     {
-        rocblas_simple_dispatch<spmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<spmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(spmv_batched);
 
     using spmv_strided_batched = spmv_template<spmv_testing, SPMV_STRIDED_BATCHED>;
     TEST_P(spmv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<spmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<spmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(spmv_strided_batched);
 

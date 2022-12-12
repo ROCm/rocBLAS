@@ -122,6 +122,7 @@ set( rocblas_headers_public
   include/internal/rocblas_bfloat16.h
   include/internal/rocblas-auxiliary.h
   include/internal/rocblas-functions.h
+  include/internal/rocblas-beta.h
   ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
 )
 

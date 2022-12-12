@@ -295,7 +295,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            const double rel_error = get_epsilon<T>() * 1000;
+            const double rel_error = trtri_tolerance<T>(N);
             near_check_general<T>(N, N, lda, stride_A, hB, hA, batch_count, rel_error);
             near_check_general<T>(N, N, lda, stride_A, hB, hA_2, batch_count, rel_error);
         }

@@ -76,7 +76,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -330,7 +330,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -584,7 +584,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -853,7 +853,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -1122,7 +1122,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -1391,7 +1391,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -1660,7 +1660,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -1929,7 +1929,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -2198,7 +2198,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -2467,7 +2467,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -2736,7 +2736,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -3005,7 +3005,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -3274,7 +3274,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -3543,7 +3543,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -3812,7 +3812,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -4081,7 +4081,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1

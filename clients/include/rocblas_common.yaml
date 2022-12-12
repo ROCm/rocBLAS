@@ -39,6 +39,11 @@ Datatypes:
       bases: [ c_uint32 ]
       attr:
         none: 0
+  - rocblas_geam_ex_operation:
+      bases: [ c_uint32 ]
+      attr:
+        rocblas_geam_ex_operation_min_plus: 0
+        rocblas_geam_ex_operation_plus_min: 1
   - rocblas_atomics_mode:
       bases: [ c_uint32 ]
       attr:
@@ -379,6 +384,7 @@ Arguments:
   - cold_iters: rocblas_int
   - algo: c_uint32
   - solution_index: c_int32
+  - geam_op: rocblas_geam_ex_operation
   - flags: rocblas_gemm_flags
   - a_type: rocblas_datatype
   - b_type: rocblas_datatype
@@ -475,6 +481,7 @@ Defaults:
   cold_iters: 2
   algo: 0
   solution_index: 0
+  geam_op: rocblas_geam_ex_operation_min_plus
   flags: none
   atomics_mode: atomics_allowed
   workspace_size: 0

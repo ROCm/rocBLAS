@@ -78,7 +78,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 4
     DepthULdsDivisor: 1
@@ -332,7 +332,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 8
     DepthULdsDivisor: 1
@@ -586,7 +586,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -840,7 +840,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -1106,7 +1106,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -1372,7 +1372,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -1638,7 +1638,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -1904,7 +1904,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -2170,7 +2170,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -2436,7 +2436,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -2702,7 +2702,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -2968,7 +2968,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -3234,7 +3234,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -3500,7 +3500,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -3766,7 +3766,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -4032,7 +4032,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -4298,7 +4298,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -4564,7 +4564,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -4830,7 +4830,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -5096,7 +5096,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -5362,7 +5362,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -5628,7 +5628,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -5894,7 +5894,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -6160,7 +6160,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -6426,7 +6426,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -6692,7 +6692,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -6958,7 +6958,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -7224,7 +7224,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -7490,7 +7490,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -7756,7 +7756,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -8022,7 +8022,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -8288,7 +8288,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -8554,7 +8554,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -8820,7 +8820,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -9086,7 +9086,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -9352,7 +9352,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -9618,7 +9618,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -9884,7 +9884,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -10150,7 +10150,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -10416,7 +10416,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -10682,7 +10682,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -10948,7 +10948,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -11214,7 +11214,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -11480,7 +11480,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -11746,7 +11746,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -12012,7 +12012,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -12278,7 +12278,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -12544,7 +12544,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -12810,7 +12810,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -13076,7 +13076,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -13342,7 +13342,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -13608,7 +13608,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -13874,7 +13874,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -14140,7 +14140,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -14406,7 +14406,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -14672,7 +14672,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -14938,7 +14938,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -15204,7 +15204,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -15470,7 +15470,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -15736,7 +15736,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -16002,7 +16002,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -16268,7 +16268,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -16534,7 +16534,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -16800,7 +16800,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -17066,7 +17066,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -17332,7 +17332,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -17598,7 +17598,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -17864,7 +17864,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -18130,7 +18130,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -18396,7 +18396,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -18662,7 +18662,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -18928,7 +18928,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -19194,7 +19194,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -19460,7 +19460,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -19726,7 +19726,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -19992,7 +19992,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -20258,7 +20258,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -20524,7 +20524,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -20790,7 +20790,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -21056,7 +21056,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -21322,7 +21322,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -21588,7 +21588,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -21854,7 +21854,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -22120,7 +22120,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -22386,7 +22386,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -22652,7 +22652,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -22918,7 +22918,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -23184,7 +23184,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -23450,7 +23450,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -23716,7 +23716,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -23982,7 +23982,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -24248,7 +24248,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -24514,7 +24514,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -24780,7 +24780,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -25046,7 +25046,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -25312,7 +25312,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -25578,7 +25578,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -25844,7 +25844,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -26110,7 +26110,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -26376,7 +26376,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -26642,7 +26642,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -26908,7 +26908,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -27174,7 +27174,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -27440,7 +27440,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -27706,7 +27706,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -27972,7 +27972,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -28238,7 +28238,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -28504,7 +28504,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -28770,7 +28770,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -29036,7 +29036,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -29302,7 +29302,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -29568,7 +29568,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -29834,7 +29834,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -30100,7 +30100,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -30366,7 +30366,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -30632,7 +30632,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -30898,7 +30898,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -31164,7 +31164,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -31430,7 +31430,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -31696,7 +31696,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -31962,7 +31962,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -32228,7 +32228,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -32494,7 +32494,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -32760,7 +32760,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -33026,7 +33026,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -33292,7 +33292,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -33558,7 +33558,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -33824,7 +33824,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -34090,7 +34090,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -34356,7 +34356,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -34622,7 +34622,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -34888,7 +34888,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -35154,7 +35154,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -35420,7 +35420,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -35686,7 +35686,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -35952,7 +35952,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -36218,7 +36218,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -36484,7 +36484,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -36750,7 +36750,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -37016,7 +37016,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -37282,7 +37282,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -37548,7 +37548,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -37814,7 +37814,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -38080,7 +38080,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -38346,7 +38346,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -38612,7 +38612,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -38878,7 +38878,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -39144,7 +39144,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -39410,7 +39410,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -39676,7 +39676,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -39942,7 +39942,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -40208,7 +40208,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -40474,7 +40474,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -40740,7 +40740,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -41006,7 +41006,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -41272,7 +41272,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -41538,7 +41538,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -41804,7 +41804,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -42070,7 +42070,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -42336,7 +42336,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -42602,7 +42602,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -42868,7 +42868,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -43134,7 +43134,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -43400,7 +43400,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -43666,7 +43666,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -43932,7 +43932,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -44198,7 +44198,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -44464,7 +44464,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -44730,7 +44730,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -44996,7 +44996,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -45262,7 +45262,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -45528,7 +45528,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -45794,7 +45794,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -46060,7 +46060,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -46326,7 +46326,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -46592,7 +46592,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -46858,7 +46858,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -47124,7 +47124,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -47390,7 +47390,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -47656,7 +47656,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -47922,7 +47922,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -48188,7 +48188,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -48454,7 +48454,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -48720,7 +48720,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -48986,7 +48986,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -49252,7 +49252,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -49518,7 +49518,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -49784,7 +49784,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -50050,7 +50050,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -50316,7 +50316,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -50582,7 +50582,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -50848,7 +50848,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -51114,7 +51114,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -51380,7 +51380,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -51646,7 +51646,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -51912,7 +51912,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -52178,7 +52178,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -52444,7 +52444,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -52710,7 +52710,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -52976,7 +52976,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -53242,7 +53242,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -53508,7 +53508,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -53774,7 +53774,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -54040,7 +54040,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -54306,7 +54306,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -54572,7 +54572,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -54838,7 +54838,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -55104,7 +55104,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -55370,7 +55370,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -55636,7 +55636,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -55902,7 +55902,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -56168,7 +56168,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -56434,7 +56434,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -56700,7 +56700,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -56966,7 +56966,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -57232,7 +57232,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -57498,7 +57498,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -57764,7 +57764,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -58030,7 +58030,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -58296,7 +58296,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -58562,7 +58562,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -58828,7 +58828,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -59094,7 +59094,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -59360,7 +59360,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -59626,7 +59626,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -59892,7 +59892,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -60158,7 +60158,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -60424,7 +60424,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -60690,7 +60690,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -60954,7 +60954,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -61218,7 +61218,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -61486,7 +61486,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -61754,7 +61754,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -62022,7 +62022,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -62290,7 +62290,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -62558,7 +62558,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -62826,7 +62826,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -63094,7 +63094,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -63362,7 +63362,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -63630,7 +63630,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -63898,7 +63898,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -64166,7 +64166,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -64415,7 +64415,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 64
     DepthULdsDivisor: 1
@@ -64664,7 +64664,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 16
     DepthULdsDivisor: 1
@@ -64917,7 +64917,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -65167,7 +65167,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -65438,7 +65438,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -65709,7 +65709,7 @@
     BufferStore: true
     CheckDimOverflow: 0
     CheckTensorDimAsserts: false
-    CodeObjectVersion: V3
+    CodeObjectVersion: default
     CustomKernelName: ''
     DepthU: 32
     DepthULdsDivisor: 1
@@ -65948,6 +65948,2438 @@
     WavefrontSize: 64
     WorkGroup: [128, 2, 1]
     WorkGroupMapping: 15
+    WorkGroupMappingType: B
+    _DepthULds: 32
+    _GlobalAccumulation: null
+    _UseSgprForGRO: 1
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 0
+    allowLRVWBforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 8
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 64
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 64
+    LSCB: 64
+    LSPA: 8
+    LSPB: 8
+    LVCA: 8
+    LVCB: 8
+    LVPA: 1
+    LVPB: 1
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 25088
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 4608
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 16384
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 20480
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 8
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 8
+    LoopTail: true
+    LoopUnroll: 64
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [2, 2]
+    MIWaveTile: [1, 1]
+    MIWaveTileA: 1
+    MIWaveTileB: 1
+    MacroTile0: 64
+    MacroTile1: 64
+    MacroTileA: 64
+    MacroTileB: 64
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 16
+    NumGlobalWriteVectorsPerThread: 8
+    NumLoadsA: 2
+    NumLoadsB: 2
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 2
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 9
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 248
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT64x64x64_MI32x32x8x1_SE_1LDSB0_AF0EM8_AF1EM1_AMAS3_ASE_BL1_EPS0_GRVW8_GSU1_GSUAMB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW8_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR9_SIA3_SS0_SU0_SUM0_SUS0_SPO0_SRVW4_SVW4_TT1_32_TLDS1_USFGROn1_VAW2_VSn1_VW2_WSGRA1_WSGRB1_WG64_4_1_WGM15
+    SourceSwap: false
+    StaggerU: 0
+    StaggerUMapping: 0
+    StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 4
+    SubGroup1: 64
+    SubGroupA: 4
+    SubGroupB: 64
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [1, 32]
+    ThreadTile0: 16
+    ThreadTile1: 1
+    ThreadTileA: 16
+    ThreadTileB: 1
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: false
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [64, 4, 1]
+    WorkGroupMapping: 15
+    WorkGroupMappingType: B
+    _DepthULds: 64
+    _GlobalAccumulation: null
+    _UseSgprForGRO: 1
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 0
+    allowLRVWBforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 8
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 64
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 64
+    LSCB: 64
+    LSPA: 8
+    LSPB: 8
+    LVCA: 8
+    LVCB: 8
+    LVPA: 1
+    LVPB: 1
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 29696
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 9216
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 16384
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 20480
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 8
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 8
+    LoopTail: true
+    LoopUnroll: 64
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [2, 2]
+    MIWaveTile: [1, 2]
+    MIWaveTileA: 1
+    MIWaveTileB: 2
+    MacroTile0: 64
+    MacroTile1: 128
+    MacroTileA: 64
+    MacroTileB: 128
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 32
+    NumGlobalWriteVectorsPerThread: 16
+    NumLoadsA: 2
+    NumLoadsB: 4
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 4
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 9
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 249
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT64x128x64_MI32x32x8x1_SE_1LDSB0_AF0EM8_AF1EM1_AMAS3_ASE_BL1_EPS0_GRVW8_GSU1_GSUAMB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW8_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR9_SIA3_SS0_SU32_SUM0_SUS256_SPO0_SRVW4_SVW4_TT1_64_TLDS1_USFGROn1_VAW2_VSn1_VW2_WSGRA1_WSGRB1_WG64_4_1_WGM1
+    SourceSwap: false
+    StaggerU: 32
+    StaggerUMapping: 0
+    StaggerUStride: 256
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 4
+    SubGroup1: 64
+    SubGroupA: 4
+    SubGroupB: 64
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [1, 64]
+    ThreadTile0: 16
+    ThreadTile1: 2
+    ThreadTileA: 16
+    ThreadTileB: 2
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: false
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [64, 4, 1]
+    WorkGroupMapping: 1
+    WorkGroupMappingType: B
+    _DepthULds: 64
+    _GlobalAccumulation: null
+    _UseSgprForGRO: 1
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 1
+    allowLRVWBforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 8
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 64
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 15
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 128
+    LSCB: 64
+    LSPA: 4
+    LSPB: 8
+    LVCA: 16
+    LVCB: 8
+    LVPA: 1
+    LVPB: 1
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 31488
+    LdsNumElementsAlignedA: 8192
+    LdsNumElementsAlignedB: 6912
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 16384
+    LdsOffsetB: 8192
+    LdsOffsetB_Blk: 24576
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 8
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 8
+    LoopTail: true
+    LoopUnroll: 64
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [4, 1]
+    MIWaveTile: [1, 3]
+    MIWaveTileA: 1
+    MIWaveTileB: 3
+    MacroTile0: 128
+    MacroTile1: 96
+    MacroTileA: 128
+    MacroTileB: 96
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 48
+    NumGlobalWriteVectorsPerThread: 24
+    NumLoadsA: 4
+    NumLoadsB: 3
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 4
+    NumLoadsPerpendicularB: 3
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 9
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 250
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT128x96x64_MI32x32x8x1_SE_1LDSB0_AF0EM8_AF1EM1_AMAS3_ASE_BL1_EPS0_GRVW8_GSU15_GSUAMB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW8_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR9_SIA3_SS0_SU0_SUM0_SUS0_SPO0_SRVW4_SVW4_TT1_96_TLDS1_USFGROn1_VAW1_VSn1_VW2_WSGRA1_WSGRB1_WG128_2_1_WGM15
+    SourceSwap: false
+    StaggerU: 0
+    StaggerUMapping: 0
+    StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 8
+    SubGroup1: 32
+    SubGroupA: 8
+    SubGroupB: 32
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [1, 96]
+    ThreadTile0: 16
+    ThreadTile1: 3
+    ThreadTileA: 16
+    ThreadTileB: 3
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: true
+    VectorAtomicWidth: 1
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [128, 2, 1]
+    WorkGroupMapping: 15
+    WorkGroupMappingType: B
+    _DepthULds: 64
+    _GlobalAccumulation: MultipleBuffer
+    _UseSgprForGRO: 1
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 60
+    _staggerStrideShift: 0
+    allowLRVWBforTLUandMI: false
+  - 1LDSBuffer: 1
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 1
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 32
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 1
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 2
+    GlobalLoadVectorWidthB: 2
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 2
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: false
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 128
+    LSCB: 32
+    LSPA: 1
+    LSPB: 4
+    LVCA: 64
+    LVCB: 16
+    LVPA: 1
+    LVPB: 2
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 7552
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 3456
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 8192
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 12288
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 8
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 4
+    LoopTail: true
+    LoopUnroll: 32
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [4, 1]
+    MIWaveTile: [1, 3]
+    MIWaveTileA: 1
+    MIWaveTileB: 3
+    MacroTile0: 128
+    MacroTile1: 96
+    MacroTileA: 128
+    MacroTileB: 96
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 48
+    NumGlobalWriteVectorsPerThread: 24
+    NumLoadsA: 8
+    NumLoadsB: 6
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 8
+    NumLoadsPerpendicularB: 6
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 1
+    PrefetchLocalRead: 5
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 251
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT128x96x32_MI32x32x8x1_SE_1LDSB1_AF0EM1_AF1EM1_AMAS3_ASE_BL1_EPS1_GRVW2_GSU1_GSUAMB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW8_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR1_PLR5_SIA3_SS0_SU0_SUM0_SUS0_SPO0_SRVW4_SVW4_TT1_96_TLDS1_USFGROn1_VAW2_VSn1_VW2_WSGRA1_WSGRB1_WG128_2_1_WGM15
+    SourceSwap: false
+    StaggerU: 0
+    StaggerUMapping: 0
+    StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 8
+    SubGroup1: 32
+    SubGroupA: 8
+    SubGroupB: 32
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [1, 96]
+    ThreadTile0: 16
+    ThreadTile1: 3
+    ThreadTileA: 16
+    ThreadTileB: 3
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: false
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [128, 2, 1]
+    WorkGroupMapping: 15
+    WorkGroupMappingType: B
+    _DepthULds: 32
+    _GlobalAccumulation: null
+    _UseSgprForGRO: false
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 0
+    allowLRVWBforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 8
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 32
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 128
+    LSCB: 32
+    LSPA: 4
+    LSPB: 16
+    LVCA: 16
+    LVCB: 4
+    LVPA: 1
+    LVPB: 2
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 27392
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 6912
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 16384
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 20480
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 8
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 4
+    LoopTail: true
+    LoopUnroll: 32
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [2, 2]
+    MIWaveTile: [2, 3]
+    MIWaveTileA: 2
+    MIWaveTileB: 3
+    MacroTile0: 128
+    MacroTile1: 192
+    MacroTileA: 128
+    MacroTileB: 192
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 96
+    NumGlobalWriteVectorsPerThread: 48
+    NumLoadsA: 2
+    NumLoadsB: 3
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 3
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 5
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 252
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT128x192x32_MI32x32x8x1_SE_1LDSB0_AF0EM8_AF1EM1_AMAS3_ASE_BL1_EPS0_GRVW8_GSU1_GSUAMB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW8_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR5_SIA3_SS0_SU0_SUM0_SUS0_SPO0_SRVW4_SVW4_TT2_96_TLDS1_USFGROn1_VAW2_VSn1_VW2_WSGRA1_WSGRB1_WG64_4_1_WGM15
+    SourceSwap: false
+    StaggerU: 0
+    StaggerUMapping: 0
+    StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 4
+    SubGroup1: 64
+    SubGroupA: 4
+    SubGroupB: 64
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [2, 96]
+    ThreadTile0: 32
+    ThreadTile1: 3
+    ThreadTileA: 32
+    ThreadTileB: 3
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: false
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [64, 4, 1]
+    WorkGroupMapping: 15
+    WorkGroupMappingType: B
+    _DepthULds: 32
+    _GlobalAccumulation: null
+    _UseSgprForGRO: 1
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 0
+    allowLRVWBforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 1
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 16
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: SingleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: false
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 256
+    LSCB: 16
+    LSPA: 8
+    LSPB: 128
+    LVCA: 32
+    LVCB: 2
+    LVPA: 1
+    LVPB: 16
+    LdcEqualsLdd: false
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 14592
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 2304
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 8192
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 12288
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 4
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 2
+    LoopTail: true
+    LoopUnroll: 16
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [2, 2]
+    MIWaveTile: [4, 2]
+    MIWaveTileA: 4
+    MIWaveTileB: 2
+    MacroTile0: 256
+    MacroTile1: 128
+    MacroTileA: 256
+    MacroTileB: 128
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 128
+    NumGlobalWriteVectorsPerThread: 64
+    NumLoadsA: 2
+    NumLoadsB: 1
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 1
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 1
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 253
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT256x128x16_MI32x32x8x1_SN_1LDSB0_AF0EM1_AF1EM1_AMAS3_ASE_BL1_EPS0_GRVW8_GSU1_GSUASB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW4_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR1_SIA3_SS1_SU32_SUM3_SUS64_SPO0_SRVW0_SVW2_TT4_64_TLDS1_USFGROn1_VAW2_VSn1_VW2_WSGRA0_WSGRB0_WG64_4_1_WGM16
+    SourceSwap: 1
+    StaggerU: 32
+    StaggerUMapping: 3
+    StaggerUStride: 64
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 0
+    StoreSyncOpt: 0
+    StoreVectorWidth: 2
+    SubGroup0: 4
+    SubGroup1: 64
+    SubGroupA: 4
+    SubGroupB: 64
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [4, 64]
+    ThreadTile0: 64
+    ThreadTile1: 2
+    ThreadTileA: 64
+    ThreadTileB: 2
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: true
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 0
+    WaveSeparateGlobalReadB: 0
+    WavefrontSize: 64
+    WorkGroup: [64, 4, 1]
+    WorkGroupMapping: 16
+    WorkGroupMappingType: B
+    _DepthULds: 16
+    _GlobalAccumulation: null
+    _UseSgprForGRO: false
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 1
+    allowLRVWBforTLUandMI: false
+    allowLRVWforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 8
+    AssertFree1ElementMultiple: 8
+    AssertMinApproxSize: 0
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 16
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 4
+    GlobalLoadVectorWidthB: 4
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 4
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 1
+    GroupLoadStore: false
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 256
+    LSCB: 16
+    LSPA: 4
+    LSPB: 64
+    LVCA: 64
+    LVCB: 4
+    LVPA: 1
+    LVPB: 16
+    LdcEqualsLdd: false
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 15552
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 3328
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 8192
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 12288
+    LdsPadA: 0
+    LdsPadB: 4
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 4
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 2
+    LoopTail: true
+    LoopUnroll: 16
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [4, 1]
+    MIWaveTile: [2, 6]
+    MIWaveTileA: 2
+    MIWaveTileB: 6
+    MacroTile0: 256
+    MacroTile1: 192
+    MacroTileA: 256
+    MacroTileB: 192
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 192
+    NumGlobalWriteVectorsPerThread: 192
+    NumLoadsA: 4
+    NumLoadsB: 3
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 4
+    NumLoadsPerpendicularB: 3
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 1
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 254
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT256x192x16_MI32x32x8x1_SN_1LDSB0_AF0EM8_AF1EM8_AMAS0_ASE_BL1_EPS0_GRVW4_GSU1_GSUAMB_ISA90a_KLA_LBSPP128_LPB4_LDL1_LRVW4_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR1_SIA3_SS0_SU32_SUM0_SUS128_SPO0_SRVW4_SVW4_TT2_192_TLDS1_USFGROn1_VAW2_VSn1_VW1_WSGRA0_WSGRB0_WG128_2_1_WGM15
+    SourceSwap: 0
+    StaggerU: 32
+    StaggerUMapping: 0
+    StaggerUStride: 128
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 8
+    SubGroup1: 32
+    SubGroupA: 8
+    SubGroupB: 32
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [2, 192]
+    ThreadTile0: 32
+    ThreadTile1: 6
+    ThreadTileA: 32
+    ThreadTileB: 6
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: false
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 1
+    WaveSeparateGlobalReadA: 0
+    WaveSeparateGlobalReadB: 0
+    WavefrontSize: 64
+    WorkGroup: [128, 2, 1]
+    WorkGroupMapping: 15
+    WorkGroupMappingType: B
+    _DepthULds: 16
+    _GlobalAccumulation: null
+    _UseSgprForGRO: 1
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 2
+    allowLRVWBforTLUandMI: false
+    allowLRVWforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 1
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 32
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: false
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 128
+    LSCB: 32
+    LSPA: 4
+    LSPB: 16
+    LVCA: 16
+    LVCB: 4
+    LVPA: 1
+    LVPB: 2
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 27392
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 6912
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 16384
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 20480
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 8
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 4
+    LoopTail: true
+    LoopUnroll: 32
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [2, 2]
+    MIWaveTile: [2, 3]
+    MIWaveTileA: 2
+    MIWaveTileB: 3
+    MacroTile0: 128
+    MacroTile1: 192
+    MacroTileA: 128
+    MacroTileB: 192
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 96
+    NumGlobalWriteVectorsPerThread: 48
+    NumLoadsA: 2
+    NumLoadsB: 3
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 3
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 5
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 255
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT128x192x32_MI32x32x8x1_SE_1LDSB0_AF0EM1_AF1EM1_AMAS3_ASE_BL1_EPS0_GRVW8_GSU1_GSUAMB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW8_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR5_SIA3_SS0_SU0_SUM0_SUS0_SPO0_SRVW4_SVW4_TT2_96_TLDS1_USFGROn1_VAW2_VSn1_VW2_WSGRA1_WSGRB1_WG64_4_1_WGM1
+    SourceSwap: false
+    StaggerU: 0
+    StaggerUMapping: 0
+    StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 4
+    SubGroup1: 64
+    SubGroupA: 4
+    SubGroupB: 64
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [2, 96]
+    ThreadTile0: 32
+    ThreadTile1: 3
+    ThreadTileA: 32
+    ThreadTileB: 3
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: false
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [64, 4, 1]
+    WorkGroupMapping: 1
+    WorkGroupMappingType: B
+    _DepthULds: 32
+    _GlobalAccumulation: null
+    _UseSgprForGRO: false
+    _VectorStore: 1
+    _WorkspaceSizePerElemC: 0
+    _staggerStrideShift: 0
+    allowLRVWBforTLUandMI: false
+  - 1LDSBuffer: 0
+    AggressivePerfMode: 1
+    AssertAlphaValue: false
+    AssertBetaValue: false
+    AssertCEqualsD: false
+    AssertFree0ElementMultiple: 8
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 3
+    AssertSizeEqual: {}
+    AssertSizeGreaterThan: {}
+    AssertSizeLessThan: {}
+    AssertSizeMultiple: {}
+    AssertStrideAEqual: {0: 1}
+    AssertStrideBEqual: {0: 1}
+    AssertStrideCEqual: {0: 1}
+    AssertStrideDEqual: {0: 1}
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAddC: false
+    BufferLoad: true
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    CodeObjectVersion: default
+    CustomKernelName: ''
+    DepthU: 32
+    DepthULdsDivisor: 1
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DirectToVgprA: false
+    DirectToVgprB: false
+    DisableAtomicFail: 0
+    DisableKernelPieces: 0
+    DisableVgprOverlapping: false
+    EdgeType: ShiftPtr
+    EnableMatrixInstruction: true
+    ExpandPointerSwap: 0
+    Fp16AltImpl: false
+    FractionalLoad: 0
+    GlobalLoadVectorWidthA: 8
+    GlobalLoadVectorWidthB: 8
+    GlobalRead2A: true
+    GlobalRead2B: true
+    GlobalReadCoalesceGroupA: true
+    GlobalReadCoalesceGroupB: true
+    GlobalReadCoalesceVectorA: true
+    GlobalReadCoalesceVectorB: true
+    GlobalReadPerMfma: 1
+    GlobalReadVectorWidth: 8
+    GlobalSplitU: 1
+    GlobalSplitUAlgorithm: MultipleBuffer
+    GlobalSplitUSummationAssignmentRoundRobin: true
+    GlobalSplitUWorkGroupMappingRoundRobin: false
+    GlobalWriteVectorWidth: 2
+    GroupLoadStore: false
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
+    ISA: [9, 0, 10]
+    InnerUnroll: 1
+    InterleaveAlpha: 0
+    KernelLanguage: Assembly
+    LSCA: 128
+    LSCB: 32
+    LSPA: 4
+    LSPB: 16
+    LVCA: 16
+    LVCB: 4
+    LVPA: 1
+    LVPB: 2
+    LdcEqualsLdd: true
+    LdsBlockSizePerPad: 128
+    LdsBlockSizePerPadA: 0
+    LdsBlockSizePerPadB: 128
+    LdsInitCVgprs: false
+    LdsNumElements: 27392
+    LdsNumElementsAlignedA: 4096
+    LdsNumElementsAlignedB: 6912
+    LdsOffsetA: 0
+    LdsOffsetA_Blk: 16384
+    LdsOffsetB: 4096
+    LdsOffsetB_Blk: 20480
+    LdsPadA: 0
+    LdsPadB: 8
+    LocalDotLayout: 1
+    LocalRead2A: true
+    LocalRead2B: true
+    LocalReadVectorWidth: 8
+    LocalSplitU: 1
+    LocalWrite2A: true
+    LocalWrite2B: true
+    LocalWritePerMfma: -1
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
+    LoopDoWhile: false
+    LoopIters: 4
+    LoopTail: true
+    LoopUnroll: 32
+    MACInstruction: MAC
+    MFMA_BF16_1K: false
+    MIArchVgpr: false
+    MIBlock: [32, 32, 8, 1, 1, 1]
+    MIInputPerThread: 4
+    MIOutputVectorWidth: 4
+    MIRegPerOut: 1
+    MIWaveGroup: [2, 2]
+    MIWaveTile: [2, 3]
+    MIWaveTileA: 2
+    MIWaveTileB: 3
+    MacroTile0: 128
+    MacroTile1: 192
+    MacroTileA: 128
+    MacroTileB: 192
+    MacroTileShapeMax: 64
+    MacroTileShapeMin: 1
+    MagicDivAlg: 2
+    MatrixInstB: 1
+    MatrixInstBM: 1
+    MatrixInstBN: 1
+    MatrixInstK: 8
+    MatrixInstM: 32
+    MatrixInstN: 32
+    MatrixInstruction: [32, 32, 8, 1]
+    MaxOccupancy: 40
+    MaxVgprNumber: 256
+    MinVgprNumber: 0
+    NoLdsWriteCode: false
+    NoReject: false
+    NoTailLoop: false
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NonTemporalD: 0
+    NumElementsPerBatchStore: 0
+    NumElementsPerThread: 96
+    NumGlobalWriteVectorsPerThread: 48
+    NumLoadsA: 2
+    NumLoadsB: 3
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 3
+    NumThreads: 256
+    OptNoLoadLoop: 1
+    OptPreLoopVmcnt: 0
+    PackBatchDims: 0
+    PackFreeDims: 1
+    PackGranularity: 2
+    PackSummationDims: 0
+    PackedC0IdxChars: [I]
+    PackedC0IndicesX: [0]
+    PackedC1IdxChars: [J]
+    PackedC1IndicesX: [1]
+    PerformanceSyncLocation: -1
+    PerformanceWaitCount: -1
+    PerformanceWaitLocation: -1
+    PersistentKernel: 0
+    PersistentKernelAlongBatch: false
+    PrefetchAcrossPersistent: 0
+    PrefetchAcrossPersistentMode: 0
+    PrefetchGlobalRead: 2
+    PrefetchLocalRead: 5
+    ProblemType:
+      AllowNoFreeDims: false
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      ComputeDataType: 0
+      ConvolutionConfig: []
+      DataType: 4
+      DestDataType: 4
+      Fp16AltImpl: false
+      HighPrecisionAccumulate: true
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [0, 3, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
+      IndexUnroll: 3
+      IndexUnrollA: 1
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      MirrorDimsA: []
+      MirrorDimsB: []
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesLD: 4
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      SetConstStrideA: []
+      SetConstStrideB: []
+      SilentHighPrecisionAccumulate: false
+      StridedBatched: true
+      TLUA: true
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileAwareSelection: false
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: false
+      TransposeB: false
+      UseBeta: true
+      UseInitialStridesAB: false
+      UseInitialStridesCD: false
+      ZeroPadA: []
+      ZeroPadB: []
+    ReplacementKernel: false
+    ScheduleGlobalRead: 1
+    ScheduleIterAlg: 3
+    ScheduleLocalWrite: 1
+    SolutionIndex: 256
+    SolutionNameMin: Cijk_Ailk_Bljk_HHS_BH_MT128x192x32_MI32x32x8x1_SE_1LDSB0_AF0EM8_AF1EM1_AMAS3_ASE_BL1_EPS0_GRVW8_GSU1_GSUAMB_ISA90a_KLA_LBSPP128_LPB8_LDL1_LRVW8_LDW0_MAC_MIAV0_NTD0_NEPBS0_NLCA1_PGR2_PLR5_SIA3_SS0_SU0_SUM0_SUS0_SPO0_SRVW4_SVW4_TT2_96_TLDS1_USFGROn1_VAW2_VSn1_VW2_WSGRA1_WSGRB1_WG64_4_1_WGM2
+    SourceSwap: false
+    StaggerU: 0
+    StaggerUMapping: 0
+    StaggerUStride: 0
+    StoreCInUnroll: false
+    StoreCInUnrollExact: false
+    StoreCInUnrollInterval: 1
+    StoreCInUnrollPostLoop: false
+    StorePriorityOpt: false
+    StoreRemapVectorWidth: 4
+    StoreSyncOpt: 0
+    StoreVectorWidth: 4
+    SubGroup0: 4
+    SubGroup1: 64
+    SubGroupA: 4
+    SubGroupB: 64
+    SuppressNoLoadLoop: 0
+    ThreadSeparateGlobalReadA: 0
+    ThreadSeparateGlobalReadB: 0
+    ThreadTile: [2, 96]
+    ThreadTile0: 32
+    ThreadTile1: 3
+    ThreadTileA: 32
+    ThreadTileB: 3
+    TransposeLDS: 1
+    UnrollIncIsDepthU: 0
+    UnrollMajorLDSA: false
+    UnrollMajorLDSB: true
+    UnrollMemFence: false
+    Use64bShadowLimit: 1
+    UseInstOffsetForGRO: 0
+    UseSgprForGRO: -1
+    Valid: false
+    VectorAtomicWidth: 2
+    VectorStore: -1
+    VectorWidth: 2
+    WaveSeparateGlobalReadA: 1
+    WaveSeparateGlobalReadB: 1
+    WavefrontSize: 64
+    WorkGroup: [64, 4, 1]
+    WorkGroupMapping: 2
     WorkGroupMappingType: B
     _DepthULds: 32
     _GlobalAccumulation: null
@@ -72063,4 +74495,236 @@
     - [124, 13.599]
   - - [61, 61, 1024, 64]
     - [163, 5.823]
+  - - [1536, 25216, 1, 384]
+    - [230, 66.126]
+  - - [1536, 69344, 1, 384]
+    - [230, 72.946]
+  - - [1536, 91408, 1, 384]
+    - [230, 73.716]
+  - - [192, 100352, 1, 192]
+    - [245, 35.592]
+  - - [192, 100352, 1, 768]
+    - [94, 54.163]
+  - - [192, 275968, 1, 192]
+    - [245, 40.343]
+  - - [192, 275968, 1, 768]
+    - [105, 57.516]
+  - - [192, 363776, 1, 192]
+    - [245, 41.28]
+  - - [192, 363776, 1, 768]
+    - [99, 58.977]
+  - - [196, 384, 1, 1728]
+    - [206, 5.593]
+  - - [256, 1103872, 1, 64]
+    - [236, 27.924]
+  - - [256, 1455104, 1, 64]
+    - [236, 28.163]
+  - - [256, 401408, 1, 64]
+    - [236, 25.427]
+  - - [3136, 64, 1, 147]
+    - [97, 1.826]
+  - - [384, 128, 1, 1000]
+    - [120, 2.346]
+  - - [384, 17600, 1, 384]
+    - [14, 42.622]
+  - - [384, 23200, 1, 384]
+    - [14, 46.213]
+  - - [384, 25216, 1, 1536]
+    - [27, 69.155]
+  - - [384, 25216, 1, 384]
+    - [60, 44.003]
+  - - [384, 352, 1, 1000]
+    - [50, 5.949]
+  - - [384, 464, 1, 1000]
+    - [8, 7.811]
+  - - [384, 6400, 1, 384]
+    - [22, 28.428]
+  - - [384, 69344, 1, 1536]
+    - [14, 75.952]
+  - - [384, 69344, 1, 384]
+    - [60, 53.259]
+  - - [384, 91408, 1, 1536]
+    - [18, 78.855]
+  - - [384, 91408, 1, 384]
+    - [60, 54.821]
+  - - [64, 1103872, 1, 256]
+    - [128, 27.655]
+  - - [64, 1103872, 1, 64]
+    - [153, 19.208]
+  - - [64, 1455104, 1, 256]
+    - [96, 27.497]
+  - - [64, 1455104, 1, 64]
+    - [153, 19.526]
+  - - [64, 401408, 1, 256]
+    - [245, 27.351]
+  - - [64, 401408, 1, 64]
+    - [153, 17.658]
+  - - [768, 100352, 1, 192]
+    - [230, 54.393]
+  - - [768, 275968, 1, 192]
+    - [230, 59.397]
+  - - [768, 363776, 1, 192]
+    - [230, 60.743]
+  - - [784, 192, 1, 576]
+    - [8, 4.909]
+  - - [192, 192, 128, 196]
+    - [63, 18.842]
+  - - [192, 192, 352, 196]
+    - [75, 24.553]
+  - - [192, 192, 464, 196]
+    - [63, 25.8]
+  - - [192, 192, 128, 784]
+    - [60, 37.413]
+  - - [192, 192, 352, 784]
+    - [75, 44.083]
+  - - [192, 192, 464, 784]
+    - [240, 45.797]
+  - - [192, 196, 128, 192]
+    - [203, 19.549]
+  - - [192, 196, 352, 192]
+    - [203, 24.938]
+  - - [192, 196, 464, 192]
+    - [75, 25.87]
+  - - [192, 784, 128, 192]
+    - [245, 31.791]
+  - - [192, 784, 352, 192]
+    - [245, 35.907]
+  - - [192, 784, 464, 192]
+    - [245, 36.301]
+  - - [196, 1, 192, 9]
+    - [165, 0.016]
+  - - [196, 1, 384, 9]
+    - [165, 0.023]
+  - - [196, 784, 1056, 64]
+    - [245, 13.08]
+  - - [196, 784, 1392, 64]
+    - [245, 13.127]
+  - - [196, 784, 384, 64]
+    - [245, 12.547]
+  - - [3136, 1, 64, 9]
+    - [153, 0.052]
+  - - [49, 1, 384, 9]
+    - [164, 0.009]
+  - - [50, 197, 2112, 64]
+    - [229, 7.991]
+  - - [50, 197, 2784, 64]
+    - [229, 8.252]
+  - - [50, 197, 768, 64]
+    - [229, 6.87]
+  - - [64, 197, 2112, 50]
+    - [124, 9.214]
+  - - [64, 197, 2784, 50]
+    - [138, 9.443]
+  - - [64, 197, 768, 50]
+    - [153, 7.882]
+  - - [64, 3136, 128, 64]
+    - [138, 16.979]
+  - - [64, 3136, 352, 64]
+    - [153, 18.544]
+  - - [64, 3136, 464, 64]
+    - [153, 18.746]
+  - - [64, 3136, 128, 784]
+    - [43, 35.164]
+  - - [64, 3136, 352, 784]
+    - [128, 35.723]
+  - - [64, 3136, 464, 784]
+    - [128, 35.723]
+  - - [64, 64, 128, 3136]
+    - [39, 23.779]
+  - - [64, 64, 352, 3136]
+    - [42, 27.402]
+  - - [64, 64, 464, 3136]
+    - [87, 28.635]
+  - - [64, 64, 128, 784]
+    - [39, 13.462]
+  - - [64, 64, 352, 784]
+    - [141, 18.783]
+  - - [64, 64, 464, 784]
+    - [79, 18.968]
+  - - [64, 784, 1056, 196]
+    - [245, 21.611]
+  - - [64, 784, 1392, 196]
+    - [245, 21.695]
+  - - [64, 784, 384, 196]
+    - [245, 20.445]
+  - - [64, 784, 128, 64]
+    - [153, 12.187]
+  - - [64, 784, 352, 64]
+    - [153, 16.12]
+  - - [64, 784, 464, 64]
+    - [153, 16.905]
+  - - [784, 1, 192, 9]
+    - [138, 0.045]
+  - - [784, 1, 64, 9]
+    - [153, 0.025]
+  - - [1536, 50432, 1, 384]
+    - [230, 72.806]
+  - - [192, 200704, 1, 192]
+    - [245, 39.393]
+  - - [192, 200704, 1, 768]
+    - [94, 56.322]
+  - - [256, 802816, 1, 64]
+    - [236, 27.407]
+  - - [384, 12800, 1, 384]
+    - [60, 37.57]
+  - - [384, 256, 1, 1000]
+    - [120, 4.693]
+  - - [384, 50432, 1, 1536]
+    - [14, 73.46]
+  - - [384, 50432, 1, 384]
+    - [14, 50.9]
+  - - [64, 802816, 1, 256]
+    - [245, 27.422]
+  - - [64, 802816, 1, 64]
+    - [124, 18.796]
+  - - [768, 200704, 1, 192]
+    - [230, 58.599]
+  - - [192, 192, 256, 196]
+    - [60, 22.976]
+  - - [192, 192, 256, 784]
+    - [73, 42.55]
+  - - [192, 196, 256, 192]
+    - [118, 23.789]
+  - - [192, 784, 256, 192]
+    - [245, 35.186]
+  - - [196, 784, 768, 64]
+    - [245, 12.95]
+  - - [50, 197, 1536, 64]
+    - [229, 7.748]
+  - - [64, 197, 1536, 50]
+    - [138, 8.876]
+  - - [64, 3136, 256, 64]
+    - [138, 18.169]
+  - - [64, 3136, 256, 784]
+    - [108, 35.349]
+  - - [64, 64, 256, 3136]
+    - [85, 27.061]
+  - - [64, 64, 256, 784]
+    - [141, 17.984]
+  - - [64, 784, 768, 196]
+    - [245, 21.499]
+  - - [64, 784, 256, 64]
+    - [153, 15.134]
+  - - [144, 2048, 1, 9216]
+    - [248, 29.813]
+  - - [576, 1024, 1, 4608]
+    - [249, 38.263]
+  - - [768, 192, 1, 30522]
+    - [250, 42.037]
+  - - [768, 9408, 1, 768]
+    - [251, 49.725]
+  - - [768, 9408, 1, 3072]
+    - [252, 69.819]
+  - - [1024, 36864, 1, 1024]
+    - [253, 73.555]
+  - - [1024, 36864, 1, 3072]
+    - [254, 83.009]
+  - - [1024, 36864, 1, 4096]
+    - [254, 84.71]
+  - - [2048, 9216, 1, 2048]
+    - [255, 74.993]
+  - - [2048, 9216, 1, 6144]
+    - [252, 84.235]
+  - - [2048, 9216, 1, 8192]
+    - [256, 85.721]
 - null

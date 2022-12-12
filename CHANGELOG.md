@@ -2,7 +2,30 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 2.46.0
+## (Unreleased) rocBLAS 2.47.0
+
+### Added
+- added functionality rocblas_geam_ex for matrix-matrix minimum operations
+- added HIP Graph support as beta feature for rocBLAS Level 1, Level 2 functions
+- added beta features API. Exposed using compiler define ROCBLAS_BETA_FEATURES_API
+- added support for vector initialization in the rocBLAS test framework with negative increments
+- added windows build documentation for forthcoming support using ROCm HIP SDK
+- added scripts to plot performance for multiple functions
+### Optimizations
+- improved performance of Level 2 rocBLAS GEMV for float and double precision. Performance enhanced by 150-200% for certain problem sizes when (m==n) measured on a gfx90a GPU.
+- improved performance of Level 2 rocBLAS GER for float, double and complex float precisions. Performance enhanced by 5-7% for certain problem sizes measured on a gfx90a GPU.
+- improved performance of Level 2 rocBLAS SYMV for float and double precisions. Performance enhanced by 120-150% for certain problem sizes measured on both gfx908 and gfx90a GPUs.
+### Fixed
+- fixed setting of executable mode on client script rocblas_gentest.py to avoid potential permission errors with clients rocblas-test and rocblas-bench
+- fixed deprecated API compatibility with Visual Studio compiler
+- fixed test framework memory exception handling for Level 2 functions when the host memory allocation exceeds the available memory
+### Changed
+- install.sh internally runs rmake.py (also used on windows) and rmake.py may be used directly by developers on linux (use --help)
+- rocblas client executables all now begin with rocblas- prefix
+### Removed
+- install.sh removed options -o --cov as now Tensile will use the default COV format, set by cmake define Tensile_CODE_OBJECT_VERSION=default
+
+## rocBLAS 2.46.0 for ROCm 5.4.0
 ### Added
 - client smoke test dataset added for quick validation using command rocblas-test --yaml rocblas_smoke.yaml
 - Added stream order device memory allocation as a non-default beta option.

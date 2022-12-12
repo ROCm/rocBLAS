@@ -15,6 +15,7 @@
       <pkg name="six">six</pkg>
       <pkg name="wheel">wheel</pkg>
       <pkg name="virtualenv">virtualenv</pkg>
+      <req name="rocBLAS and Tensile">deps/requirements.txt</req>
     </pip>
   </os>
 </dependencies>

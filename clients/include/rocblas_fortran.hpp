@@ -6999,4 +6999,28 @@ rocblas_status rocblas_trsm_strided_batched_ex_fortran(rocblas_handle    handle,
                                                        rocblas_int       invA_size,
                                                        rocblas_stride    stride_invA,
                                                        rocblas_datatype  compute_type);
+
+// geam_ex
+rocblas_status rocblas_geam_ex_fortran(rocblas_handle            handle,
+                                       rocblas_operation         transA,
+                                       rocblas_operation         transB,
+                                       rocblas_int               m,
+                                       rocblas_int               n,
+                                       rocblas_int               k,
+                                       const void*               alpha,
+                                       const void*               a,
+                                       rocblas_datatype          a_type,
+                                       rocblas_int               lda,
+                                       const void*               b,
+                                       rocblas_datatype          b_type,
+                                       rocblas_int               ldb,
+                                       const void*               beta,
+                                       const void*               c,
+                                       rocblas_datatype          c_type,
+                                       rocblas_int               ldc,
+                                       void*                     d,
+                                       rocblas_datatype          d_type,
+                                       rocblas_int               ldd,
+                                       rocblas_datatype          compute_type,
+                                       rocblas_geam_ex_operation geam_ex_op);
 }

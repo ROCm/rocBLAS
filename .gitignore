@@ -35,9 +35,11 @@ tags
 
 # Editors
 .vscode
+*.log
 
 # build-in-source directory
 build*
+.nfs*
 
 # emacs temporary/backup files
 .\#*

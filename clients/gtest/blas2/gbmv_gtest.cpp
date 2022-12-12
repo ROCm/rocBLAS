@@ -140,21 +140,21 @@ namespace
     using gbmv = gbmv_template<gbmv_testing, GBMV>;
     TEST_P(gbmv, blas2)
     {
-        rocblas_simple_dispatch<gbmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gbmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gbmv);
 
     using gbmv_batched = gbmv_template<gbmv_testing, GBMV_BATCHED>;
     TEST_P(gbmv_batched, blas2)
     {
-        rocblas_simple_dispatch<gbmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gbmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gbmv_batched);
 
     using gbmv_strided_batched = gbmv_template<gbmv_testing, GBMV_STRIDED_BATCHED>;
     TEST_P(gbmv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<gbmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gbmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gbmv_strided_batched);
 

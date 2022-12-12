@@ -25,6 +25,7 @@ def runCompileCommand(platform, project, jobName, boolean debug=false, boolean b
         //default in the hipclang docker containers. May change later on
         hipccCompileFlags = "export HIPCC_COMPILE_FLAGS_APPEND='-O3 -Wno-format-nonliteral -parallel-jobs=2'"
     }
+    String get_arch = ""
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
         pullRequest.labels.each
@@ -34,12 +35,16 @@ def runCompileCommand(platform, project, jobName, boolean debug=false, boolean b
                 project.paths.build_command = project.paths.build_command.replaceAll(' -c', ' -cn')
             }
         }
+        get_arch = auxiliary.gfxTargetParser()
+        project.paths.build_command += "a \$gfx_arch"
     }
 
     def command = """#!/usr/bin/env bash
                 set -x
+                set -e
                 cd ${project.paths.project_build_prefix}
                 ${centos7}
+                ${get_arch}
                 echo Original HIPCC_COMPILE_FLAGS_APPEND: \$HIPCC_COMPILE_FLAGS_APPEND
                 ${hipccCompileFlags}
                 CXX=/opt/rocm/bin/hipcc ${project.paths.build_command}
@@ -76,17 +81,16 @@ def runTestCommand (platform, project, boolean debug=false)
         text: libraryResource("com/amd/scripts/record_pts.py")
     )
 
+    def setupBranch = env.CHANGE_ID ? 'git checkout -b $BRANCH_NAME' : 'git checkout $BRANCH_NAME'
     def command = """#!/usr/bin/env bash
                 set -x
                 pwd
                 cd ${project.paths.project_build_prefix}
+                ${setupBranch}
                 python3 scripts/performance/pts/write_pts_report.py build/release/clients/staging/rocblas-bench rocBLAS_PTS_Benchmarks/ build-new scripts/performance/pts/benchmarks/gemv_problems.yaml scripts/performance/pts/benchmarks/axpy_problems.yaml scripts/performance/pts/benchmarks/gemm_problems.yaml scripts/performance/pts/benchmarks/trsm_problems.yaml scripts/performance/pts/benchmarks/symv_problems.yaml
-                # Temporary workaround to avoid different git info - to be reverted after changes for PTS are made
-                # python3 scripts/performance/pts/write_pts_report.py ref-repo/build/release/clients/staging/rocblas-bench rocBLAS_PTS_Benchmarks/ build-reference scripts/performance/pts/benchmarks/gemv_problems.yaml scripts/performance/pts/benchmarks/axpy_problems.yaml scripts/performance/pts/benchmarks/gemm_problems.yaml scripts/performance/pts/benchmarks/trsm_problems.yaml
-                cd ref-repo
-                python3 ../scripts/performance/pts/write_pts_report.py build/release/clients/staging/rocblas-bench ../rocBLAS_PTS_Benchmarks/ build-reference ../scripts/performance/pts/benchmarks/gemv_problems.yaml  ../scripts/performance/pts/benchmarks/axpy_problems.yaml ../scripts/performance/pts/benchmarks/gemm_problems.yaml ../scripts/performance/pts/benchmarks/trsm_problems.yaml ../scripts/performance/pts/benchmarks/symv_problems.yaml
-                for dataset in ../rocBLAS_PTS_Benchmarks/*/;
-                    do python3 ../record_pts.py --dataset-path \$dataset --reference-dataset build-reference --new-dataset build-new -l pts_rocblas_benchmark_data
+                python3 scripts/performance/pts/write_pts_report.py ref-repo/build/release/clients/staging/rocblas-bench rocBLAS_PTS_Benchmarks/ build-reference scripts/performance/pts/benchmarks/gemv_problems.yaml scripts/performance/pts/benchmarks/axpy_problems.yaml scripts/performance/pts/benchmarks/gemm_problems.yaml scripts/performance/pts/benchmarks/trsm_problems.yaml scripts/performance/pts/benchmarks/symv_problems.yaml
+                for dataset in ./rocBLAS_PTS_Benchmarks/*/;
+                    do python3 ./record_pts.py --dataset-path \$dataset --reference-dataset build-reference --new-dataset build-new -l pts_rocblas_benchmark_data
                 done
             """
     withCredentials([usernamePassword(credentialsId: 'PTS_API_ID_KEY_PROD', usernameVariable: 'PTS_API_ID', passwordVariable: 'PTS_API_KEY')])
@@ -132,26 +136,24 @@ def runCI =
     }
 
     buildProject(prj, formatCheck, nodes.dockerArray, compileCommand, testCommand, null)
-    def commentString = "Performance reports: \n" + "Commit hashes: \n"
-    for(parentHash in prj.gitParentHashes) {
-         commentString += "${parentHash} \n"
-    }
-    for (gpu in gpus) {
-        for (dataType in dataTypes) {
-            commentString += "[${gpu} ${dataType} report](${JOB_URL}/${dataType}-precision-${gpu})\n"
-        }
-    }
-    boolean commentExists = false
-    for (prComment in pullRequest.comments) {
-        if (prComment.body.contains("Performance reports:"))
-        {
-            commentExists = true
-            prComment.body = commentString
-        }
-    }
-    if (!commentExists) {
-        def comment = pullRequest.comment(commentString)
-    }
+    // def commentString = "Performance reports: \n" + "Commit hashes: \n"
+    // for(parentHash in prj.gitParentHashes) {
+    //      commentString += "${parentHash} \n"
+    // }
+    // for (gpu in gpus) {
+    //     commentString += "[${gpu} report](${JOB_URL}/${dataType}-precision-${gpu})\n"
+    // }
+    // boolean commentExists = false
+    // for (prComment in pullRequest.comments) {
+    //     if (prComment.body.contains("Performance reports:"))
+    //     {
+    //         commentExists = true
+    //         prComment.body = commentString
+    //     }
+    // }
+    // if (!commentExists) {
+    //     def comment = pullRequest.comment(commentString)
+    // }
 }
 
 ci: {
