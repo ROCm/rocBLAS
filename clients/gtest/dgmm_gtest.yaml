@@ -186,4 +186,18 @@ Tests:
   precision: *single_double_precisions_complex
   side: [L, R]
   matrix_size: *huge_matrix_size_range
+
+- name: dgmm_graph_test
+  category: pre_checkin
+  function:
+    - dgmm
+    - dgmm_batched
+    - dgmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L]
+  matrix_size:
+    - {M:     3, N:    33, lda:    35, incx:     2, ldc:    35 }
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  graph_test: true
 ...

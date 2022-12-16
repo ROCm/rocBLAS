@@ -291,6 +291,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
 
         // Call routine.
         CHECK_HIP_ERROR(dy.transfer_from(hy));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_ex_fn(handle,
                                                        N,
                                                        halpha,
@@ -303,7 +304,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
                                                        incy,
                                                        batch_count,
                                                        execution_type));
-
+        handle.post_test(arg);
         // Transfer from device to host.
         CHECK_HIP_ERROR(hy1.transfer_from(dy));
 
@@ -313,6 +314,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
         // Call routine.
         CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
         CHECK_HIP_ERROR(dy.transfer_from(hy));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_ex_fn(handle,
                                                        N,
                                                        dalpha,
@@ -325,6 +327,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
                                                        incy,
                                                        batch_count,
                                                        execution_type));
+        handle.post_test(arg);
         // Transfer from device to host.
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
 

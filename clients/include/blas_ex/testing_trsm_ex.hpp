@@ -459,7 +459,7 @@ void testing_trsm_ex(const Arguments& arg)
 
         hipStream_t rocblas_stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
+        handle.pre_test(arg);
         if(blocks > 0)
             CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
                                                                  uplo,
@@ -501,7 +501,7 @@ void testing_trsm_ex(const Arguments& arg)
                                                dinvA,
                                                TRSM_BLOCK * K,
                                                arg.compute_type));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device

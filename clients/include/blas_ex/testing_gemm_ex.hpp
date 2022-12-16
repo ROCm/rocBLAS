@@ -517,6 +517,7 @@ void testing_gemm_ex(const Arguments& arg)
 
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
                                                transA,
                                                transB,
@@ -541,7 +542,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                algo,
                                                solution_index,
                                                flags));
-
+        handle.post_test(arg);
         // copy output from device to CPU
         CHECK_HIP_ERROR(hD_1.transfer_from(dDref));
 

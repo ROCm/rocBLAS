@@ -279,10 +279,10 @@ void testing_gemm(const Arguments& arg)
 
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         // gold has copy of hC1

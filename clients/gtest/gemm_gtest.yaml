@@ -3463,6 +3463,18 @@ Tests:
   beta:  [ 0.0, 0.5, 1.0 ]
   fortran: [ false, true ]
 
+- name: gemm_graph_test
+  category: pre_checkin
+  function:
+    - gemm: *single_double_precisions_complex
+    - gemm_ex: *single_double_precisions_complex
+  matrix_size:
+    - { M:  960, N: 1024, K: 1024 }
+  transA: N
+  transB: N
+  alpha_beta: *alpha_beta_range
+  graph_test: true
+
 # Commented out as the category known_bug has no value in adding only to be excluded
 # gemm_ext2 may be deprecated and removed in the future
 #

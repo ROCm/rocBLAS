@@ -243,6 +243,7 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_ex_fn(handle,
                                                                    N,
                                                                    dx,
@@ -258,6 +259,7 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                                                    cs_type,
                                                                    batch_count,
                                                                    execution_type)));
+            handle.post_test(arg);
             host_strided_batch_vector<Tx> rx(N, incx ? incx : 1, stride_x, batch_count);
             host_strided_batch_vector<Ty> ry(N, incy ? incy : 1, stride_y, batch_count);
 

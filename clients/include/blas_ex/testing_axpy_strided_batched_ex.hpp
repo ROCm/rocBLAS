@@ -315,7 +315,7 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
 
             // Transfer host to device
             CHECK_HIP_ERROR(dy.transfer_from(hy));
-
+            handle.pre_test(arg);
             // Call routine.
             CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched_ex_fn(handle,
                                                                    N,
@@ -331,7 +331,7 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
                                                                    stridey,
                                                                    batch_count,
                                                                    execution_type));
-
+            handle.post_test(arg);
             CHECK_HIP_ERROR(hy1.transfer_from(dy));
 
             // Pointer mode.
@@ -340,7 +340,7 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
             // Transfer host to device
             CHECK_HIP_ERROR(dy.transfer_from(hy));
             CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
-
+            handle.pre_test(arg);
             // Call routine.
             CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched_ex_fn(handle,
                                                                    N,
@@ -356,7 +356,7 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
                                                                    stridey,
                                                                    batch_count,
                                                                    execution_type));
-
+            handle.post_test(arg);
             // Transfer from device to host.
             CHECK_HIP_ERROR(hy2.transfer_from(dy));
 
