@@ -149,7 +149,9 @@ void testing_dgmm(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dx, incx, dC, ldc));
+        handle.post_test(arg);
 
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();

@@ -474,4 +474,16 @@ Tests:
     - { M:  63,  N:  512 }
   batch_count: 1
 
+- name: gemm_batched_graph_test
+  category: pre_checkin
+  function:
+    - gemm_batched: *half_single_precisions
+    - gemm_batched_ex: *half_single_precisions
+  matrix_size:
+      - { M:  512, N:  100 }
+  transA: N
+  transB: N
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 3 ]
+  graph_test: true
 ...

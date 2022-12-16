@@ -1048,4 +1048,28 @@ Tests:
   alpha: *alpha_range
   stride_scale: [ 1 ]
   batch_count: [64]
+
+
+- name: trsm_graph_test
+  category: pre_checkin
+  function:
+    - trsm
+    - trsm_batched
+    - trsm_strided_batched
+    - trsm_ex
+    - trsm_batched_ex
+    - trsm_strided_batched_ex
+  precision: *single_double_precisions
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: U }
+    - { side: R, uplo: L, transA: C, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+    - { side: R, uplo: U, transA: N, diag: U }
+  matrix_size:
+    - { M: 31, N: 31, lda: 32, ldb: 32 }
+  alpha_beta: *complex_alpha_range
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
+  user_allocated_workspace: [0, 1000000]
+  graph_test: true
 ...
