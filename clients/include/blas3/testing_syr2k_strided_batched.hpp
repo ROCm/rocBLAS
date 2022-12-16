@@ -486,7 +486,7 @@ void testing_syr2k_strided_batched(const Arguments& arg)
         // host alpha/beta
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dC.transfer_from(hC_1));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_syrk_strided_batched_fn(handle,
                                                             uplo,
                                                             transA,
@@ -504,7 +504,7 @@ void testing_syr2k_strided_batched(const Arguments& arg)
                                                             ldc,
                                                             strideC,
                                                             batch_count));
-
+        handle.post_test(arg);
         // copy output from device to CPU
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 

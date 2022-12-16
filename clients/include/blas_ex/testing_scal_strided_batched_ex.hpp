@@ -184,6 +184,7 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched_ex_fn(handle,
                                                                 N,
                                                                 &h_alpha,
@@ -194,9 +195,10 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
                                                                 stridex,
                                                                 batch_count,
                                                                 execution_type)));
-
+        handle.post_test(arg);
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched_ex_fn(handle,
                                                                 N,
                                                                 d_alpha,
@@ -207,7 +209,7 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
                                                                 stridex,
                                                                 batch_count,
                                                                 execution_type)));
-
+        handle.post_test(arg);
         // Transfer output from device to CPU
         CHECK_HIP_ERROR(hx_1.transfer_from(dx_1));
         CHECK_HIP_ERROR(hx_2.transfer_from(dx_2));

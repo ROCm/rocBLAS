@@ -308,7 +308,7 @@ void testing_gemm_batched(const Arguments& arg)
 
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
                                                      transA,
                                                      transB,
@@ -324,7 +324,7 @@ void testing_gemm_batched(const Arguments& arg)
                                                      dC.ptr_on_device(),
                                                      ldc,
                                                      batch_count)));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         // ROCBLAS rocblas_pointer_mode_device

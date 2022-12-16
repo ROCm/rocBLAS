@@ -217,4 +217,18 @@ Tests:
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
 
+- name: syr2k_graph_test
+  category: pre_checkin
+  function:
+    - syr2k
+    - syr2k_batched
+    - syr2k_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  transA: [ N ]
+  matrix_size:
+    - { N:    64, K:   70,  lda:  128,  ldb: 128,  ldc: 64 }
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+  graph_test: true
 ...
