@@ -225,6 +225,11 @@ _rocblas_handle::~_rocblas_handle()
             hipMemPoolTrimTo(mem_pool, 0);
 #endif
         }
+        // Free memory allocated on the host
+        for(auto host_mem : host_mem_pointers)
+        {
+            free(host_mem);
+        }
     }
 }
 

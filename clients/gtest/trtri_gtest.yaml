@@ -93,4 +93,17 @@ Tests:
   batch_count: [ -1, 0, 1, 25 ]
   fortran: [ false, true ]
 
+- name: trtri_graph_test
+  category: pre_checkin
+  function:
+    - trtri
+    - trtri_batched
+    - trtri_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  diag: [ N ]
+  matrix_size:
+    - { N:    32, lda:    32 }
+  batch_count: [ 2 ]
+  graph_test: true
 ...

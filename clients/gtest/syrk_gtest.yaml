@@ -200,5 +200,18 @@ Tests:
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
 
-
+- name: syrk_graph_test
+  category: pre_checkin
+  function:
+    - syrk
+    - syrk_batched
+    - syrk_strided_batched
+  precision: *single_double_precisions
+  uplo: [ L ]
+  transA: [ N, T ]
+  matrix_size:
+    - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+  graph_test: true
 ...

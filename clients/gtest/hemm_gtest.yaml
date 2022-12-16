@@ -173,4 +173,17 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
 
+- name: hemm_graph_test
+  category: pre_checkin
+  function:
+    - hemm
+    - hemm_batched
+    - hemm_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  side: [ L, R ]
+  matrix_size:
+    -  { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
+  batch_count: [ 2 ]
+  graph_test: true
 ...

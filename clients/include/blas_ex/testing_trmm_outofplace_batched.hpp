@@ -539,7 +539,7 @@ void testing_trmm_outofplace_batched(const Arguments& arg)
         // calculate dB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dC.transfer_from(hC_1));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_trmm_outofplace_batched_fn(handle,
                                                                side,
                                                                uplo,
@@ -555,7 +555,7 @@ void testing_trmm_outofplace_batched(const Arguments& arg)
                                                                dC.ptr_on_device(),
                                                                ldc,
                                                                batch_count));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         // calculate dB <- A^(-1) B   rocblas_device_pointer_device
