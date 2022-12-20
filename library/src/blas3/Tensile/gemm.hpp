@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <cstring> // std::memcpy for graph capture use cases
+
 #ifdef BUILD_WITH_TENSILE
 #include "gemm_tensile.hpp"
 #else
