@@ -20,15 +20,9 @@
  *
  * ************************************************************************ */
 
-#pragma once
-
-#include "../blas1/reduction_strided_batched.hpp"
-#include "handle.hpp"
-#include "rocblas.h"
-#include "rocblas_amax_amin.hpp"
-#include "utility.hpp"
-#include <type_traits>
-#include <utility>
+#include "rocblas_block_sizes.h"
+#include "rocblas_iamax_iamin.hpp"
+#include "rocblas_reduction.hpp"
 
 // iamax, iamin kernels
 
@@ -77,19 +71,15 @@ __inline__ __device__ T rocblas_shuffle_block_reduce_method(T val)
 
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
-template <rocblas_int NB,
-          typename FETCH,
-          typename REDUCE = rocblas_reduce_sum,
-          typename TPtrX,
-          typename To>
+template <rocblas_int NB, typename FETCH, typename REDUCE, typename TPtrX, typename To>
 ROCBLAS_KERNEL(NB)
-rocblas_iaminmax_reduction_strided_batched_kernel_part1(rocblas_int    n,
-                                                        rocblas_int    nblocks,
-                                                        TPtrX          xvec,
-                                                        rocblas_stride shiftx,
-                                                        rocblas_int    incx,
-                                                        rocblas_stride stridex,
-                                                        To*            workspace)
+rocblas_iamax_iamin_kernel_part1(rocblas_int    n,
+                                 rocblas_int    nblocks,
+                                 TPtrX          xvec,
+                                 rocblas_stride shiftx,
+                                 rocblas_int    incx,
+                                 rocblas_stride stridex,
+                                 To*            workspace)
 {
     ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     To        sum;
@@ -108,18 +98,11 @@ rocblas_iaminmax_reduction_strided_batched_kernel_part1(rocblas_int    n,
         workspace[blockIdx.y * nblocks + blockIdx.x] = sum;
 }
 
-// kernel 2 is used from non-strided reduction_batched see include file
 // kernel 2 gathers all the partial results in workspace and finishes the final reduction;
 // number of threads (NB) loop blocks
-template <rocblas_int NB,
-          typename REDUCE   = rocblas_reduce_sum,
-          typename FINALIZE = rocblas_finalize_identity,
-          typename To,
-          typename Tr>
+template <rocblas_int NB, typename REDUCE, typename FINALIZE, typename To, typename Tr>
 ROCBLAS_KERNEL(NB)
-rocblas_iaminmax_reduction_strided_batched_kernel_part2(rocblas_int nblocks,
-                                                        To*         workspace,
-                                                        Tr*         result)
+rocblas_iamax_iamin_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
     rocblas_int tx = threadIdx.x;
     To          sum;
@@ -148,7 +131,7 @@ rocblas_iaminmax_reduction_strided_batched_kernel_part2(rocblas_int nblocks,
 /*! \brief
 
     \details
-    rocblas_iaminmax_reduction_strided_batched computes a reduction over multiple vectors x_i
+    rocblas_internal_iamax_iamin_template computes a reduction over multiple vectors x_i
               Template parameters allow threads per block, data, and specific phase kernel overrides
               At least two kernels are needed to finish the reduction
               kernel 1 write partial result per thread block in workspace, blocks partial results
@@ -185,24 +168,25 @@ rocblas_iaminmax_reduction_strided_batched_kernel_part2(rocblas_int nblocks,
     ********************************************************************/
 template <rocblas_int NB,
           typename FETCH,
-          typename REDUCE   = rocblas_reduce_sum,
-          typename FINALIZE = rocblas_finalize_identity,
+          typename REDUCE,
+          typename FINALIZE,
           typename TPtrX,
           typename To,
           typename Tr>
-rocblas_status rocblas_iaminmax_reduction_strided_batched(rocblas_handle __restrict__ handle,
-                                                          rocblas_int    n,
-                                                          TPtrX          x,
-                                                          rocblas_stride shiftx,
-                                                          rocblas_int    incx,
-                                                          rocblas_stride stridex,
-                                                          rocblas_int    batch_count,
-                                                          To*            workspace,
-                                                          Tr*            result)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_iamin_template(rocblas_handle handle,
+                                          rocblas_int    n,
+                                          TPtrX          x,
+                                          rocblas_stride shiftx,
+                                          rocblas_int    incx,
+                                          rocblas_stride stridex,
+                                          rocblas_int    batch_count,
+                                          To*            workspace,
+                                          Tr*            result)
 {
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-    hipLaunchKernelGGL((rocblas_iaminmax_reduction_strided_batched_kernel_part1<NB, FETCH, REDUCE>),
+    hipLaunchKernelGGL((rocblas_iamax_iamin_kernel_part1<NB, FETCH, REDUCE>),
                        dim3(blocks, batch_count),
                        NB,
                        0,
@@ -217,15 +201,14 @@ rocblas_status rocblas_iaminmax_reduction_strided_batched(rocblas_handle __restr
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL(
-            (rocblas_iaminmax_reduction_strided_batched_kernel_part2<NB, REDUCE, FINALIZE>),
-            dim3(1, batch_count),
-            NB,
-            0,
-            handle->get_stream(),
-            blocks,
-            workspace,
-            result);
+        hipLaunchKernelGGL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE, FINALIZE>),
+                           dim3(1, batch_count),
+                           NB,
+                           0,
+                           handle->get_stream(),
+                           blocks,
+                           workspace,
+                           result);
     }
     else
     {
@@ -237,17 +220,15 @@ rocblas_status rocblas_iaminmax_reduction_strided_batched(rocblas_handle __restr
         bool reduceKernel = blocks > 1 || batch_count > 1;
         if(reduceKernel)
         {
-            hipLaunchKernelGGL(
-                (rocblas_iaminmax_reduction_strided_batched_kernel_part2<NB, REDUCE, FINALIZE>),
-                dim3(1, batch_count),
-                NB,
-                0,
-                handle->get_stream(),
-                blocks,
-                workspace,
-                (Tr*)(workspace + size_t(batch_count) * blocks));
+            hipLaunchKernelGGL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE, FINALIZE>),
+                               dim3(1, batch_count),
+                               NB,
+                               0,
+                               handle->get_stream(),
+                               blocks,
+                               workspace,
+                               (Tr*)(workspace + size_t(batch_count) * blocks));
         }
-
         if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || reduceKernel)
         {
             // If FINALIZE is trivial or kernel part2 was called, result is in the
@@ -267,6 +248,48 @@ rocblas_status rocblas_iaminmax_reduction_strided_batched(rocblas_handle __restr
                 result[i] = Tr(FINALIZE{}(res[i]));
         }
     }
-
     return rocblas_status_success;
 }
+
+// clang-format off
+#ifdef INSTANTIATE_IAMAX_IAMIN_TEMPLATE
+#error INSTANTIATE_IAMAX_IAMIN_TEMPLATE IS ALREADY DEFINED
+#endif
+
+#define INSTANTIATE_IAMAX_IAMIN_TEMPLATE(NB_, FETCH_, REDUCE_, FINALIZE_, T_, U_, V_)      \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                              \
+    rocblas_status rocblas_internal_iamax_iamin_template<NB_, FETCH_, REDUCE_, FINALIZE_, T_, U_, V_>(rocblas_handle  handle,             \
+                                                          rocblas_int    n,                \
+                                                          T_          x,                   \
+                                                          rocblas_stride shiftx,           \
+                                                          rocblas_int    incx,             \
+                                                          rocblas_stride stridex,          \
+                                                          rocblas_int    batch_count,      \
+                                                          U_*            workspace,        \
+                                                          V_*            result);
+
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, float const*, rocblas_index_value_t<float>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, float const*, rocblas_index_value_t<float>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, float const* const*, rocblas_index_value_t<float>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, float const* const*, rocblas_index_value_t<float>, int)
+
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, double const*, rocblas_index_value_t<double>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, double const*, rocblas_index_value_t<double>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, double const* const*, rocblas_index_value_t<double>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, double const* const*, rocblas_index_value_t<double>, int)
+
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_float_complex const*, rocblas_index_value_t<float>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_float_complex const*, rocblas_index_value_t<float>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_float_complex const* const*, rocblas_index_value_t<float>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_float_complex const* const*, rocblas_index_value_t<float>, int)
+
+
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_double_complex const*, rocblas_index_value_t<double>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_double_complex const*, rocblas_index_value_t<double>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_double_complex const* const*, rocblas_index_value_t<double>, int)
+INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_double_complex const* const*, rocblas_index_value_t<double>, int)
+
+
+#undef INSTANTIATE_IAMAX_IAMIN_TEMPLATE
+
+// clang-format on

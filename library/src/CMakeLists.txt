@@ -327,6 +327,7 @@ set( rocblas_auxiliary_source
 )
 
 set( rocblas_blas1_source
+  blas1/rocblas_iamax_iamin_kernels.cpp
   blas1/rocblas_iamin.cpp
   blas1/rocblas_iamin_batched.cpp
   blas1/rocblas_iamin_strided_batched.cpp

@@ -23,7 +23,12 @@
 #pragma once
 
 #include "fetch_template.hpp"
-#include "rocblas_reduction_template.hpp"
+#include "handle.hpp"
+#include "reduction.hpp"
+#include "rocblas.h"
+#include "utility.hpp"
+#include <type_traits>
+#include <utility>
 
 //!
 //! @brief Struct-operator a default_value of rocblas_index_value_t<T>
@@ -102,3 +107,59 @@ struct rocblas_reduce_amin
         }
     }
 };
+
+template <rocblas_int NB,
+          typename FETCH,
+          typename REDUCE,
+          typename FINALIZE,
+          typename TPtrX,
+          typename To,
+          typename Tr>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_iamin_template(rocblas_handle handle,
+                                          rocblas_int    n,
+                                          TPtrX          x,
+                                          rocblas_stride shiftx,
+                                          rocblas_int    incx,
+                                          rocblas_stride stridex,
+                                          rocblas_int    batch_count,
+                                          To*            workspace,
+                                          Tr*            result);
+
+template <rocblas_int NB, typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_template(rocblas_handle            handle,
+                                    rocblas_int               n,
+                                    T                         x,
+                                    rocblas_stride            shiftx,
+                                    rocblas_int               incx,
+                                    rocblas_stride            stridex,
+                                    rocblas_int               batch_count,
+                                    rocblas_int*              result,
+                                    rocblas_index_value_t<S>* workspace)
+{
+    return rocblas_internal_iamax_iamin_template<NB,
+                                                 rocblas_fetch_amax_amin<S>,
+                                                 rocblas_reduce_amax,
+                                                 rocblas_finalize_amax_amin>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
+}
+
+template <rocblas_int NB, typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamin_template(rocblas_handle            handle,
+                                    rocblas_int               n,
+                                    T                         x,
+                                    rocblas_stride            shiftx,
+                                    rocblas_int               incx,
+                                    rocblas_stride            stridex,
+                                    rocblas_int               batch_count,
+                                    rocblas_int*              result,
+                                    rocblas_index_value_t<S>* workspace)
+{
+    return rocblas_internal_iamax_iamin_template<NB,
+                                                 rocblas_fetch_amax_amin<S>,
+                                                 rocblas_reduce_amin,
+                                                 rocblas_finalize_amax_amin>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
+}
