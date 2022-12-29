@@ -23,7 +23,7 @@
 #include "check_numerics_vector.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_iamax_iamin.hpp"
-#include "rocblas_reduction_impl.hpp"
+#include "rocblas_reduction_setup.hpp"
 
 namespace
 {

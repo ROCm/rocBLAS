@@ -22,7 +22,6 @@
 
 #include "rocblas_asum.hpp"
 #include "rocblas_block_sizes.h"
-#include "rocblas_reduction_impl.hpp"
 
 namespace
 {
@@ -49,12 +48,12 @@ namespace
         static constexpr rocblas_stride stridex_0     = 0;
         static constexpr rocblas_int    batch_count_1 = 1;
 
-        return rocblas_reduction_impl<NB,
-                                      isbatched,
-                                      rocblas_fetch_asum<To>,
-                                      rocblas_reduce_sum,
-                                      rocblas_finalize_identity,
-                                      To>(
+        return rocblas_asum_template<NB,
+                                     isbatched,
+                                     rocblas_fetch_asum<To>,
+                                     rocblas_reduce_sum,
+                                     rocblas_finalize_identity,
+                                     To>(
             handle, n, x, incx, stridex_0, batch_count_1, results, rocblas_asum_name<Ti>, "asum");
     }
 

@@ -352,6 +352,7 @@ set( rocblas_blas1_source
   blas1/rocblas_nrm2.cpp
   blas1/rocblas_nrm2_batched.cpp
   blas1/rocblas_nrm2_strided_batched.cpp
+  blas1/rocblas_reduction_kernels.cpp
   blas1/rocblas_rot.cpp
   blas1/rocblas_rot_kernels.cpp
   blas1/rocblas_rot_batched.cpp
