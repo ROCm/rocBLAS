@@ -20,9 +20,8 @@
  *
  * ************************************************************************ */
 
-#include "rocblas_asum_strided_batched.hpp"
+#include "rocblas_asum.hpp"
 #include "rocblas_block_sizes.h"
-#include "rocblas_reduction_impl.hpp"
 
 namespace
 {
@@ -55,20 +54,20 @@ namespace
 
         static constexpr bool isbatched = true;
 
-        return rocblas_reduction_impl<NB,
-                                      isbatched,
-                                      rocblas_fetch_asum<To>,
-                                      rocblas_reduce_sum,
-                                      rocblas_finalize_identity,
-                                      To>(handle,
-                                          n,
-                                          x,
-                                          incx,
-                                          stridex,
-                                          batch_count,
-                                          results,
-                                          rocblas_asum_strided_batched_name<Ti>,
-                                          "asum_strided_batched");
+        return rocblas_asum_template<NB,
+                                     isbatched,
+                                     rocblas_fetch_asum<To>,
+                                     rocblas_reduce_sum,
+                                     rocblas_finalize_identity,
+                                     To>(handle,
+                                         n,
+                                         x,
+                                         incx,
+                                         stridex,
+                                         batch_count,
+                                         results,
+                                         rocblas_asum_strided_batched_name<Ti>,
+                                         "asum_strided_batched");
     }
 
 }
