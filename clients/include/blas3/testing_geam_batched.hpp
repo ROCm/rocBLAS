@@ -439,7 +439,7 @@ void testing_geam_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_geam_batched_fn(handle,
                                                     transA,
                                                     transB,
@@ -454,6 +454,7 @@ void testing_geam_batched(const Arguments& arg)
                                                     dC.ptr_on_device(),
                                                     ldc,
                                                     batch_count));
+        handle.post_test(arg);
 
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 

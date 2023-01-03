@@ -265,10 +265,10 @@ void testing_trmm(const Arguments& arg)
         // calculate dB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dB.transfer_from(hB_1));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hB_1.transfer_from(dB));
 
         // calculate dB <- A^(-1) B   rocblas_device_pointer_device

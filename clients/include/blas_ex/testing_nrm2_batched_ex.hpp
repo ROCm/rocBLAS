@@ -203,6 +203,7 @@ void testing_nrm2_batched_ex(const Arguments& arg)
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_ex_fn(handle,
                                                        N,
                                                        dx.ptr_on_device(),
@@ -212,7 +213,7 @@ void testing_nrm2_batched_ex(const Arguments& arg)
                                                        d_rocblas_result_2,
                                                        result_type,
                                                        execution_type));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 
         // CPU BLAS

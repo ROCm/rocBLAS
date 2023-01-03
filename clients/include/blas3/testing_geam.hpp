@@ -331,10 +331,10 @@ void testing_geam(const Arguments& arg)
     {
         // ROCBLAS
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_geam_fn(
             handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));

@@ -144,13 +144,16 @@ void testing_scal_ex(const Arguments& arg)
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_scal_ex_fn(
             handle, N, &h_alpha, alpha_type, dx_1, x_type, incx, execution_type)));
-
+        handle.post_test(arg);
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_scal_ex_fn(
             handle, N, d_alpha, alpha_type, dx_2, x_type, incx, execution_type)));
+        handle.post_test(arg);
 
         // Transfer output from device to CPU
         CHECK_HIP_ERROR(hx_1.transfer_from(dx_1));

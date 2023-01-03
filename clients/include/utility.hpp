@@ -139,12 +139,16 @@ public:
 
     void pre_test(const Arguments& arg)
     {
+#if HIP_VERSION >= 50500000
         arg.graph_test ? rocblas_stream_begin_capture() : NOOP;
+#endif
     }
 
     void post_test(const Arguments& arg)
     {
+#if HIP_VERSION >= 50500000
         arg.graph_test ? rocblas_stream_end_capture() : NOOP;
+#endif
     }
 };
 

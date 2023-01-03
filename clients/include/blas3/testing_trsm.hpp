@@ -342,10 +342,10 @@ void testing_trsm(const Arguments& arg)
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
