@@ -324,18 +324,45 @@ public:
             return false;
     }
 
+    void* host_malloc(size_t size)
+    {
+        void* ptr = malloc(size);
+        if(ptr)
+        {
+            host_mem_pointers.push_back(ptr);
+            return ptr;
+        }
+        else
+        {
+            rocblas_cerr << " host_malloc FAILED " << std::endl;
+            rocblas_abort();
+        }
+    }
+
+    bool skip_alpha_beta_memcpy()
+    {
+        return alpha_beta_memcpy_complete;
+    }
+
+    void alpha_beta_memcpy_completed()
+    {
+        alpha_beta_memcpy_complete = true;
+    }
+
 private:
     // device memory work buffer
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 32 * 1024 * 1024;
 
     // Variables holding state of device memory allocation
-    void*                           device_memory            = nullptr;
-    size_t                          device_memory_size       = 0;
-    size_t                          device_memory_in_use     = 0;
-    bool                            device_memory_size_query = false;
+    void*                           device_memory              = nullptr;
+    size_t                          device_memory_size         = 0;
+    size_t                          device_memory_in_use       = 0;
+    bool                            device_memory_size_query   = false;
+    bool                            alpha_beta_memcpy_complete = false;
     rocblas_device_memory_ownership device_memory_owner;
     size_t                          device_memory_query_size;
     std::vector<void*>              dev_mem_pointers;
+    std::vector<void*>              host_mem_pointers;
 
     bool stream_order_alloc = false;
 

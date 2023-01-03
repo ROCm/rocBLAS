@@ -109,4 +109,15 @@ Tests:
   matrix_size: *huge_matrix_size_range
   alpha_beta: *huge_alpha_beta_range
   geam_op: [0, 1]
+
+- name: geam_ex_graph_test
+  category: pre_checkin
+  function: geam_ex
+  precision: *half_single_double_precisions
+  transA_transB: *tiny_transA_transB_range
+  matrix_size:
+    -  { M:     3, N:    33, K: 15, lda:    35, ldb:    35, ldc:    35, ldd:  85 }
+  alpha_beta: *small_alpha_beta_range
+  geam_op: [0, 1]
+  graph_test: true
 ...

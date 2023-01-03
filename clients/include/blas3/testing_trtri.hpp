@@ -191,7 +191,9 @@ void testing_trtri(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
     }
 
+    handle.pre_test(arg);
     CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
+    handle.post_test(arg);
 
     if(arg.timing)
     {

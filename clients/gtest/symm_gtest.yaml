@@ -186,4 +186,18 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
 
+- name: symm_graph_test
+  category: pre_checkin
+  function:
+    - symm
+    - symm_batched
+    - symm_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U ]
+  side: [ L ]
+  matrix_size:
+    - { M:   199, N:  290,  lda:  290,  ldb: 290,  ldc: 200 }
+  batch_count: [ 2 ]
+  alpha_beta: *alpha_beta_range
+  graph_test: true
 ...
