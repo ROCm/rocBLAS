@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_reduction_template.hpp"
+#include "rocblas_reduction.hpp"
 #include "utility.hpp"
 
 template <bool ISBATCHED, typename Ti>
