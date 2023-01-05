@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "../blas1/rocblas_asum.hpp"
+#include "../blas1/rocblas_nrm2.hpp"
 #include "../blas1/rocblas_reduction.hpp"
 #include "rocblas_block_sizes.h"
 
@@ -271,6 +272,7 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
                                                           U_*            workspace,        \
                                                           V_*            result);
 
+//ASUM instantiations
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, float const*, float, float)
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, float const* const*, float, float)
 
@@ -280,9 +282,24 @@ INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<doubl
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, rocblas_float_complex const*, float, float)
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, rocblas_float_complex const* const*, float, float)
 
-
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<double>, rocblas_finalize_identity, rocblas_double_complex const*, double, double)
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<double>, rocblas_finalize_identity, rocblas_double_complex const* const*, double, double)
+
+//nrm2 and nrm2_ex instantiations
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, float const*, float, float)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, float const* const*, float, float)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, double const*, double, double)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, double const* const*, double, double)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, rocblas_float_complex const*, float, float)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, rocblas_float_complex const* const*, float, float)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, rocblas_double_complex const*, double, double)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, rocblas_double_complex const* const*, double, double)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const*, float, _Float16)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const* const*, float, _Float16)
 
 #undef INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE
 

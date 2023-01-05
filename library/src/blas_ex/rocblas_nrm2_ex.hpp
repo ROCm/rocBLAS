@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,15 +61,15 @@ rocblas_status nrm2_ex_typecasting(rocblas_handle handle,
                 return nrm2_ex_check_numerics_status;
         }
 
-        status = rocblas_internal_nrm2_template<NB, ISBATCHED>(handle,
-                                                               n,
-                                                               (const Tx* const*)x,
-                                                               shiftx,
-                                                               incx,
-                                                               stridex,
-                                                               batch_count,
-                                                               (Tr*)results,
-                                                               (Tex*)workspace);
+        status = rocblas_internal_nrm2_template<NB>(handle,
+                                                    n,
+                                                    (const Tx* const*)x,
+                                                    shiftx,
+                                                    incx,
+                                                    stridex,
+                                                    batch_count,
+                                                    (Tex*)workspace,
+                                                    (Tr*)results);
         if(status != rocblas_status_success)
             return status;
 
@@ -112,15 +112,15 @@ rocblas_status nrm2_ex_typecasting(rocblas_handle handle,
                 return nrm2_ex_check_numerics_status;
         }
 
-        status = rocblas_internal_nrm2_template<NB, ISBATCHED>(handle,
-                                                               n,
-                                                               (const Tx*)x,
-                                                               shiftx,
-                                                               incx,
-                                                               stridex,
-                                                               batch_count,
-                                                               (Tr*)results,
-                                                               (Tex*)workspace);
+        status = rocblas_internal_nrm2_template<NB>(handle,
+                                                    n,
+                                                    (const Tx*)x,
+                                                    shiftx,
+                                                    incx,
+                                                    stridex,
+                                                    batch_count,
+                                                    (Tex*)workspace,
+                                                    (Tr*)results);
         if(status != rocblas_status_success)
             return status;
 

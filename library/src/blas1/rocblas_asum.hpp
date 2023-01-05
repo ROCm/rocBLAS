@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "fetch_template.hpp"
+#include "reduction.hpp"
 #include "rocblas_reduction_setup.hpp"
 
 template <class To>
@@ -55,7 +56,6 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
 template <rocblas_int NB,
           bool        ISBATCHED,
           typename FETCH,
-          typename REDUCE,
           typename FINALIZE,
           typename Tw,
           typename U,
