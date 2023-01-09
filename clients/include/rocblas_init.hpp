@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -233,6 +233,70 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                     A[i + j * lda + b * stride] = value;
                 }
     }
+
+    /*An n x n triangle matrix with random entries has a condition number that grows exponentially with n ("Condition numbers of random triangular matrices" D. Viswanath and L.N.Trefethen).
+    Here we use a triangle matrix with random values that is strictly row and column diagonal dominant.
+    This matrix should have a lower condition number. An alternative is to calculate the Cholesky factor of an SPD matrix with random values and make it diagonal dominant.
+    This approach is not used because it is slow.*/
+
+    else if(matrix_type == rocblas_client_diagonally_dominant_triangular_matrix)
+    {
+#pragma omp parallel for
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+            {
+                auto value
+                    = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
+                A[i + j * lda] = value;
+            }
+
+        const T multiplier = T(
+            1.01); // Multiplying factor to slightly increase the base value of (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) dominant diagonal element. If tests fail and it seems that there are numerical stability problems, try increasing multiplier, it should decrease the condition number of the matrix and thereby avoid numerical stability issues.
+
+        if(uplo == 'U') // rocblas_fill_upper
+        {
+#pragma omp parallel for
+            for(int i = 0; i < N; i++)
+            {
+                T abs_sum_off_diagonal_row
+                    = T(0); //store absolute sum of entire row of the particular diagonal element
+                T abs_sum_off_diagonal_col
+                    = T(0); //store absolute sum of entire column of the particular diagonal element
+
+                for(int j = i + 1; j < N; j++)
+                    abs_sum_off_diagonal_row += rocblas_abs(A[i + j * lda]);
+                for(int j = 0; j < i; j++)
+                    abs_sum_off_diagonal_col += rocblas_abs(A[j + i * lda]);
+
+                A[i + i * lda]
+                    = (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) == T(0)
+                          ? T(1)
+                          : T((abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) * multiplier);
+            }
+        }
+        else // rocblas_fill_lower
+        {
+#pragma omp parallel for
+            for(int j = 0; j < N; j++)
+            {
+                T abs_sum_off_diagonal_row
+                    = T(0); //store absolute sum of entire row of the particular diagonal element
+                T abs_sum_off_diagonal_col
+                    = T(0); //store absolute sum of entire column of the particular diagonal element
+
+                for(int i = j + 1; i < N; i++)
+                    abs_sum_off_diagonal_col += rocblas_abs(A[i + j * lda]);
+
+                for(int i = 0; i < j; i++)
+                    abs_sum_off_diagonal_row += rocblas_abs(A[j + i * lda]);
+
+                A[j + j * lda]
+                    = (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) == T(0)
+                          ? T(1)
+                          : T((abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) * multiplier);
+            }
+        }
+    }
 }
 
 template <typename U, typename T>
@@ -316,6 +380,70 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                         = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
                     A[i + j * lda] = value;
                 }
+        }
+
+        /*An n x n triangle matrix with random entries has a condition number that grows exponentially with n ("Condition numbers of random triangular matrices" D. Viswanath and L.N.Trefethen).
+        Here we use a triangle matrix with random values that is strictly row and column diagonal dominant.
+        This matrix should have a lower condition number. An alternative is to calculate the Cholesky factor of an SPD matrix with random values and make it diagonal dominant.
+        This approach is not used because it is slow.*/
+
+        else if(matrix_type == rocblas_client_diagonally_dominant_triangular_matrix)
+        {
+#pragma omp parallel for
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                {
+                    auto value
+                        = uplo == 'U' ? (j >= i ? rand_gen() : T(0)) : (j <= i ? rand_gen() : T(0));
+                    A[i + j * lda] = value;
+                }
+
+            const T multiplier = T(
+                1.01); // Multiplying factor to slightly increase the base value of (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) dominant diagonal element. If tests fail and it seems that there are numerical stability problems, try increasing multiplier, it should decrease the condition number of the matrix and thereby avoid numerical stability issues.
+
+            if(uplo == 'U') // rocblas_fill_upper
+            {
+#pragma omp parallel for
+                for(int i = 0; i < N; i++)
+                {
+                    T abs_sum_off_diagonal_row = T(
+                        0); //store absolute sum of entire row of the particular diagonal element
+                    T abs_sum_off_diagonal_col = T(
+                        0); //store absolute sum of entire column of the particular diagonal element
+
+                    for(int j = i + 1; j < N; j++)
+                        abs_sum_off_diagonal_row += rocblas_abs(A[i + j * lda]);
+                    for(int j = 0; j < i; j++)
+                        abs_sum_off_diagonal_col += rocblas_abs(A[j + i * lda]);
+
+                    A[i + i * lda] = (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) == T(0)
+                                         ? T(1)
+                                         : T((abs_sum_off_diagonal_row + abs_sum_off_diagonal_col)
+                                             * multiplier);
+                }
+            }
+            else // rocblas_fill_lower
+            {
+#pragma omp parallel for
+                for(int j = 0; j < N; j++)
+                {
+                    T abs_sum_off_diagonal_row = T(
+                        0); //store absolute sum of entire row of the particular diagonal element
+                    T abs_sum_off_diagonal_col = T(
+                        0); //store absolute sum of entire column of the particular diagonal element
+
+                    for(int i = j + 1; i < N; i++)
+                        abs_sum_off_diagonal_col += rocblas_abs(A[i + j * lda]);
+
+                    for(int i = 0; i < j; i++)
+                        abs_sum_off_diagonal_row += rocblas_abs(A[j + i * lda]);
+
+                    A[j + j * lda] = (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) == T(0)
+                                         ? T(1)
+                                         : T((abs_sum_off_diagonal_row + abs_sum_off_diagonal_col)
+                                             * multiplier);
+                }
+            }
         }
     }
 }

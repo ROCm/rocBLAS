@@ -146,30 +146,12 @@ void testing_trsv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_diagonally_dominant_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
-
-    //  calculate hAAT = hA * hA ^ T or hAAT = hA * hA ^ H if complex
-    cblas_gemm<T>(rocblas_operation_none,
-                  rocblas_operation_conjugate_transpose,
-                  M,
-                  M,
-                  M,
-                  T(1.0),
-                  hA,
-                  lda,
-                  hA,
-                  lda,
-                  T(0.0),
-                  hAAT,
-                  lda);
-
-    //  copy hAAT into hA, make hA strictly diagonal dominant, and therefore SPD
-    copy_hAAT_to_hA<T>((T*)hAAT, (T*)hA, M, size_t(lda));
-
-    //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
-    cblas_potrf<T>(char_uplo, M, hA, lda);
 
     //  make hA unit diagonal if diag == rocblas_diagonal_unit
     if(diag == rocblas_diagonal_unit)
