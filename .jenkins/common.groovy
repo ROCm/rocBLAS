@@ -53,7 +53,7 @@ def runTestCommand (platform, project, gfilter)
     String xnackVar = ""
 
     def hmmTestCommand= ''
-    if (platform.jenkinsLabel.contains('gfx90a'))
+    if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
     {
         hmmTestCommand = """
                             HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
