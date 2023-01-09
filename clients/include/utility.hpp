@@ -1,6 +1,6 @@
 /* ************************************************************************
  *
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -359,23 +359,6 @@ void make_unit_diagonal(rocblas_fill uplo, T* hA, rocblas_int lda, rocblas_int N
     for(int i = 0; i < N; i++)
     {
         rocblas_init<T>(hA + i * lda + i, 1, 1, 1);
-    }
-}
-
-/* ============================================================================================= */
-/*! \brief For testing purposes, copy hAAT into hA, make hA strictly diagonal dominant,          */
-template <typename T>
-void copy_hAAT_to_hA(T* AAT, T* A, rocblas_int M, size_t lda)
-{
-    for(int i = 0; i < M; i++)
-    {
-        T t = 0.0;
-        for(int j = 0; j < M; j++)
-        {
-            A[i + j * lda] = AAT[i + j * lda];
-            t += rocblas_abs(AAT[i + j * lda]);
-        }
-        A[i + i * lda] = t;
     }
 }
 

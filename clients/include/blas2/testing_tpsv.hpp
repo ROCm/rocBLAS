@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@
 #include "rocblas_math.hpp"
 #include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
-#include "rocblas_solve.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
@@ -131,11 +130,13 @@ void testing_tpsv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize hA on host memory
-    rocblas_init_matrix(
-        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_diagonally_dominant_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
-    prepare_triangular_solve((T*)hA, N, (T*)AAT, N, char_uplo);
     if(diag == rocblas_diagonal_unit)
     {
         make_unit_diagonal(uplo, (T*)hA, N, N);

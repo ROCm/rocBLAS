@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@
 #include "rocblas_math.hpp"
 #include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
-#include "rocblas_solve.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
@@ -194,8 +193,11 @@ void testing_tbsv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_diagonally_dominant_triangular_matrix,
+                        true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     for(int b = 0; b < batch_count; b++)
@@ -203,7 +205,6 @@ void testing_tbsv_strided_batched(const Arguments& arg)
         // Make hA a banded matrix with k sub/super-diagonals
         banded_matrix_setup(uplo == rocblas_fill_upper, (T*)(hA[b]), N, N, K);
 
-        prepare_triangular_solve((T*)(hA[b]), N, (T*)(AAT[b]), N, char_uplo);
         if(diag == rocblas_diagonal_unit)
         {
             make_unit_diagonal(uplo, (T*)(hA[b]), N, N);
