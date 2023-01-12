@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,9 @@
 #pragma once
 
 #include "../blas2/rocblas_trsv.hpp"
+#ifdef BUILD_WITH_TENSILE
 #include "../blas_ex/rocblas_gemm_ex.hpp"
+#endif
 #include "rocblas_trmm.hpp"
 #include "trtri_trsm.hpp"
 
@@ -1188,6 +1190,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
+#ifdef BUILD_WITH_TENSILE
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
 rocblas_status special_trsm_template(rocblas_handle    handle,
                                      rocblas_side      side,
@@ -1477,6 +1480,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
 
     return rocblas_status_success;
 }
+#endif
 
 inline bool
     trsm_is_skinny(rocblas_side side, rocblas_operation transA, rocblas_int m, rocblas_int n)
@@ -1506,6 +1510,10 @@ inline bool trsm_use_special_kernel(rocblas_side      side,
                                     rocblas_int       batch_count,
                                     rocblas_int       supplied_invA_size)
 {
+#ifndef BUILD_WITH_TENSILE
+    return false;
+#endif
+
     // small sizes have their own kernel
     if(m <= 64 || n <= 64)
         return false;
@@ -3623,6 +3631,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                     handle->get_stream(), (T*)w_x_temp, x_temp_els, (T**)w_x_temparr, batch_count);
             }
 
+#ifdef BUILD_WITH_TENSILE
             if(use_special)
             {
                 status = special_trsm_template<BLOCK, BATCHED>(handle,
@@ -3650,6 +3659,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                x_temp_els);
             }
             else
+#endif
             {
                 if(side == rocblas_side_left)
                     status

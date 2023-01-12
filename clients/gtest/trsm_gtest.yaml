@@ -337,7 +337,8 @@ Tests:
   diag: [U]
   matrix_size: *medium_matrix_size_extra
   alpha: [ 1 ]
-  user_allocated_workspace: [0, 20000000]
+  # workspace 32000000 vs 20000000 to allow non-special kernel in no tensile build
+  user_allocated_workspace: [0, 32000000]
 
 - name: trsm_medium_complex
   category: pre_checkin
