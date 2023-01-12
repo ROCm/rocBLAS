@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -123,10 +123,6 @@ if( BUILD_WITH_TENSILE )
     tensile_host.cpp
   )
 
-  set( Tensile_INC
-    ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
-  )
-
   #rocblas gemm_ex, gemm_ext2 and trsv require tensile
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex.cpp
@@ -136,22 +132,19 @@ if( BUILD_WITH_TENSILE )
     blas_ex/rocblas_trsv_ex.cpp
     blas_ex/rocblas_trsv_strided_batched_ex.cpp
     blas_ex/rocblas_trsv_batched_ex.cpp
-  )
-
-  #rocblas trsm and trtri require tensile
-  set( rocblas_blas3_source
-    blas3/rocblas_trsm.cpp
-    blas3/rocblas_trsm_batched.cpp
-    blas3/rocblas_trsm_strided_batched.cpp
-    blas3/rocblas_trtri.cpp
-    blas3/rocblas_trtri_batched.cpp
-    blas3/rocblas_trtri_strided_batched.cpp
     ${Tensile_SRC}
   )
 
-endif( ) # BUILD_WITH_TENSILE
+endif() # BUILD_WITH_TENSILE
 
-set (rocblas_ex_source_no_tensile
+# tensile includes have internal guards for BUILD_WITH_TENSILE to allow source gemm
+set( Tensile_INC
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
+)
+
+
+
+set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_axpy_ex.cpp
     blas_ex/rocblas_axpy_ex_kernels.cpp
     blas_ex/rocblas_axpy_batched_ex.cpp
@@ -186,6 +179,10 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_geam_kernels.cpp
     blas3/rocblas_geam_batched.cpp
     blas3/rocblas_geam_strided_batched.cpp
+)
+
+# rocblas L3 that use tensile but can use source gemm as fallback
+set( rocblas_blas3_source
     blas3/rocblas_hemm.cpp
     blas3/rocblas_hemm_batched.cpp
     blas3/rocblas_hemm_strided_batched.cpp
@@ -221,6 +218,12 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_trmm_kernels.cpp
     blas3/rocblas_trmm_batched.cpp
     blas3/rocblas_trmm_strided_batched.cpp
+    blas3/rocblas_trsm.cpp
+    blas3/rocblas_trsm_batched.cpp
+    blas3/rocblas_trsm_strided_batched.cpp
+    blas3/rocblas_trtri.cpp
+    blas3/rocblas_trtri_batched.cpp
+    blas3/rocblas_trtri_strided_batched.cpp
 )
 
 set( rocblas_blas2_source
