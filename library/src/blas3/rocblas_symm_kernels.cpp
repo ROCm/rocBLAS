@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ static const T beta_1 = T(1);
 
 template <typename T>
 ROCBLAS_KERNEL_ILF void
-    symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
+    rocblas_symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -57,36 +57,36 @@ ROCBLAS_KERNEL_ILF void
   */
 template <int DIM_X, int DIM_Y, typename T, typename U>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-symm_scale_kernel(rocblas_int    m,
-                  rocblas_int    n,
-                  T              beta_host_device,
-                  U              CP_array,
-                  rocblas_stride shift_c,
-                  rocblas_int    ldc,
-                  rocblas_stride stride_c)
+rocblas_symm_scale_kernel(rocblas_int    m,
+                          rocblas_int    n,
+                          T              beta_host_device,
+                          U              CP_array,
+                          rocblas_stride shift_c,
+                          rocblas_int    ldc,
+                          rocblas_stride stride_c)
 {
     auto beta = load_scalar(beta_host_device);
     if(beta == 1)
         return;
 
     auto C = load_ptr_batch(CP_array, blockIdx.z, shift_c, stride_c);
-    symm_scale_device(m, n, beta, C, ldc);
+    rocblas_symm_scale_device(m, n, beta, C, ldc);
 }
 
 /**
   * kernel
   */
 template <bool HERM, bool RIGHT, rocblas_int TILE_NK, typename T>
-ROCBLAS_KERNEL_ILF void symm_hemm_mult_add_device(bool        upper,
-                                                  rocblas_int m,
-                                                  rocblas_int n,
-                                                  T           alpha,
-                                                  const T* __restrict__ A,
-                                                  rocblas_int lda,
-                                                  const T* __restrict__ B,
-                                                  rocblas_int ldb,
-                                                  T* __restrict__ C,
-                                                  rocblas_int ldc)
+ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        upper,
+                                                          rocblas_int m,
+                                                          rocblas_int n,
+                                                          T           alpha,
+                                                          const T* __restrict__ A,
+                                                          rocblas_int lda,
+                                                          const T* __restrict__ B,
+                                                          rocblas_int ldb,
+                                                          T* __restrict__ C,
+                                                          rocblas_int ldc)
 {
     // function not called when !alpha
 
@@ -216,22 +216,22 @@ template <bool        HERM,
           typename TConstPtr,
           typename TPtr>
 ROCBLAS_KERNEL(DIM_XYT* DIM_XYT)
-symm_hemm_kernel(bool           upper,
-                 rocblas_int    m,
-                 rocblas_int    n,
-                 TScal          alpha_host_device,
-                 TConstPtr      AP_array,
-                 rocblas_stride shift_a,
-                 rocblas_int    lda,
-                 rocblas_stride stride_a,
-                 TConstPtr      BP_array,
-                 rocblas_stride shift_b,
-                 rocblas_int    ldb,
-                 rocblas_stride stride_b,
-                 TPtr           CP_array,
-                 rocblas_stride shift_c,
-                 rocblas_int    ldc,
-                 rocblas_stride stride_c)
+rocblas_symm_hemm_kernel(bool           upper,
+                         rocblas_int    m,
+                         rocblas_int    n,
+                         TScal          alpha_host_device,
+                         TConstPtr      AP_array,
+                         rocblas_stride shift_a,
+                         rocblas_int    lda,
+                         rocblas_stride stride_a,
+                         TConstPtr      BP_array,
+                         rocblas_stride shift_b,
+                         rocblas_int    ldb,
+                         rocblas_stride stride_b,
+                         TPtr           CP_array,
+                         rocblas_stride shift_c,
+                         rocblas_int    ldc,
+                         rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)
@@ -243,7 +243,8 @@ symm_hemm_kernel(bool           upper,
 
     // compute matrix multiplies and accumulate on the fly into C
     // when HERM does ^H in place of ^T for A fetches to symmetric empty side
-    symm_hemm_mult_add_device<HERM, RIGHT, DIM_XYT>(upper, m, n, alpha, A, lda, B, ldb, C, ldc);
+    rocblas_symm_hemm_mult_add_device<HERM, RIGHT, DIM_XYT>(
+        upper, m, n, alpha, A, lda, B, ldb, C, ldc);
 }
 
 /**
@@ -294,7 +295,7 @@ rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((symm_scale_kernel<symm_SCALE_DIM_X, symm_SCALE_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_symm_scale_kernel<symm_SCALE_DIM_X, symm_SCALE_DIM_Y>),
                            symm_scale_grid,
                            symm_scale_threads,
                            0,
@@ -309,7 +310,7 @@ rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
 
         if(side == rocblas_side_left)
         {
-            hipLaunchKernelGGL((symm_hemm_kernel<HERM, false, symm_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_symm_hemm_kernel<HERM, false, symm_DIM_XY>),
                                symm_grid,
                                symm_threads,
                                0,
@@ -333,7 +334,7 @@ rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
         }
         else
         {
-            hipLaunchKernelGGL((symm_hemm_kernel<HERM, true, symm_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_symm_hemm_kernel<HERM, true, symm_DIM_XY>),
                                symm_grid,
                                symm_threads,
                                0,
@@ -362,7 +363,7 @@ rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
             return rocblas_status_success;
 
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((symm_scale_kernel<symm_SCALE_DIM_X, symm_SCALE_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_symm_scale_kernel<symm_SCALE_DIM_X, symm_SCALE_DIM_Y>),
                            symm_scale_grid,
                            symm_scale_threads,
                            0,
@@ -377,7 +378,7 @@ rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
 
         if(side == rocblas_side_left)
         {
-            hipLaunchKernelGGL((symm_hemm_kernel<HERM, false, symm_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_symm_hemm_kernel<HERM, false, symm_DIM_XY>),
                                symm_grid,
                                symm_threads,
                                0,
@@ -401,7 +402,7 @@ rocblas_status rocblas_symm_dispatch(rocblas_handle handle,
         }
         else
         {
-            hipLaunchKernelGGL((symm_hemm_kernel<HERM, true, symm_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_symm_hemm_kernel<HERM, true, symm_DIM_XY>),
                                symm_grid,
                                symm_threads,
                                0,
@@ -475,7 +476,7 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
     // Restore pointer mode in destructor when save_pointer_mode goes out of scope.
     T alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
+        rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     if(*alpha == T(0) && *beta == T(1.0))
@@ -811,7 +812,7 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
     // Restore pointer mode in destructor when save_pointer_mode goes out of scope.
     T alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
+        rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, 1));
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     if (*alpha == T(0) && *beta == T(1.0))

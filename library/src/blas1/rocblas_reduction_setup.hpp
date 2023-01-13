@@ -30,13 +30,13 @@
 #include "utility.hpp"
 
 template <bool ISBATCHED, typename Ti>
-void reduction_log_bench(rocblas_handle handle,
-                         rocblas_int    n,
-                         const Ti*      x,
-                         rocblas_int    incx,
-                         rocblas_stride stridex,
-                         rocblas_int    batch_count,
-                         const char*    name)
+void rocblas_reduction_log_bench(rocblas_handle handle,
+                                 rocblas_int    n,
+                                 const Ti*      x,
+                                 rocblas_int    incx,
+                                 rocblas_stride stridex,
+                                 rocblas_int    batch_count,
+                                 const char*    name)
 {
     if(ISBATCHED)
     {
@@ -71,13 +71,13 @@ void reduction_log_bench(rocblas_handle handle,
 }
 
 template <bool ISBATCHED, typename Ti>
-void reduction_log_bench(rocblas_handle   handle,
-                         rocblas_int      n,
-                         const Ti* const* x,
-                         rocblas_int      incx,
-                         rocblas_stride   stridex,
-                         rocblas_int      batch_count,
-                         const char*      name)
+void rocblas_reduction_log_bench(rocblas_handle   handle,
+                                 rocblas_int      n,
+                                 const Ti* const* x,
+                                 rocblas_int      incx,
+                                 rocblas_stride   stridex,
+                                 rocblas_int      batch_count,
+                                 const char*      name)
 {
     log_bench(handle,
               "./rocblas-bench",
@@ -94,13 +94,13 @@ void reduction_log_bench(rocblas_handle   handle,
 }
 
 template <bool ISBATCHED, typename Ti>
-void reduction_log_profile(rocblas_handle handle,
-                           rocblas_int    n,
-                           const Ti*      x,
-                           rocblas_int    incx,
-                           rocblas_stride stridex,
-                           rocblas_int    batch_count,
-                           const char*    name)
+void rocblas_reduction_log_profile(rocblas_handle handle,
+                                   rocblas_int    n,
+                                   const Ti*      x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stridex,
+                                   rocblas_int    batch_count,
+                                   const char*    name)
 {
     if(ISBATCHED)
     {
@@ -114,25 +114,25 @@ void reduction_log_profile(rocblas_handle handle,
 }
 
 template <bool ISBATCHED, typename Ti>
-void reduction_log_profile(rocblas_handle   handle,
-                           rocblas_int      n,
-                           const Ti* const* x,
-                           rocblas_int      incx,
-                           rocblas_stride   stridex,
-                           rocblas_int      batch_count,
-                           const char*      name)
+void rocblas_reduction_log_profile(rocblas_handle   handle,
+                                   rocblas_int      n,
+                                   const Ti* const* x,
+                                   rocblas_int      incx,
+                                   rocblas_stride   stridex,
+                                   rocblas_int      batch_count,
+                                   const char*      name)
 {
     log_profile(handle, name, "N", n, "incx", incx, "batch_count", batch_count);
 }
 
 template <bool ISBATCHED, typename Ti>
-void reduction_log_trace(rocblas_handle handle,
-                         rocblas_int    n,
-                         const Ti*      x,
-                         rocblas_int    incx,
-                         rocblas_stride stridex,
-                         rocblas_int    batch_count,
-                         const char*    name)
+void rocblas_reduction_log_trace(rocblas_handle handle,
+                                 rocblas_int    n,
+                                 const Ti*      x,
+                                 rocblas_int    incx,
+                                 rocblas_stride stridex,
+                                 rocblas_int    batch_count,
+                                 const char*    name)
 {
     if(ISBATCHED)
     {
@@ -145,13 +145,13 @@ void reduction_log_trace(rocblas_handle handle,
 }
 
 template <bool ISBATCHED, typename Ti>
-void reduction_log_trace(rocblas_handle   handle,
-                         rocblas_int      n,
-                         const Ti* const* x,
-                         rocblas_int      incx,
-                         rocblas_stride   stridex,
-                         rocblas_int      batch_count,
-                         const char*      name)
+void rocblas_reduction_log_trace(rocblas_handle   handle,
+                                 rocblas_int      n,
+                                 const Ti* const* x,
+                                 rocblas_int      incx,
+                                 rocblas_stride   stridex,
+                                 rocblas_int      batch_count,
+                                 const char*      name)
 {
     log_trace(handle, name, n, x, incx, batch_count);
 }
@@ -190,17 +190,18 @@ inline rocblas_status rocblas_reduction_setup(rocblas_handle handle,
     auto layer_mode = handle->layer_mode;
     if(layer_mode & rocblas_layer_mode_log_trace)
     {
-        reduction_log_trace<ISBATCHED>(handle, n, x, incx, stridex, batch_count, name);
+        rocblas_reduction_log_trace<ISBATCHED>(handle, n, x, incx, stridex, batch_count, name);
     }
 
     if(layer_mode & rocblas_layer_mode_log_bench)
     {
-        reduction_log_bench<ISBATCHED>(handle, n, x, incx, stridex, batch_count, name_bench);
+        rocblas_reduction_log_bench<ISBATCHED>(
+            handle, n, x, incx, stridex, batch_count, name_bench);
     }
 
     if(layer_mode & rocblas_layer_mode_log_profile)
     {
-        reduction_log_profile<ISBATCHED>(handle, n, x, incx, stridex, batch_count, name);
+        rocblas_reduction_log_profile<ISBATCHED>(handle, n, x, incx, stridex, batch_count, name);
     }
 
     if(!results)

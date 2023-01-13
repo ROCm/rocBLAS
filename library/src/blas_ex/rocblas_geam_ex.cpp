@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -258,13 +258,13 @@ namespace
 
         auto validArgs = rocblas_status_not_implemented;
         if(compute_type == rocblas_datatype_f16_r)
-            validArgs = validateArgs<rocblas_half>(
+            validArgs = rocblas_validateArgs<rocblas_half>(
                 handle, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, D, ldd);
         else if(compute_type == rocblas_datatype_f32_r)
-            validArgs = validateArgs<float>(
+            validArgs = rocblas_validateArgs<float>(
                 handle, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, D, ldd);
         else if(compute_type == rocblas_datatype_f64_r)
-            validArgs = validateArgs<double>(
+            validArgs = rocblas_validateArgs<double>(
                 handle, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, D, ldd);
 
         if(validArgs != rocblas_status_continue)

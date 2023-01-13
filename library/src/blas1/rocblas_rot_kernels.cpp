@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ template <typename Tex,
           typename Tc,
           typename Ts,
           std::enable_if_t<!rocblas_is_complex<Ts>, int> = 0>
-__device__ void
-    rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
+__device__ void rocblas_rot_kernel_calc(
+    rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
     ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -52,8 +52,8 @@ template <typename Tex,
           typename Tc,
           typename Ts,
           std::enable_if_t<rocblas_is_complex<Ts>, int> = 0>
-__device__ void
-    rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
+__device__ void rocblas_rot_kernel_calc(
+    rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
     ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -70,26 +70,26 @@ __device__ void
 
 template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
 ROCBLAS_KERNEL(NB)
-rot_kernel(rocblas_int    n,
-           Tx             x_in,
-           rocblas_stride offset_x,
-           rocblas_int    incx,
-           rocblas_stride stride_x,
-           Ty             y_in,
-           rocblas_stride offset_y,
-           rocblas_int    incy,
-           rocblas_stride stride_y,
-           Tc             c_in,
-           rocblas_stride c_stride,
-           Ts             s_in,
-           rocblas_stride s_stride)
+rocblas_rot_kernel(rocblas_int    n,
+                   Tx             x_in,
+                   rocblas_stride offset_x,
+                   rocblas_int    incx,
+                   rocblas_stride stride_x,
+                   Ty             y_in,
+                   rocblas_stride offset_y,
+                   rocblas_int    incy,
+                   rocblas_stride stride_y,
+                   Tc             c_in,
+                   rocblas_stride c_stride,
+                   Ts             s_in,
+                   rocblas_stride s_stride)
 {
     auto c = std::real(load_scalar(c_in, blockIdx.y, c_stride));
     auto s = load_scalar(s_in, blockIdx.y, s_stride);
     auto x = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
     auto y = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
 
-    rot_kernel_calc<Tex>(n, x, incx, y, incy, c, s);
+    rocblas_rot_kernel_calc<Tex>(n, x, incx, y, incy, c, s);
 }
 
 template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
@@ -121,7 +121,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL((rot_kernel<NB, Tex>),
+        hipLaunchKernelGGL((rocblas_rot_kernel<NB, Tex>),
                            blocks,
                            threads,
                            0,
@@ -140,7 +140,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
                            s,
                            s_stride);
     else // c and s are on host
-        hipLaunchKernelGGL((rot_kernel<NB, Tex>),
+        hipLaunchKernelGGL((rocblas_rot_kernel<NB, Tex>),
                            blocks,
                            threads,
                            0,

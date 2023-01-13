@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,13 +64,13 @@ rocblas_int rocblas_get_trmm_recursive_nb(rocblas_int n);
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
-                                     rocblas_int    n,
-                                     TScal          alpha_device_host,
-                                     rocblas_stride stride_alpha,
-                                     TPtr           Aa,
-                                     rocblas_int    lda,
-                                     rocblas_stride a_st_or_of)
+rocblas_set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
+                                             rocblas_int    n,
+                                             TScal          alpha_device_host,
+                                             rocblas_stride stride_alpha,
+                                             TPtr           Aa,
+                                             rocblas_int    lda,
+                                             rocblas_stride a_st_or_of)
 {
     ptrdiff_t tx = blockIdx.x * blockDim.x + threadIdx.x;
     ptrdiff_t ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -86,15 +86,15 @@ set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
 }
 
 template <typename TScal, typename TPtr>
-rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
-                                                      rocblas_int    m,
-                                                      rocblas_int    n,
-                                                      TScal          alpha,
-                                                      rocblas_stride stride_alpha,
-                                                      TPtr           A,
-                                                      rocblas_int    lda,
-                                                      rocblas_stride a_st_or_of,
-                                                      rocblas_int    batch_count)
+rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
+                                                              rocblas_int    m,
+                                                              rocblas_int    n,
+                                                              TScal          alpha,
+                                                              rocblas_stride stride_alpha,
+                                                              TPtr           A,
+                                                              rocblas_int    lda,
+                                                              rocblas_stride a_st_or_of,
+                                                              rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(!m || !n || !batch_count)
@@ -111,7 +111,7 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
     dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL((set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
                            grid,
                            threads,
                            0,
@@ -124,7 +124,7 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
                            lda,
                            a_st_or_of);
     else
-        hipLaunchKernelGGL((set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
                            grid,
                            threads,
                            0,
@@ -327,25 +327,25 @@ template <typename T,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-rocblas_status trmm_outofplace_dispatch(rocblas_handle   handle,
-                                        rocblas_diagonal diag,
-                                        rocblas_int      m,
-                                        rocblas_int      n,
-                                        TScal*           alpha,
-                                        rocblas_stride   stride_alpha,
-                                        TConstPtr*       dA,
-                                        rocblas_stride   offset_a,
-                                        rocblas_int      lda,
-                                        rocblas_stride   stride_a,
-                                        TConstPtr*       dB,
-                                        rocblas_stride   offset_b,
-                                        rocblas_int      ldb,
-                                        rocblas_stride   stride_b,
-                                        TPtr*            dC,
-                                        rocblas_stride   offset_c,
-                                        rocblas_int      lddc,
-                                        rocblas_stride   stride_c,
-                                        rocblas_int      batch_count)
+rocblas_status rocblas_trmm_outofplace_dispatch(rocblas_handle   handle,
+                                                rocblas_diagonal diag,
+                                                rocblas_int      m,
+                                                rocblas_int      n,
+                                                TScal*           alpha,
+                                                rocblas_stride   stride_alpha,
+                                                TConstPtr*       dA,
+                                                rocblas_stride   offset_a,
+                                                rocblas_int      lda,
+                                                rocblas_stride   stride_a,
+                                                TConstPtr*       dB,
+                                                rocblas_stride   offset_b,
+                                                rocblas_int      ldb,
+                                                rocblas_stride   stride_b,
+                                                TPtr*            dC,
+                                                rocblas_stride   offset_c,
+                                                rocblas_int      lddc,
+                                                rocblas_stride   stride_c,
+                                                rocblas_int      batch_count)
 {
     // grid of  ((m - 1) / blk_m) + 1, ((n - 1) / blk_n) + 1) blocks per batch
     // block of (dim_m, dim_n) threads per block
@@ -751,7 +751,7 @@ rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
 // clang-format off
 // left, NoTrans
 template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status trmm_template_lNx(rocblas_handle   handle,
+rocblas_status rocblas_trmm_template_lNx(rocblas_handle   handle,
                        rocblas_fill     uplo,
                        rocblas_diagonal diag,
                        rocblas_int      m,
@@ -825,7 +825,7 @@ rocblas_status trmm_template_lTx(rocblas_handle   handle,
 
 // right, NoTrans
 template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status trmm_template_rNx(rocblas_handle   handle,
+rocblas_status rocblas_trmm_template_rNx(rocblas_handle   handle,
                        rocblas_fill     uplo,
                        rocblas_diagonal diag,
                        rocblas_int      m,
@@ -862,7 +862,7 @@ rocblas_status trmm_template_rNx(rocblas_handle   handle,
 
 // right, Trans|ConjTrans
 template <const int NB, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status trmm_template_rTx(rocblas_handle   handle,
+rocblas_status rocblas_trmm_template_rTx(rocblas_handle   handle,
                        rocblas_fill     uplo,
                        rocblas_diagonal diag,
                        rocblas_int      m,
@@ -897,7 +897,7 @@ rocblas_status trmm_template_rTx(rocblas_handle   handle,
     return rocblas_status_success;
 }
 
-rocblas_int inline trmm_get_shape(rocblas_side side, rocblas_fill uplo, rocblas_operation trans_a)
+rocblas_int inline rocblas_trmm_get_shape(rocblas_side side, rocblas_fill uplo, rocblas_operation trans_a)
 {
     rocblas_int shape = -1;
     if(side == rocblas_side_left)
@@ -975,10 +975,10 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
         c_st_or_of = stride_c;
     }
 
-    rocblas_int shape = trmm_get_shape(side, uplo, trans_a);
+    rocblas_int shape = rocblas_trmm_get_shape(side, uplo, trans_a);
 
     if (shape == 0 || shape == 1) // lNx, left, NoTrans
-        return trmm_template_lNx<STOPPING_NB, T>(handle, uplo, diag,
+        return rocblas_trmm_template_lNx<STOPPING_NB, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
                                                dA_krn, lda, a_st_or_of,
                                                dB_krn, ldb, b_st_or_of,
@@ -996,19 +996,19 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
                                                dB_krn, ldb, b_st_or_of,
                                                dC_krn, ldc, c_st_or_of, batch_count);
     else if (shape == 6 || shape == 7) // rNx, right, NoTrans
-        return trmm_template_rNx<STOPPING_NB, T>(handle, uplo, diag,
+        return rocblas_trmm_template_rNx<STOPPING_NB, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
                                                dA_krn, lda, a_st_or_of,
                                                dB_krn, ldb, b_st_or_of,
                                                dC_krn, ldc, c_st_or_of, batch_count);
     else if (shape == 8 || shape == 9) // rTx, right, Transpose
-        return trmm_template_rTx<STOPPING_NB, false, T>(handle, uplo, diag,
+        return rocblas_trmm_template_rTx<STOPPING_NB, false, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
                                                dA_krn, lda, a_st_or_of,
                                                dB_krn, ldb, b_st_or_of,
                                                dC_krn, ldc, c_st_or_of, batch_count);
     else if (shape == 10 || shape == 11) // rCx, right, ConjTrans
-        return trmm_template_rTx<STOPPING_NB, true, T>(handle, uplo, diag,
+        return rocblas_trmm_template_rTx<STOPPING_NB, true, T>(handle, uplo, diag,
                                                m, n, alpha, stride_alpha,
                                                dA_krn, lda, a_st_or_of,
                                                dB_krn, ldb, b_st_or_of,
@@ -1018,7 +1018,7 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
 }
 
 template<rocblas_int NB, bool BATCHED, bool LEFT, bool UPPER, bool TRANS, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status trmm_outofplace_template(rocblas_handle handle, rocblas_diagonal diag, rocblas_int m, rocblas_int n,
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template(rocblas_handle handle, rocblas_diagonal diag, rocblas_int m, rocblas_int n,
                                                                          TScal* alpha,
                                                                          TConstPtr* dA, rocblas_stride offset_a, rocblas_int lda,
                                                                          TConstPtr* dB, rocblas_stride offset_b, rocblas_int ldb,
@@ -1057,7 +1057,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status trmm_outofplace_template(rocblas
     // trmm full blocks on the diagonal
     rocblas_int trmm_batch_count = k / NB;
 
-    trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>(handle, diag, m_sub, n_sub, alpha, 0,
+    rocblas_trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>(handle, diag, m_sub, n_sub, alpha, 0,
                                                                 dA, offset_a, lda, NB * a_block_stride,
                                                                 dB, offset_b, ldb, NB * b_block_stride,
                                                                 dC, offset_c, ldc, NB * c_block_stride, trmm_batch_count);
@@ -1074,7 +1074,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status trmm_outofplace_template(rocblas
         offsetBin = offset_b + k_norem * b_block_stride;
         offsetCin = offset_c + k_norem * c_block_stride;
 
-        trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>(handle, diag, LEFT ? rem : m, LEFT ? n : rem, alpha, 0,
+        rocblas_trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>(handle, diag, LEFT ? rem : m, LEFT ? n : rem, alpha, 0,
                                                              dA, offsetAin, lda, 0,
                                                              dB, offsetBin, ldb, 0,
                                                              dC, offsetCin, ldc, 0, 1);
@@ -1158,79 +1158,79 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_outofplace
                                      rocblas_int       ldc)
 {
 #define trmm_out_KARGS handle, diag, m, n, alpha, dA, offset_a, lda, dB, offset_b, ldb, dC, offset_c, ldc
-    rocblas_int shape = trmm_get_shape(side, uplo, trans_a);
+    rocblas_int shape = rocblas_trmm_get_shape(side, uplo, trans_a);
 
     if(shape == 0)
     {
         // left, lower, non-transpose
         // template args:                                     LEFT, UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, true, false, false, false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, true, false, false, false, T>(trmm_out_KARGS);
     }
     else if(shape == 1)
     {
         // left, upper, non-transpose
         // template args:                                     LEFT, UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, true, true,  false, false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, true, true,  false, false, T>(trmm_out_KARGS);
     }
     else if(shape == 2)
     {
         // left, lower, transpose
         // template args:                                     LEFT, UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, true, false, true, false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, true, false, true, false, T>(trmm_out_KARGS);
     }
     else if(shape == 3)
     {
         // left, upper, transpose
         // template args:                                     LEFT, UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, true, true,  true, false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, true, true,  true, false, T>(trmm_out_KARGS);
     }
     else if(shape == 4)
     {
         // left, lower, conjugate-transpose
         // template args:                                     LEFT, UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, true, false, true,  true, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, true, false, true,  true, T>(trmm_out_KARGS);
     }
     else if(shape == 5)
     {
         // left, upper, conjugate-transpose
         // template args:                                     LEFT, UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, true, true,  true,  true, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, true, true,  true,  true, T>(trmm_out_KARGS);
     }
     else if(shape == 6)
     {
         // right, lower, non-transpose
         // template args:                                     LEFT,  UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, false, false, false, false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, false, false, false, false, T>(trmm_out_KARGS);
     }
     else if(shape == 7)
     {
         // right, upper, non-transpose
         // template args:                                     LEFT,  UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, false, true,  false, false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, false, true,  false, false, T>(trmm_out_KARGS);
     }
     else if(shape == 8)
     {
         // right, lower, transpose
         // template args:                                     LEFT,  UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, false, false, true,  false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, false, false, true,  false, T>(trmm_out_KARGS);
     }
     else if(shape == 9)
     {
         // right, upper, transpose
         // template args:                                     LEFT,  UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, false, true,  true,  false, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, false, true,  true,  false, T>(trmm_out_KARGS);
     }
     else if(shape == 10)
     {
         // right, lower, conjugate-transpose
         // template args:                                     LEFT,  UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, false, false, true,  true, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, false, false, true,  true, T>(trmm_out_KARGS);
     }
     else if(shape == 11)
     {
         // right, upper, conjugate-transpose
         // template args:                                     LEFT,  UPPER, TRANS, CONJ
-        return trmm_outofplace_template<STOPPING_NB, BATCHED, false, true,  true,  true, T>(trmm_out_KARGS);
+        return rocblas_trmm_outofplace_template<STOPPING_NB, BATCHED, false, true,  true,  true, T>(trmm_out_KARGS);
     }
     else
     {
@@ -1279,7 +1279,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_
 	    stride_c, batch_count);
     }
 
-    rocblas_int shape = trmm_get_shape(side, uplo, trans_a);
+    rocblas_int shape = rocblas_trmm_get_shape(side, uplo, trans_a);
 
     rocblas_status status = rocblas_status_success;
 
@@ -1511,7 +1511,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_int k = side == rocblas_side_left ? m : n;
     if(!inplace)
     {
-        set_matrix_zero_if_alpha_zero_template(handle, m, n, &alpha_0<T>, 0, dC, ldc, 0, 1);
+        rocblas_set_matrix_zero_if_alpha_zero_template(handle, m, n, &alpha_0<T>, 0, dC, ldc, 0, 1);
 
         constexpr rocblas_int NB_OUTOFPLACE = 512;
         return rocblas_internal_trmm_outofplace_template<NB_OUTOFPLACE, BATCHED, T>(handle,
@@ -1680,7 +1680,7 @@ INSTANTIATE_TRMM_TEMPLATE(16, true, rocblas_double_complex, rocblas_double_compl
 #endif
 
 #define INSTANTIATE_SET_MATRIX_ZERO_TEMPLATE(TScal_, TPtr_)     \
-template rocblas_status set_matrix_zero_if_alpha_zero_template  \
+template rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template  \
                         <TScal_, TPtr_>                         \
                         (rocblas_handle handle,                 \
                          rocblas_int    m,                      \

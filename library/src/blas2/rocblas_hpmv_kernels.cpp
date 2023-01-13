@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +28,15 @@
   *  A combined kernel to handle all hpmv cases.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-__device__ void hpmv_kernel_calc(bool        upper,
-                                 rocblas_int n,
-                                 T           alpha,
-                                 const T*    AP,
-                                 const T*    x,
-                                 ptrdiff_t   incx,
-                                 T           beta,
-                                 T*          y,
-                                 ptrdiff_t   incy)
+__device__ void rocblas_hpmv_kernel_calc(bool        upper,
+                                         rocblas_int n,
+                                         T           alpha,
+                                         const T*    AP,
+                                         const T*    x,
+                                         ptrdiff_t   incx,
+                                         T           beta,
+                                         T*          y,
+                                         ptrdiff_t   incy)
 {
     rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -118,21 +118,21 @@ __device__ void hpmv_kernel_calc(bool        upper,
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-hpmv_kernel(bool           upper,
-            rocblas_int    n,
-            TScal          alphaa,
-            TConstPtr      APa,
-            rocblas_stride shifta,
-            rocblas_stride strideA,
-            TConstPtr      xa,
-            rocblas_stride shiftx,
-            rocblas_int    incx,
-            rocblas_stride stridex,
-            TScal          betaa,
-            TPtr           ya,
-            rocblas_stride shifty,
-            rocblas_int    incy,
-            rocblas_stride stridey)
+rocblas_hpmv_kernel(bool           upper,
+                    rocblas_int    n,
+                    TScal          alphaa,
+                    TConstPtr      APa,
+                    rocblas_stride shifta,
+                    rocblas_stride strideA,
+                    TConstPtr      xa,
+                    rocblas_stride shiftx,
+                    rocblas_int    incx,
+                    rocblas_stride stridex,
+                    TScal          betaa,
+                    TPtr           ya,
+                    rocblas_stride shifty,
+                    rocblas_int    incy,
+                    rocblas_stride stridey)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
@@ -149,7 +149,7 @@ hpmv_kernel(bool           upper,
 
     auto y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    hpmv_kernel_calc<DIM_X, DIM_Y>(upper, n, alpha, AP, x, incx, beta, y, incy);
+    rocblas_hpmv_kernel_calc<DIM_X, DIM_Y>(upper, n, alpha, AP, x, incx, beta, y, incy);
 }
 
 /**
@@ -193,7 +193,7 @@ rocblas_status rocblas_hpmv_template(rocblas_handle handle,
     // Launch a modified gemv kernel for hpmv.
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL((hpmv_kernel<HPMV_DIM_X, HPMV_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_hpmv_kernel<HPMV_DIM_X, HPMV_DIM_Y>),
                            hpmv_grid,
                            hpmv_threads,
                            0,
@@ -219,7 +219,7 @@ rocblas_status rocblas_hpmv_template(rocblas_handle handle,
         if(!*alpha && *beta == 1)
             return rocblas_status_success;
 
-        hipLaunchKernelGGL((hpmv_kernel<HPMV_DIM_X, HPMV_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_hpmv_kernel<HPMV_DIM_X, HPMV_DIM_Y>),
                            hpmv_grid,
                            hpmv_threads,
                            0,

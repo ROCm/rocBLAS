@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,13 +58,13 @@ rocblas_swap_kernel(rocblas_int    n,
 //!
 template <rocblas_int NB, typename UPtr>
 ROCBLAS_KERNEL(NB)
-sswap_2_kernel(rocblas_int n,
-               UPtr __restrict__ xa,
-               rocblas_stride offsetx,
-               rocblas_stride stridex,
-               UPtr __restrict__ ya,
-               rocblas_stride offsety,
-               rocblas_stride stridey)
+rocblas_sswap_2_kernel(rocblas_int n,
+                       UPtr __restrict__ xa,
+                       rocblas_stride offsetx,
+                       rocblas_stride stridex,
+                       UPtr __restrict__ ya,
+                       rocblas_stride offsety,
+                       rocblas_stride stridey)
 {
     ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
     auto*     x   = load_ptr_batch(xa, blockIdx.y, offsetx, stridex);
@@ -136,7 +136,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
         dim3 grid(blocks, batch_count);
         dim3 threads(NB);
 
-        hipLaunchKernelGGL((sswap_2_kernel<NB>),
+        hipLaunchKernelGGL((rocblas_sswap_2_kernel<NB>),
                            grid,
                            threads,
                            0,
