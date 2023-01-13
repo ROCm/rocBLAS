@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,13 @@
 #include "rocblas_scal_ex.hpp"
 
 template <int NB, bool BATCHED, typename Ta, typename Tx = Ta, typename Tex = Tx>
-rocblas_status scal_ex_typecasting(rocblas_handle handle,
-                                   rocblas_int    n,
-                                   const void*    alpha_void,
-                                   void*          x,
-                                   rocblas_int    incx,
-                                   rocblas_stride stride_x,
-                                   rocblas_int    batch_count)
+rocblas_status rocblas_scal_ex_typecasting(rocblas_handle handle,
+                                           rocblas_int    n,
+                                           const void*    alpha_void,
+                                           void*          x,
+                                           rocblas_int    incx,
+                                           rocblas_stride stride_x,
+                                           rocblas_int    batch_count)
 {
     const Ta*            alpha        = (const Ta*)alpha_void;
     const rocblas_stride stride_alpha = 0;
@@ -164,74 +164,81 @@ rocblas_status rocblas_scal_ex_template(rocblas_handle   handle,
         return rocblas_status_success;
 
     // Quick return (alpha == 1) check and other nullptr checks will be done
-    // once we know the type (in scal_ex_typecasting).
+    // once we know the type (in rocblas_scal_ex_typecasting).
 
     rocblas_status status = rocblas_status_not_implemented;
 
-#define SCAL_EX_TYPECASTING_PARAM handle, n, alpha, x, incx, stride_x, batch_count
+#define rocblas_scal_ex_typecasting_PARAM handle, n, alpha, x, incx, stride_x, batch_count
 
     if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r
        && execution_type == rocblas_datatype_f32_r)
     {
         // hscal with float computation
-        status = scal_ex_typecasting<NB, BATCHED, rocblas_half, rocblas_half, float>(
-            SCAL_EX_TYPECASTING_PARAM);
+        status = rocblas_scal_ex_typecasting<NB, BATCHED, rocblas_half, rocblas_half, float>(
+            rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_f16_r
             && execution_type == rocblas_datatype_f32_r)
     {
         // hscal with float computation & alpha
-        status = scal_ex_typecasting<NB, BATCHED, float, rocblas_half, float>(
-            SCAL_EX_TYPECASTING_PARAM);
+        status = rocblas_scal_ex_typecasting<NB, BATCHED, float, rocblas_half, float>(
+            rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r
             && execution_type == rocblas_datatype_f16_r)
     {
         // hscal
-        status = scal_ex_typecasting<NB, BATCHED, rocblas_half>(SCAL_EX_TYPECASTING_PARAM);
+        status = rocblas_scal_ex_typecasting<NB, BATCHED, rocblas_half>(
+            rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_f32_r
             && execution_type == rocblas_datatype_f32_r)
     {
         // sscal
-        status = scal_ex_typecasting<NB, BATCHED, float>(SCAL_EX_TYPECASTING_PARAM);
+        status = rocblas_scal_ex_typecasting<NB, BATCHED, float>(rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f64_r && x_type == rocblas_datatype_f64_r
             && execution_type == rocblas_datatype_f64_r)
     {
         // dscal
-        status = scal_ex_typecasting<NB, BATCHED, double>(SCAL_EX_TYPECASTING_PARAM);
+        status
+            = rocblas_scal_ex_typecasting<NB, BATCHED, double>(rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_c && x_type == rocblas_datatype_f32_c
             && execution_type == rocblas_datatype_f32_c)
     {
         // cscal
-        status = scal_ex_typecasting<NB, BATCHED, rocblas_float_complex>(SCAL_EX_TYPECASTING_PARAM);
+        status = rocblas_scal_ex_typecasting<NB, BATCHED, rocblas_float_complex>(
+            rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f64_c && x_type == rocblas_datatype_f64_c
             && execution_type == rocblas_datatype_f64_c)
     {
         // zscal
-        status
-            = scal_ex_typecasting<NB, BATCHED, rocblas_double_complex>(SCAL_EX_TYPECASTING_PARAM);
+        status = rocblas_scal_ex_typecasting<NB, BATCHED, rocblas_double_complex>(
+            rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_f32_c
             && execution_type == rocblas_datatype_f32_c)
     {
         // csscal
         status
-            = scal_ex_typecasting<NB, BATCHED, float, rocblas_float_complex, rocblas_float_complex>(
-                SCAL_EX_TYPECASTING_PARAM);
+            = rocblas_scal_ex_typecasting<NB,
+                                          BATCHED,
+                                          float,
+                                          rocblas_float_complex,
+                                          rocblas_float_complex>(rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f64_r && x_type == rocblas_datatype_f64_c
             && execution_type == rocblas_datatype_f64_c)
     {
         // zdscal
-        status = scal_ex_typecasting<NB,
-                                     BATCHED,
-                                     double,
-                                     rocblas_double_complex,
-                                     rocblas_double_complex>(SCAL_EX_TYPECASTING_PARAM);
+        status = rocblas_scal_ex_typecasting<NB,
+                                             BATCHED,
+                                             double,
+                                             rocblas_double_complex,
+                                             rocblas_double_complex>(
+            rocblas_scal_ex_typecasting_PARAM);
     }
     else
     {
@@ -240,7 +247,7 @@ rocblas_status rocblas_scal_ex_template(rocblas_handle   handle,
 
     return status;
 
-#undef SCAL_EX_TYPECASTING_PARAM
+#undef rocblas_scal_ex_typecasting_PARAM
 }
 
 // Instantiations below will need to be manually updated to match any change in

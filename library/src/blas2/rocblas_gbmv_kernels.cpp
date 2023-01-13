@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,16 +30,16 @@
   *  and creates partial sums for each ty.
   */
 template <rocblas_int DIM_Y, typename T>
-__device__ T gbmvn_kernel_helper(rocblas_int ty,
-                                 rocblas_int ind,
-                                 rocblas_int m,
-                                 rocblas_int n,
-                                 rocblas_int kl,
-                                 rocblas_int ku,
-                                 const T*    A,
-                                 rocblas_int lda,
-                                 const T*    x,
-                                 rocblas_int incx)
+__device__ T rocblas_gbmvn_kernel_helper(rocblas_int ty,
+                                         rocblas_int ind,
+                                         rocblas_int m,
+                                         rocblas_int n,
+                                         rocblas_int kl,
+                                         rocblas_int ku,
+                                         const T*    A,
+                                         rocblas_int lda,
+                                         const T*    x,
+                                         rocblas_int incx)
 {
     T           res_A = 0.0;
     rocblas_int col;
@@ -77,17 +77,17 @@ __device__ T gbmvn_kernel_helper(rocblas_int ty,
   *  basically just iterate down columns.
   */
 template <rocblas_int DIM_Y, typename T>
-__device__ T gbmvt_kernel_helper(bool        CONJ,
-                                 rocblas_int ty,
-                                 rocblas_int ind,
-                                 rocblas_int m,
-                                 rocblas_int n,
-                                 rocblas_int kl,
-                                 rocblas_int ku,
-                                 const T*    A,
-                                 rocblas_int lda,
-                                 const T*    x,
-                                 rocblas_int incx)
+__device__ T rocblas_gbmvt_kernel_helper(bool        CONJ,
+                                         rocblas_int ty,
+                                         rocblas_int ind,
+                                         rocblas_int m,
+                                         rocblas_int n,
+                                         rocblas_int kl,
+                                         rocblas_int ku,
+                                         const T*    A,
+                                         rocblas_int lda,
+                                         const T*    x,
+                                         rocblas_int incx)
 {
     T           res_A = 0.0;
     rocblas_int row;
@@ -122,19 +122,19 @@ __device__ T gbmvt_kernel_helper(bool        CONJ,
   *  A combined kernel to handle all gbmv cases (transpose, conjugate, normal).
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-__device__ void gbmvx_kernel_calc(rocblas_operation transA,
-                                  rocblas_int       m,
-                                  rocblas_int       n,
-                                  rocblas_int       kl,
-                                  rocblas_int       ku,
-                                  T                 alpha,
-                                  const T*          A,
-                                  rocblas_int       lda,
-                                  const T*          x,
-                                  rocblas_int       incx,
-                                  T                 beta,
-                                  T*                y,
-                                  rocblas_int       incy)
+__device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
+                                          rocblas_int       m,
+                                          rocblas_int       n,
+                                          rocblas_int       kl,
+                                          rocblas_int       ku,
+                                          T                 alpha,
+                                          const T*          A,
+                                          rocblas_int       lda,
+                                          const T*          x,
+                                          rocblas_int       incx,
+                                          T                 beta,
+                                          T*                y,
+                                          rocblas_int       incy)
 {
     rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -158,12 +158,13 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
         // if more elegant logic is used.
         if(transA == rocblas_operation_none)
         {
-            res_A = gbmvn_kernel_helper<DIM_Y>(ty, ind, m, n, kl, ku, A, lda, x, incx);
+            res_A = rocblas_gbmvn_kernel_helper<DIM_Y>(ty, ind, m, n, kl, ku, A, lda, x, incx);
         }
         else
         {
             bool CONJ = transA == rocblas_operation_conjugate_transpose;
-            res_A     = gbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, m, n, kl, ku, A, lda, x, incx);
+            res_A
+                = rocblas_gbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, m, n, kl, ku, A, lda, x, incx);
         }
         // Store partial sums for the diagonal
         sdata[tx + ty * DIM_X] = res_A;
@@ -215,25 +216,25 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-gbmvx_kernel(rocblas_operation transA,
-             rocblas_int       m,
-             rocblas_int       n,
-             rocblas_int       kl,
-             rocblas_int       ku,
-             U                 alphaa,
-             V                 Aa,
-             rocblas_stride    shifta,
-             rocblas_int       lda,
-             rocblas_stride    strideA,
-             V                 xa,
-             rocblas_stride    shiftx,
-             rocblas_int       incx,
-             rocblas_stride    stridex,
-             U                 betaa,
-             W                 ya,
-             rocblas_stride    shifty,
-             rocblas_int       incy,
-             rocblas_stride    stridey)
+rocblas_gbmvx_kernel(rocblas_operation transA,
+                     rocblas_int       m,
+                     rocblas_int       n,
+                     rocblas_int       kl,
+                     rocblas_int       ku,
+                     U                 alphaa,
+                     V                 Aa,
+                     rocblas_stride    shifta,
+                     rocblas_int       lda,
+                     rocblas_stride    strideA,
+                     V                 xa,
+                     rocblas_stride    shiftx,
+                     rocblas_int       incx,
+                     rocblas_stride    stridex,
+                     U                 betaa,
+                     W                 ya,
+                     rocblas_stride    shifty,
+                     rocblas_int       incy,
+                     rocblas_stride    stridey)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
@@ -250,7 +251,8 @@ gbmvx_kernel(rocblas_operation transA,
 
     auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    gbmvx_kernel_calc<DIM_X, DIM_Y>(transA, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
+    rocblas_gbmvx_kernel_calc<DIM_X, DIM_Y>(
+        transA, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 /**
@@ -304,7 +306,7 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
     // indices for the banded matrices.
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL((gbmvx_kernel<GBMVX_DIM_X, GBMVX_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_gbmvx_kernel<GBMVX_DIM_X, GBMVX_DIM_Y>),
                            gbmvx_grid,
                            gbmvx_threads,
                            0,
@@ -334,7 +336,7 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
         if(!*alpha && *beta == 1)
             return rocblas_status_success;
 
-        hipLaunchKernelGGL((gbmvx_kernel<GBMVX_DIM_X, GBMVX_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_gbmvx_kernel<GBMVX_DIM_X, GBMVX_DIM_Y>),
                            gbmvx_grid,
                            gbmvx_threads,
                            0,

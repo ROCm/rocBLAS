@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +26,20 @@
 #include "rocblas_rotm.hpp"
 
 template <typename T, typename U>
-__device__ void rotm_kernel_calc(rocblas_int    n,
-                                 T              x_in,
-                                 rocblas_stride offset_x,
-                                 rocblas_int    incx,
-                                 rocblas_stride stride_x,
-                                 T              y_in,
-                                 rocblas_stride offset_y,
-                                 rocblas_int    incy,
-                                 rocblas_stride stride_y,
-                                 U              flag,
-                                 U              h11,
-                                 U              h21,
-                                 U              h12,
-                                 U              h22)
+__device__ void rocblas_rotm_kernel_calc(rocblas_int    n,
+                                         T              x_in,
+                                         rocblas_stride offset_x,
+                                         rocblas_int    incx,
+                                         rocblas_stride stride_x,
+                                         T              y_in,
+                                         rocblas_stride offset_y,
+                                         rocblas_int    incy,
+                                         rocblas_stride stride_y,
+                                         U              flag,
+                                         U              h11,
+                                         U              h21,
+                                         U              h12,
+                                         U              h22)
 {
     auto      x   = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
     auto      y   = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
@@ -77,18 +77,18 @@ __device__ void rotm_kernel_calc(rocblas_int    n,
 
 template <rocblas_int NB, typename T, typename U>
 ROCBLAS_KERNEL(NB)
-rotm_kernel_batched(rocblas_int    n,
-                    T              x_in,
-                    rocblas_stride offset_x,
-                    rocblas_int    incx,
-                    rocblas_stride stride_x,
-                    T              y_in,
-                    rocblas_stride offset_y,
-                    rocblas_int    incy,
-                    rocblas_stride stride_y,
-                    U              param,
-                    rocblas_stride offset_param,
-                    rocblas_stride stride_param)
+rocblas_rotm_kernel_batched(rocblas_int    n,
+                            T              x_in,
+                            rocblas_stride offset_x,
+                            rocblas_int    incx,
+                            rocblas_stride stride_x,
+                            T              y_in,
+                            rocblas_stride offset_y,
+                            rocblas_int    incy,
+                            rocblas_stride stride_y,
+                            U              param,
+                            rocblas_stride offset_param,
+                            rocblas_stride stride_param)
 {
     auto p    = load_ptr_batch(param, blockIdx.y, offset_param, stride_param);
     auto flag = p[0];
@@ -96,58 +96,60 @@ rotm_kernel_batched(rocblas_int    n,
     auto h21  = p[2];
     auto h12  = p[3];
     auto h22  = p[4];
-    rotm_kernel_calc(n,
-                     x_in,
-                     offset_x,
-                     incx,
-                     stride_x,
-                     y_in,
-                     offset_y,
-                     incy,
-                     stride_y,
-                     flag,
-                     h11,
-                     h21,
-                     h12,
-                     h22);
+    rocblas_rotm_kernel_calc(n,
+                             x_in,
+                             offset_x,
+                             incx,
+                             stride_x,
+                             y_in,
+                             offset_y,
+                             incy,
+                             stride_y,
+                             flag,
+                             h11,
+                             h21,
+                             h12,
+                             h22);
 }
 
 template <rocblas_int NB, typename T, typename U>
 ROCBLAS_KERNEL(NB)
-rotm_kernel_regular(rocblas_int    n,
-                    T*             x_in,
-                    rocblas_stride offset_x,
-                    rocblas_int    incx,
-                    rocblas_stride stride_x,
-                    T*             y_in,
-                    rocblas_stride offset_y,
-                    rocblas_int    incy,
-                    rocblas_stride stride_y,
-                    U              flag,
-                    U              h11,
-                    U              h21,
-                    U              h12,
-                    U              h22)
+rocblas_rotm_kernel_regular(rocblas_int    n,
+                            T*             x_in,
+                            rocblas_stride offset_x,
+                            rocblas_int    incx,
+                            rocblas_stride stride_x,
+                            T*             y_in,
+                            rocblas_stride offset_y,
+                            rocblas_int    incy,
+                            rocblas_stride stride_y,
+                            U              flag,
+                            U              h11,
+                            U              h21,
+                            U              h12,
+                            U              h22)
 {
-    rotm_kernel_calc(n,
-                     x_in,
-                     offset_x,
-                     incx,
-                     stride_x,
-                     y_in,
-                     offset_y,
-                     incy,
-                     stride_y,
-                     load_scalar(flag),
-                     load_scalar(h11),
-                     load_scalar(h21),
-                     load_scalar(h12),
-                     load_scalar(h22));
+    rocblas_rotm_kernel_calc(n,
+                             x_in,
+                             offset_x,
+                             incx,
+                             stride_x,
+                             y_in,
+                             offset_y,
+                             incy,
+                             stride_y,
+                             load_scalar(flag),
+                             load_scalar(h11),
+                             load_scalar(h21),
+                             load_scalar(h12),
+                             load_scalar(h22));
 }
 
 // Workaround to avoid constexpr if - Helper function to quick return when param[0] == -2
 template <typename T>
-bool quick_return_param(rocblas_handle handle, const T* param, rocblas_stride stride_param)
+bool rocblas_rotm_quick_return_param(rocblas_handle handle,
+                                     const T*       param,
+                                     rocblas_stride stride_param)
 {
     if(rocblas_pointer_mode_host == handle->pointer_mode)
         if(param[0] == -2 && stride_param == 0)
@@ -156,7 +158,9 @@ bool quick_return_param(rocblas_handle handle, const T* param, rocblas_stride st
 }
 
 template <typename T>
-bool quick_return_param(rocblas_handle handle, const T* const param[], rocblas_stride stride_param)
+bool rocblas_rotm_quick_return_param(rocblas_handle handle,
+                                     const T* const param[],
+                                     rocblas_stride stride_param)
 {
     return false;
 }
@@ -181,7 +185,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
     if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
-    if(quick_return_param(handle, param, stride_param))
+    if(rocblas_rotm_quick_return_param(handle, param, stride_param))
         return rocblas_status_success;
 
     auto shiftx = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
@@ -192,7 +196,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL((rotm_kernel_batched<NB>),
+        hipLaunchKernelGGL((rocblas_rotm_kernel_batched<NB>),
                            blocks,
                            threads,
                            0,
@@ -210,7 +214,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            offset_param,
                            stride_param);
     else if(!BATCHED_OR_STRIDED)
-        hipLaunchKernelGGL((rotm_kernel_regular<NB>),
+        hipLaunchKernelGGL((rocblas_rotm_kernel_regular<NB>),
                            blocks,
                            threads,
                            0,
@@ -287,11 +291,14 @@ rocblas_status rocblas_rotm_check_numerics(const char*    function_name,
 // instantiations below will need to be manually updated to match the changes.
 
 // instantiate for rocblas_Xrotm and rocblas_Xrotm_strided_batched
-template bool quick_return_param<float>(rocblas_handle, float const*, rocblas_stride);
-template bool quick_return_param<double>(rocblas_handle, double const*, rocblas_stride);
+template bool rocblas_rotm_quick_return_param<float>(rocblas_handle, float const*, rocblas_stride);
+template bool
+    rocblas_rotm_quick_return_param<double>(rocblas_handle, double const*, rocblas_stride);
 // instantiate for rocblas_Xrotm__batched
-template bool quick_return_param<float>(rocblas_handle, float const* const*, rocblas_stride);
-template bool quick_return_param<double>(rocblas_handle, double const* const*, rocblas_stride);
+template bool
+    rocblas_rotm_quick_return_param<float>(rocblas_handle, float const* const*, rocblas_stride);
+template bool
+    rocblas_rotm_quick_return_param<double>(rocblas_handle, double const* const*, rocblas_stride);
 
 // clang-format off
 

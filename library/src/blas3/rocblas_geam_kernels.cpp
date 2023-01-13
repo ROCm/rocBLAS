@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,12 @@
 
 template <int DIM_X, int DIM_Y, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-geam_zero_matrix_device(rocblas_int    m,
-                        rocblas_int    n,
-                        TPtr           Ca,
-                        rocblas_stride offset_c,
-                        rocblas_int    ldc,
-                        rocblas_stride stride_c)
+rocblas_geam_zero_matrix_device(rocblas_int    m,
+                                rocblas_int    n,
+                                TPtr           Ca,
+                                rocblas_stride offset_c,
+                                rocblas_int    ldc,
+                                rocblas_stride stride_c)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -46,24 +46,24 @@ geam_zero_matrix_device(rocblas_int    m,
 // general case for any alpha, beta, lda, ldb, ldc
 template <int DIM_X, int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-geam_device(rocblas_operation transA,
-            rocblas_operation transB,
-            rocblas_int       m,
-            rocblas_int       n,
-            TScal             alpha_device_host,
-            TConstPtr         Aa,
-            rocblas_stride    offset_a,
-            rocblas_int       lda,
-            rocblas_stride    stride_a,
-            TScal             beta_device_host,
-            TConstPtr         Ba,
-            rocblas_stride    offset_b,
-            rocblas_int       ldb,
-            rocblas_stride    stride_b,
-            TPtr              Ca,
-            rocblas_stride    offset_c,
-            rocblas_int       ldc,
-            rocblas_stride    stride_c)
+rocblas_geam_device(rocblas_operation transA,
+                    rocblas_operation transB,
+                    rocblas_int       m,
+                    rocblas_int       n,
+                    TScal             alpha_device_host,
+                    TConstPtr         Aa,
+                    rocblas_stride    offset_a,
+                    rocblas_int       lda,
+                    rocblas_stride    stride_a,
+                    TScal             beta_device_host,
+                    TConstPtr         Ba,
+                    rocblas_stride    offset_b,
+                    rocblas_int       ldb,
+                    rocblas_stride    stride_b,
+                    TPtr              Ca,
+                    rocblas_stride    offset_c,
+                    rocblas_int       ldc,
+                    rocblas_stride    stride_c)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -114,18 +114,18 @@ geam_device(rocblas_operation transA,
 //  only one matrix contributes because   0 == alpha || 0 == beta
 template <int DIM_X, int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-geam_2matrix_device(rocblas_operation transA,
-                    rocblas_int       m,
-                    rocblas_int       n,
-                    TScal             alpha_device_host,
-                    TConstPtr         Aa,
-                    rocblas_stride    offset_a,
-                    rocblas_int       lda,
-                    rocblas_stride    stride_a,
-                    TPtr              Ca,
-                    rocblas_stride    offset_c,
-                    rocblas_int       ldc,
-                    rocblas_stride    stride_c)
+rocblas_geam_2matrix_device(rocblas_operation transA,
+                            rocblas_int       m,
+                            rocblas_int       n,
+                            TScal             alpha_device_host,
+                            TConstPtr         Aa,
+                            rocblas_stride    offset_a,
+                            rocblas_int       lda,
+                            rocblas_stride    stride_a,
+                            TPtr              Ca,
+                            rocblas_stride    offset_c,
+                            rocblas_int       ldc,
+                            rocblas_stride    stride_c)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -169,18 +169,18 @@ geam_2matrix_device(rocblas_operation transA,
 // can be treated as contiguous vectors
 template <int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X)
-geam_1D_device(size_t         size,
-               TScal          alpha_device_host,
-               TConstPtr      Aa,
-               rocblas_stride offset_a,
-               rocblas_stride stride_a,
-               TScal          beta_device_host,
-               TConstPtr      Ba,
-               rocblas_stride offset_b,
-               rocblas_stride stride_b,
-               TPtr           Ca,
-               rocblas_stride offset_c,
-               rocblas_stride stride_c)
+rocblas_geam_1D_device(size_t         size,
+                       TScal          alpha_device_host,
+                       TConstPtr      Aa,
+                       rocblas_stride offset_a,
+                       rocblas_stride stride_a,
+                       TScal          beta_device_host,
+                       TConstPtr      Ba,
+                       rocblas_stride offset_b,
+                       rocblas_stride stride_b,
+                       TPtr           Ca,
+                       rocblas_stride offset_c,
+                       rocblas_stride stride_c)
 {
     size_t tx = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
 
@@ -211,14 +211,14 @@ geam_1D_device(size_t         size,
 // Also, alpha == 0  ||  beta == 0  so only one matrix contributes
 template <int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X)
-geam_1D_2matrix_device(size_t         size,
-                       TScal          alpha_device_host,
-                       TConstPtr      Aa,
-                       rocblas_stride offset_a,
-                       rocblas_stride stride_a,
-                       TPtr           Ca,
-                       rocblas_stride offset_c,
-                       rocblas_stride stride_c)
+rocblas_geam_1D_2matrix_device(size_t         size,
+                               TScal          alpha_device_host,
+                               TConstPtr      Aa,
+                               rocblas_stride offset_a,
+                               rocblas_stride stride_a,
+                               TPtr           Ca,
+                               rocblas_stride offset_c,
+                               rocblas_stride stride_c)
 {
     size_t tx = size_t(blockIdx.x) * blockDim.x + threadIdx.x;
 
@@ -244,19 +244,19 @@ geam_1D_2matrix_device(size_t         size,
 // this is in place case C <- alpha*C + beta*B
 template <int DIM_X, int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-geam_inplace_device(rocblas_operation transB,
-                    rocblas_int       m,
-                    rocblas_int       n,
-                    TScal             alpha_device_host,
-                    TScal             beta_device_host,
-                    TConstPtr         Ba,
-                    rocblas_stride    offset_b,
-                    rocblas_int       ldb,
-                    rocblas_stride    stride_b,
-                    TPtr              Ca,
-                    rocblas_stride    offset_c,
-                    rocblas_int       ldc,
-                    rocblas_stride    stride_c)
+rocblas_geam_inplace_device(rocblas_operation transB,
+                            rocblas_int       m,
+                            rocblas_int       n,
+                            TScal             alpha_device_host,
+                            TScal             beta_device_host,
+                            TConstPtr         Ba,
+                            rocblas_stride    offset_b,
+                            rocblas_int       ldb,
+                            rocblas_stride    stride_b,
+                            TPtr              Ca,
+                            rocblas_stride    offset_c,
+                            rocblas_int       ldc,
+                            rocblas_stride    stride_c)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -356,7 +356,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
         dim3 geam_grid(blocksX, blocksY, batch_count);
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
-        hipLaunchKernelGGL((geam_zero_matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_geam_zero_matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
                            geam_grid,
                            geam_threads,
                            0,
@@ -382,7 +382,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            hipLaunchKernelGGL((geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -403,7 +403,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -437,7 +437,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            hipLaunchKernelGGL((geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -458,7 +458,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_inplace_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -492,7 +492,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
             dim3 geam_grid(blocks, batch_count);
             dim3 geam_threads(GEAM_DIM);
 
-            hipLaunchKernelGGL((geam_1D_2matrix_device<GEAM_DIM>),
+            hipLaunchKernelGGL((rocblas_geam_1D_2matrix_device<GEAM_DIM>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -518,7 +518,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
             dim3 geam_grid(blocksX, blocksY, batch_count);
             dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
-            hipLaunchKernelGGL((geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -551,7 +551,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
             dim3 geam_grid(blocks, batch_count);
             dim3 geam_threads(GEAM_DIM);
 
-            hipLaunchKernelGGL((geam_1D_2matrix_device<GEAM_DIM>),
+            hipLaunchKernelGGL((rocblas_geam_1D_2matrix_device<GEAM_DIM>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -578,7 +578,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
             dim3 geam_grid(blocksX, blocksY, batch_count);
             dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
-            hipLaunchKernelGGL((geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_2matrix_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -612,7 +612,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
 
         if(rocblas_pointer_mode_host == pointer_mode)
         {
-            hipLaunchKernelGGL((geam_1D_device<GEAM_DIM>),
+            hipLaunchKernelGGL((rocblas_geam_1D_device<GEAM_DIM>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -632,7 +632,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((geam_1D_device<GEAM_DIM>),
+            hipLaunchKernelGGL((rocblas_geam_1D_device<GEAM_DIM>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -665,7 +665,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            hipLaunchKernelGGL((geam_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,
@@ -691,7 +691,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((geam_device<GEAM_DIM_X, GEAM_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_geam_device<GEAM_DIM_X, GEAM_DIM_Y>),
                                geam_grid,
                                geam_threads,
                                0,

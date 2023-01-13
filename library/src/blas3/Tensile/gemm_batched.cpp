@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ namespace
         // Copy alpha and beta to host if on device
         T alpha_h, beta_h;
         RETURN_IF_ROCBLAS_ERROR(
-            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+            rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         // Perform logging
@@ -148,7 +148,7 @@ namespace
                             batch_count);
         }
 
-        auto validArgs = validateArgs(
+        auto validArgs = rocblas_validateArgs(
             handle, trans_a, trans_b, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc, batch_count);
 
         if(validArgs != rocblas_status_continue)

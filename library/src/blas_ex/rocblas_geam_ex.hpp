@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,23 +59,23 @@ rocblas_status rocblas_geam_ex_template(rocblas_handle            handle,
                                         rocblas_geam_ex_operation geam_ex_op);
 
 template <typename T>
-rocblas_status validateArgs(rocblas_handle    handle,
-                            rocblas_operation trans_a,
-                            rocblas_operation trans_b,
-                            rocblas_int       m,
-                            rocblas_int       n,
-                            rocblas_int       k,
-                            const void*       alpha,
-                            const void*       A,
-                            rocblas_int       lda,
-                            const void*       B,
-                            rocblas_int       ldb,
-                            const void*       beta,
-                            const void*       C,
-                            rocblas_int       ldc,
-                            const void*       D,
-                            rocblas_int       ldd,
-                            rocblas_int       batch_count = 1)
+rocblas_status rocblas_validateArgs(rocblas_handle    handle,
+                                    rocblas_operation trans_a,
+                                    rocblas_operation trans_b,
+                                    rocblas_int       m,
+                                    rocblas_int       n,
+                                    rocblas_int       k,
+                                    const void*       alpha,
+                                    const void*       A,
+                                    rocblas_int       lda,
+                                    const void*       B,
+                                    rocblas_int       ldb,
+                                    const void*       beta,
+                                    const void*       C,
+                                    rocblas_int       ldc,
+                                    const void*       D,
+                                    rocblas_int       ldd,
+                                    rocblas_int       batch_count = 1)
 {
     // handle must be valid
     if(!handle)

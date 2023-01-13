@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,15 +37,15 @@ set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                      rocblas_stride a_st_or_of);
 
 template <typename TScal, typename TPtr>
-rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
-                                                      rocblas_int    m,
-                                                      rocblas_int    n,
-                                                      TScal          alpha,
-                                                      rocblas_stride stride_alpha,
-                                                      TPtr           A,
-                                                      rocblas_int    lda,
-                                                      rocblas_stride a_st_or_of,
-                                                      rocblas_int    batch_count);
+rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
+                                                              rocblas_int    m,
+                                                              rocblas_int    n,
+                                                              TScal          alpha,
+                                                              rocblas_stride stride_alpha,
+                                                              TPtr           A,
+                                                              rocblas_int    lda,
+                                                              rocblas_stride a_st_or_of,
+                                                              rocblas_int    batch_count);
 
 template <typename TScal, typename TPtr, typename TConstPtr>
 rocblas_status rocblas_trmm_arg_check(rocblas_handle    handle,

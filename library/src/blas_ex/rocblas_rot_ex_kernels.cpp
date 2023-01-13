@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,17 +31,17 @@ template <rocblas_int NB,
           typename Ty  = Tx,
           typename Tcs = Ty,
           typename Tex = Tcs>
-rocblas_status rot_ex_typecasting(rocblas_handle handle,
-                                  rocblas_int    n,
-                                  void*          x,
-                                  rocblas_int    incx,
-                                  rocblas_stride stride_x,
-                                  void*          y,
-                                  rocblas_int    incy,
-                                  rocblas_stride stride_y,
-                                  const void*    c,
-                                  const void*    s,
-                                  rocblas_int    batch_count)
+rocblas_status rocblas_rot_ex_typecasting(rocblas_handle handle,
+                                          rocblas_int    n,
+                                          void*          x,
+                                          rocblas_int    incx,
+                                          rocblas_stride stride_x,
+                                          void*          y,
+                                          rocblas_int    incy,
+                                          rocblas_stride stride_y,
+                                          const void*    c,
+                                          const void*    s,
+                                          rocblas_int    batch_count)
 {
     static constexpr rocblas_stride offset_0 = 0;
     static constexpr rocblas_stride stride_0 = 0;
@@ -198,63 +198,70 @@ rocblas_status rocblas_rot_ex_template(rocblas_handle   handle,
                                        rocblas_int      batch_count,
                                        rocblas_datatype execution_type)
 {
-#define ROT_EX_TYPECASTING_PARAM handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count
+#define rocblas_rot_ex_typecasting_PARAM \
+    handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count
 
     if(x_type == rocblas_datatype_bf16_r && y_type == rocblas_datatype_bf16_r
        && cs_type == rocblas_datatype_bf16_r && execution_type == rocblas_datatype_f32_r)
     {
-        return rot_ex_typecasting<NB,
-                                  ISBATCHED,
-                                  rocblas_bfloat16,
-                                  rocblas_bfloat16,
-                                  rocblas_bfloat16,
-                                  float>(ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB,
+                                          ISBATCHED,
+                                          rocblas_bfloat16,
+                                          rocblas_bfloat16,
+                                          rocblas_bfloat16,
+                                          float>(rocblas_rot_ex_typecasting_PARAM);
     }
     else if(x_type == rocblas_datatype_f16_r && y_type == rocblas_datatype_f16_r
             && cs_type == rocblas_datatype_f16_r && execution_type == rocblas_datatype_f32_r)
     {
-        return rot_ex_typecasting<NB, ISBATCHED, rocblas_half, rocblas_half, rocblas_half, float>(
-            ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB,
+                                          ISBATCHED,
+                                          rocblas_half,
+                                          rocblas_half,
+                                          rocblas_half,
+                                          float>(rocblas_rot_ex_typecasting_PARAM);
     }
     else if(x_type == rocblas_datatype_f32_r && y_type == rocblas_datatype_f32_r
             && cs_type == rocblas_datatype_f32_r && execution_type == rocblas_datatype_f32_r)
     {
-        return rot_ex_typecasting<NB, ISBATCHED, float>(ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB, ISBATCHED, float>(rocblas_rot_ex_typecasting_PARAM);
     }
     else if(x_type == rocblas_datatype_f64_r && y_type == rocblas_datatype_f64_r
             && cs_type == rocblas_datatype_f64_r && execution_type == rocblas_datatype_f64_r)
     {
-        return rot_ex_typecasting<NB, ISBATCHED, double>(ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB, ISBATCHED, double>(rocblas_rot_ex_typecasting_PARAM);
     }
     else if(x_type == rocblas_datatype_f32_c && y_type == rocblas_datatype_f32_c
             && cs_type == rocblas_datatype_f32_c && execution_type == rocblas_datatype_f32_c)
     {
-        return rot_ex_typecasting<NB, ISBATCHED, rocblas_float_complex>(ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB, ISBATCHED, rocblas_float_complex>(
+            rocblas_rot_ex_typecasting_PARAM);
     }
     else if(x_type == rocblas_datatype_f32_c && y_type == rocblas_datatype_f32_c
             && cs_type == rocblas_datatype_f32_r && execution_type == rocblas_datatype_f32_c)
     {
-        return rot_ex_typecasting<NB,
-                                  ISBATCHED,
-                                  rocblas_float_complex,
-                                  rocblas_float_complex,
-                                  float,
-                                  rocblas_float_complex>(ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB,
+                                          ISBATCHED,
+                                          rocblas_float_complex,
+                                          rocblas_float_complex,
+                                          float,
+                                          rocblas_float_complex>(rocblas_rot_ex_typecasting_PARAM);
     }
     else if(x_type == rocblas_datatype_f64_c && y_type == rocblas_datatype_f64_c
             && cs_type == rocblas_datatype_f64_c && execution_type == rocblas_datatype_f64_c)
     {
-        return rot_ex_typecasting<NB, ISBATCHED, rocblas_double_complex>(ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB, ISBATCHED, rocblas_double_complex>(
+            rocblas_rot_ex_typecasting_PARAM);
     }
     else if(x_type == rocblas_datatype_f64_c && y_type == rocblas_datatype_f64_c
             && cs_type == rocblas_datatype_f64_r && execution_type == rocblas_datatype_f64_c)
     {
-        return rot_ex_typecasting<NB,
-                                  ISBATCHED,
-                                  rocblas_double_complex,
-                                  rocblas_double_complex,
-                                  double,
-                                  rocblas_double_complex>(ROT_EX_TYPECASTING_PARAM);
+        return rocblas_rot_ex_typecasting<NB,
+                                          ISBATCHED,
+                                          rocblas_double_complex,
+                                          rocblas_double_complex,
+                                          double,
+                                          rocblas_double_complex>(rocblas_rot_ex_typecasting_PARAM);
     }
 
     return rocblas_status_not_implemented;

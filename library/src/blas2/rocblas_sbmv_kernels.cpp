@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,14 +28,14 @@
   *  create partial sums for each ty.
   */
 template <bool UPPER, rocblas_int DIM_Y, typename T>
-inline __device__ T sbmv_kernel_helper(rocblas_int ty,
-                                       rocblas_int ind,
-                                       rocblas_int n,
-                                       rocblas_int k,
-                                       const T* __restrict__ A,
-                                       rocblas_int lda,
-                                       const T* __restrict__ x,
-                                       rocblas_int incx)
+inline __device__ T rocblas_sbmv_kernel_helper(rocblas_int ty,
+                                               rocblas_int ind,
+                                               rocblas_int n,
+                                               rocblas_int k,
+                                               const T* __restrict__ A,
+                                               rocblas_int lda,
+                                               const T* __restrict__ x,
+                                               rocblas_int incx)
 {
     T           res_A = 0.0;
     rocblas_int col;
@@ -79,16 +79,16 @@ inline __device__ T sbmv_kernel_helper(rocblas_int ty,
   *  if uplo == lower, the strictly upper part of A is not referenced.
   */
 template <bool UPPER, rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-inline __device__ void sbmv_kernel_calc(rocblas_int n,
-                                        rocblas_int k,
-                                        T           alpha,
-                                        const T* __restrict__ A,
-                                        rocblas_int lda,
-                                        const T* __restrict__ x,
-                                        rocblas_int incx,
-                                        T           beta,
-                                        T* __restrict__ y,
-                                        rocblas_int incy)
+inline __device__ void rocblas_sbmv_kernel_calc(rocblas_int n,
+                                                rocblas_int k,
+                                                T           alpha,
+                                                const T* __restrict__ A,
+                                                rocblas_int lda,
+                                                const T* __restrict__ x,
+                                                rocblas_int incx,
+                                                T           beta,
+                                                T* __restrict__ y,
+                                                rocblas_int incy)
 {
     rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -112,7 +112,7 @@ inline __device__ void sbmv_kernel_calc(rocblas_int n,
 
     T res_A;
 
-    res_A = sbmv_kernel_helper<UPPER, DIM_Y>(ty, ind, n, k, A, lda, x, incx);
+    res_A = rocblas_sbmv_kernel_helper<UPPER, DIM_Y>(ty, ind, n, k, A, lda, x, incx);
 
     sdata[tx + ty * DIM_X] = res_A;
 
@@ -136,24 +136,24 @@ inline __device__ void sbmv_kernel_calc(rocblas_int n,
   */
 template <bool UPPER, rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-sbmv_kernel(rocblas_int    n,
-            rocblas_int    k,
-            U              alpha_device_host,
-            rocblas_stride stride_alpha,
-            V              Aa,
-            rocblas_stride shifta,
-            rocblas_int    lda,
-            rocblas_stride strideA,
-            V              xa,
-            rocblas_stride shiftx,
-            rocblas_int    incx,
-            rocblas_stride stridex,
-            U              beta_device_host,
-            rocblas_stride stride_beta,
-            W              ya,
-            rocblas_stride shifty,
-            rocblas_int    incy,
-            rocblas_stride stridey)
+rocblas_sbmv_kernel(rocblas_int    n,
+                    rocblas_int    k,
+                    U              alpha_device_host,
+                    rocblas_stride stride_alpha,
+                    V              Aa,
+                    rocblas_stride shifta,
+                    rocblas_int    lda,
+                    rocblas_stride strideA,
+                    V              xa,
+                    rocblas_stride shiftx,
+                    rocblas_int    incx,
+                    rocblas_stride stridex,
+                    U              beta_device_host,
+                    rocblas_stride stride_beta,
+                    W              ya,
+                    rocblas_stride shifty,
+                    rocblas_int    incy,
+                    rocblas_stride stridey)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
@@ -169,7 +169,7 @@ sbmv_kernel(rocblas_int    n,
 
     auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    sbmv_kernel_calc<UPPER, DIM_X, DIM_Y>(n, k, alpha, A, lda, x, incx, beta, y, incy);
+    rocblas_sbmv_kernel_calc<UPPER, DIM_X, DIM_Y>(n, k, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <typename T, typename U, typename V, typename W>
@@ -215,7 +215,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
     {
         if(uplo == rocblas_fill_upper)
         {
-            hipLaunchKernelGGL((sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,
@@ -241,7 +241,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
         }
         else
         {
-            hipLaunchKernelGGL((sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,
@@ -274,7 +274,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
 
         if(uplo == rocblas_fill_upper)
         {
-            hipLaunchKernelGGL((sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,
@@ -300,7 +300,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
         }
         else
         {
-            hipLaunchKernelGGL((sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>),
+            hipLaunchKernelGGL((rocblas_sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,

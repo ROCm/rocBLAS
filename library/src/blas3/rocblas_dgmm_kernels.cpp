@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +25,20 @@
 
 template <int DIM_X, int DIM_Y, bool side_right, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-dgmm_device(rocblas_int    m,
-            rocblas_int    n,
-            TConstPtr      Aa,
-            rocblas_stride offset_a,
-            rocblas_int    lda,
-            rocblas_stride stride_a,
-            TConstPtr      Xa,
-            rocblas_int    shift_x,
-            rocblas_int    incx,
-            rocblas_stride stride_x,
-            TPtr           Ca,
-            rocblas_stride offset_c,
-            rocblas_int    ldc,
-            rocblas_stride stride_c)
+rocblas_dgmm_device(rocblas_int    m,
+                    rocblas_int    n,
+                    TConstPtr      Aa,
+                    rocblas_stride offset_a,
+                    rocblas_int    lda,
+                    rocblas_stride stride_a,
+                    TConstPtr      Xa,
+                    rocblas_int    shift_x,
+                    rocblas_int    incx,
+                    rocblas_stride stride_x,
+                    TPtr           Ca,
+                    rocblas_stride offset_c,
+                    rocblas_int    ldc,
+                    rocblas_stride stride_c)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -113,7 +113,7 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
 
         if(rocblas_side_left == side)
         {
-            hipLaunchKernelGGL((dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, false>),
+            hipLaunchKernelGGL((rocblas_dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, false>),
                                dgmm_grid,
                                dgmm_threads,
                                0,
@@ -135,7 +135,7 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
         }
         else
         {
-            hipLaunchKernelGGL((dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, true>),
+            hipLaunchKernelGGL((rocblas_dgmm_device<DGMM_DIM_X, DGMM_DIM_Y, true>),
                                dgmm_grid,
                                dgmm_threads,
                                0,

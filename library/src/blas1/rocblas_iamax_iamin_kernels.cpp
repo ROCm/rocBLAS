@@ -28,7 +28,8 @@
 // iamax, iamin kernels
 
 template <int N, typename REDUCE, typename T>
-__inline__ __device__ rocblas_index_value_t<T> wavefront_reduce_method(rocblas_index_value_t<T> x)
+__inline__ __device__ rocblas_index_value_t<T>
+                      rocblas_wavefront_reduce_method(rocblas_index_value_t<T> x)
 {
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
@@ -55,7 +56,7 @@ __inline__ __device__ T rocblas_shuffle_block_reduce_method(T val)
         psums[wavelet] = T{};
     __syncthreads();
 
-    val = wavefront_reduce_method<warpSize, REDUCE>(val); // sum over wavefront
+    val = rocblas_wavefront_reduce_method<warpSize, REDUCE>(val); // sum over wavefront
     if(wavelet == 0)
         psums[wavefront] = val; // store sum for wavefront
 
@@ -65,7 +66,7 @@ __inline__ __device__ T rocblas_shuffle_block_reduce_method(T val)
     static constexpr rocblas_int num_wavefronts = NB / warpSize;
     val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T{};
     if(wavefront == 0)
-        val = wavefront_reduce_method<num_wavefronts, REDUCE>(val); // sum wavefront sums
+        val = rocblas_wavefront_reduce_method<num_wavefronts, REDUCE>(val); // sum wavefront sums
 
     return val;
 }

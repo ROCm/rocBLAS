@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 template <typename T, typename U>
 __device__ void
-    hpr_kernel_calc(bool upper, rocblas_int n, U alpha, const T* x, rocblas_int incx, T* AP)
+    rocblas_hpr_kernel_calc(bool upper, rocblas_int n, U alpha, const T* x, rocblas_int incx, T* AP)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -67,7 +67,7 @@ rocblas_hpr_kernel(bool           upper,
     auto*       AP = load_ptr_batch(APa, blockIdx.z, shift_A, stride_A);
     const auto* x  = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
 
-    hpr_kernel_calc(upper, n, alpha, x, incx, AP);
+    rocblas_hpr_kernel_calc(upper, n, alpha, x, incx, AP);
 }
 
 /**

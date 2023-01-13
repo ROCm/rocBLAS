@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ static constexpr int rocblas_log2ui(int x)
 }
 
 template <int N, typename T>
-__inline__ __device__ T wavefront_reduce(T val)
+__inline__ __device__ T rocblas_wavefront_reduce(T val)
 {
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
@@ -50,7 +50,7 @@ __inline__ __device__ T wavefront_reduce(T val)
 }
 
 template <int N>
-__inline__ __device__ rocblas_float_complex wavefront_reduce(rocblas_float_complex val)
+__inline__ __device__ rocblas_float_complex rocblas_wavefront_reduce(rocblas_float_complex val)
 {
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
@@ -64,7 +64,7 @@ __inline__ __device__ rocblas_float_complex wavefront_reduce(rocblas_float_compl
 }
 
 template <int N>
-__inline__ __device__ rocblas_double_complex wavefront_reduce(rocblas_double_complex val)
+__inline__ __device__ rocblas_double_complex rocblas_wavefront_reduce(rocblas_double_complex val)
 {
     constexpr int WFBITS = rocblas_log2ui(N);
     int           offset = 1 << (WFBITS - 1);
@@ -78,7 +78,7 @@ __inline__ __device__ rocblas_double_complex wavefront_reduce(rocblas_double_com
 }
 
 template <int N>
-__inline__ __device__ rocblas_bfloat16 wavefront_reduce(rocblas_bfloat16 val)
+__inline__ __device__ rocblas_bfloat16 rocblas_wavefront_reduce(rocblas_bfloat16 val)
 {
     union
     {
@@ -98,7 +98,7 @@ __inline__ __device__ rocblas_bfloat16 wavefront_reduce(rocblas_bfloat16 val)
 }
 
 template <int N>
-__inline__ __device__ rocblas_half wavefront_reduce(rocblas_half val)
+__inline__ __device__ rocblas_half rocblas_wavefront_reduce(rocblas_half val)
 {
     union
     {
@@ -129,7 +129,7 @@ __inline__ __device__ T rocblas_dot_block_reduce(T val)
         psums[wavelet] = T(0);
     __syncthreads();
 
-    val = wavefront_reduce<warpSize>(val); // sum over wavefront
+    val = rocblas_wavefront_reduce<warpSize>(val); // sum over wavefront
     if(wavelet == 0)
         psums[wavefront] = val; // store sum for wavefront
 
@@ -139,7 +139,7 @@ __inline__ __device__ T rocblas_dot_block_reduce(T val)
     static constexpr rocblas_int num_wavefronts = NB / warpSize;
     val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T(0);
     if(wavefront == 0)
-        val = wavefront_reduce<num_wavefronts>(val); // sum wavefront sums
+        val = rocblas_wavefront_reduce<num_wavefronts>(val); // sum wavefront sums
 
     return val;
 }

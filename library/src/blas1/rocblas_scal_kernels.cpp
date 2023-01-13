@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,12 +52,12 @@ rocblas_scal_kernel(rocblas_int    n,
 //!
 template <rocblas_int NB, typename Tex, typename Ta, typename Tx>
 ROCBLAS_KERNEL(NB)
-sscal_2_kernel(rocblas_int    n,
-               Ta             alpha_device_host,
-               rocblas_stride stride_alpha,
-               Tx __restrict__ xa,
-               rocblas_stride offset_x,
-               rocblas_stride stride_x)
+rocblas_sscal_2_kernel(rocblas_int    n,
+                       Ta             alpha_device_host,
+                       rocblas_stride stride_alpha,
+                       Tx __restrict__ xa,
+                       rocblas_stride offset_x,
+                       rocblas_stride stride_x)
 {
     auto*     x     = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
     auto      alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
@@ -87,14 +87,14 @@ sscal_2_kernel(rocblas_int    n,
 //!
 template <rocblas_int NB, typename Ta, typename Tx>
 ROCBLAS_KERNEL(NB)
-hscal_mlt_4_kernel(rocblas_int    n,
-                   rocblas_int    n_mod_4,
-                   rocblas_int    n_mlt_4,
-                   Ta             alpha_device_host,
-                   rocblas_stride stride_alpha,
-                   Tx __restrict__ xa,
-                   rocblas_stride offset_x,
-                   rocblas_stride stride_x)
+rocblas_hscal_mlt_4_kernel(rocblas_int    n,
+                           rocblas_int    n_mod_4,
+                           rocblas_int    n_mlt_4,
+                           Ta             alpha_device_host,
+                           rocblas_stride stride_alpha,
+                           Tx __restrict__ xa,
+                           rocblas_stride offset_x,
+                           rocblas_stride stride_x)
 {
 
     auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
@@ -172,7 +172,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         dim3 threads(NB);
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
-            hipLaunchKernelGGL((sscal_2_kernel<NB, Tex>),
+            hipLaunchKernelGGL((rocblas_sscal_2_kernel<NB, Tex>),
                                grid,
                                threads,
                                0,
@@ -184,7 +184,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                offset_x,
                                stride_x);
         else // single alpha is on host
-            hipLaunchKernelGGL((sscal_2_kernel<NB, Tex>),
+            hipLaunchKernelGGL((rocblas_sscal_2_kernel<NB, Tex>),
                                grid,
                                threads,
                                0,
@@ -206,7 +206,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         dim3        threads(NB);
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
-            hipLaunchKernelGGL((hscal_mlt_4_kernel<NB>),
+            hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
                                grid,
                                threads,
                                0,
@@ -220,7 +220,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                offset_x,
                                stride_x);
         else // single alpha is on host
-            hipLaunchKernelGGL((hscal_mlt_4_kernel<NB>),
+            hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
                                grid,
                                threads,
                                0,

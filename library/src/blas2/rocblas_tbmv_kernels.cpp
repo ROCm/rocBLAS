@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,15 +30,15 @@
   *  and creates partial sums for each ty.
   */
 template <rocblas_int DIM_Y, typename T>
-__device__ T tbmvn_kernel_helper(rocblas_int ty,
-                                 rocblas_int ind,
-                                 bool        upper,
-                                 bool        diag,
-                                 rocblas_int m,
-                                 rocblas_int k,
-                                 const T*    A,
-                                 rocblas_int lda,
-                                 const T*    w_x_copy)
+__device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
+                                         rocblas_int ind,
+                                         bool        upper,
+                                         bool        diag,
+                                         rocblas_int m,
+                                         rocblas_int k,
+                                         const T*    A,
+                                         rocblas_int lda,
+                                         const T*    w_x_copy)
 {
     T           res_A = 0.0;
     rocblas_int col;
@@ -86,16 +86,16 @@ __device__ T tbmvn_kernel_helper(rocblas_int ty,
   *  basically just iterate down columns.
   */
 template <rocblas_int DIM_Y, typename T>
-__device__ T tbmvt_kernel_helper(bool        CONJ,
-                                 rocblas_int ty,
-                                 rocblas_int ind,
-                                 bool        upper,
-                                 bool        diag,
-                                 rocblas_int m,
-                                 rocblas_int k,
-                                 const T*    A,
-                                 rocblas_int lda,
-                                 const T*    w_x_copy)
+__device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
+                                         rocblas_int ty,
+                                         rocblas_int ind,
+                                         bool        upper,
+                                         bool        diag,
+                                         rocblas_int m,
+                                         rocblas_int k,
+                                         const T*    A,
+                                         rocblas_int lda,
+                                         const T*    w_x_copy)
 {
     T           res_A = 0.0;
     rocblas_int row;
@@ -157,16 +157,16 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
   *  A combined kernel to handle all tbmv cases (transpose, conjugate, normal).
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-ROCBLAS_KERNEL_ILF void tbmvx_kernel_calc(rocblas_operation transA,
-                                          bool              upper,
-                                          bool              diag,
-                                          rocblas_int       m,
-                                          rocblas_int       k,
-                                          const T*          A,
-                                          rocblas_int       lda,
-                                          const T*          w_x_copy,
-                                          T*                x,
-                                          rocblas_int       incx)
+ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
+                                                  bool              upper,
+                                                  bool              diag,
+                                                  rocblas_int       m,
+                                                  rocblas_int       k,
+                                                  const T*          A,
+                                                  rocblas_int       lda,
+                                                  const T*          w_x_copy,
+                                                  T*                x,
+                                                  rocblas_int       incx)
 {
     rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -187,12 +187,13 @@ ROCBLAS_KERNEL_ILF void tbmvx_kernel_calc(rocblas_operation transA,
     // if more elegant logic is used.
     if(transA == rocblas_operation_none)
     {
-        res_A = tbmvn_kernel_helper<DIM_Y>(ty, ind, upper, diag, m, k, A, lda, w_x_copy);
+        res_A = rocblas_tbmvn_kernel_helper<DIM_Y>(ty, ind, upper, diag, m, k, A, lda, w_x_copy);
     }
     else
     {
         bool CONJ = transA == rocblas_operation_conjugate_transpose;
-        res_A     = tbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, upper, diag, m, k, A, lda, w_x_copy);
+        res_A     = rocblas_tbmvt_kernel_helper<DIM_Y>(
+            CONJ, ty, ind, upper, diag, m, k, A, lda, w_x_copy);
     }
     // Store partial sums for the diagonal
     sdata[tx + ty * DIM_X] = res_A;
@@ -250,20 +251,20 @@ ROCBLAS_KERNEL_ILF void tbmvx_kernel_calc(rocblas_operation transA,
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-tbmvx_kernel(rocblas_operation transA,
-             bool              upper,
-             bool              diag,
-             rocblas_int       m,
-             rocblas_int       k,
-             U                 Aa,
-             rocblas_stride    shifta,
-             rocblas_int       lda,
-             rocblas_stride    strideA,
-             U                 w_xa_copy,
-             V                 xa,
-             rocblas_stride    shiftx,
-             rocblas_int       incx,
-             rocblas_stride    stridex)
+rocblas_tbmvx_kernel(rocblas_operation transA,
+                     bool              upper,
+                     bool              diag,
+                     rocblas_int       m,
+                     rocblas_int       k,
+                     U                 Aa,
+                     rocblas_stride    shifta,
+                     rocblas_int       lda,
+                     rocblas_stride    strideA,
+                     U                 w_xa_copy,
+                     V                 xa,
+                     rocblas_stride    shiftx,
+                     rocblas_int       incx,
+                     rocblas_stride    stridex)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
@@ -273,7 +274,7 @@ tbmvx_kernel(rocblas_operation transA,
     const auto* w_x_copy = load_ptr_batch(w_xa_copy, blockIdx.y, 0, m);
     auto*       x        = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
 
-    tbmvx_kernel_calc<DIM_X, DIM_Y>(transA, upper, diag, m, k, A, lda, w_x_copy, x, incx);
+    rocblas_tbmvx_kernel_calc<DIM_X, DIM_Y>(transA, upper, diag, m, k, A, lda, w_x_copy, x, incx);
 }
 
 /**
@@ -329,7 +330,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
 
     // Launch a modified gemv kernel. The logic is similar to gemv just with modified
     // indices for the banded matrices.
-    hipLaunchKernelGGL((tbmvx_kernel<TBMVX_DIM_X, TBMVX_DIM_Y>),
+    hipLaunchKernelGGL((rocblas_tbmvx_kernel<TBMVX_DIM_X, TBMVX_DIM_Y>),
                        tbmvx_grid,
                        tbmvx_threads,
                        0,

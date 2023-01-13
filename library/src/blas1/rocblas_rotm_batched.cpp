@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -86,7 +86,7 @@ namespace
         if(!param)
             return rocblas_status_invalid_pointer;
 
-        if(quick_return_param(handle, param, 0))
+        if(rocblas_rotm_quick_return_param(handle, param, 0))
             return rocblas_status_success;
 
         if(!x || !y)
