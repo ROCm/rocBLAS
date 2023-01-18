@@ -503,10 +503,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
     //  make hA unit diagonal if diag == rocblas_diagonal_unit
     if(diag == rocblas_diagonal_unit)
     {
-        for(int b = 0; b < batch_count; b++)
-        {
-            make_unit_diagonal(uplo, (T*)hA[b], lda, K);
-        }
+        make_unit_diagonal(uplo, hA);
     }
 
     hB.copy_from(hX);

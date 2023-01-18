@@ -200,19 +200,16 @@ void testing_tbsv_strided_batched(const Arguments& arg)
                         true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
-    for(int b = 0; b < batch_count; b++)
+    // Make hA a banded matrix with k sub/super-diagonals
+    banded_matrix_setup<T>(uplo == rocblas_fill_upper, hA, K);
+
+    if(diag == rocblas_diagonal_unit)
     {
-        // Make hA a banded matrix with k sub/super-diagonals
-        banded_matrix_setup(uplo == rocblas_fill_upper, (T*)(hA[b]), N, N, K);
-
-        if(diag == rocblas_diagonal_unit)
-        {
-            make_unit_diagonal(uplo, (T*)(hA[b]), N, N);
-        }
-
-        // Convert regular-storage hA to banded-storage hAb
-        regular_to_banded(uplo == rocblas_fill_upper, (T*)(hA[b]), N, (T*)(hAb[b]), lda, N, K);
+        make_unit_diagonal(uplo, hA);
     }
+
+    // Convert regular-storage hA to banded-storage hAb
+    regular_to_banded(uplo == rocblas_fill_upper, hA, hAb, K);
 
     CHECK_HIP_ERROR(dAb.transfer_from(hAb));
 

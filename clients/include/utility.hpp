@@ -217,19 +217,21 @@ void rocblas_print_matrix(const char* name, T* A, size_t m, size_t n, size_t lda
 }
 
 /* ============================================================================= */
-/*! \brief For testing purposes, to convert a regular matrix to a banded matrix. */
+/*! \brief For testing purposes, to convert a regular matrix to a banded matrix.
+ *         This routine is for host vector */
+
 template <typename T>
 inline void regular_to_banded(
-    bool upper, const T* A, rocblas_int lda, T* AB, rocblas_int ldab, rocblas_int n, rocblas_int k)
+    bool upper, const T* A, size_t lda, T* AB, size_t ldab, rocblas_int n, rocblas_int k)
 {
-    // convert regular hA matrix to banded hAB matrix
+    // convert regular A matrix to banded AB matrix
     for(int j = 0; j < n; j++)
     {
         rocblas_int min1 = upper ? std::max(0, j - k) : j;
         rocblas_int max1 = upper ? j : std::min(n - 1, j + k);
         rocblas_int m    = upper ? k - j : -j;
 
-        // Move bands of hA into new banded hAB format.
+        // Move bands of A into new banded AB format.
         for(int i = min1; i <= max1; i++)
             AB[j * ldab + (m + i)] = A[j * lda + i];
 
@@ -251,10 +253,58 @@ inline void regular_to_banded(
     }
 }
 
-/* =============================================================================== */
-/*! \brief For testing purposes, zeros out elements not needed in a banded matrix. */
+/* ============================================================================= */
+/*! \brief For testing purposes, to convert a regular matrix to a banded matrix.
+ *         This routine is for host batched and strided batched vectors */
+
 template <typename T>
-inline void banded_matrix_setup(bool upper, T* A, rocblas_int lda, rocblas_int n, rocblas_int k)
+inline void regular_to_banded(bool upper, const T& h_A, T& h_AB, rocblas_int k)
+{
+    size_t      lda  = h_A.lda();
+    size_t      ldab = h_AB.lda();
+    rocblas_int n    = h_AB.n();
+
+#pragma omp parallel for
+    for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
+    {
+        auto* A  = h_A[batch_index];
+        auto* AB = h_AB[batch_index];
+
+        // convert regular A matrix to banded AB matrix
+        for(int j = 0; j < n; j++)
+        {
+            rocblas_int min1 = upper ? std::max(0, j - k) : j;
+            rocblas_int max1 = upper ? j : std::min(n - 1, j + k);
+            rocblas_int m    = upper ? k - j : -j;
+
+            // Move bands of A into new banded AB format.
+            for(int i = min1; i <= max1; i++)
+                AB[j * ldab + (m + i)] = A[j * lda + i];
+
+            min1 = upper ? k + 1 : std::min(k + 1, n - j);
+            max1 = ldab - 1;
+
+            // fill in bottom with random data to ensure we aren't using it.
+            // for !upper, fill in bottom right triangle as well.
+            for(int i = min1; i <= max1; i++)
+                rocblas_init(AB + j * ldab + i, 1, 1, 1);
+
+            // for upper, fill in top left triangle with random data to ensure
+            // we aren't using it.
+            if(upper)
+            {
+                for(int i = 0; i < m; i++)
+                    rocblas_init(AB + j * ldab + i, 1, 1, 1);
+            }
+        }
+    }
+}
+
+/* =============================================================================== */
+/*! \brief For testing purposes, zeros out elements not needed in a banded matrix.
+ *         This routine is for host vector */
+template <typename T>
+inline void banded_matrix_setup(bool upper, T* A, rocblas_int n, rocblas_int k)
 {
     // Made A a banded matrix with k sub/super-diagonals
     for(int i = 0; i < n; i++)
@@ -262,15 +312,44 @@ inline void banded_matrix_setup(bool upper, T* A, rocblas_int lda, rocblas_int n
         for(int j = 0; j < n; j++)
         {
             if(upper && (j > k + i || i > j))
-                A[j * n + i] = T(0);
+                A[j * size_t(n) + i] = T(0);
             else if(!upper && (i > k + j || j > i))
-                A[j * n + i] = T(0);
+                A[j * size_t(n) + i] = T(0);
+        }
+    }
+}
+
+/* =============================================================================== */
+/*! \brief For testing purposes, zeros out elements not needed in a banded matrix.
+ *         This routine is for host batched and strided batched vectors */
+
+template <typename U, typename T>
+inline void banded_matrix_setup(bool upper, T& h_A, rocblas_int k)
+{
+    rocblas_int n = h_A.n();
+
+#pragma omp parallel for
+    for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
+    {
+        auto* A = h_A[batch_index];
+        // Made A a banded matrix with k sub/super-diagonals
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j < n; j++)
+            {
+                if(upper && (j > k + i || i > j))
+                    A[j * size_t(n) + i] = U(0);
+                else if(!upper && (i > k + j || j > i))
+                    A[j * size_t(n) + i] = U(0);
+            }
         }
     }
 }
 
 /* ============================================================================================= */
-/*! \brief For testing purposes, to convert a regular matrix to a packed matrix.                  */
+/*! \brief For testing purposes, to convert a regular matrix to a packed matrix.
+ *         This routine is for host vector */
+
 template <typename T>
 inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
 {
@@ -281,7 +360,7 @@ inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
         {
             for(int j = 0; j <= i; j++)
             {
-                AP[index++] = A[j + i * n];
+                AP[index++] = A[j + i * size_t(n)];
             }
         }
     }
@@ -291,14 +370,16 @@ inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
         {
             for(int j = i; j < n; j++)
             {
-                AP[index++] = A[j + i * n];
+                AP[index++] = A[j + i * size_t(n)];
             }
         }
     }
 }
 
 /* ============================================================================================= */
-/*! \brief For testing purposes, to convert a regular matrix to a packed matrix.                  */
+/*! \brief For testing purposes, to convert a regular matrix to a packed matrix.
+ *         This routine is for host batched and strided batched vectors */
+
 template <typename U>
 inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
 {
@@ -314,7 +395,7 @@ inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
             {
                 for(int j = 0; j <= i; j++)
                 {
-                    AP[index++] = A[j + i * n];
+                    AP[index++] = A[j + i * size_t(n)];
                 }
             }
         }
@@ -324,7 +405,7 @@ inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
             {
                 for(int j = i; j < n; j++)
                 {
-                    AP[index++] = A[j + i * n];
+                    AP[index++] = A[j + i * size_t(n)];
                 }
             }
         }
@@ -332,10 +413,10 @@ inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
 }
 
 /* ============================================================================================= */
-/*! \brief For testing purposes, makes a matrix hA into a unit_diagonal matrix and               *
- *         randomly initialize the diagonal.                                                     */
+/*! \brief For testing purposes, makes the square matrix hA into a unit_diagonal matrix and               *
+ *         randomly initialize the diagonal. This routine is for host vector                     */
 template <typename T>
-void make_unit_diagonal(rocblas_fill uplo, T* hA, rocblas_int lda, rocblas_int N)
+void make_unit_diagonal(rocblas_fill uplo, T* hA, size_t lda, rocblas_int N)
 {
     if(uplo == rocblas_fill_lower)
     {
@@ -358,7 +439,47 @@ void make_unit_diagonal(rocblas_fill uplo, T* hA, rocblas_int lda, rocblas_int N
     // randomly initalize diagonal to ensure we aren't using it's values for tests.
     for(int i = 0; i < N; i++)
     {
-        rocblas_init<T>(hA + i * lda + i, 1, 1, 1);
+        rocblas_init_nan<T>(hA + i * lda + i, 1, 1, 1);
+    }
+}
+
+/* ============================================================================================= */
+/*! \brief For testing purposes, makes the square matrix hA into a unit_diagonal matrix and               *
+ *         randomly initialize the diagonal. This routine is for host batched and strided batched vectors */
+template <typename T>
+void make_unit_diagonal(rocblas_fill uplo, T& h_A)
+{
+    rocblas_int N   = h_A.n();
+    size_t      lda = h_A.lda();
+
+#pragma omp parallel for
+    for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
+    {
+        auto* A = h_A[batch_index];
+
+        if(uplo == rocblas_fill_lower)
+        {
+            for(int i = 0; i < N; i++)
+            {
+                auto diag = A[i + i * lda];
+                for(int j = 0; j <= i; j++)
+                    A[i + j * lda] = A[i + j * lda] / diag;
+            }
+        }
+        else // rocblas_fill_upper
+        {
+            for(int j = 0; j < N; j++)
+            {
+                auto diag = A[j + j * lda];
+                for(int i = 0; i <= j; i++)
+                    A[i + j * lda] = A[i + j * lda] / diag;
+            }
+        }
+        // randomly initalize diagonal to ensure we aren't using it's values for tests.
+        for(int i = 0; i < N; i++)
+        {
+            rocblas_init_nan(A + i * lda + i, 1, 1, 1);
+        }
     }
 }
 
