@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,6 +85,13 @@ template <typename T>
 constexpr double dot_gbyte_count(rocblas_int n)
 {
     return (sizeof(T) * 2.0 * n) / 1e9;
+}
+
+/* \brief byte counts of IAMAX AND IAMIN */
+template <typename T>
+constexpr double iamax_iamin_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * n) / 1e9;
 }
 
 /* \brief byte counts of NRM2 */
