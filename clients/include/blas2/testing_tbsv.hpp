@@ -144,7 +144,7 @@ void testing_tbsv(const Arguments& arg)
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
     // Make hA a banded matrix with k sub/super-diagonals
-    banded_matrix_setup(uplo == rocblas_fill_upper, (T*)hA, N, N, K);
+    banded_matrix_setup(uplo == rocblas_fill_upper, (T*)hA, N, K);
 
     if(diag == rocblas_diagonal_unit)
     {

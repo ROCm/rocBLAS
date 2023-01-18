@@ -181,10 +181,7 @@ void testing_trsv_batched(const Arguments& arg)
     //  make hA unit diagonal if diag == rocblas_diagonal_unit
     if(diag == rocblas_diagonal_unit)
     {
-        for(int b = 0; b < batch_count; b++)
-        {
-            make_unit_diagonal(uplo, (T*)hA[b], lda, M);
-        }
+        make_unit_diagonal(uplo, hA);
     }
 
     hb.copy_from(hx);
