@@ -335,9 +335,8 @@ From rocBLAS 3.0 the trait is_complex for rocblas complex types has been removed
 Replace truncate with rocblas_truncate
 ''''''''''''''''''''''''''''''''''''''
 
-From rocBLAS 3.0 enum truncate_t and the value truncate will be removed and replaced by rocblas_truncate_t
-and rocblas_truncate, respectively. The new enum rocblas_truncate_t and the value rocblas_truncate
-could be used from this ROCm release for an easy transition.
+From rocBLAS 3.0 enum truncate_t and the value truncate has been removed and replaced by rocblas_truncate_t
+and rocblas_truncate, respectively.
 
 Announced in rocBLAS 2.46
 ^^^^^^^^^^^^^^^^^^^^^^^^^
