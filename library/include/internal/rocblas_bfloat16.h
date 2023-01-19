@@ -24,8 +24,8 @@
  * \brief rocblas_bfloat16.h provides struct for rocblas_bfloat16 typedef
  */
 
-#ifndef _ROCBLAS_BFLOAT16_H_
-#define _ROCBLAS_BFLOAT16_H_
+#ifndef ROCBLAS_BFLOAT16_H
+#define ROCBLAS_BFLOAT16_H
 
 #if __cplusplus < 201103L || (!defined(__HCC__) && !defined(__HIPCC__))
 
@@ -279,4 +279,4 @@ namespace std
 
 #endif // __cplusplus < 201103L || (!defined(__HCC__) && !defined(__HIPCC__))
 
-#endif // _ROCBLAS_BFLOAT16_H_
+#endif // ROCBLAS_BFLOAT16_H
