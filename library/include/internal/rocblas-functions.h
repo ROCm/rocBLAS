@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
  *
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_FUNCTIONS_H_
-#define _ROCBLAS_FUNCTIONS_H_
+#ifndef ROCBLAS_FUNCTIONS_H
+#define ROCBLAS_FUNCTIONS_H
 #include "rocblas-export.h"
 #include "rocblas-types.h"
 
@@ -18418,4 +18418,4 @@ ROCBLAS_EXPORT __declspec(noreturn) void rocblas_abort(void);
 }
 #endif
 
-#endif /* _ROCBLAS_FUNCTIONS_H_ */
+#endif /* ROCBLAS_FUNCTIONS_H */

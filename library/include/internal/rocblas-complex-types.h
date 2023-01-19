@@ -24,8 +24,8 @@
  * \brief rocblas-complex-types.h defines complex data types used by rocblas
  */
 
-#ifndef _ROCBLAS_COMPLEX_TYPES_H_
-#define _ROCBLAS_COMPLEX_TYPES_H_
+#ifndef ROCBLAS_COMPLEX_TYPES_H
+#define ROCBLAS_COMPLEX_TYPES_H
 
 /* Workaround clang bug:
 
@@ -535,4 +535,4 @@ struct ROCBLAS_INTERNAL_EXPORT rocblas_index_value_t
 
 #endif // using internal complex class for API
 
-#endif
+#endif /* ROCBLAS_COMPLEX_TYPES_H */
