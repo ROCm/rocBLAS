@@ -7,6 +7,7 @@ Definitions:
     - { M:     4, lda:     4, stride_a: 16 }
     - { M:    10, lda:    20, stride_a: 300 }
     - { M:   10, lda:   10, stride_a: 100 }
+    - { M:   33, lda:   33, stride_a: 1100}
     - { M:   128, lda:   128, stride_a: 32768 }
 
   - &special_case_range

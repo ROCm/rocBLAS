@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -265,6 +265,8 @@ def setdefaults(test):
             setkey_product(test, 'stride_y', ['M', 'incy', 'stride_scale'])
         if test['function'] in ('gbmv_strided_batched'):
             setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
+        if test['function'] in ('trsv_strided_batched'):
+            setkey_product(test, 'stride_a', ['lda', 'M', 'stride_scale'])
 
     elif test['function'] in ('hemv_strided_batched', 'hbmv_strided_batched',
                               'sbmv_strided_batched'):
