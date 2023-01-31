@@ -54061,13 +54061,13 @@
     AssertMinApproxSize: 0
     AssertSizeEqual: {}
     AssertSizeGreaterThan: {}
-    AssertSizeLessThan: {0: 9}
+    AssertSizeLessThan: {0: 5}
     AssertSizeMultiple: {}
     AssertStrideAEqual: {0: 1}
     AssertStrideBEqual: {0: 1}
     AssertStrideCEqual: {0: 1}
     AssertStrideDEqual: {0: 1}
-    AssertSummationElementMultiple: 1
+    AssertSummationElementMultiple: 512
     AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
     AtomicAddC: false
@@ -54116,23 +54116,23 @@
     KernelLanguage: Source
     LSCA: 4
     LSCB: 64
-    LSPA: 16
-    LSPB: 1
+    LSPA: 32
+    LSPB: 2
     LVCA: 4
     LVCB: 64
-    LVPA: 16
-    LVPB: 1
+    LVPA: 32
+    LVPB: 2
     LdcEqualsLdd: false
     LdsBlockSizePerPad: 0
     LdsBlockSizePerPadA: 0
     LdsBlockSizePerPadB: 0
     LdsInitCVgprs: false
-    LdsNumElements: 2048
+    LdsNumElements: 4096
     LdsOffsetA: 0
     LdsOffsetB: 512
     LdsPadA: 4
     LdsPadB: 4
-    LocalDotLayout: 4
+    LocalDotLayout: 8
     LocalRead2A: true
     LocalRead2B: true
     LocalReadVectorWidth: 1
@@ -54149,9 +54149,9 @@
     MACInstruction: FMA
     MIArchVgpr: false
     MacroTile0: 4
-    MacroTile1: 16
+    MacroTile1: 32
     MacroTileA: 4
-    MacroTileB: 16
+    MacroTileB: 32
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
     MagicDivAlg: 2
@@ -54169,13 +54169,13 @@
     NumElementsPerBatchStore: 0
     NumElementsPerThread: 1
     NumGlobalWriteVectorsPerThread: 1
-    NumLoadsA: 4
+    NumLoadsA: 2
     NumLoadsB: 16
     NumLoadsCoalescedA: 1
     NumLoadsCoalescedB: 1
-    NumLoadsPerpendicularA: 4
+    NumLoadsPerpendicularA: 2
     NumLoadsPerpendicularB: 16
-    NumThreads: 64
+    NumThreads: 128
     OptNoLoadLoop: 1
     OptPreLoopVmcnt: 0
     PackBatchDims: 0
@@ -54252,11 +54252,11 @@
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
     SolutionIndex: 203
-    SolutionNameMin: Cijk_Ailk_Bljk_BBS_BH_MT4x16x64_SN_GSU8_LDL4_LDW1_PGR0
+    SolutionNameMin: Cijk_Ailk_Bljk_BBS_BH_MT4x32x64_SN_LDL8
     SourceSwap: false
-    StaggerU: 32
+    StaggerU: 0
     StaggerUMapping: 0
-    StaggerUStride: 256
+    StaggerUStride: 0
     StoreCInUnroll: false
     StoreCInUnrollExact: false
     StoreCInUnrollInterval: 1
@@ -54266,9 +54266,9 @@
     StoreSyncOpt: 0
     StoreVectorWidth: 4
     SubGroup0: 1
-    SubGroup1: 4
+    SubGroup1: 8
     SubGroupA: 1
-    SubGroupB: 4
+    SubGroupB: 8
     SuppressNoLoadLoop: false
     ThreadSeparateGlobalReadA: 0
     ThreadSeparateGlobalReadB: 0
@@ -54292,7 +54292,7 @@
     WaveSeparateGlobalReadA: 0
     WaveSeparateGlobalReadB: 0
     WavefrontSize: 64
-    WorkGroup: [1, 4, 16]
+    WorkGroup: [1, 8, 16]
     WorkGroupMapping: 1
     WorkGroupMappingType: B
     _DepthULds: 64
@@ -54300,7 +54300,7 @@
     _UseSgprForGRO: false
     _VectorStore: 1
     _WorkspaceSizePerElemC: 32
-    _staggerStrideShift: 1
+    _staggerStrideShift: 0
     allowLRVWBforTLUandMI: false
 - [2, 3, 0, 1]
 - - - [64, 35, 1, 35]
@@ -58940,5 +58940,5 @@
   - - [8, 256, 1, 4096]
     - [202, 0.415]
   - - [1, 2048, 1, 2048]
-    - [203, 0.252]
+    - [203, 0.312]
 - null
