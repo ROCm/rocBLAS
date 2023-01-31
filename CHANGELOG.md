@@ -2,7 +2,7 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## rocBLAS 2.47.0 for ROCm 5.5.0
+## (Unreleased) rocBLAS 2.47.0
 
 ### Added
 - added functionality rocblas_geam_ex for matrix-matrix minimum operations
