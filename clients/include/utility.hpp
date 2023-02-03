@@ -436,7 +436,7 @@ void make_unit_diagonal(rocblas_fill uplo, T* hA, size_t lda, rocblas_int N)
                 hA[i + j * lda] = hA[i + j * lda] / diag;
         }
     }
-    // randomly initalize diagonal to ensure we aren't using it's values for tests.
+    // randomly initialize diagonal to ensure we aren't using it's values for tests.
     for(int i = 0; i < N; i++)
     {
         rocblas_init_nan<T>(hA + i * lda + i, 1, 1, 1);

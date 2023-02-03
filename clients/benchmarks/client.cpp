@@ -1373,7 +1373,7 @@ try
 
         ("initialization",
          value<std::string>(&initialization)->default_value("hpl"),
-         "Intialize with random integers, trig functions sin and cos, or hpl-like input. "
+         "Initialize with random integers, trig functions sin and cos, or hpl-like input. "
          "Options: rand_int, trig_float, hpl")
 
         ("arithmetic_check",
