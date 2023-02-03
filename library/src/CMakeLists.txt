@@ -411,6 +411,7 @@ if (WIN32)
 else()
   target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc )
 endif()
+  target_link_libraries( rocblas PRIVATE Threads::Threads )
 
 #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
