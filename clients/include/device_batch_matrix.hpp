@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -180,7 +180,7 @@ public:
     }
 
     //!
-    //! @brief Tell whether ressources allocation failed.
+    //! @brief Tell whether resource allocation failed.
     //!
     explicit operator bool() const
     {
@@ -233,7 +233,7 @@ private:
     T**         m_device_data{};
 
     //!
-    //! @brief Try to allocate the ressources.
+    //! @brief Try to allocate the resources.
     //! @return true if success false otherwise.
     //!
     bool try_initialize_memory()
@@ -281,7 +281,7 @@ private:
     }
 
     //!
-    //! @brief Free the ressources, as much as we can.
+    //! @brief Free the resources, as much as we can.
     //!
     void free_memory()
     {

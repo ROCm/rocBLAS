@@ -1,5 +1,5 @@
 # Data types are defined as either aliases to Python-recognized ctypes,
-# or enums defined with c_int base clases and attributes.
+# or enums defined with c_int base classes and attributes.
 Datatypes:
   - rocblas_int: c_int
   - rocblas_datatype:
