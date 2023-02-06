@@ -101,13 +101,15 @@ public:
             if(m_guard_len > 0)
             {
                 // Copy m_guard to device memory before allocated memory
-                hipMemcpy(d, m_guard, m_guard_len, hipMemcpyHostToDevice);
+                if(hipMemcpy(d, m_guard, m_guard_len, hipMemcpyDefault) != hipSuccess)
+                    rocblas_cerr << "Error: hipMemcpy pre-guard copy failure." << std::endl;
 
                 // Point to allocated block
                 d += m_pad;
 
                 // Copy m_guard to device memory after allocated memory
-                hipMemcpy(d + m_size, m_guard, m_guard_len, hipMemcpyHostToDevice);
+                if(hipMemcpy(d + m_size, m_guard, m_guard_len, hipMemcpyDefault) != hipSuccess)
+                    rocblas_cerr << "Error: hipMemcpy post-guard copy failure." << std::endl;
             }
         }
 #endif
@@ -122,7 +124,8 @@ public:
             T host[m_pad];
 
             // Copy device memory after allocated memory to host
-            hipMemcpy(host, d + this->m_size, m_guard_len, hipMemcpyDeviceToHost);
+            if(hipMemcpy(host, d + this->m_size, m_guard_len, hipMemcpyDefault) != hipSuccess)
+                rocblas_cerr << "Error: hipMemcpy post-guard copy failure." << std::endl;
 
             // Make sure no corruption has occurred
             EXPECT_EQ(memcmp(host, m_guard, m_guard_len), 0);
@@ -131,7 +134,8 @@ public:
             d -= m_pad;
 
             // Copy device memory after allocated memory to host
-            hipMemcpy(host, d, m_guard_len, hipMemcpyDeviceToHost);
+            if(hipMemcpy(host, d, m_guard_len, hipMemcpyDefault) != hipSuccess)
+                rocblas_cerr << "Error: hipMemcpy pre-guard copy failure." << std::endl;
 
             // Make sure no corruption has occurred
             EXPECT_EQ(memcmp(host, m_guard, m_guard_len), 0);
