@@ -37,22 +37,22 @@
 #define tmpv_calc_lowerat(_i, _j) ((_j)*m + ((_i) - (_j)) - (((_j)-1) * (_j)) / 2)
 
 template <rocblas_int NB, typename T>
-ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(rocblas_fill     uplo,
-                                                  rocblas_diagonal diag,
-                                                  rocblas_int      m,
-                                                  const T*         A,
-                                                  const T*         x,
-                                                  rocblas_int      incx,
-                                                  T*               workspace)
+ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
+                                                  bool        is_unit_diag,
+                                                  rocblas_int m,
+                                                  const T*    A,
+                                                  const T*    x,
+                                                  rocblas_int incx,
+                                                  T*          workspace)
 {
     ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < m)
     {
         T res = x[tid * incx];
-        if(rocblas_fill_upper == uplo)
+        if(is_upper)
         {
-            if(diag == rocblas_diagonal_non_unit)
+            if(!is_unit_diag)
             {
                 res *= A[tmpv_calc_upperat(tid, tid)];
             }
@@ -63,7 +63,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(rocblas_fill     uplo,
         }
         else
         {
-            if(diag == rocblas_diagonal_non_unit)
+            if(!is_unit_diag)
             {
                 //cppcheck-suppress duplicateExpression
                 res *= A[tmpv_calc_lowerat(tid, tid)];
@@ -79,22 +79,22 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename T>
-ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(rocblas_fill     uplo,
-                                                  rocblas_diagonal diag,
-                                                  rocblas_int      m,
-                                                  const T*         A,
-                                                  const T*         x,
-                                                  rocblas_int      incx,
-                                                  T*               workspace)
+ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
+                                                  bool        is_unit_diag,
+                                                  rocblas_int m,
+                                                  const T*    A,
+                                                  const T*    x,
+                                                  rocblas_int incx,
+                                                  T*          workspace)
 {
     ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < m)
     {
         T res = x[tid * incx];
-        if(rocblas_fill_upper == uplo)
+        if(is_upper)
         {
-            if(diag == rocblas_diagonal_non_unit)
+            if(!is_unit_diag)
             {
                 res *= conj(A[tmpv_calc_upperat(tid, tid)]);
             }
@@ -105,7 +105,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(rocblas_fill     uplo,
         }
         else
         {
-            if(diag == rocblas_diagonal_non_unit)
+            if(!is_unit_diag)
             {
                 //cppcheck-suppress duplicateExpression
                 res *= conj(A[tmpv_calc_lowerat(tid, tid)]);
@@ -120,13 +120,13 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename T>
-ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(rocblas_fill     uplo,
-                                                  rocblas_diagonal diag,
-                                                  rocblas_int      m,
-                                                  const T*         A,
-                                                  const T*         x,
-                                                  rocblas_int      incx,
-                                                  T*               workspace)
+ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(bool        is_upper,
+                                                  bool        is_unit_diag,
+                                                  rocblas_int m,
+                                                  const T*    A,
+                                                  const T*    x,
+                                                  rocblas_int incx,
+                                                  T*          workspace)
 {
     ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -137,9 +137,9 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(rocblas_fill     uplo,
     {
 
         res = x[tid * incx];
-        if(rocblas_fill_upper == uplo)
+        if(is_upper)
         {
-            if(diag == rocblas_diagonal_non_unit)
+            if(!is_unit_diag)
             {
                 res *= A[tmpv_calc_upperat(tid, tid)];
             }
@@ -151,7 +151,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(rocblas_fill     uplo,
         }
         else
         {
-            if(diag == rocblas_diagonal_non_unit)
+            if(!is_unit_diag)
             {
                 //cppcheck-suppress duplicateExpression
                 res *= A[tmpv_calc_lowerat(tid, tid)];
@@ -168,22 +168,22 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(rocblas_fill     uplo,
 
 template <rocblas_int NB, typename A, typename X, typename W>
 ROCBLAS_KERNEL(NB)
-rocblas_tpmvn_kernel(rocblas_fill     uplo,
-                     rocblas_diagonal diag,
-                     rocblas_int      m,
-                     A                a,
-                     rocblas_stride   shifta,
-                     rocblas_stride   stridea,
-                     X                x,
-                     rocblas_stride   shiftx,
-                     rocblas_int      incx,
-                     rocblas_stride   stridex,
-                     W                workspace,
-                     rocblas_stride   stridew)
+rocblas_tpmvn_kernel(bool           is_upper,
+                     bool           is_unit_diag,
+                     rocblas_int    m,
+                     A              a,
+                     rocblas_stride shifta,
+                     rocblas_stride stridea,
+                     X              x,
+                     rocblas_stride shiftx,
+                     rocblas_int    incx,
+                     rocblas_stride stridex,
+                     W              workspace,
+                     rocblas_stride stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
-    rocblas_tpmvn_kernel_calc<NB>(uplo,
-                                  diag,
+    rocblas_tpmvn_kernel_calc<NB>(is_upper,
+                                  is_unit_diag,
                                   m,
                                   load_ptr_batch(a, blockIdx.y, shifta, stridea),
                                   load_ptr_batch(x, blockIdx.y, shiftx, stridex),
@@ -193,22 +193,22 @@ rocblas_tpmvn_kernel(rocblas_fill     uplo,
 
 template <rocblas_int NB, typename A, typename X, typename W>
 ROCBLAS_KERNEL(NB)
-rocblas_tpmvt_kernel(rocblas_fill     uplo,
-                     rocblas_diagonal diag,
-                     rocblas_int      m,
-                     A                a,
-                     rocblas_stride   shifta,
-                     rocblas_stride   stridea,
-                     X                x,
-                     rocblas_stride   shiftx,
-                     rocblas_int      incx,
-                     rocblas_stride   stridex,
-                     W                workspace,
-                     rocblas_stride   stridew)
+rocblas_tpmvt_kernel(bool           is_upper,
+                     bool           is_unit_diag,
+                     rocblas_int    m,
+                     A              a,
+                     rocblas_stride shifta,
+                     rocblas_stride stridea,
+                     X              x,
+                     rocblas_stride shiftx,
+                     rocblas_int    incx,
+                     rocblas_stride stridex,
+                     W              workspace,
+                     rocblas_stride stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
-    rocblas_tpmvt_kernel_calc<NB>(uplo,
-                                  diag,
+    rocblas_tpmvt_kernel_calc<NB>(is_upper,
+                                  is_unit_diag,
                                   m,
                                   load_ptr_batch(a, blockIdx.y, shifta, stridea),
                                   load_ptr_batch(x, blockIdx.y, shiftx, stridex),
@@ -218,22 +218,22 @@ rocblas_tpmvt_kernel(rocblas_fill     uplo,
 
 template <rocblas_int NB, typename A, typename X, typename W>
 ROCBLAS_KERNEL(NB)
-rocblas_tpmvc_kernel(rocblas_fill     uplo,
-                     rocblas_diagonal diag,
-                     rocblas_int      m,
-                     A                a,
-                     rocblas_stride   shifta,
-                     rocblas_stride   stridea,
-                     X                x,
-                     rocblas_stride   shiftx,
-                     rocblas_int      incx,
-                     rocblas_stride   stridex,
-                     W                workspace,
-                     rocblas_stride   stridew)
+rocblas_tpmvc_kernel(bool           is_upper,
+                     bool           is_unit_diag,
+                     rocblas_int    m,
+                     A              a,
+                     rocblas_stride shifta,
+                     rocblas_stride stridea,
+                     X              x,
+                     rocblas_stride shiftx,
+                     rocblas_int    incx,
+                     rocblas_stride stridex,
+                     W              workspace,
+                     rocblas_stride stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
-    rocblas_tpmvc_kernel_calc<NB>(uplo,
-                                  diag,
+    rocblas_tpmvc_kernel_calc<NB>(is_upper,
+                                  is_unit_diag,
                                   m,
                                   load_ptr_batch(a, blockIdx.y, shifta, stridea),
                                   load_ptr_batch(x, blockIdx.y, shiftx, stridex),
@@ -285,8 +285,8 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                            tpmv_threads,
                            0,
                            rocblas_stream,
-                           uplo,
-                           diag,
+                           uplo == rocblas_fill_upper,
+                           diag == rocblas_diagonal_unit,
                            m,
                            a,
                            offseta,
@@ -307,8 +307,8 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                            tpmv_threads,
                            0,
                            rocblas_stream,
-                           uplo,
-                           diag,
+                           uplo == rocblas_fill_upper,
+                           diag == rocblas_diagonal_unit,
                            m,
                            a,
                            offseta,
@@ -329,8 +329,8 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                            tpmv_threads,
                            0,
                            rocblas_stream,
-                           uplo,
-                           diag,
+                           uplo == rocblas_fill_upper,
+                           diag == rocblas_diagonal_unit,
                            m,
                            a,
                            offseta,

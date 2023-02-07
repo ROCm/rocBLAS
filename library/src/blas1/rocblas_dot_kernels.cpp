@@ -270,8 +270,8 @@ rocblas_dot_kernel_reduce(rocblas_int n_sums, V* __restrict__ in, T* __restrict_
 // routine
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
-                                  rocblas_int n,
+    rocblas_internal_dot_template(rocblas_handle handle,
+                                  rocblas_int    n,
                                   const U __restrict__ x,
                                   rocblas_stride offsetx,
                                   rocblas_int    incx,

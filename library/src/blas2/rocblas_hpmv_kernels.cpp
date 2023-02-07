@@ -28,7 +28,7 @@
   *  A combined kernel to handle all hpmv cases.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-__device__ void rocblas_hpmv_kernel_calc(bool        upper,
+__device__ void rocblas_hpmv_kernel_calc(bool        is_upper,
                                          rocblas_int n,
                                          T           alpha,
                                          const T*    AP,
@@ -69,7 +69,7 @@ __device__ void rocblas_hpmv_kernel_calc(bool        upper,
             int  ind_y = col;
             bool CONJ  = false;
 
-            if((ind > col && upper) || (ind < col && !upper))
+            if((ind > col && is_upper) || (ind < col && !is_upper))
             {
                 // in the opposite triangle, get conjugate of value at transposed position
                 ind_x = col;
@@ -86,8 +86,8 @@ __device__ void rocblas_hpmv_kernel_calc(bool        upper,
             //                              col-1
             // For lower matrices, index = sigma(n-i) + row
             //                              i=0
-            int index = upper ? ((ind_y * (ind_y + 1)) / 2) + ind_x
-                              : ((ind_y * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
+            int index = is_upper ? ((ind_y * (ind_y + 1)) / 2) + ind_x
+                                 : ((ind_y * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
             // clang-format off
             res_A += (ind_x == ind_y ? std::real(AP[index]) : CONJ ? conj(AP[index]) : (AP[index]))
                      * x[col * incx];
@@ -118,7 +118,7 @@ __device__ void rocblas_hpmv_kernel_calc(bool        upper,
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-rocblas_hpmv_kernel(bool           upper,
+rocblas_hpmv_kernel(bool           is_upper,
                     rocblas_int    n,
                     TScal          alphaa,
                     TConstPtr      APa,
@@ -149,7 +149,7 @@ rocblas_hpmv_kernel(bool           upper,
 
     auto y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    rocblas_hpmv_kernel_calc<DIM_X, DIM_Y>(upper, n, alpha, AP, x, incx, beta, y, incy);
+    rocblas_hpmv_kernel_calc<DIM_X, DIM_Y>(is_upper, n, alpha, AP, x, incx, beta, y, incy);
 }
 
 /**

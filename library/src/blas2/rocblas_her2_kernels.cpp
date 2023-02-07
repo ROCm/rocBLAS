@@ -26,7 +26,7 @@
 #include "rocblas_her2.hpp"
 
 template <typename T>
-__device__ void rocblas_her2_kernel_calc(bool        upper,
+__device__ void rocblas_her2_kernel_calc(bool        is_upper,
                                          rocblas_int n,
                                          size_t      area,
                                          T           alpha,
@@ -41,21 +41,21 @@ __device__ void rocblas_her2_kernel_calc(bool        upper,
     if(i >= area)
         return;
 
-    size_t ri = !upper ? area - 1 - i : i;
+    size_t ri = !is_upper ? area - 1 - i : i;
 
     // linearized triangle with diagonal to col, row
     int         k  = (int)((sqrt(8 * ri + 1) - 1) / 2);
     rocblas_int ty = k;
     rocblas_int tx = ri - k * (k + 1) / 2;
 
-    if(!upper)
+    if(!is_upper)
     {
         int maxIdx = n - 1;
         tx         = maxIdx - tx;
         ty         = maxIdx - ty;
     }
 
-    if(upper ? tx < ty : ty < tx)
+    if(is_upper ? tx < ty : ty < tx)
     {
         A[tx + size_t(lda) * ty] += alpha * x[tx * incx] * conj(y[ty * incy])
                                     + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
@@ -70,7 +70,7 @@ __device__ void rocblas_her2_kernel_calc(bool        upper,
 
 template <rocblas_int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X)
-rocblas_her2_kernel(bool           upper,
+rocblas_her2_kernel(bool           is_upper,
                     rocblas_int    n,
                     size_t         area,
                     TScal          alphaa,
@@ -95,7 +95,7 @@ rocblas_her2_kernel(bool           upper,
     const auto* x = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
     const auto* y = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
 
-    rocblas_her2_kernel_calc(upper, n, area, alpha, x, incx, y, incy, A, lda);
+    rocblas_her2_kernel_calc(is_upper, n, area, alpha, x, incx, y, incy, A, lda);
 }
 
 /**

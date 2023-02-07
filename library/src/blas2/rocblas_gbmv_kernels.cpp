@@ -77,7 +77,7 @@ __device__ T rocblas_gbmvn_kernel_helper(rocblas_int ty,
   *  basically just iterate down columns.
   */
 template <rocblas_int DIM_Y, typename T>
-__device__ T rocblas_gbmvt_kernel_helper(bool        CONJ,
+__device__ T rocblas_gbmvt_kernel_helper(bool        is_conj,
                                          rocblas_int ty,
                                          rocblas_int ind,
                                          rocblas_int m,
@@ -104,12 +104,12 @@ __device__ T rocblas_gbmvt_kernel_helper(bool        CONJ,
             {
                 if(row <= ku && col >= (ku - row) && col < (ku - row + m))
                 {
-                    res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                    res_A += ((is_conj ? conj(A[row + col * lda]) : A[row + col * lda])
                               * x[(row - ku + col) * incx]);
                 }
                 else if((row > ku && row <= kl + ku) && col < m - (row - ku))
                 {
-                    res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                    res_A += ((is_conj ? conj(A[row + col * lda]) : A[row + col * lda])
                               * x[(row - ku + col) * incx]);
                 }
             }
@@ -162,9 +162,9 @@ __device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
         }
         else
         {
-            bool CONJ = transA == rocblas_operation_conjugate_transpose;
-            res_A
-                = rocblas_gbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, m, n, kl, ku, A, lda, x, incx);
+            bool is_conj = transA == rocblas_operation_conjugate_transpose;
+            res_A        = rocblas_gbmvt_kernel_helper<DIM_Y>(
+                is_conj, ty, ind, m, n, kl, ku, A, lda, x, incx);
         }
         // Store partial sums for the diagonal
         sdata[tx + ty * DIM_X] = res_A;

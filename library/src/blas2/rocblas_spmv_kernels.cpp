@@ -31,7 +31,7 @@
   *  if uplo == lower, the strictly upper part of A is not referenced.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-__device__ void rocblas_spmv_kernel_calc(bool        upper,
+__device__ void rocblas_spmv_kernel_calc(bool        is_upper,
                                          rocblas_int n,
                                          T           alpha,
                                          const T* __restrict__ AP,
@@ -70,7 +70,7 @@ __device__ void rocblas_spmv_kernel_calc(bool        upper,
             int ind_x = ind;
             int ind_y = col;
 
-            if((ind > col && upper) || (ind < col && !upper))
+            if((ind > col && is_upper) || (ind < col && !is_upper))
             {
                 // in the opposite triangle, get transposed position
                 ind_x = col;
@@ -78,8 +78,8 @@ __device__ void rocblas_spmv_kernel_calc(bool        upper,
             }
 
             // row, col to packed index
-            int index = upper ? ((ind_y * (ind_y + 1)) / 2) + ind_x
-                              : ((ind_y * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
+            int index = is_upper ? ((ind_y * (ind_y + 1)) / 2) + ind_x
+                                 : ((ind_y * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
 
             res_A += AP[index] * x[col * incx];
         }
@@ -109,7 +109,7 @@ __device__ void rocblas_spmv_kernel_calc(bool        upper,
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-rocblas_spmv_kernel(bool           upper,
+rocblas_spmv_kernel(bool           is_upper,
                     rocblas_int    n,
                     TScal          alpha_device_host,
                     rocblas_stride stride_alpha,
@@ -141,7 +141,7 @@ rocblas_spmv_kernel(bool           upper,
 
     auto y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    rocblas_spmv_kernel_calc<DIM_X, DIM_Y>(upper, n, alpha, AP, x, incx, beta, y, incy);
+    rocblas_spmv_kernel_calc<DIM_X, DIM_Y>(is_upper, n, alpha, AP, x, incx, beta, y, incy);
 }
 
 template <typename T, typename U, typename V, typename W>
@@ -181,7 +181,6 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
     dim3                 grid(blocks, batch_count);
     dim3                 threads(spmv_DIM_X, spmv_DIM_Y);
 
-    bool upper = uplo == rocblas_fill_upper;
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         hipLaunchKernelGGL((rocblas_spmv_kernel<spmv_DIM_X, spmv_DIM_Y>),
@@ -189,7 +188,7 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
                            threads,
                            0,
                            rocblas_stream,
-                           upper,
+                           uplo == rocblas_fill_upper,
                            n,
                            alpha,
                            stride_alpha,
@@ -218,7 +217,7 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
                            threads,
                            0,
                            rocblas_stream,
-                           upper,
+                           uplo == rocblas_fill_upper,
                            n,
                            *alpha,
                            stride_alpha,
