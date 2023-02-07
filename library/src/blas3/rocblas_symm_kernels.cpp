@@ -77,7 +77,7 @@ rocblas_symm_scale_kernel(rocblas_int    m,
   * kernel
   */
 template <bool HERM, bool RIGHT, rocblas_int TILE_NK, typename T>
-ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        upper,
+ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        is_upper,
                                                           rocblas_int m,
                                                           rocblas_int n,
                                                           T           alpha,
@@ -119,8 +119,8 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        upper,
             row_loc = row_pos + threadIdx.x;
             col_loc = k_pos + threadIdx.y;
 
-            from = upper ? row_loc : col_loc;
-            to   = upper ? col_loc : row_loc;
+            from = is_upper ? row_loc : col_loc;
+            to   = is_upper ? col_loc : row_loc;
 
             r = from > to ? col_loc : row_loc;
             c = from > to ? row_loc : col_loc;
@@ -166,8 +166,8 @@ ROCBLAS_KERNEL_ILF void rocblas_symm_hemm_mult_add_device(bool        upper,
             row_loc = k_pos + threadIdx.x;
             col_loc = col_pos + threadIdx.y;
 
-            from = upper ? row_loc : col_loc;
-            to   = upper ? col_loc : row_loc;
+            from = is_upper ? row_loc : col_loc;
+            to   = is_upper ? col_loc : row_loc;
 
             r = from > to ? col_loc : row_loc;
             c = from > to ? row_loc : col_loc;
@@ -216,7 +216,7 @@ template <bool        HERM,
           typename TConstPtr,
           typename TPtr>
 ROCBLAS_KERNEL(DIM_XYT* DIM_XYT)
-rocblas_symm_hemm_kernel(bool           upper,
+rocblas_symm_hemm_kernel(bool           is_upper,
                          rocblas_int    m,
                          rocblas_int    n,
                          TScal          alpha_host_device,
@@ -244,7 +244,7 @@ rocblas_symm_hemm_kernel(bool           upper,
     // compute matrix multiplies and accumulate on the fly into C
     // when HERM does ^H in place of ^T for A fetches to symmetric empty side
     rocblas_symm_hemm_mult_add_device<HERM, RIGHT, DIM_XYT>(
-        upper, m, n, alpha, A, lda, B, ldb, C, ldc);
+        is_upper, m, n, alpha, A, lda, B, ldb, C, ldc);
 }
 
 /**

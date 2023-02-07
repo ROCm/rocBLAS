@@ -25,22 +25,22 @@
 #include "rocblas_spr.hpp"
 
 template <typename T>
-__device__ void
-    rocblas_spr_kernel_calc(bool upper, rocblas_int n, T alpha, const T* x, rocblas_int incx, T* AP)
+__device__ void rocblas_spr_kernel_calc(
+    bool is_upper, rocblas_int n, T alpha, const T* x, rocblas_int incx, T* AP)
 {
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
-    int index = upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
+    int index = is_upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
 
-    if(upper ? ty < n && tx <= ty : tx < n && ty <= tx)
+    if(is_upper ? ty < n && tx <= ty : tx < n && ty <= tx)
         AP[index] += alpha * x[tx * incx] * x[ty * incx];
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TStruct, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_spr_kernel(bool           host_ptr_mode,
-                   bool           upper,
+                   bool           is_upper,
                    rocblas_int    n,
                    TStruct        alpha_device_host,
                    TConstPtr      xa,
@@ -58,7 +58,7 @@ rocblas_spr_kernel(bool           host_ptr_mode,
     auto*       AP = load_ptr_batch(APa, blockIdx.z, shift_A, stride_A);
     const auto* x  = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
 
-    rocblas_spr_kernel_calc(upper, n, alpha, x, incx, AP);
+    rocblas_spr_kernel_calc(is_upper, n, alpha, x, incx, AP);
 }
 
 /**
