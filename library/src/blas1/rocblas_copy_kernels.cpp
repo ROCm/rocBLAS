@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,15 @@
 #include "rocblas_copy.hpp"
 
 template <bool CONJ, typename T, typename U>
-ROCBLAS_KERNEL_NO_BOUNDS copy_kernel(rocblas_int    n,
-                                     const T        xa,
-                                     rocblas_stride shiftx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     U              ya,
-                                     rocblas_stride shifty,
-                                     rocblas_int    incy,
-                                     rocblas_stride stridey)
+ROCBLAS_KERNEL_NO_BOUNDS rocblas_copy_kernel(rocblas_int    n,
+                                             const T        xa,
+                                             rocblas_stride shiftx,
+                                             rocblas_int    incx,
+                                             rocblas_stride stridex,
+                                             U              ya,
+                                             rocblas_stride shifty,
+                                             rocblas_int    incy,
+                                             rocblas_stride stridey)
 {
     ptrdiff_t   tid = blockIdx.x * blockDim.x + threadIdx.x;
     const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
@@ -49,13 +49,13 @@ ROCBLAS_KERNEL_NO_BOUNDS copy_kernel(rocblas_int    n,
 //!
 template <rocblas_int NB, typename T, typename U>
 ROCBLAS_KERNEL(NB)
-scopy_2_kernel(rocblas_int n,
-               const T __restrict xa,
-               rocblas_stride shiftx,
-               rocblas_stride stridex,
-               U __restrict ya,
-               rocblas_stride shifty,
-               rocblas_stride stridey)
+rocblas_scopy_2_kernel(rocblas_int n,
+                       const T __restrict xa,
+                       rocblas_stride shiftx,
+                       rocblas_stride stridex,
+                       U __restrict ya,
+                       rocblas_stride shifty,
+                       rocblas_stride stridey)
 {
     ptrdiff_t   tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
     const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
@@ -104,7 +104,7 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         dim3 grid(blocks, batch_count);
         dim3 threads(NB);
 
-        hipLaunchKernelGGL(copy_kernel<CONJ>,
+        hipLaunchKernelGGL(rocblas_copy_kernel<CONJ>,
                            grid,
                            threads,
                            0,
@@ -132,7 +132,7 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         dim3        threads(NB);
         hipStream_t scopy_stream = handle->get_stream();
 
-        hipLaunchKernelGGL(scopy_2_kernel<NB>,
+        hipLaunchKernelGGL(rocblas_scopy_2_kernel<NB>,
                            grid,
                            threads,
                            0,

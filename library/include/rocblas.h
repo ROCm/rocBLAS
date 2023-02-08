@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
  * \brief rocblas.h includes other *.h and exposes a common interface
  */
 
-#ifndef _ROCBLAS_H_
-#define _ROCBLAS_H_
+#ifndef ROCBLAS_H
+#define ROCBLAS_H
 
 /* library headers */
 #include "internal/rocblas-auxiliary.h"
@@ -38,4 +38,4 @@
 #include "internal/rocblas-beta.h"
 #endif
 
-#endif // _ROCBLAS_H_
+#endif /* ROCBLAS_H */

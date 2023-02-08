@@ -20,10 +20,10 @@
  *
  * ************************************************************************ */
 
-#include "rocblas_iamax.hpp"
 #include "check_numerics_vector.hpp"
 #include "rocblas_block_sizes.h"
-#include "rocblas_reduction_impl.hpp"
+#include "rocblas_iamax_iamin.hpp"
+#include "rocblas_reduction_setup.hpp"
 
 namespace
 {
@@ -92,15 +92,15 @@ namespace
             return rocblas_status_memory_error;
         }
         rocblas_status status
-            = rocblas_internal_iamax_template<NB, isbatched>(handle,
-                                                             n,
-                                                             x,
-                                                             shiftx_0,
-                                                             incx,
-                                                             stridex_0,
-                                                             batch_count_1,
-                                                             result,
-                                                             (rocblas_index_value_t<S>*)w_mem);
+            = rocblas_internal_iamax_template<NB>(handle,
+                                                  n,
+                                                  x,
+                                                  shiftx_0,
+                                                  incx,
+                                                  stridex_0,
+                                                  batch_count_1,
+                                                  result,
+                                                  (rocblas_index_value_t<S>*)w_mem);
         if(status != rocblas_status_success)
             return status;
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
 #include "check_numerics_vector.hpp"
 #include "rocblas_tpsv.hpp"
 
-ROCBLAS_KERNEL_ILF inline rocblas_int
-    packed_matrix_index(bool upper, bool trans, rocblas_int n, rocblas_int row, rocblas_int col)
+ROCBLAS_KERNEL_ILF inline rocblas_int rocblas_packed_matrix_index(
+    bool upper, bool trans, rocblas_int n, rocblas_int row, rocblas_int col)
 {
     return upper ? (trans ? ((row * (row + 1) / 2) + col) : ((col * (col + 1) / 2) + row))
                  : (trans ? (((row * (2 * n - row + 1)) / 2) + (col - row))
@@ -35,7 +35,7 @@ ROCBLAS_KERNEL_ILF inline rocblas_int
 // Uses forward substitution to solve Ax = b. Used for a non-transposed lower-triangular matrix
 // or a transposed upper-triangular matrix.
 template <bool CONJ, rocblas_int BLK_SIZE, typename T>
-ROCBLAS_KERNEL_ILF void tpsv_forward_substitution_calc(
+ROCBLAS_KERNEL_ILF void rocblas_tpsv_forward_substitution_calc(
     bool diag, bool trans, int n, const T* __restrict__ A, T* __restrict__ x, rocblas_int incx)
 {
     __shared__ T xshared[BLK_SIZE];
@@ -58,7 +58,7 @@ ROCBLAS_KERNEL_ILF void tpsv_forward_substitution_calc(
             {
                 rocblas_int colA   = j + i;
                 rocblas_int rowA   = j + i;
-                rocblas_int indexA = packed_matrix_index(trans, trans, n, rowA, colA);
+                rocblas_int indexA = rocblas_packed_matrix_index(trans, trans, n, rowA, colA);
                 xshared[tx]        = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
             }
 
@@ -69,7 +69,7 @@ ROCBLAS_KERNEL_ILF void tpsv_forward_substitution_calc(
             {
                 rocblas_int colA   = j + i;
                 rocblas_int rowA   = tx + i;
-                rocblas_int indexA = packed_matrix_index(trans, trans, n, rowA, colA);
+                rocblas_int indexA = rocblas_packed_matrix_index(trans, trans, n, rowA, colA);
 
                 // Ensure row is in range, and subtract
                 if(rowA < n)
@@ -92,7 +92,7 @@ ROCBLAS_KERNEL_ILF void tpsv_forward_substitution_calc(
             {
                 rocblas_int colA   = i + p;
                 rocblas_int rowA   = tx + j;
-                rocblas_int indexA = packed_matrix_index(trans, trans, n, rowA, colA);
+                rocblas_int indexA = rocblas_packed_matrix_index(trans, trans, n, rowA, colA);
 
                 if(diag && colA == rowA)
                     val += xshared[p];
@@ -114,7 +114,7 @@ ROCBLAS_KERNEL_ILF void tpsv_forward_substitution_calc(
 // Uses backward substitution to solve Ax = b. Used for a non-transposed upper-triangular matrix
 // or a transposed lower-triangular matrix.
 template <bool CONJ, rocblas_int BLK_SIZE, typename T>
-ROCBLAS_KERNEL_ILF void tpsv_backward_substitution_calc(
+ROCBLAS_KERNEL_ILF void rocblas_tpsv_backward_substitution_calc(
     bool diag, bool trans, int n, const T* __restrict__ A, T* __restrict__ x, rocblas_int incx)
 {
     __shared__ T xshared[BLK_SIZE];
@@ -137,7 +137,7 @@ ROCBLAS_KERNEL_ILF void tpsv_backward_substitution_calc(
             {
                 rocblas_int colA   = j + i;
                 rocblas_int rowA   = j + i;
-                rocblas_int indexA = packed_matrix_index(!trans, trans, n, rowA, colA);
+                rocblas_int indexA = rocblas_packed_matrix_index(!trans, trans, n, rowA, colA);
                 xshared[tx]        = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
             }
 
@@ -148,7 +148,7 @@ ROCBLAS_KERNEL_ILF void tpsv_backward_substitution_calc(
             {
                 rocblas_int colA   = j + i;
                 rocblas_int rowA   = tx + i;
-                rocblas_int indexA = packed_matrix_index(!trans, trans, n, rowA, colA);
+                rocblas_int indexA = rocblas_packed_matrix_index(!trans, trans, n, rowA, colA);
 
                 // Ensure row is in range, and subtract
                 if(rowA >= 0)
@@ -171,7 +171,7 @@ ROCBLAS_KERNEL_ILF void tpsv_backward_substitution_calc(
             {
                 rocblas_int colA   = i + p;
                 rocblas_int rowA   = tx + j;
-                rocblas_int indexA = packed_matrix_index(!trans, trans, n, rowA, colA);
+                rocblas_int indexA = rocblas_packed_matrix_index(!trans, trans, n, rowA, colA);
 
                 if(diag && colA == rowA)
                     val += xshared[p];
@@ -221,14 +221,15 @@ rocblas_tpsv_kernel(rocblas_fill      uplo,
     if(transA == rocblas_operation_none)
     {
         if(uplo == rocblas_fill_upper)
-            tpsv_backward_substitution_calc<false, BLK_SIZE>(is_diag, false, n, AP, x, incx);
+            rocblas_tpsv_backward_substitution_calc<false, BLK_SIZE>(
+                is_diag, false, n, AP, x, incx);
         else
-            tpsv_forward_substitution_calc<false, BLK_SIZE>(is_diag, false, n, AP, x, incx);
+            rocblas_tpsv_forward_substitution_calc<false, BLK_SIZE>(is_diag, false, n, AP, x, incx);
     }
     else if(uplo == rocblas_fill_upper)
-        tpsv_forward_substitution_calc<CONJ, BLK_SIZE>(is_diag, true, n, AP, x, incx);
+        rocblas_tpsv_forward_substitution_calc<CONJ, BLK_SIZE>(is_diag, true, n, AP, x, incx);
     else
-        tpsv_backward_substitution_calc<CONJ, BLK_SIZE>(is_diag, true, n, AP, x, incx);
+        rocblas_tpsv_backward_substitution_calc<CONJ, BLK_SIZE>(is_diag, true, n, AP, x, incx);
 }
 
 template <rocblas_int BLOCK, typename TConstPtr, typename TPtr>

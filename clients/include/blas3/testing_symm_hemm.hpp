@@ -258,10 +258,10 @@ void testing_symm_hemm(const Arguments& arg)
     {
         // host alpha/beta
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_fn(
             handle, side, uplo, M, N, &h_alpha[0], dA, lda, dB, ldb, &h_beta[0], dC, ldc));
-
+        handle.post_test(arg);
         // copy output from device to CPU
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 

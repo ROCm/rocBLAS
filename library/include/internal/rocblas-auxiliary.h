@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,8 @@
  *
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_AUXILIARY_H_
-#define _ROCBLAS_AUXILIARY_H_
+#ifndef ROCBLAS_AUXILIARY_H
+#define ROCBLAS_AUXILIARY_H
 #include "rocblas-export.h"
 #include "rocblas-types.h"
 
@@ -402,4 +402,4 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_performance_metric(rocblas_handle     
 }
 #endif
 
-#endif /* _ROCBLAS_AUXILIARY_H_ */
+#endif /* ROCBLAS_AUXILIARY_H */

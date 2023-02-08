@@ -240,4 +240,20 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *huge_matrix_size_range
   alpha_beta: *huge_complex_alpha_beta_range
+
+- name: geam_graph_test
+  category: pre_checkin
+  function:
+    - geam
+    - geam_batched
+    - geam_strided_batched
+  precision: *single_double_precisions_complex
+  transA: [N]
+  transB: [N]
+  matrix_size:
+    - { M:   192, N:   193, lda:   194, ldb:   195, ldc:   196 }
+  stride_scale: [ 1 ]
+  batch_count: [ 2 ]
+  alpha_beta: *small_complex_alpha_beta_range
+  graph_test: true
 ...

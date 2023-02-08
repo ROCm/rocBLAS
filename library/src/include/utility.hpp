@@ -468,6 +468,9 @@ typedef enum rocblas_check_matrix_type_
     // Triangular matrix
     rocblas_client_triangular_matrix,
 
+    // Diagonally dominant triangular matrix
+    rocblas_client_diagonally_dominant_triangular_matrix,
+
 } rocblas_check_matrix_type;
 
 /*******************************************************************************

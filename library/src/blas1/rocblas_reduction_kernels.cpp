@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,15 +20,10 @@
  *
  * ************************************************************************ */
 
-#pragma once
-
-#include "../blas1/reduction.hpp"
+#include "../blas1/rocblas_asum.hpp"
+#include "../blas1/rocblas_nrm2.hpp"
 #include "../blas1/rocblas_reduction.hpp"
-#include "handle.hpp"
-#include "rocblas.h"
-#include "utility.hpp"
-#include <type_traits>
-#include <utility>
+#include "rocblas_block_sizes.h"
 
 /*
  * ===========================================================================
@@ -80,13 +75,13 @@
 // blocks
 template <rocblas_int NB, typename FETCH, typename TPtrX, typename To>
 ROCBLAS_KERNEL(NB)
-rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
-                                               rocblas_int    nblocks,
-                                               TPtrX          xvec,
-                                               rocblas_stride shiftx,
-                                               rocblas_int    incx,
-                                               rocblas_stride stridex,
-                                               To*            workspace)
+rocblas_reduction_kernel_part1(rocblas_int    n,
+                               rocblas_int    nblocks,
+                               TPtrX          xvec,
+                               rocblas_stride shiftx,
+                               rocblas_int    incx,
+                               rocblas_stride stridex,
+                               To*            workspace)
 {
     ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     To        sum;
@@ -108,9 +103,9 @@ rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
 // kernel 2 is used from non-strided reduction_batched see include file
 // kernel 2 gathers all the partial results in workspace and finishes the final reduction;
 // number of threads (NB) loop blocks
-template <rocblas_int NB, typename FINALIZE = rocblas_finalize_identity, typename To, typename Tr>
+template <rocblas_int NB, typename FINALIZE, typename To, typename Tr>
 ROCBLAS_KERNEL(NB)
-rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
+rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
     rocblas_int tx = threadIdx.x;
     To          sum;
@@ -176,26 +171,25 @@ rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspac
     ********************************************************************/
 template <rocblas_int NB,
           typename FETCH,
-          typename REDUCE   = rocblas_reduce_sum,
-          typename FINALIZE = rocblas_finalize_identity,
+          typename FINALIZE,
           typename TPtrX,
           typename To,
           typename Tr>
-rocblas_status rocblas_reduction_strided_batched(rocblas_handle __restrict__ handle,
-                                                 rocblas_int    n,
-                                                 TPtrX          x,
-                                                 rocblas_stride shiftx,
-                                                 rocblas_int    incx,
-                                                 rocblas_stride stridex,
-                                                 rocblas_int    batch_count,
-                                                 To*            workspace,
-                                                 Tr*            result)
+rocblas_status rocblas_reduction_template(rocblas_handle handle,
+                                          rocblas_int    n,
+                                          TPtrX          x,
+                                          rocblas_stride shiftx,
+                                          rocblas_int    incx,
+                                          rocblas_stride stridex,
+                                          rocblas_int    batch_count,
+                                          To*            workspace,
+                                          Tr*            result)
 {
     // param REDUCE is always SUM for these kernels so not passed on
 
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, FETCH>),
+    hipLaunchKernelGGL((rocblas_reduction_kernel_part1<NB, FETCH>),
                        dim3(blocks, batch_count),
                        NB,
                        0,
@@ -210,7 +204,7 @@ rocblas_status rocblas_reduction_strided_batched(rocblas_handle __restrict__ han
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part2<NB, FINALIZE>),
+        hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
                            dim3(1, batch_count),
                            NB,
                            0,
@@ -229,7 +223,7 @@ rocblas_status rocblas_reduction_strided_batched(rocblas_handle __restrict__ han
         bool reduceKernel = blocks > 1 || batch_count > 1;
         if(reduceKernel)
         {
-            hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part2<NB, FINALIZE>),
+            hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
                                dim3(1, batch_count),
                                NB,
                                0,
@@ -261,3 +255,52 @@ rocblas_status rocblas_reduction_strided_batched(rocblas_handle __restrict__ han
 
     return rocblas_status_success;
 }
+
+// clang-format off
+#ifdef INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE
+#error INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE IS ALREADY DEFINED
+#endif
+
+#define INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(NB_, FETCH_, FINALIZE_, T_, U_, V_)      \
+    template rocblas_status rocblas_reduction_template<NB_, FETCH_, FINALIZE_, T_, U_, V_>(rocblas_handle  handle, \
+                                                          rocblas_int    n,                \
+                                                          T_          x,                   \
+                                                          rocblas_stride shiftx,           \
+                                                          rocblas_int    incx,             \
+                                                          rocblas_stride stridex,          \
+                                                          rocblas_int    batch_count,      \
+                                                          U_*            workspace,        \
+                                                          V_*            result);
+
+//ASUM instantiations
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, float const*, float, float)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, float const* const*, float, float)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<double>, rocblas_finalize_identity, double const*, double, double)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<double>, rocblas_finalize_identity, double const* const*, double, double)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, rocblas_float_complex const*, float, float)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<float>, rocblas_finalize_identity, rocblas_float_complex const* const*, float, float)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<double>, rocblas_finalize_identity, rocblas_double_complex const*, double, double)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_ASUM_NB, rocblas_fetch_asum<double>, rocblas_finalize_identity, rocblas_double_complex const* const*, double, double)
+
+//nrm2 and nrm2_ex instantiations
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, float const*, float, float)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, float const* const*, float, float)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, double const*, double, double)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, double const* const*, double, double)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, rocblas_float_complex const*, float, float)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, rocblas_float_complex const* const*, float, float)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, rocblas_double_complex const*, double, double)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, rocblas_double_complex const* const*, double, double)
+
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const*, float, _Float16)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const* const*, float, _Float16)
+
+#undef INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE
+
+// clang-format off

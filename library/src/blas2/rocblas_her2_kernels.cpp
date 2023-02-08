@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,16 +26,16 @@
 #include "rocblas_her2.hpp"
 
 template <typename T>
-__device__ void her2_kernel_calc(bool        upper,
-                                 rocblas_int n,
-                                 size_t      area,
-                                 T           alpha,
-                                 const T*    x,
-                                 rocblas_int incx,
-                                 const T*    y,
-                                 rocblas_int incy,
-                                 T*          A,
-                                 rocblas_int lda)
+__device__ void rocblas_her2_kernel_calc(bool        upper,
+                                         rocblas_int n,
+                                         size_t      area,
+                                         T           alpha,
+                                         const T*    x,
+                                         rocblas_int incx,
+                                         const T*    y,
+                                         rocblas_int incy,
+                                         T*          A,
+                                         rocblas_int lda)
 {
     size_t i = size_t(blockIdx.x) * blockDim.x + threadIdx.x; // linear area index
     if(i >= area)
@@ -95,7 +95,7 @@ rocblas_her2_kernel(bool           upper,
     const auto* x = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
     const auto* y = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
 
-    her2_kernel_calc(upper, n, area, alpha, x, incx, y, incy, A, lda);
+    rocblas_her2_kernel_calc(upper, n, area, alpha, x, incx, y, incy, A, lda);
 }
 
 /**

@@ -395,4 +395,28 @@ Tests:
     - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
   alpha_beta: *complex_alpha
+
+- name: trmm_graph_test
+  category: pre_checkin
+  function:
+    - trmm
+    - trmm_outofplace
+    - trmm_batched
+    - trmm_strided_batched
+    - trmm_outofplace_batched
+    - trmm_outofplace_strided_batched
+  precision: *single_double_precisions
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: T, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  uplo: [ U ]
+  transA: [ N ]
+  diag: [ U ]
+  matrix_size:
+    - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 50  }
+  alpha_beta: *complex_alpha_range
+  stride_scale: [ 1  ]
+  batch_count: [ 2  ]
+  graph_test: true
 ...

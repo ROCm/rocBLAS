@@ -253,17 +253,18 @@ void testing_axpy_ex(const Arguments& arg)
     {
         CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(Ta), hipMemcpyHostToDevice));
-
+        handle.pre_test(arg);
         // ROCBLAS pointer mode host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_axpy_ex_fn(
             handle, N, &h_alpha, alpha_type, dx, x_type, incx, dy_1, y_type, incy, execution_type));
-
+        handle.post_test(arg);
         // ROCBLAS pointer mode device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_axpy_ex_fn(
             handle, N, d_alpha, alpha_type, dx, x_type, incx, dy_2, y_type, incy, execution_type));
-
+        handle.post_test(arg);
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
         CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));

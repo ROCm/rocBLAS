@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
  * \brief rocblas_bfloat16.h provides struct for rocblas_bfloat16 typedef
  */
 
-#ifndef _ROCBLAS_BFLOAT16_H_
-#define _ROCBLAS_BFLOAT16_H_
+#ifndef ROCBLAS_BFLOAT16_H
+#define ROCBLAS_BFLOAT16_H
 
 #if __cplusplus < 201103L || (!defined(__HCC__) && !defined(__HIPCC__))
 
@@ -57,15 +57,6 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
         rocblas_truncate
     };
 
-    enum truncate_t
-    {
-        truncate __attribute__((deprecated(
-            "From 3.0, The enum truncate_t and the value truncate will be "
-            "removed and replaced by rocblas_truncate_t and rocblas_truncate, "
-            "respectively. The new enum rocblas_truncate_t and the value rocblas_truncate could "
-            "be used from this ROCm release for an easy transition.")))
-    };
-
     __host__ __device__ rocblas_bfloat16() = default;
 
     // round upper 16 bits of IEEE float to convert to bfloat16
@@ -75,11 +66,6 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
     }
 
     explicit __host__ __device__ rocblas_bfloat16(float f, rocblas_truncate_t)
-        : data(truncate_float_to_bfloat16(f))
-    {
-    }
-
-    explicit __host__ __device__ rocblas_bfloat16(float f, truncate_t)
         : data(truncate_float_to_bfloat16(f))
     {
     }
@@ -293,4 +279,4 @@ namespace std
 
 #endif // __cplusplus < 201103L || (!defined(__HCC__) && !defined(__HIPCC__))
 
-#endif // _ROCBLAS_BFLOAT16_H_
+#endif // ROCBLAS_BFLOAT16_H

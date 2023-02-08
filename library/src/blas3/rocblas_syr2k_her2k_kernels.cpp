@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,63 +28,66 @@
 #include "rocblas_syr2k_her2k.hpp"
 #include "utility.hpp"
 
+template <typename T>
+static const T beta_1 = T(1);
+
 template <bool TWOK, bool HERK, typename T, typename TConstPtr, typename TPtr>
-void syrkx_syr2k_dispatch(rocblas_fill      uplo,
-                          rocblas_operation trans,
-                          rocblas_int       n,
-                          rocblas_int       k,
-                          const T           alpha,
-                          TConstPtr*        dA,
-                          rocblas_int       lda,
-                          rocblas_stride    stride_a,
-                          TConstPtr*        dB,
-                          rocblas_int       ldb,
-                          rocblas_stride    stride_b,
-                          const T           beta,
-                          TPtr*             dC,
-                          rocblas_int       ldc,
-                          rocblas_stride    stride_c,
-                          rocblas_int       batch_count,
-                          hipStream_t       stream)
+void rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
+                                  rocblas_operation trans,
+                                  rocblas_int       n,
+                                  rocblas_int       k,
+                                  const T           alpha,
+                                  TConstPtr*        dA,
+                                  rocblas_int       lda,
+                                  rocblas_stride    stride_a,
+                                  TConstPtr*        dB,
+                                  rocblas_int       ldb,
+                                  rocblas_stride    stride_b,
+                                  const T           beta,
+                                  TPtr*             dC,
+                                  rocblas_int       ldc,
+                                  rocblas_stride    stride_c,
+                                  rocblas_int       batch_count,
+                                  hipStream_t       stream)
 {
     if(TWOK)
     {
-        syr2k_her2k_dispatch<TWOK, HERK, 32>(uplo,
-                                             trans,
-                                             n,
-                                             k,
-                                             alpha,
-                                             dA,
-                                             lda,
-                                             stride_a,
-                                             dB,
-                                             ldb,
-                                             stride_b,
-                                             dC,
-                                             ldc,
-                                             stride_c,
-                                             batch_count,
-                                             stream);
+        rocblas_syr2k_her2k_dispatch<TWOK, HERK, 32>(uplo,
+                                                     trans,
+                                                     n,
+                                                     k,
+                                                     alpha,
+                                                     dA,
+                                                     lda,
+                                                     stride_a,
+                                                     dB,
+                                                     ldb,
+                                                     stride_b,
+                                                     dC,
+                                                     ldc,
+                                                     stride_c,
+                                                     batch_count,
+                                                     stream);
     }
     else
     {
-        syrkx_herkx_dispatch<HERK, T>(uplo,
-                                      trans,
-                                      n,
-                                      k,
-                                      alpha,
-                                      dA,
-                                      lda,
-                                      stride_a,
-                                      dB,
-                                      ldb,
-                                      stride_b,
-                                      beta,
-                                      dC,
-                                      ldc,
-                                      stride_c,
-                                      batch_count,
-                                      stream);
+        rocblas_syrkx_herkx_dispatch<HERK, T>(uplo,
+                                              trans,
+                                              n,
+                                              k,
+                                              alpha,
+                                              dA,
+                                              lda,
+                                              stride_a,
+                                              dB,
+                                              ldb,
+                                              stride_b,
+                                              beta,
+                                              dC,
+                                              ldc,
+                                              stride_c,
+                                              batch_count,
+                                              stream);
     }
 }
 
@@ -148,8 +151,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
     n_nb = n / nb; // number of diagonal blocks of size nb
     rem  = n % nb; // size of remainder block when n is not multiple of nb
 
-    hipStream_t stream    = handle->get_stream();
-    T           beta_full = *beta;
+    hipStream_t stream = handle->get_stream();
 
     if(TWOK)
     {
@@ -162,7 +164,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         dim3                 syr2k_scale_threads(syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y);
 
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
+        hipLaunchKernelGGL((rocblas_syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
                            syr2k_scale_grid,
                            syr2k_scale_threads,
                            0,
@@ -177,9 +179,9 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
                            0);
     }
 
-    // call syrkx_syr2k_dispatch with batch_count = n_nb for n_nb diagonal blocks
+    // call rocblas_syrkx_syr2k_dispatch with batch_count = n_nb for n_nb diagonal blocks
     // clang-format off
-    syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, nb, k, *alpha,
+    rocblas_syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, nb, k, *alpha,
                          da, lda, nb * a_s1,
                          db, ldb, nb * b_s1, *beta,
                          dc, ldc, nb * (c_s1 + c_s2), n_nb, stream);
@@ -190,9 +192,9 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
     {
         i_diag = n_nb * nb; // diag block at c[i_diag, i_diag], size is n_diag
         n_diag = n - i_diag;
-        // call syrkx_syr2k_dispatch for one remainder diagonal block of size n_diag
+        // call rocblas_syrkx_syr2k_dispatch for one remainder diagonal block of size n_diag
         // clang-format off
-        syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, n_diag, k, *alpha,
+        rocblas_syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, n_diag, k, *alpha,
                           da + i_diag * a_s1, lda, stride_a,
                           db + i_diag * b_s1, ldb, stride_b, *beta,
                           dc + i_diag * (c_s1 + c_s2), ldc, stride_c, batch_count, stream);
@@ -207,8 +209,14 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         = rocblas_operation_none == trans
               ? (HERK ? rocblas_operation_conjugate_transpose : rocblas_operation_transpose)
               : rocblas_operation_none;
-    const T one        = 1;
     const T alpha_conj = conj(*alpha);
+    T*      alpha_conj_h;
+
+    if(handle->is_stream_in_capture_mode())
+    {
+        alpha_conj_h = (T*)handle->host_malloc(sizeof(T));
+        std::memcpy(alpha_conj_h, &alpha_conj, sizeof(T));
+    }
 
     // calls to gemm with m == n == nb.
     // Start with nb == MIN_NB, then for each iteration of nb,i_start loop:
@@ -232,16 +240,16 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
                  handle, trans_orig, trans_opp, nb, nb, k, alpha,
                  da, OFFSET_A(i_start),    lda, stride * a_s1,
-                 db, OFFSET_B(0),          ldb, stride * b_s1,          TWOK ? &one : &beta_full,
+                 db, OFFSET_B(0),          ldb, stride * b_s1, TWOK ? &beta_1<T> : (T*) beta,
                  dc, OFFSET_C(i_start, 0), ldc, stride * (c_s1 + c_s2), n_nb   )));
 
             // a second call to gemm in the TWOK case
             if(TWOK)
             {
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                    handle, trans_orig, trans_opp, nb, nb, k, HERK ? &alpha_conj : alpha,
+                    handle, trans_orig, trans_opp, nb, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                     db, OFFSET_B(i_start),    ldb, stride * b_s1,
-                    da, OFFSET_A(0),          lda, stride * a_s1,          &one,
+                    da, OFFSET_A(0),          lda, stride * a_s1, &beta_1<T>,
                     dc, OFFSET_C(i_start, 0), ldc, stride * (c_s1 + c_s2), n_nb   )));
             }
             // clang-format on
@@ -252,15 +260,15 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
                  handle, trans_orig, trans_opp, nb, nb, k, alpha,
                  da, OFFSET_A(0),          lda, stride * a_s1,
-                 db, OFFSET_B(i_start),    ldb, stride * b_s1,          TWOK ? &one : &beta_full,
+                 db, OFFSET_B(i_start),    ldb, stride * b_s1,   TWOK ? &beta_1<T> : (T*) beta,
                  dc, OFFSET_C(0, i_start), ldc, stride * (c_s1 + c_s2), n_nb)));
 
             if(TWOK)
             {
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                    handle, trans_orig, trans_opp, nb, nb, k, HERK ? &alpha_conj : alpha,
+                    handle, trans_orig, trans_opp, nb, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                     db, OFFSET_B(0),          ldb, stride * b_s1,
-                    da, OFFSET_A(i_start),    lda, stride * a_s1,          &one,
+                    da, OFFSET_A(i_start),    lda, stride * a_s1, &beta_1<T>,
                     dc, OFFSET_C(0, i_start), ldc, stride * (c_s1 + c_s2), n_nb)));
             }
             // clang-format on
@@ -279,15 +287,15 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
                      handle, trans_orig, trans_opp, n1, nb, k, alpha,
                      da, OFFSET_A(i1),     lda, stride_a,
-                     db, OFFSET_B(i2),     ldb, stride_b, TWOK ? &one : &beta_full,
+                     db, OFFSET_B(i2),     ldb, stride_b, TWOK ? &beta_1<T> : (T*) beta,
                      dc, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
 
                 if(TWOK)
                 {
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                        handle, trans_orig, trans_opp, n1, nb, k, HERK ? &alpha_conj : alpha,
+                        handle, trans_orig, trans_opp, n1, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                         db, OFFSET_B(i1),     ldb, stride_b,
-                        da, OFFSET_A(i2),     lda, stride_a, &one,
+                        da, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
                         dc, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
                 }
                 // clang-format on
@@ -298,15 +306,15 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
                      handle, trans_orig, trans_opp, nb, n1, k, alpha,
                      da, OFFSET_A(i2),     lda, stride_a,
-                     db, OFFSET_B(i1),     ldb, stride_b, TWOK ? &one : &beta_full,
+                     db, OFFSET_B(i1),     ldb, stride_b, TWOK ? &beta_1<T> : (T*) beta,
                      dc, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
 
                 if(TWOK)
                 {
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                        handle, trans_orig, trans_opp, nb, n1, k, HERK ? &alpha_conj : alpha,
+                        handle, trans_orig, trans_opp, nb, n1, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                         db, OFFSET_B(i2),     ldb, stride_b,
-                        da, OFFSET_A(i1),     lda, stride_a, &one,
+                        da, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
                         dc, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
                 }
                 // clang-format on
@@ -384,7 +392,7 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
     {
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,
@@ -405,7 +413,7 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,
@@ -429,7 +437,7 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
     {
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,
@@ -450,7 +458,7 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,
@@ -547,8 +555,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     n_nb = n / nb; // number of diagonal blocks of size nb
     rem  = n % nb; // size of remainder block when n is not multiple of nb
 
-    const T one        = 1;
     const T alpha_conj = conj(*alpha);
+
+    T* alpha_conj_h;
+
+    if(handle->is_stream_in_capture_mode())
+    {
+        alpha_conj_h = (T*)handle->host_malloc(sizeof(T));
+        std::memcpy(alpha_conj_h, &alpha_conj, sizeof(T));
+    }
 
     TPtr      dC = dC_in;
     TConstPtr dB = dB_in;
@@ -562,7 +577,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     dim3                 syr2k_scale_threads(syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y);
 
     // first scale C so we can use directly for output without work buffer
-    hipLaunchKernelGGL((syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
+    hipLaunchKernelGGL((rocblas_syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
                        syr2k_scale_grid,
                        syr2k_scale_threads,
                        0,
@@ -643,7 +658,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                      handle, trans_orig, trans_opp, nb, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
-                     dB, OFFSET_B(i2),     ldb, stride_b, &one,
+                     dB, OFFSET_B(i2),     ldb, stride_b, &beta_1<T>,
                      dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
                 // clang-format on
 
@@ -651,9 +666,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, nb, nb, k, HERK ? &alpha_conj : alpha,
+                        handle, trans_orig, trans_opp, nb, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                         dB, OFFSET_B(i1),     ldb, stride_b,
-                        dA, OFFSET_A(i2),     lda, stride_a, &one,
+                        dA, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
                     // clang-format on
                 }
@@ -664,7 +679,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                      handle, trans_orig, trans_opp, nb, nb, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
-                     dB, OFFSET_B(i1),     ldb, stride_b, &one,
+                     dB, OFFSET_B(i1),     ldb, stride_b, &beta_1<T>,
                      dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
                 // clang-format on
 
@@ -672,9 +687,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, nb, nb, k, HERK ? &alpha_conj : alpha,
+                        handle, trans_orig, trans_opp, nb, nb, k,(HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                         dB, OFFSET_B(i2),     ldb, stride_b,
-                        dA, OFFSET_A(i1),     lda, stride_a, &one,
+                        dA, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
                     // clang-format on
                 }
@@ -694,7 +709,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                      handle, trans_orig, trans_opp, n1, nb, k, alpha,
                      dA, OFFSET_A(i1),     lda, stride_a,
-                     dB, OFFSET_B(i2),     ldb, stride_b, &one,
+                     dB, OFFSET_B(i2),     ldb, stride_b, &beta_1<T>,
                      dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
                 // clang-format on
 
@@ -702,9 +717,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, n1, nb, k, HERK ? &alpha_conj : alpha,
+                        handle, trans_orig, trans_opp, n1, nb, k,  (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                         dB, OFFSET_B(i1),     ldb, stride_b,
-                        dA, OFFSET_A(i2),     lda, stride_a, &one,
+                        dA, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
                     // clang-format on
                 }
@@ -715,7 +730,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                      handle, trans_orig, trans_opp, nb, n1, k, alpha,
                      dA, OFFSET_A(i2),     lda, stride_a,
-                     dB, OFFSET_B(i1),     ldb, stride_b, &one,
+                     dB, OFFSET_B(i1),     ldb, stride_b, &beta_1<T>,
                      dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
                 // clang-format on
 
@@ -723,9 +738,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, nb, n1, k, HERK ? &alpha_conj : alpha,
+                        handle, trans_orig, trans_opp, nb, n1, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
                         dB, OFFSET_B(i2),     ldb, stride_b,
-                        dA, OFFSET_A(i1),     lda, stride_a, &one,
+                        dA, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
                     // clang-format on
                 }

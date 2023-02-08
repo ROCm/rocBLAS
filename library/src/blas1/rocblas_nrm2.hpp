@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 #pragma once
 
 #include "fetch_template.hpp"
-#include "rocblas_reduction_template.hpp"
 
 template <class To>
 struct rocblas_fetch_nrm2
@@ -44,7 +43,23 @@ struct rocblas_finalize_nrm2
     }
 };
 
-template <rocblas_int NB, bool ISBATCHED, typename Ti, typename To, typename Tex = To>
+template <rocblas_int NB,
+          typename FETCH,
+          typename FINALIZE,
+          typename TPtrX,
+          typename To,
+          typename Tr>
+rocblas_status rocblas_reduction_template(rocblas_handle handle,
+                                          rocblas_int    n,
+                                          TPtrX          x,
+                                          rocblas_stride shiftx,
+                                          rocblas_int    incx,
+                                          rocblas_stride stridex,
+                                          rocblas_int    batch_count,
+                                          To*            workspace,
+                                          Tr*            result);
+
+template <rocblas_int NB, typename Ti, typename To, typename Tex = To>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_nrm2_template(rocblas_handle handle,
                                    rocblas_int    n,
@@ -53,13 +68,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int    incx,
                                    rocblas_stride stridex,
                                    rocblas_int    batch_count,
-                                   To*            results,
-                                   Tex*           workspace)
+                                   Tex*           workspace,
+                                   To*            results)
 {
-    return rocblas_reduction_template<NB,
-                                      ISBATCHED,
-                                      rocblas_fetch_nrm2<To>,
-                                      rocblas_reduce_sum,
-                                      rocblas_finalize_nrm2>(
-        handle, n, x, shiftx, incx, stridex, batch_count, results, workspace);
+    return rocblas_reduction_template<NB, rocblas_fetch_nrm2<To>, rocblas_finalize_nrm2>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, results);
 }

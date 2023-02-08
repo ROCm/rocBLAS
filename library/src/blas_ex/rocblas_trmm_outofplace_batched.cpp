@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,8 +67,8 @@ namespace
 
         T        alpha_h, beta_h;
         const T* beta = nullptr;
-        RETURN_IF_ROCBLAS_ERROR(
-            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, m && n));
+        RETURN_IF_ROCBLAS_ERROR(rocblas_copy_alpha_beta_to_host_if_on_device(
+            handle, alpha, beta, alpha_h, beta_h, m && n));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         auto layer_mode     = handle->layer_mode;
@@ -167,7 +167,7 @@ namespace
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
-            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
+            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_set_matrix_zero_if_alpha_zero_template(
                 handle, m, n, alpha, 0, c, ldc, offset_c, batch_count));
             return rocblas_status_success;
         }
@@ -177,7 +177,7 @@ namespace
             // the same functionality as Legacy BLAS. alpha is on device and
             // it should not be copied from device to host because this is
             // an asynchronous function and the copy would make it synchronous.
-            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
+            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_set_matrix_zero_if_alpha_zero_template(
                 handle, m, n, alpha, 0, c, ldc, offset_c, batch_count));
         }
 

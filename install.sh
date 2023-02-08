@@ -173,7 +173,7 @@ install_packages( )
     library_dependencies_sles+=( "gcc-fortran" "libgomp1" )
 
     # wget is needed for blis
-    if [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+    if [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]] && [[ ! -e "/usr/local/lib/libblis.a" ]]; then
       library_dependencies_ubuntu+=("wget")
       library_dependencies_centos_rhel+=("wget")
       library_dependencies_centos_8+=("wget")
@@ -481,7 +481,9 @@ if [[ "${install_dependencies}" == true ]]; then
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${ROCBLAS_SRC_PATH}/deps
     make build_deps
     elevate_if_not_root make install_deps
-    install_blis
+    if [[ ! -e "${build_dir}/deps/blis/lib/libblis.a" ]] && [[ ! -e "/usr/local/lib/libblis.a" ]]; then
+      install_blis
+    fi
     popd
   fi
 elif [[ "${build_clients}" == true ]]; then

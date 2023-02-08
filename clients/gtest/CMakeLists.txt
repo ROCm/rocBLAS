@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,18 +32,12 @@ if( BUILD_WITH_TENSILE )
       # use of tensile based functions (gemm)
       atomics_mode_gtest.cpp
       get_solutions_gtest.cpp
-      # blas3
-      blas3/trsm_gtest.cpp
-      blas3/trtri_gtest.cpp
-      blas3/trmm_gtest.cpp
-      blas3/syrkx_gtest.cpp
-      blas3/herkx_gtest.cpp
-      blas3/syrk_gtest.cpp
-      blas3/herk_gtest.cpp
-      )
+
+  )
 endif()
 
 set(rocblas_no_tensile_test_source
+    # general
     rocblas_gtest_main.cpp
     rocblas_test.cpp
     general_gtest.cpp
@@ -95,16 +89,23 @@ set(rocblas_no_tensile_test_source
     blas2/sbmv_gtest.cpp
     blas2/spmv_gtest.cpp
     blas2/symv_gtest.cpp
-    # blas3
-    blas3/hemm_gtest.cpp
-    blas3/her2k_gtest.cpp
-    blas3/symm_gtest.cpp
-    blas3/syr2k_gtest.cpp
-    blas3/geam_gtest.cpp
-    blas3/dgmm_gtest.cpp
+    # blas3 may use tensile or source gemm
     blas3/gemm_gtest.cpp
+    blas3/symm_gtest.cpp
+    blas3/hemm_gtest.cpp
+    blas3/trsm_gtest.cpp
+    blas3/trtri_gtest.cpp
+    blas3/trmm_gtest.cpp
+    blas3/syrk_gtest.cpp
+    blas3/syrkx_gtest.cpp
+    blas3/syr2k_gtest.cpp
+    blas3/herk_gtest.cpp
+    blas3/herkx_gtest.cpp
+    blas3/her2k_gtest.cpp
+    blas3/dgmm_gtest.cpp
+    blas3/geam_gtest.cpp
     blas_ex/geam_ex_gtest.cpp
-    )
+  )
 
 # Keep ${rocblas_tensile_test_source} first, so that multiheaded tests are the
 # first to initialize Tensile.

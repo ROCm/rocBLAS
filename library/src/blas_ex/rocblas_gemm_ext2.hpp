@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -95,37 +95,37 @@ rocblas_status gemm_ext2_batched_template(rocblas_handle handle,
 }
 
 template <typename Ti, typename To = Ti, typename Tc = To>
-rocblas_status gemm_ext2_typecasting(rocblas_handle handle,
-                                     rocblas_int    m,
-                                     rocblas_int    n,
-                                     rocblas_int    k,
-                                     const void*    alpha,
-                                     const void*    a,
-                                     rocblas_stride offsetAin,
-                                     rocblas_int    row_stride_a,
-                                     rocblas_int    col_stride_a,
-                                     rocblas_stride batch_stride_a,
-                                     const void*    b,
-                                     rocblas_stride offsetBin,
-                                     rocblas_int    row_stride_b,
-                                     rocblas_int    col_stride_b,
-                                     rocblas_stride batch_stride_b,
-                                     const void*    beta,
-                                     const void*    c,
-                                     rocblas_stride offsetCin,
-                                     rocblas_int    row_stride_c,
-                                     rocblas_int    col_stride_c,
-                                     rocblas_stride batch_stride_c,
-                                     void*          d,
-                                     rocblas_stride offsetDin,
-                                     rocblas_int    row_stride_d,
-                                     rocblas_int    col_stride_d,
-                                     rocblas_stride batch_stride_d,
-                                     rocblas_int    batch_count)
+rocblas_status rocblas_gemm_ext2_typecasting(rocblas_handle handle,
+                                             rocblas_int    m,
+                                             rocblas_int    n,
+                                             rocblas_int    k,
+                                             const void*    alpha,
+                                             const void*    a,
+                                             rocblas_stride offsetAin,
+                                             rocblas_int    row_stride_a,
+                                             rocblas_int    col_stride_a,
+                                             rocblas_stride batch_stride_a,
+                                             const void*    b,
+                                             rocblas_stride offsetBin,
+                                             rocblas_int    row_stride_b,
+                                             rocblas_int    col_stride_b,
+                                             rocblas_stride batch_stride_b,
+                                             const void*    beta,
+                                             const void*    c,
+                                             rocblas_stride offsetCin,
+                                             rocblas_int    row_stride_c,
+                                             rocblas_int    col_stride_c,
+                                             rocblas_stride batch_stride_c,
+                                             void*          d,
+                                             rocblas_stride offsetDin,
+                                             rocblas_int    row_stride_d,
+                                             rocblas_int    col_stride_d,
+                                             rocblas_stride batch_stride_d,
+                                             rocblas_int    batch_count)
 {
     Tc alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+        rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // check alignment of pointers before casting
     if(!isAligned(a, sizeof(Ti)) || !isAligned(b, sizeof(Ti)) || !isAligned(c, sizeof(To))
@@ -211,13 +211,13 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
        && compute_type == rocblas_datatype_f64_r)
     {
-        rb_status = gemm_ext2_typecasting<double>(EX_TYPECASTING_PARM);
+        rb_status = rocblas_gemm_ext2_typecasting<double>(EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
             && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
             && compute_type == rocblas_datatype_f32_r)
     {
-        rb_status = gemm_ext2_typecasting<float>(EX_TYPECASTING_PARM);
+        rb_status = rocblas_gemm_ext2_typecasting<float>(EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r)
     {
@@ -225,18 +225,19 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
         {
             if(compute_type == rocblas_datatype_f16_r)
             {
-                rb_status = gemm_ext2_typecasting<rocblas_half>(EX_TYPECASTING_PARM);
+                rb_status = rocblas_gemm_ext2_typecasting<rocblas_half>(EX_TYPECASTING_PARM);
             }
             else if(compute_type == rocblas_datatype_f32_r)
             {
-                rb_status
-                    = gemm_ext2_typecasting<rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
+                rb_status = rocblas_gemm_ext2_typecasting<rocblas_half, rocblas_half, float>(
+                    EX_TYPECASTING_PARM);
             }
         }
         else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ext2_typecasting<rocblas_half, float, float>(EX_TYPECASTING_PARM);
+            rb_status
+                = rocblas_gemm_ext2_typecasting<rocblas_half, float, float>(EX_TYPECASTING_PARM);
         }
     }
     else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
@@ -244,12 +245,13 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
     {
         if(c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
         {
-            rb_status = gemm_ext2_typecasting<rocblas_bfloat16, rocblas_bfloat16, float>(
+            rb_status = rocblas_gemm_ext2_typecasting<rocblas_bfloat16, rocblas_bfloat16, float>(
                 EX_TYPECASTING_PARM);
         }
         else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ext2_typecasting<rocblas_bfloat16, float, float>(EX_TYPECASTING_PARM);
+            rb_status = rocblas_gemm_ext2_typecasting<rocblas_bfloat16, float, float>(
+                EX_TYPECASTING_PARM);
         }
     }
     else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
@@ -261,7 +263,7 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
         // MatrixInstruction kernel uses general int8 (unless rocblas_gemm_flags_pack_int8x4 is set)
         if(!useInt8x4)
         {
-            rb_status = gemm_ext2_typecasting<int8_t, int32_t>(EX_TYPECASTING_PARM);
+            rb_status = rocblas_gemm_ext2_typecasting<int8_t, int32_t>(EX_TYPECASTING_PARM);
         }
         // Else, we check if we can pack 4 int8:
         else
@@ -279,7 +281,8 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
                 batch_stride_a /= 4;
                 batch_stride_b /= 4;
 
-                rb_status = gemm_ext2_typecasting<rocblas_int8x4, int32_t>(EX_TYPECASTING_PARM);
+                rb_status
+                    = rocblas_gemm_ext2_typecasting<rocblas_int8x4, int32_t>(EX_TYPECASTING_PARM);
             }
         }
     }
@@ -287,17 +290,17 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
             && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
             && compute_type == rocblas_datatype_f32_c)
     {
-        rb_status = gemm_ext2_typecasting<rocblas_float_complex,
-                                          rocblas_float_complex,
-                                          rocblas_float_complex>(EX_TYPECASTING_PARM);
+        rb_status = rocblas_gemm_ext2_typecasting<rocblas_float_complex,
+                                                  rocblas_float_complex,
+                                                  rocblas_float_complex>(EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
             && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
             && compute_type == rocblas_datatype_f64_c)
     {
-        rb_status = gemm_ext2_typecasting<rocblas_double_complex,
-                                          rocblas_double_complex,
-                                          rocblas_double_complex>(EX_TYPECASTING_PARM);
+        rb_status = rocblas_gemm_ext2_typecasting<rocblas_double_complex,
+                                                  rocblas_double_complex,
+                                                  rocblas_double_complex>(EX_TYPECASTING_PARM);
     }
     else
     {

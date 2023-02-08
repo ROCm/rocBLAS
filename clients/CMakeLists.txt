@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -113,9 +113,15 @@ endif( )
 if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
   if ( NOT WIN32 )
     if (LINK_BLIS)
-      set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
-      set( BLIS_CPP ../common/blis_interface.cpp )
-      set( BLAS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.a )
+      if(EXISTS "${BUILD_DIR}/deps/blis/lib/libblis.a")
+        set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
+        set( BLIS_CPP ../common/blis_interface.cpp )
+        set( BLAS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.a )
+      elseif(EXISTS "/usr/local/lib/libblis.a")
+        set( BLIS_INCLUDE_DIR /usr/local/include/blis )
+        set( BLIS_CPP ../common/blis_interface.cpp )
+        set( BLAS_LIBRARY /usr/local/lib/libblis.a )
+      endif()
     else()
       set( BLAS_LIBRARY "blas" )
     endif()

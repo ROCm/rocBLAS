@@ -330,14 +330,13 @@ Announced in rocBLAS 2.45
 Replace is_complex by rocblas_is_complex
 ''''''''''''''''''''''''''''''''''''''''
 
-From rocBLAS 3.0 the trait is_complex will be replaces by rocblas_is_complex
+From rocBLAS 3.0 the trait is_complex for rocblas complex types has been removed. Replace with rocblas_is_complex
 
 Replace truncate with rocblas_truncate
 ''''''''''''''''''''''''''''''''''''''
 
-From rocBLAS 3.0 enum truncate_t and the value truncate will be removed and replaced by rocblas_truncate_t
-and rocblas_truncate, respectively. The new enum rocblas_truncate_t and the value rocblas_truncate
-could be used from this ROCm release for an easy transition.
+From rocBLAS 3.0 enum truncate_t and the value truncate has been removed and replaced by rocblas_truncate_t
+and rocblas_truncate, respectively.
 
 Announced in rocBLAS 2.46
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1843,7 +1842,7 @@ To allow for future growth and changes, the features in this section are not sub
 level of backwards compatibility and support as the normal rocBLAS API. These features are subject
 to change and/or removal in future release of rocBLAS.
 
-To use the beta features, ROCBLAS_BETA_FEATURES_API must be defined before including rocblas.h.
+To use the following beta API features, ROCBLAS_BETA_FEATURES_API must be defined before including rocblas.h.
 
 rocblas_gemm_ex_get_solutions + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1852,6 +1851,45 @@ rocblas_gemm_ex_get_solutions + batched, strided_batched
 .. doxygenfunction:: rocblas_gemm_batched_ex_get_solutions
 .. doxygenfunction:: rocblas_gemm_strided_batched_ex_get_solutions
 
+
+-------------------------
+Graph Support for rocBLAS
+-------------------------
+
+Graph support is added as a beta feature in rocBLAS. Most of the rocBLAS functions can be captured into a graph node via Graph ManagementHIP APIs, except those listed in :ref:`Functions Unsupported with Graph Capture`.
+For complete list of support graph APIs, refer to `Graph ManagementHIP API <https://docs.amd.com/bundle/HIP-API-Guide-v5.2/page/group___graph.html>`__.
+
+.. code-block:: c++
+
+      CHECK_HIP_ERROR((hipStreamBeginCapture(stream, hipStreamCaptureModeGlobal));
+      rocblas_<function>(<arguments>);
+      CHECK_HIP_ERROR(hipStreamEndCapture(stream, &graph));
+
+The above code will create a graph with `rocblas_function()` as graph node. The captured graph can be launched as shown below:
+
+.. code-block:: c++
+
+      CHECK_HIP_ERROR(hipGraphInstantiate(&instance, graph, NULL, NULL, 0));
+      CHECK_HIP_ERROR(hipGraphLaunch(instance, stream));
+
+
+Graph support requires Asynchronous HIP APIs, hence, users must enable stream-order memory allocation. For more details refer to section :ref:`stream order alloc`.
+
+During stream capture, rocBLAS stores the allocated host and device memory in the handle and the allocated memory will be freed when the handle is destroyed.
+
+.. _Functions Unsupported with Graph Capture:
+
+Functions Unsupported with Graph Capture
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- The following Level-1 functions place results into host buffers (in pointer mode host) which enforces synchronization.
+
+      - `asum`
+      - `nrm2`
+      - `imax`
+      - `imin`
+
+- BLAS Level-3 and BLAS-EX functions in pointer mode device do not support HIP Graph. Support will be added in future releases.
 
 -----------------------------------
 Device Memory Allocation in rocBLAS

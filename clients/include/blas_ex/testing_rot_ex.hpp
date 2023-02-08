@@ -163,9 +163,10 @@ void testing_rot_ex(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
+            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_ex_fn(
                 handle, N, dx, x_type, incx, dy, y_type, incy, hc, hs, cs_type, execution_type)));
-
+            handle.post_test(arg);
             host_vector<Tx> rx(N, incx ? incx : 1);
             host_vector<Ty> ry(N, incy ? incy : 1);
 
