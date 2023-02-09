@@ -270,11 +270,11 @@ void testing_herk(const Arguments& arg)
     {
         // host alpha/beta
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             (rocblas_herk<
                 T>)(handle, uplo, transA, N, K, &h_alpha[0], dA, lda, &h_beta[0], dC, ldc));
-
+        handle.post_test(arg);
         // copy output from device to CPU
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 

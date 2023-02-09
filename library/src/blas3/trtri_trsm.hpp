@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,15 +40,15 @@
 */
 template <rocblas_int NB, rocblas_int IB, rocblas_int IBD, typename T, typename U, typename V>
 ROCBLAS_KERNEL(IB* IB)
-trtri_trsm_kernel(rocblas_fill     uplo,
-                  rocblas_diagonal diag,
-                  U                A,
-                  rocblas_stride   offset_A,
-                  rocblas_int      lda,
-                  rocblas_stride   stride_A,
-                  V                invA,
-                  rocblas_stride   offset_invA,
-                  rocblas_stride   stride_invA)
+rocblas_trtri_trsm_kernel(rocblas_fill     uplo,
+                          rocblas_diagonal diag,
+                          U                A,
+                          rocblas_stride   offset_A,
+                          rocblas_int      lda,
+                          rocblas_stride   stride_A,
+                          V                invA,
+                          rocblas_stride   offset_invA,
+                          rocblas_stride   stride_invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -60,7 +60,7 @@ trtri_trsm_kernel(rocblas_fill     uplo,
     const T* a_i    = load_ptr_batch(A, blockIdx.y, offA, stride_A);
     T*       invA_i = load_ptr_batch(invA, blockIdx.y, offinvA, stride_invA);
 
-    custom_trtri_device<IB>(uplo, diag, IB, a_i, lda, invA_i, NB);
+    rocblas_custom_trtri_device<IB>(uplo, diag, IB, a_i, lda, invA_i, NB);
 }
 
 /* ============================================================================================ */
@@ -170,7 +170,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
 
         // invert IB * IB diagonal blocks of A and write the result of invA11 and invA22 in invA
 
-        hipLaunchKernelGGL((trtri_trsm_kernel<NB, IB, IBD, T>),
+        hipLaunchKernelGGL((rocblas_trtri_trsm_kernel<NB, IB, IBD, T>),
                            grid,
                            threads,
                            0,
@@ -185,8 +185,8 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            offset_invAin,
                            stride_invA);
 
-        static constexpr size_t sub_blockSize        = 128;
-        size_t                  tri_elements_to_zero = num_non_tri_elements(NB) * sub_blocks;
+        static constexpr size_t sub_blockSize = 128;
+        size_t tri_elements_to_zero           = rocblas_num_non_tri_elements(NB) * sub_blocks;
         size_t num_sub_blocks = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
         hipLaunchKernelGGL((rocblas_trtri_fill<sub_blockSize, T>),
                            dim3(num_sub_blocks, batch_count),
@@ -196,7 +196,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            handle,
                            uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
                            NB,
-                           num_non_tri_elements(NB),
+                           rocblas_num_non_tri_elements(NB),
                            NB,
                            NB * NB,
                            invA,
@@ -213,90 +213,90 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
         rocblas_int offset_invA2       = (uplo == rocblas_fill_lower ? IB * 2 * NB + IB * 2 : 0);
         rocblas_int offset_invA3       = (uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * NB);
 
-        trtri_gemm_block<BATCHED, !BATCHED, T>(handle,
-                                               IB * 2,
-                                               IB * 2,
-                                               (U)A,
-                                               lda,
-                                               stride_A,
-                                               sub_stride_A,
-                                               (U)invA,
-                                               (U)invA,
-                                               (V)invA,
-                                               NB,
-                                               stride_invA,
-                                               sub_stride_invA,
-                                               (V)C_tmp,
-                                               JB,
-                                               0,
-                                               sub_stride_C,
-                                               batch_count,
-                                               sub_blocks,
-                                               offset_Ain + offset_A,
-                                               offset_invAin + offset_invA1,
-                                               offset_invAin + offset_invA2,
-                                               offset_invAin + offset_invA3,
-                                               0);
+        rocblas_trtri_gemm_block<BATCHED, !BATCHED, T>(handle,
+                                                       IB * 2,
+                                                       IB * 2,
+                                                       (U)A,
+                                                       lda,
+                                                       stride_A,
+                                                       sub_stride_A,
+                                                       (U)invA,
+                                                       (U)invA,
+                                                       (V)invA,
+                                                       NB,
+                                                       stride_invA,
+                                                       sub_stride_invA,
+                                                       (V)C_tmp,
+                                                       JB,
+                                                       0,
+                                                       sub_stride_C,
+                                                       batch_count,
+                                                       sub_blocks,
+                                                       offset_Ain + offset_A,
+                                                       offset_invAin + offset_invA1,
+                                                       offset_invAin + offset_invA2,
+                                                       offset_invAin + offset_invA3,
+                                                       0);
 
         offset_A     = (uplo == rocblas_fill_lower ? IB * 4 * lda + IB * 6 : IB * 6 * lda + IB * 4);
         offset_invA1 = (uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 4 : IB * 6 * NB + IB * 6);
         offset_invA2 = (uplo == rocblas_fill_lower ? IB * 6 * NB + IB * 6 : IB * 4 * NB + IB * 4);
         offset_invA3 = (uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 6 : IB * 6 * NB + IB * 4);
 
-        trtri_gemm_block<BATCHED, !BATCHED, T>(handle,
-                                               IB * 2,
-                                               IB * 2,
-                                               (U)A,
-                                               lda,
-                                               stride_A,
-                                               sub_stride_A,
-                                               (U)invA,
-                                               (U)invA,
-                                               (V)invA,
-                                               NB,
-                                               stride_invA,
-                                               sub_stride_invA,
-                                               (V)C_tmp,
-                                               JB,
-                                               0,
-                                               sub_stride_C,
-                                               batch_count,
-                                               sub_blocks,
-                                               offset_Ain + offset_A,
-                                               offset_invAin + offset_invA1,
-                                               offset_invAin + offset_invA2,
-                                               offset_invAin + offset_invA3,
-                                               0);
+        rocblas_trtri_gemm_block<BATCHED, !BATCHED, T>(handle,
+                                                       IB * 2,
+                                                       IB * 2,
+                                                       (U)A,
+                                                       lda,
+                                                       stride_A,
+                                                       sub_stride_A,
+                                                       (U)invA,
+                                                       (U)invA,
+                                                       (V)invA,
+                                                       NB,
+                                                       stride_invA,
+                                                       sub_stride_invA,
+                                                       (V)C_tmp,
+                                                       JB,
+                                                       0,
+                                                       sub_stride_C,
+                                                       batch_count,
+                                                       sub_blocks,
+                                                       offset_Ain + offset_A,
+                                                       offset_invAin + offset_invA1,
+                                                       offset_invAin + offset_invA2,
+                                                       offset_invAin + offset_invA3,
+                                                       0);
 
         offset_A     = (uplo == rocblas_fill_lower ? JB : JB * lda);
         offset_invA1 = (uplo == rocblas_fill_lower ? 0 : JB * NB + JB);
         offset_invA2 = (uplo == rocblas_fill_lower ? JB * NB + JB : 0);
         offset_invA3 = (uplo == rocblas_fill_lower ? JB : JB * NB);
 
-        trtri_gemm_block<BATCHED, !BATCHED, T>(handle,
-                                               JB,
-                                               JB,
-                                               (U)A,
-                                               lda,
-                                               stride_A,
-                                               sub_stride_A,
-                                               (U)invA,
-                                               (U)invA,
-                                               (V)invA,
-                                               NB,
-                                               stride_invA,
-                                               sub_stride_invA,
-                                               (V)C_tmp,
-                                               JB,
-                                               0,
-                                               sub_stride_C,
-                                               batch_count,
-                                               sub_blocks,
-                                               offset_Ain + offset_A,
-                                               offset_invAin + offset_invA1,
-                                               offset_invAin + offset_invA2,
-                                               offset_invAin + offset_invA3,
-                                               0);
+        rocblas_trtri_gemm_block<BATCHED, !BATCHED, T>(handle,
+                                                       JB,
+                                                       JB,
+                                                       (U)A,
+                                                       lda,
+                                                       stride_A,
+                                                       sub_stride_A,
+                                                       (U)invA,
+                                                       (U)invA,
+                                                       (V)invA,
+                                                       NB,
+                                                       stride_invA,
+                                                       sub_stride_invA,
+                                                       (V)C_tmp,
+                                                       JB,
+                                                       0,
+                                                       sub_stride_C,
+                                                       batch_count,
+                                                       sub_blocks,
+                                                       offset_Ain + offset_A,
+                                                       offset_invAin + offset_invA1,
+                                                       offset_invAin + offset_invA2,
+                                                       offset_invAin + offset_invA3,
+                                                       0);
 
     } // end if
 
@@ -305,7 +305,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
     if(rem)
     {
         static constexpr size_t sub_blockSize        = 128;
-        size_t                  tri_elements_to_zero = num_non_tri_elements(rem);
+        size_t                  tri_elements_to_zero = rocblas_num_non_tri_elements(rem);
         size_t num_sub_blocks = (tri_elements_to_zero + sub_blockSize - 1) / sub_blockSize;
 
         hipLaunchKernelGGL((rocblas_trtri_fill<sub_blockSize, T>),
@@ -316,7 +316,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            handle,
                            uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
                            rem,
-                           num_non_tri_elements(rem),
+                           rocblas_num_non_tri_elements(rem),
                            NB,
                            0,
                            invA,

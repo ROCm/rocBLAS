@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,22 +34,22 @@ template <rocblas_int DIM_X,
           typename U,
           typename W>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-ger_kernel(rocblas_int    m,
-           rocblas_int    n,
-           V              alpha_device_host,
-           rocblas_stride stride_alpha,
-           const U __restrict__ xa,
-           rocblas_stride shiftx,
-           rocblas_int    incx,
-           rocblas_stride stridex,
-           const U __restrict__ ya,
-           rocblas_stride shifty,
-           rocblas_int    incy,
-           rocblas_stride stridey,
-           W __restrict__ Aa,
-           rocblas_stride shifta,
-           rocblas_int    lda,
-           rocblas_stride strideA)
+rocblas_ger_kernel(rocblas_int    m,
+                   rocblas_int    n,
+                   V              alpha_device_host,
+                   rocblas_stride stride_alpha,
+                   const U __restrict__ xa,
+                   rocblas_stride shiftx,
+                   rocblas_int    incx,
+                   rocblas_stride stridex,
+                   const U __restrict__ ya,
+                   rocblas_stride shifty,
+                   rocblas_int    incy,
+                   rocblas_stride stridey,
+                   W __restrict__ Aa,
+                   rocblas_stride shifta,
+                   rocblas_int    lda,
+                   rocblas_stride strideA)
 {
     __shared__ T xdata[DIM_X];
     __shared__ T ydata[DIM_Y * WIN];
@@ -100,22 +100,22 @@ ger_kernel(rocblas_int    m,
 //optimized kernel for SGER
 template <rocblas_int DIM_X, typename T, typename V, typename U, typename W>
 ROCBLAS_KERNEL(DIM_X)
-sger_kernel(rocblas_int    m,
-            rocblas_int    n,
-            V              alpha_device_host,
-            rocblas_stride stride_alpha,
-            const U __restrict__ xa,
-            rocblas_stride shiftx,
-            rocblas_int    incx,
-            rocblas_stride stridex,
-            const U __restrict__ ya,
-            rocblas_stride shifty,
-            rocblas_int    incy,
-            rocblas_stride stridey,
-            W __restrict__ Aa,
-            rocblas_stride shifta,
-            rocblas_int    lda,
-            rocblas_stride strideA)
+rocblas_sger_kernel(rocblas_int    m,
+                    rocblas_int    n,
+                    V              alpha_device_host,
+                    rocblas_stride stride_alpha,
+                    const U __restrict__ xa,
+                    rocblas_stride shiftx,
+                    rocblas_int    incx,
+                    rocblas_stride stridex,
+                    const U __restrict__ ya,
+                    rocblas_stride shifty,
+                    rocblas_int    incy,
+                    rocblas_stride stridey,
+                    W __restrict__ Aa,
+                    rocblas_stride shifta,
+                    rocblas_int    lda,
+                    rocblas_stride strideA)
 {
     rocblas_int tx  = threadIdx.x;
     rocblas_int col = blockIdx.x;
@@ -157,23 +157,23 @@ template <bool        CONJ,
           typename U,
           typename W>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-ger_double_buffered_kernel(bool           host_ptr_mode,
-                           rocblas_int    m,
-                           rocblas_int    n,
-                           TStruct        alpha_device_host,
-                           rocblas_stride stride_alpha,
-                           const U __restrict__ xa,
-                           rocblas_stride shiftx,
-                           rocblas_int    incx,
-                           rocblas_stride stridex,
-                           const U __restrict__ ya,
-                           rocblas_stride shifty,
-                           rocblas_int    incy,
-                           rocblas_stride stridey,
-                           W __restrict__ Aa,
-                           rocblas_stride shifta,
-                           rocblas_int    lda,
-                           rocblas_stride strideA)
+rocblas_ger_double_buffered_kernel(bool           host_ptr_mode,
+                                   rocblas_int    m,
+                                   rocblas_int    n,
+                                   TStruct        alpha_device_host,
+                                   rocblas_stride stride_alpha,
+                                   const U __restrict__ xa,
+                                   rocblas_stride shiftx,
+                                   rocblas_int    incx,
+                                   rocblas_stride stridex,
+                                   const U __restrict__ ya,
+                                   rocblas_stride shifty,
+                                   rocblas_int    incy,
+                                   rocblas_stride stridey,
+                                   W __restrict__ Aa,
+                                   rocblas_stride shifta,
+                                   rocblas_int    lda,
+                                   rocblas_stride strideA)
 {
     auto alpha              = host_ptr_mode ? alpha_device_host.value
                                             : load_scalar(alpha_device_host.ptr, blockIdx.z, stride_alpha);
@@ -294,7 +294,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     if(is_gfx90a && (m > 2000) && (m == n)
        && ((m % 64 == 0 && (is_double || is_complex_float)) || ((m % 128 == 0) && is_float)))
     {
-        //The following ger_double_buffered_kernel is only valid for the multiples of DIM_X
+        //The following rocblas_ger_double_buffered_kernel is only valid for the multiples of DIM_X
         static constexpr int DIM_X               = is_float ? 128 : 64;
         static constexpr int DIM_Y               = is_float ? 8 : 16;
         static constexpr int elements_per_thread = DIM_X / (2 * DIM_Y);
@@ -307,28 +307,29 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         bool host_ptr_mode = handle->pointer_mode == rocblas_pointer_mode_host;
         rocblas_internal_val_ptr<V> alpha_device_host(host_ptr_mode, alpha);
 
-        hipLaunchKernelGGL((ger_double_buffered_kernel<CONJ, DIM_X, DIM_Y, elements_per_thread, T>),
-                           ger_grid,
-                           ger_threads,
-                           0,
-                           rocblas_stream,
-                           host_ptr_mode,
-                           m,
-                           n,
-                           alpha_device_host,
-                           stride_alpha,
-                           x,
-                           shiftx,
-                           incx,
-                           stridex,
-                           y,
-                           shifty,
-                           incy,
-                           stridey,
-                           A,
-                           offsetA,
-                           lda,
-                           strideA);
+        hipLaunchKernelGGL(
+            (rocblas_ger_double_buffered_kernel<CONJ, DIM_X, DIM_Y, elements_per_thread, T>),
+            ger_grid,
+            ger_threads,
+            0,
+            rocblas_stream,
+            host_ptr_mode,
+            m,
+            n,
+            alpha_device_host,
+            stride_alpha,
+            x,
+            shiftx,
+            incx,
+            stridex,
+            y,
+            shifty,
+            incy,
+            stridey,
+            A,
+            offsetA,
+            lda,
+            strideA);
     }
     else if(is_float && m > 1024)
     {
@@ -338,11 +339,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((sger_kernel<DIM_X, T>), ger_KARGS(alpha));
+            hipLaunchKernelGGL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(alpha));
         }
         else
         {
-            hipLaunchKernelGGL((sger_kernel<DIM_X, T>), ger_KARGS(*alpha));
+            hipLaunchKernelGGL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(*alpha));
         }
     }
     else
@@ -358,11 +359,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(alpha));
+            hipLaunchKernelGGL((rocblas_ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(alpha));
         }
         else
         {
-            hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(*alpha));
+            hipLaunchKernelGGL((rocblas_ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(*alpha));
         }
     }
 #undef ger_KARGS

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,7 @@ namespace
         T         alpha_h;
         real_t<T> beta_h;
         RETURN_IF_ROCBLAS_ERROR(
-            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+            rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         auto layer_mode     = handle->layer_mode;
@@ -186,26 +186,33 @@ namespace
 
         // passing in beta as the same type as alpha for easy code reuse
         const T beta_comp = {*beta, 0};
-        status            = rocblas_internal_syrkx_herkx_template<NB, BATCHED, true, T>(handle,
-                                                                             uplo,
-                                                                             trans,
-                                                                             n,
-                                                                             k,
-                                                                             alpha,
-                                                                             A,
-                                                                             offset_A,
-                                                                             lda,
-                                                                             stride_A,
-                                                                             B,
-                                                                             offset_B,
-                                                                             ldb,
-                                                                             stride_B,
-                                                                             &beta_comp,
-                                                                             C,
-                                                                             offset_C,
-                                                                             ldc,
-                                                                             stride_C,
-                                                                             batch_count);
+        T*      beta_comp_h;
+        if(handle->is_stream_in_capture_mode())
+        {
+            beta_comp_h = (T*)handle->host_malloc(sizeof(T));
+            std::memcpy(beta_comp_h, &beta_comp, sizeof(T));
+        }
+        status = rocblas_internal_syrkx_herkx_template<NB, BATCHED, true, T>(
+            handle,
+            uplo,
+            trans,
+            n,
+            k,
+            alpha,
+            A,
+            offset_A,
+            lda,
+            stride_A,
+            B,
+            offset_B,
+            ldb,
+            stride_B,
+            handle->is_stream_in_capture_mode() ? beta_comp_h : &beta_comp,
+            C,
+            offset_C,
+            ldc,
+            stride_C,
+            batch_count);
 
         if(status != rocblas_status_success)
             return status;

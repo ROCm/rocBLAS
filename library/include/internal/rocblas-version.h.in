@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@
 
 /* the configured version and settings
  */
-#ifndef ROCBLAS_VERSION_H_
-#define ROCBLAS_VERSION_H_
+#ifndef ROCBLAS_VERSION_H
+#define ROCBLAS_VERSION_H
 
 // clang-format off
 #define ROCBLAS_VERSION_MAJOR       @rocblas_VERSION_MAJOR@
@@ -33,4 +33,4 @@
 #define ROCBLAS_VERSION_COMMIT_ID   @rocblas_VERSION_COMMIT_ID@
 // clang-format on
 
-#endif
+#endif /* ROCBLAS_VERSION_H */

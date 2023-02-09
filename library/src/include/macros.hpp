@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2021-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2021-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@
 //#else
 //#endif
 
-#define ROCBLAS_KERNEL(lb_) __global__ __launch_bounds__((lb_)) void
-#define ROCBLAS_KERNEL_NO_BOUNDS __global__ void
+#define ROCBLAS_KERNEL(lb_) static __global__ __launch_bounds__((lb_)) void
+#define ROCBLAS_KERNEL_NO_BOUNDS static __global__ void
 
 // A storage-class-specifier other than thread_local shall not be specified in an explicit specialization.
 // ROCBLAS_KERNEL_INSTANTIATE should be used where kernels are instantiated to avoid use of static.

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -217,21 +218,16 @@ void template_testing_reduction_strided_batched(
             func(handle, N, dx, incx, stridex, batch_count, hr2);
         }
 
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used);
 
-        rocblas_cout << "N,incx,stridex,batch_count,rocblas(us)";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU(us),error_host_ptr,error_dev_ptr";
-
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << incx << "," << stridex << "," << batch_count << ","
-                     << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
-                         << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_incx, e_stride_x, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            ArgumentLogging::NA_value,
+            iamax_iamin_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error_1,
+            rocblas_error_2);
     }
 }

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,15 +29,15 @@
   *  and creates partial sums for each ty.
   */
 template <rocblas_int DIM_Y, typename T>
-__device__ T hbmvn_kernel_helper(rocblas_int ty,
-                                 rocblas_int ind,
-                                 bool        upper,
-                                 rocblas_int m,
-                                 rocblas_int k,
-                                 const T*    A,
-                                 rocblas_int lda,
-                                 const T*    x,
-                                 rocblas_int incx)
+__device__ T rocblas_hbmvn_kernel_helper(rocblas_int ty,
+                                         rocblas_int ind,
+                                         bool        upper,
+                                         rocblas_int m,
+                                         rocblas_int k,
+                                         const T*    A,
+                                         rocblas_int lda,
+                                         const T*    x,
+                                         rocblas_int incx)
 {
     T           res_A = 0.0;
     rocblas_int col;
@@ -100,17 +100,17 @@ __device__ T hbmvn_kernel_helper(rocblas_int ty,
   *  The imaginary part of the main diagonal is assumed to always be == 0.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-__device__ void hbmvn_kernel_calc(bool        upper,
-                                  rocblas_int n,
-                                  rocblas_int k,
-                                  T           alpha,
-                                  const T*    A,
-                                  rocblas_int lda,
-                                  const T*    x,
-                                  rocblas_int incx,
-                                  T           beta,
-                                  T*          y,
-                                  rocblas_int incy)
+__device__ void rocblas_hbmvn_kernel_calc(bool        upper,
+                                          rocblas_int n,
+                                          rocblas_int k,
+                                          T           alpha,
+                                          const T*    A,
+                                          rocblas_int lda,
+                                          const T*    x,
+                                          rocblas_int incx,
+                                          T           beta,
+                                          T*          y,
+                                          rocblas_int incy)
 {
     rocblas_int  thread_id = threadIdx.x + threadIdx.y * blockDim.x;
     __shared__ T sdata[DIM_X * DIM_Y];
@@ -118,10 +118,11 @@ __device__ void hbmvn_kernel_calc(bool        upper,
     if(alpha)
     {
         // threads are all configurated locally
-        rocblas_int ty         = thread_id / DIM_X;
-        rocblas_int tx         = thread_id % DIM_X;
-        rocblas_int ind        = blockIdx.x * DIM_X + tx;
-        sdata[tx + ty * DIM_X] = hbmvn_kernel_helper<DIM_Y>(ty, ind, upper, n, k, A, lda, x, incx);
+        rocblas_int ty  = thread_id / DIM_X;
+        rocblas_int tx  = thread_id % DIM_X;
+        rocblas_int ind = blockIdx.x * DIM_X + tx;
+        sdata[tx + ty * DIM_X]
+            = rocblas_hbmvn_kernel_helper<DIM_Y>(ty, ind, upper, n, k, A, lda, x, incx);
         __syncthreads();
     }
 
@@ -153,23 +154,23 @@ __device__ void hbmvn_kernel_calc(bool        upper,
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-hbmvn_kernel(bool           upper,
-             rocblas_int    n,
-             rocblas_int    k,
-             U              alpha_device_host,
-             V              Aa,
-             rocblas_stride shifta,
-             rocblas_int    lda,
-             rocblas_stride strideA,
-             V              xa,
-             rocblas_stride shiftx,
-             rocblas_int    incx,
-             rocblas_stride stridex,
-             U              beta_device_host,
-             W              ya,
-             rocblas_stride shifty,
-             rocblas_int    incy,
-             rocblas_stride stridey)
+rocblas_hbmvn_kernel(bool           upper,
+                     rocblas_int    n,
+                     rocblas_int    k,
+                     U              alpha_device_host,
+                     V              Aa,
+                     rocblas_stride shifta,
+                     rocblas_int    lda,
+                     rocblas_stride strideA,
+                     V              xa,
+                     rocblas_stride shiftx,
+                     rocblas_int    incx,
+                     rocblas_stride stridex,
+                     U              beta_device_host,
+                     W              ya,
+                     rocblas_stride shifty,
+                     rocblas_int    incy,
+                     rocblas_stride stridey)
 {
     rocblas_int num_threads = blockDim.x * blockDim.y * blockDim.z;
     if(DIM_X * DIM_Y != num_threads)
@@ -186,7 +187,7 @@ hbmvn_kernel(bool           upper,
 
     auto* y = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
 
-    hbmvn_kernel_calc<DIM_X, DIM_Y>(upper, n, k, alpha, A, lda, x, incx, beta, y, incy);
+    rocblas_hbmvn_kernel_calc<DIM_X, DIM_Y>(upper, n, k, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 /**
@@ -234,7 +235,7 @@ rocblas_status rocblas_hbmv_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL((hbmvn_kernel<hbmvN_DIM_X, hbmvN_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_hbmvn_kernel<hbmvN_DIM_X, hbmvN_DIM_Y>),
                            hbmvn_grid,
                            hbmvn_threads,
                            0,
@@ -262,7 +263,7 @@ rocblas_status rocblas_hbmv_template(rocblas_handle handle,
         if(!*alpha && *beta == 1)
             return rocblas_status_success;
 
-        hipLaunchKernelGGL((hbmvn_kernel<hbmvN_DIM_X, hbmvN_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_hbmvn_kernel<hbmvN_DIM_X, hbmvN_DIM_Y>),
                            hbmvn_grid,
                            hbmvn_threads,
                            0,

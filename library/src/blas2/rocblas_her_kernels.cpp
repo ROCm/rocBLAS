@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,13 @@
 #include "rocblas_her.hpp"
 
 template <rocblas_int DIM_X, typename T, typename U>
-ROCBLAS_KERNEL_ILF void her_kernel_calc(bool        upper,
-                                        rocblas_int n,
-                                        U           alpha,
-                                        const T* __restrict__ x,
-                                        rocblas_int incx,
-                                        T* __restrict__ A,
-                                        rocblas_int lda)
+ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        upper,
+                                                rocblas_int n,
+                                                U           alpha,
+                                                const T* __restrict__ x,
+                                                rocblas_int incx,
+                                                T* __restrict__ A,
+                                                rocblas_int lda)
 {
     rocblas_int tx  = threadIdx.x;
     rocblas_int col = blockIdx.x;
@@ -98,7 +98,7 @@ rocblas_her_kernel(bool           upper,
     auto*       A = load_ptr_batch(Aa, blockIdx.y, shift_A, stride_A);
     const auto* x = load_ptr_batch(xa, blockIdx.y, shift_x, stride_x);
 
-    her_kernel_calc<DIM_X>(upper, n, alpha, x, incx, A, lda);
+    rocblas_her_kernel_calc<DIM_X>(upper, n, alpha, x, incx, A, lda);
 }
 
 /**

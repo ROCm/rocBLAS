@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
  * \brief rocblas-types.h defines data types used by rocblas
  */
 
-#ifndef _ROCBLAS_TYPES_H_
-#define _ROCBLAS_TYPES_H_
+#ifndef ROCBLAS_TYPES_H
+#define ROCBLAS_TYPES_H
 
 // Request _Float16 type extension
 #define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
@@ -337,4 +337,4 @@ typedef enum rocblas_check_numerics_mode_
 
 } rocblas_check_numerics_mode;
 
-#endif
+#endif /* ROCBLAS_TYPES_H */

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,14 @@
 #include "logging.hpp"
 
 template <typename T>
-bool quick_return_param(rocblas_handle handle, const T* param, rocblas_stride stride_param);
+bool rocblas_rotm_quick_return_param(rocblas_handle handle,
+                                     const T*       param,
+                                     rocblas_stride stride_param);
 
 template <typename T>
-bool quick_return_param(rocblas_handle handle, const T* const param[], rocblas_stride stride_param);
+bool rocblas_rotm_quick_return_param(rocblas_handle handle,
+                                     const T* const param[],
+                                     rocblas_stride stride_param);
 
 template <typename T>
 rocblas_status rocblas_rotm_check_numerics(const char*    function_name,

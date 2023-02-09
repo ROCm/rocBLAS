@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +26,20 @@
 #include "rocblas_axpy_ex.hpp"
 
 template <int NB, bool BATCHED, typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
-rocblas_status axpy_ex_typecasting(const char*    name,
-                                   rocblas_handle handle,
-                                   rocblas_int    n,
-                                   const void*    alpha,
-                                   rocblas_stride stride_alpha,
-                                   const void*    x,
-                                   rocblas_stride offset_x,
-                                   rocblas_int    incx,
-                                   rocblas_stride stride_x,
-                                   void*          y,
-                                   rocblas_stride offset_y,
-                                   rocblas_int    incy,
-                                   rocblas_stride stride_y,
-                                   rocblas_int    batch_count)
+rocblas_status rocblas_axpy_ex_typecasting(const char*    name,
+                                           rocblas_handle handle,
+                                           rocblas_int    n,
+                                           const void*    alpha,
+                                           rocblas_stride stride_alpha,
+                                           const void*    x,
+                                           rocblas_stride offset_x,
+                                           rocblas_int    incx,
+                                           rocblas_stride stride_x,
+                                           void*          y,
+                                           rocblas_stride offset_y,
+                                           rocblas_int    incy,
+                                           rocblas_stride stride_y,
+                                           rocblas_int    batch_count)
 {
     auto check_numerics = handle->check_numerics;
 
@@ -216,51 +216,58 @@ rocblas_status rocblas_axpy_ex_template(const char*      name,
         return rocblas_status_invalid_pointer;
 
     // Quick return (alpha == 0) check and other nullptr checks will be done
-    // once we know the type (in axpy_ex_typecasting).
+    // once we know the type (in rocblas_axpy_ex_typecasting).
 
     rocblas_status status = rocblas_status_not_implemented;
 
-#define AXPY_EX_TYPECASTING_PARAM                                                         \
+#define rocblas_axpy_ex_typecasting_PARAM                                                 \
     name, handle, n, alpha, stride_alpha, x, offset_x, incx, stride_x, y, offset_y, incy, \
         stride_y, batch_count
 
     if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r
        && y_type == rocblas_datatype_f16_r && execution_type == rocblas_datatype_f32_r)
     {
-        status = axpy_ex_typecasting<NB, BATCHED, rocblas_half, rocblas_half, rocblas_half, float>(
-            AXPY_EX_TYPECASTING_PARAM);
+        status = rocblas_axpy_ex_typecasting<NB,
+                                             BATCHED,
+                                             rocblas_half,
+                                             rocblas_half,
+                                             rocblas_half,
+                                             float>(rocblas_axpy_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_f16_r
             && y_type == rocblas_datatype_f16_r && execution_type == rocblas_datatype_f32_r)
     {
-        status = axpy_ex_typecasting<NB, BATCHED, float, rocblas_half, rocblas_half, float>(
-            AXPY_EX_TYPECASTING_PARAM);
+        status = rocblas_axpy_ex_typecasting<NB, BATCHED, float, rocblas_half, rocblas_half, float>(
+            rocblas_axpy_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r
             && y_type == rocblas_datatype_f16_r && execution_type == rocblas_datatype_f16_r)
     {
-        status = axpy_ex_typecasting<NB, BATCHED, rocblas_half>(AXPY_EX_TYPECASTING_PARAM);
+        status = rocblas_axpy_ex_typecasting<NB, BATCHED, rocblas_half>(
+            rocblas_axpy_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_f32_r
             && y_type == rocblas_datatype_f32_r && execution_type == rocblas_datatype_f32_r)
     {
-        status = axpy_ex_typecasting<NB, BATCHED, float>(AXPY_EX_TYPECASTING_PARAM);
+        status = rocblas_axpy_ex_typecasting<NB, BATCHED, float>(rocblas_axpy_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f64_r && x_type == rocblas_datatype_f64_r
             && y_type == rocblas_datatype_f64_r && execution_type == rocblas_datatype_f64_r)
     {
-        status = axpy_ex_typecasting<NB, BATCHED, double>(AXPY_EX_TYPECASTING_PARAM);
+        status
+            = rocblas_axpy_ex_typecasting<NB, BATCHED, double>(rocblas_axpy_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_c && x_type == rocblas_datatype_f32_c
             && y_type == rocblas_datatype_f32_c && execution_type == rocblas_datatype_f32_c)
     {
-        status = axpy_ex_typecasting<NB, BATCHED, rocblas_float_complex>(AXPY_EX_TYPECASTING_PARAM);
+        status = rocblas_axpy_ex_typecasting<NB, BATCHED, rocblas_float_complex>(
+            rocblas_axpy_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f64_c && x_type == rocblas_datatype_f64_c
             && y_type == rocblas_datatype_f64_c && execution_type == rocblas_datatype_f64_c)
     {
-        status
-            = axpy_ex_typecasting<NB, BATCHED, rocblas_double_complex>(AXPY_EX_TYPECASTING_PARAM);
+        status = rocblas_axpy_ex_typecasting<NB, BATCHED, rocblas_double_complex>(
+            rocblas_axpy_ex_typecasting_PARAM);
     }
     else
     {
@@ -269,7 +276,7 @@ rocblas_status rocblas_axpy_ex_template(const char*      name,
 
     return status;
 
-#undef AXPY_EX_TYPECASTING_PARAM
+#undef rocblas_axpy_ex_typecasting_PARAM
 }
 
 // Instantiations below will need to be manually updated to match any change in

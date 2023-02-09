@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -458,7 +458,7 @@ void ROCBLAS_KERNEL_ILF rocblas_trsv_block_solve_upper(const T* __restrict__ A,
     }
 }
 
-static ROCBLAS_KERNEL(1) rocblas_trsv_init(rocblas_int* w_completed_sec)
+ROCBLAS_KERNEL(1) rocblas_trsv_init(rocblas_int* w_completed_sec)
 {
     // The last block section which has been completed (for each batch)
     w_completed_sec[blockIdx.x] = -1;

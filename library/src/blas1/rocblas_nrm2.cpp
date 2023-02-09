@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 #include "rocblas_nrm2.hpp"
 #include "check_numerics_vector.hpp"
 #include "rocblas_block_sizes.h"
-#include "rocblas_reduction_impl.hpp"
+#include "rocblas_reduction_setup.hpp"
 
 namespace
 {
@@ -92,8 +92,8 @@ namespace
         {
             return rocblas_status_memory_error;
         }
-        rocblas_status status = rocblas_internal_nrm2_template<NB, isbatched>(
-            handle, n, x, shiftx_0, incx, stridex_0, batch_count_1, results, (To*)w_mem);
+        rocblas_status status = rocblas_internal_nrm2_template<NB>(
+            handle, n, x, shiftx_0, incx, stridex_0, batch_count_1, (To*)w_mem, results);
         if(status != rocblas_status_success)
             return status;
 

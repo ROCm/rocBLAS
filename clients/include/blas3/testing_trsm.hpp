@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -257,45 +257,14 @@ void testing_trsm(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
-    //  Random lower triangular matrices have condition number
-    //  that grows exponentially with matrix size. Random full
-    //  matrices have condition that grows linearly with
-    //  matrix size.
-    //
-    //  We want a triangular matrix with condition number that grows
-    //  lineary with matrix size. We start with full random matrix A.
-    //  Calculate symmetric hAAT <- A A^T. Make hAAT strictly diagonal
-    //  dominant. A strictly diagonal dominant matrix is SPD so we
-    //  can use Cholesky to calculate L L^T = hAAT. These L factors
-    //  should have condition number approximately equal to
-    //  the condition number of the original matrix A.
-
     // Initialize data on host memory
-    rocblas_init_matrix(
-        hA, arg, rocblas_client_never_set_nan, rocblas_client_triangular_matrix, true);
+    rocblas_init_matrix(hA,
+                        arg,
+                        rocblas_client_never_set_nan,
+                        rocblas_client_diagonally_dominant_triangular_matrix,
+                        true);
     rocblas_init_matrix(
         hX, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, false, true);
-
-    //  calculate hAAT = hA * hA ^ T or hAAT = hA * hA ^ H if complex
-    cblas_gemm<T>(rocblas_operation_none,
-                  rocblas_operation_conjugate_transpose,
-                  K,
-                  K,
-                  K,
-                  T(1.0),
-                  hA,
-                  lda,
-                  hA,
-                  lda,
-                  T(0.0),
-                  hAAT,
-                  lda);
-
-    //  copy hAAT into hA, make hA strictly diagonal dominant, and therefore SPD
-    copy_hAAT_to_hA<T>((T*)hAAT, (T*)hA, K, size_t(lda));
-
-    //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
-    cblas_potrf<T>(char_uplo, K, hA, lda);
 
     //  make hA unit diagonal if diag == rocblas_diagonal_unit
     if(diag == rocblas_diagonal_unit)
@@ -342,10 +311,10 @@ void testing_trsm(const Arguments& arg)
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
-
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device

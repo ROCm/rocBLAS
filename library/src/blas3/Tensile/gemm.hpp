@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <cstring> // std::memcpy for graph capture use cases
+
 #ifdef BUILD_WITH_TENSILE
 #include "gemm_tensile.hpp"
 #else
@@ -38,13 +40,18 @@
  * TODO: Make this asynchronous, putting synchronization closer to Tensile call. *
  *********************************************************************************/
 template <typename Ta, typename Tac, typename Tb, typename Tbc>
-rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle handle,
-                                                    const Ta*&     alpha,
-                                                    const Tb*&     beta,
-                                                    Tac&           alpha_h,
-                                                    Tbc&           beta_h,
-                                                    rocblas_int    k)
+rocblas_status rocblas_copy_alpha_beta_to_host_if_on_device(rocblas_handle handle,
+                                                            const Ta*&     alpha,
+                                                            const Tb*&     beta,
+                                                            Tac&           alpha_h,
+                                                            Tbc&           beta_h,
+                                                            rocblas_int    k)
 {
+    if(handle->is_stream_in_capture_mode() && handle->skip_alpha_beta_memcpy())
+        return rocblas_status_success;
+
+    handle->alpha_beta_memcpy_completed();
+
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         if(alpha)
@@ -61,6 +68,23 @@ rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle handle,
             beta = &beta_h;
         }
     }
+    else if(handle->is_stream_in_capture_mode()
+            && handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+
+        if(alpha)
+        {
+            auto alpha_mem = handle->host_malloc(sizeof(Tac));
+            std::memcpy(alpha_mem, alpha, sizeof(Tac));
+            alpha = (Ta*)alpha_mem;
+        }
+        if(beta)
+        {
+            auto beta_mem = handle->host_malloc(sizeof(Tbc));
+            std::memcpy(beta_mem, beta, sizeof(Tbc));
+            beta = (Tb*)beta_mem;
+        }
+    }
     return rocblas_status_success;
 }
 
@@ -68,21 +92,21 @@ rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle handle,
  * Validate Arguments
  ******************************************************************************/
 template <typename T>
-inline rocblas_status validateArgs(rocblas_handle    handle,
-                                   rocblas_operation trans_a,
-                                   rocblas_operation trans_b,
-                                   rocblas_int       m,
-                                   rocblas_int       n,
-                                   rocblas_int       k,
-                                   const T*          alpha,
-                                   const void*       a,
-                                   rocblas_int       lda,
-                                   const void*       b,
-                                   rocblas_int       ldb,
-                                   const T*          beta,
-                                   const void*       c,
-                                   rocblas_int       ldc,
-                                   rocblas_int       batch_count = 1)
+inline rocblas_status rocblas_validateArgs(rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_operation trans_b,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           rocblas_int       k,
+                                           const T*          alpha,
+                                           const void*       a,
+                                           rocblas_int       lda,
+                                           const void*       b,
+                                           rocblas_int       ldb,
+                                           const T*          beta,
+                                           const void*       c,
+                                           rocblas_int       ldc,
+                                           rocblas_int       batch_count = 1)
 {
     // handle must be valid
     if(!handle)
@@ -178,56 +202,56 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     TScal alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+        rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
 #ifdef BUILD_WITH_TENSILE
     if(BATCHED)
     {
-        return call_tensile(handle,
-                            alpha,
-                            beta,
-                            A,
-                            B,
-                            C,
-                            trans_a,
-                            trans_b,
-                            ldc,
-                            stride_c,
-                            offset_c,
-                            lda,
-                            stride_a,
-                            offset_a,
-                            ldb,
-                            stride_b,
-                            offset_b,
-                            m,
-                            n,
-                            k,
-                            batch_count);
+        return rocblas_call_tensile(handle,
+                                    alpha,
+                                    beta,
+                                    A,
+                                    B,
+                                    C,
+                                    trans_a,
+                                    trans_b,
+                                    ldc,
+                                    stride_c,
+                                    offset_c,
+                                    lda,
+                                    stride_a,
+                                    offset_a,
+                                    ldb,
+                                    stride_b,
+                                    offset_b,
+                                    m,
+                                    n,
+                                    k,
+                                    batch_count);
     }
     else
     {
-        return call_tensile(handle,
-                            alpha,
-                            beta,
-                            A + offset_a,
-                            B + offset_b,
-                            C + offset_c,
-                            trans_a,
-                            trans_b,
-                            ldc,
-                            stride_c,
-                            0,
-                            lda,
-                            stride_a,
-                            0,
-                            ldb,
-                            stride_b,
-                            0,
-                            m,
-                            n,
-                            k,
-                            batch_count);
+        return rocblas_call_tensile(handle,
+                                    alpha,
+                                    beta,
+                                    A + offset_a,
+                                    B + offset_b,
+                                    C + offset_c,
+                                    trans_a,
+                                    trans_b,
+                                    ldc,
+                                    stride_c,
+                                    0,
+                                    lda,
+                                    stride_a,
+                                    0,
+                                    ldb,
+                                    stride_b,
+                                    0,
+                                    m,
+                                    n,
+                                    k,
+                                    batch_count);
     }
 #else // BUILD_WITH_TENSILE
     hipStream_t rocblas_stream = handle->get_stream();
@@ -238,27 +262,27 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             m, n, *beta, C, offset_c, ldc, stride_c, batch_count, rocblas_stream);
     }
 
-    gemm_source_solution<BATCHED>(trans_a,
-                                  trans_b,
-                                  m,
-                                  n,
-                                  k,
-                                  *alpha,
-                                  A,
-                                  lda,
-                                  stride_a,
-                                  offset_a,
-                                  B,
-                                  ldb,
-                                  stride_b,
-                                  offset_b,
-                                  *beta,
-                                  C,
-                                  ldc,
-                                  stride_c,
-                                  offset_c,
-                                  batch_count,
-                                  rocblas_stream);
+    rocblas_gemm_source_solution<BATCHED>(trans_a,
+                                          trans_b,
+                                          m,
+                                          n,
+                                          k,
+                                          *alpha,
+                                          A,
+                                          lda,
+                                          stride_a,
+                                          offset_a,
+                                          B,
+                                          ldb,
+                                          stride_b,
+                                          offset_b,
+                                          *beta,
+                                          C,
+                                          ldc,
+                                          stride_c,
+                                          offset_c,
+                                          batch_count,
+                                          rocblas_stream);
     return rocblas_status_success;
 #endif // BUILD_WITH_TENSILE
 }
