@@ -1,4 +1,4 @@
-"""Copyright (C) 2022 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -35,10 +35,10 @@ from git_info import create_github_file
 trackedParamList = ['function', 'precision', 'a_type', 'b_type', 'c_type', 'd_type', 'compute_type', 'input_type', 'output_type',
                     'transA', 'transB', 'uplo', 'diag', 'side', 'M', 'N', 'K', 'KL', 'KU', 'alpha', 'alphai', 'beta', 'betai',
                     'incx', 'incy', 'lda', 'ldb', 'ldd', 'stride_x', 'stride_y', 'stride_a', 'stride_b', 'stride_c', 'stride_d',
-                    'batch_count', 'algo', 'solution_index', 'flags', 'iters', 'cold_iters', 'pointer_mode',
-                    'mean_gflops', 'median_gflops', 'sample_num', 'rocblas-Gflops'] #Outputs
+                    'batch_count', 'algo', 'solution_index', 'flags', 'iters', 'cold_iters', 'pointer_mode', 'num_perfs', 'sample_num']
+                    # Add output (eg. gflops) in code dependent on what we want to record (gflops vs. gbytes)
 
-outputIndex = trackedParamList.index('mean_gflops')
+outputIndex = trackedParamList.index('num_perfs')
 
 exInputs = {'gemm': 'a_type',
             'trsm': 'a_type',
@@ -134,36 +134,65 @@ def parseRocblasBenchOutput(output, yamlArgs):
             csvKeys = line.split(',')
             #print("KEYS=",csvKeys)
             captureNext = True
-
     return lineLists
 
-def addSample(csvLists, newSample):
+def addSample(csvLists, newSample, perf_queries):
     newList = []
     matched = False
     for row in csvLists:
+        # if new sample has same input params as row
         if row[:outputIndex] == newSample[:outputIndex] and not matched:
-            row += [newSample[-1]]
-            row[trackedParamList.index('sample_num')] = len(row) - len(trackedParamList) + 1
+            cur_num_samples = row[trackedParamList.index('sample_num')]
+            for i in range(len(perf_queries)):
+                # outputIndex + 2 puts us just past end of trackedParamList
+                # add 2 * len(perf_queries) to get past mean/median results
+                # add cur_samples * (i + 1) + i to insert at end of this perf_query output
+                idx = outputIndex + 2 + 2 * len(perf_queries) + (cur_num_samples) * (i + 1) + i
+                if newSample[trackedParamList.index(perf_queries[i])].strip() != '':
+                    row.insert(idx, newSample[trackedParamList.index(perf_queries[i])])
+                else:
+                    row.insert(idx, '0')
+            row[trackedParamList.index('sample_num')] = row[trackedParamList.index('sample_num')] + 1
             matched = True
         newList += [row]
 
+    # if this is the first sample with this combination of input params, create new row
     if not matched:
-        newSample[trackedParamList.index('sample_num')] = len(newSample) - len(trackedParamList) + 1
+        num_perfs = 0
+        for perf in perf_queries:
+            if newSample[trackedParamList.index(perf)].strip() == '':
+                newSample[trackedParamList.index(perf)] = '0'
+        newSample[trackedParamList.index('num_perfs')] = len(perf_queries)
+        newSample[trackedParamList.index('sample_num')] = 1
         newList += [newSample]
 
     return newList
 
-def calculateMean(row):
-    l = [float(v) for v in row[trackedParamList.index('rocblas-Gflops'):]]
+def calculateMean(row, param_idx = 0):
+    # if we're recording gflops and gbytes for 3 samples,
+    # the data looks as follows:
+    # [gflops1, gflops2, gflops3, gbytes1, gbytes2, gbytes3] for example
+    # the indexing here should support any # of samples, and any # of perf_queries recorded
+
+    # outputIndex + 2 puts us just past end of trackedParamList
+    # add 2 * len(perf_queries) to get past mean/median results
+    # add cur_samples * i + i to get beginning of results for this perf_query output
+    num_perfs = row[trackedParamList.index('num_perfs')]
+    num_samples = int(row[trackedParamList.index('sample_num')])
+    idx = outputIndex + 2 + 2 * num_perfs + (param_idx) * num_samples + param_idx
+    l = [float(v) for v in row[idx:idx + num_samples]]
     return sum(l)/float(len(l))
 
-def calculateMedian(row):
-    l = [float(v) for v in row[trackedParamList.index('rocblas-Gflops'):]]
+def calculateMedian(row, param_idx = 0):
+    num_perfs = row[trackedParamList.index('num_perfs')]
+    num_samples = int(row[trackedParamList.index('sample_num')])
+    idx = outputIndex + 2 + 2 * num_perfs + (param_idx) * num_samples + param_idx
+    l = [float(v) for v in row[idx:idx + num_samples]]
     l.sort()
     return l[math.floor(len(l)/2)]
 
 
-def saveRocblasBenchResults(rocblasBenchCommand, problemsYaml, samples, outputFile):
+def saveRocblasBenchResults(rocblasBenchCommand, problemsYaml, samples, outputFile, perf_queries, res_queries):
 
     with open(problemsYaml, 'r') as file:
         problems = file.read()
@@ -184,11 +213,12 @@ def saveRocblasBenchResults(rocblasBenchCommand, problemsYaml, samples, outputFi
         benchResults = parseRocblasBenchOutput(output, problems)
 
         for sample in benchResults:
-            csvLists = addSample(csvLists, sample)
+            csvLists = addSample(csvLists, sample, perf_queries)
 
     for problem in csvLists[1:]:
-        problem[trackedParamList.index('mean_gflops')] = calculateMean(problem)
-        problem[trackedParamList.index('median_gflops')] = calculateMedian(problem)
+        for i in range(len(res_queries)):
+            problem[trackedParamList.index('mean_' + res_queries[i])] = calculateMean(problem, i)
+            problem[trackedParamList.index('median_' + res_queries[i])] = calculateMedian(problem, i)
 
     content = ''
     for line in csvLists:
@@ -208,6 +238,21 @@ def main(args):
     tag                 = args[2]
     filenames           = args[3:]
 
+    # Can alter this to query different performance results output by rocblas-bench
+    # perf_queries: what we read from rocblas-bench output
+    # res_queries: what we write to .csv file.
+    # Using "gflops" over rocblas-Gflops for backwards-compatibility reasons
+    perf_queries = ['rocblas-Gflops', 'rocblas-GB/s']
+    res_queries = ['gflops', 'rocblas-GB/s']
+
+    # append to trackedParamList our performance output of interest
+    global trackedParamList
+    for perf in res_queries:
+        trackedParamList += ['mean_' + perf]
+        trackedParamList += ['median_' + perf]
+    for perf in perf_queries:
+        trackedParamList += [perf]
+
     for filename in filenames:
         print("==================================\n|| Running benchmarks from {}\n==================================".format(filename))
         filePrefix = Path(filename).stem
@@ -219,7 +264,8 @@ def main(args):
         saveRocblasBenchResults(rocblasBenchCommand,
                                 filename,
                                 50,
-                                os.path.join(subDirectory, outputName+'_benchmark.csv'))
+                                os.path.join(subDirectory, outputName+'_benchmark.csv'),
+                                perf_queries, res_queries)
 
         environmentInfo = getEnvironmentInfo(0)
 
