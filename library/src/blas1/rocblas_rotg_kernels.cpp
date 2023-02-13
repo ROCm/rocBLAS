@@ -58,13 +58,7 @@ __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
 template <typename T, typename U, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
 __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
 {
-    if(!rocblas_abs(a))
-    {
-        c = 0;
-        s = {1, 0};
-        a = b;
-    }
-    else
+    if(rocblas_abs(a) != 0.)
     {
         auto scale = rocblas_abs(a) + rocblas_abs(b);
         auto sa    = rocblas_abs(a / scale);
@@ -74,6 +68,12 @@ __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)
         c          = rocblas_abs(a) / norm;
         s          = alpha * conj(b) / norm;
         a          = alpha * norm;
+    }
+    else
+    {
+        c = 0;
+        s = {1, 0};
+        a = b;
     }
 }
 
