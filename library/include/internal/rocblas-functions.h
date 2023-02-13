@@ -2194,9 +2194,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
     rotg creates the Givens rotation matrix for the vector (a b).
     Scalars c and s and arrays a and b may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode:
 
-    - If the pointer mode is set to rocblas_pointer_mode_host, then this function blocks the CPU until the GPU has finished and the results are available in host memory.
-    - If the pointer mode is set to rocblas_pointer_mode_device, then this function returns immediately and synchronization is required to read the results.
-
     @param[in]
     handle  [rocblas_handle]
             handle to the rocblas library context queue.
@@ -2576,9 +2573,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
     \details
     rotmg creates the modified Givens rotation matrix for the vector (d1 * x1, d2 * y1).
           Parameters may be stored in either host or device memory. Location is specified by calling rocblas_set_pointer_mode:
-
-    - If the pointer mode is set to rocblas_pointer_mode_host, then this function blocks the CPU until the GPU has finished and the results are available in host memory.
-    - If the pointer mode is set to rocblas_pointer_mode_device, then this function returns immediately and synchronization is required to read the results.
 
     @param[in]
     handle  [rocblas_handle]
