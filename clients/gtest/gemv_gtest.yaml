@@ -7,10 +7,17 @@ Definitions:
     - { M:    10, N:    10, lda:    2, stride_a:        1 }
     - { M:   100, N:   200, lda:  200, stride_a:    40000 }
 
+  - &sm_mn_matrix_size_range
+    # m && n <= 32 && batch_count >= 256 (gfx90a only) watch for overlap with qmcpack
+    - { M:    3 , N:    32, lda:    3, stride_a:       96 }
+    - { M:    24, N:    24, lda:   24, stride_a:     1024 }
+    - { M:    32, N:    11, lda:   32, stride_a:     1024 }
+
   - &qmcpack_matrix_size_range
-    - { M:    2 , N:    32, lda:    2, stride_a:       64 }
-    - { M:    32, N:    32, lda:   32, stride_a:     1024 }
-    - { M:    15, N:    33, lda:   16, stride_a:     1024 }
+    # m <= 64 && batch_count > 8 (transposes only), N >= 33 to avoid sm_mn kernel
+    - { M:    2 , N:    33, lda:    2, stride_a:       66 }
+    - { M:    32, N:    34, lda:   32, stride_a:     1088 }
+    - { M:    15, N:    35, lda:   16, stride_a:     1024 }
     - { M:    32, N:  1536, lda:   32, stride_a:    49152 }
 
   - &skinny_n_matrix_size_range
@@ -286,6 +293,19 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemv_sm_mn_batched
+  category: pre_checkin
+  function:
+    - gemv_batched
+    - gemv_strided_batched
+  precision: *single_double_precisions_complex_real
+  transA: [ N ]
+  matrix_size: *sm_mn_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 1.0, .NaN ]
+  batch_count: [256, 513] # >= 256
 
 - name: gemv_batched_qmcpack
   category: quick

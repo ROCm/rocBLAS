@@ -174,7 +174,43 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     gemvn_grid, gemvn_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
         strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
 
-        if(n <= 128 && m >= 2048 * n)
+        if(is_gfx90a && m <= 32 && n <= 32 && batch_count >= 256)
+        {
+#define gemvn_sm_mn_batched_KARGS(alpha_, beta_)                                                 \
+    gemvn_sm_mn_batched_grid, gemvn_sm_mn_batched_threads, 0, rocblas_stream, m, n, alpha_,      \
+        stride_alpha, A, offseta, lda, strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, \
+        shifty, incy, stridey, batch_count
+
+            // all rows && cols covered by DIM_X threads
+            static constexpr int GEMVN_SM_MN_BATCHED_DIM_X      = 32;
+            static constexpr int GEMVN_SM_MN_BATCHED_DIM_NBATCH = 24;
+
+            dim3 gemvn_sm_mn_batched_grid((batch_count - 1) / GEMVN_SM_MN_BATCHED_DIM_NBATCH + 1);
+            dim3 gemvn_sm_mn_batched_threads(GEMVN_SM_MN_BATCHED_DIM_X,
+                                             GEMVN_SM_MN_BATCHED_DIM_NBATCH);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL(
+                    (rocblas_gemvn_sm_mn_batched_kernel<GEMVN_SM_MN_BATCHED_DIM_X,
+                                                        GEMVN_SM_MN_BATCHED_DIM_NBATCH,
+                                                        T>),
+                    gemvn_sm_mn_batched_KARGS(alpha, beta));
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL(
+                    (rocblas_gemvn_sm_mn_batched_kernel<GEMVN_SM_MN_BATCHED_DIM_X,
+                                                        GEMVN_SM_MN_BATCHED_DIM_NBATCH,
+                                                        T>),
+                    gemvn_sm_mn_batched_KARGS(*alpha, *beta));
+            }
+#undef gemvn_sm_mn_batched_KARGS
+        }
+        else if(n <= 128 && m >= 2048 * n)
         {
             // skinny tuned block size
 
@@ -376,6 +412,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     {
         // transpose
         static constexpr bool CONJ = false;
+
         if(m <= 64 && batch_count > 8) // few rows, e.g. qmcpack
         {
             // number of columns on the y-dim of the grid
