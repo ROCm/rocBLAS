@@ -456,7 +456,7 @@ if [[ "${install_dependencies}" == true ]]; then
         cd cmake-3.16.8
         ./bootstrap --no-system-curl --parallel=16
         make -j16
-        sudo make install
+        elevate_if_not_root make install
         popd
       else
           echo "rocBLAS requires CMake version >= 3.16.8 and CMake version ${CMAKE_VERSION} is installed. Run install.sh again with --cmake_install flag and CMake version 3.16.8 will be installed to /usr/local"
