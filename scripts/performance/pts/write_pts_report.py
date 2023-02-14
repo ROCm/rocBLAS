@@ -263,7 +263,7 @@ def main(args):
 
         saveRocblasBenchResults(rocblasBenchCommand,
                                 filename,
-                                50,
+                                10,
                                 os.path.join(subDirectory, outputName+'_benchmark.csv'),
                                 perf_queries, res_queries)
 
