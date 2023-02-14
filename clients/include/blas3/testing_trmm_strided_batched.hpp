@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,10 @@
 template <typename T>
 void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 {
+#ifdef ROCBLAS_V3
+    rocblas_cout << "WARNING: For V3 run trmm_outofplace_strided_batched tests, in place "
+                    "trmm_strided_batched tests only run for V2.\n";
+#else
     auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
                                                        : rocblas_trmm_strided_batched<T, false>;
 
@@ -384,11 +388,16 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
                                                               0),
                               rocblas_status_success);
     }
+#endif // ROCBLAS_V3
 }
 
 template <typename T>
 void testing_trmm_strided_batched(const Arguments& arg)
 {
+#ifdef ROCBLAS_V3
+    rocblas_cout << "WARNING: For V3 run trmm_outofplace_strided_batched tests, in place "
+                    "trmm_strided_batched tests only run for V2.\n";
+#else
     auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
                                                        : rocblas_trmm_strided_batched<T, false>;
 
@@ -651,4 +660,5 @@ void testing_trmm_strided_batched(const Arguments& arg)
                          cpu_time_used,
                          rocblas_error);
     }
+#endif // ROCBLAS_V3
 }
