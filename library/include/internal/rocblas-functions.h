@@ -12760,6 +12760,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
                                                              rocblas_int batch_count);
 //! @}
 
+#ifndef ROCBLAS_V3
 /*! @{
     \brief <b> BLAS Level 3 API </b>
 
@@ -13235,6 +13236,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle      
                                                             rocblas_stride                stride_B,
                                                             rocblas_int batch_count);
 //! @}
+#endif // #ifndef ROCBLAS_V3
 
 /*! @{
     \brief <b> BLAS Level 3 API </b>
@@ -13775,6 +13777,28 @@ ROCBLAS_EXPORT rocblas_status
                                              rocblas_stride                stride_C,
                                              rocblas_int                   batch_count);
 //! @}
+
+#ifdef ROCBLAS_V3
+#ifndef ROCBLAS_TRMM_V3
+#define ROCBLAS_TRMM_V3
+
+#define rocblas_strmm rocblas_strmm_outofplace
+#define rocblas_dtrmm rocblas_dtrmm_outofplace
+#define rocblas_ctrmm rocblas_ctrmm_outofplace
+#define rocblas_ztrmm rocblas_ztrmm_outofplace
+
+#define rocblas_strmm_batched rocblas_strmm_outofplace_batched
+#define rocblas_dtrmm_batched rocblas_dtrmm_outofplace_batched
+#define rocblas_ctrmm_batched rocblas_ctrmm_outofplace_batched
+#define rocblas_ztrmm_batched rocblas_ztrmm_outofplace_batched
+
+#define rocblas_strmm_strided_batched rocblas_strmm_outofplace_strided_batched
+#define rocblas_dtrmm_strided_batched rocblas_dtrmm_outofplace_strided_batched
+#define rocblas_ctrmm_strided_batched rocblas_ctrmm_outofplace_strided_batched
+#define rocblas_ztrmm_strided_batched rocblas_ztrmm_outofplace_strided_batched
+
+#endif /* ROCBLAS_TRMM_V3 */
+#endif /* ROCBLAS_V3 */
 
 /*! @{
     \brief <b> BLAS Level 3 API </b>

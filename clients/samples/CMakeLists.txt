@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,13 +49,15 @@ endif( )
 if( BUILD_WITH_TENSILE )
   add_executable( rocblas-example-user-driven-tuning example_user_driven_tuning.cpp ${rocblas_samples_common} )
   add_executable( rocblas-example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
+  add_executable( rocblas-example-strmm_v3 example_strmm_v3.cpp ${rocblas_samples_common} )
   add_executable( rocblas-example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
   add_executable( rocblas-example-gemm-ext2 example_gemm_ext2.cpp ${rocblas_samples_common} )
-  set( sample_list_tensile rocblas-example-user-driven-tuning rocblas-example-sgemm rocblas-example-sgemm-strided-batched rocblas-example-gemm-ext2 )
+  set( sample_list_tensile rocblas-example-user-driven-tuning rocblas-example-sgemm rocblas-example-strmm_v3 rocblas-example-sgemm-strided-batched rocblas-example-gemm-ext2 )
 else( )
   add_executable( rocblas-example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
+  add_executable( rocblas-example-strmm_v3 example_strmm_v3.cpp ${rocblas_samples_common} )
   add_executable( rocblas-example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
-  set( sample_list_tensile rocblas-example-sgemm rocblas-example-sgemm-strided-batched )
+  set( sample_list_tensile rocblas-example-sgemm rocblas-example-strmm_v3 rocblas-example-sgemm-strided-batched )
 endif( )
 
 set( sample_list_c rocblas-example-c-dgeam )
@@ -118,3 +120,6 @@ foreach( exe ${sample_list_hip_device} )
     target_link_libraries( ${exe} PRIVATE hip::device )
   endif()
 endforeach( )
+
+target_compile_definitions( rocblas-example-strmm_v3 PRIVATE ROCBLAS_V3)
+
