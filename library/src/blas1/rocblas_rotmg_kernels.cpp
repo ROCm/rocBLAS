@@ -241,7 +241,6 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
     }
     else
     {
-        RETURN_IF_HIP_ERROR(hipStreamSynchronize(rocblas_stream));
         // TODO: make this faster for a large number of batches.
         for(int i = 0; i < batch_count; i++)
         {

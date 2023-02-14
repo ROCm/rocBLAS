@@ -25,7 +25,7 @@
 #include "rocblas_spr2.hpp"
 
 template <typename T>
-__device__ void rocblas_spr2_kernel_calc(bool        upper,
+__device__ void rocblas_spr2_kernel_calc(bool        is_upper,
                                          rocblas_int n,
                                          T           alpha,
                                          const T*    x,
@@ -37,16 +37,16 @@ __device__ void rocblas_spr2_kernel_calc(bool        upper,
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
-    int index = upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
+    int index = is_upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
 
-    if(upper ? ty < n && tx <= ty : tx < n && ty <= tx)
+    if(is_upper ? ty < n && tx <= ty : tx < n && ty <= tx)
         AP[index] += alpha * x[tx * incx] * y[ty * incy] + alpha * y[tx * incy] * x[ty * incx];
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TStruct, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_spr2_kernel(bool           host_ptr_mode,
-                    bool           upper,
+                    bool           is_upper,
                     rocblas_int    n,
                     TStruct        alpha_device_host,
                     TConstPtr      xa,
@@ -69,7 +69,7 @@ rocblas_spr2_kernel(bool           host_ptr_mode,
     const auto* x  = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
     const auto* y  = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
 
-    rocblas_spr2_kernel_calc(upper, n, alpha, x, incx, y, incy, AP);
+    rocblas_spr2_kernel_calc(is_upper, n, alpha, x, incx, y, incy, AP);
 }
 
 /**

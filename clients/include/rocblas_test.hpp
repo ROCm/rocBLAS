@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -182,7 +182,7 @@ bool match_test_category(const Arguments& arg, const char* category);
     ROCBLAS_ALLOW_UNINSTANTIATED_GTEST(testclass) \
     INSTANTIATE_TEST_CATEGORY(testclass, _)
 
-// Category based intantiation requires pass of large yaml data for each category
+// Category based instantiation requires pass of large yaml data for each category
 // Using single '_' named category and category name is moved to test name prefix
 // gtest_filter should be able to select same test subsets
 // INSTANTIATE_TEST_CATEGORY(testclass, quick)       \
@@ -314,7 +314,7 @@ public:
     // The name should only be generated once before the stream is destroyed
     operator std::string() &&
     {
-        // This table is private to each instantation of RocBLAS_TestName
+        // This table is private to each instantiation of RocBLAS_TestName
         // Placed inside function to avoid dependency on initialization order
         static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
         std::string RocBLAS_TestName_to_string(std::unordered_map<std::string, size_t>&,

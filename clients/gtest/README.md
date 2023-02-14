@@ -172,7 +172,7 @@ In this class, implement three static functions:
 
 This is usually implemented simply by calling the dispatch function in step E, passing it the helper `type_filter_functor` template class defined in `RocBLAS_Test`. This functor uses the same runtime type checks as are used to instantiate test functions with particular type arguments, but instead, this returns `true` or `false` depending on whether a function would have been called. It is used to filter out tests whose runtime parameters do not match a valid test.
 
-Since `RocBLAS_Test` is a dependent base class if this test implementation class is templated, you may need to use a fully-qualified name (`A::B`) to resolve `type_filter_functor`, and in the last part of this name, the keyword `template` needs to precede `type_filter_functor`. The first half of the fully-qualified name can be this class itself, or the full instantation of `RocBLAS_Test<...>`. For example:
+Since `RocBLAS_Test` is a dependent base class if this test implementation class is templated, you may need to use a fully-qualified name (`A::B`) to resolve `type_filter_functor`, and in the last part of this name, the keyword `template` needs to precede `type_filter_functor`. The first half of the fully-qualified name can be this class itself, or the full instantiation of `RocBLAS_Test<...>`. For example:
 ```c++
 static bool type_filter(const Arguments& arg)
 {
