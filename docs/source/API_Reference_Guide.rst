@@ -357,6 +357,58 @@ In hipBLAS the option to use packed_int8x4 will be removed, only int8_t will be 
 
 .. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18--32
 
+Announced in rocBLAS 3.0
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Replace Legacy BLAS in-place trmm API with API that supports both in-place and out-of-place functionality
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Use of the Legacy BLAS in-place trmm functions will give deprecation warnings telling
+you to compile with -DROCBLAS_V3 and use the new in-place and out-of-place trmm functions.
+
+The Legacy BLAS in-place trmm calculates B <- alpha * op(A) * B. Matrix B is replaced in-place by
+triangular matrix A multiplied by matrix B. The prototype in the include file rocblas-functions.h is:
+
+::
+
+    rocblas_status rocblas_strmm(rocblas_handle    handle,
+                                 rocblas_side      side,
+                                 rocblas_fill      uplo,
+                                 rocblas_operation transA,
+                                 rocblas_diagonal  diag,
+                                 rocblas_int       m,
+                                 rocblas_int       n,
+                                 const float*      alpha,
+                                 const float*      A,
+                                 rocblas_int       lda,
+                                 float*            B,
+                                 rocblas_int       ldb);
+
+rocBLAS 3.0 deprecates the legacy BLAS trmm and replaces it with C <- alpha * op(A) * B. The prototype is:
+
+::
+
+    rocblas_status rocblas_strmm(rocblas_handle    handle,
+                                 rocblas_side      side,
+                                 rocblas_fill      uplo,
+                                 rocblas_operation transA,
+                                 rocblas_diagonal  diag,
+                                 rocblas_int       m,
+                                 rocblas_int       n,
+                                 const float*      alpha,
+                                 const float*      A,
+                                 rocblas_int       lda,
+                                 const float*      B,
+                                 rocblas_int       ldb,
+                                 float*            C,
+                                 rocblas_int       ldc);
+
+The new API provides the legacy BLAS in-place functionality if you set pointer C equal to pointer B and
+ldc equal to ldb. The out-of-place functionality has a high performance implementation not available for
+in-place functionality.
+
+There are similar deprecations for the _batched and _strided_batched versions of trmm.
+
+
 
 =================
 Using rocBLAS API
