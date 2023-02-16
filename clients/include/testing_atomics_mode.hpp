@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -169,7 +169,7 @@ void testing_atomics_mode(const Arguments& arg)
     }
 
     //  Verify that result is deterministic for size [m,n,batch_count,k] = [1024, 16, 1, 500000].
-    //  We know that for this size gcnArch == 906 will use globalSplitU == 32. For other architecures
+    //  We know that for this size gcnArch == 906 will use globalSplitU == 32. For other architectures
     //  we suspect globalSplitU > 32 will be used
     CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_not_allowed));
 
@@ -181,10 +181,10 @@ void testing_atomics_mode(const Arguments& arg)
 
     CHECK_HIP_ERROR(hC_gold.transfer_from(dC));
 
-    // verify arbitary number of tests are deterministic
-    double err2                     = 0;
-    int    arbitary_number_of_tests = 10;
-    for(int i = 0; i < arbitary_number_of_tests; i++)
+    // verify arbitrary number of tests are deterministic
+    double err2                      = 0;
+    int    arbitrary_number_of_tests = 10;
+    for(int i = 0; i < arbitrary_number_of_tests; i++)
     {
         CHECK_HIP_ERROR(dC.transfer_from(hC_input));
 

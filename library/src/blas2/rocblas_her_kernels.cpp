@@ -26,7 +26,7 @@
 #include "rocblas_her.hpp"
 
 template <rocblas_int DIM_X, typename T, typename U>
-ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        upper,
+ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        is_upper,
                                                 rocblas_int n,
                                                 U           alpha,
                                                 const T* __restrict__ x,
@@ -45,7 +45,7 @@ ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        upper,
 
     const T res_x = conj(x[col * incx]) * alpha;
 
-    if(upper)
+    if(is_upper)
     {
         //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
         //If n > DIM_X, then the threads are reused and the multiplied values will be accumalated with matrix A.
@@ -79,7 +79,7 @@ ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        upper,
 
 template <rocblas_int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X)
-rocblas_her_kernel(bool           upper,
+rocblas_her_kernel(bool           is_upper,
                    rocblas_int    n,
                    TScal          alpha_device_host,
                    TConstPtr      xa,
@@ -98,7 +98,7 @@ rocblas_her_kernel(bool           upper,
     auto*       A = load_ptr_batch(Aa, blockIdx.y, shift_A, stride_A);
     const auto* x = load_ptr_batch(xa, blockIdx.y, shift_x, stride_x);
 
-    rocblas_her_kernel_calc<DIM_X>(upper, n, alpha, x, incx, A, lda);
+    rocblas_her_kernel_calc<DIM_X>(is_upper, n, alpha, x, incx, A, lda);
 }
 
 /**

@@ -32,8 +32,8 @@
 template <rocblas_int DIM_Y, typename T>
 __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
                                          rocblas_int ind,
-                                         bool        upper,
-                                         bool        diag,
+                                         bool        is_upper,
+                                         bool        is_unit_diag,
                                          rocblas_int m,
                                          rocblas_int k,
                                          const T*    A,
@@ -48,7 +48,7 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
     for(col = ty; col < m; col += DIM_Y)
     {
         // We have to convert ind to banded matrix row
-        rocblas_int row = upper ? ind + (k - col) : ind - col;
+        rocblas_int row = is_upper ? ind + (k - col) : ind - col;
 
         if(ind < m)
         {
@@ -60,7 +60,7 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
             else if(row == 0)
             {
                 // If main diagonal && diag, don't reference matrix, assume 1.
-                if(diag && (!upper || k == 0 && upper))
+                if(is_unit_diag && (!is_upper || k == 0 && is_upper))
                     res_A += w_x_copy[col];
                 else
                     res_A += (A[row + col * lda] * w_x_copy[col]);
@@ -68,7 +68,7 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
             else if(row == k)
             {
                 // If diag, don't reference matrix, assume 1.
-                if(diag && upper)
+                if(is_unit_diag && is_upper)
                     res_A += w_x_copy[col];
                 else
                     res_A += (A[row + col * lda] * w_x_copy[col]);
@@ -89,8 +89,8 @@ template <rocblas_int DIM_Y, typename T>
 __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
                                          rocblas_int ty,
                                          rocblas_int ind,
-                                         bool        upper,
-                                         bool        diag,
+                                         bool        is_upper,
+                                         bool        is_unit_diag,
                                          rocblas_int m,
                                          rocblas_int k,
                                          const T*    A,
@@ -108,7 +108,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
 
         if(col < m)
         {
-            if(upper)
+            if(is_upper)
             {
                 // Regular case
                 rocblas_int min_row = k - col;
@@ -121,7 +121,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
                 else if(row == k)
                 {
                     // if main diagonal && diag then don't reference A, assume 1.
-                    if(diag)
+                    if(is_unit_diag)
                         res_A += w_x_copy[row - min_row];
                     else
                         res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
@@ -139,7 +139,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
                 }
                 else if(row == 0)
                 {
-                    if(diag)
+                    if(is_unit_diag)
                         res_A += w_x_copy[row + col];
                     else
                         res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
@@ -158,8 +158,8 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
-                                                  bool              upper,
-                                                  bool              diag,
+                                                  bool              is_upper,
+                                                  bool              is_unit_diag,
                                                   rocblas_int       m,
                                                   rocblas_int       k,
                                                   const T*          A,
@@ -187,13 +187,14 @@ ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
     // if more elegant logic is used.
     if(transA == rocblas_operation_none)
     {
-        res_A = rocblas_tbmvn_kernel_helper<DIM_Y>(ty, ind, upper, diag, m, k, A, lda, w_x_copy);
+        res_A = rocblas_tbmvn_kernel_helper<DIM_Y>(
+            ty, ind, is_upper, is_unit_diag, m, k, A, lda, w_x_copy);
     }
     else
     {
         bool CONJ = transA == rocblas_operation_conjugate_transpose;
         res_A     = rocblas_tbmvt_kernel_helper<DIM_Y>(
-            CONJ, ty, ind, upper, diag, m, k, A, lda, w_x_copy);
+            CONJ, ty, ind, is_upper, is_unit_diag, m, k, A, lda, w_x_copy);
     }
     // Store partial sums for the diagonal
     sdata[tx + ty * DIM_X] = res_A;
@@ -252,8 +253,8 @@ ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_tbmvx_kernel(rocblas_operation transA,
-                     bool              upper,
-                     bool              diag,
+                     bool              is_upper,
+                     bool              is_unit_diag,
                      rocblas_int       m,
                      rocblas_int       k,
                      U                 Aa,
@@ -274,7 +275,8 @@ rocblas_tbmvx_kernel(rocblas_operation transA,
     const auto* w_x_copy = load_ptr_batch(w_xa_copy, blockIdx.y, 0, m);
     auto*       x        = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
 
-    rocblas_tbmvx_kernel_calc<DIM_X, DIM_Y>(transA, upper, diag, m, k, A, lda, w_x_copy, x, incx);
+    rocblas_tbmvx_kernel_calc<DIM_X, DIM_Y>(
+        transA, is_upper, is_unit_diag, m, k, A, lda, w_x_copy, x, incx);
 }
 
 /**

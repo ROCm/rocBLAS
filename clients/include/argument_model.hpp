@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -197,7 +197,7 @@ public:
         //
         // arg is an instance of the Arguments struct
         //
-        // apply is a templated lambda for C++17 and a templated fuctor for C++14
+        // apply is a templated lambda for C++17 and a templated functor for C++14
         //
         // For rocblas_ddot, the following template specialization of apply will be called:
         // apply<e_N>(print, arg, T{}), apply<e_incx>(print, arg, T{}), apply<e_incy>(print, arg, T{})
