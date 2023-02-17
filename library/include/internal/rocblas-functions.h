@@ -2192,22 +2192,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
 
     \details
     rotg creates the Givens rotation matrix for the vector (a b).
-    Scalars c and s and arrays a and b may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode:
+    Scalars a, b, c, and s may be stored in either host or device memory, location is specified by
+    calling rocblas_set_pointer_mode. The computation uses the formulas
 
-    - If the pointer mode is set to rocblas_pointer_mode_host, then this function blocks the CPU until the GPU has finished and the results are available in host memory.
-    - If the pointer mode is set to rocblas_pointer_mode_device, then this function returns immediately and synchronization is required to read the results.
+        sigma = sgn(a)    if |a| >  |b|
+              = sgn(b)    if |b| >= |a|
+        r = sigma*sqrt( a**2 + b**2 )
+        c = 1; s = 0      if r = 0
+        c = a/r; s = b/r  if r != 0
+
+    The subroutine also computes
+
+        z = s    if |a| > |b|,
+          = 1/c  if |b| >= |a| and c != 0
+          = 1    if c = 0
+
+    This allows c and s to be reconstructed from z as follows:
+
+        If z = 1, set c = 0, s = 1.
+        If |z| < 1, set c = sqrt(1 - z**2) and s = z.
+        If |z| > 1, set c = 1/z and s = sqrt( 1 - c**2).
 
     @param[in]
     handle  [rocblas_handle]
             handle to the rocblas library context queue.
     @param[inout]
-    a       device pointer or host pointer to input vector element, overwritten with r.
+    a       pointer to a, an element in vector (a,b), overwritten with r.
     @param[inout]
-    b       device pointer or host pointer to input vector element, overwritten with z.
-    @param[inout]
-    c       device pointer or host pointer to cosine element of Givens rotation.
-    @param[inout]
-    s       device pointer or host pointer sine element of Givens rotation.
+    b       pointer to b, an element in vector (a,b), overwritten with z.
+    @param[out]
+    c       pointer to c, cosine element of Givens rotation.
+    @param[out]
+    s       pointer to s, sine element of Givens rotation.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status
@@ -2234,22 +2250,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
 
     \details
     rotg_batched creates the Givens rotation matrix for the batched vectors (a_i b_i), for i = 1, ..., batch_count.
-    a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode:
-
-    - If the pointer mode is set to rocblas_pointer_mode_host, then this function blocks the CPU until the GPU has finished and the results are available in host memory.
-    - If the pointer mode is set to rocblas_pointer_mode_device, then this function returns immediately and synchronization is required to read the results.
+    a, b, c, and s are host pointers to an array of device pointers on the device, where each device pointer points
+    to a scalar value of a_i, b_i, c_i, or s_i.
 
     @param[in]
     handle  [rocblas_handle]
             handle to the rocblas library context queue.
     @param[inout]
-    a       device array of device pointers storing each single input vector element a_i, overwritten with r_i.
+    a       a, overwritten with r.
     @param[inout]
-    b       device array of device pointers storing each single input vector element b_i, overwritten with z_i.
-    @param[inout]
-    c       device array of device pointers storing each cosine element of Givens rotation for the batch.
-    @param[inout]
-    s       device array of device pointers storing each sine element of Givens rotation for the batch.
+    b       b overwritten with z.
+    @param[out]
+    c       cosine element of Givens rotation for the batch.
+    @param[out]
+    s       sine element of Givens rotation for the batch.
     @param[in]
     batch_count [rocblas_int]
                 number of batches (length of arrays a, b, c, and s).
@@ -2289,31 +2303,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle              
 
     \details
     rotg_strided_batched creates the Givens rotation matrix for the strided batched vectors (a_i b_i), for i = 1, ..., batch_count.
-    a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode:
-
-    - If the pointer mode is set to rocblas_pointer_mode_host, then this function blocks the CPU until the GPU has finished and the results are available in host memory.
-    - If the pointer mode is set to rocblas_pointer_mode_device, then this function returns immediately and synchronization is required to read the results.
+    a, b, c, and s are host pointers to arrays a, b, c, s on the device.
 
     @param[in]
     handle  [rocblas_handle]
             handle to the rocblas library context queue.
     @param[inout]
-    a       device strided_batched pointer or host strided_batched pointer to first single input vector element a_1, overwritten with r.
+    a       host pointer to first single input vector element a_1 on the device, overwritten with r.
     @param[in]
     stride_a [rocblas_stride]
              distance between elements of a in batch (distance between a_i and a_(i + 1)).
     @param[inout]
-    b       device strided_batched pointer or host strided_batched pointer to first single input vector element b_1, overwritten with z.
+    b       host pointer to first single input vector element b_1 on the device, overwritten with z.
     @param[in]
     stride_b [rocblas_stride]
              distance between elements of b in batch (distance between b_i and b_(i + 1)).
-    @param[inout]
-    c       device strided_batched pointer or host strided_batched pointer to first cosine element of Givens rotations c_1.
+    @param[out]
+    c       host pointer to first single cosine element of Givens rotations c_1 on the device.
     @param[in]
     stride_c [rocblas_stride]
              distance between elements of c in batch (distance between c_i and c_(i + 1)).
-    @param[inout]
-    s       device strided_batched pointer or host strided_batched pointer to sine element of Givens rotations s_1.
+    @param[out]
+    s       host pointer to first single sine element of Givens rotations s_1 on the device.
     @param[in]
     stride_s [rocblas_stride]
              distance between elements of s in batch (distance between s_i and s_(i + 1)).
@@ -2576,9 +2587,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
     \details
     rotmg creates the modified Givens rotation matrix for the vector (d1 * x1, d2 * y1).
           Parameters may be stored in either host or device memory. Location is specified by calling rocblas_set_pointer_mode:
-
-    - If the pointer mode is set to rocblas_pointer_mode_host, then this function blocks the CPU until the GPU has finished and the results are available in host memory.
-    - If the pointer mode is set to rocblas_pointer_mode_device, then this function returns immediately and synchronization is required to read the results.
 
     @param[in]
     handle  [rocblas_handle]

@@ -49,7 +49,7 @@ typedef enum rocblas_check_nan_init_
 } rocblas_check_nan_init;
 
 // Initialize matrix so adjacent entries have alternating sign.
-// In gemm if either A or B are initialized with alernating
+// In gemm if either A or B are initialized with alternating
 // sign the reduction sum will be summing positive
 // and negative numbers, so it should not get too large.
 // This helps reduce floating point inaccuracies for 16bit

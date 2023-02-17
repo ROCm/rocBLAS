@@ -26,7 +26,7 @@
 #include "rocblas_syr2.hpp"
 
 template <typename T>
-__device__ void rocblas_syr2_kernel_calc(bool        upper,
+__device__ void rocblas_syr2_kernel_calc(bool        is_upper,
                                          rocblas_int n,
                                          T           alpha,
                                          const T*    x,
@@ -39,14 +39,14 @@ __device__ void rocblas_syr2_kernel_calc(bool        upper,
     rocblas_int tx = blockIdx.x * blockDim.x + threadIdx.x;
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if(upper ? ty < n && tx <= ty : tx < n && ty <= tx)
+    if(is_upper ? ty < n && tx <= ty : tx < n && ty <= tx)
         A[tx + ty * lda]
             += alpha * x[tx * incx] * y[ty * incy] + alpha * y[tx * incy] * x[ty * incx];
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-rocblas_syr2_kernel(bool           upper,
+rocblas_syr2_kernel(bool           is_upper,
                     rocblas_int    n,
                     TScal          alphaa,
                     TConstPtr      xa,
@@ -74,7 +74,7 @@ rocblas_syr2_kernel(bool           upper,
     const auto* x = load_ptr_batch(xa, blockIdx.z, shift_x, stride_x);
     const auto* y = load_ptr_batch(ya, blockIdx.z, shift_y, stride_y);
 
-    rocblas_syr2_kernel_calc(upper, n, alpha, x, incx, y, incy, A, lda);
+    rocblas_syr2_kernel_calc(is_upper, n, alpha, x, incx, y, incy, A, lda);
 }
 
 /**

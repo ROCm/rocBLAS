@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1373,7 +1373,7 @@ try
 
         ("initialization",
          value<std::string>(&initialization)->default_value("hpl"),
-         "Intialize with random integers, trig functions sin and cos, or hpl-like input. "
+         "Initialize with random integers, trig functions sin and cos, or hpl-like input. "
          "Options: rand_int, trig_float, hpl")
 
         ("arithmetic_check",
@@ -1486,6 +1486,15 @@ try
     if((argc <= 1 && !datafile) || vm.count("help"))
     {
         rocblas_cout << desc << std::endl;
+        rocblas_cout << "Examples : ./rocblas-bench -f gemm -r s -m 4000 -n 4000 -k 4000 --lda "
+                        "4000 --ldb 4000 --ldc 4000 --transposeA N --transposeB T"
+                     << std::endl
+                     << std::endl
+                     << "\t   "
+                     << "./rocblas-bench -f gemv -r s -m 10240 -n 10240 --lda 10240" << std::endl
+                     << std::endl
+                     << "\t   "
+                     << "./rocblas-bench -f axpy -r d -n 102400000" << std::endl;
         return 0;
     }
 
