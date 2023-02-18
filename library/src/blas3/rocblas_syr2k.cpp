@@ -281,9 +281,9 @@ extern "C" {
     }
 
 IMPL(rocblas_ssyr2k, float, ROCBLAS_SSYR2K_NB);
-IMPL(rocblas_dsyr2k, double, ROCBLAS_DCZSYR2K_NB);
-IMPL(rocblas_csyr2k, rocblas_float_complex, ROCBLAS_DCZSYR2K_NB);
-IMPL(rocblas_zsyr2k, rocblas_double_complex, ROCBLAS_DCZSYR2K_NB);
+IMPL(rocblas_dsyr2k, double, ROCBLAS_DSYR2K_NB);
+IMPL(rocblas_csyr2k, rocblas_float_complex, ROCBLAS_CSYR2K_NB);
+IMPL(rocblas_zsyr2k, rocblas_double_complex, ROCBLAS_ZSYR2K_NB);
 
 #undef IMPL
 
