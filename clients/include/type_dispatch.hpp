@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -157,20 +157,25 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
     }
     else if(strstr(arg.function, "rotg"))
     {
-        // s, d, c, z precisions
         if(Ti == To && Ti == Tb && Ti == Tc)
         {
             // s, d
             if(Ti == rocblas_datatype_f32_r || Ti == rocblas_datatype_f64_r)
                 return rocblas_simple_dispatch<TEST>(arg);
         }
-        else if(Ti == To && Tb == Tc)
+        else if(Ti == rocblas_datatype_f32_c)
         {
-            // c, z
-            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
-                return TEST<rocblas_float_complex, float>{}(arg);
-            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
-                return TEST<rocblas_double_complex, double>{}(arg);
+            // c
+            return TEST<rocblas_float_complex, float>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_f64_c)
+        {
+            // z
+            return TEST<rocblas_double_complex, double>{}(arg);
+        }
+        else
+        {
+            rocblas_cout << "no dispatch for rotg" << std::endl;
         }
     }
     else if(strstr(arg.function, "rot"))

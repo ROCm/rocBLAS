@@ -299,10 +299,10 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_double_buffered_kernel_calc(rocblas_int ro
     {
         treg[0] = T(0);
 #pragma unroll
-        for(int j = tx; j < tx + (DIM_X / 2); j++)
-            treg[0] += la[tx * (DIM_X / 2) + (j % (DIM_X / 2))];
+        for(int k = tx; k < tx + (DIM_X / 2); k++)
+            treg[0] += la[tx * (DIM_X / 2) + (k % (DIM_X / 2))];
 
-        atomicAdd(&y[tx * incy], (treg[0] * alpha)); //y[tx] = treg[0];
+        atomicAdd(&y[tx * incy], (treg[0] * alpha));
     }
 }
 
@@ -1167,4 +1167,109 @@ rocblas_gemvtsm_kernel(rocblas_int    m,
     T* y = load_ptr_batch(ya, blockIdx.x, shifty, stridey);
 
     rocblas_gemvtsm_kernel_calc<CONJ, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+
+template <rocblas_int NB_X, rocblas_int NB_BATCH, typename T, typename U>
+ROCBLAS_KERNEL_ILF void rocblas_gemv_sm_mn_batched_kernel_calc(rocblas_int m,
+                                                               rocblas_int n,
+                                                               U           alpha,
+                                                               const T*    A,
+                                                               rocblas_int lda,
+                                                               const T*    x,
+                                                               rocblas_int incx,
+                                                               U           beta,
+                                                               T*          y,
+                                                               rocblas_int incy)
+{
+    // small m && n <= 32 and large batch kernel
+
+    const int tx = threadIdx.x; // row
+    const int ty = threadIdx.y; // batch offset in batch group
+
+    if(!alpha)
+    {
+        if(beta)
+        {
+            if(tx < m)
+                y[tx * incy] *= beta;
+        }
+        else
+        {
+            if(tx < m)
+                y[tx * incy] = 0;
+        }
+        return;
+    }
+
+    __shared__ T shared_x[NB_X * NB_BATCH];
+
+    T* sx = (T*)(shared_x);
+    sx += ty * NB_X;
+
+    if(tx < n)
+        sx[tx] = alpha * x[tx * incx];
+
+    __syncthreads();
+
+    if(tx < m)
+    {
+        T res = beta ? beta * y[tx * incy] : 0;
+        T rA[NB_X];
+
+#pragma unroll
+        for(int j = 0; j < NB_X; j++)
+            rA[j] = j < n ? A[j * lda + tx] : 0;
+
+#pragma unroll
+        for(int j = 0; j < NB_X; j++)
+            res += j < n ? rA[j] * sx[j] : 0;
+
+        y[tx * incy] = res;
+    }
+}
+
+template <rocblas_int NB_X, rocblas_int NB_BATCH, typename T, typename U, typename V, typename W>
+ROCBLAS_KERNEL(NB_X* NB_BATCH)
+rocblas_gemvn_sm_mn_batched_kernel(rocblas_int    m,
+                                   rocblas_int    n,
+                                   U              alpha_device_host,
+                                   rocblas_stride stride_alpha,
+                                   const V*       Aa,
+                                   rocblas_stride shifta,
+                                   rocblas_int    lda,
+                                   rocblas_stride strideA,
+                                   const V*       xa,
+                                   rocblas_stride shiftx,
+                                   rocblas_int    incx,
+                                   rocblas_stride stridex,
+                                   U              beta_device_host,
+                                   rocblas_stride stride_beta,
+                                   W*             ya,
+                                   rocblas_stride shifty,
+                                   rocblas_int    incy,
+                                   rocblas_stride stridey,
+                                   rocblas_int    batch_count)
+{
+// gfx90a kernels
+#if defined(__gfx90a__)
+
+    const int b = blockIdx.x * blockDim.y + threadIdx.y;
+    if(b >= batch_count)
+        return;
+
+    auto alpha = load_scalar(alpha_device_host, b, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, b, stride_beta);
+
+    if(!alpha && beta == 1)
+        return;
+
+    const T* A = cond_load_ptr_batch(alpha, Aa, b, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, b, shiftx, stridex);
+
+    T* y = load_ptr_batch(ya, b, shifty, stridey);
+
+    rocblas_gemv_sm_mn_batched_kernel_calc<NB_X, NB_BATCH>(
+        m, n, alpha, A, lda, x, incx, beta, y, incy);
+
+#endif
 }

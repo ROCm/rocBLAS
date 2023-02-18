@@ -345,23 +345,22 @@ void lapack_xrot(const int n, T* cx, const int incx, T* cy, const int incy, cons
 template <typename T, typename U>
 void lapack_xrotg(T& ca, T& cb, U& c, T& s)
 {
-    T      alpha = T(0.0);
-    double norm  = 0.0;
-    if(rocblas_abs(ca) == 0)
+    if(rocblas_abs(ca) != 0)
+    {
+        const U scale = rocblas_abs(ca) + rocblas_abs(cb);
+        const U norm  = scale
+                       * std::sqrt((rocblas_abs(ca / scale)) * (rocblas_abs(ca / scale))
+                                   + (rocblas_abs(cb / scale)) * (rocblas_abs(cb / scale)));
+        T alpha = ca / rocblas_abs(ca);
+        c       = rocblas_abs(ca) / norm;
+        s       = alpha * conjugate(cb) / norm;
+        ca      = alpha * norm;
+    }
+    else
     {
         c  = 0.0;
         s  = T(1.0);
         ca = cb;
-    }
-    else
-    {
-        const rocblas_complex_num<real_t<T>> scale = {rocblas_abs(ca) + rocblas_abs(cb), 0};
-        const double norm = std::real(scale) * std::sqrt(rocblas_abs(ca / scale))
-                            + std::sqrt(rocblas_abs(cb / scale));
-        alpha = ca / rocblas_abs(ca);
-        c     = rocblas_abs(ca) / norm;
-        s     = alpha * conjugate(cb) / norm;
-        ca    = alpha * norm;
     }
 }
 
