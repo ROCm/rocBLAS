@@ -661,7 +661,11 @@ struct perf_blas_axpy_ex<
                      || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
                          && std::is_same<Ty, Tex>{} && std::is_same<Tex, float>{})
                      || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_half>{}
-                         && std::is_same<Ta, Tex>{} && std::is_same<Tx, Ty>{})>>
+                         && std::is_same<Ta, Tex>{} && std::is_same<Tx, Ty>{})
+                     || (std::is_same<Ta, rocblas_bfloat16>{} && std::is_same<Ta, Tx>{}
+                         && std::is_same<Tx, Ty>{} && std::is_same<Tex, float>{})
+                     || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_bfloat16>{}
+                         && std::is_same<Tx, Ty>{} && std::is_same<Ta, Tex>{})>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
@@ -733,6 +737,8 @@ struct perf_blas_nrm2_ex<
             && std::is_same<Tr, Tex>{})
         || (std::is_same<Tx, rocblas_double_complex>{} && std::is_same<Tr, double>{}
             && std::is_same<Tr, Tex>{})
+        || (std::is_same<Tx, rocblas_bfloat16>{} && std::is_same<Tx, Tr>{}
+            && std::is_same<Tex, float>{})
         || (std::is_same<Tx, rocblas_half>{} && std::is_same<Tr, Tx>{}
             && std::is_same<Tex, float>{})>> : rocblas_test_valid
 {
@@ -870,6 +876,10 @@ struct perf_blas_scal_ex<
         || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
             && std::is_same<Tex, float>{})
         || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_half>{}
+            && std::is_same<Ta, Tex>{})
+        || (std::is_same<Ta, rocblas_bfloat16>{} && std::is_same<Ta, Tx>{}
+            && std::is_same<Tex, float>{})
+        || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_bfloat16>{}
             && std::is_same<Ta, Tex>{})
         || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_float_complex>{}
             && std::is_same<Tx, Tex>{})

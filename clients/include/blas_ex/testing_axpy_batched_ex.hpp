@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -345,7 +345,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
             for(rocblas_int b = 0; b < batch_count; b++)
             {
                 for(size_t i = 0; i < size_y; i++)
-                    hy[b][i] = hy_ex[b][i];
+                    hy[b][i] = (Ty)hy_ex[b][i];
             }
         }
 

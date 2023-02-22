@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 #include "handle.hpp"
 #include "rocblas.h"
 
-template <rocblas_int NB, typename Tex, typename Ta, typename Tx>
+template <rocblas_int NB, typename T, typename Tex = T, typename Ta, typename Tx>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_scal_template(rocblas_handle handle,
                                    rocblas_int    n,

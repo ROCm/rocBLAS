@@ -184,6 +184,10 @@ inline __host__ __device__ rocblas_bfloat16 operator*(rocblas_bfloat16 a, rocbla
 {
     return rocblas_bfloat16(float(a) * float(b));
 }
+inline __host__ __device__ rocblas_bfloat16 operator*(float a, rocblas_bfloat16 b)
+{
+    return rocblas_bfloat16(a * float(b));
+}
 inline __host__ __device__ rocblas_bfloat16 operator/(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) / float(b));

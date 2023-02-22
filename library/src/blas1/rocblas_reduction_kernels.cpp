@@ -301,6 +301,9 @@ INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<doubl
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const*, float, _Float16)
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const* const*, float, _Float16)
 
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<rocblas_bfloat16>, rocblas_finalize_nrm2, rocblas_bfloat16 const*, float, rocblas_bfloat16)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<rocblas_bfloat16>, rocblas_finalize_nrm2, rocblas_bfloat16 const* const*, float, rocblas_bfloat16)
+
 #undef INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE
 
 // clang-format off

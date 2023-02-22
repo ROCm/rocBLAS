@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -98,14 +98,18 @@ namespace
               && (std::is_same<T1, float>{} || std::is_same<T1, double>{}
                   || std::is_same<T1, rocblas_half>{} || std::is_same<T1, rocblas_float_complex>{}
                   || std::is_same<T1, rocblas_double_complex>{}))
+             || (std::is_same<T2, T3>{} && std::is_same<T1, float>{}
+                 && std::is_same<T2, rocblas_float_complex>{})
+             || (std::is_same<T2, T3>{} && std::is_same<T1, double>{}
+                 && std::is_same<T2, rocblas_double_complex>{})
              || (std::is_same<T1, T2>{} && std::is_same<T1, rocblas_half>{}
                  && std::is_same<T3, float>{})
              || (std::is_same<T1, T3>{} && std::is_same<T1, float>{}
                  && std::is_same<T2, rocblas_half>{})
-             || (std::is_same<T2, T3>{} && std::is_same<T1, float>{}
-                 && std::is_same<T2, rocblas_float_complex>{})
-             || (std::is_same<T2, T3>{} && std::is_same<T1, double>{}
-                 && std::is_same<T2, rocblas_double_complex>{})))>;
+             || (std::is_same<T1, rocblas_bfloat16>{} && std::is_same<T1, T2>{}
+                 && std::is_same<T3, float>{})
+             || (std::is_same<T1, float>{} && std::is_same<T2, rocblas_bfloat16>{}
+                 && std::is_same<T1, T3>{})))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function

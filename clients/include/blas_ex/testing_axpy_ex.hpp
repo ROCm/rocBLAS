@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -235,8 +235,8 @@ void testing_axpy_ex(const Arguments& arg)
     if(special_compute_test)
     {
         // max half value
-        hx[0]   = 65504;
-        hy_1[0] = 65504;
+        hx[0]   = (Tx)65504;
+        hy_1[0] = (Ty)65504;
         hy_2    = hy_1;
         hy_gold = hy_1;
     }
@@ -281,7 +281,7 @@ void testing_axpy_ex(const Arguments& arg)
             hy_gold[i] = (Ty)hy_gold_ex[i];
 
         if(special_compute_test)
-            hy_gold[0] = Tex(h_alpha + 1) * Tex(65504);
+            hy_gold[0] = Ty(Tex(h_alpha + 1) * Tex(65504));
 
         // No accumulation in axpy, hard to check if we're using the right
         // compute_type
