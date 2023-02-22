@@ -74,6 +74,8 @@ Real precisions: &real_precisions
     { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: bf16_r }
   - &hpa_bf16_precision
     { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r }
+  - &alpha_f32_hpa_bf16_precision
+    { a_type:  f32_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r }
   - &hpa_bf16_in_single_out_precision
     { a_type:  bf16_r, b_type:  bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
   - &hpa_half_float_alpha
@@ -91,11 +93,6 @@ Short precisions: &int8_half_single_precisions
   - *int8_precision
   - *half_precision
   - *single_precision
-
-Hpa half and half: &hpa_half_half_precisions
-  - *hpa_half_precision
-  - *half_precision
-  - *hpa_half_float_alpha
 
 ML precisions: &hpa_half_single_precisions
   - *hpa_half_precision
@@ -253,6 +250,17 @@ scal_ex Single double joined: &scal_ex_single_double_complex_real_alpha_complex_
   - *scal_ex_single_precision_complex_real_alpha_complex_out
   - *scal_ex_double_precision_complex_real_alpha_complex_out
 
+Hpa bfloat half single double complex real: &scal_ex_bfloat_half_single_double_complex_real_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
+  - *double_precision_complex
+  - *hpa_half_precision
+  - *half_precision
+  - *hpa_half_float_alpha
+  - *hpa_bf16_precision
+  - *alpha_f32_hpa_bf16_precision
+
 #############################################
 #           Used for rot* and nrm2_ex       #
 #############################################
@@ -318,10 +326,25 @@ Half bfloat single double complex real: &bfloat_single_double_complex_real_preci
   - *single_precision_complex
   - *double_precision_complex
 
+ ####################################################
+#  Used for gemm_batched and gemm_strided_batched   #
+#####################################################
+Hpa single double complex real: &half_single_double_complex_real_precisions
+  - *hpa_half_float_alpha
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
+  - *double_precision_complex
+  - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
+  - *half_precision
+
 #############################################
 #           Used for axpy_ex                #
 #############################################
-Hpa single double complex real: &half_single_double_complex_real_precisions
+Hpa bfloat half single double complex real: &bfloat_half_single_double_complex_real_precisions
+  - *hpa_bf16_precision
+  - *alpha_f32_hpa_bf16_precision
   - *hpa_half_float_alpha
   - *single_precision
   - *double_precision
@@ -337,6 +360,8 @@ Hpa single double complex real: &half_single_double_complex_real_precisions
 nrm2_ex precisions: &nrm2_ex_precisions
   - &half_precision_nrm2
     { a_type: f16_r, b_type: f16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+  - &bfloat_precision_nrm2
+    { a_type: bf16_r, b_type: bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
   - *single_precision
   - *double_precision
   - *single_precision_complex_real_in_real_compute

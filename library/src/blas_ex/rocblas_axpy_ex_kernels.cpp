@@ -240,6 +240,26 @@ rocblas_status rocblas_axpy_ex_template(const char*      name,
         status = rocblas_axpy_ex_typecasting<NB, BATCHED, float, rocblas_half, rocblas_half, float>(
             rocblas_axpy_ex_typecasting_PARAM);
     }
+    else if(alpha_type == rocblas_datatype_bf16_r && x_type == rocblas_datatype_bf16_r
+            && y_type == rocblas_datatype_bf16_r && execution_type == rocblas_datatype_f32_r)
+    {
+        status = rocblas_axpy_ex_typecasting<NB,
+                                             BATCHED,
+                                             rocblas_bfloat16,
+                                             rocblas_bfloat16,
+                                             rocblas_bfloat16,
+                                             float>(rocblas_axpy_ex_typecasting_PARAM);
+    }
+    else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_bf16_r
+            && y_type == rocblas_datatype_bf16_r && execution_type == rocblas_datatype_f32_r)
+    {
+        status = rocblas_axpy_ex_typecasting<NB,
+                                             BATCHED,
+                                             float,
+                                             rocblas_bfloat16,
+                                             rocblas_bfloat16,
+                                             float>(rocblas_axpy_ex_typecasting_PARAM);
+    }
     else if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r
             && y_type == rocblas_datatype_f16_r && execution_type == rocblas_datatype_f16_r)
     {

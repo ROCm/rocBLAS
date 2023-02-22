@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -224,17 +224,13 @@ void testing_nrm2_batched_ex(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        Tr abs_result = cpu_result[0] > 0 ? cpu_result[0] : -cpu_result[0];
-        Tr abs_error;
-        if(abs_result > 0)
-        {
-            abs_error = std::numeric_limits<Tr>::epsilon() * N * abs_result;
-        }
-        else
-        {
-            abs_error = std::numeric_limits<Tr>::epsilon() * N;
-        }
-        Tr tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
+        double abs_result = cpu_result[0] > 0 ? cpu_result[0] : -cpu_result[0];
+        double abs_error;
+
+        abs_error = abs_result > 0 ? std::numeric_limits<Tr>::epsilon() * N * abs_result
+                                   : std::numeric_limits<Tr>::epsilon() * N;
+
+        double tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
 

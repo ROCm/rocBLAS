@@ -169,6 +169,15 @@ rocblas_status rocblas_nrm2_ex_template(rocblas_handle   handle,
         return rocblas_nrm2_ex_typecasting<NB, ISBATCHED, rocblas_half, rocblas_half, float>(
             rocblas_nrm2_ex_typecasting_PARAM);
     }
+    else if(x_type == rocblas_datatype_bf16_r && result_type == rocblas_datatype_bf16_r
+            && execution_type == rocblas_datatype_f32_r)
+    {
+        return rocblas_nrm2_ex_typecasting<NB,
+                                           ISBATCHED,
+                                           rocblas_bfloat16,
+                                           rocblas_bfloat16,
+                                           float>(rocblas_nrm2_ex_typecasting_PARAM);
+    }
     else if(x_type == rocblas_datatype_f32_r && result_type == rocblas_datatype_f32_r
             && execution_type == rocblas_datatype_f32_r)
     {
