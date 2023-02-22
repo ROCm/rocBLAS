@@ -43,7 +43,8 @@ if ( BUILD_FORTRAN_CLIENTS )
   add_executable( rocblas-example-fortran-axpy example_fortran_axpy.f90 $<TARGET_OBJECTS:rocblas_fortran>)
   add_executable( rocblas-example-fortran-scal example_fortran_scal.f90 $<TARGET_OBJECTS:rocblas_fortran>)
   add_executable( rocblas-example-fortran-gemv example_fortran_gemv.f90 $<TARGET_OBJECTS:rocblas_fortran>)
-  set( sample_list_fortran rocblas-example-fortran-axpy rocblas-example-fortran-scal rocblas-example-fortran-gemv )
+  add_executable( rocblas-example-fortran-trmm_v3 example_fortran_trmm_v3.F90 $<TARGET_OBJECTS:rocblas_fortran>)
+  set( sample_list_fortran rocblas-example-fortran-axpy rocblas-example-fortran-scal rocblas-example-fortran-gemv rocblas-example-fortran-trmm_v3 )
 endif( )
 
 if( BUILD_WITH_TENSILE )
@@ -122,4 +123,5 @@ foreach( exe ${sample_list_hip_device} )
 endforeach( )
 
 target_compile_definitions( rocblas-example-strmm_v3 PRIVATE ROCBLAS_V3)
+target_compile_definitions( rocblas-example-fortran-trmm_v3 PRIVATE ROCBLAS_V3)
 
