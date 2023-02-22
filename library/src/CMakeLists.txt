@@ -565,8 +565,8 @@ endif( )
 ############################################################
 # Installation
 
-# Force installation of .f90 module file
-rocm_install(FILES "../include/rocblas_module.f90"
+# Force installation of .F90 module file
+rocm_install(FILES "../include/rocblas_module.F90"
 	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/"
 )
 
@@ -629,7 +629,7 @@ if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
     rocm_install(
       CODE "
         set(PREFIX \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})
-        set(INPUT_FILE \${PREFIX}/include/rocblas/rocblas_module.f90)
+        set(INPUT_FILE \${PREFIX}/include/rocblas/rocblas_module.F90)
         set(SYMLINK_LOCATIONS \${PREFIX}/rocblas/include \${PREFIX}/include)
         foreach(LOCATION IN LISTS SYMLINK_LOCATIONS)
           file(MAKE_DIRECTORY \${LOCATION})
