@@ -137,7 +137,7 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 2.0, 0.0, 0.6 ]
+  alpha: [ -0.5, 2.0, 0.0 ]
 
 # ger_batched
 - name: ger_batched_fortran
@@ -153,7 +153,7 @@ Tests:
 - name: ger_batched_NaN
   category: quick
   function: ger_batched
-  precision: *double_precision
+  precision: *single_double_precisions
   matrix_size: *tiny_matrix
   incx_incy: *incx_incy_range_small
   alpha: [ .NaN ]

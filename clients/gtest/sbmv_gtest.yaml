@@ -47,7 +47,7 @@ Definitions:
     - { alpha: 2.0, beta: 1.5 }
 
   - &alpha_beta_range_nan
-    - { alpha: .NaN, beta: 1.5 }
+    - { alpha: .NaN, beta: 2.0 }
     - { alpha: 1.5, beta: .NaN } # alpha value changed from 1.2 -> 1.5 to overcome the equality issue when comparing results of rocBLAS with the host
 
 Tests:
@@ -105,7 +105,7 @@ Tests:
 - name: sbmv_batched_NaN
   category: pre_checkin
   function: sbmv_batched
-  precision: *double_precision
+  precision: *single_double_precisions
   uplo: [ U ]
   matrix_size: *tiny_matrix
   incx_incy: *incx_incy_range_small
