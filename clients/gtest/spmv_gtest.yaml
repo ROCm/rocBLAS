@@ -167,7 +167,7 @@ Tests:
 - name: spmv_strided_batched_NaN
   category: pre_checkin
   function: spmv_strided_batched
-  precision: *single_precision
+  precision: *single_double_precisions
   uplo: [ L ]
   N: [ 33 ]
   incx_incy: *incx_incy_range_small

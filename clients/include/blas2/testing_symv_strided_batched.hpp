@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -311,8 +311,6 @@ void testing_symv_strided_batched(const Arguments& arg)
     rocblas_stride strideA = size_t(lda) * N;
     rocblas_stride stridex = size_t(N) * abs_incx;
     rocblas_stride stridey = size_t(N) * abs_incy;
-    size_t         size_X  = stridex * batch_count;
-    size_t         size_Y  = stridey * batch_count;
 
     rocblas_local_handle handle{arg};
 
@@ -372,7 +370,7 @@ void testing_symv_strided_batched(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_symmetric_matrix, true);
-    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, false);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
 
     // make copy in hy_gold which will later be used with CPU BLAS

@@ -99,7 +99,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ 1000.6 ]
+  alpha: [ 1.0 ]
 
 # batched
 - name: spr2_batched_fortran
@@ -150,7 +150,7 @@ Tests:
   uplo: [ U ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ 1000.6 ]
+  alpha: [ 0.5 ]
   batch_count: [ 1, 3 ]
 
 # strided batched
@@ -206,7 +206,7 @@ Tests:
   uplo: [ L ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ 1000.6 ]
+  alpha: [ -0.5 ]
   stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 

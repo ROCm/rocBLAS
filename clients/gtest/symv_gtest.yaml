@@ -50,7 +50,7 @@ Definitions:
 
   - &alpha_beta_range_nan
     - { alpha: .NaN, beta: 1.5 }
-    - { alpha: 1.2, beta: .NaN }
+    - { alpha: 1.5, beta: .NaN }
 
 Tests:
 - name: symv_bad
@@ -82,7 +82,7 @@ Tests:
 - name: symv_NaN
   category: quick
   function: symv
-  precision: *single_double_precisions_complex
+  precision: *single_double_precisions_complex_real
   uplo: [ U ]
   matrix_size: *tiny_matrix_size
   incx_incy: *incx_incy_range_small
