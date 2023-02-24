@@ -59,6 +59,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
 

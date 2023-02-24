@@ -34,9 +34,13 @@ rocblas_scal_kernel(rocblas_int    n,
                     rocblas_int    incx,
                     rocblas_stride stride_x)
 {
-    auto*     x     = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
-    auto      alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
-    ptrdiff_t tid   = blockIdx.x * blockDim.x + threadIdx.x;
+    auto* x     = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
+    auto  alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+
+    if(alpha == 1)
+        return;
+
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     // bound
     if(tid < n)
@@ -59,9 +63,13 @@ rocblas_sscal_2_kernel(rocblas_int    n,
                        rocblas_stride offset_x,
                        rocblas_stride stride_x)
 {
-    auto*     x     = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
-    auto      alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
-    ptrdiff_t tid   = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    auto* x     = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
+    auto  alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+
+    if(alpha == 1)
+        return;
+
+    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
 
     if(tid < n - 1)
     {
@@ -82,7 +90,7 @@ rocblas_sscal_2_kernel(rocblas_int    n,
 }
 
 //!
-//! @brief Optimized kernel for the SCAL half points.
+//! @brief Optimized kernel for the SCAL when the compute and alpha type is half precision.
 //! @remark Increments are required to be equal to one, that's why they are unspecified.
 //!
 template <rocblas_int NB, typename Ta, typename Tx>
@@ -96,8 +104,10 @@ rocblas_hscal_mlt_4_kernel(rocblas_int    n,
                            rocblas_stride offset_x,
                            rocblas_stride stride_x)
 {
-
     auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
+
+    if(alpha == 1)
+        return;
 
     rocblas_half2 x0, x1;
     rocblas_half2 z0, z1;
@@ -130,7 +140,7 @@ rocblas_hscal_mlt_4_kernel(rocblas_int    n,
         //The last ThreadID which is a multiple of 4 should complete the computation of last few elements of vector `x`
         if(tid == n_mlt_4)
         {
-            auto* x = (rocblas_half*)load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
+            auto* x = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
             for(rocblas_int j = 0; j < n_mod_4; ++j)
             {
                 x[tid + j] = x[tid + j] * alpha;
@@ -205,34 +215,37 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         dim3        grid(blocks, batch_count);
         dim3        threads(NB);
 
-        if(rocblas_pointer_mode_device == handle->pointer_mode)
-            hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               n_mod_4,
-                               n_mlt_4,
-                               (const rocblas_half*)alpha,
-                               stride_alpha,
-                               x,
-                               offset_x,
-                               stride_x);
-        else // single alpha is on host
-            hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               n_mod_4,
-                               n_mlt_4,
-                               load_scalar((const rocblas_half*)alpha),
-                               stride_alpha,
-                               x,
-                               offset_x,
-                               stride_x);
+        if constexpr(using_rocblas_half)
+        {
+            if(rocblas_pointer_mode_device == handle->pointer_mode)
+                hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   n,
+                                   n_mod_4,
+                                   n_mlt_4,
+                                   (const rocblas_half*)alpha,
+                                   stride_alpha,
+                                   x,
+                                   offset_x,
+                                   stride_x);
+            else // single alpha is on host
+                hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   n,
+                                   n_mod_4,
+                                   n_mlt_4,
+                                   load_scalar((const rocblas_half*)alpha),
+                                   stride_alpha,
+                                   x,
+                                   offset_x,
+                                   stride_x);
+        }
     }
     else
     {
