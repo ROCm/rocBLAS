@@ -360,10 +360,12 @@ In hipBLAS the option to use packed_int8x4 will be removed, only int8_t will be 
 Announced in rocBLAS 3.0
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Replace Legacy BLAS in-place trmm API with API that supports both in-place and out-of-place functionality
-'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-Use of the Legacy BLAS in-place trmm functions will give deprecation warnings telling
+Replace Legacy BLAS in-place trmm functions with trmm functions that support both in-place and out-of-place functionality
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Use of the deprecated Legacy BLAS in-place trmm functions will give deprecation warnings telling
 you to compile with -DROCBLAS_V3 and use the new in-place and out-of-place trmm functions.
+
+Note that there are no deprecation warnings for the rocBLAS Fortran API.
 
 The Legacy BLAS in-place trmm calculates B <- alpha * op(A) * B. Matrix B is replaced in-place by
 triangular matrix A multiplied by matrix B. The prototype in the include file rocblas-functions.h is:
@@ -383,7 +385,7 @@ triangular matrix A multiplied by matrix B. The prototype in the include file ro
                                  float*            B,
                                  rocblas_int       ldb);
 
-rocBLAS 3.0 deprecates the legacy BLAS trmm and replaces it with C <- alpha * op(A) * B. The prototype is:
+rocBLAS 3.0 deprecates the legacy BLAS trmm functionality and replaces it with C <- alpha * op(A) * B. The prototype is:
 
 ::
 
@@ -403,8 +405,7 @@ rocBLAS 3.0 deprecates the legacy BLAS trmm and replaces it with C <- alpha * op
                                  rocblas_int       ldc);
 
 The new API provides the legacy BLAS in-place functionality if you set pointer C equal to pointer B and
-ldc equal to ldb. The out-of-place functionality has a high performance implementation not available for
-in-place functionality.
+ldc equal to ldb.
 
 There are similar deprecations for the _batched and _strided_batched versions of trmm.
 

@@ -21,6 +21,76 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+module procedures
+    implicit none
+contains
+    subroutine trmm_reference(side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, C, ldc)
+    use rocblas_enums
+        integer(kind(        rocblas_side_left)) ::   side
+        integer(kind(       rocblas_fill_upper)) ::   uplo
+        integer(kind(   rocblas_operation_none)) :: transA
+        integer(kind(rocblas_diagonal_non_unit)) ::   diag
+        integer :: m, n, lda, ldb, ldc
+        real(8), dimension(:) :: A, B, C
+        integer i1, i2, i3
+        real(8) alpha, t
+
+        integer :: As1, As2, Bs1, Bs2, Cs1, Cs2
+        if(transA .eq. rocblas_operation_none) then
+            As1 = 1
+            As2 = lda
+        else
+            As1 = lda
+            As2 = 1
+        end if
+
+        if(side .eq. rocblas_side_left) then
+            do i1 = 1, m
+                do i2 = 1, n
+                    t = 0.0
+                    do i3 = 1, m
+                        if( i1.eq.i3 .and. diag.eq.rocblas_diagonal_unit) then
+                            t = t + B(i3 + (i2-1) * ldb)
+                        else if( (i3.gt.i1 .and. uplo.eq.rocblas_fill_upper) .or. &
+                                 (i1.gt.i3 .and. uplo.eq.rocblas_fill_lower) .or. &
+                                 (i1.eq.i3 .and. diag.eq.rocblas_diagonal_non_unit)) then
+                                 if(transA.eq.rocblas_operation_none)then
+                                     t = t + A(i1*As1 + (i3-1)*As2) * B(i3 + (i2-1)*ldb)
+                                 else
+                                     t = t + A((i1-1)*As1 + i3*As2) * B(i3 + (i2-1)*ldb)
+                                 endif
+                        end if
+                    end do
+                    C(i1 + (i2-1)*ldc) = alpha * t
+                end do
+            end do
+        end if
+
+        if(side .eq. rocblas_side_right) then
+            do i1 = 1, m
+                do i2 = 1, n
+                    t = 0.0
+                    do i3 = 1, n
+                        if( i2.eq.i3 .and. diag.eq.rocblas_diagonal_unit) then
+                            t = t + B(i1 + (i3-1) * ldb)
+                        else if( (i2.gt.i3 .and. uplo.eq.rocblas_fill_upper) .or. &
+                                 (i3.gt.i2 .and. uplo.eq.rocblas_fill_lower) .or. &
+                                 (i3.eq.i2 .and. diag.eq.rocblas_diagonal_non_unit)) then
+                                 if(transA.eq.rocblas_operation_none) then
+                                     t = t + A(i3*As1 + (i2-1)*As2) * B(i1 + (i3-1)*ldb)
+                                 else
+                                     t = t + A((i3-1)*As1 + i2*As2) * B(i1 + (i3-1)*ldb)
+                                 endif
+                        end if
+                    end do
+                    C(i1 + (i2-1)*ldc) = alpha * t
+                end do
+            end do
+        end if
+    
+        return
+    end subroutine trmm_reference
+end module
 
 subroutine HIP_CHECK(stat)
     use iso_c_binding
@@ -52,6 +122,7 @@ program example_fortran_trmm
     use iso_c_binding
     use rocblas
     use rocblas_enums
+    use procedures
 
     implicit none
 
@@ -124,28 +195,28 @@ program example_fortran_trmm
 
     integer tbegin(8)
     integer tend(8)
-    real(8) timing
+    real(8) timing, max_relative_error, relative_error
     logical :: failure_in_gemv = .FALSE.
     real(c_double) :: res
 
-    integer(c_int) :: n = 48
-    integer(c_int) :: m = 48
-    integer(c_int) :: lda = 48
-    integer(c_int) :: ldb = 48
-    integer(c_int) :: ldc = 48
-    real(c_double), target :: alpha = 12.5
+    integer(c_int) :: n = 4
+    integer(c_int) :: m = 4
+    integer(c_int) :: lda = 4
+    integer(c_int) :: ldb = 4
+    integer(c_int) :: ldc = 4
+    real(c_double), target :: alpha = 1.0
     integer(kind(        rocblas_side_left)), parameter ::   side = rocblas_side_left
     integer(kind(       rocblas_fill_upper)), parameter ::   uplo = rocblas_fill_upper
     integer(kind(   rocblas_operation_none)), parameter :: transA = rocblas_operation_none
     integer(kind(rocblas_diagonal_non_unit)), parameter ::   diag = rocblas_diagonal_non_unit
 
-    integer(c_int) :: size_A = 48 * 48
-    integer(c_int) :: size_B = 48 * 48
-    integer(c_int) :: size_C = 48 * 48
+    integer(c_int) :: size_A = 4 * 4
+    integer(c_int) :: size_B = 4 * 4
+    integer(c_int) :: size_C = 4 * 4
 
-    real(8), dimension(:), allocatable, target :: hA
-    real(8), dimension(:), allocatable, target :: hB
-    real(8), dimension(:), allocatable, target :: hC
+    real(8), dimension(:), allocatable, target :: hA, hA_gold
+    real(8), dimension(:), allocatable, target :: hB, hB_gold
+    real(8), dimension(:), allocatable, target :: hC, hC_gold
 
     type(c_ptr), target :: dA
     type(c_ptr), target :: dB
@@ -160,9 +231,9 @@ program example_fortran_trmm
     call ROCBLAS_CHECK(rocblas_create_handle(c_loc(handle)))
 
     ! Allocate host-side memory
-    allocate(hA(size_A))
-    allocate(hB(size_B))
-    allocate(hC(size_C))
+    allocate(hA(size_A), hA_gold(size_A))
+    allocate(hB(size_B), hB_gold(size_B))
+    allocate(hC(size_C), hC_gold(size_C))
 
 
     ! Allocate device-side memory
@@ -173,13 +244,16 @@ program example_fortran_trmm
     ! Initialize host memory
     ! Using constant matrices so result is easy to check
     do i = 1, size_A
-        hA(i) = 2
+        hA(i) = i
+        hA_gold(i) = hA(i)
     end do
     do i = 1, size_B
-        hB(i) = 2
+        hB(i) = i
+        hB_gold(i) = hB(i)
     end do
     do i = 1, size_C
-        hC(i) = 2
+        hC(i) = i
+        hC_gold(i) = hC(i)
     end do
 
 !   res = alpha * 2 * 3 * size_x + beta * 4
@@ -210,20 +284,31 @@ program example_fortran_trmm
     ! Copy output from device to host
     call HIP_CHECK(hipMemcpy(c_loc(hC), dC, int(size_C, c_size_t) * 8, 2))
 
-!   do element = 1, size_y
-!       if(res .ne. hy(element)) then
-!           failure_in_gemv = .true.
-!           write(*,*) '[rocblas_dgemv] ERROR: ', res, '!=', hy(element)
-!       end if
-!   end do
+    call trmm_reference(side, uplo, transA, diag, m, n, alpha, hA_gold, lda, hB_gold, ldb, hC_gold, ldc)
+
+    max_relative_error = 0
+    do i = 1, size_A
+        if(hc_gold(i).eq.0)then
+            relative_error = hc(i)
+        else
+            relative_error = (hc_gold(i) - hc(i)) / hc_gold(i)
+            if(relative_error.lt.0) then
+                relative_error = - relative_error
+            endif
+        endif
+        if(relative_error.gt.max_relative_error)then
+            max_relative_error = relative_error
+        endif
+    end do
 
     ! Calculate time
     tbegin = tend - tbegin
     timing = (0.001d0 * tbegin(8) + tbegin(7) + 60d0 * tbegin(6) + 3600d0 * tbegin(5)) / 200d0 * 1000d0
-    write(*,fmt='(A,F0.2,A)') '[rocblas_dgemv] took ', timing, ' msec'
+    write(*,fmt='(A,F0.2,A)') '[rocblas_dtrmm] took ', timing, ' msec'
 
-    if(failure_in_gemv) then
+    if(max_relative_error.gt.0) then
         write(*,*) 'DTRMM TEST FAIL'
+        write(*,*) 'relative error =', max_relative_error
     else
         write(*,*) 'DTRMM TEST PASS'
     end if
