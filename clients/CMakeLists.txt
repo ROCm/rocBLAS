@@ -47,7 +47,7 @@ if ( BUILD_FORTRAN_CLIENTS )
   set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include/rocblas/internal)
 
   # Create rocBLAS Fortran module
-  add_library(rocblas_fortran OBJECT ../library/include/rocblas_module.F90)
+  add_library(rocblas_fortran OBJECT ../library/include/rocblas_module.f90)
 
   if( BUILD_WITH_TENSILE )
     list( APPEND rocblas_f90_source_clients include/rocblas_fortran_tensile.f90 )

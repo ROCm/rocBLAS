@@ -47,9 +47,6 @@ void trmm_reference(rocblas_side      side,
     int As1 = rocblas_operation_none == trans ? 1 : lda;
     int As2 = rocblas_operation_none == trans ? lda : 1;
 
-    int Bs1 = 1, Bs2 = lda;
-    int Cs1 = 1, Cs2 = ldc;
-
     // this is 3 loop gemm algorithm with non-relevant triangle part masked
     if(rocblas_side_left == side)
     {
