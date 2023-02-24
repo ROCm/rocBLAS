@@ -210,13 +210,6 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
               ? (HERK ? rocblas_operation_conjugate_transpose : rocblas_operation_transpose)
               : rocblas_operation_none;
     const T alpha_conj = conj(*alpha);
-    T*      alpha_conj_h;
-
-    if(handle->is_stream_in_capture_mode())
-    {
-        alpha_conj_h = (T*)handle->host_malloc(sizeof(T));
-        std::memcpy(alpha_conj_h, &alpha_conj, sizeof(T));
-    }
 
     // calls to gemm with m == n == nb.
     // Start with nb == MIN_NB, then for each iteration of nb,i_start loop:
@@ -247,7 +240,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             if(TWOK)
             {
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                    handle, trans_orig, trans_opp, nb, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                    handle, trans_orig, trans_opp, nb, nb, k, (HERK? &alpha_conj : alpha),
                     db, OFFSET_B(i_start),    ldb, stride * b_s1,
                     da, OFFSET_A(0),          lda, stride * a_s1, &beta_1<T>,
                     dc, OFFSET_C(i_start, 0), ldc, stride * (c_s1 + c_s2), n_nb   )));
@@ -266,7 +259,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
             if(TWOK)
             {
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                    handle, trans_orig, trans_opp, nb, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                    handle, trans_orig, trans_opp, nb, nb, k, (HERK? &alpha_conj : alpha),
                     db, OFFSET_B(0),          ldb, stride * b_s1,
                     da, OFFSET_A(i_start),    lda, stride * a_s1, &beta_1<T>,
                     dc, OFFSET_C(0, i_start), ldc, stride * (c_s1 + c_s2), n_nb)));
@@ -293,7 +286,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
                 if(TWOK)
                 {
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                        handle, trans_orig, trans_opp, n1, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                        handle, trans_orig, trans_opp, n1, nb, k, (HERK? &alpha_conj : alpha),
                         db, OFFSET_B(i1),     ldb, stride_b,
                         da, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
                         dc, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
@@ -312,7 +305,7 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
                 if(TWOK)
                 {
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
-                        handle, trans_orig, trans_opp, nb, n1, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                        handle, trans_orig, trans_opp, nb, n1, k, (HERK? &alpha_conj : alpha),
                         db, OFFSET_B(i2),     ldb, stride_b,
                         da, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
                         dc, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
@@ -557,14 +550,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     const T alpha_conj = conj(*alpha);
 
-    T* alpha_conj_h;
-
-    if(handle->is_stream_in_capture_mode())
-    {
-        alpha_conj_h = (T*)handle->host_malloc(sizeof(T));
-        std::memcpy(alpha_conj_h, &alpha_conj, sizeof(T));
-    }
-
     TPtr      dC = dC_in;
     TConstPtr dB = dB_in;
     TConstPtr dA = dA_in;
@@ -666,7 +651,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, nb, nb, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                        handle, trans_orig, trans_opp, nb, nb, k, (HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i1),     ldb, stride_b,
                         dA, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
@@ -687,7 +672,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, nb, nb, k,(HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                        handle, trans_orig, trans_opp, nb, nb, k,(HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i2),     ldb, stride_b,
                         dA, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
@@ -717,7 +702,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, n1, nb, k,  (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                        handle, trans_orig, trans_opp, n1, nb, k,  (HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i1),     ldb, stride_b,
                         dA, OFFSET_A(i2),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
@@ -738,7 +723,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 {
                     // clang-format off
                     RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
-                        handle, trans_orig, trans_opp, nb, n1, k, (HERK? handle->is_stream_in_capture_mode()? alpha_conj_h : &alpha_conj : alpha),
+                        handle, trans_orig, trans_opp, nb, n1, k, (HERK? &alpha_conj : alpha),
                         dB, OFFSET_B(i2),     ldb, stride_b,
                         dA, OFFSET_A(i1),     lda, stride_a, &beta_1<T>,
                         dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
