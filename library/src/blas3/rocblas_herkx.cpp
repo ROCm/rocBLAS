@@ -186,33 +186,27 @@ namespace
 
         // passing in beta as the same type as alpha for easy code reuse
         const T beta_comp = {*beta, 0};
-        T*      beta_comp_h;
-        if(handle->is_stream_in_capture_mode())
-        {
-            beta_comp_h = (T*)handle->host_malloc(sizeof(T));
-            std::memcpy(beta_comp_h, &beta_comp, sizeof(T));
-        }
-        status = rocblas_internal_syrkx_herkx_template<NB, BATCHED, true, T>(
-            handle,
-            uplo,
-            trans,
-            n,
-            k,
-            alpha,
-            A,
-            offset_A,
-            lda,
-            stride_A,
-            B,
-            offset_B,
-            ldb,
-            stride_B,
-            handle->is_stream_in_capture_mode() ? beta_comp_h : &beta_comp,
-            C,
-            offset_C,
-            ldc,
-            stride_C,
-            batch_count);
+
+        status = rocblas_internal_syrkx_herkx_template<NB, BATCHED, true, T>(handle,
+                                                                             uplo,
+                                                                             trans,
+                                                                             n,
+                                                                             k,
+                                                                             alpha,
+                                                                             A,
+                                                                             offset_A,
+                                                                             lda,
+                                                                             stride_A,
+                                                                             B,
+                                                                             offset_B,
+                                                                             ldb,
+                                                                             stride_B,
+                                                                             &beta_comp,
+                                                                             C,
+                                                                             offset_C,
+                                                                             ldc,
+                                                                             stride_C,
+                                                                             batch_count);
 
         if(status != rocblas_status_success)
             return status;

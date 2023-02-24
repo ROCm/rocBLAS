@@ -133,39 +133,26 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     const rocblas_complex_num<real_t<T>> beta_comp  = {*beta, 0};
     constexpr bool                       HERM       = true;
 
-    void *alpha_comp_h, *beta_comp_h;
-
-    if(handle->is_stream_in_capture_mode())
-    {
-        alpha_comp_h = (handle->host_malloc(sizeof(alpha_comp)));
-        std::memcpy(alpha_comp_h, &alpha_comp, sizeof(alpha_comp));
-        beta_comp_h = (handle->host_malloc(sizeof(beta_comp_h)));
-        std::memcpy(beta_comp_h, &beta_comp, sizeof(beta_comp_h));
-    }
-
-    return rocblas_internal_syrkx_herkx_template<NB, BATCHED, HERM, T>(
-        handle,
-        uplo,
-        trans_a,
-        n,
-        k,
-        handle->is_stream_in_capture_mode() ? static_cast<decltype(alpha_comp)*>(alpha_comp_h)
-                                            : &alpha_comp,
-        AP,
-        offset_a,
-        lda,
-        stride_a,
-        AP,
-        offset_a,
-        lda,
-        stride_a,
-        handle->is_stream_in_capture_mode() ? static_cast<decltype(beta_comp)*>(beta_comp_h)
-                                            : &beta_comp,
-        CP,
-        offset_c,
-        ldc,
-        stride_c,
-        batch_count);
+    return rocblas_internal_syrkx_herkx_template<NB, BATCHED, HERM, T>(handle,
+                                                                       uplo,
+                                                                       trans_a,
+                                                                       n,
+                                                                       k,
+                                                                       &alpha_comp,
+                                                                       AP,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       AP,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       &beta_comp,
+                                                                       CP,
+                                                                       offset_c,
+                                                                       ldc,
+                                                                       stride_c,
+                                                                       batch_count);
 }
 template <bool HERM, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
