@@ -520,9 +520,10 @@ void testing_logging(const Arguments& arg)
     {
         trace_ofs2 << replaceX<T>("rocblas_Xscal") << "," << n << "," << alpha << "," << (void*)dx
                    << "," << incx << ",atomics_allowed\n";
-        bench_ofs2 << "./rocblas-bench -f scal --a_type " << rocblas_precision_string<T>
-                   << " --b_type " << rocblas_precision_string<T> << " -n " << n << " --alpha "
-                   << alpha << " --incx " << incx << "\n";
+        bench_ofs2 << "./rocblas-bench -f scal --a_type "
+                   << rocblas_precision_string<T> << " --b_type "
+                   << rocblas_precision_string<T> << " -n " << n << " --alpha " << alpha
+                   << " --incx " << incx << "\n";
     }
     else
     {
@@ -557,10 +558,11 @@ void testing_logging(const Arguments& arg)
                    << (void*)dx << "," << incx << "," << beta << "," << (void*)dy << "," << incy
                    << ",atomics_allowed\n";
 
-        bench_ofs2 << "./rocblas-bench -f gbmv -r " << rocblas_precision_string<T>
-                   << " --transposeA " << transA_letter << " -m " << m << " -n " << n << " --kl "
-                   << kl << " --ku " << ku << " --alpha " << alpha << " --lda " << lda << " --incx "
-                   << incx << " --beta " << beta << " --incy " << incy << "\n";
+        bench_ofs2 << "./rocblas-bench -f gbmv -r "
+                   << rocblas_precision_string<T> << " --transposeA " << transA_letter << " -m "
+                   << m << " -n " << n << " --kl " << kl << " --ku " << ku << " --alpha " << alpha
+                   << " --lda " << lda << " --incx " << incx << " --beta " << beta << " --incy "
+                   << incy << "\n";
     }
     else
     {
@@ -579,10 +581,10 @@ void testing_logging(const Arguments& arg)
                    << alpha << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
                    << "," << beta << "," << (void*)dy << "," << incy << ",atomics_allowed\n";
 
-        bench_ofs2 << "./rocblas-bench -f gemv -r " << rocblas_precision_string<T>
-                   << " --transposeA " << transA_letter << " -m " << m << " -n " << n << " --alpha "
-                   << alpha << " --lda " << lda << " --incx " << incx << " --beta " << beta
-                   << " --incy " << incy << "\n";
+        bench_ofs2 << "./rocblas-bench -f gemv -r "
+                   << rocblas_precision_string<T> << " --transposeA " << transA_letter << " -m "
+                   << m << " -n " << n << " --alpha " << alpha << " --lda " << lda << " --incx "
+                   << incx << " --beta " << beta << " --incy " << incy << "\n";
     }
     else
     {
@@ -833,10 +835,11 @@ void testing_logging(const Arguments& arg)
                        << "," << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc
                        << ",atomics_allowed\n";
 
-            bench_ofs2 << "./rocblas-bench -f geam -r " << rocblas_precision_string<T>
-                       << " --transposeA " << transA_letter << " --transposeB " << transB_letter
-                       << " -m " << m << " -n " << n << " --alpha " << alpha << " --lda " << lda
-                       << " --beta " << beta << " --ldb " << ldb << " --ldc " << ldc << "\n";
+            bench_ofs2 << "./rocblas-bench -f geam -r "
+                       << rocblas_precision_string<T> << " --transposeA " << transA_letter
+                       << " --transposeB " << transB_letter << " -m " << m << " -n " << n
+                       << " --alpha " << alpha << " --lda " << lda << " --beta " << beta
+                       << " --ldb " << ldb << " --ldc " << ldc << "\n";
         }
         else
         {
@@ -856,11 +859,11 @@ void testing_logging(const Arguments& arg)
                        << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << ","
                        << ldc << ",atomics_allowed\n";
 
-            bench_ofs2 << "./rocblas-bench -f gemm -r " << rocblas_precision_string<T>
-                       << " --transposeA " << transA_letter << " --transposeB " << transB_letter
-                       << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
-                       << " --lda " << lda << " --ldb " << ldb << " --beta " << beta << " --ldc "
-                       << ldc << "\n";
+            bench_ofs2 << "./rocblas-bench -f gemm -r "
+                       << rocblas_precision_string<T> << " --transposeA " << transA_letter
+                       << " --transposeB " << transB_letter << " -m " << m << " -n " << n << " -k "
+                       << k << " --alpha " << alpha << " --lda " << lda << " --ldb " << ldb
+                       << " --beta " << beta << " --ldc " << ldc << "\n";
         }
         else
         {
@@ -924,10 +927,11 @@ void testing_logging(const Arguments& arg)
                        << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << "," << ldc
                        << ",atomics_allowed\n";
 
-            bench_ofs2 << "./rocblas-bench -f syr2k -r " << rocblas_precision_string<T>
-                       << " --uplo " << uplo_letter << " --transposeA " << transA_letter << " -n "
-                       << n << " -k " << k << " --alpha " << alpha << " --lda " << lda << " --ldb "
-                       << ldb << " --beta " << beta << " --ldc " << ldc << "\n";
+            bench_ofs2 << "./rocblas-bench -f syr2k -r "
+                       << rocblas_precision_string<T> << " --uplo " << uplo_letter
+                       << " --transposeA " << transA_letter << " -n " << n << " -k " << k
+                       << " --alpha " << alpha << " --lda " << lda << " --ldb " << ldb << " --beta "
+                       << beta << " --ldc " << ldc << "\n";
         }
         else
         {
@@ -947,10 +951,11 @@ void testing_logging(const Arguments& arg)
                        << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << "," << ldc
                        << ",atomics_allowed\n";
 
-            bench_ofs2 << "./rocblas-bench -f syrkx -r " << rocblas_precision_string<T>
-                       << " --uplo " << uplo_letter << " --transposeA " << transA_letter << " -n "
-                       << n << " -k " << k << " --alpha " << alpha << " --lda " << lda << " --ldb "
-                       << ldb << " --beta " << beta << " --ldc " << ldc << "\n";
+            bench_ofs2 << "./rocblas-bench -f syrkx -r "
+                       << rocblas_precision_string<T> << " --uplo " << uplo_letter
+                       << " --transposeA " << transA_letter << " -n " << n << " -k " << k
+                       << " --alpha " << alpha << " --lda " << lda << " --ldb " << ldb << " --beta "
+                       << beta << " --ldc " << ldc << "\n";
         }
         else
         {
