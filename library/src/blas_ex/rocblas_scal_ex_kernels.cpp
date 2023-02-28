@@ -74,7 +74,7 @@ rocblas_status rocblas_scal_ex_typecasting(rocblas_handle handle,
                 return scal_ex_check_numerics_status;
         }
 
-        status = rocblas_internal_scal_template<NB, Tex>(
+        status = rocblas_internal_scal_template<NB, Tx, Tex>(
             handle, n, alpha, stride_alpha, (Tx* const*)x, offset_x, incx, stride_x, batch_count);
 
         if(status != rocblas_status_success)
@@ -119,7 +119,7 @@ rocblas_status rocblas_scal_ex_typecasting(rocblas_handle handle,
                 return scal_ex_check_numerics_status;
         }
 
-        status = rocblas_internal_scal_template<NB, Tex>(
+        status = rocblas_internal_scal_template<NB, Tx, Tex>(
             handle, n, alpha, stride_alpha, (Tx*)x, offset_x, incx, stride_x, batch_count);
 
         if(status != rocblas_status_success)
@@ -189,6 +189,21 @@ rocblas_status rocblas_scal_ex_template(rocblas_handle   handle,
     {
         // hscal
         status = rocblas_scal_ex_typecasting<NB, BATCHED, rocblas_half>(
+            rocblas_scal_ex_typecasting_PARAM);
+    }
+    else if(alpha_type == rocblas_datatype_bf16_r && x_type == rocblas_datatype_bf16_r
+            && execution_type == rocblas_datatype_f32_r)
+    {
+        // bfloat16 with float computation
+        status
+            = rocblas_scal_ex_typecasting<NB, BATCHED, rocblas_bfloat16, rocblas_bfloat16, float>(
+                rocblas_scal_ex_typecasting_PARAM);
+    }
+    else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_bf16_r
+            && execution_type == rocblas_datatype_f32_r)
+    {
+        // bfloat16 with float computation & alpha
+        status = rocblas_scal_ex_typecasting<NB, BATCHED, float, rocblas_bfloat16, float>(
             rocblas_scal_ex_typecasting_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_f32_r

@@ -139,7 +139,7 @@ rocblas_axpy_kernel_batched(rocblas_int    n,
                 auto tx = load_ptr_batch(x, bid + i, offset_x, stride_x);
                 auto ty = load_ptr_batch(y, bid + i, offset_y, stride_y);
 
-                *ty += ex_alph * (*tx);
+                *ty = (*ty) + ex_alph * (*tx);
             }
         }
     }
@@ -515,10 +515,14 @@ INSTANTIATE_AXPY_TEMPLATE(256, rocblas_double_complex, rocblas_double_complex, r
 // rocblas_axpy_ex
 INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_half, rocblas_half const*, rocblas_half*)
 INSTANTIATE_AXPY_TEMPLATE(256, float, float       , rocblas_half const*, rocblas_half*)
+INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_bfloat16, rocblas_bfloat16 const*, rocblas_bfloat16*)
+INSTANTIATE_AXPY_TEMPLATE(256, float, float, rocblas_bfloat16 const*, rocblas_bfloat16*)
 
 // rocblas_axpy_batched_ex
 INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_half, rocblas_half const* const*, rocblas_half* const*)
 INSTANTIATE_AXPY_TEMPLATE(256, float, float       , rocblas_half const* const*, rocblas_half* const*)
+INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_bfloat16, rocblas_bfloat16 const* const*, rocblas_bfloat16* const*)
+INSTANTIATE_AXPY_TEMPLATE(256, float, float, rocblas_bfloat16 const* const*, rocblas_bfloat16* const*)
 
 #undef INSTANTIATE_AXPY_TEMPLATE
 
@@ -545,12 +549,14 @@ template rocblas_status rocblas_axpy_check_numerics<T_, U_>(const char*    funct
 INSTANTIATE_AXPY_CHECK_NUMERICS(const float*, float*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const double*, double*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_half*, rocblas_half*)
+INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_bfloat16*, rocblas_bfloat16*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_float_complex*, rocblas_float_complex*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_double_complex*, rocblas_double_complex*)
 
 INSTANTIATE_AXPY_CHECK_NUMERICS(const float* const*, float* const*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const double* const*, double* const*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_half* const*, rocblas_half* const*)
+INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_bfloat16* const*, rocblas_bfloat16* const*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_float_complex* const*, rocblas_float_complex* const*)
 INSTANTIATE_AXPY_CHECK_NUMERICS(const rocblas_double_complex* const*, rocblas_double_complex* const*)
 

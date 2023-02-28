@@ -1,5 +1,5 @@
 /* ************************************************************************
-* Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+* Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -64,10 +64,13 @@
 
 #define ROCBLAS_SDSYR2K_BATCHED_NB 16
 #define ROCBLAS_CZSYR2K_BATCHED_NB 8
-#define ROCBLAS_SSYR2K_NB 16
-#define ROCBLAS_DCZSYR2K_NB 32
 #define ROCBLAS_HER2K_BATCHED_NB 8
-#define ROCBLAS_HER2K_NB 32
+#define ROCBLAS_SSYR2K_NB 32
+#define ROCBLAS_DSYR2K_NB 16
+#define ROCBLAS_CSYR2K_NB 32
+#define ROCBLAS_ZSYR2K_NB 16
+#define ROCBLAS_CHER2K_NB 32
+#define ROCBLAS_ZHER2K_NB 16
 
 #define ROCBLAS_SDTRMM_NB 32
 #define ROCBLAS_CZTRMM_NB 16

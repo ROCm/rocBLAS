@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,23 @@ void cblas_nrm2<rocblas_half>(rocblas_int         n,
         x_float[i * incx] = x[i * incx];
 
     *result = rocblas_half(cblas_snrm2(n, x_float, incx));
+}
+
+template <>
+void cblas_nrm2<rocblas_bfloat16>(rocblas_int             n,
+                                  const rocblas_bfloat16* x,
+                                  rocblas_int             incx,
+                                  rocblas_bfloat16*       result)
+{
+    if(n <= 0 || incx <= 0)
+        return;
+
+    host_vector<float> x_float(n * incx);
+
+    for(size_t i = 0; i < n; i++)
+        x_float[i * incx] = float(x[i * incx]);
+
+    *result = rocblas_bfloat16(cblas_snrm2(n, x_float, incx));
 }
 
 template <>
@@ -127,6 +144,17 @@ template void cblas_scal<rocblas_half, rocblas_half*>(rocblas_int   n,
                                                       rocblas_int   incx);
 template void
     cblas_scal<float, rocblas_half*>(rocblas_int n, float alpha, rocblas_half* x, rocblas_int incx);
+
+template void cblas_scal<rocblas_bfloat16, rocblas_bfloat16*>(rocblas_int       n,
+                                                              rocblas_bfloat16  alpha,
+                                                              rocblas_bfloat16* x,
+                                                              rocblas_int       incx);
+
+template void cblas_scal<float, rocblas_bfloat16*>(rocblas_int       n,
+                                                   float             alpha,
+                                                   rocblas_bfloat16* x,
+                                                   rocblas_int       incx);
+
 template void cblas_scal<rocblas_complex_num<float>, rocblas_complex_num<float>*>(
     rocblas_int                 n,
     rocblas_complex_num<float>  alpha,

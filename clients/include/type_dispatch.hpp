@@ -271,22 +271,35 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     {
         return TEST<rocblas_half, rocblas_half, rocblas_half, float>{}(arg);
     }
-    else if((is_rot || is_dot) && Ta == Tx && Tx == Ty && Ta == rocblas_datatype_bf16_r
-            && Tex == rocblas_datatype_f32_r)
-    {
-        return TEST<rocblas_bfloat16, rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
-    }
     else if(is_axpy && Ta == Tex && Tx == Ty && Tx == rocblas_datatype_f16_r
             && Tex == rocblas_datatype_f32_r)
     {
         return TEST<float, rocblas_half, rocblas_half, float>{}(arg);
     }
-    else if((is_scal || is_nrm2 || is_axpy) && Ta == Tx && Ta == rocblas_datatype_f16_r
+    else if((is_scal || is_nrm2) && Ta == Tx && Ta == rocblas_datatype_f16_r
             && Tex == rocblas_datatype_f32_r)
     {
-        // half scal, nrm2, axpy
+        // half scal, nrm2
         return TEST<rocblas_half, rocblas_half, float>{}(arg);
     }
+    else if((is_rot || is_dot || is_axpy) && Ta == Tx && Tx == Ty && Ta == rocblas_datatype_bf16_r
+            && Tex == rocblas_datatype_f32_r)
+    {
+        return TEST<rocblas_bfloat16, rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
+    }
+    else if((is_scal || is_nrm2) && Ta == Tx && Ta == rocblas_datatype_bf16_r
+            && Tex == rocblas_datatype_f32_r)
+    {
+        // bfloat16 scal, nrm2
+        return TEST<rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
+    }
+    else if(is_axpy && Ta == Tex && Tx == Ty && Tx == rocblas_datatype_bf16_r
+            && Tex == rocblas_datatype_f32_r)
+    {
+        // axpy bfloat16 with float alpha
+        return TEST<float, rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
+    }
+
     // exclusive functions cases
     else if(is_scal)
     {
@@ -297,6 +310,11 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
         {
             // scal half with float alpha
             return TEST<float, rocblas_half, float>{}(arg);
+        }
+        else if(Ta == Tex && Tx == rocblas_datatype_bf16_r && Tex == rocblas_datatype_f32_r)
+        {
+            // scal bfloat16 with float alpha
+            return TEST<float, rocblas_bfloat16, float>{}(arg);
         }
         else if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f32_c
                 && Tex == rocblas_datatype_f32_c)
