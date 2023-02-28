@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -276,6 +276,10 @@ void testing_trmm_outofplace_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_outofplace(const Arguments& arg)
 {
+    //  rocblas.hpp maps the string rocblas_trmm_outofplace_fn to the deprecated
+    //  function rocblas_Xtrmm_outofplace for rocblas-test and to the new function
+    //  rocblas_Xtrmm for rocblas_v3-test. Thus rocblas-test tests the deprecated
+    //  function and rocblas_v3-test tests the new function.
     auto rocblas_trmm_outofplace_fn
         = arg.fortran ? rocblas_trmm_outofplace<T, true> : rocblas_trmm_outofplace<T, false>;
 
