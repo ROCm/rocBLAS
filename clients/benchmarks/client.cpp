@@ -927,8 +927,12 @@ struct perf_blas_rotg<
     }
 };
 
-int run_bench_test(
-    bool init, Arguments& arg, const std::string& filter, bool any_stride, bool yaml = false)
+int run_bench_test(bool               init,
+                   Arguments&         arg,
+                   const std::string& filter,
+                   const std::string& name_filter,
+                   bool               any_stride,
+                   bool               yaml = false)
 {
     if(init)
     {
@@ -951,6 +955,7 @@ int run_bench_test(
     // Skip past any testing_ prefix in function
     static constexpr char prefix[] = "testing_";
     const char*           function = arg.function;
+    const char*           name     = arg.name;
     if(!strncmp(function, prefix, sizeof(prefix) - 1))
         function += sizeof(prefix) - 1;
 
@@ -959,6 +964,11 @@ int run_bench_test(
     if(!filter.empty())
     {
         if(!strstr(function, filter.c_str()))
+            return 0;
+    }
+    if(!name_filter.empty())
+    {
+        if(!strstr(name, name_filter.c_str()))
             return 0;
     }
 
@@ -1144,11 +1154,13 @@ int run_bench_test(
     return 0;
 }
 
-int rocblas_bench_datafile(const std::string& filter, bool any_stride)
+int rocblas_bench_datafile(const std::string& filter,
+                           const std::string& name_filter,
+                           bool               any_stride)
 {
     int ret = 0;
     for(Arguments arg : RocBLAS_TestData())
-        ret |= run_bench_test(true, arg, filter, any_stride, true);
+        ret |= run_bench_test(true, arg, filter, name_filter, any_stride, true);
     test_cleanup::cleanup();
     return ret;
 }
@@ -1162,18 +1174,20 @@ void gpu_thread_init_device(int                id,
 
     rocblas_client_initialize();
 
-    Arguments a(arg);
-    a.cold_iters = 1;
-    a.iters      = 0;
-    run_bench_test(false, a, filter, any_stride, false);
+    Arguments   a(arg);
+    std::string name_filter = "";
+    a.cold_iters            = 1;
+    a.iters                 = 0;
+    run_bench_test(false, a, filter, name_filter, any_stride, false);
 }
 
 void gpu_thread_run_bench(int id, const Arguments& arg, const std::string& filter, bool any_stride)
 {
     CHECK_HIP_ERROR(hipSetDevice(id));
 
-    Arguments a(arg);
-    run_bench_test(false, a, filter, any_stride, false);
+    Arguments   a(arg);
+    std::string name_filter = "";
+    run_bench_test(false, a, filter, name_filter, any_stride, false);
 }
 
 int run_bench_gpu_test(int                parallel_devices,
@@ -1239,6 +1253,7 @@ try
     std::string initialization;
     std::string arithmetic_check;
     std::string filter;
+    std::string name_filter;
     rocblas_int device_id;
     rocblas_int parallel_devices;
     int         flags               = 0;
@@ -1483,6 +1498,10 @@ try
          value<std::string>(&filter),
          "Simple strstr filter on function name only without wildcards")
 
+        ("name_filter",
+         value<std::string>(&name_filter),
+         "Simple strstr filter on test name only without wildcards, only used with --yaml or --data")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
@@ -1555,7 +1574,7 @@ try
         set_device(device_id);
 
     if(datafile)
-        return rocblas_bench_datafile(filter, any_stride);
+        return rocblas_bench_datafile(filter, name_filter, any_stride);
 
     // single bench run
 
@@ -1606,7 +1625,10 @@ try
         throw std::invalid_argument("Invalid value for --function");
 
     if(!parallel_devices)
-        return run_bench_test(true, arg, filter, any_stride);
+    {
+        std::string name_filter = "";
+        return run_bench_test(true, arg, filter, name_filter, any_stride);
+    }
     else
         return run_bench_gpu_test(parallel_devices, arg, filter, any_stride);
 }
