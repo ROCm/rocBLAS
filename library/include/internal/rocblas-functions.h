@@ -17133,6 +17133,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    
     -------------------------------------------------
     | alpha_type | x_type | y_type | execution_type |
     |------------|--------|--------|----------------|
+    |  bf16_r    | bf16_r |  bf16_r|      f32_r     |
+    |  f32_r     | bf16_r |  bf16_r|      f32_r     |
     |  f16_r     | f16_r  |  f16_r |      f16_r     |
     |  f16_r     | f16_r  |  f16_r |      f32_r     |
     |  f32_r     | f16_r  |  f16_r |      f32_r     |
@@ -17201,6 +17203,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_ex(rocblas_handle   handle,
     -------------------------------------------------
     | alpha_type | x_type | y_type | execution_type |
     |------------|--------|--------|----------------|
+    |  bf16_r    | bf16_r |  bf16_r|      f32_r     |
+    |  f32_r     | bf16_r |  bf16_r|      f32_r     |
     |  f16_r     | f16_r  |  f16_r |      f16_r     |
     |  f16_r     | f16_r  |  f16_r |      f32_r     |
     |  f32_r     | f16_r  |  f16_r |      f32_r     |
@@ -17273,6 +17277,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
     -------------------------------------------------
     | alpha_type | x_type | y_type | execution_type |
     |------------|--------|--------|----------------|
+    |  bf16_r    | bf16_r |  bf16_r|      f32_r     |
+    |  f32_r     | bf16_r |  bf16_r|      f32_r     |
     |  f16_r     | f16_r  |  f16_r |      f16_r     |
     |  f16_r     | f16_r  |  f16_r |      f32_r     |
     |  f32_r     | f16_r  |  f16_r |      f32_r     |
@@ -17638,6 +17644,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dotc_strided_batched_ex(rocblas_handle   h
     -------------------------------------
     |  x_type | result | execution_type |
     |---------|--------|----------------|
+    |  bf16_r |  bf16_r|     f32_r      |
     |  f16_r  |  f16_r |     f32_r      |
     |  f32_r  |  f32_r |     f32_r      |
     |  f64_r  |  f64_r |     f64_r      |
@@ -17694,6 +17701,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_nrm2_ex(rocblas_handle   handle,
     -------------------------------------
     |  x_type | result | execution_type |
     |---------|--------|----------------|
+    |  bf16_r |  bf16_r|     f32_r      |
     |  f16_r  |  f16_r |     f32_r      |
     |  f32_r  |  f32_r |     f32_r      |
     |  f64_r  |  f64_r |     f64_r      |
@@ -17755,6 +17763,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_nrm2_batched_ex(rocblas_handle   handle,
     -------------------------------------
     |  x_type | result | execution_type |
     |---------|--------|----------------|
+    |  bf16_r |  bf16_r|     f32_r      |
     |  f16_r  |  f16_r |     f32_r      |
     |  f32_r  |  f32_r |     f32_r      |
     |  f64_r  |  f64_r |     f64_r      |
@@ -18077,6 +18086,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_rot_strided_batched_ex(rocblas_handle   ha
     ----------------------------------------
     | alpha_type | x_type | execution_type |
     |------------|--------|----------------|
+    |  f32_r     | bf16_r |     f32_r      |
+    |  bf16_r    | bf16_r |     f32_r      |
     |  f16_r     | f16_r  |     f16_r      |
     |  f16_r     | f16_r  |     f32_r      |
     |  f32_r     | f16_r  |     f32_r      |
@@ -18135,6 +18146,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_scal_ex(rocblas_handle   handle,
     ----------------------------------------
     | alpha_type | x_type | execution_type |
     |------------|--------|----------------|
+    |  f32_r     | bf16_r |     f32_r      |
+    |  bf16_r    | bf16_r |     f32_r      |
     |  f16_r     | f16_r  |     f16_r      |
     |  f16_r     | f16_r  |     f32_r      |
     |  f32_r     | f16_r  |     f32_r      |
@@ -18198,6 +18211,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_scal_batched_ex(rocblas_handle   handle,
     ----------------------------------------
     | alpha_type | x_type | execution_type |
     |------------|--------|----------------|
+    |  f32_r     | bf16_r |     f32_r      |
+    |  bf16_r    | bf16_r |     f32_r      |
     |  f16_r     | f16_r  |     f16_r      |
     |  f16_r     | f16_r  |     f32_r      |
     |  f32_r     | f16_r  |     f32_r      |

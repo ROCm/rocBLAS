@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@
 
 #include <chrono>
 #include <map>
+#include <random>
 #include <vector>
 
 #define DIM1 64
@@ -37,67 +38,69 @@
 
 int main()
 {
-    rocblas_int       cold_calls = 1;
-    rocblas_int       hot_calls  = 1;
-    rocblas_operation transa = rocblas_operation_none, transb = rocblas_operation_transpose;
-    float             alpha = 1.1, beta = 0.9;
+    rocblas_int cold_calls = 2;
+    rocblas_int hot_calls  = 10; // these values match rocblas-bench defaults
 
-    rocblas_int m = DIM1, n = DIM2, k = DIM3;
-    rocblas_int lda, ldb, ldc, size_a, size_b, size_c;
-    int         a_stride_1, a_stride_2, b_stride_1, b_stride_2;
+    rocblas_operation transa = rocblas_operation_none, transb = rocblas_operation_transpose;
+    float             alpha = 1.1f, beta = 0.9f;
+
+    rocblas_int    m = DIM1, n = DIM2, k = DIM3;
+    rocblas_int    lda, ldb, ldc;
+    size_t         size_a, size_b, size_c;
+    rocblas_stride a_stride_1, a_stride_2, b_stride_1, b_stride_2;
     rocblas_cout << "user driven tuning example" << std::endl;
     if(transa == rocblas_operation_none)
     {
         lda        = m;
-        size_a     = k * lda;
+        size_a     = size_t(k) * lda;
         a_stride_1 = 1;
         a_stride_2 = lda;
     }
     else
     {
         lda        = k;
-        size_a     = m * lda;
+        size_a     = size_t(m) * lda;
         a_stride_1 = lda;
         a_stride_2 = 1;
     }
     if(transb == rocblas_operation_none)
     {
         ldb        = k;
-        size_b     = n * ldb;
+        size_b     = size_t(n) * ldb;
         b_stride_1 = 1;
         b_stride_2 = ldb;
     }
     else
     {
         ldb        = n;
-        size_b     = k * ldb;
+        size_b     = size_t(k) * ldb;
         b_stride_1 = ldb;
         b_stride_2 = 1;
     }
     ldc    = m;
-    size_c = n * ldc;
+    size_c = size_t(n) * ldc;
 
     // Naming: da is in GPU (device) memory. ha is in CPU (host) memory
-    std::vector<float> ha(size_a + 1);
+    std::vector<float> ha(size_a);
     std::vector<float> hb(size_b);
     std::vector<float> hc(size_c);
-    std::vector<float> hc_gold(size_c);
 
     // initial data on host
+    // Random number generator
+    std::mt19937 rng;
     srand(1);
-    for(int i = 0; i < size_a; ++i)
+    for(size_t i = 0; i < size_a; ++i)
     {
-        ha[i] = rand() % 17;
+        ha[i] = std::uniform_real_distribution<float>(-0.5f, 0.5f)(rng);
     }
-    for(int i = 0; i < size_b; ++i)
+    for(size_t i = 0; i < size_b; ++i)
     {
-        hb[i] = rand() % 17;
+        hb[i] = std::uniform_real_distribution<float>(-0.5f, 0.5f)(rng);
     }
-    for(int i = 0; i < size_c; ++i)
+    for(size_t i = 0; i < size_c; ++i)
     {
-        hc[i] = rand() % 17;
+        hc[i] = std::uniform_real_distribution<float>(-0.5f, 0.5f)(rng);
     }
-    hc_gold = hc;
 
     // allocate memory on device
     float *da, *db, *dc;
@@ -138,7 +141,7 @@ int main()
     for(auto sol : ary)
     {
         // warmup
-        for(rocblas_int cc = 0; cc < cold_calls; ++cc)
+        for(rocblas_int c = 0; c < cold_calls; ++c)
         {
             CHECK_ROCBLAS_ERROR(rocblas_gemm_exM(GEMM_EX_ARGS, sol, rocblas_gemm_flags_none));
         }
@@ -147,18 +150,20 @@ int main()
         double time = get_time_us_sync(stream); // in microseconds
 
         // timing loop
-        for(rocblas_int hc = 0; hc < hot_calls; ++hc)
+        for(rocblas_int c = 0; c < hot_calls; ++c)
         {
             CHECK_ROCBLAS_ERROR(rocblas_gemm_exM(GEMM_EX_ARGS, sol, rocblas_gemm_flags_none));
         }
         time = get_time_us_sync(stream) - time;
-        rocblas_cout << "Sol " << sol << ": " << time << " us" << std::endl;
+
+        double avg_time = hot_calls ? time / hot_calls : 0;
+        rocblas_cout << "Sol " << sol << ": " << avg_time << " us" << std::endl;
 
         // track winner
-        if(time < bestTime)
+        if(avg_time < bestTime)
         {
             bestSol  = sol;
-            bestTime = time;
+            bestTime = avg_time;
         }
     }
     rocblas_cout << "Winner: " << bestSol << " in " << bestTime << " us" << std::endl;

@@ -898,9 +898,9 @@ INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_HERKX_NB, false, false, true, rocblas_d
 
 // syr2k instantiations
 INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_SSYR2K_NB, false, true, false, float, float, float const*, float*)
-INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_DCZSYR2K_NB, false, true, false, double, double, double const*, double*)
-INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_DCZSYR2K_NB,   false, true, false, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_DCZSYR2K_NB, false, true, false, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_DSYR2K_NB, false, true, false, double, double, double const*, double*)
+INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_CSYR2K_NB,   false, true, false, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_ZSYR2K_NB, false, true, false, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*)
 
 // syr2k_batched instantiations
 INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_SDSYR2K_BATCHED_NB, true, true, false, float, float, float const* const*, float* const*)
@@ -909,8 +909,8 @@ INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_CZSYR2K_BATCHED_NB, true, true, false, 
 INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_CZSYR2K_BATCHED_NB, true, true, false, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 // her2k instantiations
-INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_HER2K_NB, false, true, true, rocblas_float_complex, float, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_HER2K_NB, false, true, true, rocblas_double_complex, double, rocblas_double_complex const*, rocblas_double_complex*)
+INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_CHER2K_NB, false, true, true, rocblas_float_complex, float, rocblas_float_complex const*, rocblas_float_complex*)
+INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_ZHER2K_NB, false, true, true, rocblas_double_complex, double, rocblas_double_complex const*, rocblas_double_complex*)
 
 // her2k_batched instantiations
 INSTANTIATE_SYR2K_HER2K_TEMPLATE(ROCBLAS_HER2K_BATCHED_NB, true, true, true, rocblas_float_complex, float, rocblas_float_complex const* const*, rocblas_float_complex* const*)
