@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -167,80 +167,35 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sswap_strided_batched(rocblas_handle handle,
-                                             rocblas_int    n,
-                                             float*         x,
-                                             rocblas_int    incx,
-                                             rocblas_stride stridex,
-                                             float*         y,
-                                             rocblas_int    incy,
-                                             rocblas_stride stridey,
-                                             rocblas_int    batch_count)
-try
-{
-    return rocblas_swap_strided_batched_impl(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dswap_strided_batched(rocblas_handle handle,
-                                             rocblas_int    n,
-                                             double*        x,
-                                             rocblas_int    incx,
-                                             rocblas_stride stridex,
-                                             double*        y,
-                                             rocblas_int    incy,
-                                             rocblas_stride stridey,
-                                             rocblas_int    batch_count)
-try
-{
-    return rocblas_swap_strided_batched_impl(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, T_)                                                  \
+    rocblas_status name_(rocblas_handle handle,                          \
+                         rocblas_int    n,                               \
+                         T_*            x,                               \
+                         rocblas_int    incx,                            \
+                         rocblas_stride stridex,                         \
+                         T_*            y,                               \
+                         rocblas_int    incy,                            \
+                         rocblas_stride stridey,                         \
+                         rocblas_int    batch_count)                     \
+    try                                                                  \
+    {                                                                    \
+        return rocblas_swap_strided_batched_impl(                        \
+            handle, n, x, incx, stridex, y, incy, stridey, batch_count); \
+    }                                                                    \
+    catch(...)                                                           \
+    {                                                                    \
+        return exception_to_rocblas_status();                            \
+    }
 
-rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
-                                             rocblas_int            n,
-                                             rocblas_float_complex* x,
-                                             rocblas_int            incx,
-                                             rocblas_stride         stridex,
-                                             rocblas_float_complex* y,
-                                             rocblas_int            incy,
-                                             rocblas_stride         stridey,
-                                             rocblas_int            batch_count)
-try
-{
-    return rocblas_swap_strided_batched_impl(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_sswap_strided_batched, float);
+IMPL(rocblas_dswap_strided_batched, double);
+IMPL(rocblas_cswap_strided_batched, rocblas_float_complex);
+IMPL(rocblas_zswap_strided_batched, rocblas_double_complex);
 
-rocblas_status rocblas_zswap_strided_batched(rocblas_handle          handle,
-                                             rocblas_int             n,
-                                             rocblas_double_complex* x,
-                                             rocblas_int             incx,
-                                             rocblas_stride          stridex,
-                                             rocblas_double_complex* y,
-                                             rocblas_int             incy,
-                                             rocblas_stride          stridey,
-                                             rocblas_int             batch_count)
-try
-{
-    return rocblas_swap_strided_batched_impl(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"
