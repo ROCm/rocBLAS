@@ -500,10 +500,9 @@ Tests:
     alphai_betai: *alphai_betai_range
     function:
       - scal:  *single_double_precisions_complex_real
-      - scal:  *scal_ex_single_double_complex_real_alpha_complex_out
-      - scal_ex: *single_double_precisions_complex_real
+      - scal:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_ex: *scal_ex_single_double_complex_real_alpha_complex_out
-      - scal_ex: *hpa_half_half_precisions
 
   - name: blas1_batched
     category: quick
@@ -513,11 +512,10 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: *batch_count_range
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched: *scal_ex_single_double_complex_real_alpha_complex_out
-      - scal_batched_ex: *single_double_precisions_complex_real
+      - scal_batched:  *single_double_precisions_complex_real
+      - scal_batched:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
-      - scal_batched_ex: *hpa_half_half_precisions
 
   - name: blas1_strided_batched
     category: quick
@@ -528,11 +526,10 @@ Tests:
     batch_count: *batch_count_range
     stride_scale: [ 1 ]
     function:
-      - scal_strided_batched: *single_double_precisions_complex_real
-      - scal_strided_batched: *scal_ex_single_double_complex_real_alpha_complex_out
-      - scal_strided_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched:  *single_double_precisions_complex_real
+      - scal_strided_batched:  *scal_single_double_complex_real_alpha_complex_out
+      - scal_strided_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
-      - scal_strided_batched_ex: *hpa_half_half_precisions
 
 
 # All functions with incx, no incy, no alpha

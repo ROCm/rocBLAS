@@ -1418,6 +1418,13 @@ The number of lines of output can be reduced with:
 
    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_filter=*quick*
 
+``rocblas-test`` can be driven by tests specified in a yaml file using the ``--yaml`` argument.
+As the test categories pre_checkin and nightly can require hours to run, a short smoke test set is provided in a yaml file.
+This ``rocblas_smoke.yaml`` test set should only require a few minutes to test a few small problem sizes for every function:
+
+.. code-block:: bash
+
+   ./rocblas-test --yaml rocblas_smoke.yaml
 
 
 Add New rocBLAS Unit Test

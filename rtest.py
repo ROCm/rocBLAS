@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Copyright (C) 2021-2022 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2021-2023 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -181,9 +181,11 @@ def run_cmd(cmd, test = False, time_limit = 0):
             proc = subprocess.run(cmdline, check=True, stderr=subprocess.STDOUT, shell=True)
             status = proc.returncode
         else:
+            sub_env = os.environ.copy()
+            sub_env["PATH"] = os.getcwd() + os.pathsep + sub_env["PATH"]
             error = False
             timeout = False
-            test_proc = subprocess.Popen(shlex.split(cmdline), text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            test_proc = subprocess.Popen(cmdline, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, env=sub_env)
             if time_limit > 0:
                 start = time.monotonic()
                 #p = multiprocessing.Process(target=time_stop, args=(start, test_proc.pid))
