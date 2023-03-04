@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -197,148 +197,38 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sdot_batched(rocblas_handle     handle,
-                                    rocblas_int        n,
-                                    const float* const x[],
-                                    rocblas_int        incx,
-                                    const float* const y[],
-                                    rocblas_int        incy,
-                                    rocblas_int        batch_count,
-                                    float*             results)
-try
-{
-    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_ddot_batched(rocblas_handle      handle,
-                                    rocblas_int         n,
-                                    const double* const x[],
-                                    rocblas_int         incx,
-                                    const double* const y[],
-                                    rocblas_int         incy,
-                                    rocblas_int         batch_count,
-                                    double*             results)
-try
-{
-    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, conj_, T_, Tex_)                            \
+    rocblas_status name_(rocblas_handle  handle,                \
+                         rocblas_int     n,                     \
+                         const T_* const x[],                   \
+                         rocblas_int     incx,                  \
+                         const T_* const y[],                   \
+                         rocblas_int     incy,                  \
+                         rocblas_int     batch_count,           \
+                         T_*             results)               \
+    try                                                         \
+    {                                                           \
+        return rocblas_dot_batched_impl<conj_, T_, Tex_>(       \
+            handle, n, x, incx, y, incy, batch_count, results); \
+    }                                                           \
+    catch(...)                                                  \
+    {                                                           \
+        return exception_to_rocblas_status();                   \
+    }
 
-rocblas_status rocblas_hdot_batched(rocblas_handle            handle,
-                                    rocblas_int               n,
-                                    const rocblas_half* const x[],
-                                    rocblas_int               incx,
-                                    const rocblas_half* const y[],
-                                    rocblas_int               incy,
-                                    rocblas_int               batch_count,
-                                    rocblas_half*             result)
-try
-{
-    return rocblas_dot_batched_impl<false>(handle,
-                                           n,
-                                           (const rocblas_half* const*)x,
-                                           incx,
-                                           (const rocblas_half* const*)y,
-                                           incy,
-                                           batch_count,
-                                           (rocblas_half*)result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_sdot_batched, false, float, float);
+IMPL(rocblas_ddot_batched, false, double, double);
+IMPL(rocblas_hdot_batched, false, rocblas_half, rocblas_half);
+IMPL(rocblas_bfdot_batched, false, rocblas_bfloat16, float);
+IMPL(rocblas_cdotu_batched, false, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zdotu_batched, false, rocblas_double_complex, rocblas_double_complex);
+IMPL(rocblas_cdotc_batched, true, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zdotc_batched, true, rocblas_double_complex, rocblas_double_complex);
 
-rocblas_status rocblas_bfdot_batched(rocblas_handle                handle,
-                                     rocblas_int                   n,
-                                     const rocblas_bfloat16* const x[],
-                                     rocblas_int                   incx,
-                                     const rocblas_bfloat16* const y[],
-                                     rocblas_int                   incy,
-                                     rocblas_int                   batch_count,
-                                     rocblas_bfloat16*             result)
-try
-{
-    return rocblas_dot_batched_impl<false, rocblas_bfloat16, float>(
-        handle, n, x, incx, y, incy, batch_count, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_cdotu_batched(rocblas_handle                     handle,
-                                     rocblas_int                        n,
-                                     const rocblas_float_complex* const x[],
-                                     rocblas_int                        incx,
-                                     const rocblas_float_complex* const y[],
-                                     rocblas_int                        incy,
-                                     rocblas_int                        batch_count,
-                                     rocblas_float_complex*             results)
-try
-{
-    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zdotu_batched(rocblas_handle                      handle,
-                                     rocblas_int                         n,
-                                     const rocblas_double_complex* const x[],
-                                     rocblas_int                         incx,
-                                     const rocblas_double_complex* const y[],
-                                     rocblas_int                         incy,
-                                     rocblas_int                         batch_count,
-                                     rocblas_double_complex*             results)
-try
-{
-    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_cdotc_batched(rocblas_handle                     handle,
-                                     rocblas_int                        n,
-                                     const rocblas_float_complex* const x[],
-                                     rocblas_int                        incx,
-                                     const rocblas_float_complex* const y[],
-                                     rocblas_int                        incy,
-                                     rocblas_int                        batch_count,
-                                     rocblas_float_complex*             results)
-try
-{
-    return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zdotc_batched(rocblas_handle                      handle,
-                                     rocblas_int                         n,
-                                     const rocblas_double_complex* const x[],
-                                     rocblas_int                         incx,
-                                     const rocblas_double_complex* const y[],
-                                     rocblas_int                         incy,
-                                     rocblas_int                         batch_count,
-                                     rocblas_double_complex*             results)
-try
-{
-    return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -217,165 +217,40 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sdot_strided_batched(rocblas_handle handle,
-                                            rocblas_int    n,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            rocblas_stride stridex,
-                                            const float*   y,
-                                            rocblas_int    incy,
-                                            rocblas_stride stridey,
-                                            rocblas_int    batch_count,
-                                            float*         results)
-try
-{
-    return rocblas_dot_strided_batched_impl<false>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_ddot_strided_batched(rocblas_handle handle,
-                                            rocblas_int    n,
-                                            const double*  x,
-                                            rocblas_int    incx,
-                                            rocblas_stride stridex,
-                                            const double*  y,
-                                            rocblas_int    incy,
-                                            rocblas_stride stridey,
-                                            rocblas_int    batch_count,
-                                            double*        results)
-try
-{
-    return rocblas_dot_strided_batched_impl<false>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, conj_, T_, Tex_)                                              \
+    rocblas_status name_(rocblas_handle handle,                                   \
+                         rocblas_int    n,                                        \
+                         const T_*      x,                                        \
+                         rocblas_int    incx,                                     \
+                         rocblas_stride stridex,                                  \
+                         const T_*      y,                                        \
+                         rocblas_int    incy,                                     \
+                         rocblas_stride stridey,                                  \
+                         rocblas_int    batch_count,                              \
+                         T_*            results)                                  \
+    try                                                                           \
+    {                                                                             \
+        return rocblas_dot_strided_batched_impl<conj_, T_, Tex_>(                 \
+            handle, n, x, incx, stridex, y, incy, stridey, batch_count, results); \
+    }                                                                             \
+    catch(...)                                                                    \
+    {                                                                             \
+        return exception_to_rocblas_status();                                     \
+    }
 
-rocblas_status rocblas_hdot_strided_batched(rocblas_handle      handle,
-                                            rocblas_int         n,
-                                            const rocblas_half* x,
-                                            rocblas_int         incx,
-                                            rocblas_stride      stridex,
-                                            const rocblas_half* y,
-                                            rocblas_int         incy,
-                                            rocblas_stride      stridey,
-                                            rocblas_int         batch_count,
-                                            rocblas_half*       result)
-try
-{
-    return rocblas_dot_strided_batched_impl<false>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_sdot_strided_batched, false, float, float);
+IMPL(rocblas_ddot_strided_batched, false, double, double);
+IMPL(rocblas_hdot_strided_batched, false, rocblas_half, rocblas_half);
+IMPL(rocblas_bfdot_strided_batched, false, rocblas_bfloat16, float);
+IMPL(rocblas_cdotu_strided_batched, false, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zdotu_strided_batched, false, rocblas_double_complex, rocblas_double_complex);
+IMPL(rocblas_cdotc_strided_batched, true, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zdotc_strided_batched, true, rocblas_double_complex, rocblas_double_complex);
 
-rocblas_status rocblas_bfdot_strided_batched(rocblas_handle          handle,
-                                             rocblas_int             n,
-                                             const rocblas_bfloat16* x,
-                                             rocblas_int             incx,
-                                             rocblas_stride          stridex,
-                                             const rocblas_bfloat16* y,
-                                             rocblas_int             incy,
-                                             rocblas_stride          stridey,
-                                             rocblas_int             batch_count,
-                                             rocblas_bfloat16*       result)
-try
-{
-    return rocblas_dot_strided_batched_impl<false, rocblas_bfloat16, float>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_cdotu_strided_batched(rocblas_handle               handle,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* x,
-                                             rocblas_int                  incx,
-                                             rocblas_stride               stridex,
-                                             const rocblas_float_complex* y,
-                                             rocblas_int                  incy,
-                                             rocblas_stride               stridey,
-                                             rocblas_int                  batch_count,
-                                             rocblas_float_complex*       results)
-try
-{
-    return rocblas_dot_strided_batched_impl<false>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zdotu_strided_batched(rocblas_handle                handle,
-                                             rocblas_int                   n,
-                                             const rocblas_double_complex* x,
-                                             rocblas_int                   incx,
-                                             rocblas_stride                stridex,
-                                             const rocblas_double_complex* y,
-                                             rocblas_int                   incy,
-                                             rocblas_stride                stridey,
-                                             rocblas_int                   batch_count,
-                                             rocblas_double_complex*       results)
-try
-{
-    return rocblas_dot_strided_batched_impl<false>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_cdotc_strided_batched(rocblas_handle               handle,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* x,
-                                             rocblas_int                  incx,
-                                             rocblas_stride               stridex,
-                                             const rocblas_float_complex* y,
-                                             rocblas_int                  incy,
-                                             rocblas_stride               stridey,
-                                             rocblas_int                  batch_count,
-                                             rocblas_float_complex*       results)
-try
-
-{
-    return rocblas_dot_strided_batched_impl<true>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zdotc_strided_batched(rocblas_handle                handle,
-                                             rocblas_int                   n,
-                                             const rocblas_double_complex* x,
-                                             rocblas_int                   incx,
-                                             rocblas_stride                stridex,
-                                             const rocblas_double_complex* y,
-                                             rocblas_int                   incy,
-                                             rocblas_stride                stridey,
-                                             rocblas_int                   batch_count,
-                                             rocblas_double_complex*       results)
-try
-{
-    return rocblas_dot_strided_batched_impl<true>(
-        handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"
