@@ -411,7 +411,8 @@ rocblas_status rocblas_trsm_left(rocblas_handle    handle,
                                                             BLOCK,
                                                             &alpha_negative_one<T>,
                                                             A,
-                                                            i + BLOCK + i * size_t(lda) + offset_Ain,
+                                                            i + BLOCK + i * size_t(lda)
+                                                                + offset_Ain,
                                                             lda,
                                                             stride_A,
                                                             (U)X,
@@ -730,7 +731,8 @@ rocblas_status rocblas_trsm_left(rocblas_handle    handle,
                                                             BLOCK,
                                                             &alpha_negative_one<T>,
                                                             A,
-                                                            i + (i + BLOCK) * size_t(lda) + offset_Ain,
+                                                            i + (i + BLOCK) * size_t(lda)
+                                                                + offset_Ain,
                                                             lda,
                                                             stride_A,
                                                             (U)X,
@@ -970,7 +972,8 @@ rocblas_status rocblas_trsm_right(rocblas_handle    handle,
                                                             m,
                                                             stride_X,
                                                             A,
-                                                            i + (i + BLOCK) * size_t(lda) + offset_Ain,
+                                                            i + (i + BLOCK) * size_t(lda)
+                                                                + offset_Ain,
                                                             lda,
                                                             stride_A,
                                                             &beta_1<T>,
@@ -1073,7 +1076,8 @@ rocblas_status rocblas_trsm_right(rocblas_handle    handle,
                                                             m,
                                                             stride_X,
                                                             A,
-                                                            BLOCK + i + i * size_t(lda) + offset_Ain,
+                                                            BLOCK + i + i * size_t(lda)
+                                                                + offset_Ain,
                                                             lda,
                                                             stride_A,
                                                             &beta_1<T>,
@@ -1225,7 +1229,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
 
     for(size_t w = 0; w < W; w++)
     {
-        size_t width = std::min(bsize - w * size_t(B_chunk_size), B_chunk_size);
+        size_t width = std::min(bsize - w * B_chunk_size, B_chunk_size);
 
         if(side == rocblas_side_left)
         {
@@ -1246,19 +1250,19 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                        BLOCK,
                                        stride_X,
                                        batch_count,
-                                       j * size_t(BLOCK) + w * size_t(B_chunk_size) * size_t(ldb) + offset_Bin,
+                                       j * BLOCK + w * B_chunk_size * ldb + offset_Bin,
                                        0);
 
                 if(r)
                 {
                     rocblas_stride offsetA = 0;
-                    rocblas_stride offsetB = parity ? w * size_t(B_chunk_size) * size_t(ldb)
-                                                 : w * size_t(B_chunk_size) * size_t(ldb) + (q + 1) * BLOCK;
+                    rocblas_stride offsetB = parity ? w * B_chunk_size * ldb
+                                                    : w * B_chunk_size * ldb + (q + 1) * BLOCK;
 
                     if(transA == rocblas_operation_none)
-                        offsetA = parity ? r * BLOCK : BLOCK * (q * size_t(lda) + q + lda);
+                        offsetA = parity ? r * BLOCK : BLOCK * (q * lda + q + lda);
                     else
-                        offsetA = parity ? r * BLOCK * size_t(lda) : BLOCK * (q * size_t(lda) + q + 1);
+                        offsetA = parity ? r * BLOCK * lda : BLOCK * (q * lda + q + 1);
 
                     if(!tensile_supports_ldc_ne_ldd)
                     {
@@ -1311,7 +1315,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                           alpha,
                                                           B,
                                                           compute_type,
-                                                          j * size_t(BLOCK) + w * size_t(B_chunk_size) * size_t(ldb)
+                                                          j * BLOCK + w * B_chunk_size * ldb
                                                               + offset_Bin,
                                                           ldb,
                                                           stride_B,
@@ -1337,7 +1341,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     BLOCK,
                     r ? &alpha_1<T> : alpha,
                     invA,
-                    size_t(j * size_t(BLOCK) * BLOCK + offset_invAin),
+                    size_t(j * BLOCK * BLOCK + offset_invAin),
                     size_t(BLOCK),
                     stride_invA,
                     (U)w_x_temp,
@@ -1346,7 +1350,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     stride_X,
                     &beta_0<T>,
                     B,
-                    size_t(w * size_t(B_chunk_size) * size_t(ldb) + j * size_t(BLOCK) + offset_Bin),
+                    size_t(w * B_chunk_size * ldb + j * BLOCK + offset_Bin),
                     size_t(ldb),
                     stride_B,
                     batch_count);
@@ -1371,18 +1375,18 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                        width,
                                        stride_X,
                                        batch_count,
-                                       j * size_t(BLOCK) * size_t(ldb) + w * size_t(B_chunk_size) + offset_Bin,
+                                       j * BLOCK * ldb + w * B_chunk_size + offset_Bin,
                                        0);
 
                 if(r)
                 {
                     rocblas_stride offsetA = 0;
                     rocblas_stride offsetB
-                        = parity ? w * size_t(B_chunk_size) + (q + 1) * BLOCK * size_t(ldb) : w * size_t(B_chunk_size);
+                        = parity ? w * B_chunk_size + (q + 1) * BLOCK * ldb : w * B_chunk_size;
                     if(transA == rocblas_operation_none)
-                        offsetA = parity ? BLOCK * (q * size_t(lda) + q + 1) : r * BLOCK * size_t(lda);
+                        offsetA = parity ? BLOCK * (q * lda + q + 1) : r * BLOCK * lda;
                     else
-                        offsetA = parity ? BLOCK * (q * size_t(lda) + q + lda) : r * BLOCK;
+                        offsetA = parity ? BLOCK * (q * lda + q + lda) : r * BLOCK;
 
                     if(!tensile_supports_ldc_ne_ldd)
                     {
@@ -1435,7 +1439,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                           alpha,
                                                           B,
                                                           compute_type,
-                                                          j * size_t(BLOCK) * size_t(ldb) + w * size_t(B_chunk_size)
+                                                          j * BLOCK * ldb + w * B_chunk_size
                                                               + offset_Bin,
                                                           ldb,
                                                           stride_B,
@@ -1465,12 +1469,12 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     width,
                     stride_X,
                     invA,
-                    size_t(j * size_t(BLOCK) * BLOCK + offset_invAin),
+                    size_t(j * BLOCK * BLOCK + offset_invAin),
                     size_t(BLOCK),
                     stride_invA,
                     &beta_0<T>,
                     B,
-                    size_t(w * size_t(B_chunk_size) * size_t(ldb) + j * size_t(BLOCK) * size_t(ldb) + offset_Bin),
+                    size_t(w * B_chunk_size * ldb + j * BLOCK * ldb + offset_Bin),
                     size_t(ldb),
                     stride_B,
                     batch_count);
@@ -1952,7 +1956,8 @@ rocblas_trsm_small_right_device(rocblas_fill      uplo,
     {
         // Load A into sA, handle conjugation if necessary
         for(int i = 0; i <= maxColA; i++)
-            sA[i * size_t(NB) + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
+            sA[i * size_t(NB) + tx]
+                = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
 
         // set unit diagonal if needed
         if(diag == rocblas_diagonal_unit)
@@ -2079,7 +2084,7 @@ rocblas_trsm_small_right_device(rocblas_fill      uplo,
             for(int j = maxColA; j > i; j--)
             {
                 size_t col_off = j * size_t(NB);
-                T           sB_reg  = sB[col_off + tx];
+                T      sB_reg  = sB[col_off + tx];
                 resB[0] -= sB_reg * sA[col_off + (i - 0)];
                 resB[1] -= sB_reg * sA[col_off + (i - 1)];
                 resB[2] -= sB_reg * sA[col_off + (i - 2)];
@@ -2129,7 +2134,7 @@ rocblas_trsm_small_right_device(rocblas_fill      uplo,
             for(int j = 0; j < i; j++)
             {
                 size_t col_off = j * size_t(NB);
-                T           sB_reg  = sB[col_off + tx];
+                T      sB_reg  = sB[col_off + tx];
                 resB[0] -= sB_reg * sA[col_off + (i + 0)];
                 resB[1] -= sB_reg * sA[col_off + (i + 1)];
                 resB[2] -= sB_reg * sA[col_off + (i + 2)];
@@ -2271,7 +2276,8 @@ rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
             }
             sB[i * size_t(NB) + tx] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
-                sB[i * size_t(NB) + tx] /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+                sB[i * size_t(NB) + tx]
+                    /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
         }
     }
     else // lower (conjugate-)transpose
@@ -2286,7 +2292,8 @@ rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
             }
             sB[i * size_t(NB) + tx] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
-                sB[i * size_t(NB) + tx] /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+                sB[i * size_t(NB) + tx]
+                    /= CONJ ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
         }
     }
 
@@ -2351,7 +2358,8 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
     {
         // Load A into sA, handle conjugation if necessary
         for(int i = 0; i <= maxColA; i++)
-            sA[i * size_t(NB) + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
+            sA[i * size_t(NB) + tx]
+                = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
 
         // set unit diagonal if needed
         if(diag == rocblas_diagonal_unit)
@@ -2378,7 +2386,7 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
             for(int j = 0; j < i; j++)
             {
                 size_t col_off = j * size_t(NB);
-                T           sB_reg  = sB[sb_col + j];
+                T      sB_reg  = sB[sb_col + j];
                 resB[0] -= sB_reg * sA[col_off + i];
                 resB[1] -= sB_reg * sA[col_off + (i + 1)];
                 resB[2] -= sB_reg * sA[col_off + (i + 2)];
@@ -2428,7 +2436,7 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
             for(int j = maxColA; j > i; j--)
             {
                 size_t col_off = j * size_t(NB);
-                T           sB_reg  = sB[sb_col + j];
+                T      sB_reg  = sB[sb_col + j];
                 resB[0] -= sB_reg * sA[col_off + (i - 0)];
                 resB[1] -= sB_reg * sA[col_off + (i - 1)];
                 resB[2] -= sB_reg * sA[col_off + (i - 2)];
@@ -2666,7 +2674,8 @@ rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
             }
             sB[tx * size_t(NB) + i] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
-                sB[tx * size_t(NB) + i] /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+                sB[tx * size_t(NB) + i]
+                    /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
         }
     }
     else if(!LOWER)
@@ -2681,7 +2690,8 @@ rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
             }
             sB[tx * size_t(NB) + i] = temp_reg_B;
             if(diag != rocblas_diagonal_unit)
-                sB[tx * size_t(NB) + i] /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
+                sB[tx * size_t(NB) + i]
+                    /= (CONJ) ? conj(A[i * size_t(lda) + i]) : A[i * size_t(lda) + i];
         }
     }
 
@@ -2957,7 +2967,7 @@ void rocblas_trsm_small_substitution(rocblas_handle handle,
     T           negative_one = -1;
     T           one          = 1;
     rocblas_int j            = 0;
-    size_t offA_sub, offB_sub;
+    size_t      offA_sub, offB_sub;
     size_t      smem_size;
 
     // Different kernels for forward substitution vs. backward substitution
@@ -2968,10 +2978,10 @@ void rocblas_trsm_small_substitution(rocblas_handle handle,
         const rocblas_int j_next = j + NBX;
 
         size_t offA_gemm = LEFT ? (!TRANSA ? j * size_t(lda) + j_next : j + j_next * size_t(lda))
-                                     : (!TRANSA ? j + j_next * size_t(lda) : j * size_t(lda) + j_next);
+                                : (!TRANSA ? j + j_next * size_t(lda) : j * size_t(lda) + j_next);
         size_t offB_gemm = LEFT ? j : j * size_t(ldb);
         size_t offC_gemm = LEFT ? j_next : j_next * size_t(ldb);
-        smem_size             = (1024 / NBX) * sizeof(T);
+        smem_size        = (1024 / NBX) * sizeof(T);
 
         // 1. call trsm subtitution/solve
         if(FORWARD_SUB)
@@ -3004,8 +3014,9 @@ void rocblas_trsm_small_substitution(rocblas_handle handle,
         }
         else
         {
-            offA_sub = LEFT ? (m - j_next) * size_t(lda) + (m - j_next) : (n - j_next) * size_t(lda) + (n - j_next);
-            offB_sub = LEFT ? m - j_next : (n - j_next) * size_t(ldb);
+            offA_sub  = LEFT ? (m - j_next) * size_t(lda) + (m - j_next)
+                             : (n - j_next) * size_t(lda) + (n - j_next);
+            offB_sub  = LEFT ? m - j_next : (n - j_next) * size_t(ldb);
             offA_gemm = LEFT ? (!TRANSA ? (m - j_next) * size_t(lda) : m - j_next)
                              : (!TRANSA ? n - j_next : (n - j_next) * size_t(lda));
             offB_gemm = LEFT ? m - j_next : (n - j_next) * size_t(ldb);
