@@ -139,19 +139,33 @@ inline rocblas_status rocblas_call_tensile(rocblas_handle    handle,
     }
 #endif
 
-    RocblasContractionProblem<T> problem{handle,   trans_a,
-                                         trans_b,  m,
-                                         n,        k,
-                                         alpha,    A,
-                                         nullptr,  ld_a,
-                                         stride_a, offset_a,
-                                         B,        nullptr,
-                                         ld_b,     stride_b,
-                                         offset_b, beta,
-                                         C,        nullptr,
-                                         ld_c,     stride_c,
-                                         offset_c, batch_count,
-                                         true,     rocblas_gemm_flags_none};
+    // pre apply offsets for non-batched and strided
+    RocblasContractionProblem<T> problem{handle,
+                                         trans_a,
+                                         trans_b,
+                                         m,
+                                         n,
+                                         k,
+                                         alpha,
+                                         A + offset_a,
+                                         nullptr,
+                                         ld_a,
+                                         stride_a,
+                                         0 /* offset_a */,
+                                         B + offset_b,
+                                         nullptr,
+                                         ld_b,
+                                         stride_b,
+                                         0 /* offset_b */,
+                                         beta,
+                                         C + offset_c,
+                                         nullptr,
+                                         ld_c,
+                                         stride_c,
+                                         0 /* offset_c */,
+                                         batch_count,
+                                         true,
+                                         rocblas_gemm_flags_none};
 
     return runContractionProblem(problem);
 }

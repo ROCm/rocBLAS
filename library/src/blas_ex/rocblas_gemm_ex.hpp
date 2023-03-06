@@ -263,11 +263,38 @@ rocblas_status gemm_ex_batched_template(rocblas_handle     handle,
                                         int32_t            solution_index,
                                         rocblas_gemm_flags flags)
 {
-    RocblasContractionProblem<Ti, To, Tc> problem{
-        handle,   trans_a, trans_b,  m,        n,           k,        alpha,    a,
-        nullptr,  lda,     stride_a, offset_a, b,           nullptr,  ldb,      stride_b,
-        offset_b, beta,    c,        nullptr,  ldc,         stride_c, offset_c, d,
-        nullptr,  ldd,     stride_d, offset_d, batch_count, true,     flags};
+    // pre apply offsets for non-batched and strided
+    RocblasContractionProblem<Ti, To, Tc> problem{handle,
+                                                  trans_a,
+                                                  trans_b,
+                                                  m,
+                                                  n,
+                                                  k,
+                                                  alpha,
+                                                  a + offset_a,
+                                                  nullptr,
+                                                  lda,
+                                                  stride_a,
+                                                  0 /* offset_a */,
+                                                  b + offset_b,
+                                                  nullptr,
+                                                  ldb,
+                                                  stride_b,
+                                                  0 /* offset_b */,
+                                                  beta,
+                                                  c + offset_c,
+                                                  nullptr,
+                                                  ldc,
+                                                  stride_c,
+                                                  0 /* offset_c */,
+                                                  d + offset_d,
+                                                  nullptr,
+                                                  ldd,
+                                                  stride_d,
+                                                  0 /* offset_d */,
+                                                  batch_count,
+                                                  true,
+                                                  flags};
 
     return runContractionProblem(problem, algo, solution_index);
 }
