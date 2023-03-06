@@ -123,5 +123,6 @@ foreach( exe ${sample_list_hip_device} )
 endforeach( )
 
 target_compile_definitions( rocblas-example-strmm_v3 PRIVATE ROCBLAS_V3)
-target_compile_definitions( rocblas-example-fortran-trmm_v3 PRIVATE ROCBLAS_V3)
-
+if ( BUILD_FORTRAN_CLIENTS )
+  target_compile_definitions( rocblas-example-fortran-trmm_v3 PRIVATE ROCBLAS_V3)
+endif( )
