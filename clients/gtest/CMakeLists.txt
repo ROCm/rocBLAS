@@ -111,21 +111,37 @@ set(rocblas_no_tensile_test_source
 # first to initialize Tensile.
 if ( BUILD_FORTRAN_CLIENTS )
   add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} $<TARGET_OBJECTS:rocblas_fortran> ${rocblas_test_bench_common} )
+  add_executable( rocblas_v3-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} $<TARGET_OBJECTS:rocblas_fortran> ${rocblas_test_bench_common} )
 else()
   add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} ${rocblas_test_bench_common} )
+  add_executable( rocblas_v3-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} ${rocblas_test_bench_common} )
 endif()
 
 if (WIN32)
   target_compile_definitions( rocblas-test PRIVATE _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING )
+  target_compile_definitions( rocblas_v3-test PRIVATE _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING )
 endif()
 
-target_compile_definitions( rocblas-test PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST )
+target_compile_definitions( rocblas-test PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST)
+target_compile_definitions( rocblas_v3-test PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST ROCBLAS_V3)
 if ( NOT BUILD_FORTRAN_CLIENTS )
   target_compile_definitions( rocblas-test PRIVATE CLIENTS_NO_FORTRAN )
+  target_compile_definitions( rocblas_v3-test PRIVATE CLIENTS_NO_FORTRAN )
 endif()
 
 # Internal header includes
 target_include_directories( rocblas-test
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas2>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas3>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas_ex>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas_ex>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
+)
+target_include_directories( rocblas_v3-test
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include/blas1>
@@ -145,11 +161,20 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
 )
+target_include_directories( rocblas_v3-test
+  SYSTEM PRIVATE
+    $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${BLAS_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}> # may be blank if not used
+    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
+)
 
 if( BUILD_FORTRAN_CLIENTS )
   target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client )
+  target_link_libraries( rocblas_v3-test PRIVATE rocblas_fortran_client )
 endif( )
 target_link_libraries( rocblas-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas )
+target_link_libraries( rocblas_v3-test PRIVATE ${BLAS_LIBRARY} ${GTEST_BOTH_LIBRARIES} roc::rocblas )
 
 if( CUDA_FOUND )
   target_include_directories( rocblas-test
@@ -157,22 +182,33 @@ if( CUDA_FOUND )
       $<BUILD_INTERFACE:${CUDA_INCLUDE_DIRS}>
       $<BUILD_INTERFACE:${hip_INCLUDE_DIRS}>
     )
+  target_include_directories( rocblas_v3-test
+    PRIVATE
+      $<BUILD_INTERFACE:${CUDA_INCLUDE_DIRS}>
+      $<BUILD_INTERFACE:${hip_INCLUDE_DIRS}>
+    )
   target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_NVCC__ )
+  target_compile_definitions( rocblas_v3-test PRIVATE __HIP_PLATFORM_NVCC__ )
   target_link_libraries( rocblas-test PRIVATE ${CUDA_LIBRARIES} )
+  target_link_libraries( rocblas_v3-test PRIVATE ${CUDA_LIBRARIES} )
 else( )
   # auto set in hip_common.h
   #target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
   target_link_libraries( rocblas-test PRIVATE hip::host hip::device )
+  target_link_libraries( rocblas_v3-test PRIVATE hip::host hip::device )
 endif( )
 
 if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # GCC or hip-clang needs specific flag to turn on f16c intrinsics
   target_compile_options( rocblas-test PRIVATE -mf16c )
+  target_compile_options( rocblas_v3-test PRIVATE -mf16c )
 endif( )
 
 target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
+target_compile_definitions( rocblas_v3-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
 
 target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
+target_compile_options(rocblas_v3-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 # target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
 if (NOT WIN32)
   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
@@ -183,6 +219,7 @@ else()
   list( APPEND COMMON_LINK_LIBS "libomp")
 endif()
 target_link_libraries( rocblas-test PRIVATE ${COMMON_LINK_LIBS} )
+target_link_libraries( rocblas_v3-test PRIVATE ${COMMON_LINK_LIBS} )
 
 if (WIN32)
   # for now adding in all .dll as dependency chain is not cmake based on win32
@@ -206,16 +243,23 @@ set_target_properties( rocblas-test PROPERTIES
   LINKER_LANGUAGE CXX
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
+set_target_properties( rocblas_v3-test PROPERTIES
+  IMPORT_PREFIX ""
+  IMPORT_SUFFIX ".lib"
+  LINKER_LANGUAGE CXX
+  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
+)
 
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     COMMAND ${python} ../common/rocblas_gentest.py -I ../include rocblas_gtest.yaml -o "${ROCBLAS_TEST_DATA}"
                     DEPENDS ../common/rocblas_gentest.py ../include/rocblas_common.yaml general_gtest.yaml blas1_gtest.yaml dgmm_gtest.yaml gbmv_gtest.yaml geam_gtest.yaml geam_ex_gtest.yaml gemm_batched_gtest.yaml gemm_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml ger_gtest.yaml geruc_gtest.yaml hbmv_gtest.yaml hemm_gtest.yaml hemv_gtest.yaml her2_gtest.yaml her2k_gtest.yaml her_gtest.yaml herk_gtest.yaml herkx_gtest.yaml hpmv_gtest.yaml hpr2_gtest.yaml hpr_gtest.yaml known_bugs.yaml logging_mode_gtest.yaml atomics_mode_gtest.yaml ostream_threadsafety_gtest.yaml rocblas_gtest.yaml sbmv_gtest.yaml set_get_matrix_gtest.yaml set_get_pointer_mode_gtest.yaml set_get_atomics_mode_gtest.yaml set_get_vector_gtest.yaml spmv_gtest.yaml spr2_gtest.yaml spr_gtest.yaml symm_gtest.yaml symv_gtest.yaml syr2_gtest.yaml syr2k_gtest.yaml syr_gtest.yaml syrk_gtest.yaml syrkx_gtest.yaml tbmv_gtest.yaml tbsv_gtest.yaml tpmv_gtest.yaml tpsv_gtest.yaml trmm_gtest.yaml trmv_gtest.yaml trsm_gtest.yaml trsv_gtest.yaml trtri_gtest.yaml multiheaded_gtest.yaml get_solutions_gtest.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
-add_custom_target( rocblas-test-data
-                   DEPENDS "${ROCBLAS_TEST_DATA}" )
+add_custom_target( rocblas-test-data DEPENDS "${ROCBLAS_TEST_DATA}" )
 
 add_dependencies( rocblas-test rocblas-test-data rocblas-common )
+add_dependencies( rocblas_v3-test rocblas-test-data rocblas-common )
 
 rocm_install(TARGETS rocblas-test COMPONENT tests)
+rocm_install(TARGETS rocblas_v3-test COMPONENT tests)
 rocm_install(FILES ${ROCBLAS_TEST_DATA} DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT tests)
