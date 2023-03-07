@@ -10488,7 +10488,7 @@ module rocblas
         end function rocblas_ztrmm_strided_batched
     end interface
 
-    ! trmm
+    ! trmm_outofplace
     interface
         function rocblas_strmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
                                           A, lda, B, ldb, C, ldc) &
