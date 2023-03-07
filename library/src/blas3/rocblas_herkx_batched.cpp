@@ -33,7 +33,7 @@ namespace
     template <>
     constexpr char rocblas_herkx_name<rocblas_double_complex>[] = "rocblas_zherkx_batched";
 
-    template <rocblas_int NB, typename T>
+    template <typename T>
     rocblas_status rocblas_herkx_batched_impl(rocblas_handle    handle,
                                               rocblas_fill      uplo,
                                               rocblas_operation trans,
@@ -187,30 +187,26 @@ namespace
                 return herkx_check_numerics_status;
         }
 
-        static constexpr bool BATCHED = true;
-        rocblas_status        status  = rocblas_status_success;
-        // passing in beta as the same type as alpha for easy code reuse
-        const T beta_comp = {*beta, 0};
-        status            = rocblas_internal_syrkx_herkx_template<NB, BATCHED, true, T>(handle,
-                                                                             uplo,
-                                                                             trans,
-                                                                             n,
-                                                                             k,
-                                                                             alpha,
-                                                                             A,
-                                                                             offset_A,
-                                                                             lda,
-                                                                             stride_A,
-                                                                             B,
-                                                                             offset_B,
-                                                                             ldb,
-                                                                             stride_B,
-                                                                             &beta_comp,
-                                                                             C,
-                                                                             offset_C,
-                                                                             ldc,
-                                                                             stride_C,
-                                                                             batch_count);
+        rocblas_status status = rocblas_internal_herkx_batched_template(handle,
+                                                                        uplo,
+                                                                        trans,
+                                                                        n,
+                                                                        k,
+                                                                        alpha,
+                                                                        A,
+                                                                        offset_A,
+                                                                        lda,
+                                                                        stride_A,
+                                                                        B,
+                                                                        offset_B,
+                                                                        ldb,
+                                                                        stride_B,
+                                                                        beta,
+                                                                        C,
+                                                                        offset_C,
+                                                                        ldc,
+                                                                        stride_C,
+                                                                        batch_count);
 
         if(status != rocblas_status_success)
             return status;
@@ -257,7 +253,7 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, NB_, S_, T_)                                                  \
+#define IMPL(routine_name_, T_)                                                           \
     rocblas_status routine_name_(rocblas_handle    handle,                                \
                                  rocblas_fill      uplo,                                  \
                                  rocblas_operation trans,                                 \
@@ -268,13 +264,13 @@ extern "C" {
                                  rocblas_int       lda,                                   \
                                  const T_* const   B[],                                   \
                                  rocblas_int       ldb,                                   \
-                                 const S_*         beta,                                  \
+                                 const real_t<T_>* beta,                                  \
                                  T_* const         C[],                                   \
                                  rocblas_int       ldc,                                   \
                                  rocblas_int       batch_count)                           \
     try                                                                                   \
     {                                                                                     \
-        return rocblas_herkx_batched_impl<NB_>(                                           \
+        return rocblas_herkx_batched_impl(                                                \
             handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc, batch_count); \
     }                                                                                     \
     catch(...)                                                                            \
@@ -282,8 +278,8 @@ extern "C" {
         return exception_to_rocblas_status();                                             \
     }
 
-IMPL(rocblas_cherkx_batched, ROCBLAS_HERKX_BATCHED_NB, float, rocblas_float_complex);
-IMPL(rocblas_zherkx_batched, ROCBLAS_HERKX_BATCHED_NB, double, rocblas_double_complex);
+IMPL(rocblas_cherkx_batched, rocblas_float_complex);
+IMPL(rocblas_zherkx_batched, rocblas_double_complex);
 
 #undef IMPL
 

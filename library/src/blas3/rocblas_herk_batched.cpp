@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,16 +33,16 @@ namespace
     template <>
     constexpr char rocblas_herk_name<rocblas_double_complex>[] = "rocblas_zherk_batched";
 
-    template <rocblas_int NB, typename T, typename U>
+    template <typename T>
     rocblas_status rocblas_herk_batched_impl(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
                                              rocblas_int       n,
                                              rocblas_int       k,
-                                             const U*          alpha,
+                                             const real_t<T>*  alpha,
                                              const T* const    A[],
                                              rocblas_int       lda,
-                                             const U*          beta,
+                                             const real_t<T>*  beta,
                                              T* const          C[],
                                              rocblas_int       ldc,
                                              rocblas_int       batch_count)
@@ -165,22 +165,22 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        status                = rocblas_internal_herk_template<NB, BATCHED, T>(handle,
-                                                                uplo,
-                                                                transA,
-                                                                n,
-                                                                k,
-                                                                alpha,
-                                                                A,
-                                                                offset_A,
-                                                                lda,
-                                                                stride_A,
-                                                                beta,
-                                                                C,
-                                                                offset_C,
-                                                                ldc,
-                                                                stride_C,
-                                                                batch_count);
+        status                = rocblas_internal_herk_batched_template(handle,
+                                                        uplo,
+                                                        transA,
+                                                        n,
+                                                        k,
+                                                        alpha,
+                                                        A,
+                                                        offset_A,
+                                                        lda,
+                                                        stride_A,
+                                                        beta,
+                                                        C,
+                                                        offset_C,
+                                                        ldc,
+                                                        stride_C,
+                                                        batch_count);
 
         if(check_numerics)
         {
@@ -221,22 +221,22 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, NB_, S_, T_)                                           \
+#define IMPL(routine_name_, T_)                                                    \
     rocblas_status routine_name_(rocblas_handle    handle,                         \
                                  rocblas_fill      uplo,                           \
                                  rocblas_operation transA,                         \
                                  rocblas_int       n,                              \
                                  rocblas_int       k,                              \
-                                 const S_*         alpha,                          \
+                                 const real_t<T_>* alpha,                          \
                                  const T_* const   A[],                            \
                                  rocblas_int       lda,                            \
-                                 const S_*         beta,                           \
+                                 const real_t<T_>* beta,                           \
                                  T_* const         C[],                            \
                                  rocblas_int       ldc,                            \
                                  rocblas_int       batch_count)                    \
     try                                                                            \
     {                                                                              \
-        return rocblas_herk_batched_impl<NB_>(                                     \
+        return rocblas_herk_batched_impl(                                          \
             handle, uplo, transA, n, k, alpha, A, lda, beta, C, ldc, batch_count); \
     }                                                                              \
     catch(...)                                                                     \
@@ -244,8 +244,8 @@ extern "C" {
         return exception_to_rocblas_status();                                      \
     }
 
-IMPL(rocblas_cherk_batched, ROCBLAS_HERK_BATCHED_NB, float, rocblas_float_complex);
-IMPL(rocblas_zherk_batched, ROCBLAS_HERK_BATCHED_NB, double, rocblas_double_complex);
+IMPL(rocblas_cherk_batched, rocblas_float_complex);
+IMPL(rocblas_zherk_batched, rocblas_double_complex);
 
 #undef IMPL
 
