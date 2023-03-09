@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -553,6 +553,15 @@ namespace
 
             // The name of the current GPU platform
             std::string processor = rocblas_internal_get_arch_name();
+            // Get current xnack mode
+            std::string xnack = rocblas_internal_get_xnack_mode();
+
+            // If xnack mode is set, skip loading kernels for the opposite mode
+            std::string skip_xnack;
+            if(xnack == "xnack+")
+                skip_xnack = "xnack-";
+            else if(xnack == "xnack-")
+                skip_xnack = "xnack+";
 
             const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
             if(env)
@@ -661,6 +670,9 @@ namespace
                     do
                     {
                         std::string codeObjectFile = path + "\\" + finddata.cFileName;
+                        if(!skip_xnack.empty()
+                           && codeObjectFile.find(skip_xnack) != std::string::npos)
+                            continue;
                         adapter.loadCodeObjectFile(codeObjectFile.c_str());
                     } while(FindNextFileA(hfine, &finddata));
                 }
@@ -675,7 +687,12 @@ namespace
                 if(!g)
                 {
                     for(size_t i = 0; i < glob_result.gl_pathc; ++i)
-                        adapter.loadCodeObjectFile(glob_result.gl_pathv[i]);
+                    {
+                        std::string cofile = glob_result.gl_pathv[i];
+                        if(!skip_xnack.empty() && cofile.find(skip_xnack) != std::string::npos)
+                            continue;
+                        adapter.loadCodeObjectFile(cofile);
+                    }
                 }
                 else if(g == GLOB_NOMATCH)
                 {
