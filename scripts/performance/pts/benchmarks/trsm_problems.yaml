@@ -69,7 +69,7 @@ Definitions:
   - &testset1_matrix_size_range
     - { M:   128, N:    2048, lda:   128, ldb:   128 }
     - { M:   128, N:   16848, lda:   128, ldb:   128 }
-#   - { M:   128, N:   29696, lda:   128, ldb:   128 }
+    - { M:   128, N:   29696, lda:   128, ldb:   128 }
 #   - { M:   128, N:   44544, lda:   128, ldb:   128 }
 #   - { M:   128, N:   53632, lda:   128, ldb:   128 }
     - { M:   256, N:    2048, lda:   256, ldb:   256 }
@@ -78,75 +78,75 @@ Definitions:
 #   - { M:   256, N:   53504, lda:   256, ldb:   256 }
     - { M:   384, N:    2048, lda:   384, ldb:   384 }
     - { M:   384, N:   14976, lda:   384, ldb:   384 }
-#   - { M:   384, N:   29952, lda:   384, ldb:   384 }
+    - { M:   384, N:   29952, lda:   384, ldb:   384 }
 #   - { M:   384, N:   44928, lda:   384, ldb:   384 }
 #   - { M:   384, N:   53376, lda:   384, ldb:   384 }
 
   - &testset2_matrix_size_range
     - { M:   2048,  N: 128,  lda:  2048, ldb:    2048 }
     - { M:  16848,  N: 128,  lda: 16848, ldb:   16848 }
-#   - { M:  29696,  N: 128,  lda: 29696, ldb:   29696 }
+    - { M:  29696,  N: 128,  lda: 29696, ldb:   29696 }
 #   - { M:  44544,  N: 128,  lda: 44544, ldb:   44544 }
 #   - { M:  53632,  N: 128,  lda: 53632, ldb:   53632 }
     - { M:   2048,  N: 256,  lda:  2048, ldb:    2048 }
     - { M:  14848,  N: 256,  lda: 14848, ldb:   14848 }
-#   - { M:  29696,  N: 256,  lda: 29696, ldb:   29696 }
+    - { M:  29696,  N: 256,  lda: 29696, ldb:   29696 }
 #   - { M:  44544,  N: 256,  lda: 44544, ldb:   44544 }
 #   - { M:  53504,  N: 256,  lda: 53504, ldb:   53504 }
     - { M:   2048,  N: 384,  lda:  2048, ldb:    2048 }
     - { M:  14976,  N: 384,  lda: 14976, ldb:   14976 }
-#   - { M:  29952,  N: 384,  lda: 29952, ldb:   29952 }
+    - { M:  29952,  N: 384,  lda: 29952, ldb:   29952 }
 #   - { M:  44928,  N: 384,  lda: 44928, ldb:   44928 }
 #   - { M:  53376,  N: 384,  lda: 53376, ldb:   53376 }
 
 Tests:
-  - name: trsm_bench_const_n
-    category: bench
-    function: trsm
-    precision: *single_precision
-    transA: [ N, T ]
-    side: L
-    uplo: U
-    diag: U
-    alpha: 1
-    incx: 1
-    incy: 1
-    N: 32
-    M: 32..120..8
-    lda: 120 # TODO: easy way to increment lda in lockstep with M?
-    ldb: 120
-    iters: 20
+# - name: trsm_bench_const_n
+#   category: bench
+#   function: trsm
+#   precision: *single_precision
+#   transA: [ N, T ]
+#   side: L
+#   uplo: U
+#   diag: U
+#   alpha: 1
+#   incx: 1
+#   incy: 1
+#   N: 32
+#   M: 32..120..8
+#   lda: 120 # TODO: easy way to increment lda in lockstep with M?
+#   ldb: 120
+#   iters: 20
 
-  - name: trsm_bench_const_m
-    category: bench
-    function: trsm
-    precision: *single_precision
-    transA: [ N, T ]
-    side: L
-    uplo: U
-    diag: U
-    alpha: 1
-    incx: 1
-    incy: 1
-    N: 32..480..32
-    M: 32
-    lda: 32
-    ldb: 32
-    iters: 20
+# - name: trsm_bench_const_m
+#   category: bench
+#   function: trsm
+#   precision: *single_precision
+#   transA: [ N, T ]
+#   side: L
+#   uplo: U
+#   diag: U
+#   alpha: 1
+#   incx: 1
+#   incy: 1
+#   N: 32..480..32
+#   M: 32
+#   lda: 32
+#   ldb: 32
+#   iters: 20
 
-  - name: trsm_bench_m_equals_n
-    category: bench
-    function: trsm
-    precision: *single_precision
-    transA: [ N, T ]
-    side: L
-    uplo: U
-    diag: U
-    alpha: 1
-    incx: 1
-    incy: 1
-    matrix_size: *m_equals_n_range
-    iters: 20
+# - name: trsm_bench_m_equals_n
+#   category: bench
+#   function: trsm
+#   precision: *single_precision
+#   transA: [ N, T ]
+#   side: L
+#   uplo: U
+#   diag: U
+#   alpha: 1
+#   incx: 1
+#   incy: 1
+#   matrix_size: *m_equals_n_range
+#   iters: 20
 
   - name: trsm_bench_1_small_matrix_size
     category: bench
