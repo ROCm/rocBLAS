@@ -169,8 +169,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions(rocblas_handle    ha
                                                             rocblas_int*      list_array,
                                                             rocblas_int*      list_size);
 
-ROCBLAS_DEPRECATED_MSG(
-    "rocblas_gemm_ex_get_solutions_by_type is a beta feature and is subject to change in future releases")
+ROCBLAS_DEPRECATED_MSG("rocblas_gemm_ex_get_solutions_by_type is a beta feature and is subject to "
+                       "change in future releases")
 /*! @{
     \brief <b> BLAS BETA API </b>
 
@@ -180,7 +180,7 @@ ROCBLAS_DEPRECATED_MSG(
     solution_index parameter.
 
     If list_array is NULL, list_size is an output and will be filled with the number of solutions
-    that can solve the GEMM. If list_array is not NULL, then it must be pointing to an array with 
+    that can solve the GEMM. If list_array is not NULL, then it must be pointing to an array with
     at least list_size elements and will be filled with the solution indices that can solve the
     GEMM: the number of elements filled is min(list_size, # of solutions).
 
@@ -192,7 +192,7 @@ ROCBLAS_DEPRECATED_MSG(
               [rocblas_datatype]
               specifies the datatype of matrix A.
     @param[in]
-    output_type    
+    output_type
               [rocblas_datatype]
               specifies the datatype of matrix D.
     @param[in]
@@ -349,8 +349,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex_get_solutions(rocblas_hand
                                                                     rocblas_int*      list_array,
                                                                     rocblas_int*      list_size);
 
-ROCBLAS_DEPRECATED_MSG(
-    "rocblas_gemm_batched_ex_get_solutions_by_type is a beta feature and is subject to change in future releases")
+ROCBLAS_DEPRECATED_MSG("rocblas_gemm_batched_ex_get_solutions_by_type is a beta feature and is "
+                       "subject to change in future releases")
 /*! @{
     \brief <b> BLAS BETA API </b>
 
@@ -360,7 +360,7 @@ ROCBLAS_DEPRECATED_MSG(
     by the solution_index parameter.
 
     If list_array is NULL, list_size is an output and will be filled with the number of solutions
-    that can solve the GEMM. If list_array is not NULL, then it must be pointing to an array with 
+    that can solve the GEMM. If list_array is not NULL, then it must be pointing to an array with
     at least list_size elements and will be filled with the solution indices that can solve the
     GEMM: the number of elements filled is min(list_size, # of solutions).
 
@@ -372,7 +372,7 @@ ROCBLAS_DEPRECATED_MSG(
               [rocblas_datatype]
               specifies the datatype of matrix A.
     @param[in]
-    output_type    
+    output_type
               [rocblas_datatype]
               specifies the datatype of matrix D.
     @param[in]
@@ -391,13 +391,14 @@ ROCBLAS_DEPRECATED_MSG(
                if list_array is NULL
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex_get_solutions_by_type(rocblas_handle   handle,
-                                                                            rocblas_datatype input_type,
-                                                                            rocblas_datatype output_type,
-                                                                            rocblas_datatype compute_type,
-                                                                            uint32_t         flags,
-                                                                            rocblas_int*     list_array,
-                                                                            rocblas_int*     list_size);
+ROCBLAS_EXPORT rocblas_status
+    rocblas_gemm_batched_ex_get_solutions_by_type(rocblas_handle   handle,
+                                                  rocblas_datatype input_type,
+                                                  rocblas_datatype output_type,
+                                                  rocblas_datatype compute_type,
+                                                  uint32_t         flags,
+                                                  rocblas_int*     list_array,
+                                                  rocblas_int*     list_size);
 
 ROCBLAS_DEPRECATED_MSG(
     "rocblas_gemm_strided_batched_ex_get_solutions is a beta feature and is subject "
