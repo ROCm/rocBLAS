@@ -470,21 +470,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions_by_type(rocblas_hand
 {
     // Create dummy GEMM problem to take advantage of problem templating
     // Most parameters are ignored, just needs to be valid for all types
-    float alpha = 0.0f;
-    float beta  = 0.0f;
+    float          alpha = 0.0f;
+    float          beta  = 0.0f;
     rocblas_stride stride{1};
     return rocblas_gemm_ex_get_solutions_template<false>(handle,
-                                                         rocblas_operation_none, rocblas_operation_none,
-                                                         4, 4, 4,
+                                                         rocblas_operation_none,
+                                                         rocblas_operation_none,
+                                                         4,
+                                                         4,
+                                                         4,
                                                          &alpha,
-                                                         NULL, input_type, 0, 4, stride,
-                                                         NULL, input_type, 0, 4, stride,
+                                                         NULL,
+                                                         input_type,
+                                                         0,
+                                                         4,
+                                                         stride,
+                                                         NULL,
+                                                         input_type,
+                                                         0,
+                                                         4,
+                                                         stride,
                                                          &beta,
-                                                         NULL, output_type, 0, 4, stride,
-                                                         NULL, output_type, 0, 4, stride,
-                                                         1, 
+                                                         NULL,
+                                                         output_type,
+                                                         0,
+                                                         4,
+                                                         stride,
+                                                         NULL,
+                                                         output_type,
+                                                         0,
+                                                         4,
+                                                         stride,
+                                                         1,
                                                          compute_type,
                                                          flags,
                                                          false,
-                                                         list_array, list_size);
+                                                         list_array,
+                                                         list_size);
 }
