@@ -952,6 +952,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 
 template <typename Ti, typename To, typename Tc>
 rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob,
+                               bool                                         solve_only,
                                rocblas_int*                                 list_array,
                                rocblas_int*                                 list_size)
 {
@@ -967,7 +968,14 @@ rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob
         hardware      = Tensile::hip::GetDevice(*deviceProp);
         auto tensile_prob = ConstructTensileProblem(prob);
 
-        solutions = library->findAllSolutions(tensile_prob, *hardware);
+        if(solve_only)
+        {
+            solutions = library->findAllSolutions(tensile_prob, *hardware);
+        }
+        else
+        {
+            solutions = library->findAllSolutionsMatchingType(tensile_prob, *hardware);
+        }
 
         if(list_size == nullptr)
         {
@@ -1077,52 +1085,63 @@ template rocblas_status
 // ********** get all solutions explicits ********
 // Non-EX types
 template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_half>&,
+                                        bool         solve_only,
                                         rocblas_int* list_array,
                                         rocblas_int* list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<float>&,
+                                        bool         solve_only,
                                         rocblas_int* list_array,
                                         rocblas_int* list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<double>&,
+                                        bool         solve_only,
                                         rocblas_int* list_array,
                                         rocblas_int* list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_float_complex>&,
+                                        bool         solve_only,
                                         rocblas_int* list_array,
                                         rocblas_int* list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_double_complex>&,
+                                        bool         solve_only,
                                         rocblas_int* list_array,
                                         rocblas_int* list_size);
 
 // EX types
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
+                    bool         solve_only,
                     rocblas_int* list_array,
                     rocblas_int* list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_half, float, float>&,
+                    bool         solve_only,
                     rocblas_int* list_array,
                     rocblas_int* list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&,
+                    bool         solve_only,
                     rocblas_int* list_array,
                     rocblas_int* list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_bfloat16, float, float>&,
+                    bool         solve_only,
                     rocblas_int* list_array,
                     rocblas_int* list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<int8_t, int32_t, int32_t>&,
+                                        bool         solve_only,
                                         rocblas_int* list_array,
                                         rocblas_int* list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_int8x4, int32_t, int32_t>&,
+                    bool         solve_only,
                     rocblas_int* list_array,
                     rocblas_int* list_size);
 

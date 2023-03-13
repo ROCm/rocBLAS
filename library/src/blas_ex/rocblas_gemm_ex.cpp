@@ -450,6 +450,7 @@ extern "C" rocblas_status rocblas_gemm_ex_get_solutions(rocblas_handle    handle
                                                              batch_count,
                                                              compute_type,
                                                              flags,
+                                                             true,
                                                              list_array,
                                                              list_size);
     }
@@ -457,4 +458,33 @@ extern "C" rocblas_status rocblas_gemm_ex_get_solutions(rocblas_handle    handle
     {
         return exception_to_rocblas_status();
     }
+}
+
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions_by_type(rocblas_handle   handle,
+                                                                    rocblas_datatype input_type,
+                                                                    rocblas_datatype output_type,
+                                                                    rocblas_datatype compute_type,
+                                                                    uint32_t         flags,
+                                                                    rocblas_int*     list_array,
+                                                                    rocblas_int*     list_size)
+{
+    // Create dummy GEMM problem to take advantage of problem templating
+    // Most parameters are ignored, just needs to be valid for all types
+    float alpha = 0.0f;
+    float beta  = 0.0f;
+    rocblas_stride stride{1};
+    return rocblas_gemm_ex_get_solutions_template<false>(handle,
+                                                         rocblas_operation_none, rocblas_operation_none,
+                                                         4, 4, 4,
+                                                         &alpha,
+                                                         NULL, input_type, 0, 4, stride,
+                                                         NULL, input_type, 0, 4, stride,
+                                                         &beta,
+                                                         NULL, output_type, 0, 4, stride,
+                                                         NULL, output_type, 0, 4, stride,
+                                                         1, 
+                                                         compute_type,
+                                                         flags,
+                                                         false,
+                                                         list_array, list_size);
 }
