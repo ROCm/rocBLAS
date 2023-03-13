@@ -121,37 +121,23 @@ int main()
     rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
     // macros
-#define GEMM_EX_ARGS                                                                            \
-    handle,                 \
-    transa, transb,         \
-    m, n, k,                \
-    &alpha,                 \
-    da, input_type, lda,    \
-    db, input_type, ldb,    \
-    &beta,                  \
-    dc, output_type, ldc,   \
-    dc, output_type, ldc,   \
-    compute_type,           \
-    rocblas_gemm_algo_solution_index
+#define GEMM_EX_ARGS                                                                              \
+    handle, transa, transb, m, n, k, &alpha, da, input_type, lda, db, input_type, ldb, &beta, dc, \
+        output_type, ldc, dc, output_type, ldc, compute_type, rocblas_gemm_algo_solution_index
 #define rocblas_gemm_exM(...) rocblas_gemm_ex(__VA_ARGS__)
 
     rocblas_int size;
 
     // Get number of solutions that match this GEMM problem's type
     // NOTE: for batched problems use 'rocblas_gemm_batched_ex_get_solutions_by_type'
-    //       for strided/batched problems use 'rocblas_gemm_ex_get_solutions_by_type' 
-    CHECK_ROCBLAS_ERROR(
-        rocblas_gemm_ex_get_solutions_by_type(handle,
-                                              input_type, output_type, compute_type,
-                                              rocblas_gemm_flags_none,
-                                              NULL,
-                                              &size
-                                              ));
+    //       for strided/batched problems use 'rocblas_gemm_ex_get_solutions_by_type'
+    CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_get_solutions_by_type(
+        handle, input_type, output_type, compute_type, rocblas_gemm_flags_none, NULL, &size));
     rocblas_cout << size << " solution(s) found that match this GEMM's type." << std::endl;
 
     // Get number of solutions that can solve this GEMM problem
     // NOTE: for batched problems use 'rocblas_gemm_batched_ex_get_solutions'
-    //       for strided/batched problems use 'rocblas_gemm_strided_batched_ex_get_solutions' 
+    //       for strided/batched problems use 'rocblas_gemm_strided_batched_ex_get_solutions'
     CHECK_ROCBLAS_ERROR(
         rocblas_gemm_ex_get_solutions(GEMM_EX_ARGS, rocblas_gemm_flags_none, NULL, &size));
     rocblas_cout << size << " solution(s) found that can solve this GEMM." << std::endl;
@@ -159,12 +145,8 @@ int main()
     // Fill array with list of solutions that match type
     // Note: some of these may be invalid
     std::vector<rocblas_int> ary(size);
-    CHECK_ROCBLAS_ERROR(
-        rocblas_gemm_ex_get_solutions_by_type(handle,
-                                              input_type, output_type, compute_type,
-                                              rocblas_gemm_flags_none,
-                                              ary.data(),
-                                              &size));
+    CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_get_solutions_by_type(
+        handle, input_type, output_type, compute_type, rocblas_gemm_flags_none, ary.data(), &size));
 
     // Example basic benchmark loop
     double         bestTime = std::numeric_limits<double>::max();
@@ -179,7 +161,7 @@ int main()
             rocblas_cout << "Solution " << sol << " not valid for this problem." << std::endl;
             continue;
         }
-        
+
         // warmup
         for(rocblas_int c = 0; c < cold_calls; ++c)
         {
