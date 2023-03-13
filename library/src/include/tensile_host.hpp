@@ -385,6 +385,7 @@ rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const
 
 template <typename Ti, typename To, typename Tc>
 rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob,
+                               bool                                         solve_only,
                                rocblas_int*                                 list_array,
                                rocblas_int*                                 list_size);
 

@@ -57,6 +57,7 @@ rocblas_status gemm_ex_get_solutions_typecasting(rocblas_handle     handle,
                                                  rocblas_stride     stride_d,
                                                  rocblas_int        batch_count,
                                                  rocblas_gemm_flags flags,
+                                                 bool               solve_only,
                                                  rocblas_int*       list_array,
                                                  rocblas_int*       list_size)
 {
@@ -93,7 +94,7 @@ rocblas_status gemm_ex_get_solutions_typecasting(rocblas_handle     handle,
                                                       batch_count,
                                                       false,
                                                       flags};
-        return getAllSolutions(problem, list_array, list_size);
+        return getAllSolutions(problem, solve_only, list_array, list_size);
     }
     else
     {
@@ -128,7 +129,7 @@ rocblas_status gemm_ex_get_solutions_typecasting(rocblas_handle     handle,
                                                       batch_count,
                                                       true,
                                                       flags};
-        return getAllSolutions(problem, list_array, list_size);
+        return getAllSolutions(problem, solve_only, list_array, list_size);
     }
 }
 
@@ -164,6 +165,7 @@ rocblas_status rocblas_gemm_ex_get_solutions_template(rocblas_handle    handle,
                                                       rocblas_int       batch_count,
                                                       rocblas_datatype  compute_type,
                                                       uint32_t          flags,
+                                                      bool              solve_only,
                                                       rocblas_int*      list_array,
                                                       rocblas_int*      list_size)
 {
@@ -184,7 +186,7 @@ rocblas_status rocblas_gemm_ex_get_solutions_template(rocblas_handle    handle,
 #define EX_TYPECASTING_PARM                                                                    \
     handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb,  \
         stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count, \
-        rocblas_gemm_flags(flags), list_array, list_size
+        rocblas_gemm_flags(flags), solve_only, list_array, list_size
 
     if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r

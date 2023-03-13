@@ -170,6 +170,56 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions(rocblas_handle    ha
                                                             rocblas_int*      list_size);
 
 ROCBLAS_DEPRECATED_MSG(
+    "rocblas_gemm_ex_get_solutions_by_type is a beta feature and is subject to change in future releases")
+/*! @{
+    \brief <b> BLAS BETA API </b>
+
+    \details
+    rocblas_gemm_ex_get_solutions_by_type gets the indices for all the solutions that match the
+    given types for gemm_ex. Which solution is used by gemm_ex is controlled by the
+    solution_index parameter.
+
+    If list_array is NULL, list_size is an output and will be filled with the number of solutions
+    that can solve the GEMM. If list_array is not NULL, then it must be pointing to an array with 
+    at least list_size elements and will be filled with the solution indices that can solve the
+    GEMM: the number of elements filled is min(list_size, # of solutions).
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    input_type
+              [rocblas_datatype]
+              specifies the datatype of matrix A.
+    @param[in]
+    output_type    
+              [rocblas_datatype]
+              specifies the datatype of matrix D.
+    @param[in]
+    compute_type
+              [rocblas_datatype]
+              specifies the datatype of computation.
+    @param[in]
+    flags     [uint32_t]
+              optional gemm flags.
+    @param[out]
+    list_array [rocblas_int *]
+               output array for solution indices or NULL if getting number of solutions
+    @param[in,out]
+    list_size  [rocblas_int *]
+               size of list_array if getting solution indices or output with number of solutions
+               if list_array is NULL
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions_by_type(rocblas_handle   handle,
+                                                                    rocblas_datatype input_type,
+                                                                    rocblas_datatype output_type,
+                                                                    rocblas_datatype compute_type,
+                                                                    uint32_t         flags,
+                                                                    rocblas_int*     list_array,
+                                                                    rocblas_int*     list_size);
+
+ROCBLAS_DEPRECATED_MSG(
     "rocblas_gemm_batched_ex_get_solutions is a beta feature and is subject to change "
     "in future releases")
 /*! @{
@@ -298,6 +348,56 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex_get_solutions(rocblas_hand
                                                                     uint32_t          flags,
                                                                     rocblas_int*      list_array,
                                                                     rocblas_int*      list_size);
+
+ROCBLAS_DEPRECATED_MSG(
+    "rocblas_gemm_batched_ex_get_solutions_by_type is a beta feature and is subject to change in future releases")
+/*! @{
+    \brief <b> BLAS BETA API </b>
+
+    \details
+    rocblas_gemm_batched_ex_get_solutions_by_type gets the indices for all the solutions that
+    match the given types for gemm_batched_ex. Which solution is used by gemm_ex is controlled
+    by the solution_index parameter.
+
+    If list_array is NULL, list_size is an output and will be filled with the number of solutions
+    that can solve the GEMM. If list_array is not NULL, then it must be pointing to an array with 
+    at least list_size elements and will be filled with the solution indices that can solve the
+    GEMM: the number of elements filled is min(list_size, # of solutions).
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    input_type
+              [rocblas_datatype]
+              specifies the datatype of matrix A.
+    @param[in]
+    output_type    
+              [rocblas_datatype]
+              specifies the datatype of matrix D.
+    @param[in]
+    compute_type
+              [rocblas_datatype]
+              specifies the datatype of computation.
+    @param[in]
+    flags     [uint32_t]
+              optional gemm flags.
+    @param[out]
+    list_array [rocblas_int *]
+               output array for solution indices or NULL if getting number of solutions
+    @param[in,out]
+    list_size  [rocblas_int *]
+               size of list_array if getting solution indices or output with number of solutions
+               if list_array is NULL
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex_get_solutions_by_type(rocblas_handle   handle,
+                                                                            rocblas_datatype input_type,
+                                                                            rocblas_datatype output_type,
+                                                                            rocblas_datatype compute_type,
+                                                                            uint32_t         flags,
+                                                                            rocblas_int*     list_array,
+                                                                            rocblas_int*     list_size);
 
 ROCBLAS_DEPRECATED_MSG(
     "rocblas_gemm_strided_batched_ex_get_solutions is a beta feature and is subject "
