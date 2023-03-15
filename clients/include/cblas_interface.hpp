@@ -26,7 +26,6 @@
 #include "cblas.h"
 #include "lapack_utilities.hpp"
 #include "rocblas.h"
-#include "rocblas.hpp"
 #include <type_traits>
 
 /*

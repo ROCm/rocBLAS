@@ -25,6 +25,11 @@
 
 /* library headers */
 
+// we still test deprecated API so don't want warnings
+#ifndef ROCBLAS_NO_DEPRECATED_WARNINGS
+#define ROCBLAS_NO_DEPRECATED_WARNINGS
+#endif
+
 #include "rocblas.h"
 #ifdef CLIENTS_NO_FORTRAN
 #include "rocblas_no_fortran.hpp"
