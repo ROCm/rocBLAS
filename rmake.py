@@ -158,6 +158,9 @@ def parse_args():
     return parser.parse_args()
 # yapf: enable
 
+def strip_ECC(token):
+    return token.replace(':sramecc+', '').replace(':sramecc-', '').strip()
+    
 def gpu_detect():
     global OS_info
     OS_info["GPU"] = ""
@@ -167,9 +170,14 @@ def gpu_detect():
         cmd = "rocminfo"
     process = subprocess.run([cmd], stdout=subprocess.PIPE)
     for line_in in process.stdout.decode().splitlines():
-        if 'amdgcn-amd-amdhsa' in line_in:
-            OS_info["GPU"] = line_in.split("--")[1].replace(':sramecc+', '').replace(':sramecc-', '')
-            break
+        if os.name == "nt":
+            if 'gcnArchName' in line_in:
+                OS_info["GPU"] = strip_ECC( line_in.split(":")[1] )
+                break      
+        else:
+            if 'amdgcn-amd-amdhsa' in line_in:
+                OS_info["GPU"] = strip_ECC( line_in.split("--")[1] )
+                break
 
 def os_detect():
     global OS_info

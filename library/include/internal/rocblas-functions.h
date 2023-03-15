@@ -13841,9 +13841,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle      
           rocblas_status_invalid_size will be returned.
 
     ********************************************************************/
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_strmm_outofplace is deprecated, and it will be replaced by rocblas_strmm. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace(rocblas_handle    handle,
                                                        rocblas_side      side,
                                                        rocblas_fill      uplo,
@@ -13859,9 +13861,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace(rocblas_handle    handle,
                                                        float*            C,
                                                        rocblas_int       ldc);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_outofplace is deprecated, and it will be replaced by rocblas_dtrmm. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace(rocblas_handle    handle,
                                                        rocblas_side      side,
                                                        rocblas_fill      uplo,
@@ -13877,9 +13881,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace(rocblas_handle    handle,
                                                        double*           C,
                                                        rocblas_int       ldc);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_outofplace is deprecated, and it will be replaced by rocblas_ctrmm. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_outofplace(rocblas_handle               handle,
                                                        rocblas_side                 side,
                                                        rocblas_fill                 uplo,
@@ -13895,9 +13901,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_outofplace(rocblas_handle           
                                                        rocblas_float_complex*       C,
                                                        rocblas_int                  ldc);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_outofplace is deprecated, and it will be replaced by rocblas_ztrmm. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_outofplace(rocblas_handle                handle,
                                                        rocblas_side                  side,
                                                        rocblas_fill                  uplo,
@@ -14022,9 +14030,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_outofplace(rocblas_handle           
     batch_count [rocblas_int]
                 number of instances i in the batch.
     ********************************************************************/
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_strmm_outofplace_batched is deprecated, and it will be replaced by rocblas_strmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_batched(rocblas_handle     handle,
                                                                rocblas_side       side,
                                                                rocblas_fill       uplo,
@@ -14041,9 +14051,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_batched(rocblas_handle   
                                                                rocblas_int        ldc,
                                                                rocblas_int        batch_count);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_outofplace_batched is deprecated, and it will be replaced by rocblas_dtrmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_batched(rocblas_handle      handle,
                                                                rocblas_side        side,
                                                                rocblas_fill        uplo,
@@ -14060,9 +14072,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_batched(rocblas_handle   
                                                                rocblas_int         ldc,
                                                                rocblas_int         batch_count);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_outofplace_batched is deprecated, and it will be replaced by rocblas_ctrmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ctrmm_outofplace_batched(rocblas_handle                     handle,
                                      rocblas_side                       side,
@@ -14080,9 +14094,11 @@ ROCBLAS_EXPORT rocblas_status
                                      rocblas_int                        ldc,
                                      rocblas_int                        batch_count);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_outofplace_batched is deprecated, and it will be replaced by rocblas_ztrmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ztrmm_outofplace_batched(rocblas_handle                      handle,
                                      rocblas_side                        side,
@@ -14221,9 +14237,11 @@ ROCBLAS_EXPORT rocblas_status
     batch_count [rocblas_int]
                 number of instances i in the batch.
     ********************************************************************/
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_strmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_strmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_strided_batched(rocblas_handle    handle,
                                                                        rocblas_side      side,
                                                                        rocblas_fill      uplo,
@@ -14243,9 +14261,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_strided_batched(rocblas_h
                                                                        rocblas_stride    stride_C,
                                                                        rocblas_int batch_count);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_dtrmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_strided_batched(rocblas_handle    handle,
                                                                        rocblas_side      side,
                                                                        rocblas_fill      uplo,
@@ -14265,9 +14285,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_strided_batched(rocblas_h
                                                                        rocblas_stride    stride_C,
                                                                        rocblas_int batch_count);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_ctrmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ctrmm_outofplace_strided_batched(rocblas_handle               handle,
                                              rocblas_side                 side,
@@ -14288,9 +14310,11 @@ ROCBLAS_EXPORT rocblas_status
                                              rocblas_stride               stride_C,
                                              rocblas_int                  batch_count);
 
+#ifndef ROCBLAS_V3
 // clang-format off
 ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_ztrmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
 // clang-format on
+#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ztrmm_outofplace_strided_batched(rocblas_handle                handle,
                                              rocblas_side                  side,
