@@ -113,8 +113,9 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
+  # Note python3-joblib is for Tensile and also installed by pip requirements.txt but there are known packaging errors so added here as workaround
   local library_dependencies_ubuntu=( "make"
-                                      "python3" "python3-yaml" "python3-venv" "python3*-pip" )
+                                      "python3" "python3-yaml" "python3-venv" "python3-joblib" "python3*-pip" )
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
@@ -129,7 +130,7 @@ install_packages( )
                                       "gcc-c++" )
   local library_dependencies_rhel_9=( "epel-release" "openssl-devel"
                                       "make" "rpm-build"
-                                      "python39" "python3*-PyYAML" "python3-virtualenv"
+                                      "python39" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
                                       "gcc-c++" )
   local library_dependencies_fedora=( "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
