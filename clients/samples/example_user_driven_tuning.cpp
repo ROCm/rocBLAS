@@ -120,7 +120,7 @@ rocblas_int benchmark_solutions(std::vector<rocblas_int> const& solutions,
             bestTime = avg_time;
         }
     }
-    rocblas_cout << "Winner: " << bestSol << " in " << bestTime << " us" << std::endl;
+    rocblas_cout << "Winner: " << bestSol << " in " << bestTime << " us" << std::endl << std::endl;
 
     return bestSol;
 }
@@ -272,10 +272,9 @@ int main()
         GEMM_EX_ARGS, rocblas_gemm_flags_none, solutionsSolve.data(), &sizeSolve));
 
     rocblas_cout << "Benchmarking..." << std::endl;
-    rocblas_int bestSolutionSolve = benchmark_solutions(solutionsType, params);
+    rocblas_int bestSolutionSolve = benchmark_solutions(solutionsSolve, params);
 
-    assert(bestSolutionType
-           == bestSolutionSolve); // Note: this could fail due to benchmarking noise
+    // NOTE: bestSolutionType may be different to bestSolutionSolve, due to benchmarking noise
     assert(is_subset(solutionsType, solutionsSolve));
 
     // Check if solution is valid for problem (success case)
