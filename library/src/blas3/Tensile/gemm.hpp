@@ -47,11 +47,6 @@ rocblas_status rocblas_copy_alpha_beta_to_host_if_on_device(rocblas_handle handl
                                                             Tbc&           beta_h,
                                                             rocblas_int    k)
 {
-    if(handle->is_stream_in_capture_mode() && handle->skip_alpha_beta_memcpy())
-        return rocblas_status_success;
-
-    handle->alpha_beta_memcpy_completed();
-
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         if(alpha)
@@ -66,23 +61,6 @@ rocblas_status rocblas_copy_alpha_beta_to_host_if_on_device(rocblas_handle handl
         {
             RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tbc), hipMemcpyDeviceToHost));
             beta = &beta_h;
-        }
-    }
-    else if(handle->is_stream_in_capture_mode()
-            && handle->pointer_mode == rocblas_pointer_mode_host)
-    {
-
-        if(alpha)
-        {
-            auto alpha_mem = handle->host_malloc(sizeof(Tac));
-            std::memcpy(alpha_mem, alpha, sizeof(Tac));
-            alpha = (Ta*)alpha_mem;
-        }
-        if(beta)
-        {
-            auto beta_mem = handle->host_malloc(sizeof(Tbc));
-            std::memcpy(beta_mem, beta, sizeof(Tbc));
-            beta = (Tb*)beta_mem;
         }
     }
     return rocblas_status_success;

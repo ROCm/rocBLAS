@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,17 +37,17 @@ namespace
     template <>
     constexpr char rocblas_syrk_name<rocblas_double_complex>[] = "rocblas_zsyrk_strided_batched";
 
-    template <rocblas_int NB, typename T, typename U>
+    template <typename T>
     rocblas_status rocblas_syrk_strided_batched_impl(rocblas_handle    handle,
                                                      rocblas_fill      uplo,
                                                      rocblas_operation transA,
                                                      rocblas_int       n,
                                                      rocblas_int       k,
-                                                     const U*          alpha,
+                                                     const T*          alpha,
                                                      const T*          A,
                                                      rocblas_int       lda,
                                                      rocblas_stride    stride_a,
-                                                     const U*          beta,
+                                                     const T*          beta,
                                                      T*                C,
                                                      rocblas_int       ldc,
                                                      rocblas_stride    stride_c,
@@ -179,22 +179,22 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        status                = rocblas_internal_syrk_template<NB, false, T>(handle,
-                                                              uplo,
-                                                              transA,
-                                                              n,
-                                                              k,
-                                                              alpha,
-                                                              A,
-                                                              offset_A,
-                                                              lda,
-                                                              stride_a,
-                                                              beta,
-                                                              C,
-                                                              offset_C,
-                                                              ldc,
-                                                              stride_c,
-                                                              batch_count);
+        status                = rocblas_internal_syrk_template(handle,
+                                                uplo,
+                                                transA,
+                                                n,
+                                                k,
+                                                alpha,
+                                                A,
+                                                offset_A,
+                                                lda,
+                                                stride_a,
+                                                beta,
+                                                C,
+                                                offset_C,
+                                                ldc,
+                                                stride_c,
+                                                batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -237,47 +237,47 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, NB_, T_)                                \
-    rocblas_status routine_name_(rocblas_handle    handle,          \
-                                 rocblas_fill      uplo,            \
-                                 rocblas_operation transA,          \
-                                 rocblas_int       n,               \
-                                 rocblas_int       k,               \
-                                 const T_*         alpha,           \
-                                 const T_*         A,               \
-                                 rocblas_int       lda,             \
-                                 rocblas_stride    stride_a,        \
-                                 const T_*         beta,            \
-                                 T_*               C,               \
-                                 rocblas_int       ldc,             \
-                                 rocblas_stride    stride_c,        \
-                                 rocblas_int       batch_count)     \
-    try                                                             \
-    {                                                               \
-        return rocblas_syrk_strided_batched_impl<NB_>(handle,       \
-                                                      uplo,         \
-                                                      transA,       \
-                                                      n,            \
-                                                      k,            \
-                                                      alpha,        \
-                                                      A,            \
-                                                      lda,          \
-                                                      stride_a,     \
-                                                      beta,         \
-                                                      C,            \
-                                                      ldc,          \
-                                                      stride_c,     \
-                                                      batch_count); \
-    }                                                               \
-    catch(...)                                                      \
-    {                                                               \
-        return exception_to_rocblas_status();                       \
+#define IMPL(routine_name_, T_)                                 \
+    rocblas_status routine_name_(rocblas_handle    handle,      \
+                                 rocblas_fill      uplo,        \
+                                 rocblas_operation transA,      \
+                                 rocblas_int       n,           \
+                                 rocblas_int       k,           \
+                                 const T_*         alpha,       \
+                                 const T_*         A,           \
+                                 rocblas_int       lda,         \
+                                 rocblas_stride    stride_a,    \
+                                 const T_*         beta,        \
+                                 T_*               C,           \
+                                 rocblas_int       ldc,         \
+                                 rocblas_stride    stride_c,    \
+                                 rocblas_int       batch_count) \
+    try                                                         \
+    {                                                           \
+        return rocblas_syrk_strided_batched_impl(handle,        \
+                                                 uplo,          \
+                                                 transA,        \
+                                                 n,             \
+                                                 k,             \
+                                                 alpha,         \
+                                                 A,             \
+                                                 lda,           \
+                                                 stride_a,      \
+                                                 beta,          \
+                                                 C,             \
+                                                 ldc,           \
+                                                 stride_c,      \
+                                                 batch_count);  \
+    }                                                           \
+    catch(...)                                                  \
+    {                                                           \
+        return exception_to_rocblas_status();                   \
     }
 
-IMPL(rocblas_ssyrk_strided_batched, ROCBLAS_SDZSYRK_NB, float);
-IMPL(rocblas_dsyrk_strided_batched, ROCBLAS_SDZSYRK_NB, double);
-IMPL(rocblas_csyrk_strided_batched, ROCBLAS_CSYRK_NB, rocblas_float_complex);
-IMPL(rocblas_zsyrk_strided_batched, ROCBLAS_SDZSYRK_NB, rocblas_double_complex);
+IMPL(rocblas_ssyrk_strided_batched, float);
+IMPL(rocblas_dsyrk_strided_batched, double);
+IMPL(rocblas_csyrk_strided_batched, rocblas_float_complex);
+IMPL(rocblas_zsyrk_strided_batched, rocblas_double_complex);
 
 #undef IMPL
 

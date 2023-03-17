@@ -310,13 +310,6 @@ struct RocblasContractionProblem
     {
     }
 
-    RocblasContractionProblem(void* problem)
-    {
-        static_assert(std::is_trivially_copyable<RocblasContractionProblem>::value,
-                      "FAILED not memcpy compatible");
-        std::memcpy(this, problem, sizeof(*this));
-    };
-
     /***************************************************
      * Print a RocblasContractionProblem for debugging *
      ***************************************************/
@@ -395,21 +388,6 @@ rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob
                                rocblas_int*                                 list_array,
                                rocblas_int*                                 list_size);
 
-//Tensile Function callback
-template <typename Ti, typename To, typename Tc>
-void runContractionProblemInfoCallback(void* tensile_prob)
-{
-    auto problem_info = (rocblas_tensile_problem_info*)tensile_prob;
-    RocblasContractionProblem<Ti, To, Tc> problem(problem_info->problem);
-    runContractionProblem(problem, problem_info->algo, problem_info->solution_index);
-}
-
-template <typename T>
-void runContractionProblemCallback(void* tensile_prob)
-{
-    RocblasContractionProblem<T> problem(tensile_prob);
-    runContractionProblem(problem);
-}
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
  ***********************************************************************************/

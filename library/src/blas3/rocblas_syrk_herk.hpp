@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -129,64 +129,6 @@ inline rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
-/**
-  *  TScal     is always: const T* (either host or device)
-  *  TConstPtr is either: const T* OR const T* const*
-  *  TPtr      is either:       T* OR       T* const*
-  */
-template <rocblas_int NB,
-          bool        BATCHED,
-          typename T,
-          typename TScal,
-          typename TConstPtr,
-          typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_syrk_template(rocblas_handle    handle,
-                                   rocblas_fill      uplo,
-                                   rocblas_operation transA,
-                                   rocblas_int       n,
-                                   rocblas_int       k,
-                                   TScal             alpha,
-                                   TConstPtr         AP,
-                                   rocblas_stride    offsetA,
-                                   rocblas_int       lda,
-                                   rocblas_stride    strideA,
-                                   TScal             beta,
-                                   TPtr              CP,
-                                   rocblas_stride    offsetC,
-                                   rocblas_int       ldc,
-                                   rocblas_stride    strideC,
-                                   rocblas_int       batch_count);
-
-/**
-  *  TScal     is always: const T* (either host or device)
-  *  TConstPtr is either: const T* OR const T* const*
-  *  TPtr      is either:       T* OR       T* const*
-  */
-template <rocblas_int NB,
-          bool        BATCHED,
-          typename T,
-          typename TScal,
-          typename TConstPtr,
-          typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_herk_template(rocblas_handle    handle,
-                                   rocblas_fill      uplo,
-                                   rocblas_operation transA,
-                                   rocblas_int       n,
-                                   rocblas_int       k,
-                                   TScal             alpha,
-                                   TConstPtr         AP,
-                                   rocblas_stride    offsetA,
-                                   rocblas_int       lda,
-                                   rocblas_stride    strideA,
-                                   TScal             beta,
-                                   TPtr              CP,
-                                   rocblas_stride    offsetC,
-                                   rocblas_int       ldc,
-                                   rocblas_stride    strideC,
-                                   rocblas_int       batch_count);
-
 template <bool HERM, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
                                                 rocblas_handle    handle,
@@ -203,3 +145,95 @@ rocblas_status rocblas_herk_syrk_check_numerics(const char*       function_name,
                                                 rocblas_int       batch_count,
                                                 const int         check_numerics,
                                                 bool              is_input);
+
+/*
+ * internal rocBLAS template function, also used by rocSOLVER.
+ * Used for calls to rocblas_xsyrk() and rocblas_xsyrk_strided_batched()
+ */
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syrk_template(rocblas_handle    handle,
+                                   rocblas_fill      uplo,
+                                   rocblas_operation transA,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   const T*          alpha,
+                                   const T*          A,
+                                   rocblas_stride    offsetA,
+                                   rocblas_int       lda,
+                                   rocblas_stride    strideA,
+                                   const T*          beta,
+                                   T*                C,
+                                   rocblas_stride    offsetC,
+                                   rocblas_int       ldc,
+                                   rocblas_stride    strideC,
+                                   rocblas_int       batch_count);
+
+/*
+ * internal rocBLAS template function, also used by rocSOLVER.
+ * Used for calls to rocblas_xsyrk_batched()
+ */
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syrk_batched_template(rocblas_handle    handle,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation transA,
+                                           rocblas_int       n,
+                                           rocblas_int       k,
+                                           const T*          alpha,
+                                           const T* const*   A,
+                                           rocblas_stride    offsetA,
+                                           rocblas_int       lda,
+                                           rocblas_stride    strideA,
+                                           const T*          beta,
+                                           T* const*         C,
+                                           rocblas_stride    offsetC,
+                                           rocblas_int       ldc,
+                                           rocblas_stride    strideC,
+                                           rocblas_int       batch_count);
+
+/*
+ * internal rocBLAS template function, also used by rocSOLVER.
+ * Used for calls to rocblas_xherk() and rocblas_xherk_strided_batched()
+ */
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_herk_template(rocblas_handle    handle,
+                                   rocblas_fill      uplo,
+                                   rocblas_operation transA,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   const real_t<T>*  alpha,
+                                   const T*          A,
+                                   rocblas_stride    offsetA,
+                                   rocblas_int       lda,
+                                   rocblas_stride    strideA,
+                                   const real_t<T>*  beta,
+                                   T*                C,
+                                   rocblas_stride    offsetC,
+                                   rocblas_int       ldc,
+                                   rocblas_stride    strideC,
+                                   rocblas_int       batch_count);
+
+/*
+ * internal rocBLAS template function, also used by rocSOLVER.
+ * Used for calls to rocblas_xherk_batched()
+ */
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_herk_batched_template(rocblas_handle    handle,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation transA,
+                                           rocblas_int       n,
+                                           rocblas_int       k,
+                                           const real_t<T>*  alpha,
+                                           const T* const*   A,
+                                           rocblas_stride    offsetA,
+                                           rocblas_int       lda,
+                                           rocblas_stride    strideA,
+                                           const real_t<T>*  beta,
+                                           T* const*         C,
+                                           rocblas_stride    offsetC,
+                                           rocblas_int       ldc,
+                                           rocblas_stride    strideC,
+                                           rocblas_int       batch_count);

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -149,68 +149,32 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sswap_batched(rocblas_handle handle,
-                                     rocblas_int    n,
-                                     float* const   x[],
-                                     rocblas_int    incx,
-                                     float* const   y[],
-                                     rocblas_int    incy,
-                                     rocblas_int    batch_count)
-try
-{
-    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dswap_batched(rocblas_handle handle,
-                                     rocblas_int    n,
-                                     double* const  x[],
-                                     rocblas_int    incx,
-                                     double* const  y[],
-                                     rocblas_int    incy,
-                                     rocblas_int    batch_count)
-try
-{
-    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, T_)                                                             \
+    rocblas_status name_(rocblas_handle handle,                                     \
+                         rocblas_int    n,                                          \
+                         T_* const      x[],                                        \
+                         rocblas_int    incx,                                       \
+                         T_* const      y[],                                        \
+                         rocblas_int    incy,                                       \
+                         rocblas_int    batch_count)                                \
+    try                                                                             \
+    {                                                                               \
+        return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count); \
+    }                                                                               \
+    catch(...)                                                                      \
+    {                                                                               \
+        return exception_to_rocblas_status();                                       \
+    }
 
-rocblas_status rocblas_cswap_batched(rocblas_handle               handle,
-                                     rocblas_int                  n,
-                                     rocblas_float_complex* const x[],
-                                     rocblas_int                  incx,
-                                     rocblas_float_complex* const y[],
-                                     rocblas_int                  incy,
-                                     rocblas_int                  batch_count)
-try
-{
-    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_sswap_batched, float);
+IMPL(rocblas_dswap_batched, double);
+IMPL(rocblas_cswap_batched, rocblas_float_complex);
+IMPL(rocblas_zswap_batched, rocblas_double_complex);
 
-rocblas_status rocblas_zswap_batched(rocblas_handle                handle,
-                                     rocblas_int                   n,
-                                     rocblas_double_complex* const x[],
-                                     rocblas_int                   incx,
-                                     rocblas_double_complex* const y[],
-                                     rocblas_int                   incy,
-                                     rocblas_int                   batch_count)
-try
-{
-    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"

@@ -51,6 +51,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
 
@@ -90,8 +92,6 @@ namespace
                 return rocblas_status_success;
         }
 
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
         if(check_numerics)
         {
             bool           is_input              = true;
@@ -127,83 +127,30 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sscal(
-    rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx)
-try
-{
-    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dscal(
-    rocblas_handle handle, rocblas_int n, const double* alpha, double* x, rocblas_int incx)
-try
-{
-    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, TA_, T_)                                                             \
+    rocblas_status name_(                                                                \
+        rocblas_handle handle, rocblas_int n, const TA_* alpha, T_* x, rocblas_int incx) \
+    try                                                                                  \
+    {                                                                                    \
+        return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);            \
+    }                                                                                    \
+    catch(...)                                                                           \
+    {                                                                                    \
+        return exception_to_rocblas_status();                                            \
+    }
 
-rocblas_status rocblas_cscal(rocblas_handle               handle,
-                             rocblas_int                  n,
-                             const rocblas_float_complex* alpha,
-                             rocblas_float_complex*       x,
-                             rocblas_int                  incx)
-try
-{
-    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zscal(rocblas_handle                handle,
-                             rocblas_int                   n,
-                             const rocblas_double_complex* alpha,
-                             rocblas_double_complex*       x,
-                             rocblas_int                   incx)
-try
-{
-    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
+IMPL(rocblas_sscal, float, float);
+IMPL(rocblas_dscal, double, double);
+IMPL(rocblas_cscal, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zscal, rocblas_double_complex, rocblas_double_complex);
 // Scal with a real alpha & complex vector
-rocblas_status rocblas_csscal(rocblas_handle         handle,
-                              rocblas_int            n,
-                              const float*           alpha,
-                              rocblas_float_complex* x,
-                              rocblas_int            incx)
-try
-{
-    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_csscal, float, rocblas_float_complex);
+IMPL(rocblas_zdscal, double, rocblas_double_complex);
 
-rocblas_status rocblas_zdscal(rocblas_handle          handle,
-                              rocblas_int             n,
-                              const double*           alpha,
-                              rocblas_double_complex* x,
-                              rocblas_int             incx)
-try
-{
-    return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -763,6 +763,9 @@ bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle);
 
 // for internal use during testing, fetch arch name
 ROCBLAS_INTERNAL_EXPORT std::string rocblas_internal_get_arch_name();
+
+// for internal use, fetch xnack mode
+std::string rocblas_internal_get_xnack_mode();
 
 // for internal use during testing, whether to skip actual kernel launch
 ROCBLAS_INTERNAL_EXPORT bool rocblas_internal_tensile_debug_skip_launch();

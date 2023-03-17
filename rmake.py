@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="""Checks build arguments""")
 
     parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="all",
-                        help='Set GPU architectures, e.g. all, "gfx803;gfx906:xnack-", gfx1030, gfx1101 (optional, default: all)')
+                        help='Set GPU architectures, e.g. all, auto, "gfx803;gfx906:xnack-", gfx1030, gfx1101 (optional, default: all)')
 
     parser.add_argument(       '--address-sanitizer', dest='address_sanitizer', required=False, default=False, action='store_true',
                         help='Build with address sanitizer enabled. (optional, default: False')
@@ -158,6 +158,18 @@ def parse_args():
     return parser.parse_args()
 # yapf: enable
 
+def gpu_detect():
+    global OS_info
+    OS_info["GPU"] = ""
+    if os.name == "nt":
+        cmd = "hipinfo.exe"
+    else:
+        cmd = "rocminfo"
+    process = subprocess.run([cmd], stdout=subprocess.PIPE)
+    for line_in in process.stdout.decode().splitlines():
+        if 'amdgcn-amd-amdhsa' in line_in:
+            OS_info["GPU"] = line_in.split("--")[1].replace(':sramecc+', '').replace(':sramecc-', '')
+            break
 
 def os_detect():
     global OS_info
@@ -323,6 +335,12 @@ def config_cmd():
         if args.clients_no_fortran:
             cmake_options.append(f"-DBUILD_FORTRAN_CLIENTS=OFF")
 
+    if args.gpu_architecture == "auto":
+        gpu_detect()
+        if len(OS_info["GPU"]):
+            args.gpu_architecture = OS_info["GPU"]
+        else:
+            fatal("Could not detect GPU as requested. Not continuing.")
     # not just for tensile
     cmake_options.append(f'-DAMDGPU_TARGETS=\"{args.gpu_architecture}\"')
 

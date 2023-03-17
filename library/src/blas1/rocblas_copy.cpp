@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -137,79 +137,32 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_scopy(rocblas_handle handle,
-                             rocblas_int    n,
-                             const float*   x,
-                             rocblas_int    incx,
-                             float*         y,
-                             rocblas_int    incy)
-try
-{
-    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dcopy(rocblas_handle handle,
-                             rocblas_int    n,
-                             const double*  x,
-                             rocblas_int    incx,
-                             double*        y,
-                             rocblas_int    incy)
-try
-{
-    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, T_)                                                         \
+    rocblas_status name_(rocblas_handle handle,                                 \
+                         rocblas_int    n,                                      \
+                         const T_*      x,                                      \
+                         rocblas_int    incx,                                   \
+                         T_*            y,                                      \
+                         rocblas_int    incy)                                   \
+    try                                                                         \
+    {                                                                           \
+        return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy); \
+    }                                                                           \
+    catch(...)                                                                  \
+    {                                                                           \
+        return exception_to_rocblas_status();                                   \
+    }
 
-rocblas_status rocblas_hcopy(rocblas_handle      handle,
-                             rocblas_int         n,
-                             const rocblas_half* x,
-                             rocblas_int         incx,
-                             rocblas_half*       y,
-                             rocblas_int         incy)
-try
-{
-    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_scopy, float);
+IMPL(rocblas_dcopy, double);
+IMPL(rocblas_hcopy, rocblas_half);
+IMPL(rocblas_ccopy, rocblas_float_complex);
+IMPL(rocblas_zcopy, rocblas_double_complex);
 
-rocblas_status rocblas_ccopy(rocblas_handle               handle,
-                             rocblas_int                  n,
-                             const rocblas_float_complex* x,
-                             rocblas_int                  incx,
-                             rocblas_float_complex*       y,
-                             rocblas_int                  incy)
-try
-{
-    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zcopy(rocblas_handle                handle,
-                             rocblas_int                   n,
-                             const rocblas_double_complex* x,
-                             rocblas_int                   incx,
-                             rocblas_double_complex*       y,
-                             rocblas_int                   incy)
-try
-{
-    return rocblas_copy_impl<ROCBLAS_COPY_NB>(handle, n, x, incx, y, incy);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"

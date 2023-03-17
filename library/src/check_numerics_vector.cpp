@@ -3,6 +3,52 @@
 
 /**
   *
+  * rocblas_check_numerics_vector_kernel(n, xa, offset_x, inc_x, stride_x, abnormal)
+  *
+  * Info about rocblas_check_numerics_vector_kernel function:
+  *
+  *    It is the kernel function which checks a vector for numerical abnormalities such as NaN/zero/Inf/denormal values and updates the rocblas_check_numerics_t structure.
+  *
+  * Parameters   : n            : Total number of elements in the vector
+  *                xa           : Pointer to the vector which is under consideration for numerical abnormalities
+  *                offset_x     : Offset of vector 'xa'
+  *                inc_x        : Stride between consecutive values of vector 'xa'
+  *                stride_x     : Specifies the pointer increment between one vector 'x_i' and the next one (xa_i+1) (where (xa_i) is the i-th instance of the batch)
+  *                abnormal     : Device pointer to the rocblas_check_numerics_t structure
+  *
+  * Return Value : Nothing --
+  *
+**/
+
+template <int DIM_X, typename T>
+ROCBLAS_KERNEL(DIM_X)
+rocblas_check_numerics_vector_kernel(rocblas_int               n,
+                                     T                         xa,
+                                     rocblas_stride            offset_x,
+                                     rocblas_int               inc_x,
+                                     rocblas_stride            stride_x,
+                                     rocblas_check_numerics_t* abnormal)
+{
+    auto*     x   = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
+    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    //Check every element of the x vector for a NaN/zero/Inf/denormal value
+    if(tid < n)
+    {
+        auto value = x[tid * inc_x];
+        if(!abnormal->has_zero && rocblas_iszero(value))
+            abnormal->has_zero = true;
+        if(!abnormal->has_NaN && rocblas_isnan(value))
+            abnormal->has_NaN = true;
+        if(!abnormal->has_Inf && rocblas_isinf(value))
+            abnormal->has_Inf = true;
+        if(!abnormal->has_denorm && rocblas_isdenorm(value))
+            abnormal->has_denorm = true;
+    }
+}
+
+/**
+  *
   * rocblas_check_numerics_abnormal_struct(function_name, check_numerics, is_input, h_abnormal)
   *
   * Info about rocblas_check_numerics_abnormal_struct function:
