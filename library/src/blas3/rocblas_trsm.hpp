@@ -26,6 +26,7 @@
 #ifdef BUILD_WITH_TENSILE
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #endif
+#include "rocblas_block_sizes.h"
 #include "rocblas_trmm.hpp"
 #include "trtri_trsm.hpp"
 
@@ -1686,18 +1687,17 @@ rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
         bytes may be used in trsm with degraded performance.
     ********************************************************************/
 template <rocblas_int BLOCK, bool BATCHED, typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsm_workspace_size(rocblas_side      side,
-                                         rocblas_operation transA,
-                                         rocblas_int       m,
-                                         rocblas_int       n,
-                                         rocblas_int       batch_count,
-                                         rocblas_int       supplied_invA_size,
-                                         size_t*           w_x_tmp_size,
-                                         size_t*           w_x_tmp_arr_size,
-                                         size_t*           w_invA_size,
-                                         size_t*           w_invA_arr_size,
-                                         size_t*           w_x_tmp_size_backup)
+rocblas_status rocblas_internal_trsm_workspace_size(rocblas_side      side,
+                                                    rocblas_operation transA,
+                                                    rocblas_int       m,
+                                                    rocblas_int       n,
+                                                    rocblas_int       batch_count,
+                                                    rocblas_int       supplied_invA_size,
+                                                    size_t*           w_x_tmp_size,
+                                                    size_t*           w_x_tmp_arr_size,
+                                                    size_t*           w_invA_size,
+                                                    size_t*           w_invA_arr_size,
+                                                    size_t*           w_x_tmp_size_backup)
 {
     if(!w_x_tmp_size || !w_x_tmp_arr_size || !w_invA_size || !w_invA_arr_size
        || !w_x_tmp_size_backup)
@@ -1805,6 +1805,72 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+#define TRSM_WORKSPACE_TEMPLATE_PARAMS                                                   \
+    side, transA, m, n, batch_count, supplied_invA_size, w_x_tmp_size, w_x_tmp_arr_size, \
+        w_invA_size, w_invA_arr_size, w_x_tmp_size_backup
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsm_workspace_size(rocblas_side      side,
+                                         rocblas_operation transA,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       batch_count,
+                                         rocblas_int       supplied_invA_size,
+                                         size_t*           w_x_tmp_size,
+                                         size_t*           w_x_tmp_arr_size,
+                                         size_t*           w_invA_size,
+                                         size_t*           w_invA_arr_size,
+                                         size_t*           w_x_tmp_size_backup)
+{
+    if constexpr(std::is_same<T, float>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, double>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+
+    return rocblas_status_not_implemented;
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsm_batched_workspace_size(rocblas_side      side,
+                                                 rocblas_operation transA,
+                                                 rocblas_int       m,
+                                                 rocblas_int       n,
+                                                 rocblas_int       batch_count,
+                                                 rocblas_int       supplied_invA_size,
+                                                 size_t*           w_x_tmp_size,
+                                                 size_t*           w_x_tmp_arr_size,
+                                                 size_t*           w_invA_size,
+                                                 size_t*           w_invA_arr_size,
+                                                 size_t*           w_x_tmp_size_backup)
+{
+    if constexpr(std::is_same<T, float>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, double>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+        return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
+            TRSM_WORKSPACE_TEMPLATE_PARAMS);
+
+    return rocblas_status_not_implemented;
+}
+
+#undef TRSM_WORKSPACE_TEMPLATE_PARAMS
+
 /**
  *  The purpose of this function is to allocate memory for trsm. It is added to remove
  *  memory allocation from the rocblas_internal_trsm_template function, but also allow code reuse
@@ -1813,7 +1879,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
  *  Note that for the batched version of trsm, we are also allocating memory to store the
  *  arrays of pointers for invA and w_x_temp (mem_x_temp_arr, mem_invA_arr).
  */
-template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
+template <bool BATCHED, typename T, typename U>
 rocblas_status rocblas_internal_trsm_template_mem(rocblas_handle              handle,
                                                   rocblas_side                side,
                                                   rocblas_operation           transA,
@@ -1828,22 +1894,36 @@ rocblas_status rocblas_internal_trsm_template_mem(rocblas_handle              ha
                                                   const U*    supplied_invA      = nullptr,
                                                   rocblas_int supplied_invA_size = 0)
 {
-    auto& workspace = static_cast<decltype(handle->device_malloc(0))&>(w_mem);
+    constexpr rocblas_int BLOCK     = ROCBLAS_TRSM_NB;
+    auto&                 workspace = static_cast<decltype(handle->device_malloc(0))&>(w_mem);
 
     // calculate needed memory
     size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size, w_x_tmp_size_backup;
-    rocblas_status memory_status
-        = rocblas_internal_trsm_workspace_size<BLOCK, BATCHED, T>(side,
-                                                                  transA,
-                                                                  m,
-                                                                  n,
-                                                                  batch_count,
-                                                                  supplied_invA_size,
-                                                                  &w_x_tmp_size,
-                                                                  &w_x_tmp_arr_size,
-                                                                  &w_invA_size,
-                                                                  &w_invA_arr_size,
-                                                                  &w_x_tmp_size_backup);
+    rocblas_status memory_status;
+    if constexpr(BATCHED)
+        memory_status = rocblas_internal_trsm_batched_workspace_size<T>(side,
+                                                                        transA,
+                                                                        m,
+                                                                        n,
+                                                                        batch_count,
+                                                                        supplied_invA_size,
+                                                                        &w_x_tmp_size,
+                                                                        &w_x_tmp_arr_size,
+                                                                        &w_invA_size,
+                                                                        &w_invA_arr_size,
+                                                                        &w_x_tmp_size_backup);
+    else
+        memory_status = rocblas_internal_trsm_workspace_size<T>(side,
+                                                                transA,
+                                                                m,
+                                                                n,
+                                                                batch_count,
+                                                                supplied_invA_size,
+                                                                &w_x_tmp_size,
+                                                                &w_x_tmp_arr_size,
+                                                                &w_invA_size,
+                                                                &w_invA_arr_size,
+                                                                &w_x_tmp_size_backup);
 
     if(memory_status != rocblas_status_success && memory_status != rocblas_status_continue)
     {
@@ -3264,33 +3344,32 @@ void rocblas_trsm_small_64(rocblas_handle    handle,
 //////////////////////////////
 //////////////////////////////
 template <rocblas_int BLOCK, rocblas_int DIM_X, bool BATCHED, typename T, typename U, typename V>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsm_template(rocblas_handle    handle,
-                                   rocblas_side      side,
-                                   rocblas_fill      uplo,
-                                   rocblas_operation transA,
-                                   rocblas_diagonal  diag,
-                                   rocblas_int       m,
-                                   rocblas_int       n,
-                                   const T*          alpha,
-                                   U                 A,
-                                   rocblas_stride    offset_A,
-                                   rocblas_int       lda,
-                                   rocblas_stride    stride_A,
-                                   V                 B,
-                                   rocblas_stride    offset_B,
-                                   rocblas_int       ldb,
-                                   rocblas_stride    stride_B,
-                                   rocblas_int       batch_count,
-                                   bool              optimal_mem,
-                                   void*             w_x_temp,
-                                   void*             w_x_temparr,
-                                   void*             invA               = nullptr,
-                                   void*             invAarr            = nullptr,
-                                   U                 supplied_invA      = nullptr,
-                                   rocblas_int       supplied_invA_size = 0,
-                                   rocblas_stride    offset_invA        = 0,
-                                   rocblas_stride    stride_invA        = 0)
+rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
+                                              rocblas_side      side,
+                                              rocblas_fill      uplo,
+                                              rocblas_operation transA,
+                                              rocblas_diagonal  diag,
+                                              rocblas_int       m,
+                                              rocblas_int       n,
+                                              const T*          alpha,
+                                              U                 A,
+                                              rocblas_stride    offset_A,
+                                              rocblas_int       lda,
+                                              rocblas_stride    stride_A,
+                                              V                 B,
+                                              rocblas_stride    offset_B,
+                                              rocblas_int       ldb,
+                                              rocblas_stride    stride_B,
+                                              rocblas_int       batch_count,
+                                              bool              optimal_mem,
+                                              void*             w_x_temp,
+                                              void*             w_x_temparr,
+                                              void*             invA               = nullptr,
+                                              void*             invAarr            = nullptr,
+                                              U                 supplied_invA      = nullptr,
+                                              rocblas_int       supplied_invA_size = 0,
+                                              rocblas_stride    offset_invA        = 0,
+                                              rocblas_stride    stride_invA        = 0)
 {
     if(batch_count == 0)
         return rocblas_status_success;
@@ -3737,3 +3816,100 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     return rocblas_status_success;
 }
+
+#define TRSM_TEMPLATE_PARAMS                                                                     \
+    handle, side, uplo, transA, diag, m, n, alpha, A, offset_A, lda, stride_A, B, offset_B, ldb, \
+        stride_B, batch_count, optimal_mem, w_x_temp, w_x_temparr, invA, invAarr, supplied_invA, \
+        supplied_invA_size, offset_invA, stride_invA
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsm_template(rocblas_handle    handle,
+                                   rocblas_side      side,
+                                   rocblas_fill      uplo,
+                                   rocblas_operation transA,
+                                   rocblas_diagonal  diag,
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   const T*          alpha,
+                                   const T*          A,
+                                   rocblas_stride    offset_A,
+                                   rocblas_int       lda,
+                                   rocblas_stride    stride_A,
+                                   T*                B,
+                                   rocblas_stride    offset_B,
+                                   rocblas_int       ldb,
+                                   rocblas_stride    stride_B,
+                                   rocblas_int       batch_count,
+                                   bool              optimal_mem,
+                                   void*             w_x_temp,
+                                   void*             w_x_temparr,
+                                   void*             invA               = nullptr,
+                                   void*             invAarr            = nullptr,
+                                   const T*          supplied_invA      = nullptr,
+                                   rocblas_int       supplied_invA_size = 0,
+                                   rocblas_stride    offset_invA        = 0,
+                                   rocblas_stride    stride_invA        = 0)
+{
+    if constexpr(std::is_same<T, float>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, false, T>(
+            TRSM_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, double>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, false, T>(
+            TRSM_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, false, T>(
+            TRSM_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB, false, T>(
+            TRSM_TEMPLATE_PARAMS);
+
+    return rocblas_status_not_implemented;
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsm_batched_template(rocblas_handle    handle,
+                                           rocblas_side      side,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation transA,
+                                           rocblas_diagonal  diag,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           const T*          alpha,
+                                           const T* const*   A,
+                                           rocblas_stride    offset_A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_A,
+                                           T* const*         B,
+                                           rocblas_stride    offset_B,
+                                           rocblas_int       ldb,
+                                           rocblas_stride    stride_B,
+                                           rocblas_int       batch_count,
+                                           bool              optimal_mem,
+                                           void*             w_x_temp,
+                                           void*             w_x_temparr,
+                                           void*             invA               = nullptr,
+                                           void*             invAarr            = nullptr,
+                                           const T* const*   supplied_invA      = nullptr,
+                                           rocblas_int       supplied_invA_size = 0,
+                                           rocblas_stride    offset_invA        = 0,
+                                           rocblas_stride    stride_invA        = 0)
+{
+    if constexpr(std::is_same<T, float>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
+            TRSM_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, double>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
+            TRSM_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
+            TRSM_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+        return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB, true, T>(
+            TRSM_TEMPLATE_PARAMS);
+
+    return rocblas_status_not_implemented;
+}
+
+#undef TRSM_TEMPLATE_PARAMS
