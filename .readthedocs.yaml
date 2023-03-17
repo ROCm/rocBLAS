@@ -4,11 +4,11 @@
 version: 2
 
 sphinx:
-   configuration: docs/source/conf.py
+   configuration: docs/conf.py
 
 formats: all
 
 python:
-   version: "3.7"
+   version: "3.8"
    install:
-   - requirements: docs/source/requirements.txt
+   - requirements: docs/.sphinx/requirements.txt

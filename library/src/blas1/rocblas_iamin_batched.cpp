@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -95,15 +95,15 @@ namespace
             return rocblas_status_memory_error;
         }
         rocblas_status status
-            = rocblas_internal_iamin_template<NB>(handle,
-                                                  n,
-                                                  x,
-                                                  shiftx_0,
-                                                  incx,
-                                                  stridex_0,
-                                                  batch_count,
-                                                  result,
-                                                  (rocblas_index_value_t<S>*)w_mem);
+            = rocblas_internal_iamin_batched_template(handle,
+                                                      n,
+                                                      x,
+                                                      shiftx_0,
+                                                      incx,
+                                                      stridex_0,
+                                                      batch_count,
+                                                      result,
+                                                      (rocblas_index_value_t<S>*)w_mem);
         if(status != rocblas_status_success)
             return status;
 
