@@ -22,6 +22,7 @@
 
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
+#include "rocblas_block_sizes.h"
 #include "rocblas_trsv.hpp"
 
 // Copyright 2014-6, The Science and Technology Facilities Council (STFC)
@@ -776,23 +777,22 @@ rocblas_trsv_device(rocblas_int    m,
 }
 
 template <rocblas_int DIM_X, typename T, typename ATYPE, typename XTYPE>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsv_substitution_template(rocblas_handle    handle,
-                                                rocblas_fill      uplo,
-                                                rocblas_operation transA,
-                                                rocblas_diagonal  diag,
-                                                rocblas_int       m,
-                                                ATYPE             dA,
-                                                rocblas_stride    offset_A,
-                                                rocblas_int       lda,
-                                                rocblas_stride    stride_A,
-                                                T const*          alpha,
-                                                XTYPE             dx,
-                                                rocblas_stride    offset_x,
-                                                rocblas_int       incx,
-                                                rocblas_stride    stride_x,
-                                                rocblas_int       batch_count,
-                                                rocblas_int*      w_completed_sec)
+rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    handle,
+                                                           rocblas_fill      uplo,
+                                                           rocblas_operation transA,
+                                                           rocblas_diagonal  diag,
+                                                           rocblas_int       m,
+                                                           ATYPE             dA,
+                                                           rocblas_stride    offset_A,
+                                                           rocblas_int       lda,
+                                                           rocblas_stride    stride_A,
+                                                           T const*          alpha,
+                                                           XTYPE             dx,
+                                                           rocblas_stride    offset_x,
+                                                           rocblas_int       incx,
+                                                           rocblas_stride    stride_x,
+                                                           rocblas_int       batch_count,
+                                                           rocblas_int*      w_completed_sec)
 {
     if(batch_count == 0)
         return rocblas_status_success;
@@ -976,6 +976,79 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+#define TRSV_TEMPLATE_PARAMS                                                                 \
+    handle, uplo, transA, diag, m, dA, offset_A, lda, stride_A, nullptr, dx, offset_x, incx, \
+        stride_x, batch_count, w_completed_sec
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsv_template(rocblas_handle    handle,
+                                   rocblas_fill      uplo,
+                                   rocblas_operation transA,
+                                   rocblas_diagonal  diag,
+                                   rocblas_int       m,
+                                   const T*          dA,
+                                   rocblas_stride    offset_A,
+                                   rocblas_int       lda,
+                                   rocblas_stride    stride_A,
+                                   T*                dx,
+                                   rocblas_stride    offset_x,
+                                   rocblas_int       incx,
+                                   rocblas_stride    stride_x,
+                                   rocblas_int       batch_count,
+                                   rocblas_int*      w_completed_sec)
+{
+    if constexpr(std::is_same<T, float>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, double>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_ZTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+
+    return rocblas_status_internal_error;
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsv_batched_template(rocblas_handle    handle,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation transA,
+                                           rocblas_diagonal  diag,
+                                           rocblas_int       m,
+                                           const T* const*   dA,
+                                           rocblas_stride    offset_A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_A,
+                                           T* const*         dx,
+                                           rocblas_stride    offset_x,
+                                           rocblas_int       incx,
+                                           rocblas_stride    stride_x,
+                                           rocblas_int       batch_count,
+                                           rocblas_int*      w_completed_sec)
+{
+    if constexpr(std::is_same<T, float>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, double>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+        return rocblas_internal_trsv_substitution_template<ROCBLAS_ZTRSV_NB, T>(
+            TRSV_TEMPLATE_PARAMS);
+
+    return rocblas_status_internal_error;
+}
+
+#undef TRSV_TEMPLATE_PARAMS
+
 template <typename T, typename U>
 rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_name,
                                                     rocblas_handle    handle,
@@ -1047,11 +1120,11 @@ template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>           
                                                     rocblas_fill      uplo,           \
                                                     rocblas_int       m,              \
                                                     T_                A,              \
-                                                    rocblas_stride       offset_a,    \
+                                                    rocblas_stride    offset_a,       \
                                                     rocblas_int       lda,            \
                                                     rocblas_stride    stride_a,       \
                                                     U_                x,              \
-                                                    rocblas_stride       offset_x,    \
+                                                    rocblas_stride    offset_x,       \
                                                     rocblas_int       inc_x,          \
                                                     rocblas_stride    stride_x,       \
                                                     rocblas_int       batch_count,    \
@@ -1073,36 +1146,62 @@ INSTANTIATE_TRSV_NUMERICS(rocblas_double_complex const* const*, rocblas_double_c
 #error INSTANTIATE_TRSV_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_TRSV_TEMPLATE(DIM_X_, T_, ATYPE_, XTYPE_)                                        \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_substitution_template \
-                                               <DIM_X_, T_, ATYPE_, XTYPE_>                          \
-                                               (rocblas_handle    handle,                            \
-                                                rocblas_fill      uplo,                              \
-                                                rocblas_operation transA,                            \
-                                                rocblas_diagonal  diag,                              \
-                                                rocblas_int       m,                                 \
-                                                ATYPE_             dA,                               \
-                                                rocblas_stride         offset_A,                          \
-                                                rocblas_int       lda,                               \
-                                                rocblas_stride    stride_A,                          \
-                                                T_ const*         alpha,                             \
-                                                XTYPE_             dx,                               \
-                                                rocblas_stride         offset_x,                          \
-                                                rocblas_int       incx,                              \
-                                                rocblas_stride    stride_x,                          \
-                                                rocblas_int       batch_count,                       \
+#define INSTANTIATE_TRSV_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_template<T_> \
+                                               (rocblas_handle    handle,                   \
+                                                rocblas_fill      uplo,                     \
+                                                rocblas_operation transA,                   \
+                                                rocblas_diagonal  diag,                     \
+                                                rocblas_int       m,                        \
+                                                const T_*         dA,                       \
+                                                rocblas_stride    offset_A,                 \
+                                                rocblas_int       lda,                      \
+                                                rocblas_stride    stride_A,                 \
+                                                T_*               dx,                       \
+                                                rocblas_stride    offset_x,                 \
+                                                rocblas_int       incx,                     \
+                                                rocblas_stride    stride_x,                 \
+                                                rocblas_int       batch_count,              \
                                                 rocblas_int*      w_completed_sec);
 
 
-INSTANTIATE_TRSV_TEMPLATE(64, float, float const*, float*)
-INSTANTIATE_TRSV_TEMPLATE(64, double, double const*, double*)
-INSTANTIATE_TRSV_TEMPLATE(64, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_TRSV_TEMPLATE(32, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_TRSV_TEMPLATE(64, float, float const* const*, float* const*)
-INSTANTIATE_TRSV_TEMPLATE(64, double, double const* const*, double* const*)
-INSTANTIATE_TRSV_TEMPLATE(64, rocblas_float_complex, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_TRSV_TEMPLATE(32, rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+
+INSTANTIATE_TRSV_TEMPLATE(float)
+INSTANTIATE_TRSV_TEMPLATE(double)
+INSTANTIATE_TRSV_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_TRSV_TEMPLATE(rocblas_double_complex)
 
 #undef INSTANTIATE_TRSV_TEMPLATE
+
+#ifdef INSTANTIATE_TRSV_BATCHED_TEMPLATE
+#error INSTANTIATE_TRSV_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_TRSV_BATCHED_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_batched_template<T_> \
+                                               (rocblas_handle    handle,                           \
+                                                rocblas_fill      uplo,                             \
+                                                rocblas_operation transA,                           \
+                                                rocblas_diagonal  diag,                             \
+                                                rocblas_int       m,                                \
+                                                const T_* const*  dA,                               \
+                                                rocblas_stride    offset_A,                         \
+                                                rocblas_int       lda,                              \
+                                                rocblas_stride    stride_A,                         \
+                                                T_* const*        dx,                               \
+                                                rocblas_stride    offset_x,                         \
+                                                rocblas_int       incx,                             \
+                                                rocblas_stride    stride_x,                         \
+                                                rocblas_int       batch_count,                      \
+                                                rocblas_int*      w_completed_sec);
+
+
+
+INSTANTIATE_TRSV_BATCHED_TEMPLATE(float)
+INSTANTIATE_TRSV_BATCHED_TEMPLATE(double)
+INSTANTIATE_TRSV_BATCHED_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_TRSV_BATCHED_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_TRSV_BATCHED_TEMPLATE
 
 // clang-format on

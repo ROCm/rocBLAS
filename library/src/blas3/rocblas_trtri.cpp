@@ -1,5 +1,5 @@
 /* ************************************************************************
- *  * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ *  * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ namespace
     template <>
     constexpr char rocblas_trtri_name<rocblas_double_complex>[] = "rocblas_ztrtri";
 
-    template <rocblas_int NB, typename T>
+    template <typename T>
     rocblas_status rocblas_trtri_impl(rocblas_handle   handle,
                                       rocblas_fill     uplo,
                                       rocblas_diagonal diag,
@@ -51,7 +51,7 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        size_t size = rocblas_internal_trtri_temp_size<NB>(n, 1) * sizeof(T);
+        size_t size = rocblas_internal_trtri_temp_elements(n, 1) * sizeof(T);
         if(handle->is_device_memory_size_query())
         {
             if(!n)
@@ -109,25 +109,23 @@ namespace
                 return trtri_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_status_success;
-
-        status = rocblas_internal_trtri_template<NB, false, false, T>(handle,
-                                                                      uplo,
-                                                                      diag,
-                                                                      n,
-                                                                      A,
-                                                                      0,
-                                                                      lda,
-                                                                      lda * n,
-                                                                      0,
-                                                                      invA,
-                                                                      0,
-                                                                      ldinvA,
-                                                                      ldinvA * n,
-                                                                      0,
-                                                                      1,
-                                                                      1,
-                                                                      (T*)w_mem);
+        rocblas_status status = rocblas_internal_trtri_template(handle,
+                                                                uplo,
+                                                                diag,
+                                                                n,
+                                                                A,
+                                                                0,
+                                                                lda,
+                                                                lda * n,
+                                                                0,
+                                                                invA,
+                                                                0,
+                                                                ldinvA,
+                                                                ldinvA * n,
+                                                                0,
+                                                                1,
+                                                                1,
+                                                                (T*)w_mem);
 
         if(status != rocblas_status_success)
             return status;
@@ -174,7 +172,7 @@ rocblas_status rocblas_strtri(rocblas_handle   handle,
                               rocblas_int      ldinvA)
 try
 {
-    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {
@@ -191,7 +189,7 @@ rocblas_status rocblas_dtrtri(rocblas_handle   handle,
                               rocblas_int      ldinvA)
 try
 {
-    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {
@@ -208,7 +206,7 @@ rocblas_status rocblas_ctrtri(rocblas_handle               handle,
                               rocblas_int                  ldinvA)
 try
 {
-    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {
@@ -225,7 +223,7 @@ rocblas_status rocblas_ztrtri(rocblas_handle                handle,
                               rocblas_int                   ldinvA)
 try
 {
-    return rocblas_trtri_impl<ROCBLAS_TRTRI_NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_impl(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 catch(...)
 {

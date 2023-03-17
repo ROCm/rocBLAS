@@ -59,7 +59,7 @@ namespace
     template <>
     constexpr char rocblas_trmm_name<rocblas_double_complex>[] = "rocblas_ztrmm";
 
-    template <int STOPPING_NB, typename T>
+    template <typename T>
     rocblas_status rocblas_trmm_impl(rocblas_handle    handle,
                                      rocblas_side      side,
                                      rocblas_fill      uplo,
@@ -218,28 +218,28 @@ namespace
 
         rocblas_status status = rocblas_status_success;
 
-        status = rocblas_internal_trmm_template<STOPPING_NB, BATCHED, T>(handle,
-                                                                         side,
-                                                                         uplo,
-                                                                         transa,
-                                                                         diag,
-                                                                         m,
-                                                                         n,
-                                                                         alpha,
-                                                                         stride_alpha,
-                                                                         a,
-                                                                         offset_a,
-                                                                         lda,
-                                                                         stride_a,
-                                                                         (const T*)b,
-                                                                         offset_b,
-                                                                         ldb,
-                                                                         stride_b,
-                                                                         b,
-                                                                         offset_b,
-                                                                         ldb,
-                                                                         stride_b,
-                                                                         batch_count);
+        status = rocblas_internal_trmm_template(handle,
+                                                side,
+                                                uplo,
+                                                transa,
+                                                diag,
+                                                m,
+                                                n,
+                                                alpha,
+                                                stride_alpha,
+                                                a,
+                                                offset_a,
+                                                lda,
+                                                stride_a,
+                                                (const T*)b,
+                                                offset_b,
+                                                ldb,
+                                                stride_b,
+                                                b,
+                                                offset_b,
+                                                ldb,
+                                                stride_b,
+                                                batch_count);
 
         if(status != rocblas_status_success)
             return status;
@@ -284,33 +284,32 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_, STOPPING_NB_)                               \
-    rocblas_status routine_name_(rocblas_handle    handle,                  \
-                                 rocblas_side      side,                    \
-                                 rocblas_fill      uplo,                    \
-                                 rocblas_operation transa,                  \
-                                 rocblas_diagonal  diag,                    \
-                                 rocblas_int       m,                       \
-                                 rocblas_int       n,                       \
-                                 const T_*         alpha,                   \
-                                 const T_*         a,                       \
-                                 rocblas_int       lda,                     \
-                                 T_*               b,                       \
-                                 rocblas_int       ldb)                     \
-    try                                                                     \
-    {                                                                       \
-        return rocblas_trmm_impl<STOPPING_NB_>(                             \
-            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb); \
-    }                                                                       \
-    catch(...)                                                              \
-    {                                                                       \
-        return exception_to_rocblas_status();                               \
+#define IMPL(routine_name_, T_)                                                                  \
+    rocblas_status routine_name_(rocblas_handle    handle,                                       \
+                                 rocblas_side      side,                                         \
+                                 rocblas_fill      uplo,                                         \
+                                 rocblas_operation transa,                                       \
+                                 rocblas_diagonal  diag,                                         \
+                                 rocblas_int       m,                                            \
+                                 rocblas_int       n,                                            \
+                                 const T_*         alpha,                                        \
+                                 const T_*         a,                                            \
+                                 rocblas_int       lda,                                          \
+                                 T_*               b,                                            \
+                                 rocblas_int       ldb)                                          \
+    try                                                                                          \
+    {                                                                                            \
+        return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb); \
+    }                                                                                            \
+    catch(...)                                                                                   \
+    {                                                                                            \
+        return exception_to_rocblas_status();                                                    \
     }
 
-IMPL(rocblas_strmm, float, ROCBLAS_SDTRMM_NB);
-IMPL(rocblas_dtrmm, double, ROCBLAS_SDTRMM_NB);
-IMPL(rocblas_ctrmm, rocblas_float_complex, ROCBLAS_CZTRMM_NB);
-IMPL(rocblas_ztrmm, rocblas_double_complex, ROCBLAS_CZTRMM_NB);
+IMPL(rocblas_strmm, float);
+IMPL(rocblas_dtrmm, double);
+IMPL(rocblas_ctrmm, rocblas_float_complex);
+IMPL(rocblas_ztrmm, rocblas_double_complex);
 
 #undef IMPL
 
