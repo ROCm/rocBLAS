@@ -178,8 +178,36 @@ namespace
                 return dot_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_dot_template<NB, CONJ, T>(
-            handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count, results, (T2*)w_mem);
+        rocblas_status status;
+        if constexpr(rocblas_is_complex<T> && CONJ)
+            status = rocblas_internal_dotc_template(handle,
+                                                    n,
+                                                    x,
+                                                    0,
+                                                    incx,
+                                                    stridex,
+                                                    y,
+                                                    0,
+                                                    incy,
+                                                    stridey,
+                                                    batch_count,
+                                                    results,
+                                                    (T2*)w_mem);
+        else
+            status = rocblas_internal_dot_template(handle,
+                                                   n,
+                                                   x,
+                                                   0,
+                                                   incx,
+                                                   stridex,
+                                                   y,
+                                                   0,
+                                                   incy,
+                                                   stridey,
+                                                   batch_count,
+                                                   results,
+                                                   (T2*)w_mem);
+
         if(status != rocblas_status_success)
             return status;
 

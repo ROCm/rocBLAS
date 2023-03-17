@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ namespace
     template <>
     constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
 
-    template <int NB, typename T>
+    template <typename T>
     rocblas_status rocblas_axpy_impl(rocblas_handle handle,
                                      rocblas_int    n,
                                      const T*       alpha,
@@ -119,19 +119,19 @@ namespace
                 return axpy_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_axpy_template<NB, T>(handle,
-                                                                      n,
-                                                                      alpha,
-                                                                      stride_0,
-                                                                      x,
-                                                                      offset_0,
-                                                                      incx,
-                                                                      stride_0,
-                                                                      y,
-                                                                      offset_0,
-                                                                      incy,
-                                                                      stride_0,
-                                                                      batch_count_1);
+        rocblas_status status = rocblas_internal_axpy_template(handle,
+                                                               n,
+                                                               alpha,
+                                                               stride_0,
+                                                               x,
+                                                               offset_0,
+                                                               incx,
+                                                               stride_0,
+                                                               y,
+                                                               offset_0,
+                                                               incy,
+                                                               stride_0,
+                                                               batch_count_1);
         if(status != rocblas_status_success)
             return status;
 
@@ -173,22 +173,21 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                          \
-    rocblas_status routine_name_(rocblas_handle handle,                  \
-                                 rocblas_int    n,                       \
-                                 const T_*      alpha,                   \
-                                 const T_*      x,                       \
-                                 rocblas_int    incx,                    \
-                                 T_*            y,                       \
-                                 rocblas_int    incy)                    \
-    try                                                                  \
-    {                                                                    \
-        return rocblas_axpy_impl<ROCBLAS_AXPY_NB>(                       \
-            handle, n, alpha, x, incx, y, incy, #routine_name_, "axpy"); \
-    }                                                                    \
-    catch(...)                                                           \
-    {                                                                    \
-        return exception_to_rocblas_status();                            \
+#define IMPL(routine_name_, T_)                                                               \
+    rocblas_status routine_name_(rocblas_handle handle,                                       \
+                                 rocblas_int    n,                                            \
+                                 const T_*      alpha,                                        \
+                                 const T_*      x,                                            \
+                                 rocblas_int    incx,                                         \
+                                 T_*            y,                                            \
+                                 rocblas_int    incy)                                         \
+    try                                                                                       \
+    {                                                                                         \
+        return rocblas_axpy_impl(handle, n, alpha, x, incx, y, incy, #routine_name_, "axpy"); \
+    }                                                                                         \
+    catch(...)                                                                                \
+    {                                                                                         \
+        return exception_to_rocblas_status();                                                 \
     }
 
 IMPL(rocblas_saxpy, float);

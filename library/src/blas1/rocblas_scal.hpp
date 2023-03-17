@@ -26,13 +26,44 @@
 #include "rocblas.h"
 
 template <rocblas_int NB, typename T, typename Tex = T, typename Ta, typename Tx>
+rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
+                                              rocblas_int    n,
+                                              const Ta*      alpha,
+                                              rocblas_stride stride_alpha,
+                                              Tx             x,
+                                              rocblas_stride offset_x,
+                                              rocblas_int    incx,
+                                              rocblas_stride stride_x,
+                                              rocblas_int    batch_count);
+
+/**
+ * @brief internal scal template, to be used for regular scal and scal_strided_batched.
+ *        Used by rocSOLVER, includes offset params for alpha/arrays.
+ */
+template <typename T, typename Ta>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_scal_template(rocblas_handle handle,
                                    rocblas_int    n,
                                    const Ta*      alpha,
                                    rocblas_stride stride_alpha,
-                                   Tx             x,
+                                   T*             x,
                                    rocblas_stride offset_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
                                    rocblas_int    batch_count);
+
+/**
+ * @brief internal scal_batched template.
+ *        Used by rocSOLVER, includes offset params for alpha/arrays.
+ */
+template <typename T, typename Ta>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_scal_batched_template(rocblas_handle handle,
+                                           rocblas_int    n,
+                                           const Ta*      alpha,
+                                           rocblas_stride stride_alpha,
+                                           T* const*      x,
+                                           rocblas_stride offset_x,
+                                           rocblas_int    incx,
+                                           rocblas_stride stride_x,
+                                           rocblas_int    batch_count);

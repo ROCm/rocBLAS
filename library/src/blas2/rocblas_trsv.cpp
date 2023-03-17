@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_block_sizes.h"
 #include "utility.hpp"
 
 namespace
@@ -39,7 +38,7 @@ namespace
     template <>
     constexpr char rocblas_trsv_name<rocblas_double_complex>[] = "rocblas_ztrsv";
 
-    template <rocblas_int BLOCK, typename T>
+    template <typename T>
     rocblas_status rocblas_trsv_impl(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
@@ -142,23 +141,21 @@ namespace
                 return trsv_check_numerics_status;
         }
 
-        rocblas_status status
-            = rocblas_internal_trsv_substitution_template<BLOCK, T>(handle,
-                                                                    uplo,
-                                                                    transA,
-                                                                    diag,
-                                                                    m,
-                                                                    A,
-                                                                    0,
-                                                                    lda,
-                                                                    0,
-                                                                    nullptr,
-                                                                    B,
-                                                                    0,
-                                                                    incx,
-                                                                    0,
-                                                                    1,
-                                                                    (rocblas_int*)w_completed_sec);
+        rocblas_status status = rocblas_internal_trsv_template(handle,
+                                                               uplo,
+                                                               transA,
+                                                               diag,
+                                                               m,
+                                                               A,
+                                                               0,
+                                                               lda,
+                                                               0,
+                                                               B,
+                                                               0,
+                                                               incx,
+                                                               0,
+                                                               1,
+                                                               (rocblas_int*)w_completed_sec);
 
         if(status != rocblas_status_success)
             return status;
@@ -209,7 +206,7 @@ rocblas_status rocblas_strsv(rocblas_handle    handle,
                              rocblas_int       incx)
 try
 {
-    return rocblas_trsv_impl<ROCBLAS_SDCTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -227,7 +224,7 @@ rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                              rocblas_int       incx)
 try
 {
-    return rocblas_trsv_impl<ROCBLAS_SDCTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -245,7 +242,7 @@ rocblas_status rocblas_ctrsv(rocblas_handle               handle,
                              rocblas_int                  incx)
 try
 {
-    return rocblas_trsv_impl<ROCBLAS_SDCTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -263,7 +260,7 @@ rocblas_status rocblas_ztrsv(rocblas_handle                handle,
                              rocblas_int                   incx)
 try
 {
-    return rocblas_trsv_impl<ROCBLAS_ZTRSV_NB>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {

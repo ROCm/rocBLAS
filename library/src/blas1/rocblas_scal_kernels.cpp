@@ -22,6 +22,7 @@
 
 #include "handle.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
 #include "rocblas_scal.hpp"
 
 template <rocblas_int NB, typename T, typename Tex, typename Ta, typename Tx>
@@ -150,16 +151,15 @@ rocblas_hscal_mlt_4_kernel(rocblas_int    n,
 }
 
 template <rocblas_int NB, typename T, typename Tex, typename Ta, typename Tx>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_scal_template(rocblas_handle handle,
-                                   rocblas_int    n,
-                                   const Ta*      alpha,
-                                   rocblas_stride stride_alpha,
-                                   Tx             x,
-                                   rocblas_stride offset_x,
-                                   rocblas_int    incx,
-                                   rocblas_stride stride_x,
-                                   rocblas_int    batch_count)
+rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
+                                              rocblas_int    n,
+                                              const Ta*      alpha,
+                                              rocblas_stride stride_alpha,
+                                              Tx             x,
+                                              rocblas_stride offset_x,
+                                              rocblas_int    incx,
+                                              rocblas_stride stride_x,
+                                              rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0 || batch_count <= 0)
@@ -283,15 +283,102 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+template <typename T, typename Ta>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_scal_template(rocblas_handle handle,
+                                   rocblas_int    n,
+                                   const Ta*      alpha,
+                                   rocblas_stride stride_alpha,
+                                   T*             x,
+                                   rocblas_stride offset_x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stride_x,
+                                   rocblas_int    batch_count)
+{
+    return rocblas_internal_scal_template<ROCBLAS_SCAL_NB, T, T>(
+        handle, n, alpha, stride_alpha, x, offset_x, incx, stride_x, batch_count);
+}
+
+template <typename T, typename Ta>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_scal_batched_template(rocblas_handle handle,
+                                           rocblas_int    n,
+                                           const Ta*      alpha,
+                                           rocblas_stride stride_alpha,
+                                           T* const*      x,
+                                           rocblas_stride offset_x,
+                                           rocblas_int    incx,
+                                           rocblas_stride stride_x,
+                                           rocblas_int    batch_count)
+{
+    return rocblas_internal_scal_template<ROCBLAS_SCAL_NB, T, T>(
+        handle, n, alpha, stride_alpha, x, offset_x, incx, stride_x, batch_count);
+}
+
 // Instantiations below will need to be manually updated to match any change in
 // template parameters in the files scal*.cpp
 
+// clang-format off
 #ifdef INSTANTIATE_SCAL_TEMPLATE
 #error INSTANTIATE_SCAL_TEMPLATE already defined
 #endif
 
-//T_ matches Tx_, as T_ is a base type of Tx_
-#define INSTANTIATE_SCAL_TEMPLATE(NB_, T_, Tex_, Ta_, Tx_)                                   \
+#define INSTANTIATE_SCAL_TEMPLATE(T_, Ta_)                              \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status            \
+        rocblas_internal_scal_template<T_, Ta_>(rocblas_handle handle,  \
+                                           rocblas_int    n,            \
+                                           const Ta_*     alpha,        \
+                                           rocblas_stride stride_alpha, \
+                                           T_*            x,            \
+                                           rocblas_stride offset_x,     \
+                                           rocblas_int    incx,         \
+                                           rocblas_stride stride_x,     \
+                                           rocblas_int    batch_count);
+
+// Not exporting execution type
+INSTANTIATE_SCAL_TEMPLATE(rocblas_half, rocblas_half)
+INSTANTIATE_SCAL_TEMPLATE(rocblas_half, float)
+INSTANTIATE_SCAL_TEMPLATE(float, float)
+INSTANTIATE_SCAL_TEMPLATE(double, double)
+INSTANTIATE_SCAL_TEMPLATE(rocblas_float_complex, rocblas_float_complex)
+INSTANTIATE_SCAL_TEMPLATE(rocblas_double_complex, rocblas_double_complex)
+INSTANTIATE_SCAL_TEMPLATE(rocblas_float_complex, float)
+INSTANTIATE_SCAL_TEMPLATE(rocblas_double_complex, double)
+
+#undef INSTANTIATE_SCAL_TEMPLATE
+
+#ifdef INSTANTIATE_SCAL_BATCHED_TEMPLATE
+#error INSTANTIATE_SCAL_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_SCAL_BATCHED_TEMPLATE(T_, Ta_)                              \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                    \
+        rocblas_internal_scal_batched_template<T_, Ta_>(rocblas_handle handle,  \
+                                                   rocblas_int    n,            \
+                                                   const Ta_*     alpha,        \
+                                                   rocblas_stride stride_alpha, \
+                                                   T_* const*     x,            \
+                                                   rocblas_stride offset_x,     \
+                                                   rocblas_int    incx,         \
+                                                   rocblas_stride stride_x,     \
+                                                   rocblas_int    batch_count);
+
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(rocblas_half, rocblas_half)
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(rocblas_half, float)
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(float, float)
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(double, double)
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(rocblas_float_complex, rocblas_float_complex)
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(rocblas_double_complex, rocblas_double_complex)
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(rocblas_float_complex, float)
+INSTANTIATE_SCAL_BATCHED_TEMPLATE(rocblas_double_complex, double)
+
+#undef INSTANTIATE_SCAL_BATCHED_TEMPLATE
+
+#ifdef INSTANTIATE_SCAL_EX_TEMPLATE
+#error INSTANTIATE_SCAL_EX_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_SCAL_EX_TEMPLATE(NB_, T_, Tex_, Ta_, Tx_)                                \
     template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                                 \
         rocblas_internal_scal_template<NB_, T_, Tex_, Ta_, Tx_>(rocblas_handle handle,       \
                                                                 rocblas_int    n,            \
@@ -303,40 +390,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                 rocblas_stride stride_x,     \
                                                                 rocblas_int    batch_count);
 
-// clang-format off
-// for rocblas_Xscal, rocblas_scal_ex  and  rocblas_Xscal_strided_batched
-INSTANTIATE_SCAL_TEMPLATE(256, float, float, float, float*)
-INSTANTIATE_SCAL_TEMPLATE(256, double, double, double, double*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex*)
+// Instantiations for scal_ex
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_half, float, rocblas_half, rocblas_half*)
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_half, float, float, rocblas_half*)
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_bfloat16, float, rocblas_bfloat16, rocblas_bfloat16*)
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_bfloat16, float, float, rocblas_bfloat16*)
 
-// for rocblas_XYscal, rocblas_scal_ex, and rocblas_XY_strided_batched
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_float_complex, rocblas_float_complex, float, rocblas_float_complex*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_double_complex, rocblas_double_complex, double, rocblas_double_complex*)
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_half, float, rocblas_half, rocblas_half* const*)
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_half, float, float, rocblas_half* const*)
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_bfloat16, float, rocblas_bfloat16, rocblas_bfloat16* const*)
+INSTANTIATE_SCAL_EX_TEMPLATE(ROCBLAS_SCAL_NB, rocblas_bfloat16, float, float, rocblas_bfloat16* const*)
 
-// for rocblas_Xscal_batched
-INSTANTIATE_SCAL_TEMPLATE(256, float, float, float, float* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, double, double, double, double* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex* const*)
+#undef INSTANTIATE_SCAL_EX_TEMPLATE
 
-// for rocblas_XYscal_batched
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_float_complex, rocblas_float_complex, float, rocblas_float_complex* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_double_complex, rocblas_double_complex, double, rocblas_double_complex* const*)
-
-// for rocblas_scal_ex and rocblas_scal_ex_strided_batched
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_half, rocblas_half, rocblas_half, rocblas_half*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_half, float, rocblas_half, rocblas_half*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_half, float, float, rocblas_half*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_bfloat16, float, rocblas_bfloat16, rocblas_bfloat16*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_bfloat16, float, float, rocblas_bfloat16*)
-
-// for rocblas_scal_ex_batched
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_half, rocblas_half, rocblas_half, rocblas_half* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_half, float, rocblas_half, rocblas_half* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_half, float, float, rocblas_half* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_bfloat16, float, rocblas_bfloat16, rocblas_bfloat16* const*)
-INSTANTIATE_SCAL_TEMPLATE(256, rocblas_bfloat16, float, float, rocblas_bfloat16* const*)
-
-#undef INSTANTIATE_SCAL_TEMPLATE
 // clang-format on

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_block_sizes.h"
 #include "rocblas_trsv.hpp"
 #include "utility.hpp"
 
@@ -39,7 +38,7 @@ namespace
     template <>
     constexpr char rocblas_trsv_batched_name<rocblas_double_complex>[] = "rocblas_ztrsv_batched";
 
-    template <rocblas_int BLOCK, typename T>
+    template <typename T>
     rocblas_status rocblas_trsv_batched_impl(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
@@ -158,22 +157,21 @@ namespace
         }
 
         rocblas_status status
-            = rocblas_internal_trsv_substitution_template<BLOCK, T>(handle,
-                                                                    uplo,
-                                                                    transA,
-                                                                    diag,
-                                                                    m,
-                                                                    A,
-                                                                    0,
-                                                                    lda,
-                                                                    0,
-                                                                    nullptr,
-                                                                    B,
-                                                                    0,
-                                                                    incx,
-                                                                    0,
-                                                                    batch_count,
-                                                                    (rocblas_int*)w_completed_sec);
+            = rocblas_internal_trsv_batched_template(handle,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     m,
+                                                     A,
+                                                     0,
+                                                     lda,
+                                                     0,
+                                                     B,
+                                                     0,
+                                                     incx,
+                                                     0,
+                                                     batch_count,
+                                                     (rocblas_int*)w_completed_sec);
 
         if(status != rocblas_status_success)
             return status;
@@ -226,8 +224,7 @@ rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
                                      rocblas_int batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<ROCBLAS_SDCTRSV_NB>(
-        handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)
 {
@@ -246,8 +243,7 @@ rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<ROCBLAS_SDCTRSV_NB>(
-        handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)
 {
@@ -267,8 +263,7 @@ rocblas_status rocblas_ctrsv_batched(rocblas_handle                     handle,
                                      rocblas_int batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<ROCBLAS_SDCTRSV_NB>(
-        handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)
 {
@@ -287,8 +282,7 @@ rocblas_status rocblas_ztrsv_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 try
 {
-    return rocblas_trsv_batched_impl<ROCBLAS_ZTRSV_NB>(
-        handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
 }
 catch(...)
 {

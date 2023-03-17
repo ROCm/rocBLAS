@@ -44,7 +44,7 @@ namespace
     template <>
     constexpr char rocblas_scal_name<rocblas_double_complex, double>[] = "rocblas_zdscal";
 
-    template <rocblas_int NB, typename T, typename U>
+    template <typename T, typename U>
     rocblas_status rocblas_scal_impl(
         rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx)
     {
@@ -102,7 +102,7 @@ namespace
         }
 
         rocblas_status status
-            = rocblas_internal_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, 1);
+            = rocblas_internal_scal_template(handle, n, alpha, 0, x, 0, incx, 0, 1);
         if(status != rocblas_status_success)
             return status;
 
@@ -136,7 +136,7 @@ extern "C" {
         rocblas_handle handle, rocblas_int n, const TA_* alpha, T_* x, rocblas_int incx) \
     try                                                                                  \
     {                                                                                    \
-        return rocblas_scal_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx);            \
+        return rocblas_scal_impl(handle, n, alpha, x, incx);                             \
     }                                                                                    \
     catch(...)                                                                           \
     {                                                                                    \

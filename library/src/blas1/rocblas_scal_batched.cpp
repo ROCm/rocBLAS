@@ -44,7 +44,7 @@ namespace
     template <>
     constexpr char rocblas_scal_name<rocblas_double_complex, double>[] = "rocblas_zdscal_batched";
 
-    template <rocblas_int NB, typename T, typename U>
+    template <typename T, typename U>
     rocblas_status rocblas_scal_batched_impl(rocblas_handle handle,
                                              rocblas_int    n,
                                              const U*       alpha,
@@ -121,7 +121,7 @@ namespace
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;
         }
-        rocblas_status status = rocblas_internal_scal_template<NB, T>(
+        rocblas_status status = rocblas_internal_scal_batched_template(
             handle, n, alpha, 0, x, 0, incx, 0, batch_count);
         if(status != rocblas_status_success)
             return status;
@@ -160,20 +160,20 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(name_, TA_, T_)                                                                       \
-    rocblas_status name_(rocblas_handle handle,                                                    \
-                         rocblas_int    n,                                                         \
-                         const TA_*     alpha,                                                     \
-                         T_* const      x[],                                                       \
-                         rocblas_int    incx,                                                      \
-                         rocblas_int    batch_count)                                               \
-    try                                                                                            \
-    {                                                                                              \
-        return rocblas_scal_batched_impl<ROCBLAS_SCAL_NB>(handle, n, alpha, x, incx, batch_count); \
-    }                                                                                              \
-    catch(...)                                                                                     \
-    {                                                                                              \
-        return exception_to_rocblas_status();                                                      \
+#define IMPL(name_, TA_, T_)                                                      \
+    rocblas_status name_(rocblas_handle handle,                                   \
+                         rocblas_int    n,                                        \
+                         const TA_*     alpha,                                    \
+                         T_* const      x[],                                      \
+                         rocblas_int    incx,                                     \
+                         rocblas_int    batch_count)                              \
+    try                                                                           \
+    {                                                                             \
+        return rocblas_scal_batched_impl(handle, n, alpha, x, incx, batch_count); \
+    }                                                                             \
+    catch(...)                                                                    \
+    {                                                                             \
+        return exception_to_rocblas_status();                                     \
     }
 
 IMPL(rocblas_sscal_batched, float, float);
