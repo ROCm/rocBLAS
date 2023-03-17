@@ -420,7 +420,7 @@ extern "C" rocblas_status
                                                              batch_count,
                                                              compute_type,
                                                              flags,
-                                                             true,
+                                                             CAN_SOLVE,
                                                              list_array,
                                                              list_size);
     }

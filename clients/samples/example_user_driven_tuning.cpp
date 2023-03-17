@@ -73,6 +73,9 @@ rocblas_int benchmark_solutions(std::vector<rocblas_int> const& solutions,
                                 rocblas_int                     cold_calls = 2,
                                 rocblas_int                     hot_calls  = 10)
 {
+// Note: `cold_calls` and 'hot_calls' defaults match rocblas-bench
+//       Higher values give more consistent benchmarking results
+
 // macros
 #define GEMM_EX_ARGS_BM                                                                        \
     gemmParams.handle, gemmParams.transa, gemmParams.transb, gemmParams.m, gemmParams.n,       \
