@@ -60,17 +60,42 @@ def runTestCommand (platform, project, gfilter)
                          """
     }
 
+//  For the trmm_outofplace tests the deprecated functions rocblas_Xtrmm_outofplace 
+//  are called by rocblas-test, and the new functions rocblas_Xtrmm are called by 
+//  rocblas_v3-test. Both call it with the arguments A, B, C. 
+
+//  This is done in testing_trmm_outofplace.hpp where rocblas.hpp maps the 
+//  string rocblas_trmm_outofplace_fn to the deprecated rocblas_Xtrmm_outofplace 
+//  for rocblas-test and to the new function rocblas_Xtrmm for rocblas_v3-test. Thus
+//  rocblas-test tests the deprecated function and rocblas_v3-test tests the new function.
+
+//  The below v3TestCommand calls rocblas_v3-test to verify the new functions
+//  rocblas_Xtrmm with arguments A, B, C (the new in-place/outofplace API).
+    def v3TestCommand= ''
+    if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
+    {
+        v3TestCommand = """
+                            GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_v3_TEST --gtest_output=xml:test_detail_V3.xml --gtest_color=yes --gtest_filter=*trmm_outofplace*quick*-*known_bug*
+                         """
+    }
+
+
     if (platform.jenkinsLabel.contains('ubuntu'))
     {
         runTests = """
                     pushd ${project.paths.project_build_prefix}
                     mv build build_BAK
                     ROCBLAS_TEST=/opt/rocm/bin/rocblas-test
+                    ROCBLAS_v3_TEST=/opt/rocm/bin/rocblas_v3-test
                     GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                     if (( \$? != 0 )); then
                         exit 1
                     fi
                     ${hmmTestCommand}
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
+                    ${v3TestCommand}
                     if (( \$? != 0 )); then
                         exit 1
                     fi
@@ -83,11 +108,16 @@ def runTestCommand (platform, project, gfilter)
         runTests = """
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
                     ROCBLAS_TEST=./rocblas-test
+                    ROCBLAS_v3_TEST=./rocblas_v3-test
                     GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                     if (( \$? != 0 )); then
                         exit 1
                     fi
                     ${hmmTestCommand}
+                    if (( \$? != 0 )); then
+                        exit 1
+                    fi
+                    ${v3TestCommand}
                     if (( \$? != 0 )); then
                         exit 1
                     fi

@@ -8,6 +8,6 @@
   <run name="nightly">{GTEST_FILTER}=*nightly*-*known_bug*</run>
 </test>
 <test sets="smoke">
-  <run name="smoke_test">rocblas-test --gtest_output=xml --gtest_color=yes --yaml=rocblas_smoke.yaml</run>
+  <run name="smoke_test">rocblas-test --yaml rocblas_smoke.yaml --gtest_output=xml --gtest_color=yes</run>
 </test>
 </testset>

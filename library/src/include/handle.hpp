@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -324,31 +324,6 @@ public:
             return false;
     }
 
-    void* host_malloc(size_t size)
-    {
-        void* ptr = malloc(size);
-        if(ptr)
-        {
-            host_mem_pointers.push_back(ptr);
-            return ptr;
-        }
-        else
-        {
-            rocblas_cerr << " host_malloc FAILED " << std::endl;
-            rocblas_abort();
-        }
-    }
-
-    bool skip_alpha_beta_memcpy()
-    {
-        return alpha_beta_memcpy_complete;
-    }
-
-    void alpha_beta_memcpy_completed()
-    {
-        alpha_beta_memcpy_complete = true;
-    }
-
 private:
     // device memory work buffer
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 32 * 1024 * 1024;
@@ -361,8 +336,6 @@ private:
     bool                            alpha_beta_memcpy_complete = false;
     rocblas_device_memory_ownership device_memory_owner;
     size_t                          device_memory_query_size;
-    std::vector<void*>              dev_mem_pointers;
-    std::vector<void*>              host_mem_pointers;
 
     bool stream_order_alloc = false;
 
@@ -550,22 +523,15 @@ private:
 #if HIP_VERSION >= 50300000
                         if(dev_mem)
                         {
-                            //If stream is in capture mode, skip de-allocating the device memory.
-                            //All the device memory will be de-allocated when the handle is destroyed.
-                            //WORKAROUND until allocation node is implemented in HIP runtime.
-                            if(handle->is_stream_in_capture_mode())
-                                handle->dev_mem_pointers.push_back(dev_mem);
-                            else
+
+                            bool status = hipFreeAsync(dev_mem, stream_in_use) == hipSuccess ;
+                            if(!status)
                             {
-                                bool status = hipFreeAsync(dev_mem, stream_in_use) == hipSuccess ;
-                                if(!status)
-                                {
-                                    rocblas_cerr << " rocBLAS internal error: hipFreeAsync() Failed, "
-                                    "device memory could not be released to default memory pool" << std::endl;
-                                    rocblas_abort();
-                                }
-                                dev_mem = nullptr;
+                                rocblas_cerr << " rocBLAS internal error: hipFreeAsync() Failed, "
+                                "device memory could not be released to default memory pool" << std::endl;
+                                rocblas_abort();
                             }
+                            dev_mem = nullptr;
                         }
 #endif
                 }

@@ -59,6 +59,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
 
@@ -169,107 +171,36 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sscal_strided_batched(rocblas_handle handle,
-                                             rocblas_int    n,
-                                             const float*   alpha,
-                                             float*         x,
-                                             rocblas_int    incx,
-                                             rocblas_stride stridex,
-                                             rocblas_int    batch_count)
-try
-{
-    return rocblas_scal_strided_batched_impl<ROCBLAS_SCAL_NB>(
-        handle, n, alpha, x, incx, stridex, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dscal_strided_batched(rocblas_handle handle,
-                                             rocblas_int    n,
-                                             const double*  alpha,
-                                             double*        x,
-                                             rocblas_int    incx,
-                                             rocblas_stride stridex,
-                                             rocblas_int    batch_count)
-try
-{
-    return rocblas_scal_strided_batched_impl<ROCBLAS_SCAL_NB>(
-        handle, n, alpha, x, incx, stridex, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, TA_, T_)                                       \
+    rocblas_status name_(rocblas_handle handle,                    \
+                         rocblas_int    n,                         \
+                         const TA_*     alpha,                     \
+                         T_*            x,                         \
+                         rocblas_int    incx,                      \
+                         rocblas_stride stridex,                   \
+                         rocblas_int    batch_count)               \
+    try                                                            \
+    {                                                              \
+        return rocblas_scal_strided_batched_impl<ROCBLAS_SCAL_NB>( \
+            handle, n, alpha, x, incx, stridex, batch_count);      \
+    }                                                              \
+    catch(...)                                                     \
+    {                                                              \
+        return exception_to_rocblas_status();                      \
+    }
 
-rocblas_status rocblas_cscal_strided_batched(rocblas_handle               handle,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* alpha,
-                                             rocblas_float_complex*       x,
-                                             rocblas_int                  incx,
-                                             rocblas_stride               stridex,
-                                             rocblas_int                  batch_count)
-try
-{
-    return rocblas_scal_strided_batched_impl<ROCBLAS_SCAL_NB>(
-        handle, n, alpha, x, incx, stridex, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zscal_strided_batched(rocblas_handle                handle,
-                                             rocblas_int                   n,
-                                             const rocblas_double_complex* alpha,
-                                             rocblas_double_complex*       x,
-                                             rocblas_int                   incx,
-                                             rocblas_stride                stridex,
-                                             rocblas_int                   batch_count)
-try
-{
-    return rocblas_scal_strided_batched_impl<ROCBLAS_SCAL_NB>(
-        handle, n, alpha, x, incx, stridex, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
+IMPL(rocblas_sscal_strided_batched, float, float);
+IMPL(rocblas_dscal_strided_batched, double, double);
+IMPL(rocblas_cscal_strided_batched, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zscal_strided_batched, rocblas_double_complex, rocblas_double_complex);
 // Scal with a real alpha & complex vector
-rocblas_status rocblas_csscal_strided_batched(rocblas_handle         handle,
-                                              rocblas_int            n,
-                                              const float*           alpha,
-                                              rocblas_float_complex* x,
-                                              rocblas_int            incx,
-                                              rocblas_stride         stridex,
-                                              rocblas_int            batch_count)
-try
-{
-    return rocblas_scal_strided_batched_impl<ROCBLAS_SCAL_NB>(
-        handle, n, alpha, x, incx, stridex, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_csscal_strided_batched, float, rocblas_float_complex);
+IMPL(rocblas_zdscal_strided_batched, double, rocblas_double_complex);
 
-rocblas_status rocblas_zdscal_strided_batched(rocblas_handle          handle,
-                                              rocblas_int             n,
-                                              const double*           alpha,
-                                              rocblas_double_complex* x,
-                                              rocblas_int             incx,
-                                              rocblas_stride          stridex,
-                                              rocblas_int             batch_count)
-try
-{
-    return rocblas_scal_strided_batched_impl<ROCBLAS_SCAL_NB>(
-        handle, n, alpha, x, incx, stridex, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"
