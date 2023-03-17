@@ -1,5 +1,5 @@
 =====================
-Getting Started Guide
+rocBLAS Documentation
 =====================
 
 ------------
