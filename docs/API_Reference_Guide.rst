@@ -214,7 +214,7 @@ does not block the CPU. After the kernel launch, the CPU keeps processing
 the next instructions.
 
 .. asynch_blocks
-.. figure:: ../fig/asynch_function.PNG
+.. figure:: ./data/asynch_function.PNG
    :alt: code blocks in asynch function call
    :align: center
 
@@ -246,7 +246,7 @@ The order of operations with logging, device memory allocation, and return of a 
 result is as in the figure below:
 
 .. asynch_blocks
-.. figure:: ../fig/synchronous_function.PNG
+.. figure:: ./data/synchronous_function.PNG
    :alt: code blocks in synchronous function call
    :align: center
 
