@@ -952,7 +952,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 
 template <typename Ti, typename To, typename Tc>
 rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob,
-                               bool                                         solve_only,
+                               rocblas_tensile_get_solution_option          option,
                                rocblas_int*                                 list_array,
                                rocblas_int*                                 list_size)
 {
@@ -968,13 +968,17 @@ rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob
         hardware      = Tensile::hip::GetDevice(*deviceProp);
         auto tensile_prob = ConstructTensileProblem(prob);
 
-        if(solve_only)
+        if(option == CAN_SOLVE)
         {
             solutions = library->findAllSolutions(tensile_prob, *hardware);
         }
-        else
+        else if(option == MATCHES_TYPE)
         {
             solutions = library->findAllSolutionsMatchingType(tensile_prob, *hardware);
+        }
+        else
+        {
+            return rocblas_status_invalid_value;
         }
 
         if(list_size == nullptr)
@@ -1028,7 +1032,7 @@ extern "C" void rocblas_initialize()
  * header file, in order to keep Tensile and rocBLAS separate.                *
  ******************************************************************************/
 
-// Non-EX types
+// Non-HPA/GEMM types
 template rocblas_status runContractionProblem(const RocblasContractionProblem<rocblas_half>&,
                                               rocblas_gemm_algo algo,
                                               int32_t           solution_index);
@@ -1051,7 +1055,7 @@ template rocblas_status
                           rocblas_gemm_algo algo,
                           int32_t           solution_index);
 
-// EX types
+// HPA types
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
                           rocblas_gemm_algo algo,
@@ -1083,67 +1087,67 @@ template rocblas_status
                           int32_t           solution_index);
 
 // ********** get all solutions explicits ********
-// Non-EX types
+// Non-HPA/GEMM types
 template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_half>&,
-                                        bool         solve_only,
-                                        rocblas_int* list_array,
-                                        rocblas_int* list_size);
+                                        rocblas_tensile_get_solution_option option,
+                                        rocblas_int*                        list_array,
+                                        rocblas_int*                        list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<float>&,
-                                        bool         solve_only,
-                                        rocblas_int* list_array,
-                                        rocblas_int* list_size);
+                                        rocblas_tensile_get_solution_option option,
+                                        rocblas_int*                        list_array,
+                                        rocblas_int*                        list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<double>&,
-                                        bool         solve_only,
-                                        rocblas_int* list_array,
-                                        rocblas_int* list_size);
+                                        rocblas_tensile_get_solution_option option,
+                                        rocblas_int*                        list_array,
+                                        rocblas_int*                        list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_float_complex>&,
-                                        bool         solve_only,
-                                        rocblas_int* list_array,
-                                        rocblas_int* list_size);
+                                        rocblas_tensile_get_solution_option option,
+                                        rocblas_int*                        list_array,
+                                        rocblas_int*                        list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<rocblas_double_complex>&,
-                                        bool         solve_only,
-                                        rocblas_int* list_array,
-                                        rocblas_int* list_size);
+                                        rocblas_tensile_get_solution_option option,
+                                        rocblas_int*                        list_array,
+                                        rocblas_int*                        list_size);
 
-// EX types
+// HPA types
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
-                    bool         solve_only,
-                    rocblas_int* list_array,
-                    rocblas_int* list_size);
+                    rocblas_tensile_get_solution_option option,
+                    rocblas_int*                        list_array,
+                    rocblas_int*                        list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_half, float, float>&,
-                    bool         solve_only,
-                    rocblas_int* list_array,
-                    rocblas_int* list_size);
+                    rocblas_tensile_get_solution_option option,
+                    rocblas_int*                        list_array,
+                    rocblas_int*                        list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&,
-                    bool         solve_only,
-                    rocblas_int* list_array,
-                    rocblas_int* list_size);
+                    rocblas_tensile_get_solution_option option,
+                    rocblas_int*                        list_array,
+                    rocblas_int*                        list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_bfloat16, float, float>&,
-                    bool         solve_only,
-                    rocblas_int* list_array,
-                    rocblas_int* list_size);
+                    rocblas_tensile_get_solution_option option,
+                    rocblas_int*                        list_array,
+                    rocblas_int*                        list_size);
 
 template rocblas_status getAllSolutions(const RocblasContractionProblem<int8_t, int32_t, int32_t>&,
-                                        bool         solve_only,
-                                        rocblas_int* list_array,
-                                        rocblas_int* list_size);
+                                        rocblas_tensile_get_solution_option option,
+                                        rocblas_int*                        list_array,
+                                        rocblas_int*                        list_size);
 
 template rocblas_status
     getAllSolutions(const RocblasContractionProblem<rocblas_int8x4, int32_t, int32_t>&,
-                    bool         solve_only,
-                    rocblas_int* list_array,
-                    rocblas_int* list_size);
+                    rocblas_tensile_get_solution_option option,
+                    rocblas_int*                        list_array,
+                    rocblas_int*                        list_size);
 
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *

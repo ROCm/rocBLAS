@@ -396,7 +396,7 @@ extern "C" rocblas_status rocblas_gemm_batched_ex_get_solutions(rocblas_handle  
                                                             batch_count,
                                                             compute_type,
                                                             flags,
-                                                            true,
+                                                            CAN_SOLVE,
                                                             list_array,
                                                             list_size);
     }
@@ -451,7 +451,7 @@ ROCBLAS_EXPORT rocblas_status
                                                         2,
                                                         compute_type,
                                                         flags,
-                                                        false,
+                                                        MATCHES_TYPE,
                                                         list_array,
                                                         list_size);
 }
