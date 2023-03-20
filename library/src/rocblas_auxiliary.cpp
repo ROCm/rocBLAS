@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1194,6 +1194,37 @@ struct ArchName<PROP, void_t<decltype(PROP::gcnArchName)>>
     }
 };
 
+// If gcnArchName not present, no xnack mode
+template <typename PROP, typename = void>
+struct XnackMode
+{
+    std::string operator()(const PROP& prop) const
+    {
+        return "";
+    }
+};
+
+// If gcnArchName exists as a member, use it
+template <typename PROP>
+struct XnackMode<PROP, void_t<decltype(PROP::gcnArchName)>>
+{
+    std::string operator()(const PROP& prop) const
+    {
+        // strip out xnack/ecc from name
+        std::string gcnArchName(prop.gcnArchName);
+        auto        loc = gcnArchName.find("xnack");
+        std::string xnackMode;
+        if(loc != std::string::npos)
+        {
+            xnackMode = gcnArchName.substr(loc, 6);
+            // guard against missing +/- at end of xnack mode
+            if(xnackMode.size() < 6)
+                xnackMode = "";
+        }
+        return xnackMode;
+    }
+};
+
 bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle)
 {
     return handle->getArch() >= 906;
@@ -1207,6 +1238,16 @@ std::string rocblas_internal_get_arch_name()
     hipDeviceProp_t deviceProperties;
     hipGetDeviceProperties(&deviceProperties, deviceId);
     return ArchName<hipDeviceProp_t>{}(deviceProperties);
+}
+
+// exported. Get xnack mode
+std::string rocblas_internal_get_xnack_mode()
+{
+    int deviceId;
+    hipGetDevice(&deviceId);
+    hipDeviceProp_t deviceProperties;
+    hipGetDeviceProperties(&deviceProperties, deviceId);
+    return XnackMode<hipDeviceProp_t>{}(deviceProperties);
 }
 
 /*******************************************************************************

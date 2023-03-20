@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -175,132 +175,36 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sdot(rocblas_handle handle,
-                            rocblas_int    n,
-                            const float*   x,
-                            rocblas_int    incx,
-                            const float*   y,
-                            rocblas_int    incy,
-                            float*         result)
-try
-{
-    return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_ddot(rocblas_handle handle,
-                            rocblas_int    n,
-                            const double*  x,
-                            rocblas_int    incx,
-                            const double*  y,
-                            rocblas_int    incy,
-                            double*        result)
-try
-{
-    return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(name_, conj_, T_, Tex_)                                                   \
+    rocblas_status name_(rocblas_handle handle,                                        \
+                         rocblas_int    n,                                             \
+                         const T_*      x,                                             \
+                         rocblas_int    incx,                                          \
+                         const T_*      y,                                             \
+                         rocblas_int    incy,                                          \
+                         T_*            result)                                        \
+    try                                                                                \
+    {                                                                                  \
+        return rocblas_dot_impl<conj_, T_, Tex_>(handle, n, x, incx, y, incy, result); \
+    }                                                                                  \
+    catch(...)                                                                         \
+    {                                                                                  \
+        return exception_to_rocblas_status();                                          \
+    }
 
-rocblas_status rocblas_hdot(rocblas_handle      handle,
-                            rocblas_int         n,
-                            const rocblas_half* x,
-                            rocblas_int         incx,
-                            const rocblas_half* y,
-                            rocblas_int         incy,
-                            rocblas_half*       result)
-try
-{
-    return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_sdot, false, float, float);
+IMPL(rocblas_ddot, false, double, double);
+IMPL(rocblas_hdot, false, rocblas_half, rocblas_half);
+IMPL(rocblas_bfdot, false, rocblas_bfloat16, float);
+IMPL(rocblas_cdotu, false, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zdotu, false, rocblas_double_complex, rocblas_double_complex);
+IMPL(rocblas_cdotc, true, rocblas_float_complex, rocblas_float_complex);
+IMPL(rocblas_zdotc, true, rocblas_double_complex, rocblas_double_complex);
 
-rocblas_status rocblas_bfdot(rocblas_handle          handle,
-                             rocblas_int             n,
-                             const rocblas_bfloat16* x,
-                             rocblas_int             incx,
-                             const rocblas_bfloat16* y,
-                             rocblas_int             incy,
-                             rocblas_bfloat16*       result)
-try
-{
-    return rocblas_dot_impl<false, rocblas_bfloat16, float>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_cdotu(rocblas_handle               handle,
-                             rocblas_int                  n,
-                             const rocblas_float_complex* x,
-                             rocblas_int                  incx,
-                             const rocblas_float_complex* y,
-                             rocblas_int                  incy,
-                             rocblas_float_complex*       result)
-try
-{
-    return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zdotu(rocblas_handle                handle,
-                             rocblas_int                   n,
-                             const rocblas_double_complex* x,
-                             rocblas_int                   incx,
-                             const rocblas_double_complex* y,
-                             rocblas_int                   incy,
-                             rocblas_double_complex*       result)
-try
-{
-    return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_cdotc(rocblas_handle               handle,
-                             rocblas_int                  n,
-                             const rocblas_float_complex* x,
-                             rocblas_int                  incx,
-                             const rocblas_float_complex* y,
-                             rocblas_int                  incy,
-                             rocblas_float_complex*       result)
-try
-{
-    return rocblas_dot_impl<true>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_zdotc(rocblas_handle                handle,
-                             rocblas_int                   n,
-                             const rocblas_double_complex* x,
-                             rocblas_int                   incx,
-                             const rocblas_double_complex* y,
-                             rocblas_int                   incy,
-                             rocblas_double_complex*       result)
-try
-{
-    return rocblas_dot_impl<true>(handle, n, x, incx, y, incy, result);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"

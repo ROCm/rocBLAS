@@ -179,6 +179,12 @@ add_custom_command( OUTPUT "${ROCBLAS_SMOKE}"
                     DEPENDS include/rocblas_smoke.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
+set( ROCBLAS_GENERAL_YAML "${PROJECT_BINARY_DIR}/staging/rocblas_general.yaml")
+add_custom_command( OUTPUT "${ROCBLAS_GENERAL_YAML}"
+                    COMMAND ${CMAKE_COMMAND} -E copy include/rocblas_general.yaml "${ROCBLAS_GENERAL_YAML}"
+                    DEPENDS include/rocblas_general.yaml
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+
 set( ROCBLAS_GENTEST "${PROJECT_BINARY_DIR}/staging/rocblas_gentest.py")
 add_custom_command( OUTPUT "${ROCBLAS_GENTEST}"
                     COMMAND ${CMAKE_COMMAND} -E copy common/rocblas_gentest.py "${ROCBLAS_GENTEST}"
@@ -186,10 +192,10 @@ add_custom_command( OUTPUT "${ROCBLAS_GENTEST}"
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 
-add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_SMOKE}" "${ROCBLAS_GENTEST}" )
+add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_SMOKE}" "${ROCBLAS_GENERAL_YAML}" "${ROCBLAS_GENTEST}" )
 
 rocm_install(
-  FILES ${ROCBLAS_COMMON} ${ROCBLAS_TEMPLATE} ${ROCBLAS_SMOKE}
+  FILES ${ROCBLAS_COMMON} ${ROCBLAS_TEMPLATE} ${ROCBLAS_SMOKE} ${ROCBLAS_GENERAL_YAML}
   DESTINATION "${CMAKE_INSTALL_BINDIR}"
   COMPONENT clients-common
 )

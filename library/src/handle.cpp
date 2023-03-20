@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -202,20 +202,6 @@ _rocblas_handle::~_rocblas_handle()
                 rocblas_abort();
             };
 
-            for(auto dev_mem : dev_mem_pointers)
-            {
-                hipStatus = (dev_mem) ? (hipFreeAsync)(dev_mem, stream) : hipSuccess;
-
-                if(hipStatus != hipSuccess)
-                {
-                    rocblas_cerr << "rocBLAS error during freeing of allocated memory (during "
-                                    "stream capture) in handle destructor: "
-                                 << rocblas_status_to_string(
-                                        get_rocblas_status_for_hip_status(hipStatus))
-                                 << std::endl;
-                    rocblas_abort();
-                };
-            }
             hipMemPool_t mem_pool;
             int          device;
             hipGetDevice(&device);
@@ -224,11 +210,6 @@ _rocblas_handle::~_rocblas_handle()
             //Releases device memory back to OS
             hipMemPoolTrimTo(mem_pool, 0);
 #endif
-        }
-        // Free memory allocated on the host
-        for(auto host_mem : host_mem_pointers)
-        {
-            free(host_mem);
         }
     }
 }
