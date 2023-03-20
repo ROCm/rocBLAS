@@ -17066,6 +17066,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
               optional gemm flags.
 
     ********************************************************************/
+// clang-format off
+ROCBLAS_DEPRECATED_MSG("rocblas_gemm_ext2 is deprecated and it will be removed in the next major release of rocBLAS.")
+// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
                                                 rocblas_int       m,
                                                 rocblas_int       n,
