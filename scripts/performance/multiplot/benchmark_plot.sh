@@ -99,12 +99,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ ! -f $ROCBLAS_BENCH ]
-then
+if [ "$BENCHMARK" == "true" ]; then
+  if [ ! -f $ROCBLAS_BENCH ]
+  then
     echo "the following file does not exist: $ROCBLAS_BENCH"
     echo "specify path to rocblas-bench"
     usage
     exit 1
+  fi
 fi
 
 echo "rocblas-bench path = $ROCBLAS_BENCH"
@@ -127,7 +129,7 @@ fi
 
 if [ "$LEVEL1" == "true" ]; then
   if [ "$BENCHMARK" == "true" ]; then
-    python3 benchmark.py -l blas1 -t $TAG -b $ROCBLAS_BENCH -f dot -f axpy -f scal -f nrm2
+    python3 benchmark.py -l blas1 -t $TAG -b $ROCBLAS_BENCH -f dot -f axpy -f scal
   fi
   if [ "$PLOT" == "true" ]; then
     python3 plot.py -l blas1 -t $TAG $THEO_MAX -f dot -f axpy -f scal
