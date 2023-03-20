@@ -348,15 +348,6 @@ From rocBLAS 3.0 remove enum rocblas_int8_type_for_hipblas and the functions roc
 rocblas_set_int8_type_for_hipblas. These are used by hipBLAS to select either int8_t or packed_int8x4 datatype.
 In hipBLAS the option to use packed_int8x4 will be removed, only int8_t will be available.
 
-.. only:: html
-
-   **References:**
-.. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
-
-.. [Level2] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1--17
-
-.. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18--32
-
 Announced in rocBLAS 3.0
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -409,6 +400,9 @@ ldc equal to ldb.
 
 There are similar deprecations for the _batched and _strided_batched versions of trmm.
 
+Remove rocblas_gemm_ext2
+''''''''''''''''''''''''
+rocblas_gemm_ext2 is deprecated and it will be removed in the next major release of rocBLAS.
 
 Removal of rocblas_query_int8_layout_flag
 '''''''''''''''''''''''''''''''''''''''''
@@ -2114,3 +2108,11 @@ If paths are not set, then the logging output is streamed to standard error.
 When profile logging is enabled, memory usage increases. If the
 program exits abnormally, then it is possible that profile logging will
 not be outputted before the program exits.
+
+**References:**
+
+.. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
+
+.. [Level2] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1--17
+
+.. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18--32
