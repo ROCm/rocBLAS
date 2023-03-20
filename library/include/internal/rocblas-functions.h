@@ -16329,6 +16329,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
         }
     @endcode
 
+    Please note that the use of packed int8x4 is deprecated and will be removed in a future release. It is strongly
+    recommended that users do not use the rocblas_gemm_flags_pack_int8x4 flag.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -16575,6 +16578,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
         B_packed = B;
     }
     @endcode
+
+    Please note that the use of packed int8x4 is deprecated and will be removed in a future release. It is strongly
+    recommended that users do not use the rocblas_gemm_flags_pack_int8x4 flag.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -16777,6 +16784,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
         B_packed = B;
     }
     @endcode
+
+    Please note that the use of packed int8x4 is deprecated and will be removed in a future release. It is strongly
+    recommended that users do not use the rocblas_gemm_flags_pack_int8x4 flag.
 
     @param[in]
     handle    [rocblas_handle]

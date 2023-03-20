@@ -284,7 +284,8 @@ typedef enum rocblas_gemm_flags_
     /*! \brief Default empty flags */
     rocblas_gemm_flags_none = 0x0,
     /*! \brief Before ROCm 4.2, this flags is not implemented and rocblas uses packed-Int8x4 by default.
-    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked. */
+    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked.
+    * As of rocBLAS 3.0 in ROCm 5.6, rocblas_gemm_flags_pack_int8x4 is deprecated and support will be removed in a future release. */
     rocblas_gemm_flags_pack_int8x4 = 0x1,
     /*! \brief Select the gemm problem with the highest efficiency per compute unit used. Useful for running multiple smaller problems
     * simultaneously. This takes precedence over the performance metric set in rocblas_handle and currently only works for

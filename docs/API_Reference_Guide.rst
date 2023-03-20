@@ -410,6 +410,10 @@ ldc equal to ldb.
 There are similar deprecations for the _batched and _strided_batched versions of trmm.
 
 
+Removal of rocblas_query_int8_layout_flag
+'''''''''''''''''''''''''''''''''''''''''
+rocblas_query_int8_layout_flag will be removed and support will end for the rocblas_gemm_flags_pack_int8x4 enum in rocblas_gemm_flags
+in a future release. rocblas_int8_type_for_hipblas will remain until rocblas_query_int8_layout_flag is removed.
 
 =================
 Using rocBLAS API
