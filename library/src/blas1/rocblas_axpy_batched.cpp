@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ namespace
     template <>
     constexpr char rocblas_axpy_batched_name<rocblas_double_complex>[] = "rocblas_zaxpy_batched";
 
-    template <int NB, typename T>
+    template <typename T>
     rocblas_status rocblas_axpy_batched_impl(rocblas_handle  handle,
                                              rocblas_int     n,
                                              const T*        alpha,
@@ -131,19 +131,19 @@ namespace
                 return axpy_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_axpy_template<NB, T>(handle,
-                                                                      n,
-                                                                      alpha,
-                                                                      stride_0,
-                                                                      x,
-                                                                      offset_0,
-                                                                      incx,
-                                                                      stride_0,
-                                                                      y,
-                                                                      offset_0,
-                                                                      incy,
-                                                                      stride_0,
-                                                                      batch_count);
+        rocblas_status status = rocblas_internal_axpy_batched_template(handle,
+                                                                       n,
+                                                                       alpha,
+                                                                       stride_0,
+                                                                       x,
+                                                                       offset_0,
+                                                                       incx,
+                                                                       stride_0,
+                                                                       y,
+                                                                       offset_0,
+                                                                       incy,
+                                                                       stride_0,
+                                                                       batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -196,7 +196,7 @@ extern "C" {
                                  rocblas_int     batch_count)                                 \
     try                                                                                       \
     {                                                                                         \
-        return rocblas_axpy_batched_impl<ROCBLAS_AXPY_NB>(                                    \
+        return rocblas_axpy_batched_impl(                                                     \
             handle, n, alpha, x, incx, y, incy, batch_count, #routine_name_, "axpy_batched"); \
     }                                                                                         \
     catch(...)                                                                                \

@@ -72,17 +72,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_pointer_mode(rocblas_handle       hand
 ROCBLAS_EXPORT rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
                                                        rocblas_pointer_mode* pointer_mode);
 
-ROCBLAS_DEPRECATED_MSG("rocblas_set_int8_type_for_hipblas will be removed in a future release.")
-/*! \brief Set rocblas_int8_type_for_hipblas
- */
-ROCBLAS_EXPORT rocblas_status rocblas_set_int8_type_for_hipblas(
-    rocblas_handle handle, rocblas_int8_type_for_hipblas int8_type);
-
-ROCBLAS_DEPRECATED_MSG("rocblas_get_int8_type_for_hipblas will be removed in a future release.")
-/*! \brief Get rocblas_int8_type_for_hipblas
- */
-ROCBLAS_EXPORT rocblas_status rocblas_get_int8_type_for_hipblas(
-    rocblas_handle handle, rocblas_int8_type_for_hipblas* int8_type);
 /*! \brief Set rocblas_atomics_mode
  */
 ROCBLAS_EXPORT rocblas_status rocblas_set_atomics_mode(rocblas_handle       handle,
@@ -93,6 +82,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_atomics_mode(rocblas_handle       hand
 ROCBLAS_EXPORT rocblas_status rocblas_get_atomics_mode(rocblas_handle        handle,
                                                        rocblas_atomics_mode* atomics_mode);
 
+ROCBLAS_DEPRECATED_MSG("rocblas_query_int8_layout_flag will be removed in a future release.")
 /*! \brief Query the preferable supported int8 input layout for gemm
      \details
     Indicates the supported int8 input layout for gemm according to the device.

@@ -224,6 +224,7 @@ set( rocblas_blas3_source
     blas3/rocblas_trtri.cpp
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp
+    blas3/rocblas_trtri_kernels.cpp
 )
 
 set( rocblas_blas2_source

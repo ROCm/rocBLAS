@@ -175,16 +175,15 @@ template <rocblas_int NB,
           typename TPtrX,
           typename To,
           typename Tr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_iamax_iamin_template(rocblas_handle handle,
-                                          rocblas_int    n,
-                                          TPtrX          x,
-                                          rocblas_stride shiftx,
-                                          rocblas_int    incx,
-                                          rocblas_stride stridex,
-                                          rocblas_int    batch_count,
-                                          To*            workspace,
-                                          Tr*            result)
+rocblas_status rocblas_internal_iamax_iamin_template(rocblas_handle handle,
+                                                     rocblas_int    n,
+                                                     TPtrX          x,
+                                                     rocblas_stride shiftx,
+                                                     rocblas_int    incx,
+                                                     rocblas_stride stridex,
+                                                     rocblas_int    batch_count,
+                                                     To*            workspace,
+                                                     Tr*            result)
 {
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
@@ -253,45 +252,173 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_template(rocblas_handle            handle,
+                                    rocblas_int               n,
+                                    const T*                  x,
+                                    rocblas_stride            shiftx,
+                                    rocblas_int               incx,
+                                    rocblas_stride            stridex,
+                                    rocblas_int               batch_count,
+                                    rocblas_int*              result,
+                                    rocblas_index_value_t<S>* workspace)
+{
+    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+                                                 rocblas_fetch_amax_amin<S>,
+                                                 rocblas_reduce_amax,
+                                                 rocblas_finalize_amax_amin>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
+}
+
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_batched_template(rocblas_handle            handle,
+                                            rocblas_int               n,
+                                            const T* const*           x,
+                                            rocblas_stride            shiftx,
+                                            rocblas_int               incx,
+                                            rocblas_stride            stridex,
+                                            rocblas_int               batch_count,
+                                            rocblas_int*              result,
+                                            rocblas_index_value_t<S>* workspace)
+{
+    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+                                                 rocblas_fetch_amax_amin<S>,
+                                                 rocblas_reduce_amax,
+                                                 rocblas_finalize_amax_amin>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
+}
+
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamin_template(rocblas_handle            handle,
+                                    rocblas_int               n,
+                                    const T*                  x,
+                                    rocblas_stride            shiftx,
+                                    rocblas_int               incx,
+                                    rocblas_stride            stridex,
+                                    rocblas_int               batch_count,
+                                    rocblas_int*              result,
+                                    rocblas_index_value_t<S>* workspace)
+{
+    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+                                                 rocblas_fetch_amax_amin<S>,
+                                                 rocblas_reduce_amin,
+                                                 rocblas_finalize_amax_amin>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
+}
+
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamin_batched_template(rocblas_handle            handle,
+                                            rocblas_int               n,
+                                            const T* const*           x,
+                                            rocblas_stride            shiftx,
+                                            rocblas_int               incx,
+                                            rocblas_stride            stridex,
+                                            rocblas_int               batch_count,
+                                            rocblas_int*              result,
+                                            rocblas_index_value_t<S>* workspace)
+{
+    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+                                                 rocblas_fetch_amax_amin<S>,
+                                                 rocblas_reduce_amin,
+                                                 rocblas_finalize_amax_amin>(
+        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
+}
+
 // clang-format off
-#ifdef INSTANTIATE_IAMAX_IAMIN_TEMPLATE
-#error INSTANTIATE_IAMAX_IAMIN_TEMPLATE IS ALREADY DEFINED
+#ifdef INSTANTIATE_IAMAX_TEMPLATE
+#error INSTANTIATE_IAMAX_TEMPLATE IS ALREADY DEFINED
 #endif
 
-#define INSTANTIATE_IAMAX_IAMIN_TEMPLATE(NB_, FETCH_, REDUCE_, FINALIZE_, T_, U_, V_)      \
-    template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                              \
-    rocblas_status rocblas_internal_iamax_iamin_template<NB_, FETCH_, REDUCE_, FINALIZE_, T_, U_, V_>(rocblas_handle  handle,             \
-                                                          rocblas_int    n,                \
-                                                          T_          x,                   \
-                                                          rocblas_stride shiftx,           \
-                                                          rocblas_int    incx,             \
-                                                          rocblas_stride stridex,          \
-                                                          rocblas_int    batch_count,      \
-                                                          U_*            workspace,        \
-                                                          V_*            result);
+#define INSTANTIATE_IAMAX_TEMPLATE(T_, S_)                                            \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                         \
+    rocblas_status rocblas_internal_iamax_template<T_, S_>(rocblas_handle    handle,  \
+                                                          rocblas_int    n,           \
+                                                          const T_*      x,           \
+                                                          rocblas_stride shiftx,      \
+                                                          rocblas_int    incx,        \
+                                                          rocblas_stride stridex,     \
+                                                          rocblas_int    batch_count, \
+                                                          rocblas_int*   workspace,   \
+                                                          rocblas_index_value_t<S_>* result);
 
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, float const*, rocblas_index_value_t<float>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, float const*, rocblas_index_value_t<float>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, float const* const*, rocblas_index_value_t<float>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, float const* const*, rocblas_index_value_t<float>, int)
+INSTANTIATE_IAMAX_TEMPLATE(float, float)
+INSTANTIATE_IAMAX_TEMPLATE(double, double)
+INSTANTIATE_IAMAX_TEMPLATE(rocblas_float_complex, float)
+INSTANTIATE_IAMAX_TEMPLATE(rocblas_double_complex, double)
 
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, double const*, rocblas_index_value_t<double>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, double const*, rocblas_index_value_t<double>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, double const* const*, rocblas_index_value_t<double>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, double const* const*, rocblas_index_value_t<double>, int)
+#undef INSTANTIATE_IAMAX_TEMPLATE
 
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_float_complex const*, rocblas_index_value_t<float>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_float_complex const*, rocblas_index_value_t<float>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_float_complex const* const*, rocblas_index_value_t<float>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<float>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_float_complex const* const*, rocblas_index_value_t<float>, int)
+#ifdef INSTANTIATE_IAMAX_BATCHED_TEMPLATE
+#error INSTANTIATE_IAMAX_BATCHED_TEMPLATE IS ALREADY DEFINED
+#endif
 
+#define INSTANTIATE_IAMAX_BATCHED_TEMPLATE(T_, S_)                                           \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                                \
+    rocblas_status rocblas_internal_iamax_batched_template<T_, S_>(rocblas_handle   handle,  \
+                                                               rocblas_int      n,           \
+                                                               const T_* const* x,           \
+                                                               rocblas_stride   shiftx,      \
+                                                               rocblas_int      incx,        \
+                                                               rocblas_stride   stridex,     \
+                                                               rocblas_int      batch_count, \
+                                                               rocblas_int*     workspace,   \
+                                                               rocblas_index_value_t<S_>* result);
 
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_double_complex const*, rocblas_index_value_t<double>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_double_complex const*, rocblas_index_value_t<double>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amin, rocblas_finalize_amax_amin, rocblas_double_complex const* const*, rocblas_index_value_t<double>, int)
-INSTANTIATE_IAMAX_IAMIN_TEMPLATE(ROCBLAS_IAMAX_NB, rocblas_fetch_amax_amin<double>, rocblas_reduce_amax, rocblas_finalize_amax_amin, rocblas_double_complex const* const*, rocblas_index_value_t<double>, int)
+INSTANTIATE_IAMAX_BATCHED_TEMPLATE(float, float)
+INSTANTIATE_IAMAX_BATCHED_TEMPLATE(double, double)
+INSTANTIATE_IAMAX_BATCHED_TEMPLATE(rocblas_float_complex, float)
+INSTANTIATE_IAMAX_BATCHED_TEMPLATE(rocblas_double_complex, double)
 
+#undef INSTANTIATE_IAMAX_BATCHED_TEMPLATE
 
-#undef INSTANTIATE_IAMAX_IAMIN_TEMPLATE
+#ifdef INSTANTIATE_IAMIN_TEMPLATE
+#error INSTANTIATE_IAMIN_TEMPLATE IS ALREADY DEFINED
+#endif
+
+#define INSTANTIATE_IAMIN_TEMPLATE(T_, S_)                                            \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                         \
+    rocblas_status rocblas_internal_iamin_template<T_, S_>(rocblas_handle    handle,  \
+                                                          rocblas_int    n,           \
+                                                          const T_*      x,           \
+                                                          rocblas_stride shiftx,      \
+                                                          rocblas_int    incx,        \
+                                                          rocblas_stride stridex,     \
+                                                          rocblas_int    batch_count, \
+                                                          rocblas_int*   workspace,   \
+                                                          rocblas_index_value_t<S_>* result);
+
+INSTANTIATE_IAMIN_TEMPLATE(float, float)
+INSTANTIATE_IAMIN_TEMPLATE(double, double)
+INSTANTIATE_IAMIN_TEMPLATE(rocblas_float_complex, float)
+INSTANTIATE_IAMIN_TEMPLATE(rocblas_double_complex, double)
+
+#undef INSTANTIATE_IAMIN_TEMPLATE
+
+#ifdef INSTANTIATE_IAMIN_BATCHED_TEMPLATE
+#error INSTANTIATE_IAMIN_BATCHED_TEMPLATE IS ALREADY DEFINED
+#endif
+
+#define INSTANTIATE_IAMIN_BATCHED_TEMPLATE(T_, S_)                                           \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                                \
+    rocblas_status rocblas_internal_iamin_batched_template<T_, S_>(rocblas_handle   handle,  \
+                                                               rocblas_int      n,           \
+                                                               const T_* const* x,           \
+                                                               rocblas_stride   shiftx,      \
+                                                               rocblas_int      incx,        \
+                                                               rocblas_stride   stridex,     \
+                                                               rocblas_int      batch_count, \
+                                                               rocblas_int*     workspace,   \
+                                                               rocblas_index_value_t<S_>* result);
+
+INSTANTIATE_IAMIN_BATCHED_TEMPLATE(float, float)
+INSTANTIATE_IAMIN_BATCHED_TEMPLATE(double, double)
+INSTANTIATE_IAMIN_BATCHED_TEMPLATE(rocblas_float_complex, float)
+INSTANTIATE_IAMIN_BATCHED_TEMPLATE(rocblas_double_complex, double)
+
+#undef INSTANTIATE_IAMIN_BATCHED_TEMPLATE
 
 // clang-format on
