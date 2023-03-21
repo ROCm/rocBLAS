@@ -1,4 +1,4 @@
-"""Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+"""Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -52,8 +52,10 @@ def parseForExportedTemplates(inputFileName):
         haveTemplate = False
         lines = f.readlines()
         for line in lines:
+            # TODO: what about non-templated functions?
             filter = re.match(r'^template', line)
             if (filter):
+                # TODO: end-of-function matching needs to be better
                 if (haveTemplate):
                     translateToProto(body)
                 haveTemplate = True

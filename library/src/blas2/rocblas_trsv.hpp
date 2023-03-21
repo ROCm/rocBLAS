@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -90,21 +90,57 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
                                                     const rocblas_int check_numerics,
                                                     bool              is_input);
 
+// used in trsm
 template <rocblas_int DIM_X, typename T, typename ATYPE, typename XTYPE>
+rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    handle,
+                                                           rocblas_fill      uplo,
+                                                           rocblas_operation transA,
+                                                           rocblas_diagonal  diag,
+                                                           rocblas_int       m,
+                                                           ATYPE             dA,
+                                                           rocblas_stride    offset_A,
+                                                           rocblas_int       lda,
+                                                           rocblas_stride    stride_A,
+                                                           T const*          alpha,
+                                                           XTYPE             dx,
+                                                           rocblas_stride    offset_x,
+                                                           rocblas_int       incx,
+                                                           rocblas_stride    stride_x,
+                                                           rocblas_int       batch_count,
+                                                           rocblas_int*      w_completed_sec);
+
+template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_trsv_substitution_template(rocblas_handle    handle,
-                                                rocblas_fill      uplo,
-                                                rocblas_operation transA,
-                                                rocblas_diagonal  diag,
-                                                rocblas_int       m,
-                                                ATYPE             dA,
-                                                rocblas_stride    offset_A,
-                                                rocblas_int       lda,
-                                                rocblas_stride    stride_A,
-                                                T const*          alpha,
-                                                XTYPE             dx,
-                                                rocblas_stride    offset_x,
-                                                rocblas_int       incx,
-                                                rocblas_stride    stride_x,
-                                                rocblas_int       batch_count,
-                                                rocblas_int*      w_completed_sec);
+    rocblas_internal_trsv_template(rocblas_handle    handle,
+                                   rocblas_fill      uplo,
+                                   rocblas_operation transA,
+                                   rocblas_diagonal  diag,
+                                   rocblas_int       m,
+                                   const T*          dA,
+                                   rocblas_stride    offset_A,
+                                   rocblas_int       lda,
+                                   rocblas_stride    stride_A,
+                                   T*                dx,
+                                   rocblas_stride    offset_x,
+                                   rocblas_int       incx,
+                                   rocblas_stride    stride_x,
+                                   rocblas_int       batch_count,
+                                   rocblas_int*      w_completed_sec);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trsv_batched_template(rocblas_handle    handle,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation transA,
+                                           rocblas_diagonal  diag,
+                                           rocblas_int       m,
+                                           const T* const*   dA,
+                                           rocblas_stride    offset_A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_A,
+                                           T* const*         dx,
+                                           rocblas_stride    offset_x,
+                                           rocblas_int       incx,
+                                           rocblas_stride    stride_x,
+                                           rocblas_int       batch_count,
+                                           rocblas_int*      w_completed_sec);

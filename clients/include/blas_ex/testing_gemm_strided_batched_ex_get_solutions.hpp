@@ -22,7 +22,6 @@
 
 #pragma once
 
-#define ROCBLAS_NO_DEPRECATED_WARNINGS
 #define ROCBLAS_BETA_FEATURES_API
 #include "../../library/src/include/handle.hpp"
 #include "rocblas.hpp"
