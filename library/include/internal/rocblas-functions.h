@@ -18987,6 +18987,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle hand
     @param[in]
     size            size of allocated device memory
  ******************************************************************************/
+ROCBLAS_DEPRECATED_MSG("rocblas_set_device_memory_size will be removed in a future release and "
+                       "supported modes will be 'rocblas_managed' & 'user_owned'")
 ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
 
 /*! \brief
@@ -19020,6 +19022,8 @@ ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
     @param[in]
     handle          rocblas handle
  ******************************************************************************/
+ROCBLAS_DEPRECATED_MSG("rocblas_is_user_managing_device_memory will be removed in a future release "
+                       "and supported modes will be 'rocblas_managed' & 'user_owned'")
 ROCBLAS_EXPORT bool rocblas_is_user_managing_device_memory(rocblas_handle handle);
 
 /*! \brief

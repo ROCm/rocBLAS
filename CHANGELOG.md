@@ -12,6 +12,8 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - trmm inplace is deprecated. It will be replaced by trmm that has both inplace and out-of-place functionality
 - rocblas_query_int8_layout_flag() is deprecated and will be removed in a future release
 - rocblas_gemm_flags_pack_int8x4 enum is deprecated and will be removed in a future release
+- rocblas_set_device_memory_size() is deprecated and will be replaced by a future function rocblas_increase_device_memory_size()
+- rocblas_is_user_managing_device_memory() is deprecated and will be removed in a future release
 ### Removed
 - is_complex helper was deprecated and now removed.  Use rocblas_is_complex instead.
 - The enum truncate_t and the value truncate was deprecated and now removed from. It was replaced by rocblas_truncate_t and rocblas_truncate, respectively.

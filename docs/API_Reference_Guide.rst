@@ -348,6 +348,7 @@ From rocBLAS 3.0 remove enum rocblas_int8_type_for_hipblas and the functions roc
 rocblas_set_int8_type_for_hipblas. These are used by hipBLAS to select either int8_t or packed_int8x4 datatype.
 In hipBLAS the option to use packed_int8x4 will be removed, only int8_t will be available.
 
+
 Announced in rocBLAS 3.0
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -408,6 +409,26 @@ Removal of rocblas_query_int8_layout_flag
 '''''''''''''''''''''''''''''''''''''''''
 rocblas_query_int8_layout_flag will be removed and support will end for the rocblas_gemm_flags_pack_int8x4 enum in rocblas_gemm_flags
 in a future release. rocblas_int8_type_for_hipblas will remain until rocblas_query_int8_layout_flag is removed.
+
+Remove user_managed mode from rocblas_handle
+''''''''''''''''''''''''''''''''''''''''''''
+
+From rocBLAS 4.0, the schemes for allocating temporary device memory would be reduced to two from four.
+
+Existing four schemes are:
+
+* rocblas_managed
+* user_managed, preallocate
+* user_managed, manual
+* user_owned
+
+From rocBLAS 4.0, the two schemes would be rocblas_managed and user_owned.
+The functionality of user_managed ( both preallocate and manual) would be combined into rocblas_managed scheme.
+
+Due to this the following APIs would be affected:
+
+* `rocblas_is_user_managing_device_memory()` will be removed.
+* `rocblas_set_device_memory_size()` will be replaced by a future function `rocblas_increase_device_memory_size()`, this new API would allow users to increase the device memory pool size at runtime.
 
 =================
 Using rocBLAS API
