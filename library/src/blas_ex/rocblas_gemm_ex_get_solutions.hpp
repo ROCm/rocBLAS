@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,34 +31,35 @@
 #include "logging.hpp"
 
 template <bool BATCHED, typename Ti, typename To = Ti, typename Tc = To>
-rocblas_status gemm_ex_get_solutions_typecasting(rocblas_handle     handle,
-                                                 rocblas_operation  trans_a,
-                                                 rocblas_operation  trans_b,
-                                                 rocblas_int        m,
-                                                 rocblas_int        n,
-                                                 rocblas_int        k,
-                                                 const void*        alpha,
-                                                 const void*        a,
-                                                 rocblas_stride     offsetAin,
-                                                 rocblas_int        lda,
-                                                 rocblas_stride     stride_a,
-                                                 const void*        b,
-                                                 rocblas_stride     offsetBin,
-                                                 rocblas_int        ldb,
-                                                 rocblas_stride     stride_b,
-                                                 const void*        beta,
-                                                 const void*        c,
-                                                 rocblas_stride     offsetCin,
-                                                 rocblas_int        ldc,
-                                                 rocblas_stride     stride_c,
-                                                 void*              d,
-                                                 rocblas_stride     offsetDin,
-                                                 rocblas_int        ldd,
-                                                 rocblas_stride     stride_d,
-                                                 rocblas_int        batch_count,
-                                                 rocblas_gemm_flags flags,
-                                                 rocblas_int*       list_array,
-                                                 rocblas_int*       list_size)
+rocblas_status gemm_ex_get_solutions_typecasting(rocblas_handle                      handle,
+                                                 rocblas_operation                   trans_a,
+                                                 rocblas_operation                   trans_b,
+                                                 rocblas_int                         m,
+                                                 rocblas_int                         n,
+                                                 rocblas_int                         k,
+                                                 const void*                         alpha,
+                                                 const void*                         a,
+                                                 rocblas_stride                      offsetAin,
+                                                 rocblas_int                         lda,
+                                                 rocblas_stride                      stride_a,
+                                                 const void*                         b,
+                                                 rocblas_stride                      offsetBin,
+                                                 rocblas_int                         ldb,
+                                                 rocblas_stride                      stride_b,
+                                                 const void*                         beta,
+                                                 const void*                         c,
+                                                 rocblas_stride                      offsetCin,
+                                                 rocblas_int                         ldc,
+                                                 rocblas_stride                      stride_c,
+                                                 void*                               d,
+                                                 rocblas_stride                      offsetDin,
+                                                 rocblas_int                         ldd,
+                                                 rocblas_stride                      stride_d,
+                                                 rocblas_int                         batch_count,
+                                                 rocblas_gemm_flags                  flags,
+                                                 rocblas_tensile_get_solution_option option,
+                                                 rocblas_int*                        list_array,
+                                                 rocblas_int*                        list_size)
 {
     if(BATCHED)
     {
@@ -93,7 +94,7 @@ rocblas_status gemm_ex_get_solutions_typecasting(rocblas_handle     handle,
                                                       batch_count,
                                                       false,
                                                       flags};
-        return getAllSolutions(problem, list_array, list_size);
+        return getAllSolutions(problem, option, list_array, list_size);
     }
     else
     {
@@ -128,7 +129,7 @@ rocblas_status gemm_ex_get_solutions_typecasting(rocblas_handle     handle,
                                                       batch_count,
                                                       true,
                                                       flags};
-        return getAllSolutions(problem, list_array, list_size);
+        return getAllSolutions(problem, option, list_array, list_size);
     }
 }
 
@@ -164,8 +165,9 @@ rocblas_status rocblas_gemm_ex_get_solutions_template(rocblas_handle    handle,
                                                       rocblas_int       batch_count,
                                                       rocblas_datatype  compute_type,
                                                       uint32_t          flags,
-                                                      rocblas_int*      list_array,
-                                                      rocblas_int*      list_size)
+                                                      rocblas_tensile_get_solution_option option,
+                                                      rocblas_int* list_array,
+                                                      rocblas_int* list_size)
 {
     // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
     if(!m || !n || !batch_count)
@@ -184,7 +186,7 @@ rocblas_status rocblas_gemm_ex_get_solutions_template(rocblas_handle    handle,
 #define EX_TYPECASTING_PARM                                                                    \
     handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb,  \
         stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count, \
-        rocblas_gemm_flags(flags), list_array, list_size
+        rocblas_gemm_flags(flags), option, list_array, list_size
 
     if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
