@@ -228,7 +228,7 @@ def fatal(msg, code=1):
 def deps_cmd():
     if os.name == "nt":
         exe = f"python3 rdeps.py"
-        cmdline_args = ""
+        all_args = ""
     else:
         exe = f"./install.sh --rmake_invoked -d"
         all_args = ' '.join(sys.argv[1:])
