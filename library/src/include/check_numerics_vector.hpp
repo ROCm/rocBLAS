@@ -38,7 +38,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                     rocblas_int    n,
                                                     T              x,
                                                     rocblas_stride offset_x,
-                                                    rocblas_int    inc_x,
+                                                    int64_t        inc_x,
                                                     rocblas_stride stride_x,
                                                     rocblas_int    batch_count,
                                                     const int      check_numerics,
