@@ -25,12 +25,12 @@ ROCBLAS_KERNEL(DIM_X)
 rocblas_check_numerics_vector_kernel(rocblas_int               n,
                                      T                         xa,
                                      rocblas_stride            offset_x,
-                                     rocblas_int               inc_x,
+                                     int64_t                   inc_x,
                                      rocblas_stride            stride_x,
                                      rocblas_check_numerics_t* abnormal)
 {
-    auto*     x   = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    auto*   x   = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     //Check every element of the x vector for a NaN/zero/Inf/denormal value
     if(tid < n)
@@ -137,7 +137,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                     rocblas_int    n,
                                                     T              x,
                                                     rocblas_stride offset_x,
-                                                    rocblas_int    inc_x,
+                                                    int64_t        inc_x,
                                                     rocblas_stride stride_x,
                                                     rocblas_int    batch_count,
                                                     const int      check_numerics,
@@ -200,7 +200,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                         rocblas_int    n,              \
                                                         typet_         x,              \
                                                         rocblas_stride offset_x,       \
-                                                        rocblas_int    incx,           \
+                                                        int64_t        incx,           \
                                                         rocblas_stride stride_x,       \
                                                         rocblas_int    batch_count,    \
                                                         const int      check_numerics, \
