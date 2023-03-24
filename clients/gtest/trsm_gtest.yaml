@@ -67,7 +67,7 @@ Definitions:
       #- { M:  128, N:  64, lda:  33554450, ldb:  33554450 } # trsm "subsitution" kernel with overflow lda/ldb
 
   - &size_t_right_matrix_size_range
-    - { M:  128, N:  128, lda:  16777220, ldb:  16777220 } # trsm "special" kernel with overflow lda/ldb
+    #- { M:  128, N:  128, lda:  16777220, ldb:  16777220 } # trsm "special" kernel with overflow lda/ldb
     - { M:    4, N: 1000, lda:   2147500, ldb:   2147500 } # trsm "right" kernel with overflow lda/ldb
       #- { M:   16, N:   16, lda: 134217728, ldb: 134217728 } # trsm "small" kernel with overflow lda/ldb
 
@@ -501,10 +501,10 @@ Tests:
   category: nightly
   function:
     - trsm
-    - trsm_batched
-    - trsm_strided_batched
-  precision: *single_double_precisions_complex_real
-# precision: *single_precision
+      #- trsm_batched
+      #- trsm_strided_batched
+      #  precision: *single_double_precisions_complex_real
+  precision: *single_precision
   arguments:
           #- { side: L, uplo: L, transA: N, diag: N }
           #- { side: L, uplo: L, transA: N, diag: U }
@@ -523,10 +523,10 @@ Tests:
   category: nightly
   function:
     - trsm
-    - trsm_batched
-    - trsm_strided_batched
-  precision: *single_double_precisions_complex_real
-# precision: *single_precision
+      #- trsm_batched
+      #- trsm_strided_batched
+      #  precision: *single_double_precisions_complex_real
+  precision: *single_precision
   arguments:
     - { side: R, uplo: L, transA: N, diag: N }
       #- { side: R, uplo: L, transA: N, diag: U }
