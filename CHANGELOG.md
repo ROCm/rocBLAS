@@ -2,7 +2,7 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 3.0.0
+## rocBLAS 3.0.0 for ROCm 5.6
 ### Optimizations
 - Improved performance of Level 2 rocBLAS GEMV on gfx90a GPU for non-transposed problems having small matrices and larger batch counts. Performance enhanced for problem sizes when m and n <= 32 and batch_count >= 256.
 - Improved performance of rocBLAS syr2k for single, double, and double-complex precision, and her2k for double-complex precision. Slightly improved performance for general sizes on gfx90a.
@@ -27,7 +27,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Changed
 - refactor rotg test code
 
-## (Unreleased) rocBLAS 2.47.0
+## rocBLAS 2.47.0 for ROCm 5.5
 ### Added
 - added functionality rocblas_geam_ex for matrix-matrix minimum operations
 - added HIP Graph support as beta feature for rocBLAS Level 1, Level 2, and Level 3(pointer mode host) functions
