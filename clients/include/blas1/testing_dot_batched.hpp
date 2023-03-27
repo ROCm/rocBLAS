@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -201,7 +201,6 @@ void testing_dot_batched(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(handle,
                                                      N,
                                                      dx.ptr_on_device(),
@@ -210,8 +209,6 @@ void testing_dot_batched(const Arguments& arg)
                                                      incy,
                                                      batch_count,
                                                      rocblas_result_1));
-        handle.post_test(arg);
-
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         handle.pre_test(arg);

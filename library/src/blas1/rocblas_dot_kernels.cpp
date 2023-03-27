@@ -403,11 +403,9 @@ rocblas_status rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
 
         if(handle->pointer_mode != rocblas_pointer_mode_device)
         {
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&results[0],
-                                               output,
-                                               sizeof(T) * batch_count,
-                                               hipMemcpyDeviceToHost,
-                                               handle->get_stream()));
+            // Changed to hipMemcpy for pointer mode host to match legacy BLAS.
+            RETURN_IF_HIP_ERROR(
+                hipMemcpy(&results[0], output, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
         }
     }
     else
@@ -501,12 +499,9 @@ rocblas_status rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
                                    blocks,
                                    workspace,
                                    output);
-
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&results[0],
-                                               output,
-                                               sizeof(T) * batch_count,
-                                               hipMemcpyDeviceToHost,
-                                               handle->get_stream()));
+            // Changed to hipMemcpy for pointer mode host to match legacy BLAS.
+            RETURN_IF_HIP_ERROR(
+                hipMemcpy(&results[0], output, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
         }
     }
     return rocblas_status_success;

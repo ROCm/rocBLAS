@@ -1956,6 +1956,7 @@ Functions Unsupported with Graph Capture
 
 - The following Level-1 functions place results into host buffers (in pointer mode host) which enforces synchronization.
 
+      - `dot`
       - `asum`
       - `nrm2`
       - `imax`
