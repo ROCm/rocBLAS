@@ -110,15 +110,7 @@ void testing_scal(const Arguments& arg)
     {
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        //      cblas_scal(N, h_alpha, (T*)hx_gold, incx);
-        //      cblas_scal cannot handle  N = 2, incx = 1,200,000,000, so provide
-        //      reference implementation that can handle 32 bit offset overflow
-        for(int32_t i = 0; i < N; i++)
-        {
-            // run command: grep "typedef.*size_type" /usr/include/c++/12/bits/stl_vector.h
-            // to see that size_t not ptrdiff_t must be used for stl_vector index
-            hx_gold[i * size_t(incx)] *= h_alpha;
-        }
+        cblas_scal(N, h_alpha, (T*)hx_gold, incx);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // GPU BLAS, rocblas_pointer_mode_host

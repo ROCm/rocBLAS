@@ -41,13 +41,13 @@ rocblas_scal_kernel(rocblas_int    n,
     if(alpha == 1)
         return;
 
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint32_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     // bound
     if(tid < n)
     {
-        Tex res       = (Tex)x[tid * incx] * alpha;
-        x[tid * incx] = (T)res;
+        Tex res                = (Tex)x[tid * int64_t(incx)] * alpha;
+        x[tid * int64_t(incx)] = (T)res;
     }
 }
 
@@ -70,12 +70,12 @@ rocblas_sscal_2_kernel(rocblas_int    n,
     if(alpha == 1)
         return;
 
-    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    uint32_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
 
     if(tid < n - 1)
     {
         // Each thread access contiguous elements for example Thread '0' access indices '0' and '1' of the vector `x`
-        for(rocblas_int j = 0; j < 2; ++j)
+        for(int32_t j = 0; j < 2; ++j)
         {
             Tex res    = (Tex)x[tid + j] * alpha;
             x[tid + j] = (T)res;
@@ -113,7 +113,7 @@ rocblas_hscal_mlt_4_kernel(rocblas_int    n,
     rocblas_half2 x0, x1;
     rocblas_half2 z0, z1;
 
-    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 4;
+    uint32_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 4;
 
     if(tid < n - 3)
     {
@@ -142,7 +142,7 @@ rocblas_hscal_mlt_4_kernel(rocblas_int    n,
         if(tid == n_mlt_4)
         {
             auto* x = load_ptr_batch(xa, blockIdx.y, offset_x, stride_x);
-            for(rocblas_int j = 0; j < n_mod_4; ++j)
+            for(int32_t j = 0; j < n_mod_4; ++j)
             {
                 x[tid + j] = x[tid + j] * alpha;
             }
@@ -177,9 +177,9 @@ rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
     if(using_rocblas_float && incx == 1)
     {
         // Kernel function for improving the performance of SSCAL when incx==1
-        int  blocks = 1 + ((n - 1) / (NB * 2));
-        dim3 grid(blocks, batch_count);
-        dim3 threads(NB);
+        int32_t blocks = 1 + ((n - 1) / (NB * 2));
+        dim3    grid(blocks, batch_count);
+        dim3    threads(NB);
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
             hipLaunchKernelGGL((rocblas_sscal_2_kernel<NB, T, Tex>),
@@ -209,11 +209,11 @@ rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
     else if(using_rocblas_half && incx == 1)
     {
         // Kernel function for improving the performance of HSCAL when incx==1
-        rocblas_int n_mod_4 = n & 3; // n mod 4
-        rocblas_int n_mlt_4 = n & ~(rocblas_int)3; // multiple of 4
-        int         blocks  = 1 + ((n - 1) / (NB * 4));
-        dim3        grid(blocks, batch_count);
-        dim3        threads(NB);
+        int32_t n_mod_4 = n & 3; // n mod 4
+        int32_t n_mlt_4 = n & ~(rocblas_int)3; // multiple of 4
+        int32_t blocks  = 1 + ((n - 1) / (NB * 4));
+        dim3    grid(blocks, batch_count);
+        dim3    threads(NB);
 
         if constexpr(using_rocblas_half)
         {
