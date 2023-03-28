@@ -4,8 +4,7 @@ include: known_bugs.yaml
 
 Definitions:
   - &size_t_x_range
-    - { N: 2,          incx: 1200000000 } # small operation count, should overflow x
-    - { N: 1200000000, incx: 2,         } # large operation count, should overflow x
+    - { N: 1073741900, incx: 4 } # N * incx will overflow uint32_t and int32_t
 
   - &N_range
     - [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
