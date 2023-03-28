@@ -86,19 +86,19 @@ ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
 
     if(tx < 2 * n)
     {
-        int Aoffset = tx < n ? 0 : n * lda + n;
+        rocblas_stride Aoffset = tx < n ? 0 : n * size_t(lda) + n;
 
         if(uplo == rocblas_fill_lower)
         {
             for(int i = 0; i < n; i++)
-                diagP[index + i * n] = i <= index ? A[Aoffset + index + i * lda] : 0.0f;
+                diagP[index + i * n] = i <= index ? A[Aoffset + index + i * size_t(lda)] : 0.0f;
         }
         else
         { // transpose A in sA if upper
             for(int i = n - 1; i >= 0; i--)
             {
                 diagP[(n - 1 - index) + (n - 1 - i) * n]
-                    = i >= index ? A[Aoffset + index + i * lda] : 0.0f;
+                    = i >= index ? A[Aoffset + index + i * size_t(lda)] : 0.0f;
             }
         }
     }
@@ -107,12 +107,12 @@ ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
         if(uplo == rocblas_fill_lower)
         {
             for(int i = 0; i < n; i++)
-                diagP[index + i * n] = A[n + index + i * lda];
+                diagP[index + i * n] = A[n + index + i * size_t(lda)];
         }
         else
         { // transpose A in diag1 if upper
             for(int i = n - 1; i >= 0; i--)
-                diagP[index + i * n] = A[n * lda + index + i * lda];
+                diagP[index + i * n] = A[n * size_t(lda) + index + i * size_t(lda)];
         }
     }
 
@@ -213,7 +213,7 @@ ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
             T sum(0);
             for(int k = 0; k < r + 1; k++)
                 sum += -1.0f * diag2[r + k * n] * temp[k + c * n];
-            invA[n + r + c * ldinvA] = sum;
+            invA[n + r + c * size_t(ldinvA)] = sum;
         }
     }
     else
@@ -223,23 +223,24 @@ ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
             T sum(0);
             for(int k = r; k < IB; k++)
                 sum += -1.0f * diag1[(n - 1 - r) + (n - 1 - k) * n] * temp[k + c * n];
-            invA[n * ldinvA + r + c * ldinvA] = sum;
+            invA[n * size_t(ldinvA) + r + c * size_t(ldinvA)] = sum;
         }
     }
 
     if(tx < 2 * n)
     {
-        int AInvoffset = tx < n ? 0 : n * ldinvA + n;
+        size_t AInvoffset = tx < n ? 0 : n * size_t(ldinvA) + n;
 
         if(uplo == rocblas_fill_lower)
         {
             for(int i = 0; i <= index; i++)
-                invA[AInvoffset + index + i * ldinvA] = diagP[index + i * n];
+                invA[AInvoffset + index + i * size_t(ldinvA)] = diagP[index + i * n];
         }
         else
         { // transpose back to A from sA if upper
             for(int i = n - 1; i >= index; i--)
-                invA[AInvoffset + index + i * ldinvA] = diagP[(n - 1 - index) + (n - 1 - i) * n];
+                invA[AInvoffset + index + i * size_t(ldinvA)]
+                    = diagP[(n - 1 - index) + (n - 1 - i) * n];
         }
     }
 }
@@ -270,12 +271,12 @@ ROCBLAS_KERNEL_ILF void trtri_device(rocblas_fill     uplo,
         {
             // compute only diagonal element
             for(int i = 0; i <= tx; i++)
-                sA[tx + i * n] = A[tx + i * lda];
+                sA[tx + i * n] = A[tx + i * size_t(lda)];
         }
         else
         { // transpose A in sA if upper
             for(int i = n - 1; i >= tx; i--)
-                sA[(n - 1 - tx) + (n - 1 - i) * n] = A[tx + i * lda];
+                sA[(n - 1 - tx) + (n - 1 - i) * n] = A[tx + i * size_t(lda)];
         }
     }
     __syncthreads(); // if NB < 64, this synch can be avoided
@@ -336,12 +337,12 @@ ROCBLAS_KERNEL_ILF void trtri_device(rocblas_fill     uplo,
         if(uplo == rocblas_fill_lower)
         {
             for(int i = 0; i <= tx; i++)
-                invA[tx + i * ldinvA] = sA[tx + i * n];
+                invA[tx + i * size_t(ldinvA)] = sA[tx + i * n];
         }
         else
         { // transpose back to A from sA if upper
             for(int i = n - 1; i >= tx; i--)
-                invA[tx + i * ldinvA] = sA[(n - 1 - tx) + (n - 1 - i) * n];
+                invA[tx + i * size_t(ldinvA)] = sA[(n - 1 - tx) + (n - 1 - i) * n];
         }
     }
 }
@@ -364,7 +365,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_upper(rocblas_stride offset,
     rocblas_int row = n - 2 - floor(sqrt(4 * n * (n - 1) - 7 - 8 * idx) / 2.0 - 0.5);
     rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
 
-    size_t final_offset = offset * sub_stride_A + (row * lda) + col;
+    size_t final_offset = offset * sub_stride_A + (row * size_t(lda)) + col;
 
     A[final_offset] = value;
 }
@@ -376,7 +377,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_lower(
     rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);
     rocblas_int col = idx - row * (row + 1) / 2;
 
-    size_t final_offset = offset * sub_stride_A + ((row + 1) * lda) + col;
+    size_t final_offset = offset * sub_stride_A + ((row + 1) * size_t(lda)) + col;
 
     A[final_offset] = value;
 }
@@ -503,7 +504,7 @@ rocblas_status rocblas_trtri_small(rocblas_handle   handle,
                        n,
                        num_non_tri_elements(n),
                        ldinvA,
-                       n * ldinvA,
+                       n * size_t(ldinvA),
                        invA,
                        offset_invA,
                        0,
@@ -557,10 +558,10 @@ trtri_diagonal_kernel(rocblas_fill     uplo,
 
     rocblas_int tiles        = n / IB / 2;
     const T*    individual_A = load_ptr_batch(A, blockIdx.y, offset_A, stride_A)
-                            + (IB * 2 * lda + IB * 2) * (blockIdx.x % tiles)
+                            + (IB * 2 * size_t(lda) + IB * 2) * (blockIdx.x % tiles)
                             + sub_stride_A * (blockIdx.x / tiles);
     T* individual_invA = load_ptr_batch(invA, blockIdx.y, offset_invA, stride_invA)
-                         + (IB * 2 * ldinvA + IB * 2) * (blockIdx.x % tiles)
+                         + (IB * 2 * size_t(ldinvA) + IB * 2) * (blockIdx.x % tiles)
                          + sub_stride_invA * (blockIdx.x / tiles);
 
     auto rem = n - (blockIdx.x % tiles) * IB;
@@ -757,8 +758,10 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         dim3 grid_remainder(sub_batch_count, batch_count);
         dim3 threads_remainder(remainder);
 
-        rocblas_int offset_A2    = (n - remainder) + (n - remainder) * lda + offset_Ain;
-        rocblas_int offset_invA2 = (n - remainder) + (n - remainder) * ldinvA + offset_invAin;
+        rocblas_stride offset_A2 = (n - remainder) + (n - remainder) * size_t(lda) + offset_Ain;
+        rocblas_stride offset_invA2
+            = (n - remainder) + (n - remainder) * size_t(ldinvA) + offset_invAin;
+
         hipLaunchKernelGGL((trtri_remainder_kernel<NB, T>),
                            grid_remainder,
                            threads_remainder,
@@ -799,7 +802,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                        n,
                        num_non_tri_elements(n),
                        ldinvA,
-                       n * ldinvA,
+                       n * size_t(ldinvA),
                        invA,
                        offset_invAin,
                        stride_invA,
@@ -816,23 +819,24 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         {
             for(int i = 0; i < sub_batch_count; i++)
             {
-                rocblas_int offset_A
+                rocblas_stride offset_A
                     = (uplo == rocblas_fill_lower ? current_n + i * sub_stride_Ain
-                                                  : current_n * lda + i * sub_stride_Ain);
-                rocblas_int offset_invA1
+                                                  : current_n * size_t(lda) + i * sub_stride_Ain);
+                rocblas_stride offset_invA1
                     = (uplo == rocblas_fill_lower
                            ? 0 + i * sub_stride_invAin
-                           : current_n * ldinvA + current_n + i * sub_stride_invAin);
-                rocblas_int offset_invA2
+                           : current_n * size_t(ldinvA) + current_n + i * sub_stride_invAin);
+                rocblas_stride offset_invA2
                     = (uplo == rocblas_fill_lower
-                           ? current_n * ldinvA + current_n + i * sub_stride_invAin
+                           ? current_n * size_t(ldinvA) + current_n + i * sub_stride_invAin
                            : 0 + i * sub_stride_invAin);
-                rocblas_int offset_invA3
-                    = (uplo == rocblas_fill_lower ? current_n + i * sub_stride_invAin
-                                                  : current_n * ldinvA + i * sub_stride_invAin);
-                rocblas_int offset_C
+                rocblas_stride offset_invA3
                     = (uplo == rocblas_fill_lower
-                           ? (n - current_n) * ldinvA + i * sub_stride_invAin
+                           ? current_n + i * sub_stride_invAin
+                           : current_n * size_t(ldinvA) + i * sub_stride_invAin);
+                rocblas_stride offset_C
+                    = (uplo == rocblas_fill_lower
+                           ? (n - current_n) * size_t(ldinvA) + i * sub_stride_invAin
                            : (n - current_n * tiles_per_batch) + i * sub_stride_invAin);
 
                 offset_A += offset_Ain;
@@ -847,13 +851,14 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                                                       (U)A,
                                                       lda,
                                                       stride_A,
-                                                      2 * current_n * lda + 2 * current_n,
+                                                      2 * current_n * size_t(lda) + 2 * current_n,
                                                       (U)invA,
                                                       (U)invA,
                                                       (V)invA,
                                                       ldinvA,
                                                       stride_invA,
-                                                      2 * current_n * ldinvA + 2 * current_n,
+                                                      2 * current_n * size_t(ldinvA)
+                                                          + 2 * current_n,
                                                       (V)invA,
                                                       ldinvA,
                                                       stride_invA,
@@ -871,30 +876,31 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         {
             for(int i = 0; i < tiles_per_batch; i++)
             {
-                rocblas_int sub_stride_A2    = (2 * current_n * lda + 2 * current_n);
-                rocblas_int sub_stride_invA2 = (2 * current_n * ldinvA + 2 * current_n);
+                rocblas_stride sub_stride_A2    = (2 * current_n * size_t(lda) + 2 * current_n);
+                rocblas_stride sub_stride_invA2 = (2 * current_n * size_t(ldinvA) + 2 * current_n);
 
-                rocblas_int offset_A
+                rocblas_stride offset_A
                     = (uplo == rocblas_fill_lower ? current_n + i * sub_stride_A2
-                                                  : current_n * lda + i * sub_stride_A2);
+                                                  : current_n * size_t(lda) + i * sub_stride_A2);
 
-                rocblas_int offset_invA1
+                rocblas_stride offset_invA1
                     = (uplo == rocblas_fill_lower
                            ? 0 + i * sub_stride_invA2
-                           : current_n * ldinvA + current_n + i * sub_stride_invA2);
+                           : current_n * size_t(ldinvA) + current_n + i * sub_stride_invA2);
 
-                rocblas_int offset_invA2
+                rocblas_stride offset_invA2
                     = (uplo == rocblas_fill_lower
-                           ? current_n * ldinvA + current_n + i * sub_stride_invA2
+                           ? current_n * size_t(ldinvA) + current_n + i * sub_stride_invA2
                            : 0 + i * sub_stride_invA2);
 
-                rocblas_int offset_invA3
-                    = (uplo == rocblas_fill_lower ? current_n + i * sub_stride_invA2
-                                                  : current_n * ldinvA + i * sub_stride_invA2);
+                rocblas_stride offset_invA3
+                    = (uplo == rocblas_fill_lower
+                           ? current_n + i * sub_stride_invA2
+                           : current_n * size_t(ldinvA) + i * sub_stride_invA2);
 
-                rocblas_int offset_C = (uplo == rocblas_fill_lower
-                                            ? (n - current_n) * ldinvA + i * current_n
-                                            : (n - current_n * tiles_per_batch) + i * current_n);
+                rocblas_stride offset_C = (uplo == rocblas_fill_lower
+                                               ? (n - current_n) * size_t(ldinvA) + i * current_n
+                                               : (n - current_n * tiles_per_batch) + i * current_n);
 
                 offset_A += offset_Ain;
                 offset_invA1 += offset_invAin;
@@ -940,7 +946,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                        n,
                        num_non_tri_elements(n),
                        ldinvA,
-                       n * ldinvA,
+                       n * size_t(ldinvA),
                        invA,
                        offset_invAin,
                        stride_invA,
@@ -959,12 +965,14 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
     // and in some cases this happens with multiple sizes.
     if(remainder > 0)
     {
-        rocblas_int offset_A = (uplo == rocblas_fill_lower ? current_n : current_n * lda);
-        rocblas_int offset_invA1
-            = (uplo == rocblas_fill_lower ? 0 : current_n * ldinvA + current_n);
-        rocblas_int offset_invA2
-            = (uplo == rocblas_fill_lower ? current_n * ldinvA + current_n : 0);
-        rocblas_int offset_invA3 = (uplo == rocblas_fill_lower ? current_n : current_n * ldinvA);
+        rocblas_stride offset_A
+            = (uplo == rocblas_fill_lower ? current_n : current_n * size_t(lda));
+        rocblas_stride offset_invA1
+            = (uplo == rocblas_fill_lower ? 0 : current_n * size_t(ldinvA) + current_n);
+        rocblas_stride offset_invA2
+            = (uplo == rocblas_fill_lower ? current_n * size_t(ldinvA) + current_n : 0);
+        rocblas_stride offset_invA3
+            = (uplo == rocblas_fill_lower ? current_n : current_n * size_t(ldinvA));
 
         offset_A += offset_Ain;
         offset_invA1 += offset_invAin;
@@ -999,13 +1007,15 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
 
     while(oddRemainder)
     {
-        current_n            = n - oddRemainder;
-        rocblas_int offset_A = (uplo == rocblas_fill_lower ? current_n : current_n * lda);
-        rocblas_int offset_invA1
-            = (uplo == rocblas_fill_lower ? 0 : current_n * ldinvA + current_n);
-        rocblas_int offset_invA2
-            = (uplo == rocblas_fill_lower ? current_n * ldinvA + current_n : 0);
-        rocblas_int offset_invA3 = (uplo == rocblas_fill_lower ? current_n : current_n * ldinvA);
+        current_n = n - oddRemainder;
+        rocblas_stride offset_A
+            = (uplo == rocblas_fill_lower ? current_n : current_n * size_t(lda));
+        rocblas_stride offset_invA1
+            = (uplo == rocblas_fill_lower ? 0 : current_n * size_t(ldinvA) + current_n);
+        rocblas_stride offset_invA2
+            = (uplo == rocblas_fill_lower ? current_n * size_t(ldinvA) + current_n : 0);
+        rocblas_stride offset_invA3
+            = (uplo == rocblas_fill_lower ? current_n : current_n * size_t(ldinvA));
 
         offset_A += offset_Ain;
         offset_invA1 += offset_invAin;

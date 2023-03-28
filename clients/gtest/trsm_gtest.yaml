@@ -60,6 +60,17 @@ Definitions:
   - &large_memory_matrix_size_range
     - { M: 8320, N: 128, lda: 8320, ldb: 8320 }
 
+  - &size_t_left_matrix_size_range
+    - { M:  128, N: 128, lda:  16777220, ldb:  16777220 } # trsm "special" kernel with overflow lda/ldb
+    - { M: 1000, N:   4, lda:   2147500, ldb:   2147500 } # trsm "left" kernel with overflow lda/ldb
+      #- { M:   16, N:  16, lda: 134217728, ldb: 134217728 } # trsm "small" kernel with overflow lda/ldb
+      #- { M:  128, N:  64, lda:  33554450, ldb:  33554450 } # trsm "subsitution" kernel with overflow lda/ldb
+
+  - &size_t_right_matrix_size_range
+    #- { M:  128, N:  128, lda:  16777220, ldb:  16777220 } # trsm "special" kernel with overflow lda/ldb
+    - { M:    4, N: 1000, lda:   2147500, ldb:   2147500 } # trsm "right" kernel with overflow lda/ldb
+      #- { M:   16, N:   16, lda: 134217728, ldb: 134217728 } # trsm "small" kernel with overflow lda/ldb
+
   - &substitution_size_range_thorough
     - { M:   1, N:  1, lda: 100, ldb: 100 }
     - { M:   1, N: 32, lda: 100, ldb: 100 }
@@ -485,6 +496,49 @@ Tests:
   diag: [U]
   matrix_size: *testset2_matrix_size_range
   alpha: [ 1 ]
+
+- name: trsm_size_t_left
+  category: nightly
+  function:
+    - trsm
+      #- trsm_batched
+      #- trsm_strided_batched
+      #  precision: *single_double_precisions_complex_real
+  precision: *single_precision
+  arguments:
+          #- { side: L, uplo: L, transA: N, diag: N }
+          #- { side: L, uplo: L, transA: N, diag: U }
+          #- { side: L, uplo: L, transA: T, diag: N }
+          #- { side: L, uplo: L, transA: T, diag: U }
+          #- { side: L, uplo: U, transA: N, diag: N }
+    - { side: L, uplo: U, transA: N, diag: U }
+      #- { side: L, uplo: U, transA: T, diag: N }
+      #- { side: L, uplo: U, transA: T, diag: U }
+  matrix_size: *size_t_left_matrix_size_range
+  alpha: [2]
+  batch_count: [2]
+  stride_scale: [1]
+
+- name: trsm_size_t_right
+  category: nightly
+  function:
+    - trsm
+      #- trsm_batched
+      #- trsm_strided_batched
+      #  precision: *single_double_precisions_complex_real
+  precision: *single_precision
+  arguments:
+    - { side: R, uplo: L, transA: N, diag: N }
+      #- { side: R, uplo: L, transA: N, diag: U }
+      #- { side: R, uplo: L, transA: T, diag: N }
+      #- { side: R, uplo: L, transA: T, diag: U }
+      #- { side: R, uplo: U, transA: N, diag: N }
+      #- { side: R, uplo: U, transA: N, diag: U }
+      #- { side: R, uplo: U, transA: T, diag: N }
+      #- { side: R, uplo: U, transA: T, diag: U }
+  matrix_size: *size_t_right_matrix_size_range
+  alpha: [2]
+  stride_scale: [1]
 
 - name: trsm_large
   category: nightly
