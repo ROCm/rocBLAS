@@ -391,22 +391,20 @@ Arguments:
   - stride_x: c_int64
   - stride_y: c_int64
   - user_allocated_workspace: c_size_t
-  - M: rocblas_int
-  - N: rocblas_int
-  - K: rocblas_int
-  - KL: rocblas_int
-  - KU: rocblas_int
-  - lda: rocblas_int
-  - ldb: rocblas_int
-  - ldc: rocblas_int
-  - ldd: rocblas_int
-  - incx: rocblas_int
-  - incy: rocblas_int
-  - incd: rocblas_int
-  - incb: rocblas_int
-  - batch_count: rocblas_int
-  - iters: rocblas_int
-  - cold_iters: rocblas_int
+  - M: c_int64
+  - N: c_int64
+  - K: c_int64
+  - KL: c_int64
+  - KU: c_int64
+  - lda: c_int64
+  - ldb: c_int64
+  - ldc: c_int64
+  - ldd: c_int64
+  - incx: c_int64
+  - incy: c_int64
+  - batch_count: c_int64
+  - iters: c_int32
+  - cold_iters: c_int32
   - algo: c_uint32
   - solution_index: c_int32
   - geam_op: rocblas_geam_ex_operation
@@ -480,8 +478,6 @@ Defaults:
   KU: 128
   incx: 0
   incy: 0
-  incd: 0
-  incb: 0
   alpha: 1.0
   alphai: 0.0
   beta: 0.0

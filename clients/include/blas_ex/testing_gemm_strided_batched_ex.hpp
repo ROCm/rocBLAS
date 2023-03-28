@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -268,8 +268,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     rocblas_local_handle handle{arg};
     auto                 transA = char2rocblas_operation(arg.transA);
     auto                 transB = char2rocblas_operation(arg.transB);
-    auto                 M = arg.M, N = arg.N, K = arg.K;
-    auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    int                  M = arg.M, N = arg.N, K = arg.K;
+    int                  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
     // dropping sign bit as test strides are positive, and no int64 host_strided_batch_matrix operator[]
     size_t stride_a = arg.stride_a, stride_b = arg.stride_b;
     size_t stride_c = arg.stride_c, stride_d = arg.stride_d;
@@ -277,7 +277,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     auto   A_col       = transA == rocblas_operation_none ? std::max(K, 1) : M;
     auto   B_row       = transB == rocblas_operation_none ? std::max(K, 1) : N;
     auto   B_col       = transB == rocblas_operation_none ? N : std::max(K, 1);
-    auto   batch_count = arg.batch_count;
+    int    batch_count = arg.batch_count;
     auto   d_type      = arg.d_type;
 
     // check for invalid sizes

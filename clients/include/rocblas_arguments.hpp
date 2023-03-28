@@ -67,29 +67,27 @@ struct Arguments
 
     size_t user_allocated_workspace;
 
-    // 32bit
+    // 64bit
 
-    rocblas_int M;
-    rocblas_int N;
-    rocblas_int K;
+    int64_t M;
+    int64_t N;
+    int64_t K;
 
-    rocblas_int KL;
-    rocblas_int KU;
+    int64_t KL;
+    int64_t KU;
 
-    rocblas_int lda;
-    rocblas_int ldb;
-    rocblas_int ldc;
-    rocblas_int ldd;
+    int64_t lda;
+    int64_t ldb;
+    int64_t ldc;
+    int64_t ldd;
 
-    rocblas_int incx;
-    rocblas_int incy;
-    rocblas_int incd;
-    rocblas_int incb;
+    int64_t incx;
+    int64_t incy;
 
-    rocblas_int batch_count;
+    int64_t batch_count;
 
-    rocblas_int iters;
-    rocblas_int cold_iters;
+    int32_t iters;
+    int32_t cold_iters;
 
     uint32_t algo;
     int32_t  solution_index;
@@ -173,8 +171,6 @@ struct Arguments
     OPER(ldd) SEP                    \
     OPER(incx) SEP                   \
     OPER(incy) SEP                   \
-    OPER(incd) SEP                   \
-    OPER(incb) SEP                   \
     OPER(batch_count) SEP            \
     OPER(iters) SEP                  \
     OPER(cold_iters) SEP             \

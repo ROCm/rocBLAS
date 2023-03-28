@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -262,8 +262,8 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_local_handle handle{arg};
     auto                 transA = char2rocblas_operation(arg.transA);
     auto                 transB = char2rocblas_operation(arg.transB);
-    auto                 M = arg.M, N = arg.N, K = arg.K;
-    auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    int                  M = arg.M, N = arg.N, K = arg.K;
+    int                  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
     auto                 A_row  = transA == rocblas_operation_none ? M : std::max(K, 1);
     auto                 A_col  = transA == rocblas_operation_none ? std::max(K, 1) : M;
     auto                 B_row  = transB == rocblas_operation_none ? std::max(K, 1) : N;

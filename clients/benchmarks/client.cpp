@@ -1259,10 +1259,10 @@ try
     std::string arithmetic_check;
     std::string filter;
     std::string name_filter;
-    rocblas_int device_id;
-    rocblas_int parallel_devices;
-    int         flags               = 0;
-    int         geam_ex_op          = 0;
+    int32_t     device_id;
+    int32_t     parallel_devices;
+    int32_t     flags               = 0;
+    int32_t     geam_ex_op          = 0;
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
     bool        log_function_name   = false;
@@ -1275,44 +1275,44 @@ try
     desc.add_options()
         // clang-format off
         ("sizem,m",
-         value<rocblas_int>(&arg.M)->default_value(128),
+         value<int64_t>(&arg.M)->default_value(128),
          "Specific matrix size: sizem is only applicable to BLAS-2 & BLAS-3: the number of "
          "rows or columns in matrix.")
 
         ("sizen,n",
-         value<rocblas_int>(&arg.N)->default_value(128),
+         value<int64_t>(&arg.N)->default_value(128),
          "Specific matrix/vector size: BLAS-1: the length of the vector. BLAS-2 & "
          "BLAS-3: the number of rows or columns in matrix")
 
         ("sizek,k",
-         value<rocblas_int>(&arg.K)->default_value(128),
+         value<int64_t>(&arg.K)->default_value(128),
          "Specific matrix size: BLAS-2: the number of sub or super-diagonals of A. BLAS-3: "
          "the number of columns in A and rows in B.")
 
         ("kl",
-         value<rocblas_int>(&arg.KL)->default_value(32),
+         value<int64_t>(&arg.KL)->default_value(32),
          "Specific matrix size: kl is only applicable to BLAS-2: The number of sub-diagonals "
          "of the banded matrix A.")
 
         ("ku",
-         value<rocblas_int>(&arg.KU)->default_value(32),
+         value<int64_t>(&arg.KU)->default_value(32),
          "Specific matrix size: ku is only applicable to BLAS-2: The number of super-diagonals "
          "of the banded matrix A.")
 
         ("lda",
-         value<rocblas_int>(&arg.lda)->default_value(128),
+         value<int64_t>(&arg.lda)->default_value(128),
          "Leading dimension of matrix A, is only applicable to BLAS-2 & BLAS-3.")
 
         ("ldb",
-         value<rocblas_int>(&arg.ldb)->default_value(128),
+         value<int64_t>(&arg.ldb)->default_value(128),
          "Leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3.")
 
         ("ldc",
-         value<rocblas_int>(&arg.ldc)->default_value(128),
+         value<int64_t>(&arg.ldc)->default_value(128),
          "Leading dimension of matrix C, is only applicable to BLAS-2 & BLAS-3.")
 
         ("ldd",
-         value<rocblas_int>(&arg.ldd)->default_value(128),
+         value<int64_t>(&arg.ldd)->default_value(128),
          "Leading dimension of matrix D, is only applicable to BLAS-EX ")
 
         ("any_stride",
@@ -1350,16 +1350,12 @@ try
          "BLAS_2: leading dimension.")
 
         ("incx",
-         value<rocblas_int>(&arg.incx)->default_value(1),
+         value<int64_t>(&arg.incx)->default_value(1),
          "increment between values in x vector")
 
         ("incy",
-         value<rocblas_int>(&arg.incy)->default_value(1),
+         value<int64_t>(&arg.incy)->default_value(1),
          "increment between values in y vector")
-
-        ("incb",
-         value<rocblas_int>(&arg.incb)->default_value(1),
-         "increment between values in b vector")
 
         ("alpha",
           value<double>(&arg.alpha)->default_value(1.0), "specifies the scalar alpha")
@@ -1432,7 +1428,7 @@ try
          "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv xtrmm
 
         ("batch_count",
-         value<rocblas_int>(&arg.batch_count)->default_value(1),
+         value<int64_t>(&arg.batch_count)->default_value(1),
          "Number of matrices. Only applicable to batched and strided_batched routines")
 
         ("HMM",
@@ -1444,11 +1440,11 @@ try
          "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
 
         ("iters,i",
-         value<rocblas_int>(&arg.iters)->default_value(10),
+         value<int32_t>(&arg.iters)->default_value(10),
          "Iterations to run inside timing loop")
 
         ("cold_iters,j",
-         value<rocblas_int>(&arg.cold_iters)->default_value(2),
+         value<int32_t>(&arg.cold_iters)->default_value(2),
          "Cold Iterations to run before entering the timing loop")
 
         ("algo",
@@ -1460,11 +1456,11 @@ try
          "extended precision gemm solution index")
 
         ("geam_ex_op",
-         value<int>(&geam_ex_op)->default_value(rocblas_geam_ex_operation_min_plus),
+         value<int32_t>(&geam_ex_op)->default_value(rocblas_geam_ex_operation_min_plus),
          "geam_ex_operation, 0: min_plus operation, 1: plus_min operation")
 
         ("flags",
-         value<int>(&flags)->default_value(rocblas_gemm_flags_none),
+         value<int32_t>(&flags)->default_value(rocblas_gemm_flags_none),
          "gemm_ex flags, 1: Use packed-i8, 0: (default) uses unpacked-i8, available on matrix-inst-supported device")
 
         ("atomics_not_allowed",
@@ -1472,11 +1468,11 @@ try
          "Atomic operations with non-determinism in results are not allowed")
 
         ("device",
-         value<rocblas_int>(&device_id)->default_value(0),
+         value<int32_t>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
 
         ("parallel_devices",
-         value<rocblas_int>(&parallel_devices)->default_value(0),
+         value<int32_t>(&parallel_devices)->default_value(0),
          "Set number of devices used for parallel runs (device 0 to parallel_devices-1)")
 
         ("c_noalias_d",
