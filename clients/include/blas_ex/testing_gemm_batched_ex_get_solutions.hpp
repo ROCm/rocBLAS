@@ -46,13 +46,13 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
     rocblas_local_handle handle{arg};
     auto                 transA = char2rocblas_operation(arg.transA);
     auto                 transB = char2rocblas_operation(arg.transB);
-    auto                 M = arg.M, N = arg.N, K = arg.K;
-    auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    int                  M = arg.M, N = arg.N, K = arg.K;
+    int                  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
     auto                 A_row       = transA == rocblas_operation_none ? M : std::max(K, 1);
     auto                 A_col       = transA == rocblas_operation_none ? std::max(K, 1) : M;
     auto                 B_row       = transB == rocblas_operation_none ? std::max(K, 1) : N;
     auto                 B_col       = transB == rocblas_operation_none ? N : std::max(K, 1);
-    auto                 batch_count = arg.batch_count;
+    int                  batch_count = arg.batch_count;
     auto                 d_type      = arg.d_type;
 
     // Quick-return or error sizes

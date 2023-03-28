@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ void testing_set_get_vector_async(const Arguments& arg)
     rocblas_int          M    = arg.M;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
-    rocblas_int          incb = arg.incb;
+    rocblas_int          ldd  = arg.ldd;
     rocblas_local_handle handle{arg};
 
     hipStream_t stream;
@@ -49,7 +49,7 @@ void testing_set_get_vector_async(const Arguments& arg)
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(M < 0 || incx <= 0 || incy <= 0 || incb <= 0)
+    if(M < 0 || incx <= 0 || incy <= 0 || ldd <= 0)
     {
         static const size_t safe_size = 100;
 
@@ -58,9 +58,9 @@ void testing_set_get_vector_async(const Arguments& arg)
         device_vector<T> db(safe_size);
         CHECK_DEVICE_ALLOCATION(db.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(rocblas_set_vector_async(M, sizeof(T), hx, incx, db, incb, stream),
+        EXPECT_ROCBLAS_STATUS(rocblas_set_vector_async(M, sizeof(T), hx, incx, db, ldd, stream),
                               rocblas_status_invalid_size);
-        EXPECT_ROCBLAS_STATUS(rocblas_get_vector_async(M, sizeof(T), db, incb, hy, incy, stream),
+        EXPECT_ROCBLAS_STATUS(rocblas_get_vector_async(M, sizeof(T), db, ldd, hy, incy, stream),
                               rocblas_status_invalid_size);
         return;
     }
@@ -71,14 +71,14 @@ void testing_set_get_vector_async(const Arguments& arg)
 
     host_vector<T> hy(M, incy);
     host_vector<T> hy_gold(M, size_t(incy));
-    host_vector<T> hb(M, incb);
+    host_vector<T> hb(M, ldd);
 
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
     double rocblas_error          = 0.0;
 
     // allocate memory on device
-    device_vector<T> db(M * size_t(incb));
+    device_vector<T> db(M * size_t(ldd));
     CHECK_DEVICE_ALLOCATION(db.memcheck());
 
     // Initial Data on CPU
@@ -89,11 +89,11 @@ void testing_set_get_vector_async(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // set device memory to be random
-        rocblas_init<T>(hb, 1, M, incb);
-        CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * incb * M, hipMemcpyHostToDevice));
+        rocblas_init<T>(hb, 1, M, ldd);
+        CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * ldd * M, hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, incb, stream));
-        CHECK_ROCBLAS_ERROR(rocblas_get_vector_async(M, sizeof(T), db, incb, hp_y, incy, stream));
+        CHECK_ROCBLAS_ERROR(rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, ldd, stream));
+        CHECK_ROCBLAS_ERROR(rocblas_get_vector_async(M, sizeof(T), db, ldd, hp_y, incy, stream));
 
         cpu_time_used = get_time_us_no_sync();
 
@@ -128,18 +128,18 @@ void testing_set_get_vector_async(const Arguments& arg)
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
-            rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, incb, stream);
-            rocblas_get_vector_async(M, sizeof(T), db, incb, hp_y, incy, stream);
+            rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, ldd, stream);
+            rocblas_get_vector_async(M, sizeof(T), db, ldd, hp_y, incy, stream);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        ArgumentModel<e_M, e_incx, e_incy, e_incb>{}.log_args<T>(rocblas_cout,
-                                                                 arg,
-                                                                 gpu_time_used,
-                                                                 ArgumentLogging::NA_value,
-                                                                 set_get_vector_gbyte_count<T>(M),
-                                                                 cpu_time_used,
-                                                                 rocblas_error);
+        ArgumentModel<e_M, e_incx, e_incy, e_ldd>{}.log_args<T>(rocblas_cout,
+                                                                arg,
+                                                                gpu_time_used,
+                                                                ArgumentLogging::NA_value,
+                                                                set_get_vector_gbyte_count<T>(M),
+                                                                cpu_time_used,
+                                                                rocblas_error);
     }
 }

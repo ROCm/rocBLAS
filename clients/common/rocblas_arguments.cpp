@@ -54,7 +54,7 @@ void Arguments::init()
 
     user_allocated_workspace = 0;
 
-    // 32bit
+    // 64bit
 
     M = 128;
     N = 128;
@@ -70,10 +70,10 @@ void Arguments::init()
 
     incx = 0;
     incy = 0;
-    incd = 0;
-    incb = 0;
 
     batch_count = 1;
+
+    // 32bit
 
     iters      = 10;
     cold_iters = 2;
