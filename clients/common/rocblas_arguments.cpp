@@ -115,10 +115,12 @@ void Arguments::init()
     uplo   = '*';
     diag   = '*';
 
-    c_noalias_d = false;
-    HMM         = false;
-    fortran     = false;
-    graph_test  = false;
+    pointer_mode_host   = true;
+    pointer_mode_device = true;
+    c_noalias_d         = false;
+    HMM                 = false;
+    fortran             = false;
+    graph_test          = false;
 }
 
 static Arguments& getDefaultArgs()

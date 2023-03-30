@@ -429,6 +429,8 @@ Arguments:
   - side: c_char
   - uplo: c_char
   - diag: c_char
+  - pointer_mode_host: c_bool
+  - pointer_mode_device: c_bool
   - c_noalias_d: c_bool
   - HMM: c_bool
   - fortran: c_bool
@@ -511,5 +513,7 @@ Defaults:
   category: nightly
   known_bug_platforms: ''
   name: rocblas-bench
+  pointer_mode_host: true
+  pointer_mode_device: true
   c_noalias_d: false
   user_allocated_workspace: 0
