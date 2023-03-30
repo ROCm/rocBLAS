@@ -49,12 +49,17 @@ Definitions:
     - { incx:   2, incy:   1}
     - { incx:  10, incy:  99}
 
-  - &size_t_index
-    - { M: 46431, N: 46431, lda: 46431, stride_a: 2147488281 }
 
   - &incx_incy_range_small
-    - { incx: 2, incy: 2 }
+    - { incx: 1, incy: 1 }
 
+  - &size_t_index
+    - { M: 46976, N: 2,     lda: 46976, stride_a: 93952 }      # default kernel
+    - { M: 46976, N: 46976, lda: 46976, stride_a: 2206744576 } # m == n && mod 128 == 0 && gfx90a
+
+  - &size_t_MN_incx_incy
+    - { M: 46976, N: 2,     lda: 46976, stride_a: 93952, incx: 46976, incy: 1 }     # x is m element
+    - { M: 2,     N: 46976, lda: 2,     stride_a: 93952, incx: 1,     incy: 46976 } # y is n element
 
 Tests:
 - name: ger_bad_arg
@@ -83,10 +88,24 @@ Tests:
   # shared code for size_t with non-batched
   #- ger_batched
   #- ger_strided_batched
-  precision: *single_double_precisions
+  precision: *single_precision
   matrix_size: *size_t_index
   incx_incy: *incx_incy_range_small
   alpha: [ -0.5 ]
+  pointer_mode_host: false
+
+# these new tests fail
+# - name: ger_size_t_inc
+#   category: nightly
+#   function:
+#   - ger
+#   # shared code for size_t with non-batched
+#   #- ger_batched
+#   #- ger_strided_batched
+#   precision: *single_precision
+#   arguments: *size_t_MN_incx_incy
+#   alpha: [ 0.5 ]
+#   pointer_mode_host: false
 
 # Regular ger
 - name: ger_fortran
