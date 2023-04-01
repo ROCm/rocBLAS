@@ -4,7 +4,8 @@ include: known_bugs.yaml
 
 Definitions:
   - &size_t_x_range
-    - { N: 1073741900, incx: 4 } # N * incx will overflow uint32_t and int32_t
+#   - { N: 1073741900, incx: 4 } # high op count: N * incx overflows uint32_t and int32_t
+    - { N: 1048600, incx: 4096 } #  low op count: N * incx overflows uint32_t and int32_t
 
   - &N_range
     - [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
@@ -401,6 +402,7 @@ Tests:
     N: [ 50000, 1049600 ]
     incx: *incx_range_small
     alpha_beta: *complex_alpha_range_small
+    pointer_mode_device: false
     function:
       - scal_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_ex: *scal_ex_single_double_complex_real_alpha_complex_out
@@ -411,6 +413,7 @@ Tests:
     incx: *incx_range_small
     alpha_beta: *complex_alpha_range_small
     batch_count: [2]
+    pointer_mode_device: true
     function:
       - scal_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
@@ -422,6 +425,7 @@ Tests:
     alpha_beta: *complex_alpha_range_small
     batch_count: [2]
     stride_scale: [ 1.5 ]
+    pointer_mode_device: false
     function:
       - scal_strided_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
@@ -433,6 +437,7 @@ Tests:
     incx: *incx_range_small
     alpha_beta: *complex_alpha_range_small
     batch_count: [ 2 ]
+    pointer_mode_device: true
     function:
       - scal_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_ex: *scal_ex_single_double_complex_real_alpha_complex_out
@@ -454,6 +459,7 @@ Tests:
     alpha_beta: *complex_alpha_range_small
     batch_count: [ 2 ]
     stride_scale: [ 1.2 ]
+    pointer_mode_device: false
     function:
       - scal_strided_batched_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out

@@ -135,53 +135,64 @@ void testing_scal_ex(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS, rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((
-            rocblas_scal_ex_fn(handle, N, &h_alpha, alpha_type, dx, x_type, incx, execution_type)));
-        handle.post_test(arg);
+        if(arg.pointer_mode_host)
+        {
+            // GPU BLAS, rocblas_pointer_mode_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_scal_ex_fn(
+                handle, N, &h_alpha, alpha_type, dx, x_type, incx, execution_type)));
+            handle.post_test(arg);
 
-        // Transfer output from device to CPU
-        CHECK_HIP_ERROR(hx.transfer_from(dx));
+            // Transfer output from device to CPU
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+        }
 
-        // copy data from CPU to device for rocblas_pointer_mode_device test
-        CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        if(arg.pointer_mode_device)
+        {
+            // copy data from CPU to device for rocblas_pointer_mode_device test
+            CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+
+            // GPU BLAS, rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_scal_ex_fn(
+                handle, N, d_alpha, alpha_type, dx, x_type, incx, execution_type)));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         cblas_scal(N, h_alpha, (Tx*)hx_gold, incx);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<Tx>(1, N, incx, hx_gold, hx);
-        }
-        if(arg.norm_check)
-        {
-            rocblas_error_1 = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx);
-        }
-
-        // GPU BLAS, rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            (rocblas_scal_ex_fn(handle, N, d_alpha, alpha_type, dx, x_type, incx, execution_type)));
-        handle.post_test(arg);
-
-        // Transfer output from device to CPU
-        CHECK_HIP_ERROR(hx.transfer_from(dx));
-
-        if(arg.unit_check)
-        {
-            unit_check_general<Tx>(1, N, incx, hx_gold, hx);
-        }
-        if(arg.norm_check)
-        {
-            rocblas_error_2 = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx);
+            if(arg.unit_check)
+            {
+                unit_check_general<Tx>(1, N, incx, hx_gold, hx);
+            }
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx);
+            }
         }
 
+        if(arg.pointer_mode_device)
+        {
+            // Transfer output from device to CPU
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<Tx>(1, N, incx, hx_gold, hx);
+            }
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx);
+            }
+        }
     } // end of if unit/norm check
 
     if(arg.timing)
