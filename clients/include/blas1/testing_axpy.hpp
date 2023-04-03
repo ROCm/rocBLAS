@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -122,34 +122,30 @@ void testing_axpy(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
     host_vector<T> hx(N, incx ? incx : 1);
-    host_vector<T> hy_1(N, incy ? incy : 1);
-    host_vector<T> hy_2(N, incy ? incy : 1);
+    host_vector<T> hy(N, incy ? incy : 1);
     host_vector<T> hy_gold(N, incy ? incy : 1);
 
     // Allocate device memory
     device_vector<T> dx(N, incx ? incx : 1, HMM);
-    device_vector<T> dy_1(N, incy ? incy : 1, HMM);
-    device_vector<T> dy_2(N, incy ? incy : 1, HMM);
+    device_vector<T> dy(N, incy ? incy : 1, HMM);
     device_vector<T> d_alpha(1, 1, HMM);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS
-    hy_2    = hy_1;
-    hy_gold = hy_1;
+    hy_gold = hy;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
@@ -157,24 +153,35 @@ void testing_axpy(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-        // ROCBLAS pointer mode host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy_1, incy));
-        handle.post_test(arg);
+            // ROCBLAS pointer mode host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        // ROCBLAS pointer mode device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, d_alpha, dx, incx, dy_2, incy));
-        handle.post_test(arg);
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy));
+            handle.post_test(arg);
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            // ROCBLAS pointer mode device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold)); // hy_gold not computed yet so still hy
+            CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, d_alpha, dx, incx, dy, incy));
+            handle.post_test(arg);
+        }
+
+        // check host mode results
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -183,16 +190,33 @@ void testing_axpy(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2);
+            // check device mode results
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy);
+            }
         }
     }
 
@@ -204,7 +228,7 @@ void testing_axpy(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy_1, incy);
+            rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy);
         }
 
         hipStream_t stream;
@@ -213,7 +237,7 @@ void testing_axpy(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy_1, incy);
+            rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

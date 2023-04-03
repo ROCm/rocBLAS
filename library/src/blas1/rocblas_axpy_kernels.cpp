@@ -49,7 +49,7 @@ rocblas_axpy_kernel(rocblas_int    n,
         return;
     }
 
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n)
     {
         auto tx = load_ptr_batch(x, blockIdx.y, offset_x + tid * incx, stride_x);
@@ -83,12 +83,12 @@ rocblas_saxpy_2_kernel(rocblas_int    n,
     auto* tx = load_ptr_batch(x, blockIdx.y, offset_x, stride_x);
     auto* ty = load_ptr_batch(y, blockIdx.y, offset_y, stride_y);
 
-    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    int64_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
 
     if(tid < n - 1)
     {
         // Each thread access contiguous elements for example Thread '0' access indices '0' and '1' of the vectors `x` and `y`
-        for(rocblas_int j = 0; j < 2; ++j)
+        for(int j = 0; j < 2; ++j)
         {
             ty[tid + j] = ty[tid + j] + Tex(alpha) * tx[tid + j];
         }
@@ -126,8 +126,8 @@ rocblas_axpy_kernel_batched(rocblas_int    n,
     }
     Tex ex_alph = Tex(alpha);
 
-    ptrdiff_t tid = blockIdx.x * DIM_X + threadIdx.x;
-    int       bid = 4 * (blockIdx.y * DIM_Y + threadIdx.y);
+    int64_t tid = blockIdx.x * DIM_X + threadIdx.x;
+    int     bid = 4 * (blockIdx.y * DIM_Y + threadIdx.y);
     if(tid < n)
     {
         offset_x += tid * incx;
@@ -156,17 +156,17 @@ rocblas_haxpy_mod_8_kernel(rocblas_int    n_mod_8,
                            Ta             alpha_device_host,
                            rocblas_stride stride_alpha,
                            Tx             x,
-                           ptrdiff_t      offset_x,
+                           int64_t        offset_x,
                            rocblas_stride stride_x,
                            Ty             y,
-                           ptrdiff_t      offset_y,
+                           int64_t        offset_y,
                            rocblas_stride stride_y)
 {
     auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
     if(!alpha)
         return;
 
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n_mod_8)
     {
         auto tx = load_ptr_batch(x, blockIdx.y, offset_x + tid, stride_x);
@@ -203,7 +203,7 @@ rocblas_haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
         return;
     }
 
-    ptrdiff_t t8id = threadIdx.x + blockIdx.x * blockDim.x;
+    int64_t t8id = threadIdx.x + blockIdx.x * blockDim.x;
 
     rocblas_half2 y0, y1, y2, y3;
     rocblas_half2 x0, x1, x2, x3;
@@ -372,8 +372,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     else if(batch_count > 8192 && std::is_same<Ta, float>::value)
     {
         // Optimized kernel for float Datatype when batch_count > 8192
-        ptrdiff_t shift_x = offset_x + ((incx < 0) ? ptrdiff_t(incx) * (1 - n) : 0);
-        ptrdiff_t shift_y = offset_y + ((incy < 0) ? ptrdiff_t(incy) * (1 - n) : 0);
+        int64_t shift_x = offset_x + ((incx < 0) ? int64_t(incx) * (1 - n) : 0);
+        int64_t shift_y = offset_y + ((incy < 0) ? int64_t(incy) * (1 - n) : 0);
 
         constexpr int DIM_X = 128;
         constexpr int DIM_Y = 8;
@@ -401,8 +401,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     else
     {
         // Default kernel for AXPY
-        ptrdiff_t shift_x = offset_x + ((incx < 0) ? ptrdiff_t(incx) * (1 - n) : 0);
-        ptrdiff_t shift_y = offset_y + ((incy < 0) ? ptrdiff_t(incy) * (1 - n) : 0);
+        int64_t shift_x = offset_x + ((incx < 0) ? int64_t(incx) * (1 - n) : 0);
+        int64_t shift_y = offset_y + ((incy < 0) ? int64_t(incy) * (1 - n) : 0);
 
         dim3 blocks((n - 1) / (NB) + 1, batch_count);
         dim3 threads(NB);
