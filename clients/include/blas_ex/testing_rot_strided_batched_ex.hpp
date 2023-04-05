@@ -268,8 +268,8 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
-                unit_check_general<Ty>(1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
+                unit_check_general<Tx>(1, N, incx, stride_x, hx_gold, rx, batch_count);
+                unit_check_general<Ty>(1, N, incy, stride_y, hy_gold, ry, batch_count);
             }
             if(arg.norm_check)
             {
@@ -312,8 +312,8 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
-                unit_check_general<Ty>(1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
+                unit_check_general<Tx>(1, N, incx, stride_x, hx_gold, rx, batch_count);
+                unit_check_general<Ty>(1, N, incy, stride_y, hy_gold, ry, batch_count);
             }
             if(arg.norm_check)
             {

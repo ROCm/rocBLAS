@@ -175,8 +175,8 @@ void testing_rot_ex(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, hx_gold, rx);
-                unit_check_general<Ty>(1, N, abs_incy, hy_gold, ry);
+                unit_check_general<Tx>(1, N, incx, hx_gold, rx);
+                unit_check_general<Ty>(1, N, incy, hy_gold, ry);
             }
             if(arg.norm_check)
             {
@@ -203,8 +203,8 @@ void testing_rot_ex(const Arguments& arg)
             CHECK_HIP_ERROR(ry.transfer_from(dy));
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, hx_gold, rx);
-                unit_check_general<Ty>(1, N, abs_incy, hy_gold, ry);
+                unit_check_general<Tx>(1, N, incx, hx_gold, rx);
+                unit_check_general<Ty>(1, N, incy, hy_gold, ry);
             }
             if(arg.norm_check)
             {

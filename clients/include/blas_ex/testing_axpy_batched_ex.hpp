@@ -352,9 +352,9 @@ void testing_axpy_batched_ex(const Arguments& arg)
         // Compare with with hsolution.
         if(arg.unit_check)
         {
-            unit_check_general<Ty>(1, N, abs_incy, hy, hy1, batch_count);
+            unit_check_general<Ty>(1, N, incy, hy, hy1, batch_count);
 
-            unit_check_general<Ty>(1, N, abs_incy, hy, hy2, batch_count);
+            unit_check_general<Ty>(1, N, incy, hy, hy2, batch_count);
         }
 
         if(arg.norm_check)

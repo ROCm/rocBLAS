@@ -247,8 +247,8 @@ void testing_rotm_batched(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, abs_incx, hx_gold, rx, batch_count, rel_error);
-                    near_check_general<T>(1, N, abs_incy, hy_gold, ry, batch_count, rel_error);
+                    near_check_general<T>(1, N, incx, hx_gold, rx, batch_count, rel_error);
+                    near_check_general<T>(1, N, incy, hy_gold, ry, batch_count, rel_error);
                 }
 
                 if(arg.norm_check)

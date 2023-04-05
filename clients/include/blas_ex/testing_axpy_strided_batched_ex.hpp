@@ -381,8 +381,8 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
             // Compare with with the solution.
             if(arg.unit_check)
             {
-                unit_check_general<Ty>(1, N, abs_incy, stridey, hy, hy1, batch_count);
-                unit_check_general<Ty>(1, N, abs_incy, stridey, hy, hy2, batch_count);
+                unit_check_general<Ty>(1, N, incy, stridey, hy, hy1, batch_count);
+                unit_check_general<Ty>(1, N, incy, stridey, hy, hy2, batch_count);
             }
 
             if(arg.norm_check)

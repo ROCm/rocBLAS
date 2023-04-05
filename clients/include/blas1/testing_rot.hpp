@@ -150,8 +150,8 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(ry.transfer_from(dy));
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, cx, rx);
-                unit_check_general<T>(1, N, abs_incy, cy, ry);
+                unit_check_general<T>(1, N, incx, cx, rx);
+                unit_check_general<T>(1, N, incy, cy, ry);
             }
             if(arg.norm_check)
             {
@@ -179,8 +179,8 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(ry.transfer_from(dy));
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, cx, rx);
-                unit_check_general<T>(1, N, abs_incy, cy, ry);
+                unit_check_general<T>(1, N, incx, cx, rx);
+                unit_check_general<T>(1, N, incy, cy, ry);
             }
             if(arg.norm_check)
             {

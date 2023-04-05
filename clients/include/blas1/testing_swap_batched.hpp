@@ -108,18 +108,7 @@ void testing_swap_batched(const Arguments& arg)
 
     // Initialize memory on host.
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-
-    for(int b = 0; b < batch_count; b++)
-    {
-        // make hy different to hx
-        for(size_t j = 0; j < N; j++)
-        {
-            if(rocblas_isnan(arg.alpha))
-                hy[b][j * abs_incy] = T(rocblas_nan_rng());
-            else
-                hy[b][j * abs_incy] = hx[b][j * abs_incx] + 1.0;
-        }
-    }
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
     hx_gold.copy_from(hx); // swapped later by cblas_swap
     hy_gold.copy_from(hy);
@@ -153,8 +142,8 @@ void testing_swap_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incx, hx_gold, hx, batch_count);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy, batch_count);
+            unit_check_general<T>(1, N, incx, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, incy, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)

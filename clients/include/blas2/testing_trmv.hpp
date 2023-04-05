@@ -164,7 +164,7 @@ void testing_trmv(const Arguments& arg)
         // Unit check.
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, hx, hres);
+            unit_check_general<T>(1, M, incx, hx, hres);
         }
 
         // Norm check.

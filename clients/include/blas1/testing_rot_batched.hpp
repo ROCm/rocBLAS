@@ -192,8 +192,8 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, cx, rx, batch_count);
-                unit_check_general<T>(1, N, abs_incy, cy, ry, batch_count);
+                unit_check_general<T>(1, N, incx, cx, rx, batch_count);
+                unit_check_general<T>(1, N, incy, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {
@@ -230,8 +230,8 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, cx, rx, batch_count);
-                unit_check_general<T>(1, N, abs_incy, cy, ry, batch_count);
+                unit_check_general<T>(1, N, incx, cx, rx, batch_count);
+                unit_check_general<T>(1, N, incy, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {

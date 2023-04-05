@@ -193,7 +193,7 @@ void testing_trmv_strided_batched(const Arguments& arg)
         // Unit check.
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, stride_x, hx, hres, batch_count);
+            unit_check_general<T>(1, M, incx, stride_x, hx, hres, batch_count);
         }
 
         // Norm check.

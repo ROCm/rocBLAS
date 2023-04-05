@@ -141,7 +141,7 @@ void testing_copy_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy, batch_count);
+            unit_check_general<T>(1, N, incy, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
