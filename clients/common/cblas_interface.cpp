@@ -125,13 +125,15 @@ void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx)
 
     if(incx == 1)
     {
-        for(int i = 0; i < n; i++)
+#pragma omp parallel for
+        for(int32_t i = 0; i < n; i++)
             x[i] = alpha * x[i];
     }
     else
     {
-        for(int i = 0; i < n * incx; i += incx)
-            x[i] = alpha * x[i];
+#pragma omp parallel for
+        for(int32_t i = 0; i < n; i++)
+            x[i * int64_t(incx)] = alpha * x[i * int64_t(incx)];
     }
 }
 

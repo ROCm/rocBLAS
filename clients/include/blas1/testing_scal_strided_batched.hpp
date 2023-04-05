@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,58 +96,59 @@ void testing_scal_strided_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: `h` is in CPU (host) memory(eg hx_1), `d` is in GPU (device) memory (eg dx_1).
+    // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<T> hx_1(N, incx, stridex, batch_count);
-    host_strided_batch_vector<T> hx_2(N, incx, stridex, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
     host_strided_batch_vector<T> hx_gold(N, incx, stridex, batch_count);
     host_vector<U>               halpha(1);
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    device_strided_batch_vector<T> dx_1(N, incx, stridex, batch_count);
-    device_strided_batch_vector<T> dx_2(N, incx, stridex, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
     device_vector<U>               d_alpha(1);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dx_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dx_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize the host vector.
-    rocblas_init_vector(hx_1, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
 
-    hx_2.copy_from(hx_1);
-    hx_gold.copy_from(hx_1);
+    hx_gold.copy_from(hx);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dx_1.transfer_from(hx_1));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(dx_2.transfer_from(hx_2));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        if(arg.pointer_mode_host)
+        {
+            // GPU BLAS, rocblas_pointer_mode_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched_fn(
+                handle, N, &h_alpha, dx, incx, stridex, batch_count)));
+            handle.post_test(arg);
 
-        // GPU BLAS, rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched_fn(
-            handle, N, &h_alpha, dx_1, incx, stridex, batch_count)));
-        handle.post_test(arg);
+            // Transfer output from device to CPU
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+        }
 
-        // GPU BLAS, rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((
-            rocblas_scal_strided_batched_fn(handle, N, d_alpha, dx_2, incx, stridex, batch_count)));
-        handle.post_test(arg);
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
-        // Transfer output from device to CPU
-        CHECK_HIP_ERROR(hx_1.transfer_from(dx_1));
-        CHECK_HIP_ERROR(hx_2.transfer_from(dx_2));
+            // GPU BLAS, rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched_fn(
+                handle, N, d_alpha, dx, incx, stridex, batch_count)));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -155,21 +156,36 @@ void testing_scal_strided_batched(const Arguments& arg)
         {
             cblas_scal(N, h_alpha, (T*)hx_gold[b], incx);
         }
-
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(1, N, incx, stridex, hx_gold, hx_1, batch_count);
-            unit_check_general<T>(1, N, incx, stridex, hx_gold, hx_2, batch_count);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incx, stridex, hx_gold, hx, batch_count);
+            }
+            if(arg.norm_check)
+            {
+                rocblas_error_1
+                    = norm_check_general<T>('F', 1, N, incx, stridex, hx_gold, hx, batch_count);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1
-                = norm_check_general<T>('F', 1, N, incx, stridex, hx_gold, hx_1, batch_count);
-            rocblas_error_2
-                = norm_check_general<T>('F', 1, N, incx, stridex, hx_gold, hx_2, batch_count);
+            // Transfer output from device to CPU
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incx, stridex, hx_gold, hx, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2
+                    = norm_check_general<T>('F', 1, N, incx, stridex, hx_gold, hx, batch_count);
+            }
         }
 
     } // end of if unit/norm check
@@ -182,7 +198,7 @@ void testing_scal_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_scal_strided_batched_fn(handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
+            rocblas_scal_strided_batched_fn(handle, N, &h_alpha, dx, incx, stridex, batch_count);
         }
 
         hipStream_t stream;
@@ -191,7 +207,7 @@ void testing_scal_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_scal_strided_batched_fn(handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
+            rocblas_scal_strided_batched_fn(handle, N, &h_alpha, dx, incx, stridex, batch_count);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
