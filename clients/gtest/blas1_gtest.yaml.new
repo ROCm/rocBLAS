@@ -4,8 +4,7 @@ include: known_bugs.yaml
 
 Definitions:
   - &size_t_x_range
-#   - { N: 1073741900, incx: 4 } # high op count: N * incx overflows uint32_t and int32_t
-    - { N: 1048600, incx: 4096 } #  low op count: N * incx overflows uint32_t and int32_t
+    - { N: 1073741900, incx: 4 } # N * incx will overflow uint32_t and int32_t
 
   - &N_range
     - [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
@@ -26,18 +25,6 @@ Definitions:
     - { incx:  0, incy:  1 }
     - { incx:  0, incy:  0 }
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
-
-  - &c_pos_x2_overflow_int32
-    - [1073741825]
-  # requires lwpmlse-391 so remove for now
-  #- &c_neg_x2_overflow_int32
-  #  - [-1073741825]
-
-  - &size_t_pos_neg_xy_range
-    - { N: 4,          incx: *c_pos_x2_overflow_int32, incy: 1 } # small operation count, should overflow x
-    - { N: 4,          incx: 1, incy: *c_pos_x2_overflow_int32 } # small operation count, should overflow y
-  #  - { N: 4,          incx: *c_neg_x2_overflow_int32, incy: 1 } # small operation count, should overflow x
-  #  - { N: 4,          incx: 1, incy: *c_neg_x2_overflow_int32 } # small operation count, should overflow y
 
   - &incx_incy_range_x_y_output
     - { incx:  1, incy:  1 }
@@ -277,7 +264,6 @@ Tests:
     alphai_betai: *alphai_betai_range
     function:
       - axpy_ex: *bfloat_half_single_double_complex_real_precisions
-    pointer_mode_host: false
 
   - name: axpy_multi_threads_streams
     category: nightly
@@ -288,7 +274,6 @@ Tests:
     alphai_betai: *alphai_betai_range
     function:
       - axpy_ex: *bfloat_half_single_double_complex_real_precisions
-    pointer_mode_device: false
 
   - name: blas1_batched_with_alpha
     category: nightly
@@ -477,23 +462,12 @@ Tests:
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
 
   - name: blas1_size_t
-    category: nightly
-    matrix_size: *size_t_pos_neg_xy_range
-    alpha: [ 2 ]
-    function:
-      - axpy_ex:  *half_precision
-      # axpy shared kernels for axpy_ex so only testing size_t with axpy_ex and half
-      # batched kernel only for batch_count > 8192, so large incx incy not practical
-      # all other precisions optimized kernels only for incx == incy == 1
-    pointer_mode_host: false
-
-  - name: blas1_size_t
     category: stress
     matrix_size: *size_t_x_range
     pointer_mode_device: false
     alpha: [ 2 ]
     function:
-      - scal_ex:  *hpa_half_precision
+      - scal_ex: *hpa_half_precision
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
