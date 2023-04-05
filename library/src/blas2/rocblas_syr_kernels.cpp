@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -111,7 +111,7 @@ rocblas_syr_kernel(rocblas_int    n,
         ty         = maxIdx - ty;
     }
 
-    A[tx + size_t(lda) * ty] += alpha * x[tx * incx] * x[ty * incx];
+    A[tx + size_t(lda) * ty] += alpha * x[tx * int64_t(incx)] * x[ty * int64_t(incx)];
 }
 
 template <typename T, typename U, typename V, typename W>
