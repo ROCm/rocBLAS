@@ -123,7 +123,7 @@ void testing_copy(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
+            unit_check_general<T>(1, N, incy, hy_gold, hy);
         }
 
         if(arg.norm_check)

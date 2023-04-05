@@ -99,15 +99,7 @@ void testing_swap(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-
-    // make hy different to hx
-    for(size_t i = 0; i < N; i++)
-    {
-        if(rocblas_isnan(arg.alpha))
-            hy[i * abs_incy] = T(rocblas_nan_rng());
-        else
-            hy[i * abs_incy] = hx[i * abs_incx] + 1.0;
-    };
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
     // swap vector is easy in STL; hy_gold = hx: save a swap in hy_gold which will be output of CPU
     // BLAS
@@ -137,8 +129,8 @@ void testing_swap(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incx, hx_gold, hx);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
+            unit_check_general<T>(1, N, incx, hx_gold, hx);
+            unit_check_general<T>(1, N, incy, hy_gold, hy);
         }
 
         if(arg.norm_check)

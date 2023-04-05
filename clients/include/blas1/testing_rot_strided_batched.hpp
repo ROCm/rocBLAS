@@ -187,8 +187,8 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(ry.transfer_from(dy));
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count);
-                unit_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count);
+                unit_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count);
+                unit_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {
@@ -220,8 +220,8 @@ void testing_rot_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count);
-                unit_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count);
+                unit_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count);
+                unit_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {

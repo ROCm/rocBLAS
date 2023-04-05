@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -97,39 +97,50 @@ ROCBLAS_CLANG_STATIC constexpr double
 #define NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, err, NEAR_ASSERT)
 #else
 
-#define NEAR_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, err, NEAR_ASSERT)            \
-    do                                                                                       \
-    {                                                                                        \
-        for(size_t k = 0; k < batch_count; k++)                                              \
-            for(size_t j = 0; j < N; j++)                                                    \
-                for(size_t i = 0; i < M; i++)                                                \
-                    if(rocblas_isnan(hCPU[i + j * size_t(lda) + k * strideA]))               \
-                    {                                                                        \
-                        ASSERT_TRUE(rocblas_isnan(hGPU[i + j * size_t(lda) + k * strideA])); \
-                    }                                                                        \
-                    else                                                                     \
-                    {                                                                        \
-                        NEAR_ASSERT(hCPU[i + j * size_t(lda) + k * strideA],                 \
-                                    hGPU[i + j * size_t(lda) + k * strideA],                 \
-                                    err);                                                    \
-                    }                                                                        \
+// Also used for vectors with lda used for inc, which may be negative
+#define NEAR_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, err, NEAR_ASSERT) \
+    do                                                                            \
+    {                                                                             \
+        for(size_t k = 0; k < batch_count; k++)                                   \
+            for(size_t j = 0; j < N; j++)                                         \
+            {                                                                     \
+                int64_t offset = lda >= 0 ? 0 : int64_t(lda) * (1 - N);           \
+                offset += j * int64_t(lda) + k * strideA;                         \
+                for(size_t i = 0; i < M; i++)                                     \
+                {                                                                 \
+                    if(rocblas_isnan(hCPU[i + offset]))                           \
+                    {                                                             \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[i + offset]));             \
+                    }                                                             \
+                    else                                                          \
+                    {                                                             \
+                        NEAR_ASSERT(hCPU[i + offset], hGPU[i + offset], err);     \
+                    }                                                             \
+                }                                                                 \
+            }                                                                     \
     } while(0)
 
-#define NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, err, NEAR_ASSERT)                    \
-    do                                                                                        \
-    {                                                                                         \
-        for(size_t k = 0; k < batch_count; k++)                                               \
-            for(size_t j = 0; j < N; j++)                                                     \
-                for(size_t i = 0; i < M; i++)                                                 \
-                    if(rocblas_isnan(hCPU[k][i + j * size_t(lda)]))                           \
-                    {                                                                         \
-                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * size_t(lda)]));             \
-                    }                                                                         \
-                    else                                                                      \
-                    {                                                                         \
-                        NEAR_ASSERT(                                                          \
-                            hCPU[k][i + j * size_t(lda)], hGPU[k][i + j * size_t(lda)], err); \
-                    }                                                                         \
+// Also used for vectors with lda used for inc, which may be negative
+#define NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, err, NEAR_ASSERT)          \
+    do                                                                              \
+    {                                                                               \
+        for(size_t k = 0; k < batch_count; k++)                                     \
+            for(size_t j = 0; j < N; j++)                                           \
+            {                                                                       \
+                int64_t offset = lda >= 0 ? 0 : int64_t(lda) * (1 - N);             \
+                offset += j * int64_t(lda);                                         \
+                for(size_t i = 0; i < M; i++)                                       \
+                {                                                                   \
+                    if(rocblas_isnan(hCPU[k][i + offset]))                          \
+                    {                                                               \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + offset]));            \
+                    }                                                               \
+                    else                                                            \
+                    {                                                               \
+                        NEAR_ASSERT(hCPU[k][i + offset], hGPU[k][i + offset], err); \
+                    }                                                               \
+                }                                                                   \
+            }                                                                       \
     } while(0)
 
 #endif

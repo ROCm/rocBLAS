@@ -213,7 +213,7 @@ void testing_tbmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, hx_gold, hx_2, batch_count);
+            unit_check_general<T>(1, M, incx, hx_gold, hx_2, batch_count);
         }
 
         if(arg.norm_check)

@@ -156,8 +156,8 @@ void testing_rotm(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, abs_incx, hx_gold, rx, rel_error);
-                    near_check_general<T>(1, N, abs_incy, hy_gold, ry, rel_error);
+                    near_check_general<T>(1, N, incx, hx_gold, rx, rel_error);
+                    near_check_general<T>(1, N, incy, hy_gold, ry, rel_error);
                 }
 
                 if(arg.norm_check)
@@ -187,8 +187,8 @@ void testing_rotm(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, abs_incx, hx_gold, rx, rel_error);
-                    near_check_general<T>(1, N, abs_incy, hy_gold, ry, rel_error);
+                    near_check_general<T>(1, N, incx, hx_gold, rx, rel_error);
+                    near_check_general<T>(1, N, incy, hy_gold, ry, rel_error);
                 }
 
                 if(arg.norm_check)

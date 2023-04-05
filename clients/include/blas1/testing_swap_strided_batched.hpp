@@ -146,8 +146,8 @@ void testing_swap_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incx, stride_x, hx_gold, hx, batch_count);
-            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
+            unit_check_general<T>(1, N, incx, stride_x, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, incy, stride_y, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)

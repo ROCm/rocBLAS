@@ -232,7 +232,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, stride_x, hx_gold, hx_2, batch_count);
+            unit_check_general<T>(1, M, incx, stride_x, hx_gold, hx_2, batch_count);
         }
 
         if(arg.norm_check)
