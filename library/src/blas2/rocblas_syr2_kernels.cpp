@@ -84,24 +84,23 @@ rocblas_syr2_kernel(bool           is_upper,
  * Where T is the bast type (float or double)
  */
 template <typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_syr2_template(rocblas_handle handle,
-                                   rocblas_fill   uplo,
-                                   rocblas_int    n,
-                                   TScal          alpha,
-                                   TConstPtr      x,
-                                   rocblas_stride offset_x,
-                                   rocblas_int    incx,
-                                   rocblas_stride stride_x,
-                                   TConstPtr      y,
-                                   rocblas_stride offset_y,
-                                   rocblas_int    incy,
-                                   rocblas_stride stride_y,
-                                   TPtr           A,
-                                   rocblas_int    lda,
-                                   rocblas_stride offset_A,
-                                   rocblas_stride stride_A,
-                                   rocblas_int    batch_count)
+rocblas_status rocblas_internal_syr2_template(rocblas_handle handle,
+                                              rocblas_fill   uplo,
+                                              rocblas_int    n,
+                                              TScal          alpha,
+                                              TConstPtr      x,
+                                              rocblas_stride offset_x,
+                                              rocblas_int    incx,
+                                              rocblas_stride stride_x,
+                                              TConstPtr      y,
+                                              rocblas_stride offset_y,
+                                              rocblas_int    incy,
+                                              rocblas_stride stride_y,
+                                              TPtr           A,
+                                              rocblas_int    lda,
+                                              rocblas_stride offset_A,
+                                              rocblas_stride stride_A,
+                                              rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(!n || !batch_count)
@@ -163,6 +162,84 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                            stride_A);
 
     return rocblas_status_success;
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syr2_template(rocblas_handle handle,
+                                   rocblas_fill   uplo,
+                                   rocblas_int    n,
+                                   const T*       alpha,
+                                   const T*       x,
+                                   rocblas_stride offset_x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stride_x,
+                                   const T*       y,
+                                   rocblas_stride offset_y,
+                                   rocblas_int    incy,
+                                   rocblas_stride stride_y,
+                                   T*             A,
+                                   rocblas_int    lda,
+                                   rocblas_stride offset_A,
+                                   rocblas_stride stride_A,
+                                   rocblas_int    batch_count)
+{
+    return rocblas_internal_syr2_template<const T*>(handle,
+                                                    uplo,
+                                                    n,
+                                                    alpha,
+                                                    x,
+                                                    offset_x,
+                                                    incx,
+                                                    stride_x,
+                                                    y,
+                                                    offset_y,
+                                                    incy,
+                                                    stride_y,
+                                                    A,
+                                                    lda,
+                                                    offset_A,
+                                                    stride_A,
+                                                    batch_count);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syr2_batched_template(rocblas_handle  handle,
+                                           rocblas_fill    uplo,
+                                           rocblas_int     n,
+                                           const T*        alpha,
+                                           const T* const* x,
+                                           rocblas_stride  offset_x,
+                                           rocblas_int     incx,
+                                           rocblas_stride  stride_x,
+                                           const T* const* y,
+                                           rocblas_stride  offset_y,
+                                           rocblas_int     incy,
+                                           rocblas_stride  stride_y,
+                                           T* const*       A,
+                                           rocblas_int     lda,
+                                           rocblas_stride  offset_A,
+                                           rocblas_stride  stride_A,
+                                           rocblas_int     batch_count)
+{
+    return rocblas_internal_syr2_template(handle,
+                                          uplo,
+                                          n,
+                                          alpha,
+                                          x,
+                                          offset_x,
+                                          incx,
+                                          stride_x,
+                                          y,
+                                          offset_y,
+                                          incy,
+                                          stride_y,
+                                          A,
+                                          lda,
+                                          offset_A,
+                                          stride_A,
+                                          batch_count);
 }
 
 template <typename T, typename U>
@@ -244,37 +321,65 @@ rocblas_status rocblas_syr2_check_numerics(const char*    function_name,
 #error INSTANTIATE_SYR2_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYR2_TEMPLATE(TScal_, TConstPtr_, TPtr_)    \
+#define INSTANTIATE_SYR2_TEMPLATE(T_)    \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status        \
-    rocblas_internal_syr2_template<TScal_, TConstPtr_, TPtr_>   \
+    rocblas_internal_syr2_template<T_>                          \
                                   (rocblas_handle handle,       \
                                    rocblas_fill   uplo,         \
                                    rocblas_int    n,            \
-                                   TScal_         alpha,        \
-                                   TConstPtr_     x,            \
+                                   const T_*      alpha,        \
+                                   const T_*      x,            \
                                    rocblas_stride offset_x,     \
                                    rocblas_int    incx,         \
                                    rocblas_stride stride_x,     \
-                                   TConstPtr_     y,            \
+                                   const T_*      y,            \
                                    rocblas_stride offset_y,     \
                                    rocblas_int    incy,         \
                                    rocblas_stride stride_y,     \
-                                   TPtr_          A,            \
+                                   T_*            A,            \
                                    rocblas_int    lda,          \
                                    rocblas_stride offset_A,     \
                                    rocblas_stride stride_A,     \
                                    rocblas_int    batch_count);
 
-INSTANTIATE_SYR2_TEMPLATE(float const*, float const*, float*)
-INSTANTIATE_SYR2_TEMPLATE(double const*, double const*, double*)
-INSTANTIATE_SYR2_TEMPLATE(rocblas_float_complex const*, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_SYR2_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex const*, rocblas_double_complex*)
-INSTANTIATE_SYR2_TEMPLATE(float const*, float const* const*, float* const*)
-INSTANTIATE_SYR2_TEMPLATE(double const*, double const* const*, double* const*)
-INSTANTIATE_SYR2_TEMPLATE(rocblas_float_complex const*, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_SYR2_TEMPLATE(rocblas_double_complex const*, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+INSTANTIATE_SYR2_TEMPLATE(float)
+INSTANTIATE_SYR2_TEMPLATE(double)
+INSTANTIATE_SYR2_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_SYR2_TEMPLATE(rocblas_double_complex)
 
 #undef INSTANTIATE_SYR2_TEMPLATE
+
+#ifdef INSTANTIATE_SYR2_BATCHED_TEMPLATE
+#error INSTANTIATE_SYR2_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_SYR2_BATCHED_TEMPLATE(T_)    \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status         \
+    rocblas_internal_syr2_batched_template<T_>                   \
+                                  (rocblas_handle   handle,       \
+                                   rocblas_fill     uplo,         \
+                                   rocblas_int      n,            \
+                                   const T_*        alpha,        \
+                                   const T_* const* x,            \
+                                   rocblas_stride   offset_x,     \
+                                   rocblas_int      incx,         \
+                                   rocblas_stride   stride_x,     \
+                                   const T_* const* y,            \
+                                   rocblas_stride   offset_y,     \
+                                   rocblas_int      incy,         \
+                                   rocblas_stride   stride_y,     \
+                                   T_* const*       A,            \
+                                   rocblas_int      lda,          \
+                                   rocblas_stride   offset_A,     \
+                                   rocblas_stride   stride_A,     \
+                                   rocblas_int      batch_count);
+
+INSTANTIATE_SYR2_BATCHED_TEMPLATE(float)
+INSTANTIATE_SYR2_BATCHED_TEMPLATE(double)
+INSTANTIATE_SYR2_BATCHED_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_SYR2_BATCHED_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_SYR2_BATCHED_TEMPLATE
 
 #ifdef INSTANTIATE_SYR2_NUMERICS
 #error INSTANTIATE_SYR2_NUMERICS already defined

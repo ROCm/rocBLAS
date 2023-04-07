@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -194,27 +194,27 @@ namespace
             if(symv_check_numerics_status != rocblas_status_success)
                 return symv_check_numerics_status;
         }
-        rocblas_status status = rocblas_internal_symv_template<T>(handle,
-                                                                  uplo,
-                                                                  n,
-                                                                  alpha,
-                                                                  0,
-                                                                  A,
-                                                                  0,
-                                                                  lda,
-                                                                  strideA,
-                                                                  x,
-                                                                  0,
-                                                                  incx,
-                                                                  stridex,
-                                                                  beta,
-                                                                  0,
-                                                                  y,
-                                                                  0,
-                                                                  incy,
-                                                                  stridey,
-                                                                  batch_count,
-                                                                  (V*)workspace);
+        rocblas_status status = rocblas_internal_symv_template(handle,
+                                                               uplo,
+                                                               n,
+                                                               alpha,
+                                                               0,
+                                                               A,
+                                                               0,
+                                                               lda,
+                                                               strideA,
+                                                               x,
+                                                               0,
+                                                               incx,
+                                                               stridex,
+                                                               beta,
+                                                               0,
+                                                               y,
+                                                               0,
+                                                               incy,
+                                                               stridey,
+                                                               batch_count,
+                                                               (V*)workspace);
         if(status != rocblas_status_success)
             return status;
 

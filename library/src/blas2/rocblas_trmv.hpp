@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,24 +72,43 @@ inline rocblas_status rocblas_trmv_arg_check(rocblas_handle    handle,
     return rocblas_status_continue;
 }
 
-template <typename A, typename X, typename W>
+template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_trmv_template(rocblas_handle    handle,
                                    rocblas_fill      uplo,
                                    rocblas_operation transA,
                                    rocblas_diagonal  diag,
                                    rocblas_int       m,
-                                   A                 a,
+                                   const T*          A,
                                    rocblas_stride    offseta,
                                    rocblas_int       lda,
                                    rocblas_stride    stridea,
-                                   X                 x,
+                                   T*                x,
                                    rocblas_stride    offsetx,
                                    rocblas_int       incx,
                                    rocblas_stride    stridex,
-                                   W                 workspace,
+                                   T*                workspace,
                                    rocblas_stride    stridew,
                                    rocblas_int       batch_count);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trmv_batched_template(rocblas_handle    handle,
+                                           rocblas_fill      uplo,
+                                           rocblas_operation transA,
+                                           rocblas_diagonal  diag,
+                                           rocblas_int       m,
+                                           const T* const*   A,
+                                           rocblas_stride    offseta,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stridea,
+                                           T* const*         x,
+                                           rocblas_stride    offsetx,
+                                           rocblas_int       incx,
+                                           rocblas_stride    stridex,
+                                           T*                workspace,
+                                           rocblas_stride    stridew,
+                                           rocblas_int       batch_count);
 
 template <typename T, typename U>
 rocblas_status rocblas_trmv_check_numerics(const char*    function_name,

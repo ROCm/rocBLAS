@@ -3480,34 +3480,30 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
   *  Note stride_alpha and stride_beta are only used AND only tested by rocSOLVER
   *  These strided scalar fetches are only supported for device_ptr mode
   */
-template <typename T, typename U, typename V, typename TPtr, typename W>
+template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_symv_template(rocblas_handle handle,
                                    rocblas_fill   uplo,
                                    rocblas_int    n,
-                                   const V*       alpha,
+                                   const T*       alpha,
                                    rocblas_stride stride_alpha,
-                                   const U*       A,
+                                   const T*       A,
                                    rocblas_stride offseta,
                                    rocblas_int    lda,
                                    rocblas_stride strideA,
-                                   const U*       x,
+                                   const T*       x,
                                    rocblas_stride offsetx,
                                    rocblas_int    incx,
                                    rocblas_stride stridex,
-                                   const V*       beta,
+                                   const T*       beta,
                                    rocblas_stride stride_beta,
-                                   TPtr*          y,
+                                   T*             y,
                                    rocblas_stride offsety,
                                    rocblas_int    incy,
                                    rocblas_stride stridey,
                                    rocblas_int    batch_count,
-                                   W              workspace)
+                                   T*             workspace)
 {
-    //quick return
-    if(!n || !batch_count)
-        return rocblas_status_success;
-
     // flag to check whether the kernel function being called is for hemv or symv
     // For hemv, IS_HEMV = true and for SYMV, IS_HEMV = false
     static constexpr bool IS_HEMV = false;
@@ -3539,6 +3535,150 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                          batch_count,
                                                                          workspace);
     return status;
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_symv_batched_template(rocblas_handle  handle,
+                                           rocblas_fill    uplo,
+                                           rocblas_int     n,
+                                           const T*        alpha,
+                                           rocblas_stride  stride_alpha,
+                                           const T* const* A,
+                                           rocblas_stride  offseta,
+                                           rocblas_int     lda,
+                                           rocblas_stride  strideA,
+                                           const T* const* x,
+                                           rocblas_stride  offsetx,
+                                           rocblas_int     incx,
+                                           rocblas_stride  stridex,
+                                           const T*        beta,
+                                           rocblas_stride  stride_beta,
+                                           T* const*       y,
+                                           rocblas_stride  offsety,
+                                           rocblas_int     incy,
+                                           rocblas_stride  stridey,
+                                           rocblas_int     batch_count,
+                                           T*              workspace)
+{
+    static constexpr bool IS_HEMV = false;
+    return rocblas_internal_hemv_symv_template<IS_HEMV>(handle,
+                                                        uplo,
+                                                        n,
+                                                        alpha,
+                                                        stride_alpha,
+                                                        A,
+                                                        offseta,
+                                                        lda,
+                                                        strideA,
+                                                        x,
+                                                        offsetx,
+                                                        incx,
+                                                        stridex,
+                                                        beta,
+                                                        stride_beta,
+                                                        y,
+                                                        offsety,
+                                                        incy,
+                                                        stridey,
+                                                        batch_count,
+                                                        workspace);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_hemv_template(rocblas_handle handle,
+                                   rocblas_fill   uplo,
+                                   rocblas_int    n,
+                                   const T*       alpha,
+                                   rocblas_stride stride_alpha,
+                                   const T*       A,
+                                   rocblas_stride offseta,
+                                   rocblas_int    lda,
+                                   rocblas_stride strideA,
+                                   const T*       x,
+                                   rocblas_stride offsetx,
+                                   rocblas_int    incx,
+                                   rocblas_stride stridex,
+                                   const T*       beta,
+                                   rocblas_stride stride_beta,
+                                   T*             y,
+                                   rocblas_stride offsety,
+                                   rocblas_int    incy,
+                                   rocblas_stride stridey,
+                                   rocblas_int    batch_count,
+                                   T*             workspace)
+{
+    static constexpr bool IS_HEMV = true;
+    return rocblas_internal_hemv_symv_template<IS_HEMV>(handle,
+                                                        uplo,
+                                                        n,
+                                                        alpha,
+                                                        stride_alpha,
+                                                        A,
+                                                        offseta,
+                                                        lda,
+                                                        strideA,
+                                                        x,
+                                                        offsetx,
+                                                        incx,
+                                                        stridex,
+                                                        beta,
+                                                        stride_beta,
+                                                        y,
+                                                        offsety,
+                                                        incy,
+                                                        stridey,
+                                                        batch_count,
+                                                        workspace);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_hemv_batched_template(rocblas_handle  handle,
+                                           rocblas_fill    uplo,
+                                           rocblas_int     n,
+                                           const T*        alpha,
+                                           rocblas_stride  stride_alpha,
+                                           const T* const* A,
+                                           rocblas_stride  offseta,
+                                           rocblas_int     lda,
+                                           rocblas_stride  strideA,
+                                           const T* const* x,
+                                           rocblas_stride  offsetx,
+                                           rocblas_int     incx,
+                                           rocblas_stride  stridex,
+                                           const T*        beta,
+                                           rocblas_stride  stride_beta,
+                                           T* const*       y,
+                                           rocblas_stride  offsety,
+                                           rocblas_int     incy,
+                                           rocblas_stride  stridey,
+                                           rocblas_int     batch_count,
+                                           T*              workspace)
+{
+    static constexpr bool IS_HEMV = true;
+    return rocblas_internal_hemv_symv_template<IS_HEMV>(handle,
+                                                        uplo,
+                                                        n,
+                                                        alpha,
+                                                        stride_alpha,
+                                                        A,
+                                                        offseta,
+                                                        lda,
+                                                        strideA,
+                                                        x,
+                                                        offsetx,
+                                                        incx,
+                                                        stridex,
+                                                        beta,
+                                                        stride_beta,
+                                                        y,
+                                                        offsety,
+                                                        incy,
+                                                        stridey,
+                                                        batch_count,
+                                                        workspace);
 }
 
 template <typename T, typename U>
@@ -3772,78 +3912,136 @@ INSTANTIATE_SYMV_NUMERICS(rocblas_double_complex const* const*, rocblas_double_c
 #error INSTANTIATE_SYMV_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_SYMV_TEMPLATE(T_, U_, V_, TPtr_, W_)                                \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symv_template \
-                                  <T_, U_, V_, TPtr_, W_>                               \
-                                  (rocblas_handle handle,                               \
-                                   rocblas_fill   uplo,                                 \
-                                   rocblas_int    n,                                    \
-                                   V_ const*       alpha,                               \
-                                   rocblas_stride stride_alpha,                         \
-                                   U_ const*       A,                                   \
-                                   rocblas_stride offseta,                              \
-                                   rocblas_int    lda,                                  \
-                                   rocblas_stride strideA,                              \
-                                   U_ const*       x,                                   \
-                                   rocblas_stride offsetx,                              \
-                                   rocblas_int    incx,                                 \
-                                   rocblas_stride stridex,                              \
-                                   V_ const*       beta,                                \
-                                   rocblas_stride stride_beta,                          \
-                                   TPtr_*          y,                                   \
-                                   rocblas_stride offsety,                              \
-                                   rocblas_int    incy,                                 \
-                                   rocblas_stride stridey,                              \
-                                   rocblas_int    batch_count,                          \
-                                   W_             workspace);
+#define INSTANTIATE_SYMV_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symv_template<T_> \
+                                        (rocblas_handle handle,                             \
+                                        rocblas_fill    uplo,                               \
+                                        rocblas_int     n,                                  \
+                                        const T_*       alpha,                              \
+                                        rocblas_stride  stride_alpha,                       \
+                                        const T_*       A,                                  \
+                                        rocblas_stride  offseta,                            \
+                                        rocblas_int     lda,                                \
+                                        rocblas_stride  strideA,                            \
+                                        const T_*       x,                                  \
+                                        rocblas_stride  offsetx,                            \
+                                        rocblas_int     incx,                               \
+                                        rocblas_stride  stridex,                            \
+                                        const T_*       beta,                               \
+                                        rocblas_stride  stride_beta,                        \
+                                        T_*             y,                                  \
+                                        rocblas_stride  offsety,                            \
+                                        rocblas_int     incy,                               \
+                                        rocblas_stride  stridey,                            \
+                                        rocblas_int     batch_count,                        \
+                                        T_*             workspace);
 
-
-INSTANTIATE_SYMV_TEMPLATE(float, float, float, float, float*)
-INSTANTIATE_SYMV_TEMPLATE(double, double, double, double, double*)
-INSTANTIATE_SYMV_TEMPLATE(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex*)
-INSTANTIATE_SYMV_TEMPLATE(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex*)
-INSTANTIATE_SYMV_TEMPLATE(float, float const*, float, float* const, float*)
-INSTANTIATE_SYMV_TEMPLATE(double, double const*, double, double* const, double*)
-INSTANTIATE_SYMV_TEMPLATE(rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex, rocblas_float_complex* const, rocblas_float_complex*)
-INSTANTIATE_SYMV_TEMPLATE(rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex, rocblas_double_complex* const, rocblas_double_complex*)
+INSTANTIATE_SYMV_TEMPLATE(float)
+INSTANTIATE_SYMV_TEMPLATE(double)
+INSTANTIATE_SYMV_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_SYMV_TEMPLATE(rocblas_double_complex)
 
 #undef INSTANTIATE_SYMV_TEMPLATE
 
-
-#ifdef INSTANTIATE_HEMV_SYMV_TEMPLATE
-#error INSTANTIATE_HEMV_SYMV_TEMPLATE already defined
+#ifdef INSTANTIATE_SYMV_BATCHED_TEMPLATE
+#error INSTANTIATE_SYMV_BATCHED_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_HEMV_SYMV_TEMPLATE(IS_HEMV_, U_, V_, TPtr_, W_)  \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status             \
-    rocblas_internal_hemv_symv_template<IS_HEMV_, U_, V_, TPtr_, W_> \
-                                       (rocblas_handle handle,       \
-                                        rocblas_fill   uplo,         \
-                                        rocblas_int    n,            \
-                                        U_ const*      alpha,        \
-                                        rocblas_stride stride_alpha, \
-                                        V_             A,            \
-                                        rocblas_stride offseta,      \
-                                        rocblas_int    lda,          \
-                                        rocblas_stride strideA,      \
-                                        V_             x,            \
-                                        rocblas_stride offsetx,      \
-                                        rocblas_int    incx,         \
-                                        rocblas_stride stridex,      \
-                                        U_ const*      beta,         \
-                                        rocblas_stride stride_beta,  \
-                                        TPtr_          y,            \
-                                        rocblas_stride offsety,      \
-                                        rocblas_int    incy,         \
-                                        rocblas_stride stridey,      \
-                                        rocblas_int    batch_count,  \
-                                        W_             workspace);
+#define INSTANTIATE_SYMV_BATCHED_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_symv_batched_template<T_> \
+                                                (rocblas_handle  handle,                            \
+                                                rocblas_fill     uplo,                              \
+                                                rocblas_int      n,                                 \
+                                                const T_*        alpha,                             \
+                                                rocblas_stride   stride_alpha,                      \
+                                                const T_* const* A,                                 \
+                                                rocblas_stride   offseta,                           \
+                                                rocblas_int      lda,                               \
+                                                rocblas_stride   strideA,                           \
+                                                const T_* const* x,                                 \
+                                                rocblas_stride   offsetx,                           \
+                                                rocblas_int      incx,                              \
+                                                rocblas_stride   stridex,                           \
+                                                const T_*        beta,                              \
+                                                rocblas_stride   stride_beta,                       \
+                                                T_* const*       y,                                 \
+                                                rocblas_stride   offsety,                           \
+                                                rocblas_int      incy,                              \
+                                                rocblas_stride   stridey,                           \
+                                                rocblas_int      batch_count,                       \
+                                                T_*              workspace);
 
-INSTANTIATE_HEMV_SYMV_TEMPLATE(true, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*, rocblas_float_complex*)
-INSTANTIATE_HEMV_SYMV_TEMPLATE(true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*, rocblas_double_complex*)
-INSTANTIATE_HEMV_SYMV_TEMPLATE(true, rocblas_float_complex, rocblas_float_complex const* const*, rocblas_float_complex* const*, rocblas_float_complex*)
-INSTANTIATE_HEMV_SYMV_TEMPLATE(true, rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex* const*, rocblas_double_complex*)
+INSTANTIATE_SYMV_BATCHED_TEMPLATE(float)
+INSTANTIATE_SYMV_BATCHED_TEMPLATE(double)
+INSTANTIATE_SYMV_BATCHED_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_SYMV_BATCHED_TEMPLATE(rocblas_double_complex)
 
-#undef INSTANTIATE_HEMV_SYMV_TEMPLATE
+#undef INSTANTIATE_SYMV_BATCHED_TEMPLATE
+
+#ifdef INSTANTIATE_HEMV_TEMPLATE
+#error INSTANTIATE_HEMV_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_HEMV_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_hemv_template<T_> \
+                                        (rocblas_handle handle,                             \
+                                        rocblas_fill    uplo,                               \
+                                        rocblas_int     n,                                  \
+                                        const T_*       alpha,                              \
+                                        rocblas_stride  stride_alpha,                       \
+                                        const T_*       A,                                  \
+                                        rocblas_stride  offseta,                            \
+                                        rocblas_int     lda,                                \
+                                        rocblas_stride  strideA,                            \
+                                        const T_*       x,                                  \
+                                        rocblas_stride  offsetx,                            \
+                                        rocblas_int     incx,                               \
+                                        rocblas_stride  stridex,                            \
+                                        const T_*       beta,                               \
+                                        rocblas_stride  stride_beta,                        \
+                                        T_*             y,                                  \
+                                        rocblas_stride  offsety,                            \
+                                        rocblas_int     incy,                               \
+                                        rocblas_stride  stridey,                            \
+                                        rocblas_int     batch_count,                        \
+                                        T_*             workspace);
+
+INSTANTIATE_HEMV_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_HEMV_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_HEMV_TEMPLATE
+
+#ifdef INSTANTIATE_HEMV_BATCHED_TEMPLATE
+#error INSTANTIATE_HEMV_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_HEMV_BATCHED_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_hemv_batched_template<T_> \
+                                                (rocblas_handle  handle,                            \
+                                                rocblas_fill     uplo,                              \
+                                                rocblas_int      n,                                 \
+                                                const T_*        alpha,                             \
+                                                rocblas_stride   stride_alpha,                      \
+                                                const T_* const* A,                                 \
+                                                rocblas_stride   offseta,                           \
+                                                rocblas_int      lda,                               \
+                                                rocblas_stride   strideA,                           \
+                                                const T_* const* x,                                 \
+                                                rocblas_stride   offsetx,                           \
+                                                rocblas_int      incx,                              \
+                                                rocblas_stride   stridex,                           \
+                                                const T_*        beta,                              \
+                                                rocblas_stride   stride_beta,                       \
+                                                T_* const*       y,                                 \
+                                                rocblas_stride   offsety,                           \
+                                                rocblas_int      incy,                              \
+                                                rocblas_stride   stridey,                           \
+                                                rocblas_int      batch_count,                       \
+                                                T_*              workspace);
+
+INSTANTIATE_HEMV_BATCHED_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_HEMV_BATCHED_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_HEMV_BATCHED_TEMPLATE
 
 // clang-format on

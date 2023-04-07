@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -67,31 +67,45 @@ inline rocblas_status rocblas_her2_arg_check(rocblas_handle handle,
     return rocblas_status_continue;
 }
 
-/**
- * TScal     is always: const T* (either2 host or device)
- * TConstPtr is either2: const T* OR const T* const*
- * TPtr      is either2:       T* OR       T* const*
- * Where T is the base type (rocblas_float_complex or rocblas_double_complex)
- */
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_her2_template(rocblas_handle handle,
                                    rocblas_fill   uplo,
                                    rocblas_int    n,
-                                   TScal          alpha,
-                                   TConstPtr      x,
+                                   const T*       alpha,
+                                   const T*       x,
                                    rocblas_stride offset_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
-                                   TConstPtr      y,
+                                   const T*       y,
                                    rocblas_stride offset_y,
                                    rocblas_int    incy,
                                    rocblas_stride stride_y,
-                                   TPtr           A,
+                                   T*             A,
                                    rocblas_int    lda,
                                    rocblas_stride offset_A,
                                    rocblas_stride stride_A,
                                    rocblas_int    batch_count);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_her2_batched_template(rocblas_handle  handle,
+                                           rocblas_fill    uplo,
+                                           rocblas_int     n,
+                                           const T*        alpha,
+                                           const T* const* x,
+                                           rocblas_stride  offset_x,
+                                           rocblas_int     incx,
+                                           rocblas_stride  stride_x,
+                                           const T* const* y,
+                                           rocblas_stride  offset_y,
+                                           rocblas_int     incy,
+                                           rocblas_stride  stride_y,
+                                           T* const*       A,
+                                           rocblas_int     lda,
+                                           rocblas_stride  offset_A,
+                                           rocblas_stride  stride_A,
+                                           rocblas_int     batch_count);
 
 //TODO :-Add rocblas_check_numerics_he_matrix_template for checking Matrix `A` which is a Hermitian Matrix
 template <typename T, typename U>
