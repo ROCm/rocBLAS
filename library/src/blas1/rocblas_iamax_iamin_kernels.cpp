@@ -83,8 +83,8 @@ rocblas_iamax_iamin_kernel_part1(rocblas_int    n,
                                  rocblas_stride stridex,
                                  To*            workspace)
 {
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    To        sum;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    To      sum;
 
     const auto* x = load_ptr_batch(xvec, blockIdx.y, shiftx, stridex);
 
