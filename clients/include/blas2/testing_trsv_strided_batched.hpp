@@ -150,8 +150,6 @@ void testing_trsv_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(M, M, lda, stride_a, batch_count);
@@ -284,8 +282,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
         // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            error_host       = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_1[b]));
-            error_device     = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_2[b]));
+            error_host       = rocblas_abs(vector_norm_1<T>(M, incx, hx[b], hx_or_b_1[b]));
+            error_device     = rocblas_abs(vector_norm_1<T>(M, incx, hx[b], hx_or_b_2[b]));
             max_error_host   = std::max(max_error_host, error_host);
             max_error_device = std::max(max_error_device, error_device);
 
@@ -304,8 +302,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            error_host   = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
-            error_device = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
+            error_host   = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1[b], hb[b]));
+            error_device = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1[b], hb[b]));
 
             //unit test
             trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);

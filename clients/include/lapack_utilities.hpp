@@ -73,6 +73,8 @@
 
 #include "rocblas_vector.hpp"
 
+// These helpers are implemented as ILP64 API so single instantiation can be used for reference for both API
+
 /* LAPACK library functionality */
 template <typename T>
 void lapack_xcombssq(T* ssq, T* colssq)
@@ -98,12 +100,12 @@ void lapack_xcombssq(T* ssq, T* colssq)
 
 /*! \brief  lapack_xlassq computes the scale and sumsq*/
 template <typename T>
-void lapack_xlassq(rocblas_int n, T* X, rocblas_int incx, double& scale, double& sumsq)
+void lapack_xlassq(int64_t n, T* X, int64_t incx, double& scale, double& sumsq)
 {
     if(n > 0)
     {
         double abs_X = 0.0;
-        for(int i = 0; i < n; i++)
+        for(int64_t i = 0; i < n; i++)
         {
             abs_X = rocblas_abs(rocblas_is_complex<T> ? std::real(X[i * incx]) : X[i * incx]);
             if(abs_X > 0 || rocblas_isnan(abs_X))
@@ -137,24 +139,27 @@ void lapack_xlassq(rocblas_int n, T* X, rocblas_int incx, double& scale, double&
         }
     }
 }
-/*! \brief lapack_xlange-returns the value of the one norm,  or the Frobenius norm, or the  infinity norm of the matrix A.*/
+
+/*! \brief lapack_xlange-returns the value of the one norm,  or the Frobenius norm, or the  infinity norm of the matrix A.
+    Implementation supports use on vectors with negative lda being negative increment */
 template <typename T>
-double
-    lapack_xlange(char norm_type, rocblas_int m, rocblas_int n, T* A, rocblas_int lda, double* work)
+double lapack_xlange(char norm_type, int64_t m, int64_t n, T* A, int64_t lda, double* work)
 {
     double value = 0.0;
     double sum   = 0.0;
+
     if(std::min(m, n) == 0)
         return value;
 
-    else if(norm_type == 'O' || norm_type == 'o' || norm_type == '1')
+    int64_t a_offset = lda >= 0 ? 0 : lda * (1 - n); // e.g. vectors with negative inc
+    if(norm_type == 'O' || norm_type == 'o' || norm_type == '1')
     {
         //Find the one norm of Matrix A.
-        for(int j = 0; j < n; j++)
+        for(int64_t j = 0; j < n; j++)
         {
             sum = 0.0;
-            for(int i = 0; i < m; i++)
-                sum = sum + rocblas_abs(A[i + j * lda]);
+            for(int64_t i = 0; i < m; i++)
+                sum = sum + rocblas_abs(A[a_offset + i + j * lda]);
 
             if(value < sum || rocblas_isnan(sum))
                 value = sum;
@@ -163,12 +168,12 @@ double
     else if(norm_type == 'I' || norm_type == 'i')
     {
         //Find the infinity norm of Matrix A.
-        for(int j = 0; j < n; j++)
-            for(int i = 0; i < m; i++)
+        for(int64_t j = 0; j < n; j++)
+            for(int64_t i = 0; i < m; i++)
             {
-                work[i] = work[i] + rocblas_abs(A[i + j * lda]);
+                work[i] = work[i] + rocblas_abs(A[a_offset + i + j * lda]);
             }
-        for(int i = 0; i < m; i++)
+        for(int64_t i = 0; i < m; i++)
             if(value < work[i] || rocblas_isnan(work[i]))
                 value = work[i];
     }
@@ -182,11 +187,11 @@ double
         host_vector<double> colssq(2);
         ssq[0] = 0.0;
         ssq[1] = 1.0;
-        for(int j = 0; j < n; j++)
+        for(int64_t j = 0; j < n; j++)
         {
             colssq[0] = 0.0;
             colssq[1] = 1.0;
-            lapack_xlassq(m, A + j * lda, 1, colssq[0], colssq[1]);
+            lapack_xlassq(m, A + a_offset + j * lda, 1, colssq[0], colssq[1]);
             lapack_xcombssq(ssq.data(), colssq.data());
         }
         value = ssq[0] * std::sqrt(ssq[1]);
@@ -196,7 +201,7 @@ double
 
 /*! \brief lapack_xlansy-returns the value of the one norm,  or the Frobenius norm, or the  infinity norm of the matrix A.*/
 template <bool HERM, typename T>
-double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int lda, double* work)
+double lapack_xlansy(char norm_type, char uplo, int64_t n, T* A, int64_t lda, double* work)
 {
     double value = 0.0;
     double sum   = 0.0;
@@ -210,10 +215,10 @@ double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int
         //Since A is symmetric the infinity norm and the one norm is the same.
         if(uplo == 'U')
         {
-            for(int j = 0; j < n; j++)
+            for(int64_t j = 0; j < n; j++)
             {
                 sum = 0.0;
-                for(int i = 0; i < j; i++)
+                for(int64_t i = 0; i < j; i++)
                 {
                     abs_A   = rocblas_abs(A[i + j * lda]);
                     sum     = sum + abs_A;
@@ -221,7 +226,7 @@ double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int
                 }
                 work[j] = sum + rocblas_abs(HERM ? std::real(A[j + j * lda]) : A[j + j * lda]);
             }
-            for(int i = 0; i < n; i++)
+            for(int64_t i = 0; i < n; i++)
             {
                 sum = work[i];
                 if(value < sum || rocblas_isnan(sum))
@@ -230,12 +235,12 @@ double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int
         }
         else
         {
-            for(int i = 0; i < n; i++)
+            for(int64_t i = 0; i < n; i++)
                 work[i] = 0.0;
-            for(int j = 0; j < n; j++)
+            for(int64_t j = 0; j < n; j++)
             {
                 sum = work[j] + rocblas_abs(HERM ? std::real(A[j + j * lda]) : A[j + j * lda]);
-                for(int i = j + 1; j < n; j++)
+                for(int64_t i = j + 1; j < n; j++)
                 {
                     abs_A   = rocblas_abs(A[i + j * lda]);
                     sum     = sum + abs_A;
@@ -259,7 +264,7 @@ double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int
 
         if(uplo == 'U')
         {
-            for(int j = 1; j < n; j++)
+            for(int64_t j = 1; j < n; j++)
             {
                 colssq[0] = 0.0;
                 colssq[1] = 1.0;
@@ -269,7 +274,7 @@ double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int
         }
         else
         {
-            for(int j = 0; j < n - 1; j++)
+            for(int64_t j = 0; j < n - 1; j++)
             {
                 colssq[0] = 0.0;
                 colssq[1] = 1.0;
@@ -282,7 +287,7 @@ double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int
         //sum of diagonal
         if(HERM)
         {
-            for(int i = 0; i < n; i++)
+            for(int64_t i = 0; i < n; i++)
             {
                 if(std::real(A[i + i * lda]) != 0)
                 {
@@ -312,14 +317,15 @@ double lapack_xlansy(char norm_type, char uplo, rocblas_int n, T* A, rocblas_int
 }
 
 template <typename T, typename U, typename V>
-void lapack_xrot(const int n, T* cx, const int incx, T* cy, const int incy, const U c, const V s)
+void lapack_xrot(
+    const int64_t n, T* cx, const int64_t incx, T* cy, const int64_t incy, const U c, const V s)
 {
     T stemp = T(0.0);
     if(n <= 0)
         return;
     if(incx == 1 && incy == 1)
     {
-        for(int i = 0; i < n; i++)
+        for(int64_t i = 0; i < n; i++)
         {
             stemp = c * cx[i] + s * cy[i];
             cy[i] = c * cy[i] - (rocblas_is_complex<V> ? conjugate(s) : s) * cx[i];
@@ -332,7 +338,7 @@ void lapack_xrot(const int n, T* cx, const int incx, T* cy, const int incy, cons
             cx -= (n - 1) * incx;
         if(incy < 0)
             cy -= (n - 1) * incy;
-        for(int i = 0; i < n; i++)
+        for(int64_t i = 0; i < n; i++)
         {
             stemp = c * cx[i * incx] + s * cy[i * incy];
             cy[i * incy]
@@ -366,8 +372,7 @@ void lapack_xrotg(T& ca, T& cb, U& c, T& s)
 
 // cblas_xsyr doesn't have complex support so implementation below for float/double complex
 template <typename T>
-void lapack_xsyr(
-    rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A, rocblas_int lda)
+void lapack_xsyr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* A, int64_t lda)
 {
     if(n <= 0 || alpha == 0)
         return;
@@ -376,10 +381,10 @@ void lapack_xsyr(
 
     if(uplo == rocblas_fill_upper)
     {
-        for(int j = 0; j < n; ++j)
+        for(int64_t j = 0; j < n; ++j)
         {
             T tmp = alpha * x[j * incx];
-            for(int i = 0; i <= j; ++i)
+            for(int64_t i = 0; i <= j; ++i)
             {
                 A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
             }
@@ -387,10 +392,10 @@ void lapack_xsyr(
     }
     else
     {
-        for(int j = 0; j < n; ++j)
+        for(int64_t j = 0; j < n; ++j)
         {
             T tmp = alpha * x[j * incx];
-            for(int i = j; i < n; ++i)
+            for(int64_t i = j; i < n; ++i)
             {
                 A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
             }
@@ -401,25 +406,25 @@ void lapack_xsyr(
 // cblas_xsymv doesn't have complex support so implementation below for float/double complex
 template <typename T>
 void lapack_xsymv(rocblas_fill uplo,
-                  rocblas_int  n,
+                  int64_t      n,
                   T            alpha,
                   T*           A,
-                  rocblas_int  lda,
+                  int64_t      lda,
                   T*           xa,
-                  rocblas_int  incx,
+                  int64_t      incx,
                   T            beta,
                   T*           ya,
-                  rocblas_int  incy)
+                  int64_t      incy)
 {
     if(n <= 0)
         return;
 
-    T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
-    T* y = (incy < 0) ? ya - ptrdiff_t(incy) * (n - 1) : ya;
+    T* x = (incx < 0) ? xa - incx * (n - 1) : xa;
+    T* y = (incy < 0) ? ya - incy * (n - 1) : ya;
 
     if(beta != 1)
     {
-        for(int j = 0; j < n; j++)
+        for(int64_t j = 0; j < n; j++)
         {
             y[j * incy] = beta == T(0) ? T(0) : y[j * incy] * beta;
         }
@@ -432,11 +437,11 @@ void lapack_xsymv(rocblas_fill uplo,
     T temp2 = T(0);
     if(uplo == rocblas_fill_upper)
     {
-        for(int j = 0; j < n; j++)
+        for(int64_t j = 0; j < n; j++)
         {
             temp1 = alpha * x[j * incx];
             temp2 = T(0);
-            for(int i = 0; i <= j - 1; i++)
+            for(int64_t i = 0; i <= j - 1; i++)
             {
                 y[i * incy] = y[i * incy] + temp1 * A[i + j * lda];
                 temp2       = temp2 + A[i + j * lda] * x[i * incx];
@@ -446,12 +451,12 @@ void lapack_xsymv(rocblas_fill uplo,
     }
     else
     {
-        for(int j = 0; j < n; j++)
+        for(int64_t j = 0; j < n; j++)
         {
             temp1       = alpha * x[j * incx];
             temp2       = T(0);
             y[j * incy] = y[j * incy] + temp1 * A[j + j * lda];
-            for(int i = j + 1; i < n; i++)
+            for(int64_t i = j + 1; i < n; i++)
             {
                 y[i * incy] = y[i * incy] + temp1 * A[i + j * lda];
                 temp2       = temp2 + A[i + j * lda] * x[i * incx];
@@ -463,23 +468,23 @@ void lapack_xsymv(rocblas_fill uplo,
 
 // cblas_xspr doesn't have complex support so implementation below for float/double complex
 template <typename T>
-void lapack_xspr(rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A)
+void lapack_xspr(rocblas_fill uplo, int64_t n, T alpha, T* xa, int64_t incx, T* A)
 {
     if(n <= 0 || alpha == 0)
         return;
 
-    T*          x  = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
-    rocblas_int kk = 0, k = 0;
-    T           tmpx = T(0);
+    T*      x  = (incx < 0) ? xa - incx * (n - 1) : xa;
+    int64_t kk = 0, k = 0;
+    T       tmpx = T(0);
     if(uplo == rocblas_fill_upper)
     {
-        for(int j = 0; j < n; ++j)
+        for(int64_t j = 0; j < n; ++j)
         {
             if(x[j * incx] != 0)
             {
                 tmpx = alpha * x[j * incx];
                 k    = kk;
-                for(int i = 0; i < j; ++i)
+                for(int64_t i = 0; i < j; ++i)
                 {
                     A[k] = A[k] + x[i * incx] * tmpx;
                     k    = k + 1;
@@ -491,14 +496,14 @@ void lapack_xspr(rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int i
     }
     else
     {
-        for(int j = 0; j < n; ++j)
+        for(int64_t j = 0; j < n; ++j)
         {
             if(x[j * incx] != 0)
             {
                 tmpx = alpha * x[j * incx];
                 A[kk] += x[j * incx] * tmpx;
                 k = kk + 1;
-                for(int i = j + 1; i < n; ++i)
+                for(int64_t i = j + 1; i < n; ++i)
                 {
                     A[k] = A[k] + x[i * incx] * tmpx;
                     k    = k + 1;
@@ -512,28 +517,28 @@ void lapack_xspr(rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int i
 // cblas_xsyr2 doesn't have complex support so implementation below for float/double complex
 template <typename T>
 inline void lapack_xsyr2(rocblas_fill uplo,
-                         rocblas_int  n,
+                         int64_t      n,
                          T            alpha,
                          T*           xa,
-                         rocblas_int  incx,
+                         int64_t      incx,
                          T*           ya,
-                         rocblas_int  incy,
+                         int64_t      incy,
                          T*           A,
-                         rocblas_int  lda)
+                         int64_t      lda)
 {
     if(n <= 0 || alpha == 0)
         return;
 
-    T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
-    T* y = (incy < 0) ? ya - ptrdiff_t(incy) * (n - 1) : ya;
+    T* x = (incx < 0) ? xa - incx * (n - 1) : xa;
+    T* y = (incy < 0) ? ya - incy * (n - 1) : ya;
 
     if(uplo == rocblas_fill_upper)
     {
-        for(int j = 0; j < n; ++j)
+        for(int64_t j = 0; j < n; ++j)
         {
             T tmpx = alpha * x[j * incx];
             T tmpy = alpha * y[j * incy];
-            for(int i = 0; i <= j; ++i)
+            for(int64_t i = 0; i <= j; ++i)
             {
                 A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmpy + y[i * incy] * tmpx;
             }
@@ -541,11 +546,11 @@ inline void lapack_xsyr2(rocblas_fill uplo,
     }
     else
     {
-        for(int j = 0; j < n; ++j)
+        for(int64_t j = 0; j < n; ++j)
         {
             T tmpx = alpha * x[j * incx];
             T tmpy = alpha * y[j * incy];
-            for(int i = j; i < n; ++i)
+            for(int64_t i = j; i < n; ++i)
             {
                 A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmpy + y[i * incy] * tmpx;
             }
@@ -554,11 +559,11 @@ inline void lapack_xsyr2(rocblas_fill uplo,
 }
 
 template <typename T, typename U>
-void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx);
+void cblas_scal(int64_t n, T alpha, U x, int64_t incx);
 
 // cblas doesn't have trti2 implementation for now so using the lapack trti2 implementation below
 template <typename T>
-void lapack_xtrti2(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
+void lapack_xtrti2(char uplo, char diag, int64_t n, T* A, int64_t lda)
 {
     if(n < 0)
         return;
@@ -567,7 +572,7 @@ void lapack_xtrti2(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
 
     if(uplo == 'U')
     {
-        for(int j = 0; j < n; j++)
+        for(int64_t j = 0; j < n; j++)
         {
             if(diag == 'N')
             {
@@ -592,7 +597,7 @@ void lapack_xtrti2(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
     }
     else
     {
-        for(int j = n - 1; j >= 0; j--)
+        for(int64_t j = n - 1; j >= 0; j--)
         {
             if(diag == 'N')
             {
@@ -622,13 +627,13 @@ void lapack_xtrti2(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
 
 // cblas doesn't have trtri implementation for now so using the lapack trtri implementation below
 template <typename T>
-void lapack_xtrtri(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
+void lapack_xtrtri(char uplo, char diag, int64_t n, T* A, int64_t lda)
 {
     if(n <= 0)
         return;
 
-    rocblas_int NB = 64;
-    rocblas_int JB = 0;
+    int64_t NB = 64;
+    int64_t JB = 0;
     if(NB <= 1 || NB >= n)
     {
         lapack_xtrti2(uplo, diag, n, A, lda);
@@ -638,7 +643,7 @@ void lapack_xtrtri(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
         if(uplo == 'U')
         {
             // Compute inverse of upper triangular matrix
-            for(int j = 0; j < n; j += NB)
+            for(int64_t j = 0; j < n; j += NB)
             {
                 JB = std::min(NB, n - j);
 
@@ -670,8 +675,8 @@ void lapack_xtrtri(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda)
         }
         else
         {
-            rocblas_int NN = ((n - 1) / NB) * NB;
-            for(int j = NN; j >= 0; j -= NB)
+            int64_t NN = ((n - 1) / NB) * NB;
+            for(int64_t j = NN; j >= 0; j -= NB)
             {
                 JB = std::min(NB, n - j);
                 if(j + JB <= n)

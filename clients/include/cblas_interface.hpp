@@ -280,9 +280,9 @@ inline void
     *result = cblas_dznrm2(n, x, incx);
 }
 
-// scal
+// scal ILP64
 template <typename T, typename U>
-void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx);
+void cblas_scal(int64_t n, T alpha, U x, int64_t incx);
 
 // swap
 template <typename T>

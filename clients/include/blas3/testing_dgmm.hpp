@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -97,10 +97,9 @@ void testing_dgmm(const Arguments& arg)
     rocblas_int N = arg.N;
     rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
-    rocblas_int lda      = arg.lda;
-    rocblas_int incx     = arg.incx;
-    rocblas_int ldc      = arg.ldc;
-    rocblas_int abs_incx = incx > 0 ? incx : -incx;
+    rocblas_int lda  = arg.lda;
+    rocblas_int incx = arg.incx;
+    rocblas_int ldc  = arg.ldc;
 
     double gpu_time_used, cpu_time_used;
 

@@ -305,12 +305,11 @@ void testing_symv_strided_batched(const Arguments& arg)
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-
-    rocblas_stride strideA = size_t(lda) * N;
-    rocblas_stride stridex = size_t(N) * abs_incx;
-    rocblas_stride stridey = size_t(N) * abs_incy;
+    rocblas_stride strideA  = size_t(lda) * N;
+    size_t         abs_incx = incx >= 0 ? incx : -incx;
+    size_t         abs_incy = incy >= 0 ? incy : -incy;
+    rocblas_stride stridex  = size_t(N) * abs_incx;
+    rocblas_stride stridey  = size_t(N) * abs_incy;
 
     rocblas_local_handle handle{arg};
 

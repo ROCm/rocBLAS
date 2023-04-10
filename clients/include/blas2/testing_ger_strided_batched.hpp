@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,9 +55,9 @@ void testing_ger_strided_batched_bad_arg(const Arguments& arg)
         rocblas_int incx        = 1;
         rocblas_int incy        = 1;
         rocblas_int lda         = 100;
+        rocblas_int stride_a    = lda * N;
         rocblas_int abs_incx    = incx >= 0 ? incx : -incx;
         rocblas_int abs_incy    = incy >= 0 ? incy : -incy;
-        rocblas_int stride_a    = lda * N;
         rocblas_int stride_x    = abs_incx * M;
         rocblas_int stride_y    = abs_incy * N;
         rocblas_int batch_count = 5;
@@ -262,9 +262,9 @@ void testing_ger_strided_batched(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
+    size_t size_A   = size_t(lda) * N;
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = size_t(lda) * N;
     size_t size_x   = M * abs_incx;
     size_t size_y   = N * abs_incy;
 

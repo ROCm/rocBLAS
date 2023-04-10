@@ -158,8 +158,6 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
     rocblas_int    incx        = arg.incx;
     rocblas_int    incy        = arg.incy;
     rocblas_int    batch_count = arg.batch_count;
-    rocblas_int    abs_incx    = incx >= 0 ? incx : -incx;
-    rocblas_int    abs_incy    = incy >= 0 ? incy : -incy;
     rocblas_stride stride_x    = arg.stride_x;
     rocblas_stride stride_y    = arg.stride_y;
 

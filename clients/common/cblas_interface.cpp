@@ -118,7 +118,7 @@ void cblas_axpy<rocblas_half>(rocblas_int   n,
 **/
 
 template <typename T, typename U>
-void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx)
+void cblas_scal(int64_t n, T alpha, U x, int64_t incx)
 {
     if(n <= 0 || incx <= 0)
         return;
@@ -126,55 +126,47 @@ void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx)
     if(incx == 1)
     {
 #pragma omp parallel for
-        for(int32_t i = 0; i < n; i++)
+        for(int64_t i = 0; i < n; i++)
             x[i] = alpha * x[i];
     }
     else
     {
 #pragma omp parallel for
-        for(int32_t i = 0; i < n; i++)
-            x[i * int64_t(incx)] = alpha * x[i * int64_t(incx)];
+        for(int64_t i = 0; i < n; i++)
+            x[i * incx] = alpha * x[i * incx];
     }
 }
 
 //Scal Instantiation
-template void cblas_scal<float, float*>(rocblas_int n, float alpha, float* x, rocblas_int incx);
-template void cblas_scal<double, double*>(rocblas_int n, double alpha, double* x, rocblas_int incx);
-template void cblas_scal<rocblas_half, rocblas_half*>(rocblas_int   n,
+template void cblas_scal<float, float*>(int64_t n, float alpha, float* x, int64_t incx);
+template void cblas_scal<double, double*>(int64_t n, double alpha, double* x, int64_t incx);
+template void cblas_scal<rocblas_half, rocblas_half*>(int64_t       n,
                                                       rocblas_half  alpha,
                                                       rocblas_half* x,
-                                                      rocblas_int   incx);
+                                                      int64_t       incx);
 template void
-    cblas_scal<float, rocblas_half*>(rocblas_int n, float alpha, rocblas_half* x, rocblas_int incx);
+    cblas_scal<float, rocblas_half*>(int64_t n, float alpha, rocblas_half* x, int64_t incx);
 
-template void cblas_scal<rocblas_bfloat16, rocblas_bfloat16*>(rocblas_int       n,
+template void cblas_scal<rocblas_bfloat16, rocblas_bfloat16*>(int64_t           n,
                                                               rocblas_bfloat16  alpha,
                                                               rocblas_bfloat16* x,
-                                                              rocblas_int       incx);
+                                                              int64_t           incx);
 
-template void cblas_scal<float, rocblas_bfloat16*>(rocblas_int       n,
-                                                   float             alpha,
-                                                   rocblas_bfloat16* x,
-                                                   rocblas_int       incx);
+template void
+    cblas_scal<float, rocblas_bfloat16*>(int64_t n, float alpha, rocblas_bfloat16* x, int64_t incx);
 
 template void cblas_scal<rocblas_complex_num<float>, rocblas_complex_num<float>*>(
-    rocblas_int                 n,
-    rocblas_complex_num<float>  alpha,
-    rocblas_complex_num<float>* x,
-    rocblas_int                 incx);
+    int64_t n, rocblas_complex_num<float> alpha, rocblas_complex_num<float>* x, int64_t incx);
 template void cblas_scal<rocblas_complex_num<double>, rocblas_complex_num<double>*>(
-    rocblas_int                  n,
-    rocblas_complex_num<double>  alpha,
-    rocblas_complex_num<double>* x,
-    rocblas_int                  incx);
-template void cblas_scal<float, rocblas_complex_num<float>*>(rocblas_int                 n,
+    int64_t n, rocblas_complex_num<double> alpha, rocblas_complex_num<double>* x, int64_t incx);
+template void cblas_scal<float, rocblas_complex_num<float>*>(int64_t                     n,
                                                              float                       alpha,
                                                              rocblas_complex_num<float>* x,
-                                                             rocblas_int                 incx);
-template void cblas_scal<double, rocblas_complex_num<double>*>(rocblas_int                  n,
+                                                             int64_t                     incx);
+template void cblas_scal<double, rocblas_complex_num<double>*>(int64_t                      n,
                                                                double                       alpha,
                                                                rocblas_complex_num<double>* x,
-                                                               rocblas_int                  incx);
+                                                               int64_t                      incx);
 
 template <>
 void cblas_dot<rocblas_half>(rocblas_int         n,

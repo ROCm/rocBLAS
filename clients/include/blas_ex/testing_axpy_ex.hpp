@@ -187,8 +187,8 @@ void testing_axpy_ex(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = std::abs(incx);
-    size_t abs_incy = std::abs(incy);
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
     size_t size_x   = N * (abs_incx ? abs_incx : 1);
     size_t size_y   = N * (abs_incy ? abs_incy : 1);
 

@@ -110,8 +110,6 @@ void testing_tpsv_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-
     double gpu_time_used, cpu_time_used;
     double rocblas_error;
     double error_eps_multiplier    = 40.0;
@@ -222,8 +220,8 @@ void testing_tpsv_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx[b], hx_or_b_1[b]));
-            max_err_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx[b], hx_or_b_2[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx[b], hx_or_b_1[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx[b], hx_or_b_2[b]));
             //unit test
             trsm_err_res_check<T>(max_err_1, N, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, N, error_eps_multiplier, eps);
@@ -239,8 +237,8 @@ void testing_tpsv_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_1[b], hb[b]));
-            max_err_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_1[b], hb[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_1[b], hb[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_1[b], hb[b]));
             //unit test
             trsm_err_res_check<T>(max_err_1, N, residual_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, N, residual_eps_multiplier, eps);
