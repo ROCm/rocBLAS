@@ -160,7 +160,7 @@ def parse_args():
 
 def strip_ECC(token):
     return token.replace(':sramecc+', '').replace(':sramecc-', '').strip()
-    
+
 def gpu_detect():
     global OS_info
     OS_info["GPU"] = ""
@@ -173,7 +173,7 @@ def gpu_detect():
         if os.name == "nt":
             if 'gcnArchName' in line_in:
                 OS_info["GPU"] = strip_ECC( line_in.split(":")[1] )
-                break      
+                break
         else:
             if 'amdgcn-amd-amdhsa' in line_in:
                 OS_info["GPU"] = strip_ECC( line_in.split("--")[1] )
@@ -370,8 +370,12 @@ def config_cmd():
             cmake_options.append(f"-DTENSILE_VENV_UPGRADE_PIP=ON")
         if not args.merge_architectures:
             cmake_options.append(f"-DTensile_SEPARATE_ARCHITECTURES=ON")
+        else:
+            cmake_options.append(f"-DTensile_SEPARATE_ARCHITECTURES=OFF")
         if args.tensile_lazy_library_loading:
             cmake_options.append(f"-DTensile_LAZY_LIBRARY_LOADING=ON")
+        else:
+            cmake_options.append(f"-DTensile_LAZY_LIBRARY_LOADING=OFF")
         if args.tensile_msgpack_backend:
             cmake_options.append(f"-DTensile_LIBRARY_FORMAT=msgpack")
         else:
