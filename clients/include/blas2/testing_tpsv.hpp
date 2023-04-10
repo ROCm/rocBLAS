@@ -107,8 +107,6 @@ void testing_tpsv(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
     host_matrix<T> hA(N, N, N);
@@ -186,8 +184,8 @@ void testing_tpsv(const Arguments& arg)
         handle.post_test(arg);
         CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
-        max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx, hx_or_b_1));
-        max_err_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx, hx_or_b_2));
+        max_err_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx, hx_or_b_1));
+        max_err_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx, hx_or_b_2));
 
         trsm_err_res_check(max_err_1, N, error_eps_multiplier, eps);
         trsm_err_res_check(max_err_2, N, error_eps_multiplier, eps);
@@ -198,8 +196,8 @@ void testing_tpsv(const Arguments& arg)
         //                                                  = hx_or_b - hb
         // res is the one norm of the scaled residual for each column
 
-        max_res_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_1, hb));
-        max_res_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_2, hb));
+        max_res_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_1, hb));
+        max_res_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_2, hb));
 
         trsm_err_res_check(max_res_1, N, residual_eps_multiplier, eps);
         trsm_err_res_check(max_res_2, N, residual_eps_multiplier, eps);

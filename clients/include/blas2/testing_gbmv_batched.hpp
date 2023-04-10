@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -355,8 +355,8 @@ void testing_gbmv_batched(const Arguments& arg)
         return;
     }
 
-    size_t dim_x, abs_incx;
-    size_t dim_y, abs_incy;
+    size_t dim_x;
+    size_t dim_y;
 
     if(transA == rocblas_operation_none)
     {
@@ -368,9 +368,6 @@ void testing_gbmv_batched(const Arguments& arg)
         dim_x = M;
         dim_y = N;
     }
-
-    abs_incx = incx >= 0 ? incx : -incx;
-    abs_incy = incy >= 0 ? incy : -incy;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
@@ -488,16 +485,16 @@ void testing_gbmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, batch_count);
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, batch_count);
+            unit_check_general<T>(1, dim_y, incy, hy_gold, hy_1, batch_count);
+            unit_check_general<T>(1, dim_y, incy, hy_gold, hy_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, dim_y, abs_incy, hy_gold, hy_1, batch_count);
+                = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy_1, batch_count);
             rocblas_error_2
-                = norm_check_general<T>('F', 1, dim_y, abs_incy, hy_gold, hy_2, batch_count);
+                = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy_2, batch_count);
         }
     }
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,9 +92,6 @@ void testing_swap_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
     host_strided_batch_vector<T> hx(N, incx ? incx : 1, stride_x, batch_count);
@@ -153,9 +150,9 @@ void testing_swap_strided_batched(const Arguments& arg)
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', 1, N, abs_incx, stride_x, hx_gold, hx, batch_count);
+                = norm_check_general<T>('F', 1, N, incx, stride_x, hx_gold, hx, batch_count);
             rocblas_error
-                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
+                = norm_check_general<T>('F', 1, N, incy, stride_y, hy_gold, hy, batch_count);
         }
     }
 

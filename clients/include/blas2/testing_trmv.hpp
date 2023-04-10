@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -112,8 +112,6 @@ void testing_trmv(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(M, M, lda);
@@ -170,7 +168,7 @@ void testing_trmv(const Arguments& arg)
         // Norm check.
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, abs_incx, hx, hres);
+            rocblas_error = norm_check_general<T>('F', 1, M, incx, hx, hres);
         }
     }
 

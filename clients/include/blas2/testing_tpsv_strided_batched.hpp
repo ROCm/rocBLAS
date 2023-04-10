@@ -134,8 +134,6 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
-
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(N, N, N, stride_a, batch_count);
@@ -232,8 +230,8 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx[b], hx_or_b_1[b]));
-            max_err_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx[b], hx_or_b_2[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx[b], hx_or_b_1[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx[b], hx_or_b_2[b]));
 
             //unit test
             trsm_err_res_check<T>(max_err_1, N, error_eps_multiplier, eps);
@@ -250,8 +248,8 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_1[b], hb[b]));
-            max_err_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_1[b], hb[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_1[b], hb[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_1[b], hb[b]));
 
             //unit test
             trsm_err_res_check<T>(max_err_1, N, error_eps_multiplier, eps);

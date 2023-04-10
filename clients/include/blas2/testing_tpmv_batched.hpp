@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -123,8 +123,6 @@ void testing_tpmv_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
     host_batch_matrix<T> hA(M, M, M, batch_count);
@@ -190,13 +188,13 @@ void testing_tpmv_batched(const Arguments& arg)
         // Unit check.
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, hx, hres, batch_count);
+            unit_check_general<T>(1, M, incx, hx, hres, batch_count);
         }
 
         // Norm check.
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, abs_incx, hx, hres, batch_count);
+            rocblas_error = norm_check_general<T>('F', 1, M, incx, hx, hres, batch_count);
         }
     }
 

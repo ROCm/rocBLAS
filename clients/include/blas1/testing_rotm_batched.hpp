@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -120,9 +120,6 @@ void testing_rotm_batched(const Arguments& arg)
             handle, N, nullptr, incx, nullptr, incy, nullptr, batch_count)));
         return;
     }
-
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
@@ -254,9 +251,9 @@ void testing_rotm_batched(const Arguments& arg)
                 if(arg.norm_check)
                 {
                     norm_error_device_x
-                        += norm_check_general<T>('F', 1, N, abs_incx, hx_gold, rx, batch_count);
+                        += norm_check_general<T>('F', 1, N, incx, hx_gold, rx, batch_count);
                     norm_error_device_y
-                        += norm_check_general<T>('F', 1, N, abs_incy, hy_gold, ry, batch_count);
+                        += norm_check_general<T>('F', 1, N, incy, hy_gold, ry, batch_count);
                 }
             }
         }

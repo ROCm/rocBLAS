@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,11 +42,13 @@
 /* ========================================Norm Check* ==================================================== */
 
 template <typename T>
-void m_axpy(size_t* N, T* alpha, T* x, int* incx, T* y, int* incy)
+void m_axpy_64(int64_t N, T* alpha, T* x, int64_t incx, T* y, int64_t incy)
 {
-    for(size_t i = 0; i < *N; i++)
+    int64_t x_offset = incx >= 0 ? 0 : incx * (1 - N);
+    int64_t y_offset = incy >= 0 ? 0 : incy * (1 - N);
+    for(int64_t i = 0; i < N; i++)
     {
-        y[i * (*incy)] = (*alpha) * x[i * (*incx)] + y[i * (*incy)];
+        y[y_offset + i * incy] = (*alpha) * x[x_offset + i * incx] + y[y_offset + i * incy];
     }
 }
 
@@ -62,28 +64,30 @@ double norm_check_general(
     // one norm is max column sum
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
-    size_t size = N * (size_t)lda;
+
+    host_vector<double> work(std::max(1, M));
+    int64_t             incx  = 1;
+    double              alpha = -1.0;
+
+    size_t size = M * size_t(N); // copying data so lda is M
 
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
     for(rocblas_int i = 0; i < N; i++)
     {
+        int64_t src_col = i * int64_t(lda);
+        int64_t dst_col = i * int64_t(M);
         for(rocblas_int j = 0; j < M; j++)
         {
-            size_t idx       = j + i * (size_t)lda;
-            hCPU_double[idx] = double(hCPU[idx]);
-            hGPU_double[idx] = double(hGPU[idx]);
+            hCPU_double[size_t(dst_col + j)] = double(hCPU[src_col + j]);
+            hGPU_double[size_t(dst_col + j)] = double(hGPU[src_col + j]);
         }
     }
 
-    host_vector<double> work(std::max(1, M));
-    rocblas_int         incx  = 1;
-    double              alpha = -1.0;
-
-    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU_double.data(), lda, work.data());
-    m_axpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
-    double error = lapack_xlange(norm_type, M, N, hGPU_double.data(), lda, work.data()) / cpu_norm;
+    double cpu_norm = lapack_xlange(norm_type, M, N, hCPU_double.data(), M, work.data());
+    m_axpy_64(size, &alpha, hCPU_double.data(), incx, hGPU_double.data(), incx);
+    double error = lapack_xlange(norm_type, M, N, hGPU_double.data(), M, work.data()) / cpu_norm;
     return error;
 }
 
@@ -98,12 +102,12 @@ double norm_check_general(
     // Frobenius is l2 norm of matrix entries
 
     host_vector<double> work(std::max(1, M));
-    rocblas_int         incx  = 1;
+    int64_t             incx  = 1;
     T                   alpha = -1.0;
-    size_t              size  = N * (size_t)lda;
+    int64_t             size  = N * (int64_t)lda;
 
     double cpu_norm = lapack_xlange(norm_type, M, N, hCPU, lda, work.data());
-    m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
+    m_axpy_64(size, &alpha, hCPU, incx, hGPU, incx);
     double error = lapack_xlange(norm_type, M, N, hGPU, lda, work.data()) / cpu_norm;
 
     return error;
@@ -314,7 +318,7 @@ double norm_check_symmetric(
     }
 
     double cpu_norm = lapack_xlansy<HERM>(norm_type, uplo, N, hCPU_double.data(), lda, work.data());
-    m_axpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
+    m_axpy_64(size, &alpha, hCPU_double.data(), incx, hGPU_double.data(), incx);
     double error
         = lapack_xlansy<HERM>(norm_type, uplo, N, hGPU_double.data(), lda, work.data()) / cpu_norm;
 
@@ -332,7 +336,7 @@ double norm_check_symmetric(
     size_t              size  = (size_t)lda * N;
 
     double cpu_norm = lapack_xlansy<HERM>(norm_type, uplo, N, hCPU, lda, work.data());
-    m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
+    m_axpy_64(size, &alpha, hCPU, incx, hGPU, incx);
     double error = lapack_xlansy<HERM>(norm_type, uplo, N, hGPU, lda, work.data()) / cpu_norm;
 
     return error;
@@ -388,11 +392,12 @@ double matrix_norm_1(rocblas_int M, rocblas_int N, rocblas_int lda, T* hA_gold, 
 template <typename T>
 double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
 {
-    double max_err_scal = 0.0;
-    double max_err      = 0.0;
+    double  max_err_scal = 0.0;
+    double  max_err      = 0.0;
+    int64_t x_offset     = incx >= 0 ? 0 : int64_t(incx) * (1 - M);
     for(int i = 0; i < M; i++)
     {
-        size_t idx = i * (size_t)incx;
+        size_t idx = x_offset + i * (int64_t)incx;
         max_err += rocblas_abs((hx_gold[idx] - hx[idx]));
         max_err_scal += rocblas_abs(hx_gold[idx]);
     }
