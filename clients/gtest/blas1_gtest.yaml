@@ -8,8 +8,8 @@ Definitions:
     - { N: 1048600, incx: 4096 } #  low op count: N * incx overflows uint32_t and int32_t
 
   - &size_t_xy_range
-    - { N: 1048600, incx: 4096, incy: 1 }
-    - { N: 1048600, incx: 1, incy: 4096 }
+    - { N: 1048600, incx: 4096, incy:     1 }
+    - { N: 1048600, incx:    1, incy: -4096 }
 
   - &N_range
     - [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
@@ -502,7 +502,7 @@ Tests:
     pointer_mode_host: false
 
   - name: blas1_size_t
-    category: stress
+    category: nightly #stress
     matrix_size: *size_t_x_range
     pointer_mode_device: false
     alpha: [ 2 ]
@@ -512,9 +512,15 @@ Tests:
   - name: blas1_size_t
     category: nightly #stress
     matrix_size: *size_t_xy_range
+<<<<<<< HEAD
     pointer_mode_device: false
     function:
       - swap: *single_precision
+=======
+    function:
+      - copy:  *single_precision
+
+>>>>>>> 288954d0 (COPY: 32 bit offset overflow tests)
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants

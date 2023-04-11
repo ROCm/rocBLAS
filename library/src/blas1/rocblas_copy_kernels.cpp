@@ -35,7 +35,7 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_copy_kernel(rocblas_int    n,
                                              rocblas_int    incy,
                                              rocblas_stride stridey)
 {
-    ptrdiff_t   tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t     tid = blockIdx.x * blockDim.x + threadIdx.x;
     const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
     auto*       y   = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
     if(tid < n)
@@ -57,12 +57,12 @@ rocblas_scopy_2_kernel(rocblas_int n,
                        rocblas_stride shifty,
                        rocblas_stride stridey)
 {
-    ptrdiff_t   tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    int64_t     tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
     const auto* x   = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
     auto*       y   = load_ptr_batch(ya, blockIdx.y, shifty, stridey);
     if(tid < n - 1)
     {
-        for(rocblas_int j = 0; j < 2; ++j)
+        for(int j = 0; j < 2; ++j)
         {
             y[tid + j] = x[tid + j];
         }
@@ -97,8 +97,8 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     if(!using_rocblas_float || incx != 1 || incy != 1)
     {
         // In case of negative inc shift pointer to end of data for negative indexing tid*inc
-        ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
-        ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
+        int64_t shiftx = offsetx - ((incx < 0) ? int64_t(incx) * (n - 1) : 0);
+        int64_t shifty = offsety - ((incy < 0) ? int64_t(incy) * (n - 1) : 0);
 
         int  blocks = (n - 1) / NB + 1;
         dim3 grid(blocks, batch_count);
@@ -124,8 +124,8 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         // Kernel function for improving the performance of SCOPY when incx==1 and incy==1
 
         // In case of negative inc shift pointer to end of data for negative indexing tid*inc
-        ptrdiff_t shiftx = offsetx - 0;
-        ptrdiff_t shifty = offsety - 0;
+        int64_t shiftx = offsetx - 0;
+        int64_t shifty = offsety - 0;
 
         int         blocks = 1 + ((n - 1) / (NB * 2));
         dim3        grid(blocks, batch_count);
