@@ -262,12 +262,6 @@ void testing_ger_strided_batched(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
-    size_t size_A   = size_t(lda) * N;
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = M * abs_incx;
-    size_t size_y   = N * abs_incy;
-
     // argument check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
@@ -291,9 +285,6 @@ void testing_ger_strided_batched(const Arguments& arg)
 
         return;
     }
-
-    size_x += size_t(stride_x) * size_t(batch_count - 1);
-    size_y += size_t(stride_y) * size_t(batch_count - 1);
 
     // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
     // Allocate host memory

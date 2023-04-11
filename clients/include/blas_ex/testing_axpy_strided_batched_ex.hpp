@@ -257,12 +257,11 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<Tx> hx(N, incx ? incx : 1, stridex, batch_count);
-    host_strided_batch_vector<Ty> hy(N, incy ? incy : 1, stridey, batch_count),
-        hy1(N, incy ? incy : 1, stridey, batch_count),
-        hy2(N, incy ? incy : 1, stridey, batch_count);
-    host_strided_batch_vector<Tex> hx_ex(N, incx ? incx : 1, stridex, batch_count);
-    host_strided_batch_vector<Tex> hy_ex(N, incy ? incy : 1, stridey, batch_count);
+    host_strided_batch_vector<Tx> hx(N, incx, stridex, batch_count);
+    host_strided_batch_vector<Ty> hy(N, incy, stridey, batch_count),
+        hy1(N, incy, stridey, batch_count), hy2(N, incy, stridey, batch_count);
+    host_strided_batch_vector<Tex> hx_ex(N, incx, stridex, batch_count);
+    host_strided_batch_vector<Tex> hy_ex(N, incy, stridey, batch_count);
     host_vector<Ta>                halpha(1);
 
     // Check host memory allocation
@@ -273,8 +272,8 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
     CHECK_HIP_ERROR(halpha.memcheck());
 
     // Allocate device memory
-    device_strided_batch_vector<Tx> dx(N, incx ? incx : 1, stridex, batch_count);
-    device_strided_batch_vector<Ty> dy(N, incy ? incy : 1, stridey, batch_count);
+    device_strided_batch_vector<Tx> dx(N, incx, stridex, batch_count);
+    device_strided_batch_vector<Ty> dy(N, incy, stridey, batch_count);
     device_vector<Ta>               dalpha(1);
 
     // Check device memory allocation
@@ -388,9 +387,9 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
             if(arg.norm_check)
             {
                 rocblas_error_1
-                    = norm_check_general<Ty>('I', 1, N, abs_incy, stridey, hy, hy1, batch_count);
+                    = norm_check_general<Ty>('I', 1, N, incy, stridey, hy, hy1, batch_count);
                 rocblas_error_2
-                    = norm_check_general<Ty>('I', 1, N, abs_incy, stridey, hy, hy2, batch_count);
+                    = norm_check_general<Ty>('I', 1, N, incy, stridey, hy, hy2, batch_count);
             }
         }
     }

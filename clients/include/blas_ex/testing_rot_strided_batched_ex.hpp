@@ -195,14 +195,14 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<Tx> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<Ty> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<Tx> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy(N, incy, stride_y, batch_count);
     host_vector<Tcs>              hc(1, 1);
     host_vector<Tcs>              hs(1, 1);
 
     // Allocate device memory
-    device_strided_batch_vector<Tx> dx(N, incx ? incx : 1, stride_x, batch_count);
-    device_strided_batch_vector<Ty> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_strided_batch_vector<Tx> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<Ty> dy(N, incy, stride_y, batch_count);
     device_vector<Tcs>              dc(1, 1);
     device_vector<Tcs>              ds(1, 1);
 
@@ -219,8 +219,8 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
     rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
-    host_strided_batch_vector<Tx> hx_gold(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<Ty> hy_gold(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<Tx> hx_gold(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy_gold(N, incy, stride_y, batch_count);
     hx_gold.copy_from(hx);
     hy_gold.copy_from(hy);
     // cblas_rotg<T, U>(hx_gold, hy_gold, hc, hs);
@@ -257,8 +257,8 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                                                    batch_count,
                                                                    execution_type)));
             handle.post_test(arg);
-            host_strided_batch_vector<Tx> rx(N, incx ? incx : 1, stride_x, batch_count);
-            host_strided_batch_vector<Ty> ry(N, incy ? incy : 1, stride_y, batch_count);
+            host_strided_batch_vector<Tx> rx(N, incx, stride_x, batch_count);
+            host_strided_batch_vector<Ty> ry(N, incy, stride_y, batch_count);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
@@ -301,8 +301,8 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                                                    cs_type,
                                                                    batch_count,
                                                                    execution_type)));
-            host_strided_batch_vector<Tx> rx(N, incx ? incx : 1, stride_x, batch_count);
-            host_strided_batch_vector<Ty> ry(N, incy ? incy : 1, stride_y, batch_count);
+            host_strided_batch_vector<Tx> rx(N, incx, stride_x, batch_count);
+            host_strided_batch_vector<Ty> ry(N, incy, stride_y, batch_count);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));

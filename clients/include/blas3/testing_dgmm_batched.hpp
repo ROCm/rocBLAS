@@ -130,7 +130,7 @@ void testing_dgmm_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_batch_matrix<T> hA(M, N, lda, batch_count);
-    host_batch_vector<T> hx(K, incx ? incx : 1, batch_count);
+    host_batch_vector<T> hx(K, incx, batch_count);
     host_batch_matrix<T> hC_1(M, N, ldc, batch_count);
     host_batch_matrix<T> hC_2(M, N, ldc, batch_count);
     host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
@@ -144,7 +144,7 @@ void testing_dgmm_batched(const Arguments& arg)
 
     // Allocate device memory
     device_batch_matrix<T> dA(M, N, lda, batch_count);
-    device_batch_vector<T> dx(K, incx ? incx : 1, batch_count);
+    device_batch_vector<T> dx(K, incx, batch_count);
     device_batch_matrix<T> dC(M, N, ldc, batch_count);
 
     // Check device memory allocation

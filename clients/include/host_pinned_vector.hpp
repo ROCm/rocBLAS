@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,9 +41,10 @@ struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
     //!
 
     host_pinned_vector(size_t n, rocblas_int inc)
-        : std::vector<T, pinned_memory_allocator<T>>(n * inc, pinned_memory_allocator<T>())
+        : std::vector<T, pinned_memory_allocator<T>>(n * (inc ? inc : 1),
+                                                     pinned_memory_allocator<T>())
         , m_n(n)
-        , m_inc(inc)
+        , m_inc(inc ? inc : 1)
     {
     }
 

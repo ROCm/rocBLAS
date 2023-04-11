@@ -123,14 +123,14 @@ void testing_rotm_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
     host_batch_vector<T> hdata(4, 1, batch_count);
     host_batch_vector<T> hparam(5, 1, batch_count);
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
     device_batch_vector<T> dparam(5, 1, batch_count);
 
     // Check device memory allocation
@@ -156,8 +156,8 @@ void testing_rotm_batched(const Arguments& arg)
     const T       FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
 
     // CPU BLAS reference data
-    host_batch_vector<T> hx_gold(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx_gold(N, incx, batch_count);
+    host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     for(int i = 0; i < FLAG_COUNT; i++)
     {
@@ -236,8 +236,8 @@ void testing_rotm_batched(const Arguments& arg)
                                                              batch_count)));
                 handle.post_test(arg);
 
-                host_batch_vector<T> rx(N, incx ? incx : 1, batch_count);
-                host_batch_vector<T> ry(N, incy ? incy : 1, batch_count);
+                host_batch_vector<T> rx(N, incx, batch_count);
+                host_batch_vector<T> ry(N, incy, batch_count);
 
                 CHECK_HIP_ERROR(rx.transfer_from(dx));
                 CHECK_HIP_ERROR(ry.transfer_from(dy));

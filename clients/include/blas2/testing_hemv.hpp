@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -161,11 +161,6 @@ void testing_hemv(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * abs_incx;
-    size_t size_y   = N * abs_incy;
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(N, N, lda);
@@ -247,14 +242,14 @@ void testing_hemv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_1);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2);
+            rocblas_error_1 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1);
+            rocblas_error_2 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2);
         }
     }
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 
     // Allocate device memory
     device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx(K, incx ? incx : 1, stride_x, batch_count);
+    device_strided_batch_vector<T> dx(K, incx, stride_x, batch_count);
     device_strided_batch_matrix<T> dC(M, N, ldc, stride_a, batch_count);
 
     // Check device memory allocation
@@ -228,7 +228,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(M, N, lda, stride_a, batch_count);
-    host_strided_batch_vector<T> hx(K, incx ? incx : 1, stride_x, batch_count);
+    host_strided_batch_vector<T> hx(K, incx, stride_x, batch_count);
     host_strided_batch_matrix<T> hC_1(M, N, ldc, stride_c, batch_count);
     host_strided_batch_matrix<T> hC_2(M, N, ldc, stride_c, batch_count);
     host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
@@ -241,7 +241,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     // Allocate device memory
     device_strided_batch_matrix<T> dA(M, N, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx(K, incx ? incx : 1, stride_x, batch_count);
+    device_strided_batch_vector<T> dx(K, incx, stride_x, batch_count);
     device_strided_batch_matrix<T> dC(M, N, ldc, stride_c, batch_count);
 
     // Check device memory allocation

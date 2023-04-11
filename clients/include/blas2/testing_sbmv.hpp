@@ -156,8 +156,6 @@ void testing_sbmv(const Arguments& arg)
 
     rocblas_fill uplo = char2rocblas_fill(arg.uplo);
 
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
@@ -244,14 +242,14 @@ void testing_sbmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_1);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2);
+            h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1);
+            d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2);
         }
     }
 

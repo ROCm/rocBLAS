@@ -222,15 +222,15 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<Tx> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<Ty> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<Tx> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy(N, incy, stride_y, batch_count);
     host_vector<Tr>               cpu_result(batch_count);
     host_vector<Tr>               rocblas_result_1(batch_count);
     host_vector<Tr>               rocblas_result_2(batch_count);
 
     // Allocate device memory
-    device_strided_batch_vector<Tx> dx(N, incx ? incx : 1, stride_x, batch_count);
-    device_strided_batch_vector<Ty> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_strided_batch_vector<Tx> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<Ty> dy(N, incy, stride_y, batch_count);
     device_vector<Tr>               d_rocblas_result_2(batch_count);
 
     // Check device memory allocation

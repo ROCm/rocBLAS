@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,13 +51,13 @@ public:
     //!
     //! @brief Constructor.
     //! @param n The length of the vector.
-    //! @param inc The increment.
-    //! @param HMM         HipManagedMemory Flag.
+    //! @param inc Element index increment. If zero treated as one.
+    //! @param HMM HipManagedMemory Flag.
     //!
     explicit device_vector(size_t n, rocblas_int inc = 1, bool HMM = false)
-        : d_vector<T>{n * std::abs(inc), HMM}
+        : d_vector<T>{n * std::abs(inc ? inc : 1), HMM}
         , m_n{n}
-        , m_inc{inc}
+        , m_inc{inc ? inc : 1}
         , m_data{this->device_vector_setup()}
     {
     }

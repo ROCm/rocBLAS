@@ -119,8 +119,8 @@ void testing_rot_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
     host_vector<U>       hc(1, 1);
     host_vector<V>       hs(1, 1);
 
@@ -129,8 +129,8 @@ void testing_rot_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hy.memcheck());
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<U>       dc(1, 1);
     device_vector<V>       ds(1, 1);
 
@@ -147,8 +147,8 @@ void testing_rot_batched(const Arguments& arg)
     rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
-    host_batch_vector<T> cx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> cy(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> cx(N, incx, batch_count);
+    host_batch_vector<T> cy(N, incy, batch_count);
     cx.copy_from(hx);
     cy.copy_from(hy);
 
@@ -181,8 +181,8 @@ void testing_rot_batched(const Arguments& arg)
                                                         batch_count)));
             handle.post_test(arg);
 
-            host_batch_vector<T> rx(N, incx ? incx : 1, batch_count);
-            host_batch_vector<T> ry(N, incy ? incy : 1, batch_count);
+            host_batch_vector<T> rx(N, incx, batch_count);
+            host_batch_vector<T> ry(N, incy, batch_count);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
@@ -220,8 +220,8 @@ void testing_rot_batched(const Arguments& arg)
                                                         batch_count)));
             handle.post_test(arg);
 
-            host_batch_vector<T> rx(N, incx ? incx : 1, batch_count);
-            host_batch_vector<T> ry(N, incy ? incy : 1, batch_count);
+            host_batch_vector<T> rx(N, incx, batch_count);
+            host_batch_vector<T> ry(N, incy, batch_count);
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
 
