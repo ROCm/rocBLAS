@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ namespace
                 bool is_batched = (BLAS1 == blas1::copy_batched);
                 bool is_strided = (BLAS1 == blas1::copy_strided_batched);
 
-                name << '_' << arg.incx;
+                name << '_' << arg.N << "_" << arg.incx;
 
                 if(is_strided)
                 {
