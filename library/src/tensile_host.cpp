@@ -50,6 +50,7 @@ extern "C" void rocblas_shutdown();
 #include <iomanip>
 #include <memory>
 #include <mutex>
+#include <regex>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -69,8 +70,6 @@ extern "C" void rocblas_shutdown();
 #define ROCBLAS_LIB_PATH "/opt/rocm/lib/rocblas"
 #endif
 
-#ifdef WIN32
-
 #if __has_include(<filesystem>)
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -81,8 +80,6 @@ namespace fs = std::experimental::filesystem;
 #else
 #error no filesystem found
 #endif
-
-#endif // WIN32
 
 namespace
 {
@@ -604,7 +601,7 @@ namespace
                 // Find the location of the libraries
                 if(TestPath(path + "/../../Tensile/library"))
                     path += "/../../Tensile/library";
-                else if(TestPath(path + "library"))
+                else if(TestPath(path + "/library"))
                     path += "/library";
                 else
                     path += "/rocblas/library";
@@ -633,11 +630,29 @@ namespace
 #else
                     tensileLibraryPath = path + "/TensileLibrary.dat";
 #endif
-
                     if(!TestPath(tensileLibraryPath))
                     {
+#if ROCBLAS_TENSILE_SEPARATE_ARCH
+                        rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath
+                                     << ": " << strerror(errno) << " for GPU arch : " << processor
+                                     << std::endl;
+#if ROCBLAS_TENSILE_LAZY_LOAD
+                        std::regex fileMatcher(path + "/TensileLibrary_lazy.*");
+#else
+                        std::regex fileMatcher(path + "/TensileLibrary_gfx\\d+.dat");
+#endif
+                        rocblas_cerr << " List of available TensileLibrary Files : " << std::endl;
+                        for(auto& file_name : fs::directory_iterator(path))
+                        {
+                            if(std::regex_match(file_name.path().c_str(), fileMatcher))
+                            {
+                                rocblas_cerr << file_name << std::endl;
+                            }
+                        }
+#else
                         rocblas_cerr << "\nrocBLAS error: Cannot read " << tensileLibraryPath
                                      << ": " << strerror(errno) << std::endl;
+#endif
                         rocblas_abort();
                     }
                 }
