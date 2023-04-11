@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -171,6 +171,16 @@ message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
 # setup rocblas defines used for both the library and clients
 if( BUILD_WITH_TENSILE )
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=1)
+    if( Tensile_SEPARATE_ARCHITECTURES )
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_SEPARATE_ARCH=1)
+    else()
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_SEPARATE_ARCH=0)
+    endif()
+    if( Tensile_LAZY_LIBRARY_LOADING )
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_LAZY_LOAD=1)
+  else()
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_LAZY_LOAD=0)
+  endif()
 else()
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=0)
 endif()
