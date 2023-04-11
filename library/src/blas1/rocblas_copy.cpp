@@ -97,7 +97,7 @@ namespace
         }
 
         rocblas_status status
-            = rocblas_copy_template<false, NB>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1);
+            = rocblas_copy_template<NB>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1);
         if(status != rocblas_status_success)
             return status;
 
