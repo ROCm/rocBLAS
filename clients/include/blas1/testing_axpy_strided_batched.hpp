@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -145,14 +145,12 @@ void testing_axpy_strided_batched(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incy = incy > 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stridex, batch_count);
-    host_strided_batch_vector<T> hy_1(N, incy ? incy : 1, stridey, batch_count);
-    host_strided_batch_vector<T> hy_2(N, incy ? incy : 1, stridey, batch_count);
-    host_strided_batch_vector<T> hy_gold(N, incy ? incy : 1, stridey, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
+    host_strided_batch_vector<T> hy_1(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hy_2(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy, stridey, batch_count);
     host_vector<T>               halpha(1);
 
     halpha[0] = h_alpha;
@@ -164,8 +162,8 @@ void testing_axpy_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stridex, batch_count);
-    device_strided_batch_vector<T> dy(N, incy ? incy : 1, stridey, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stridey, batch_count);
     device_vector<T>               dalpha(1);
 
     // Check device memory allocation
@@ -238,16 +236,16 @@ void testing_axpy_strided_batched(const Arguments& arg)
             // Compare with with the solution.
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
-                unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
+                unit_check_general<T>(1, N, incy, stridey, hy_gold, hy_1, batch_count);
+                unit_check_general<T>(1, N, incy, stridey, hy_gold, hy_2, batch_count);
             }
 
             if(arg.norm_check)
             {
-                rocblas_error_1 = norm_check_general<T>(
-                    'I', 1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
-                rocblas_error_2 = norm_check_general<T>(
-                    'I', 1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
+                rocblas_error_1
+                    = norm_check_general<T>('I', 1, N, incy, stridey, hy_gold, hy_1, batch_count);
+                rocblas_error_2
+                    = norm_check_general<T>('I', 1, N, incy, stridey, hy_gold, hy_2, batch_count);
             }
         }
     }

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -139,13 +139,10 @@ void testing_rotm_strided_batched(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<T> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy(N, incy, stride_y, batch_count);
     host_strided_batch_vector<T> hparam(5, 1, stride_param, batch_count);
     host_vector<T>               hdata(4 * batch_count);
 
@@ -185,8 +182,8 @@ void testing_rotm_strided_batched(const Arguments& arg)
             (hparam + b * stride_param)[0] = FLAGS[i];
 
         // CPU BLAS reference data
-        host_strided_batch_vector<T> hx_gold(N, incx ? incx : 1, stride_x, batch_count);
-        host_strided_batch_vector<T> hy_gold(N, incy ? incy : 1, stride_y, batch_count);
+        host_strided_batch_vector<T> hx_gold(N, incx, stride_x, batch_count);
+        host_strided_batch_vector<T> hy_gold(N, incy, stride_y, batch_count);
 
         hx_gold.copy_from(hx);
         hy_gold.copy_from(hy);
@@ -249,8 +246,8 @@ void testing_rotm_strided_batched(const Arguments& arg)
                                                                      batch_count)));
                 handle.post_test(arg);
 
-                host_strided_batch_vector<T> rx(N, incx ? incx : 1, stride_x, batch_count);
-                host_strided_batch_vector<T> ry(N, incy ? incy : 1, stride_y, batch_count);
+                host_strided_batch_vector<T> rx(N, incx, stride_x, batch_count);
+                host_strided_batch_vector<T> ry(N, incy, stride_y, batch_count);
 
                 CHECK_HIP_ERROR(rx.transfer_from(dx));
                 CHECK_HIP_ERROR(ry.transfer_from(dy));
@@ -266,9 +263,9 @@ void testing_rotm_strided_batched(const Arguments& arg)
                 if(arg.norm_check)
                 {
                     norm_error_device_x += norm_check_general<T>(
-                        'F', 1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
+                        'F', 1, N, incx, stride_x, hx_gold, rx, batch_count);
                     norm_error_device_y += norm_check_general<T>(
-                        'F', 1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
+                        'F', 1, N, incy, stride_y, hy_gold, ry, batch_count);
                 }
             }
         }

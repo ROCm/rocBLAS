@@ -117,17 +117,15 @@ void testing_axpy(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incy = incy > 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx ? incx : 1);
-    host_vector<T> hy(N, incy ? incy : 1);
-    host_vector<T> hy_gold(N, incy ? incy : 1);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy(N, incy);
+    host_vector<T> hy_gold(N, incy);
 
     // Allocate device memory
-    device_vector<T> dx(N, incx ? incx : 1, HMM);
-    device_vector<T> dy(N, incy ? incy : 1, HMM);
+    device_vector<T> dx(N, incx, HMM);
+    device_vector<T> dy(N, incy, HMM);
     device_vector<T> d_alpha(1, 1, HMM);
 
     // Check device memory allocation
@@ -194,12 +192,12 @@ void testing_axpy(const Arguments& arg)
         {
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
+                unit_check_general<T>(1, N, incy, hy_gold, hy);
             }
 
             if(arg.norm_check)
             {
-                rocblas_error_1 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy);
+                rocblas_error_1 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
             }
         }
 
@@ -210,12 +208,12 @@ void testing_axpy(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
+                unit_check_general<T>(1, N, incy, hy_gold, hy);
             }
 
             if(arg.norm_check)
             {
-                rocblas_error_2 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy);
+                rocblas_error_2 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
             }
         }
     }

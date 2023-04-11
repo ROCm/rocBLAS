@@ -452,23 +452,21 @@ void testing_symv_strided_batched(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
-                unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
+                unit_check_general<T>(1, N, incy, stridey, hy_gold, hy_1, batch_count);
+                unit_check_general<T>(1, N, incy, stridey, hy_gold, hy_2, batch_count);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_1, batch_count, tol);
-                near_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy_2, batch_count, tol);
+                near_check_general<T>(1, N, incy, stridey, hy_gold, hy_1, batch_count, tol);
+                near_check_general<T>(1, N, incy, stridey, hy_gold, hy_2, batch_count, tol);
             }
         }
 
         if(arg.norm_check)
         {
-            h_error
-                = norm_check_general<T>('F', 1, N, abs_incy, stridey, hy_gold, hy_1, batch_count);
-            d_error
-                = norm_check_general<T>('F', 1, N, abs_incy, stridey, hy_gold, hy_2, batch_count);
+            h_error = norm_check_general<T>('F', 1, N, incy, stridey, hy_gold, hy_1, batch_count);
+            d_error = norm_check_general<T>('F', 1, N, incy, stridey, hy_gold, hy_2, batch_count);
         }
     }
 

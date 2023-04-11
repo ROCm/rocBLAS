@@ -235,11 +235,11 @@ void testing_axpy_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<Tx> hx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<Ty> hy(N, incy ? incy : 1, batch_count), hy1(N, incy ? incy : 1, batch_count),
-        hy2(N, incy ? incy : 1, batch_count);
-    host_batch_vector<Tex> hy_ex(N, incy ? incy : 1, batch_count);
-    host_batch_vector<Tex> hx_ex(N, incx ? incx : 1, batch_count);
+    host_batch_vector<Tx> hx(N, incx, batch_count);
+    host_batch_vector<Ty> hy(N, incy, batch_count), hy1(N, incy, batch_count),
+        hy2(N, incy, batch_count);
+    host_batch_vector<Tex> hy_ex(N, incy, batch_count);
+    host_batch_vector<Tex> hx_ex(N, incx, batch_count);
     host_vector<Ta>        halpha(1);
 
     // Check host memory allocation
@@ -250,8 +250,8 @@ void testing_axpy_batched_ex(const Arguments& arg)
     CHECK_HIP_ERROR(halpha.memcheck());
 
     // Allocate device memory
-    device_batch_vector<Tx> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<Ty> dy(N, incy ? incy : 1, batch_count);
+    device_batch_vector<Tx> dx(N, incx, batch_count);
+    device_batch_vector<Ty> dy(N, incy, batch_count);
     device_vector<Ta>       dalpha(1);
 
     // Check device memory allocation
@@ -359,8 +359,8 @@ void testing_axpy_batched_ex(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<Ty>('I', 1, N, abs_incy, hy, hy1, batch_count);
-            rocblas_error_2 = norm_check_general<Ty>('I', 1, N, abs_incy, hy, hy2, batch_count);
+            rocblas_error_1 = norm_check_general<Ty>('I', 1, N, incy, hy, hy1, batch_count);
+            rocblas_error_2 = norm_check_general<Ty>('I', 1, N, incy, hy, hy2, batch_count);
         }
     }
 

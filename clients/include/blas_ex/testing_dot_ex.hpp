@@ -188,15 +188,15 @@ void testing_dot_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<Tx> hx(N, incx ? incx : 1);
-    host_vector<Ty> hy(N, incy ? incy : 1);
+    host_vector<Tx> hx(N, incx);
+    host_vector<Ty> hy(N, incy);
     host_vector<Tr> cpu_result(1, 1);
     host_vector<Tr> rocblas_result_1(1, 1);
     host_vector<Tr> rocblas_result_2(1, 1);
 
     // Allocate device memory
-    device_vector<Tx> dx(N, incx ? incx : 1);
-    device_vector<Ty> dy(N, incy ? incy : 1);
+    device_vector<Tx> dx(N, incx);
+    device_vector<Ty> dy(N, incy);
     device_vector<Tr> d_rocblas_result_2(1);
 
     // Check device memory allocation

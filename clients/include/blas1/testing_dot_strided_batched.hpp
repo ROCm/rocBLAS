@@ -134,16 +134,8 @@ void testing_dot_strided_batched(const Arguments& arg)
     rocblas_int    incx        = arg.incx;
     rocblas_int    incy        = arg.incy;
     rocblas_int    batch_count = arg.batch_count;
-    rocblas_int    abs_incx    = incx >= 0 ? incx : -incx;
-    rocblas_int    abs_incy    = incy >= 0 ? incy : -incy;
     rocblas_stride stride_x    = arg.stride_x;
     rocblas_stride stride_y    = arg.stride_y;
-    size_t         size_x      = N * size_t(abs_incx);
-    size_t         size_y      = N * size_t(abs_incy);
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
 
     double               rocblas_error_1 = 0;
     double               rocblas_error_2 = 0;
@@ -198,15 +190,15 @@ void testing_dot_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<T> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy(N, incy, stride_y, batch_count);
     host_vector<T>               cpu_result(batch_count);
     host_vector<T>               rocblas_result_1(batch_count);
     host_vector<T>               rocblas_result_2(batch_count);
 
     // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stride_x, batch_count);
-    device_strided_batch_vector<T> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
     device_vector<T>               d_rocblas_result_2(batch_count);
 
     // Check device memory allocation

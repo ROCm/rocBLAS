@@ -95,14 +95,14 @@ void testing_rotm(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx ? incx : 1);
-    host_vector<T> hy(N, incy ? incy : 1);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy(N, incy);
     host_vector<T> hdata(4, 1);
     host_vector<T> hparam(5, 1);
 
     // Allocate device memory
-    device_vector<T> dx(N, incx ? incx : 1);
-    device_vector<T> dy(N, incy ? incy : 1);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
     device_vector<T> dparam(5, 1);
 
     // Check device memory allocation
@@ -145,8 +145,8 @@ void testing_rotm(const Arguments& arg)
 
                 CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam));
 
-                host_vector<T> rx(N, incx ? incx : 1);
-                host_vector<T> ry(N, incy ? incy : 1);
+                host_vector<T> rx(N, incx);
+                host_vector<T> ry(N, incy);
 
                 CHECK_HIP_ERROR(rx.transfer_from(dx));
                 CHECK_HIP_ERROR(ry.transfer_from(dy));
@@ -176,8 +176,8 @@ void testing_rotm(const Arguments& arg)
                 CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam));
                 handle.post_test(arg);
 
-                host_vector<T> rx(N, incx ? incx : 1);
-                host_vector<T> ry(N, incy ? incy : 1);
+                host_vector<T> rx(N, incx);
+                host_vector<T> ry(N, incy);
 
                 CHECK_HIP_ERROR(rx.transfer_from(dx));
                 CHECK_HIP_ERROR(ry.transfer_from(dy));

@@ -96,14 +96,14 @@ void testing_rot(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx ? incx : 1);
-    host_vector<T> hy(N, incy ? incy : 1);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy(N, incy);
     host_vector<U> hc(1);
     host_vector<V> hs(1);
 
     // Allocate device memory
-    device_vector<T> dx(N, incx ? incx : 1);
-    device_vector<T> dy(N, incy ? incy : 1);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
     device_vector<U> dc(1, 1);
     device_vector<V> ds(1, 1);
 
@@ -140,8 +140,8 @@ void testing_rot(const Arguments& arg)
             CHECK_ROCBLAS_ERROR((rocblas_rot_fn(handle, N, dx, incx, dy, incy, hc, hs)));
             handle.post_test(arg);
             // Allocate host memory
-            host_vector<T> rx(N, incx ? incx : 1);
-            host_vector<T> ry(N, incy ? incy : 1);
+            host_vector<T> rx(N, incx);
+            host_vector<T> ry(N, incy);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
@@ -169,8 +169,8 @@ void testing_rot(const Arguments& arg)
             handle.post_test(arg);
 
             // Allocate host memory
-            host_vector<T> rx(N, incx ? incx : 1);
-            host_vector<T> ry(N, incy ? incy : 1);
+            host_vector<T> rx(N, incx);
+            host_vector<T> ry(N, incy);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));

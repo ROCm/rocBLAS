@@ -120,14 +120,14 @@ void testing_dgmm(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(M, N, lda);
-    host_vector<T> hx(K, incx ? incx : 1);
+    host_vector<T> hx(K, incx);
     host_matrix<T> hC_1(M, N, ldc);
     host_matrix<T> hC_2(M, N, ldc);
     host_matrix<T> hC_gold(M, N, ldc);
 
     // Allocate device memory
     device_matrix<T> dA(M, N, lda);
-    device_vector<T> dx(K, incx ? incx : 1);
+    device_vector<T> dx(K, incx);
     device_matrix<T> dC(M, N, ldc);
 
     // Check device memory allocation

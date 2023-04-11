@@ -90,14 +90,14 @@ void testing_swap_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
-    host_batch_vector<T> hx_gold(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
+    host_batch_vector<T> hx_gold(N, incx, batch_count);
+    host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());

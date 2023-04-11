@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -88,13 +88,11 @@ void testing_copy_batched(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
-    host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
+    host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hx.memcheck());
@@ -102,8 +100,8 @@ void testing_copy_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -146,7 +144,7 @@ void testing_copy_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy, batch_count);
+            rocblas_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy, batch_count);
         }
     }
 
