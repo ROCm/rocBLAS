@@ -24,7 +24,7 @@
 #include "handle.hpp"
 #include "rocblas_copy.hpp"
 
-template <bool CONJ, typename T, typename U>
+template <typename T, typename U>
 ROCBLAS_KERNEL_NO_BOUNDS rocblas_copy_kernel(rocblas_int    n,
                                              const T        xa,
                                              rocblas_stride shiftx,
@@ -41,7 +41,7 @@ ROCBLAS_KERNEL_NO_BOUNDS rocblas_copy_kernel(rocblas_int    n,
     if(tid < n)
     {
 
-        y[tid * incy] = CONJ ? conj(x[tid * incx]) : x[tid * incx];
+        y[tid * incy] = x[tid * incx];
     }
 }
 
@@ -71,7 +71,7 @@ rocblas_scopy_2_kernel(rocblas_int n,
         y[tid] = x[tid];
 }
 
-template <bool CONJ, rocblas_int NB, typename T, typename U>
+template <rocblas_int NB, typename T, typename U>
 rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      T              x,
@@ -104,7 +104,7 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         dim3 grid(blocks, batch_count);
         dim3 threads(NB);
 
-        hipLaunchKernelGGL(rocblas_copy_kernel<CONJ>,
+        hipLaunchKernelGGL(rocblas_copy_kernel,
                            grid,
                            threads,
                            0,
@@ -199,69 +199,55 @@ rocblas_status rocblas_copy_check_numerics(const char*    function_name,
 #error INSTANTIATE_COPY_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_COPY_TEMPLATE(CONJ_, NB_, T_, U_)                                         \
-    template rocblas_status rocblas_copy_template<CONJ_, NB_, T_, U_>(rocblas_handle handle,  \
-                                                                      rocblas_int    n,       \
-                                                                      T_             x,       \
-                                                                      rocblas_stride offsetx, \
-                                                                      rocblas_int    incx,    \
-                                                                      rocblas_stride stridex, \
-                                                                      U_             y,       \
-                                                                      rocblas_stride offsety, \
-                                                                      rocblas_int    incy,    \
-                                                                      rocblas_stride stridey, \
-                                                                      rocblas_int    batch_count);
+#define INSTANTIATE_COPY_TEMPLATE(NB_, T_, U_)                                         \
+    template rocblas_status rocblas_copy_template<NB_, T_, U_>(rocblas_handle handle,  \
+                                                               rocblas_int    n,       \
+                                                               T_             x,       \
+                                                               rocblas_stride offsetx, \
+                                                               rocblas_int    incx,    \
+                                                               rocblas_stride stridex, \
+                                                               U_             y,       \
+                                                               rocblas_stride offsety, \
+                                                               rocblas_int    incy,    \
+                                                               rocblas_stride stridey, \
+                                                               rocblas_int    batch_count);
 
-INSTANTIATE_COPY_TEMPLATE(false, 512, const float*, float*)
-INSTANTIATE_COPY_TEMPLATE(true, 256, const float*, float*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, const float*, float*)
+INSTANTIATE_COPY_TEMPLATE(512, const float*, float*)
+INSTANTIATE_COPY_TEMPLATE(256, const float*, float*)
 
-INSTANTIATE_COPY_TEMPLATE(true, 256, const double*, double*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, const double*, double*)
+INSTANTIATE_COPY_TEMPLATE(256, const double*, double*)
 
-INSTANTIATE_COPY_TEMPLATE(true, 256, const rocblas_half*, rocblas_half*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, const rocblas_half*, rocblas_half*)
+INSTANTIATE_COPY_TEMPLATE(256, const rocblas_half*, rocblas_half*)
 
-INSTANTIATE_COPY_TEMPLATE(true, 256, const rocblas_float_complex*, rocblas_float_complex*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, const rocblas_float_complex*, rocblas_float_complex*)
+INSTANTIATE_COPY_TEMPLATE(256, const rocblas_float_complex*, rocblas_float_complex*)
 
-INSTANTIATE_COPY_TEMPLATE(true, 256, const rocblas_double_complex*, rocblas_double_complex*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, const rocblas_double_complex*, rocblas_double_complex*)
+INSTANTIATE_COPY_TEMPLATE(256, const rocblas_double_complex*, rocblas_double_complex*)
 
-INSTANTIATE_COPY_TEMPLATE(false, 512, float*, float*)
-INSTANTIATE_COPY_TEMPLATE(false, 512, float*, float* const*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, float*, float*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, float* const*, float* const*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, float const* const*, float* const*)
+INSTANTIATE_COPY_TEMPLATE(512, float*, float*)
+INSTANTIATE_COPY_TEMPLATE(512, float*, float* const*)
+INSTANTIATE_COPY_TEMPLATE(256, float*, float*)
+INSTANTIATE_COPY_TEMPLATE(256, float* const*, float* const*)
+INSTANTIATE_COPY_TEMPLATE(256, float const* const*, float* const*)
 
-INSTANTIATE_COPY_TEMPLATE(false, 512, double*, double*)
-INSTANTIATE_COPY_TEMPLATE(false, 512, double*, double* const*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, double*, double*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, double* const*, double* const*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, double const* const*, double* const*)
+INSTANTIATE_COPY_TEMPLATE(512, double*, double*)
+INSTANTIATE_COPY_TEMPLATE(512, double*, double* const*)
+INSTANTIATE_COPY_TEMPLATE(256, double*, double*)
+INSTANTIATE_COPY_TEMPLATE(256, double* const*, double* const*)
+INSTANTIATE_COPY_TEMPLATE(256, double const* const*, double* const*)
 
-INSTANTIATE_COPY_TEMPLATE(false, 256, const rocblas_half* const*, rocblas_half* const*)
+INSTANTIATE_COPY_TEMPLATE(256, const rocblas_half* const*, rocblas_half* const*)
 
-INSTANTIATE_COPY_TEMPLATE(false, 512, rocblas_float_complex*, rocblas_float_complex*)
-INSTANTIATE_COPY_TEMPLATE(false, 512, rocblas_float_complex*, rocblas_float_complex* const*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, rocblas_float_complex*, rocblas_float_complex*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, rocblas_float_complex* const*, rocblas_float_complex* const*)
-INSTANTIATE_COPY_TEMPLATE(false,
-                          256,
-                          rocblas_float_complex const* const*,
-                          rocblas_float_complex* const*)
+INSTANTIATE_COPY_TEMPLATE(512, rocblas_float_complex*, rocblas_float_complex*)
+INSTANTIATE_COPY_TEMPLATE(512, rocblas_float_complex*, rocblas_float_complex* const*)
+INSTANTIATE_COPY_TEMPLATE(256, rocblas_float_complex*, rocblas_float_complex*)
+INSTANTIATE_COPY_TEMPLATE(256, rocblas_float_complex* const*, rocblas_float_complex* const*)
+INSTANTIATE_COPY_TEMPLATE(256, rocblas_float_complex const* const*, rocblas_float_complex* const*)
 
-INSTANTIATE_COPY_TEMPLATE(false, 512, rocblas_double_complex*, rocblas_double_complex*)
-INSTANTIATE_COPY_TEMPLATE(false, 512, rocblas_double_complex*, rocblas_double_complex* const*)
-INSTANTIATE_COPY_TEMPLATE(false, 256, rocblas_double_complex*, rocblas_double_complex*)
-INSTANTIATE_COPY_TEMPLATE(false,
-                          256,
-                          rocblas_double_complex* const*,
-                          rocblas_double_complex* const*)
-INSTANTIATE_COPY_TEMPLATE(false,
-                          256,
-                          rocblas_double_complex const* const*,
-                          rocblas_double_complex* const*)
+INSTANTIATE_COPY_TEMPLATE(512, rocblas_double_complex*, rocblas_double_complex*)
+INSTANTIATE_COPY_TEMPLATE(512, rocblas_double_complex*, rocblas_double_complex* const*)
+INSTANTIATE_COPY_TEMPLATE(256, rocblas_double_complex*, rocblas_double_complex*)
+INSTANTIATE_COPY_TEMPLATE(256, rocblas_double_complex* const*, rocblas_double_complex* const*)
+INSTANTIATE_COPY_TEMPLATE(256, rocblas_double_complex const* const*, rocblas_double_complex* const*)
 
 #undef INSTANTIATE_COPY_TEMPLATE
 

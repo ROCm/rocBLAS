@@ -294,7 +294,7 @@ rocblas_status rocblas_internal_trmv_template(rocblas_handle    handle,
     {
         static constexpr rocblas_int offsetw = 0;
         static constexpr rocblas_int incw    = 1;
-        return rocblas_copy_template<false, TRMVT_NB>(
+        return rocblas_copy_template<TRMVT_NB>(
             handle, m, workspace, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
     }
 
