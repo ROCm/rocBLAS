@@ -644,7 +644,7 @@ namespace
                         rocblas_cerr << " List of available TensileLibrary Files : " << std::endl;
                         for(auto& file_name : fs::directory_iterator(path))
                         {
-                            if(std::regex_match(file_name.path().c_str(), fileMatcher))
+                            if(std::regex_match(file_name.path().string(), fileMatcher))
                             {
                                 rocblas_cerr << file_name << std::endl;
                             }
