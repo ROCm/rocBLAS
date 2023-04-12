@@ -3,6 +3,11 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &size_t_n_lda_incx_range
+    - { N:     2048, lda:  2097200, incx: 1       }  #  lda overflow
+    - { N:     2048, lda:  2097200, incx: 2       }  #  lda overflow
+    - { N:     2048, lda:     2048, incx: 2097200 }  # incx overflow
+
   - &tiny_matrix
     - { N:   16, lda:   16 }
 
@@ -101,6 +106,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
 
@@ -110,7 +116,17 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx: [ 1 ]
+  alpha_beta: *alpha_range_small
+
+- name: her_size_t
+  category: nightly
+  function: her
+  precision: *single_precision
+  uplo: [ U    ]
+  matrix_size: *size_t_n_lda_incx_range
+  pointer_mode_device: false
   alpha_beta: *alpha_range_small
 
 # her_batched
@@ -151,6 +167,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
@@ -161,6 +178,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
@@ -206,6 +224,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
@@ -217,6 +236,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ L ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
@@ -231,6 +251,7 @@ Tests:
   #- her_strided_batched: *single_precision_complex
   uplo: [ U ]
   matrix_size: *size_t_index
+  pointer_mode_device: false
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
 
