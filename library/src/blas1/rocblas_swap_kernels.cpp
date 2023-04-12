@@ -44,9 +44,9 @@ rocblas_swap_kernel(rocblas_int    n,
                     rocblas_int    incy,
                     rocblas_stride stridey)
 {
-    auto*     x   = load_ptr_batch(xa, blockIdx.y, offsetx, stridex);
-    auto*     y   = load_ptr_batch(ya, blockIdx.y, offsety, stridey);
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    auto*   x   = load_ptr_batch(xa, blockIdx.y, offsetx, stridex);
+    auto*   y   = load_ptr_batch(ya, blockIdx.y, offsety, stridey);
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n)
     {
@@ -66,12 +66,12 @@ rocblas_sswap_2_kernel(rocblas_int n,
                        rocblas_stride offsety,
                        rocblas_stride stridey)
 {
-    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
-    auto*     x   = load_ptr_batch(xa, blockIdx.y, offsetx, stridex);
-    auto*     y   = load_ptr_batch(ya, blockIdx.y, offsety, stridey);
+    int64_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    auto*   x   = load_ptr_batch(xa, blockIdx.y, offsetx, stridex);
+    auto*   y   = load_ptr_batch(ya, blockIdx.y, offsety, stridey);
     if(tid < n - 1)
     {
-        for(rocblas_int j = 0; j < 2; ++j)
+        for(int j = 0; j < 2; ++j)
         {
             rocblas_swap_vals(x + tid + j, y + tid + j);
         }
@@ -105,8 +105,8 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
     if(!using_rocblas_float || incx != 1 || incy != 1)
     {
         // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-        ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
-        ptrdiff_t shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+        int64_t shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
+        int64_t shifty = incy < 0 ? offsety - int64_t(incy) * (n - 1) : offsety;
 
         dim3 blocks((n - 1) / NB + 1, batch_count);
         dim3 threads(NB);
@@ -129,8 +129,8 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
     else
     {
         // Kernel function for improving the performance of SSWAP when incx==1 and incy==1
-        ptrdiff_t shiftx = offsetx - 0;
-        ptrdiff_t shifty = offsety - 0;
+        int64_t shiftx = offsetx - 0;
+        int64_t shifty = offsety - 0;
 
         int  blocks = 1 + ((n - 1) / (NB * 2));
         dim3 grid(blocks, batch_count);
