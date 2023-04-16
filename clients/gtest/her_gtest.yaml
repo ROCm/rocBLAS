@@ -4,9 +4,10 @@ include: known_bugs.yaml
 
 Definitions:
   - &size_t_n_lda_incx_range
-    - { N:     2048, lda:  2097200, incx: 1       }  #  lda overflow
-    - { N:     2048, lda:  2097200, incx: 2       }  #  lda overflow
-    - { N:     2048, lda:     2048, incx: 2097200 }  # incx overflow
+    - { N:     2048, lda:  2097200, incx:  1       }  #  lda overflow
+    - { N:     2048, lda:  2097200, incx:  2       }  #  lda overflow
+    - { N:     2048, lda:     2048, incx:  2097200 }  # incx overflow
+    - { N:     2048, lda:     2048, incx: -2097200 }  # incx overflow
 
   - &tiny_matrix
     - { N:   16, lda:   16 }
@@ -120,10 +121,10 @@ Tests:
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
 
-- name: her_size_t
+- name: her_size_t_n_lda_incx
   category: nightly
   function: her
-  precision: *single_precision
+  precision: *single_precision_complex
   uplo: [ U    ]
   matrix_size: *size_t_n_lda_incx_range
   pointer_mode_device: false
