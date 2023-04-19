@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ void testing_gemm_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+        auto rocblas_gemm_fn = arg.api == FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
         const rocblas_int M = 100;
         const rocblas_int N = 101;
@@ -177,7 +177,7 @@ nullptr, lda, nullptr, ldb, beta, dC, ldc), rocblas_status_success);
 template <typename T>
 void testing_gemm(const Arguments& arg)
 {
-    auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+    auto rocblas_gemm_fn = arg.api == FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);

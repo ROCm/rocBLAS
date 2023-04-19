@@ -45,7 +45,7 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                     "tests only run for V2.\n";
 #else
     auto rocblas_trmm_batched_fn
-        = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -282,7 +282,7 @@ void testing_trmm_batched(const Arguments& arg)
                     "tests only run for V2.\n";
 #else
     auto rocblas_trmm_batched_fn
-        = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}

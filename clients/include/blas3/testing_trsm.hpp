@@ -42,7 +42,7 @@
 template <typename T>
 void testing_trsm_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trsm_fn = arg.fortran ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn = arg.api == FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -199,7 +199,7 @@ void testing_trsm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trsm(const Arguments& arg)
 {
-    auto rocblas_trsm_fn = arg.fortran ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn = arg.api == FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;

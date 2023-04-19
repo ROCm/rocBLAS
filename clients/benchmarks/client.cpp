@@ -1268,6 +1268,7 @@ try
     bool        log_function_name   = false;
     bool        log_datatype        = false;
     bool        any_stride          = false;
+    bool        fortran             = false;
 
     arg.init(); // set all defaults
 
@@ -1480,7 +1481,7 @@ try
          "C and D are stored in separate memory")
 
         ("fortran",
-         bool_switch(&arg.fortran)->default_value(false),
+         bool_switch(&fortran)->default_value(false),
          "Run using Fortran interface")
 
         ("workspace",
@@ -1541,6 +1542,8 @@ try
     // transfer local variable state
 
     arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
+    if(fortran)
+        arg.api = FORTRAN;
 
     static const char* fp16AltImplEnvStr = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL");
     static const int   fp16AltImplEnv

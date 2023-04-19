@@ -41,7 +41,7 @@ Tests:
   - hemm_batched_bad_arg
   - hemm_strided_batched_bad_arg
   precision: *single_double_precisions_complex
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 
 - name: hemm_quick
@@ -72,7 +72,7 @@ Tests:
   side: [ L, R ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: hemm_large
   category: nightly
@@ -116,7 +116,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 1, 7 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: hemm_batched_large
   category: nightly
@@ -161,7 +161,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 1, 7 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: hemm_strided_batched_large
   category: nightly

@@ -62,7 +62,7 @@ Tests:
   - hpmv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   uplo: N
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: hpmv_arg_check
   category: quick
@@ -94,7 +94,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: hpmv_small
   category: quick
@@ -145,7 +145,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: hpmv_batched_small
   category: quick
@@ -202,7 +202,7 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: hpmv_strided_batched_small
   category: quick

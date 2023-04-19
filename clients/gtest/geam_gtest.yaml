@@ -70,7 +70,7 @@ Tests:
   - geam_batched_bad_arg
   - geam_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: invalid_size
   category: quick
@@ -82,7 +82,7 @@ Tests:
   transA: [N]
   transB: [N]
   matrix_size: *invalid_size_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_size_t
   category: nightly
@@ -98,7 +98,7 @@ Tests:
     - { alpha:  1.0, beta:  1.0 }
   stride_scale: [ 1 ]
   batch_count: [ 1 ]
-  fortran: [ false ]
+  api: C
 
 - name: geam_NaN
   category: quick
@@ -116,7 +116,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_batched_NaN
   category: quick
@@ -136,7 +136,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
   batch_count: [ 1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_strided_batched_NaN
   category: quick
@@ -158,7 +158,7 @@ Tests:
   alpha_beta: *small_alpha_beta_range
   stride_scale: [ 1, 2      ]
   batch_count: [ 1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_small_complex
   category: quick
@@ -167,7 +167,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_complex_alpha_beta_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_batched_small_complex
   category: quick
@@ -177,7 +177,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_complex_alpha_beta_range
   batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_strided_batched_small_complex
   category: quick
@@ -188,7 +188,7 @@ Tests:
   alpha_beta: *small_complex_alpha_beta_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_large
   category: pre_checkin

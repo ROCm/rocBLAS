@@ -40,8 +40,9 @@ template <typename T, bool CONJ = false>
 void testing_dot_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_dot_batched_fn
-        = arg.fortran ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
-                      : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
+        = arg.api == FORTRAN
+              ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
+              : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -108,8 +109,9 @@ template <typename T, bool CONJ = false>
 void testing_dot_batched(const Arguments& arg)
 {
     auto rocblas_dot_batched_fn
-        = arg.fortran ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
-                      : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
+        = arg.api == FORTRAN
+              ? (CONJ ? rocblas_dotc_batched<T, true> : rocblas_dot_batched<T, true>)
+              : (CONJ ? rocblas_dotc_batched<T, false> : rocblas_dot_batched<T, false>);
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;

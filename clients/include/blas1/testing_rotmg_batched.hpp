@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,8 @@
 template <typename T, typename U = T>
 void testing_rotmg_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_rotgm_batched_fn
-        = FORTRAN ? rocblas_rotmg_batched<T, true> : rocblas_rotmg_batched<T, false>;
+    auto rocblas_rotgm_batched_fn
+        = arg.api == FORTRAN ? rocblas_rotmg_batched<T, true> : rocblas_rotmg_batched<T, false>;
 
     rocblas_int batch_count = 5;
 
@@ -111,9 +110,9 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotmg_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_rotgm_batched_fn
-        = FORTRAN ? rocblas_rotmg_batched<T, true> : rocblas_rotmg_batched<T, false>;
+
+    auto rocblas_rotgm_batched_fn
+        = arg.api == FORTRAN ? rocblas_rotmg_batched<T, true> : rocblas_rotmg_batched<T, false>;
 
     const int            TEST_COUNT  = 100;
     rocblas_int          batch_count = arg.batch_count;

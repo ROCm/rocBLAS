@@ -48,7 +48,7 @@ Tests:
   uplo: L
   transA: N
   diag: N
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trsv_arg_check
   category: quick
@@ -60,7 +60,7 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 # Regular trsv
 - name: trsv_fortran
@@ -69,7 +69,7 @@ Tests:
   arguments: *common_args
   matrix_size: *small_matrix_size_range
   incx: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: trsv_small
   category: quick
@@ -100,7 +100,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ 2 ]
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: trsv_batched_small
   category: quick
@@ -135,7 +135,7 @@ Tests:
   incx: [ 2 ]
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: trsv_strided_batched_small
   category: quick

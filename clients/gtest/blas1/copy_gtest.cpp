@@ -77,7 +77,7 @@ namespace
                 }
             }
 
-            if(arg.fortran)
+            if(arg.api == FORTRAN)
             {
                 name << "_F";
             }

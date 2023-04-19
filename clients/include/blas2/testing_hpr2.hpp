@@ -40,7 +40,7 @@
 template <typename T>
 void testing_hpr2_bad_arg(const Arguments& arg)
 {
-    auto rocblas_hpr2_fn = arg.fortran ? rocblas_hpr2<T, true> : rocblas_hpr2<T, false>;
+    auto rocblas_hpr2_fn = arg.api == FORTRAN ? rocblas_hpr2<T, true> : rocblas_hpr2<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -118,7 +118,7 @@ void testing_hpr2_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_hpr2(const Arguments& arg)
 {
-    auto rocblas_hpr2_fn = arg.fortran ? rocblas_hpr2<T, true> : rocblas_hpr2<T, false>;
+    auto rocblas_hpr2_fn = arg.api == FORTRAN ? rocblas_hpr2<T, true> : rocblas_hpr2<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;

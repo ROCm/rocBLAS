@@ -35,11 +35,13 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas1/rocblas_axpy.hpp"
+
 /* ============================================================================================ */
 template <typename T>
 void testing_axpy_bad_arg(const Arguments& arg)
 {
-    auto rocblas_axpy_fn = arg.fortran ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn = arg.api == FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -100,7 +102,7 @@ void testing_axpy_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_axpy(const Arguments& arg)
 {
-    auto rocblas_axpy_fn = arg.fortran ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn = arg.api == FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
@@ -158,9 +160,29 @@ void testing_axpy(const Arguments& arg)
             // ROCBLAS pointer mode host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-            handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy));
-            handle.post_test(arg);
+            if(arg.api != INTERNAL)
+            {
+                handle.pre_test(arg);
+                CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy));
+                handle.post_test(arg);
+            }
+            else if(arg.api == INTERNAL)
+            {
+                // only checking offsets not alpha stride
+                CHECK_ROCBLAS_ERROR(rocblas_internal_axpy_template<T>(handle,
+                                                                      N,
+                                                                      &h_alpha,
+                                                                      0,
+                                                                      dx + arg.lda,
+                                                                      -arg.lda,
+                                                                      incx,
+                                                                      arg.stride_x,
+                                                                      dy + arg.ldb,
+                                                                      -arg.ldb,
+                                                                      incy,
+                                                                      arg.stride_y,
+                                                                      1));
+            }
 
             // copy output from device to CPU
             CHECK_HIP_ERROR(hy.transfer_from(dy));

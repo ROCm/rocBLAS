@@ -42,8 +42,9 @@
 template <typename T>
 void testing_trsm_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trsm_strided_batched_fn = arg.fortran ? rocblas_trsm_strided_batched<T, true>
-                                                       : rocblas_trsm_strided_batched<T, false>;
+    auto rocblas_trsm_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_trsm_strided_batched<T, true>
+                                               : rocblas_trsm_strided_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -410,8 +411,9 @@ void testing_trsm_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trsm_strided_batched(const Arguments& arg)
 {
-    auto rocblas_trsm_strided_batched_fn = arg.fortran ? rocblas_trsm_strided_batched<T, true>
-                                                       : rocblas_trsm_strided_batched<T, false>;
+    auto rocblas_trsm_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_trsm_strided_batched<T, true>
+                                               : rocblas_trsm_strided_batched<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;

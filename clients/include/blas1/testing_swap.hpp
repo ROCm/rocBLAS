@@ -38,7 +38,7 @@
 template <typename T>
 void testing_swap_bad_arg(const Arguments& arg)
 {
-    auto rocblas_swap_fn = arg.fortran ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+    auto rocblas_swap_fn = arg.api == FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
 
     rocblas_int N    = 100;
     rocblas_int incx = 1;
@@ -65,7 +65,7 @@ void testing_swap_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_swap(const Arguments& arg)
 {
-    auto rocblas_swap_fn = arg.fortran ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+    auto rocblas_swap_fn = arg.api == FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
 
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;

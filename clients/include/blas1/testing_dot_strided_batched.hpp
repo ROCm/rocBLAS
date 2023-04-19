@@ -39,7 +39,7 @@
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_dot_strided_batched_fn = arg.fortran
+    auto rocblas_dot_strided_batched_fn = arg.api == FORTRAN
                                               ? (CONJ ? rocblas_dotc_strided_batched<T, true>
                                                       : rocblas_dot_strided_batched<T, true>)
                                               : (CONJ ? rocblas_dotc_strided_batched<T, false>
@@ -124,7 +124,7 @@ void testing_dotc_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched(const Arguments& arg)
 {
-    auto rocblas_dot_strided_batched_fn = arg.fortran
+    auto rocblas_dot_strided_batched_fn = arg.api == FORTRAN
                                               ? (CONJ ? rocblas_dotc_strided_batched<T, true>
                                                       : rocblas_dot_strided_batched<T, true>)
                                               : (CONJ ? rocblas_dotc_strided_batched<T, false>

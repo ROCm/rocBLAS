@@ -44,7 +44,7 @@ void testing_trmm_bad_arg(const Arguments& arg)
     rocblas_cout
         << "WARNING: For V3 run trmm_outofplace tests, in place trmm tests only run for V2.\n";
 #else
-    auto rocblas_trmm_fn = arg.fortran ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
+    auto rocblas_trmm_fn = arg.api == FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -202,7 +202,7 @@ void testing_trmm(const Arguments& arg)
     rocblas_cout
         << "WARNING: For V3 run trmm_outofplace tests, in place trmm tests only run for V2.\n";
 #else
-    auto rocblas_trmm_fn = arg.fortran ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
+    auto rocblas_trmm_fn = arg.api == FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;

@@ -39,7 +39,7 @@
 template <typename T>
 void testing_sbmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_sbmv_fn = arg.fortran ? rocblas_sbmv<T, true> : rocblas_sbmv<T, false>;
+    auto rocblas_sbmv_fn = arg.api == FORTRAN ? rocblas_sbmv<T, true> : rocblas_sbmv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -140,7 +140,7 @@ void testing_sbmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_sbmv(const Arguments& arg)
 {
-    auto rocblas_sbmv_fn = arg.fortran ? rocblas_sbmv<T, true> : rocblas_sbmv<T, false>;
+    auto rocblas_sbmv_fn = arg.api == FORTRAN ? rocblas_sbmv<T, true> : rocblas_sbmv<T, false>;
 
     rocblas_int N                 = arg.N;
     rocblas_int lda               = arg.lda;

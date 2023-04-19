@@ -39,7 +39,7 @@ template <typename T>
 void testing_trsv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsv_batched_fn
-        = arg.fortran ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
     const rocblas_int       M           = 100;
     const rocblas_int       lda         = 100;
@@ -112,7 +112,7 @@ template <typename T>
 void testing_trsv_batched(const Arguments& arg)
 {
     auto rocblas_trsv_batched_fn
-        = arg.fortran ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int lda         = arg.lda;

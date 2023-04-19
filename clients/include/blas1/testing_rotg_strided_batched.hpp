@@ -37,8 +37,7 @@ template <typename T, typename U = T>
 void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
 {
     // clang-format off
-    const bool FORTRAN                         = arg.fortran;
-    auto       rocblas_rotg_strided_batched_fn = FORTRAN ? rocblas_rotg_strided_batched<T, U, true>
+    auto       rocblas_rotg_strided_batched_fn = arg.api == FORTRAN ? rocblas_rotg_strided_batched<T, U, true>
                                                          : rocblas_rotg_strided_batched<T, U, false>;
     // clang-format on
 
@@ -88,8 +87,7 @@ template <typename T, typename U = T>
 void testing_rotg_strided_batched(const Arguments& arg)
 {
     // clang-format off
-    const bool FORTRAN                         = arg.fortran;
-    auto       rocblas_rotg_strided_batched_fn = FORTRAN ? rocblas_rotg_strided_batched<T, U, true>
+    auto       rocblas_rotg_strided_batched_fn = arg.api == FORTRAN ? rocblas_rotg_strided_batched<T, U, true>
                                                          : rocblas_rotg_strided_batched<T, U, false>;
     // clang-format on
 

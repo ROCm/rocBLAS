@@ -45,7 +45,7 @@ Tests:
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trtri_bad_arg
   category: pre_checkin
@@ -55,7 +55,7 @@ Tests:
   - trtri_strided_batched_bad_arg: *single_double_precisions_complex_real
   uplo: L
   diag: N
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trtri
   category: pre_checkin
@@ -81,7 +81,7 @@ Tests:
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
   batch_count: [ -1, 0, 1, 25 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trtri_strided_batched
   category: quick
@@ -91,7 +91,7 @@ Tests:
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
   batch_count: [ -1, 0, 1, 25 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trtri_graph_test
   category: pre_checkin

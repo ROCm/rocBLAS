@@ -40,7 +40,7 @@ template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_scal_batched_ex_fn
-        = arg.fortran ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
+        = arg.api == FORTRAN ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
 
     rocblas_datatype alpha_type     = rocblas_type2datatype<Ta>();
     rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
@@ -108,7 +108,7 @@ template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_batched_ex(const Arguments& arg)
 {
     auto rocblas_scal_batched_ex_fn
-        = arg.fortran ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
+        = arg.api == FORTRAN ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;

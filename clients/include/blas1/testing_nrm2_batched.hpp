@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,9 +38,8 @@
 template <typename T>
 void testing_nrm2_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_nrm2_batched_fn
-        = FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
+    auto rocblas_nrm2_batched_fn
+        = arg.api == FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
@@ -72,9 +71,9 @@ void testing_nrm2_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_nrm2_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_nrm2_batched_fn
-        = FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
+
+    auto rocblas_nrm2_batched_fn
+        = arg.api == FORTRAN ? rocblas_nrm2_batched<T, true> : rocblas_nrm2_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;

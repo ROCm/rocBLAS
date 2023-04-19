@@ -38,7 +38,7 @@
 template <typename T>
 void testing_copy_bad_arg(const Arguments& arg)
 {
-    auto rocblas_copy_fn = arg.fortran ? rocblas_copy<T, true> : rocblas_copy<T, false>;
+    auto rocblas_copy_fn = arg.api == FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -63,7 +63,7 @@ void testing_copy_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_copy(const Arguments& arg)
 {
-    auto rocblas_copy_fn = arg.fortran ? rocblas_copy<T, true> : rocblas_copy<T, false>;
+    auto rocblas_copy_fn = arg.api == FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
 
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;

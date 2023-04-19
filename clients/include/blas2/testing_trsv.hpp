@@ -42,7 +42,7 @@
 template <typename T>
 void testing_trsv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trsv_fn = arg.fortran ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
+    auto rocblas_trsv_fn = arg.api == FORTRAN ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
 
     const rocblas_int       M      = 100;
     const rocblas_int       lda    = 100;
@@ -98,7 +98,7 @@ void testing_trsv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trsv(const Arguments& arg)
 {
-    auto rocblas_trsv_fn = arg.fortran ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
+    auto rocblas_trsv_fn = arg.api == FORTRAN ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int lda         = arg.lda;

@@ -40,7 +40,7 @@
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_axpy_ex_fn = arg.fortran ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
+    auto rocblas_axpy_ex_fn = arg.api == FORTRAN ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -154,7 +154,7 @@ void testing_axpy_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_ex(const Arguments& arg)
 {
-    auto rocblas_axpy_ex_fn = arg.fortran ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
+    auto rocblas_axpy_ex_fn = arg.api == FORTRAN ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
 
     rocblas_datatype alpha_type     = arg.a_type;
     rocblas_datatype x_type         = arg.b_type;

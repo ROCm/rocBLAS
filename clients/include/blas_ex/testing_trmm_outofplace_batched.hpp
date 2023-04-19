@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@
 template <typename T>
 void testing_trmm_outofplace_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trmm_outofplace_batched_fn = arg.fortran
+    auto rocblas_trmm_outofplace_batched_fn = arg.api == FORTRAN
                                                   ? rocblas_trmm_outofplace_batched<T, true>
                                                   : rocblas_trmm_outofplace_batched<T, false>;
 
@@ -426,7 +426,7 @@ void testing_trmm_outofplace_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_outofplace_batched(const Arguments& arg)
 {
-    auto rocblas_trmm_outofplace_batched_fn = arg.fortran
+    auto rocblas_trmm_outofplace_batched_fn = arg.api == FORTRAN
                                                   ? rocblas_trmm_outofplace_batched<T, true>
                                                   : rocblas_trmm_outofplace_batched<T, false>;
 

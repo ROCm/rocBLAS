@@ -42,7 +42,7 @@
 template <typename T>
 void testing_gemv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gemv_fn = arg.fortran ? rocblas_gemv<T, true> : rocblas_gemv<T, false>;
+    auto rocblas_gemv_fn = arg.api == FORTRAN ? rocblas_gemv<T, true> : rocblas_gemv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -176,7 +176,7 @@ void testing_gemv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gemv(const Arguments& arg)
 {
-    auto rocblas_gemv_fn = arg.fortran ? rocblas_gemv<T, true> : rocblas_gemv<T, false>;
+    auto rocblas_gemv_fn = arg.api == FORTRAN ? rocblas_gemv<T, true> : rocblas_gemv<T, false>;
 
     rocblas_int       M       = arg.M;
     rocblas_int       N       = arg.N;

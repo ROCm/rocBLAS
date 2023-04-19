@@ -42,7 +42,7 @@ template <typename T>
 void testing_gbmv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_gbmv_batched_fn
-        = arg.fortran ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -314,7 +314,7 @@ template <typename T>
 void testing_gbmv_batched(const Arguments& arg)
 {
     auto rocblas_gbmv_batched_fn
-        = arg.fortran ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
 
     rocblas_int       M                 = arg.M;
     rocblas_int       N                 = arg.N;

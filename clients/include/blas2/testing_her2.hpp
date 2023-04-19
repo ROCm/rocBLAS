@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@
 template <typename T>
 void testing_her2_bad_arg(const Arguments& arg)
 {
-    auto rocblas_her2_fn = arg.fortran ? rocblas_her2<T, true> : rocblas_her2<T, false>;
+    auto rocblas_her2_fn = arg.api == FORTRAN ? rocblas_her2<T, true> : rocblas_her2<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -120,7 +120,7 @@ void testing_her2_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_her2(const Arguments& arg)
 {
-    auto rocblas_her2_fn = arg.fortran ? rocblas_her2<T, true> : rocblas_her2<T, false>;
+    auto rocblas_her2_fn = arg.api == FORTRAN ? rocblas_her2<T, true> : rocblas_her2<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;

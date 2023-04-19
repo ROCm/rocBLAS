@@ -41,7 +41,7 @@ template <typename T>
 void testing_trmm_outofplace_bad_arg(const Arguments& arg)
 {
     auto rocblas_trmm_outofplace_fn
-        = arg.fortran ? rocblas_trmm_outofplace<T, true> : rocblas_trmm_outofplace<T, false>;
+        = arg.api == FORTRAN ? rocblas_trmm_outofplace<T, true> : rocblas_trmm_outofplace<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -281,7 +281,7 @@ void testing_trmm_outofplace(const Arguments& arg)
     //  rocblas_Xtrmm for rocblas_v3-test. Thus rocblas-test tests the deprecated
     //  function and rocblas_v3-test tests the new function.
     auto rocblas_trmm_outofplace_fn
-        = arg.fortran ? rocblas_trmm_outofplace<T, true> : rocblas_trmm_outofplace<T, false>;
+        = arg.api == FORTRAN ? rocblas_trmm_outofplace<T, true> : rocblas_trmm_outofplace<T, false>;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;

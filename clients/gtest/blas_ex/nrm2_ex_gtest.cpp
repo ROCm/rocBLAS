@@ -75,7 +75,7 @@ namespace
                     name << '_' << arg.batch_count;
             }
 
-            if(arg.fortran)
+            if(arg.api == FORTRAN)
                 name << "_F";
 
             return std::move(name);

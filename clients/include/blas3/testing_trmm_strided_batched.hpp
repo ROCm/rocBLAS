@@ -44,8 +44,9 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
     rocblas_cout << "WARNING: For V3 run trmm_outofplace_strided_batched tests, in place "
                     "trmm_strided_batched tests only run for V2.\n";
 #else
-    auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
-                                                       : rocblas_trmm_strided_batched<T, false>;
+    auto rocblas_trmm_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_trmm_strided_batched<T, true>
+                                               : rocblas_trmm_strided_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -398,8 +399,9 @@ void testing_trmm_strided_batched(const Arguments& arg)
     rocblas_cout << "WARNING: For V3 run trmm_outofplace_strided_batched tests, in place "
                     "trmm_strided_batched tests only run for V2.\n";
 #else
-    auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
-                                                       : rocblas_trmm_strided_batched<T, false>;
+    auto rocblas_trmm_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_trmm_strided_batched<T, true>
+                                               : rocblas_trmm_strided_batched<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@
 template <typename T>
 void testing_herk_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_herk_strided_batched_fn = arg.fortran
+    auto rocblas_herk_strided_batched_fn = arg.api == FORTRAN
                                                ? rocblas_herk_strided_batched<T, real_t<T>, true>
                                                : rocblas_herk_strided_batched<T, real_t<T>, false>;
 
@@ -337,7 +337,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_herk_strided_batched(const Arguments& arg)
 {
-    auto rocblas_herk_strided_batched_fn = arg.fortran
+    auto rocblas_herk_strided_batched_fn = arg.api == FORTRAN
                                                ? rocblas_herk_strided_batched<T, real_t<T>, true>
                                                : rocblas_herk_strided_batched<T, real_t<T>, false>;
 

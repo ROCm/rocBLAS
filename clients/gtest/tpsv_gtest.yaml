@@ -56,7 +56,7 @@ Tests:
   uplo: [ L ]
   transA: [ N ]
   diag: [ N ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: tpsv_fortran
   category: quick
@@ -64,7 +64,7 @@ Tests:
   arguments: *common_args
   matrix_size: *small_matrix_size_range
   incx: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: tpsv_small
   category: quick
@@ -95,7 +95,7 @@ Tests:
   uplo: [ L ]
   transA: [ N ]
   diag: [ N ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: tpsv_batched_fortran
   category: quick
@@ -104,7 +104,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ 2 ]
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: tpsv_batched_small
   category: quick
@@ -139,7 +139,7 @@ Tests:
   uplo: [ L ]
   transA: [ N ]
   diag: [ N ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: tpsv_strided_batched_fortran
   category: quick
@@ -149,7 +149,7 @@ Tests:
   incx: [ 2 ]
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: tpsv_strided_batched_small
   category: quick

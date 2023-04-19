@@ -58,14 +58,14 @@ Tests:
   function: geam_ex_bad_arg
   precision: *half_single_double_precisions
   geam_op: [0, 1]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: geam_ex_invalid_size
   category: quick
   function: geam_ex
   precision: *single_double_precisions
   matrix_size: *invalid_size_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   geam_op: [0, 1]
 
 - name: geam_ex_size_t
@@ -79,7 +79,7 @@ Tests:
     - { M: 4, N: 51200, K:     4, lda:     4, ldb: 51200, ldc:     4, ldd:     4 }
     - { M: 4, N: 51200, K:     4, lda:     4, ldb:     4, ldc: 51200, ldd:     4 }
     - { M: 4, N: 51200, K:     4, lda:     4, ldb:     4, ldc:     4, ldd: 51200}
-  fortran: [ false ]
+  api: C
   geam_op: [0, 1]
 
 - name: geam_ex_small
@@ -89,7 +89,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   geam_op: [0, 1]
 
 - name: geam_ex_large

@@ -37,7 +37,7 @@
 template <typename T>
 void testing_rotm_bad_arg(const Arguments& arg)
 {
-    auto rocblas_rotm_fn = arg.fortran ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
+    auto rocblas_rotm_fn = arg.api == FORTRAN ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
 
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
@@ -70,7 +70,7 @@ void testing_rotm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotm(const Arguments& arg)
 {
-    auto rocblas_rotm_fn = arg.fortran ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
+    auto rocblas_rotm_fn = arg.api == FORTRAN ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;

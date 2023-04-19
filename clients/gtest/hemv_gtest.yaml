@@ -70,7 +70,7 @@ Tests:
   - hemv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   uplo: N
-  fortran: [ true, false ]
+  api: [ C, FORTRAN ]
 
 - name: hemv_NaN
   category: pre_checkin
@@ -92,7 +92,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: hemv_small
   category: quick
@@ -142,7 +142,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: hemv_batched_small
   category: quick
@@ -197,7 +197,7 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: hemv_strided_batched_small
   category: quick

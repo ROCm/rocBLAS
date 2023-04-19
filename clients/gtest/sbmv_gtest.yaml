@@ -58,7 +58,7 @@ Tests:
   - sbmv_batched_bad_arg
   - sbmv_strided_batched_bad_arg
   precision: *single_precision
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: sbmv_arg_check
   category: quick
@@ -69,7 +69,7 @@ Tests:
   precision: *single_double_precisions
   uplo: L
   matrix_size: *special_case_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 # non-batched
 

@@ -35,6 +35,16 @@
 // Predeclare enumerator
 enum rocblas_argument : int;
 
+enum
+{
+    C,
+    FORTRAN,
+    C_64,
+    FORTRAN_64,
+    INTERNAL,
+    INTERNAL_64
+};
+
 /***************************************************************************
  *! \brief Class used to parse command arguments in both client & gtest    *
  * WARNING: If this data is changed, then rocblas_common.yaml must also be *
@@ -42,6 +52,7 @@ enum rocblas_argument : int;
  ***************************************************************************/
 struct Arguments
 {
+
     /*************************************************************************
      *                    Beginning Of Arguments                             *
      *************************************************************************/
@@ -108,6 +119,8 @@ struct Arguments
 
     rocblas_atomics_mode atomics_mode;
 
+    uint32_t api;
+
     // memory padding for testing write out of bounds
     uint32_t pad;
 
@@ -132,7 +145,6 @@ struct Arguments
     bool pointer_mode_device;
     bool c_noalias_d;
     bool HMM;
-    bool fortran;
     bool graph_test;
 
     /*************************************************************************
@@ -188,6 +200,7 @@ struct Arguments
     OPER(initialization) SEP         \
     OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
+    OPER(api) SEP                    \
     OPER(pad) SEP                    \
     OPER(threads) SEP                \
     OPER(streams) SEP                \
@@ -204,7 +217,6 @@ struct Arguments
     OPER(pointer_mode_device) SEP    \
     OPER(c_noalias_d) SEP            \
     OPER(HMM) SEP                    \
-    OPER(fortran) SEP                \
     OPER(graph_test)
 
     // clang-format on
