@@ -42,8 +42,9 @@
 template <typename T>
 void testing_hbmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_hbmv_strided_batched_fn = arg.fortran ? rocblas_hbmv_strided_batched<T, true>
-                                                       : rocblas_hbmv_strided_batched<T, false>;
+    auto rocblas_hbmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_hbmv_strided_batched<T, true>
+                                               : rocblas_hbmv_strided_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -304,8 +305,9 @@ void testing_hbmv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_hbmv_strided_batched(const Arguments& arg)
 {
-    auto rocblas_hbmv_strided_batched_fn = arg.fortran ? rocblas_hbmv_strided_batched<T, true>
-                                                       : rocblas_hbmv_strided_batched<T, false>;
+    auto rocblas_hbmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_hbmv_strided_batched<T, true>
+                                               : rocblas_hbmv_strided_batched<T, false>;
 
     rocblas_int    N                 = arg.N;
     rocblas_int    K                 = arg.K;

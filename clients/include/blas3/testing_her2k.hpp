@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ template <typename T, bool TWOK = true>
 void testing_her2k_bad_arg(const Arguments& arg)
 {
     auto rocblas_herXX_fn
-        = arg.fortran
+        = arg.api == FORTRAN
               ? (TWOK ? rocblas_her2k<T, real_t<T>, true> : rocblas_herkx<T, real_t<T>, true>)
               : (TWOK ? rocblas_her2k<T, real_t<T>, false> : rocblas_herkx<T, real_t<T>, false>);
 
@@ -212,7 +212,7 @@ template <typename T, bool TWOK = true>
 void testing_her2k(const Arguments& arg)
 {
     auto rocblas_herXX_fn
-        = arg.fortran
+        = arg.api == FORTRAN
               ? (TWOK ? rocblas_her2k<T, real_t<T>, true> : rocblas_herkx<T, real_t<T>, true>)
               : (TWOK ? rocblas_her2k<T, real_t<T>, false> : rocblas_herkx<T, real_t<T>, false>);
     auto herXX_gflop_count_fn = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;

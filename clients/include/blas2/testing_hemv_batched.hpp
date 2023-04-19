@@ -42,7 +42,7 @@ template <typename T>
 void testing_hemv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_hemv_batched_fn
-        = arg.fortran ? rocblas_hemv_batched<T, true> : rocblas_hemv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_hemv_batched<T, true> : rocblas_hemv_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -245,7 +245,7 @@ template <typename T>
 void testing_hemv_batched(const Arguments& arg)
 {
     auto rocblas_hemv_batched_fn
-        = arg.fortran ? rocblas_hemv_batched<T, true> : rocblas_hemv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_hemv_batched<T, true> : rocblas_hemv_batched<T, false>;
 
     rocblas_int  N           = arg.N;
     rocblas_int  lda         = arg.lda;

@@ -39,8 +39,9 @@
 template <typename T>
 void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_sbmv_strided_batched_fn = arg.fortran ? rocblas_sbmv_strided_batched<T, true>
-                                                       : rocblas_sbmv_strided_batched<T, false>;
+    auto rocblas_sbmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_sbmv_strided_batched<T, true>
+                                               : rocblas_sbmv_strided_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -302,8 +303,9 @@ void testing_sbmv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_sbmv_strided_batched(const Arguments& arg)
 {
-    auto rocblas_sbmv_strided_batched_fn = arg.fortran ? rocblas_sbmv_strided_batched<T, true>
-                                                       : rocblas_sbmv_strided_batched<T, false>;
+    auto rocblas_sbmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_sbmv_strided_batched<T, true>
+                                               : rocblas_sbmv_strided_batched<T, false>;
 
     rocblas_int N                 = arg.N;
     rocblas_int lda               = arg.lda;

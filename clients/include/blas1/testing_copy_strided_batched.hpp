@@ -38,8 +38,9 @@
 template <typename T>
 void testing_copy_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_copy_strided_batched_fn = arg.fortran ? rocblas_copy_strided_batched<T, true>
-                                                       : rocblas_copy_strided_batched<T, false>;
+    auto rocblas_copy_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_copy_strided_batched<T, true>
+                                               : rocblas_copy_strided_batched<T, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -76,8 +77,9 @@ void testing_copy_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_copy_strided_batched(const Arguments& arg)
 {
-    auto rocblas_copy_strided_batched_fn = arg.fortran ? rocblas_copy_strided_batched<T, true>
-                                                       : rocblas_copy_strided_batched<T, false>;
+    auto rocblas_copy_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_copy_strided_batched<T, true>
+                                               : rocblas_copy_strided_batched<T, false>;
 
     rocblas_int          N           = arg.N;
     rocblas_int          incx        = arg.incx;

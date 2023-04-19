@@ -42,7 +42,7 @@
 template <typename T>
 void testing_hpmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_hpmv_fn = arg.fortran ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+    auto rocblas_hpmv_fn = arg.api == FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -137,7 +137,7 @@ void testing_hpmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_hpmv(const Arguments& arg)
 {
-    auto rocblas_hpmv_fn = arg.fortran ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+    auto rocblas_hpmv_fn = arg.api == FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;

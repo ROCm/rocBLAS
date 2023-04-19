@@ -39,7 +39,7 @@ template <typename T, typename U = T>
 void testing_scal_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_scal_batched_fn
-        = arg.fortran ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
+        = arg.api == FORTRAN ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
@@ -69,7 +69,7 @@ template <typename T, typename U = T>
 void testing_scal_batched(const Arguments& arg)
 {
     auto rocblas_scal_batched_fn
-        = arg.fortran ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
+        = arg.api == FORTRAN ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;

@@ -38,8 +38,8 @@
 template <typename T, typename U = T, typename V = T>
 void testing_rot_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_rot_fn = FORTRAN ? rocblas_rot<T, U, V, true> : rocblas_rot<T, U, V, false>;
+    auto rocblas_rot_fn
+        = arg.api == FORTRAN ? rocblas_rot<T, U, V, true> : rocblas_rot<T, U, V, false>;
 
     rocblas_int          N    = 100;
     rocblas_int          incx = 1;
@@ -73,8 +73,9 @@ void testing_rot_bad_arg(const Arguments& arg)
 template <typename T, typename U = T, typename V = T>
 void testing_rot(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_rot_fn = FORTRAN ? rocblas_rot<T, U, V, true> : rocblas_rot<T, U, V, false>;
+
+    auto rocblas_rot_fn
+        = arg.api == FORTRAN ? rocblas_rot<T, U, V, true> : rocblas_rot<T, U, V, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;

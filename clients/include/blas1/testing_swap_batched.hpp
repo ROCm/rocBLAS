@@ -37,7 +37,7 @@ template <typename T>
 void testing_swap_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_swap_batched_fn
-        = arg.fortran ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
@@ -70,7 +70,7 @@ template <typename T>
 void testing_swap_batched(const Arguments& arg)
 {
     auto rocblas_swap_batched_fn
-        = arg.fortran ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;

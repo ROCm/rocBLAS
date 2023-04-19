@@ -36,8 +36,9 @@
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_strided_batched_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_rot_strided_batched_ex_fn
-        = arg.fortran ? rocblas_rot_strided_batched_ex_fortran : rocblas_rot_strided_batched_ex;
+    auto rocblas_rot_strided_batched_ex_fn = arg.api == FORTRAN
+                                                 ? rocblas_rot_strided_batched_ex_fortran
+                                                 : rocblas_rot_strided_batched_ex;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -150,8 +151,9 @@ void testing_rot_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_strided_batched_ex(const Arguments& arg)
 {
-    auto rocblas_rot_strided_batched_ex_fn
-        = arg.fortran ? rocblas_rot_strided_batched_ex_fortran : rocblas_rot_strided_batched_ex;
+    auto rocblas_rot_strided_batched_ex_fn = arg.api == FORTRAN
+                                                 ? rocblas_rot_strided_batched_ex_fortran
+                                                 : rocblas_rot_strided_batched_ex;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;

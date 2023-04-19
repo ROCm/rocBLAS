@@ -39,7 +39,7 @@
 template <typename T>
 void testing_spmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.api == FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -134,7 +134,7 @@ void testing_spmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spmv(const Arguments& arg)
 {
-    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.api == FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;

@@ -40,7 +40,7 @@
 template <typename T, bool CONJ = false>
 void testing_ger_bad_arg(const Arguments& arg)
 {
-    auto rocblas_ger_fn = arg.fortran
+    auto rocblas_ger_fn = arg.api == FORTRAN
                               ? (CONJ ? rocblas_ger<T, true, true> : rocblas_ger<T, false, true>)
                               : (CONJ ? rocblas_ger<T, true, false> : rocblas_ger<T, false, false>);
 
@@ -116,7 +116,7 @@ void testing_ger_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_ger(const Arguments& arg)
 {
-    auto rocblas_ger_fn = arg.fortran
+    auto rocblas_ger_fn = arg.api == FORTRAN
                               ? (CONJ ? rocblas_ger<T, true, true> : rocblas_ger<T, false, true>)
                               : (CONJ ? rocblas_ger<T, true, false> : rocblas_ger<T, false, false>);
 

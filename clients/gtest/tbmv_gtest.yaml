@@ -81,7 +81,7 @@ Tests:
   uplo: U
   transA: N
   diag: N
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: tbmv_arg_check
   category: quick
@@ -103,7 +103,7 @@ Tests:
   diag: [U, N]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: tbmv_batched_fortran
   category: quick
@@ -115,7 +115,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: tbmv_strided_batched_fortran
   category: quick
@@ -128,7 +128,7 @@ Tests:
   incx_incy: *incx_range_small
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: tbmv_small
   category: quick

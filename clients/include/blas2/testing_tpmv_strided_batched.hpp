@@ -41,8 +41,9 @@
 template <typename T>
 void testing_tpmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_tpmv_strided_batched_fn = arg.fortran ? rocblas_tpmv_strided_batched<T, true>
-                                                       : rocblas_tpmv_strided_batched<T, false>;
+    auto rocblas_tpmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_tpmv_strided_batched<T, true>
+                                               : rocblas_tpmv_strided_batched<T, false>;
 
     const rocblas_int       M           = 100;
     const rocblas_int       incx        = 1;
@@ -97,8 +98,9 @@ void testing_tpmv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tpmv_strided_batched(const Arguments& arg)
 {
-    auto rocblas_tpmv_strided_batched_fn = arg.fortran ? rocblas_tpmv_strided_batched<T, true>
-                                                       : rocblas_tpmv_strided_batched<T, false>;
+    auto rocblas_tpmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_tpmv_strided_batched<T, true>
+                                               : rocblas_tpmv_strided_batched<T, false>;
 
     rocblas_int    M = arg.M, incx = arg.incx, batch_count = arg.batch_count;
     rocblas_stride stride_a = arg.stride_a, stride_x = arg.stride_x;

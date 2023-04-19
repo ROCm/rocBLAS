@@ -37,7 +37,7 @@ template <typename T, typename U = T>
 void testing_rotg_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_rotg_batched_fn
-        = arg.fortran ? rocblas_rotg_batched<T, U, true> : rocblas_rotg_batched<T, U, false>;
+        = arg.api == FORTRAN ? rocblas_rotg_batched<T, U, true> : rocblas_rotg_batched<T, U, false>;
 
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 1;
@@ -97,7 +97,7 @@ template <typename T, typename U = T>
 void testing_rotg_batched(const Arguments& arg)
 {
     auto rocblas_rotg_batched_fn
-        = arg.fortran ? rocblas_rotg_batched<T, U, true> : rocblas_rotg_batched<T, U, false>;
+        = arg.api == FORTRAN ? rocblas_rotg_batched<T, U, true> : rocblas_rotg_batched<T, U, false>;
 
     rocblas_int          batch_count = arg.batch_count;
     rocblas_local_handle handle{arg};

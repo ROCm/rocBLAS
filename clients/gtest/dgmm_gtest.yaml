@@ -38,7 +38,7 @@ Tests:
   - dgmm_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
   side: [R]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: invalid_size
   category: quick
@@ -49,7 +49,7 @@ Tests:
   precision: *single_double_precisions
   side: [L]
   matrix_size: *invalid_size_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: dgmm_size_t
   category: nightly
@@ -59,7 +59,7 @@ Tests:
   matrix_size:
     - { M:  4, N:  51200, lda:  51200, incx:     1, ldc:       4}
   batch_count: [        1    ]
-  fortran: [ false ]
+  api: C
 
 - name: dgmm_quick_return
   category: quick
@@ -90,7 +90,7 @@ Tests:
   precision: *single_double_precisions
   side: [L, R]
   matrix_size: *small_matrix_size_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: dgmm_batched_small
   category: quick
@@ -99,7 +99,7 @@ Tests:
   side: [L, R]
   matrix_size: *small_matrix_size_range
   batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: dgmm_strided_batched_small
   category: quick
@@ -109,7 +109,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 
 - name: dgmm_small_complex
@@ -118,7 +118,7 @@ Tests:
   precision: *single_double_precisions_complex
   side: [L, R]
   matrix_size: *small_matrix_size_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: dgmm_batched_small_complex
   category: quick
@@ -127,7 +127,7 @@ Tests:
   side: [L, R]
   matrix_size: *small_matrix_size_range
   batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: dgmm_strided_batched_small_complex
   category: quick
@@ -137,7 +137,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 
 - name: dgmm_large

@@ -36,9 +36,8 @@
 template <typename T>
 void testing_rotm_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_rotm_batched_fn
-        = FORTRAN ? rocblas_rotm_batched<T, true> : rocblas_rotm_batched<T, false>;
+    auto rocblas_rotm_batched_fn
+        = arg.api == FORTRAN ? rocblas_rotm_batched<T, true> : rocblas_rotm_batched<T, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
@@ -94,9 +93,9 @@ void testing_rotm_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotm_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_rotm_batched_fn
-        = FORTRAN ? rocblas_rotm_batched<T, true> : rocblas_rotm_batched<T, false>;
+
+    auto rocblas_rotm_batched_fn
+        = arg.api == FORTRAN ? rocblas_rotm_batched<T, true> : rocblas_rotm_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;

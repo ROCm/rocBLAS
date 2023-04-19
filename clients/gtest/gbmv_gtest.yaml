@@ -100,7 +100,7 @@ Tests:
   - gbmv_strided_batched_bad_arg
   precision: *single_double_precisions
   transA: N
-  fortran: [ true, false ]
+  api: [ C, FORTRAN ]
 
 # Regular gbmv
 - name: gbmv_NaN
@@ -121,7 +121,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: gbmv_small
   category: quick
@@ -170,7 +170,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  fortran: true
+  api: FORTRAN
   batch_count: [ -1, 0, 4 ]
 
 - name: gbmv_batched_small
@@ -223,7 +223,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  fortran: true
+  api: FORTRAN
   batch_count: [ -1, 0, 4 ]
   stride_scale: 1.5
 

@@ -40,7 +40,7 @@
 template <typename T>
 void testing_symv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_symv_fn = arg.fortran ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.api == FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -136,7 +136,7 @@ void testing_symv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_symv(const Arguments& arg)
 {
-    auto rocblas_symv_fn = arg.fortran ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.api == FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int lda  = arg.lda;

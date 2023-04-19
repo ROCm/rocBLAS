@@ -40,7 +40,7 @@ template <typename T>
 void testing_axpy_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_batched_fn
-        = arg.fortran ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -121,7 +121,7 @@ template <typename T>
 void testing_axpy_batched(const Arguments& arg)
 {
     auto rocblas_axpy_batched_fn
-        = arg.fortran ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_int          N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;

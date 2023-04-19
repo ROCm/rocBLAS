@@ -40,8 +40,9 @@ template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bo
 void testing_dot_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_dot_batched_ex_fn
-        = arg.fortran ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
-                      : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
+        = arg.api == FORTRAN
+              ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
+              : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -133,8 +134,9 @@ template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bo
 void testing_dot_batched_ex(const Arguments& arg)
 {
     auto rocblas_dot_batched_ex_fn
-        = arg.fortran ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
-                      : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
+        = arg.api == FORTRAN
+              ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
+              : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;

@@ -47,7 +47,7 @@ Tests:
   - spr_bad_arg: *single_double_precisions
   - spr_batched_bad_arg: *single_double_precisions
   - spr_strided_batched_bad_arg: *single_double_precisions
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: spr_arg_check
   category: quick
@@ -67,7 +67,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: spr_small
   category: quick
@@ -115,7 +115,7 @@ Tests:
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: spr_batched_small
   category: quick
@@ -168,7 +168,7 @@ Tests:
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: spr_strided_batched_small
   category: quick

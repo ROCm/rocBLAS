@@ -95,6 +95,8 @@ void Arguments::init()
 
     atomics_mode = rocblas_atomics_allowed;
 
+    api = C;
+
     // memory padding for testing write out of bounds
     pad = 4096;
 
@@ -119,7 +121,6 @@ void Arguments::init()
     pointer_mode_device = true;
     c_noalias_d         = false;
     HMM                 = false;
-    fortran             = false;
     graph_test          = false;
 }
 

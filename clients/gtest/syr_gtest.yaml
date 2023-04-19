@@ -54,7 +54,7 @@ Tests:
   - syr_bad_arg: *single_precision
   - syr_batched_bad_arg: *single_precision
   - syr_strided_batched_bad_arg: *single_precision
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: syr_arg_check
   category: quick
@@ -73,7 +73,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ -2, 2 ]
   alpha_beta: *alpha_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: syr_NaN
   category: quick
@@ -133,7 +133,7 @@ Tests:
   incx: [ -2, 2 ]
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: syr_batched_NaN
   category: quick
@@ -188,7 +188,7 @@ Tests:
   incx: [ -2, 2 ]
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: syr_strided_batched_NaN
   category: quick

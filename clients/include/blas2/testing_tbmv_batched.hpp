@@ -43,7 +43,7 @@ template <typename T>
 void testing_tbmv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_tbmv_batched_fn
-        = arg.fortran ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
 
     const rocblas_int       M                 = 100;
     const rocblas_int       K                 = 5;
@@ -112,7 +112,7 @@ template <typename T>
 void testing_tbmv_batched(const Arguments& arg)
 {
     auto rocblas_tbmv_batched_fn
-        = arg.fortran ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
 
     rocblas_int       M                 = arg.M;
     rocblas_int       K                 = arg.K;

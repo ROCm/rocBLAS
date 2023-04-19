@@ -113,7 +113,7 @@ namespace
             if(GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
                 name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
 
-            if(arg.fortran)
+            if(arg.api == FORTRAN)
             {
                 name << "_F";
             }

@@ -77,7 +77,8 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        auto rocblas_gemm_ext2_fn = arg.fortran ? rocblas_gemm_ext2_fortran : rocblas_gemm_ext2;
+        auto rocblas_gemm_ext2_fn
+            = arg.api == FORTRAN ? rocblas_gemm_ext2_fortran : rocblas_gemm_ext2;
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
@@ -346,7 +347,7 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ext2(const Arguments& arg)
 {
-    auto rocblas_gemm_ext2_fn = arg.fortran ? rocblas_gemm_ext2_fortran : rocblas_gemm_ext2;
+    auto rocblas_gemm_ext2_fn = arg.api == FORTRAN ? rocblas_gemm_ext2_fortran : rocblas_gemm_ext2;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
     int32_t           solution_index(arg.solution_index);

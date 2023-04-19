@@ -73,7 +73,7 @@ Tests:
 
   - name: blas1
     category: quick
-    fortran: [ true, false ]
+    api: [ C, FORTRAN ]
     function:
       - rotg: *rotg_precisions
       - rotg_batched: *rotg_precisions
@@ -88,7 +88,7 @@ Tests:
 
   - name: blas1
     category: quick
-    fortran: [ true, false ]
+    api: [ C, FORTRAN ]
     function:
       - rotg:  *rotg_precisions
       - rotmg: *single_double_precisions
@@ -96,7 +96,7 @@ Tests:
   - name: blas1_batched
     category: quick
     batch_count: [-1, 0, 5]
-    fortran: [ true, false ]
+    api: [ C, FORTRAN ]
     function:
       - rotg_batched: *rotg_precisions
       - rotmg_batched: *single_double_precisions
@@ -105,7 +105,7 @@ Tests:
     category: quick
     batch_count: [-1, 0, 5]
     stride_scale: [ 1.5 ]
-    fortran: [ true, false ]
+    api: [ C, FORTRAN ]
     function:
       - rotg_strided_batched: *rotg_precisions
       - rotmg_strided_batched: *single_double_precisions
@@ -119,7 +119,7 @@ Tests:
     incx_incy: *incx_incy_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    fortran: true
+    api: FORTRAN
     function:
       - axpy: *half_single_precisions_complex_real
       - axpy_ex: *bfloat_half_single_double_complex_real_precisions
@@ -131,7 +131,7 @@ Tests:
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
-    fortran: true
+    api: FORTRAN
     function:
       - axpy_batched: *half_single_precisions_complex_real
       - axpy_batched_ex: *bfloat_half_single_double_complex_real_precisions
@@ -144,7 +144,7 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
     stride_scale: [1, 2]
-    fortran: true
+    api: FORTRAN
     function:
       - axpy_strided_batched: *half_single_precisions_complex_real
       - axpy_strided_batched_ex: *bfloat_half_single_double_complex_real_precisions
@@ -305,7 +305,7 @@ Tests:
     incx: *incx_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    fortran: true
+    api: FORTRAN
     function:
       - scal:  *single_double_precisions_complex_real
       - scal:  *scal_single_double_complex_real_alpha_complex_out
@@ -320,7 +320,7 @@ Tests:
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
-    fortran: true
+    api: FORTRAN
     function:
       - scal_batched:  *single_double_precisions_complex_real
       - scal_batched:  *scal_single_double_complex_real_alpha_complex_out
@@ -335,7 +335,7 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
     stride_scale: [1, 2]
-    fortran: true
+    api: FORTRAN
     function:
       - scal_strided_batched:  *single_double_precisions_complex_real
       - scal_strided_batched:  *scal_single_double_complex_real_alpha_complex_out
@@ -477,7 +477,7 @@ Tests:
     category: quick
     N: [-1, 0, 1024]
     incx: *incx_range_small
-    fortran: true
+    api: FORTRAN
     function:
       - asum: *single_double_precisions_complex_real
       - nrm2: *single_double_precisions_complex_real
@@ -490,7 +490,7 @@ Tests:
     N: [-1, 0, 1024]
     incx: *incx_range_small
     batch_count: [ -1, 0, 5 ]
-    fortran: true
+    api: FORTRAN
     function:
       - asum_batched:  *single_double_precisions_complex_real
       - nrm2_batched:  *single_double_precisions_complex_real
@@ -504,7 +504,7 @@ Tests:
     incx: *incx_range_small
     batch_count: [ -1, 0, 5 ]
     stride_scale: [ 1, 2 ]
-    fortran: true
+    api: FORTRAN
     function:
       - asum_strided_batched:  *single_double_precisions_complex_real
       - nrm2_strided_batched:  *single_double_precisions_complex_real
@@ -627,7 +627,7 @@ Tests:
     category: quick
     N: [ -1, 0, 1025]
     incx_incy: *incx_incy_range_small
-    fortran: true
+    api: FORTRAN
     function:
       - copy: *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions
@@ -645,7 +645,7 @@ Tests:
     N: [ -1, 0, 1025]
     incx_incy: *incx_incy_range_small
     batch_count: [-1, 0, 5]
-    fortran: true
+    api: FORTRAN
     function:
       - copy_batched: *single_double_precisions_complex_real
       - dot_batched:   *half_bfloat_single_double_complex_real_precisions
@@ -663,7 +663,7 @@ Tests:
     incx_incy: *incx_incy_range_small
     batch_count: [-1, 0, 5]
     stride_scale: [1, 2]
-    fortran: true
+    api: FORTRAN
     function:
       - copy_strided_batched: *single_double_precisions_complex_real
       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
@@ -1010,7 +1010,7 @@ Tests:
 # for bad_arg no arguments should be used by test code
   - name: blas1_bad_arg
     category: pre_checkin
-    fortran: [ false, true ]
+    api: [ C, FORTRAN ]
     function:
       - nrm2_bad_arg:  *single_double_precisions_complex_real
       - nrm2_batched_bad_arg:  *single_double_precisions_complex_real

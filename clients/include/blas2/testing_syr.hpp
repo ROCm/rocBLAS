@@ -40,7 +40,7 @@
 template <typename T>
 void testing_syr_bad_arg(const Arguments& arg)
 {
-    auto rocblas_syr_fn = arg.fortran ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+    auto rocblas_syr_fn = arg.api == FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -107,7 +107,7 @@ void testing_syr_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_syr(const Arguments& arg)
 {
-    auto rocblas_syr_fn = arg.fortran ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+    auto rocblas_syr_fn = arg.api == FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
