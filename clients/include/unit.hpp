@@ -42,42 +42,44 @@
 #define UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, UNIT_ASSERT_EQ) \
     do                                                                          \
     {                                                                           \
-        for(size_t k = 0; k < batch_count; k++)                                 \
-            for(size_t j = 0; j < N; j++)                                       \
+        for(int64_t k = 0; k < batch_count; k++)                                \
+            for(int64_t j = 0; j < N; j++)                                      \
             {                                                                   \
                 int64_t offset = lda >= 0 ? 0 : int64_t(lda) * (1 - N);         \
                 offset += j * int64_t(lda) + k * strideA;                       \
+                size_t idx = offset;                                            \
                 for(size_t i = 0; i < M; i++)                                   \
-                    if(rocblas_isnan(hCPU[i + offset]))                         \
+                    if(rocblas_isnan(hCPU[i + idx]))                            \
                     {                                                           \
-                        ASSERT_TRUE(rocblas_isnan(hGPU[i + offset]));           \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[i + idx]));              \
                     }                                                           \
                     else                                                        \
                     {                                                           \
-                        UNIT_ASSERT_EQ(hCPU[i + offset], hGPU[i + offset]);     \
+                        UNIT_ASSERT_EQ(hCPU[i + idx], hGPU[i + idx]);           \
                     }                                                           \
             }                                                                   \
     } while(0)
 
 // Also used for vectors with lda used for inc, which may be negative
-#define UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, UNIT_ASSERT_EQ)          \
-    do                                                                            \
-    {                                                                             \
-        for(size_t k = 0; k < batch_count; k++)                                   \
-            for(size_t j = 0; j < N; j++)                                         \
-            {                                                                     \
-                int64_t offset = lda >= 0 ? 0 : int64_t(lda) * (1 - N);           \
-                offset += j * int64_t(lda);                                       \
-                for(size_t i = 0; i < M; i++)                                     \
-                    if(rocblas_isnan(hCPU[k][i + offset]))                        \
-                    {                                                             \
-                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + offset]));          \
-                    }                                                             \
-                    else                                                          \
-                    {                                                             \
-                        UNIT_ASSERT_EQ(hCPU[k][i + offset], hGPU[k][i + offset]); \
-                    }                                                             \
-            }                                                                     \
+#define UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, UNIT_ASSERT_EQ)    \
+    do                                                                      \
+    {                                                                       \
+        for(size_t k = 0; k < batch_count; k++)                             \
+            for(int64_t j = 0; j < N; j++)                                  \
+            {                                                               \
+                int64_t offset = lda >= 0 ? 0 : int64_t(lda) * (1 - N);     \
+                offset += j * int64_t(lda);                                 \
+                size_t idx = offset;                                        \
+                for(size_t i = 0; i < M; i++)                               \
+                    if(rocblas_isnan(hCPU[k][i + idx]))                     \
+                    {                                                       \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + idx]));       \
+                    }                                                       \
+                    else                                                    \
+                    {                                                       \
+                        UNIT_ASSERT_EQ(hCPU[k][i + idx], hGPU[k][i + idx]); \
+                    }                                                       \
+            }                                                               \
     } while(0)
 
 #define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
