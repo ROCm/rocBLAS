@@ -168,6 +168,25 @@ def addSample(csvLists, newSample, perf_queries):
 
     return newList
 
+def splitComplexScalars(problem):
+    # Complex alpha/beta are output as "(real: complex)". PTS is expecting a single num for alpha and a single num for alphai
+    # to represent real/complex parts of scalars. This function parses the current rocBLAS output and updates problems
+    # to the representation PTS expectes.
+    # pattern: "(" + [whitespace?] + [number] + [whitespace?] + ":" + [whitespace?] + [number] + [whitespace?] + ")"
+    # note groups are used to group real and complex values if matched
+    num_pattern = r'[+-]?\d*\.?\d*([eE][+-]?\d+)?'
+    complex_scalar_pattern = r'\(\s*(' + num_pattern + r')\s*\:\s*(' + num_pattern + r')\s*\)'
+    alpha_match = re.match(complex_scalar_pattern, problem[trackedParamList.index('alpha')])
+    if alpha_match is not None:
+        # groups are 1 and 3, subgroup to deal with exponent is skipped
+        problem[trackedParamList.index('alpha')] = alpha_match.group(1)
+        problem[trackedParamList.index('alphai')] = alpha_match.group(3)
+
+    beta_match = re.match(complex_scalar_pattern, problem[trackedParamList.index('beta')])
+    if beta_match is not None:
+        problem[trackedParamList.index('beta')] = beta_match.group(1)
+        problem[trackedParamList.index('betai')] = beta_match.group(3)
+
 def calculateMean(row, param_idx = 0):
     # if we're recording gflops and gbytes for 3 samples,
     # the data looks as follows:
@@ -216,6 +235,8 @@ def saveRocblasBenchResults(rocblasBenchCommand, problemsYaml, samples, outputFi
             csvLists = addSample(csvLists, sample, perf_queries)
 
     for problem in csvLists[1:]:
+        # fix complex alpha/beta to expected alpha/alphai output
+        splitComplexScalars(problem)
         for i in range(len(res_queries)):
             problem[trackedParamList.index('mean_' + res_queries[i])] = calculateMean(problem, i)
             problem[trackedParamList.index('median_' + res_queries[i])] = calculateMedian(problem, i)

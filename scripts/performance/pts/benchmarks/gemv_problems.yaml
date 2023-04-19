@@ -72,4 +72,18 @@ Tests:
     incy: 1
     matrix_size: *m_equals_n_range
     iters: 20
+
+  - name: gemv_bench_const_n_complex
+    category: bench
+    function: gemv
+    precision: *single_precision_complex
+    transA: [ N ]
+    alpha: 2
+    alphai: 3
+    incx: 1
+    incy: 1
+    N: 32
+    M: 32..256..32
+    lda: 256
+    iters: 10
 ...
