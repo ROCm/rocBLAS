@@ -152,23 +152,14 @@ void testing_rot_strided_batched(const Arguments& arg)
     rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
-    host_strided_batch_vector<T> cx(N, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> cy(N, incy, stride_y, batch_count);
-    cx.copy_from(hx);
-    cy.copy_from(hy);
-    // cblas_rotg<T, U>(cx, cy, hc, hs);
-    // cx[0] = hx[0];
-    // cy[0] = hy[0];
-    cpu_time_used = get_time_us_no_sync();
-    for(int b = 0; b < batch_count; b++)
-    {
-        cblas_rot<T, T, U, V>(N, cx[b], incx, cy[b], incy, hc, hs);
-    }
-    cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+    host_strided_batch_vector<T> hx_gold(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy, stride_y, batch_count);
+    hx_gold.copy_from(hx);
+    hy_gold.copy_from(hy);
 
     if(arg.unit_check || arg.norm_check)
     {
-        // Test rocblas_pointer_mode_host
+        if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -179,55 +170,62 @@ void testing_rot_strided_batched(const Arguments& arg)
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, hc, hs, batch_count)));
             handle.post_test(arg);
 
-            host_strided_batch_vector<T> rx(N, incx, stride_x, batch_count);
-            host_strided_batch_vector<T> ry(N, incy, stride_y, batch_count);
-
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
-            if(arg.unit_check)
-            {
-                unit_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count);
-                unit_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count);
-            }
-            if(arg.norm_check)
-            {
-                norm_error_host_x
-                    = norm_check_general<T>('F', 1, N, incx, stride_x, cx, rx, batch_count);
-                norm_error_host_y
-                    = norm_check_general<T>('F', 1, N, incy, stride_x, cy, ry, batch_count);
-            }
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
         }
-
-        // Test rocblas_pointer_mode_device
+        if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-            CHECK_HIP_ERROR(dx.transfer_from(hx));
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
             handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched_fn(
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count)));
             handle.post_test(arg);
+        }
 
-            host_strided_batch_vector<T> rx(N, incx, stride_x, batch_count);
-            host_strided_batch_vector<T> ry(N, incy, stride_y, batch_count);
+        cpu_time_used = get_time_us_no_sync();
+        for(int b = 0; b < batch_count; b++)
+        {
+            cblas_rot<T, T, U, V>(N, hx_gold[b], incx, hy_gold[b], incy, hc, hs);
+        }
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
+        if(arg.pointer_mode_host)
+        {
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incx, stride_x, hx_gold, hx, batch_count);
+                unit_check_general<T>(1, N, incy, stride_y, hy_gold, hy, batch_count);
+            }
+            if(arg.norm_check)
+            {
+                norm_error_host_x
+                    = norm_check_general<T>('F', 1, N, incx, stride_x, hx_gold, hx, batch_count);
+                norm_error_host_y
+                    = norm_check_general<T>('F', 1, N, incy, stride_x, hy_gold, hy, batch_count);
+            }
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count);
-                unit_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count);
+                unit_check_general<T>(1, N, incx, stride_x, hx_gold, hx, batch_count);
+                unit_check_general<T>(1, N, incy, stride_y, hy_gold, hy, batch_count);
             }
             if(arg.norm_check)
             {
                 norm_error_device_x
-                    = norm_check_general<T>('F', 1, N, incx, stride_x, cx, rx, batch_count);
+                    = norm_check_general<T>('F', 1, N, incx, stride_x, hx_gold, hx, batch_count);
                 norm_error_device_y
-                    = norm_check_general<T>('F', 1, N, incy, stride_y, cy, ry, batch_count);
+                    = norm_check_general<T>('F', 1, N, incy, stride_y, hy_gold, hy, batch_count);
             }
         }
     }
