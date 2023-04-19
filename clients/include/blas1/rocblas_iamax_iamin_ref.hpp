@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,9 +58,9 @@ namespace rocblas_iamax_iamin_ref
     }
 
     template <typename T>
-    void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    void cblas_iamin(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
-        rocblas_int minpos = -1;
+        int64_t minpos = -1;
         if(N > 0 && incx > 0)
         {
             auto min = asum(X[0]);
@@ -79,12 +79,9 @@ namespace rocblas_iamax_iamin_ref
     }
 
     template <typename T>
-    void cblas_iamax_ensure_minimum_index(rocblas_int  N,
-                                          const T*     X,
-                                          rocblas_int  incx,
-                                          rocblas_int* result)
+    void cblas_iamax_ensure_minimum_index(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
-        rocblas_int maxpos = -1;
+        int64_t maxpos = -1;
         if(N > 0 && incx > 0)
         {
             auto max = asum(X[0]);
@@ -103,14 +100,14 @@ namespace rocblas_iamax_iamin_ref
     }
 
     template <typename T>
-    void iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    void iamin(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
         cblas_iamin(N, X, incx, result);
         *result += 1;
     }
 
     template <typename T>
-    void iamax(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    void iamax(int64_t N, const T* X, int64_t incx, int64_t* result)
     {
         cblas_iamax_ensure_minimum_index(N, X, incx, result);
         *result += 1;

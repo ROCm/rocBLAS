@@ -75,7 +75,7 @@ void testing_iamin_bad_arg(const Arguments& arg)
     testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin_fn);
 }
 
-template <typename T, void REFBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
+template <typename T, void REFBLAS_FUNC(int64_t, const T*, int64_t, int64_t*)>
 void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 {
     rocblas_int N    = arg.N;
@@ -151,9 +151,10 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        rocblas_int cpu_result;
-        REFBLAS_FUNC(N, hx, incx, &cpu_result);
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+        int64_t result_i64;
+        REFBLAS_FUNC(N, hx, incx, &result_i64);
+        rocblas_int cpu_result = rocblas_int(result_i64);
+        cpu_time_used          = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
