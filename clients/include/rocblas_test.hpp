@@ -356,8 +356,18 @@ protected:
     template <typename... T>
     struct type_filter_functor
     {
-        bool operator()(const Arguments&)
+        bool operator()(const Arguments& args)
         {
+            // additional global filters applied first
+#ifdef WIN32
+            static constexpr rocblas_client_os os = rocblas_client_os::WINDOWS;
+#else
+            static constexpr rocblas_client_os os = rocblas_client_os::LINUX;
+#endif
+            if(!(args.os_flags & os))
+                return false;
+
+            // type filters
             return static_cast<bool>(FILTER<T...>{});
         }
     };

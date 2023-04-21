@@ -518,6 +518,7 @@ Tests:
     function:
       - iamax:  *single_precision
     pointer_mode_host: false
+    os_flags: ALL # default value so can be removed later
 
   - name: blas1_size_t
     category: nightly #stress
