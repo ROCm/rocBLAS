@@ -1964,6 +1964,10 @@ Functions Unsupported with Graph Capture
 
 - BLAS Level-3 and BLAS-EX functions in pointer mode device do not support HIP Graph. Support will be added in future releases.
 
+HIP Graph Known Issues in rocBLAS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- On Windows platform, batched functions (Level-1, Level-2 and Level-3) produce incorrect results.
+
 -----------------------------------
 Device Memory Allocation in rocBLAS
 -----------------------------------
