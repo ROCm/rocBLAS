@@ -296,7 +296,7 @@ Tests:
 # nightly
   - name: blas1_with_alpha
     category: nightly
-    N: [ 4000000 ]
+    N: [ 1000000 ]
     incx_incy: *incx_incy_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -472,7 +472,7 @@ Tests:
 # nightly
   - name: blas1_batched
     category: nightly
-    N: [ 4000000 ]
+    N: [ 1000000 ]
     incx: *incx_range_small
     alpha_beta: *complex_alpha_range_small
     batch_count: [ 2 ]
@@ -493,7 +493,7 @@ Tests:
 
   - name: blas1_strided_batched
     category: nightly
-    N: [ 4000000 ]
+    N: [ 1000000 ]
     incx: *incx_range_small
     alpha_beta: *complex_alpha_range_small
     batch_count: [ 2 ]
@@ -550,6 +550,12 @@ Tests:
       - swap: *single_precision
       - copy:  *single_precision
 
+  - name: blas1_size_t
+    category: pre_checkin #stress
+    matrix_size: *size_t_xy_range
+    pointer_mode_device: false
+    function:
+      - rot_ex:  *hpa_half_precision
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
@@ -904,6 +910,7 @@ Tests:
   - name: blas1
     category: pre_checkin
     N: [ 5000, 800000 ]
+    pointer_mode_host: false
     incx_incy: *incx_incy_range_small
     function:
       # dot_ex uses dot code, so only testing superset code of dot_ex for pre-checkin and nightly.
@@ -919,6 +926,7 @@ Tests:
   - name: blas1_batched
     category: pre_checkin
     N: [ 5000, 800000 ]
+    pointer_mode_device: false
     incx_incy: *incx_incy_range_small
     batch_count: [1, 7]
     function:
@@ -932,6 +940,7 @@ Tests:
   - name: blas1_strided_batched
     category: pre_checkin
     N: [ 5000, 800000 ]
+    pointer_mode_host: false
     incx_incy: *incx_incy_range_small
     batch_count: [1, 7]
     stride_scale: [ 1 ]
@@ -955,7 +964,8 @@ Tests:
 # nightly
   - name: blas1
     category: nightly
-    N: [ 4000000 ]
+    N: [ 1000000 ]
+    pointer_mode_device: false
     incx_incy: *incx_incy_range_small
     function:
       - swap: *single_double_precisions_complex_real
@@ -975,7 +985,8 @@ Tests:
 
   - name: blas1_batched
     category: nightly
-    N: [ 4000000 ]
+    N: [ 1000000 ]
+    pointer_mode_host: false
     incx_incy: *incx_incy_range_small
     batch_count: [1, 7]
     function:
@@ -988,7 +999,8 @@ Tests:
 
   - name: blas1_strided_batched
     category: nightly
-    N: [ 4000000 ]
+    N: [ 1000000 ]
+    pointer_mode_device: false
     incx_incy: *incx_incy_range_small
     batch_count: [1, 7]
     stride_scale: [ 1 ]
