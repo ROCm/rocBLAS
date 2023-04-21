@@ -190,11 +190,11 @@ void testing_ger(const Arguments& arg)
 
             // Transfer output from device to CPU
             CHECK_HIP_ERROR(hA.transfer_from(dA));
-        }
 
-        // Transfer data from CPU to device
-        if(arg.pointer_mode_device)
-            CHECK_HIP_ERROR(dA.transfer_from(hA_gold)); // gold still original hA
+            // Transfer data from CPU to device (only need to restore if we did mode_host test)
+            if(arg.pointer_mode_device)
+                CHECK_HIP_ERROR(dA.transfer_from(hA_gold)); // gold still original hA
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
