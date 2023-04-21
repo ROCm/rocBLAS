@@ -35,7 +35,7 @@
 // Predeclare enumerator
 enum rocblas_argument : int;
 
-enum
+typedef enum rocblas_client_api_
 {
     C,
     FORTRAN,
@@ -43,7 +43,15 @@ enum
     FORTRAN_64,
     INTERNAL,
     INTERNAL_64
-};
+} rocblas_client_api;
+
+// bitmask
+typedef enum rocblas_client_os_
+{
+    LINUX   = 1,
+    WINDOWS = 2,
+    ALL     = 3
+} rocblas_client_os;
 
 /***************************************************************************
  *! \brief Class used to parse command arguments in both client & gtest    *
@@ -119,7 +127,9 @@ struct Arguments
 
     rocblas_atomics_mode atomics_mode;
 
-    uint32_t api;
+    rocblas_client_os os_flags;
+
+    rocblas_client_api api;
 
     // memory padding for testing write out of bounds
     uint32_t pad;
@@ -200,6 +210,7 @@ struct Arguments
     OPER(initialization) SEP         \
     OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
+    OPER(os_flags) SEP               \
     OPER(api) SEP                    \
     OPER(pad) SEP                    \
     OPER(threads) SEP                \

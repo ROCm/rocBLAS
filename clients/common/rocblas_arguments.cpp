@@ -81,6 +81,8 @@ void Arguments::init()
     algo           = 0;
     solution_index = 0;
 
+    geam_ex_op = rocblas_geam_ex_operation_min_plus;
+
     flags = rocblas_gemm_flags_none;
 
     a_type       = rocblas_datatype_f32_r;
@@ -95,7 +97,9 @@ void Arguments::init()
 
     atomics_mode = rocblas_atomics_allowed;
 
-    api = C;
+    os_flags = rocblas_client_os::ALL;
+
+    api = rocblas_client_api::C;
 
     // memory padding for testing write out of bounds
     pad = 4096;
