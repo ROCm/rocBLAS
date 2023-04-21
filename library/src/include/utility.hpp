@@ -92,14 +92,14 @@ __forceinline__ __device__ __host__ T load_scalar(const T* xp)
 
 // For device side array of scalars
 template <typename T>
-__forceinline__ __device__ __host__ T load_scalar(const T* x, rocblas_int idx, rocblas_int inc)
+__forceinline__ __device__ __host__ T load_scalar(const T* x, uint32_t idx, rocblas_stride inc)
 {
     return x[idx * inc];
 }
 
 // Overload for single scalar value
 template <typename T>
-__forceinline__ __device__ __host__ T load_scalar(T x, rocblas_int idx, rocblas_int inc)
+__forceinline__ __device__ __host__ T load_scalar(T x, uint32_t idx, rocblas_stride inc)
 {
     return x;
 }
@@ -113,7 +113,7 @@ __forceinline__ __device__ __host__ T load_scalar(T x, rocblas_int idx, rocblas_
 // clang-format off
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* p, rocblas_int block, rocblas_stride stride)
+                                    load_ptr_batch(T* p, uint32_t block, rocblas_stride stride)
 {
     return p + block * stride;
 }
@@ -121,14 +121,14 @@ __forceinline__ __device__ __host__ T*
 // For device array of device pointers (used by _batched functions)
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* const* p, rocblas_int block, rocblas_stride offset)
+                                    load_ptr_batch(T* const* p, uint32_t block, rocblas_stride offset)
 {
     return p[block] + offset;
 }
 
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T** p, rocblas_int block, rocblas_stride offset)
+                                    load_ptr_batch(T** p, uint32_t block, rocblas_stride offset)
 {
     return p[block] + offset;
 }
@@ -137,7 +137,7 @@ __forceinline__ __device__ __host__ T*
 // For device pointers (used by non-batched and _strided_batched functions)
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+                                    load_ptr_batch(T* p, uint32_t block, rocblas_stride offset, rocblas_stride stride)
 {
     return p + block * stride + offset;
 }
@@ -145,14 +145,14 @@ __forceinline__ __device__ __host__ T*
 // For device array of device pointers (used by _batched functions)
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* const* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+                                    load_ptr_batch(T* const* p, uint32_t block, rocblas_stride offset, rocblas_stride stride)
 {
     return p[block] + offset;
 }
 
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T** p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+                                    load_ptr_batch(T** p, uint32_t block, rocblas_stride offset, rocblas_stride stride)
 {
     return p[block] + offset;
 }
@@ -160,7 +160,7 @@ __forceinline__ __device__ __host__ T*
 // guarded by condition
 template <typename C, typename T>
 __forceinline__ __device__ __host__ T*
-                                    cond_load_ptr_batch(C cond, T* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+                                    cond_load_ptr_batch(C cond, T* p, uint32_t block, rocblas_stride offset, rocblas_stride stride)
 {
     // safe to offset pointer regardless of condition as not dereferenced
     return load_ptr_batch( p, block, offset, stride);
@@ -169,14 +169,14 @@ __forceinline__ __device__ __host__ T*
 // For device array of device pointers array is dereferenced, e.g. alpha, if !alpha don't dereference pointer array as we allow it to be null
 template <typename C, typename T>
 __forceinline__ __device__ __host__ T*
-                                    cond_load_ptr_batch(C cond, T* const* p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+                                    cond_load_ptr_batch(C cond, T* const* p, uint32_t block, rocblas_stride offset, rocblas_stride stride)
 {
     return cond ? load_ptr_batch( p, block, offset, stride) : nullptr;
 }
 
 template <typename C, typename T>
 __forceinline__ __device__ __host__ T*
-                                    cond_load_ptr_batch(C cond, T** p, rocblas_int block, rocblas_stride offset, rocblas_stride stride)
+                                    cond_load_ptr_batch(C cond, T** p, uint32_t block, rocblas_stride offset, rocblas_stride stride)
 {
     return cond ? load_ptr_batch( p, block, offset, stride) : nullptr;
 }
