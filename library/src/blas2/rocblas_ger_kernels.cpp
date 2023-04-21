@@ -72,13 +72,13 @@ rocblas_ger_kernel(rocblas_int    m,
 
     if(threadIdx.y == 0)
     {
-        xdata[threadIdx.x] = tx < m ? x[tx * incx] : 0;
+        xdata[threadIdx.x] = tx < m ? x[tx * int64_t(incx)] : 0;
     }
 
     if(threadIdx.x < WIN)
     {
         ydata[tyi + threadIdx.x]
-            = (ty + ptrdiff_t(threadIdx.x) < n) ? y[(ty + ptrdiff_t(threadIdx.x)) * incy] : 0;
+            = (ty + threadIdx.x < n) ? y[(ty + threadIdx.x) * int64_t(incy)] : 0;
     }
 
     __syncthreads();
@@ -136,14 +136,14 @@ rocblas_sger_kernel(rocblas_int    m,
     //Each blockIdx.x takes care of the computation of each column of matrix 'A'
     A += col * size_t(lda);
 
-    const T res_y = y[col * incy] * alpha;
+    const T res_y = y[col * (int64_t)incy] * alpha;
 
     //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
     //If m > DIM_X, then the threads are reused and the multiplied values will be accumalated to Hermitian matrix 'A'.
 
     for(rocblas_int i = 0; tx + i < m; i += DIM_X)
     {
-        A[i] += res_y * x[(tx + i) * incx];
+        A[i] += res_y * x[(tx + i) * int64_t(incx)];
     }
 }
 
@@ -204,27 +204,27 @@ rocblas_ger_double_buffered_kernel(bool           host_ptr_mode,
     A += by * DIM_X * size_t(lda);
 
     // Advance 'x'
-    x += (bx * DIM_X) * incx;
+    x += (bx * DIM_X) * int64_t(incx);
 
     // Advance 'y'
-    y += (by * DIM_X) * incy;
+    y += (by * DIM_X) * int64_t(incy);
 
-    const int j = ty_ * elements_per_thread * lda + tx_;
+    const size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
-    x_reg_upper = x[tx_ * incx] * alpha;
-    x_reg_lower = x[((DIM_X / 2) + tx_) * incx] * alpha;
+    x_reg_upper = x[tx_ * int64_t(incx)] * alpha;
+    x_reg_lower = x[((DIM_X / 2) + tx_) * int64_t(incx)] * alpha;
 
 // read upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        areg_upper[k] = A[j + k * lda];
+        areg_upper[k] = A[j + k * size_t(lda)];
 
 // read lower
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
     {
-        areg_lower[k] = A[(DIM_X / 2) + j + k * lda];
-        y_reg[k]      = y[(ty_ * elements_per_thread + k) * incy];
+        areg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
+        y_reg[k]      = y[(ty_ * elements_per_thread + k) * int64_t(incy)];
     }
 
 // compute upper
@@ -235,7 +235,7 @@ rocblas_ger_double_buffered_kernel(bool           host_ptr_mode,
 // store upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        A[j + k * lda] = areg_upper[k];
+        A[j + k * size_t(lda)] = areg_upper[k];
 
 // compute lower
 #pragma unroll
@@ -245,7 +245,7 @@ rocblas_ger_double_buffered_kernel(bool           host_ptr_mode,
 // store lower
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        A[(DIM_X / 2) + j + k * lda] = areg_lower[k];
+        A[(DIM_X / 2) + j + k * size_t(lda)] = areg_lower[k];
 }
 
 template <bool CONJ, typename T, typename U, typename V, typename W>
