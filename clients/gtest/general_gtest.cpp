@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,8 @@
 #include "rocblas_matrix.hpp"
 #include "rocblas_vector.hpp"
 #include "type_dispatch.hpp"
+
+#include "include/utility.hpp"
 
 namespace
 {
@@ -204,6 +206,90 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(complex_operators);
 
+    //
+    // helper utilities
+
+    template <typename T>
+    void testing_helper_utilities(const Arguments& arg)
+    {
+        // just want to ensure 64 bit math
+
+        uint32_t block  = 8;
+        int64_t  stride = 1LL << 33; // int32 overflow
+        int64_t  offset = stride + 2;
+
+        T        val(42);
+        const T* valptr = &val - block * stride;
+        T        result = load_scalar(valptr, block, stride);
+        EXPECT_EQ(result, val);
+
+        const T* dst = load_ptr_batch(&val, block, offset, stride);
+        valptr       = &val + block * stride + offset;
+        EXPECT_EQ(dst, valptr);
+
+        dst    = load_ptr_batch(&val, block, stride);
+        valptr = &val + block * stride;
+        EXPECT_EQ(dst, valptr);
+    };
+
+    // By default, arbitrary type combinations are invalid.
+    // The unnamed second parameter is used for enable_if_t below.
+    template <typename, typename = void>
+    struct helper_utilities_testing : rocblas_test_invalid
+    {
+    };
+
+    template <typename T>
+    struct helper_utilities_testing<
+        T,
+        std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}
+                         || std::is_same<T, rocblas_float_complex>{}
+                         || std::is_same<T, rocblas_double_complex>{} || std::is_same<T, float>{}
+                         || std::is_same<T, double>{}>> : rocblas_test_valid
+    {
+        void operator()(const Arguments& arg)
+        {
+            if(!strcmp(arg.function, "helper_utilities"))
+                testing_helper_utilities<T>(arg);
+            else
+                FAIL() << "Internal error: Test called with unknown function: " << arg.function;
+        }
+    };
+
+    struct helper_utilities : RocBLAS_Test<helper_utilities, helper_utilities_testing>
+    {
+        // Filter for which types apply to this suite
+        static bool type_filter(const Arguments& arg)
+        {
+            return true;
+        }
+
+        // Filter for which functions apply to this suite
+        static bool function_filter(const Arguments& arg)
+        {
+            return !strcmp(arg.function, "helper_utilities");
+        }
+
+        // Google Test name suffix based on parameters
+        static std::string name_suffix(const Arguments& arg)
+        {
+            RocBLAS_TestName<helper_utilities> name(arg.name);
+            name << rocblas_datatype2string(arg.a_type);
+            return std::move(name);
+        }
+    };
+
+    TEST_P(helper_utilities, auxiliary)
+    {
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<helper_utilities_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(helper_utilities);
+
+    //
+    // check numerics
+
+    //
     //Testing a vector for NaN/zero/Inf/denormal values
     template <typename T>
     void testing_check_numerics_vector(const Arguments& arg)
