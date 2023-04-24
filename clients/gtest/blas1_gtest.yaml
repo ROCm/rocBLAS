@@ -9,9 +9,10 @@ Definitions:
 
   - &size_t_xy_range
     - { N: 1048600, incx:  4096, incy:     1 }
-    - { N: 1048600, incx: -4096, incy:     1 }
     - { N: 1048600, incx:     1, incy:  4096 }
-    - { N: 1048600, incx:     1, incy: -4096 }
+    # TODO add back when workaround for OpenBLAS on windows negative overflow failures
+    #- { N: 1048600, incx: -4096, incy:     1 }
+    #- { N: 1048600, incx:     1, incy: -4096 }
 
   - &N_range
     - [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
@@ -514,19 +515,19 @@ Tests:
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
 
   - name: blas1_size_t
-    category: nightly
+    category: nightly #stress
     matrix_size: *size_t_pos_neg_xy_range
     alpha: [ 2 ]
     function:
       - axpy_ex:  *half_precision
-      - swap: *single_precision
+      #- swap: *single_precision
       # axpy shared kernels for axpy_ex so only testing size_t with axpy_ex and half
       # batched kernel only for batch_count > 8192, so large incx incy not practical
       # all other precisions optimized kernels only for incx == incy == 1
     pointer_mode_host: false
 
   - name: blas1_size_t
-    category: nightly
+    category: pre_checkin
     matrix_size: *size_t_pos_x_range
     function:
       - iamax:  *single_precision
@@ -547,13 +548,8 @@ Tests:
     pointer_mode_device: false
     function:
       - swap: *single_precision
-
-  - name: blas1_size_t
-    category: nightly #stress
-    matrix_size: *size_t_xy_range
-    pointer_mode_device: false
-    function:
       - copy:  *single_precision
+
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
