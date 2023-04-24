@@ -18,6 +18,10 @@ Tests:
   function: complex_operators
   precision: *single_double_precisions_complex
 
+- name: helper_utilities
+  category: quick
+  function: helper_utilities
+  precision: *half_bfloat_single_double_complex_real_precisions
 
 - name : check_numerics_vector
   category : quick
