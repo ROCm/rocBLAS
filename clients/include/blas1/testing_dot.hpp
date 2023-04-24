@@ -36,6 +36,8 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas1/rocblas_dot.hpp"
+
 template <typename T, bool CONJ = false>
 void testing_dot_bad_arg(const Arguments& arg)
 {
@@ -169,10 +171,33 @@ void testing_dot(const Arguments& arg)
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
         handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2));
+        if(arg.api != INTERNAL)
+        {
+            CHECK_ROCBLAS_ERROR(
+                (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2));
+        }
+        else if constexpr(std::is_same_v<T, float>)
+        {
+            rocblas_stride offset_x = arg.lda;
+            rocblas_stride offset_y = arg.ldb;
+            CHECK_ROCBLAS_ERROR((rocblas_internal_dot_template<T, T>)(handle,
+                                                                      N,
+                                                                      dx + offset_x,
+                                                                      -offset_x,
+                                                                      incx,
+                                                                      arg.stride_x,
+                                                                      dy_ptr + offset_y,
+                                                                      -offset_y,
+                                                                      incy,
+                                                                      arg.stride_y,
+                                                                      1,
+                                                                      d_rocblas_result_2,
+                                                                      nullptr)); // N must be small
+        }
         handle.post_test(arg);
+
         CHECK_HIP_ERROR(
             hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T), hipMemcpyDeviceToHost));
 
