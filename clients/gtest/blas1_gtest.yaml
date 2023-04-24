@@ -422,6 +422,19 @@ Tests:
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
 
 # pre_checkin
+
+  - name: blas1_scal_internal_api
+    category: pre_checkin
+    function:
+      - scal: *single_precision
+    N: [ 1000 ]
+    incx: 1
+    alpha: 1.0
+    stride_scale: [ 1 ]
+    lda: *c_pos_overflow_int32 # lda, ... used for internal api offset args
+    pointer_mode_device: false
+    api: INTERNAL
+
   - name: blas1
     category: pre_checkin
     N: [ 50000, 1049600 ]
@@ -879,6 +892,19 @@ Tests:
       - dotc_strided_batched_ex:   *half_precision
 
 # pre_checkin
+  - name: blas1_dot_internal_api
+    category: pre_checkin
+    N: [ 1000 ] # must be small enough for single block so no workspace required (see testing code)
+    incx_incy: *incx_incy_range_small
+    alpha: [ 1 ]
+    stride_scale: [ 1 ]
+    lda: *c_pos_overflow_int32 # lda, ldb used for internal api offset args
+    ldb: *c_pos_overflow_int32
+    function:
+      - dot: *single_precision
+    pointer_mode_device: false
+    api: INTERNAL
+
   - name: blas1
     category: pre_checkin
     N: [ 5000, 800000 ]
