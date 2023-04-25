@@ -59,6 +59,8 @@ Definitions:
 
   - &size_t_index
     - { M: 4,     N: 46976, lda: 46976, stride_a: 93952 }      # default kernel
+
+  - &size_t_index_gfx90a
     - { M: 46976, N: 46976, lda: 46976, stride_a: 2206744576 } # m == n && m > 2000 && mod 128 == 0 && gfx90a
 
   - &size_t_MN_incx_incy
@@ -102,7 +104,17 @@ Tests:
   alpha: [ -0.5 ]
   pointer_mode_host: false
 
-# these new tests fail
+- name: ger_size_t_M
+  category: nightly
+  function:
+  - ger
+  precision: *single_precision
+  matrix_size: *size_t_index_gfx90a
+  incx_incy: *incx_incy_range_small
+  alpha: [ -0.5 ]
+  pointer_mode_host: false
+  gpu_arch: '90a'
+
 - name: ger_size_t_inc
   category: nightly
   function:
