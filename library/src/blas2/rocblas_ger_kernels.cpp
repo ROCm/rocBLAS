@@ -279,9 +279,9 @@ rocblas_status rocblas_internal_ger_template(rocblas_handle handle,
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
     //Identifying the precision to have an appropriate optimization
-    static constexpr bool is_float         = std::is_same<T, float>{};
-    static constexpr bool is_double        = std::is_same<T, double>{};
-    static constexpr bool is_complex_float = std::is_same<T, rocblas_float_complex>{};
+    static constexpr bool is_float         = std::is_same_v<T, float>;
+    static constexpr bool is_double        = std::is_same_v<T, double>;
+    static constexpr bool is_complex_float = std::is_same_v<T, rocblas_float_complex>;
 
     bool is_gfx90a = handle->getArch() == 910 ? true : false;
 

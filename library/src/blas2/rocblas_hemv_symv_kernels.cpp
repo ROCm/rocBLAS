@@ -3025,12 +3025,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     //Identifying the precision to have an appropriate optimization
     static constexpr bool is_float
-        = std::is_same<TPtr, rocblas_float*>{} || std::is_same<TPtr, rocblas_float* const*>{};
+        = std::is_same_v<TPtr, rocblas_float*> || std::is_same_v<TPtr, rocblas_float* const*>;
 
     static constexpr bool is_double
-        = std::is_same<TPtr, double*>{} || std::is_same<TPtr, double* const*>{};
+        = std::is_same_v<TPtr, double*> || std::is_same_v<TPtr, double* const*>;
 
-    //static constexpr bool is_double   = std::is_same<TPtr, double>{};
+    //static constexpr bool is_double   = std::is_same_v<TPtr, double>;
     bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
 
     const bool is_atomics_allowed = handle->atomics_mode == rocblas_atomics_allowed ? true : false;

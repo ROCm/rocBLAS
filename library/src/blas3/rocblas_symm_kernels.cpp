@@ -450,19 +450,19 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
     // a. It is also the starting size for subdiagonal blocks in calls to gemm.
     rocblas_int nb_diag = 32; // size of diag blocks of triangle matrix a
 
-    if(std::is_same<T, float>{})
+    if(std::is_same_v<T, float>)
     {
         nb_diag = SSYMM_MIN_NB;
     }
-    else if(std::is_same<T, double>{})
+    else if(std::is_same_v<T, double>)
     {
         nb_diag = DSYMM_MIN_NB;
     }
-    else if(std::is_same<T, rocblas_float_complex>{})
+    else if(std::is_same_v<T, rocblas_float_complex>)
     {
         nb_diag = CSYMM_MIN_NB;
     }
-    else if(std::is_same<T, rocblas_double_complex>{})
+    else if(std::is_same_v<T, rocblas_double_complex>)
     {
         nb_diag = ZSYMM_MIN_NB;
     }
@@ -799,10 +799,10 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
     // a. It is also the starting size for subdiagonal blocks in calls to gemm.
     rocblas_int nb_diag = 32; // size of diag blocks of triangle matrix a
 
-    if     (std::is_same<T, float>{})                  { nb_diag = SSYMM_BATCHED_MIN_NB; }
-    else if(std::is_same<T, double>{})                 { nb_diag = DSYMM_BATCHED_MIN_NB; }
-    else if(std::is_same<T, rocblas_float_complex>{})  { nb_diag = CSYMM_BATCHED_MIN_NB; }
-    else if(std::is_same<T, rocblas_double_complex>{}) { nb_diag = ZSYMM_BATCHED_MIN_NB; }
+    if     (std::is_same_v<T, float>)                  { nb_diag = SSYMM_BATCHED_MIN_NB; }
+    else if(std::is_same_v<T, double>)                 { nb_diag = DSYMM_BATCHED_MIN_NB; }
+    else if(std::is_same_v<T, rocblas_float_complex>)  { nb_diag = CSYMM_BATCHED_MIN_NB; }
+    else if(std::is_same_v<T, rocblas_double_complex>) { nb_diag = ZSYMM_BATCHED_MIN_NB; }
 
     rocblas_operation trans_a = HERM ? rocblas_operation_conjugate_transpose : rocblas_operation_transpose;
 

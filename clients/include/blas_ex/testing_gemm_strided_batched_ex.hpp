@@ -255,9 +255,9 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     bool alpha_isnan = arg.alpha_isnan<Tc>();
     bool beta_isnan  = arg.beta_isnan<Tc>();
-    if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
-       && !std::is_same<To, rocblas_half>{}
-       && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
+    if(!std::is_same_v<
+           To,
+           float> && !std::is_same_v<To, double> && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
@@ -287,10 +287,11 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     // size checking is only needed for int8x4
     bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    bool int8_invalid   = (pack_to_int8x4 && std::is_same<Ti, int8_t>{}
-                         && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
-                             || (transB == rocblas_operation_none && ldb % 4 != 0)
-                             || stride_a % 4 != 0 || stride_b % 4 != 0));
+    bool int8_invalid
+        = (pack_to_int8x4
+           && std::is_same_v<
+               Ti,
+               int8_t> && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) || (transB == rocblas_operation_none && ldb % 4 != 0) || stride_a % 4 != 0 || stride_b % 4 != 0));
 
     if(invalid_size || !M || !N || !batch_count)
     {
@@ -426,7 +427,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
+    using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
     host_strided_batch_matrix<Ti>     hA(A_row, A_col, lda, stride_a, batch_count);
     host_strided_batch_matrix<Ti>     hB(B_row, B_col, ldb, stride_b, batch_count);
     host_strided_batch_matrix<To>     hC(M, N, ldc, stride_c, batch_count);
@@ -478,7 +479,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     hD_2.copy_from(hD_1);
 
 #if 0 // Copied from testing_gemm_ex.hpp
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
+    if(std::is_same_v<To, rocblas_half> && std::is_same_v<Tc, float>)
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -511,7 +512,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 #endif
 
     // copy data from CPU to device
-    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none && pack_to_int8x4)
+    if(std::is_same_v<Ti, int8_t> && transA == rocblas_operation_none && pack_to_int8x4)
     {
         host_strided_batch_matrix<Ti> hA_packed(A_row, A_col, lda, stride_a, batch_count);
         hA_packed.copy_from(hA);
@@ -527,7 +528,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     }
 
     // if int8 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none && pack_to_int8x4)
+    if(std::is_same_v<Ti, int8_t> && transB != rocblas_operation_none && pack_to_int8x4)
     {
         host_strided_batch_matrix<Ti> hB_packed(B_row, B_col, ldb, stride_b, batch_count);
         hB_packed.copy_from(hB);
@@ -653,7 +654,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                 near_check_general<To, To_hpa>(
                     M, N, ldd, stride_d, hD_gold, hD_2, batch_count, tol);
             }
-            else if(std::is_same<Tc, rocblas_half>{} && K > 10000)
+            else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

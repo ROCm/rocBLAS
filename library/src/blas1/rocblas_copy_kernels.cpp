@@ -92,7 +92,7 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
 
     static constexpr bool using_rocblas_float
-        = std::is_same<U, rocblas_float*>{} || std::is_same<U, rocblas_float* const*>{};
+        = std::is_same_v<U, rocblas_float*> || std::is_same_v<U, rocblas_float* const*>;
 
     if(!using_rocblas_float || incx != 1 || incy != 1)
     {

@@ -239,7 +239,7 @@ void testing_symv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
+            if(std::is_same_v<T, float> || std::is_same_v<T, double>)
             {
                 unit_check_general<T>(1, N, incy, hy_gold, hy_1);
                 unit_check_general<T>(1, N, incy, hy_gold, hy_2);

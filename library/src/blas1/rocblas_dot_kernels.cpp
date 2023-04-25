@@ -75,16 +75,19 @@ rocblas_dot_kernel_inc1(rocblas_int n,
     rocblas_dot_save_sum<ONE_BLOCK>(sum, workspace, out);
 }
 
-template <bool        ONE_BLOCK,
-          rocblas_int NB,
-          rocblas_int WIN,
-          bool        CONJ,
-          typename T,
-          typename U,
-          typename V,
-          std::enable_if_t<!std::is_same<T, rocblas_half>{} && !std::is_same<T, rocblas_bfloat16>{}
-                               && !std::is_same<T, rocblas_float>{},
-                           int> = 0>
+template <
+    bool        ONE_BLOCK,
+    rocblas_int NB,
+    rocblas_int WIN,
+    bool        CONJ,
+    typename T,
+    typename U,
+    typename V,
+    std::enable_if_t<
+        !std::is_same_v<
+            T,
+            rocblas_half> && !std::is_same_v<T, rocblas_bfloat16> && !std::is_same_v<T, rocblas_float>,
+        int> = 0>
 ROCBLAS_KERNEL(NB)
 rocblas_dot_kernel_inc1by2(rocblas_int n,
                            const U __restrict__ xa,
@@ -115,16 +118,19 @@ rocblas_dot_kernel_inc1by2(rocblas_int n,
     rocblas_dot_save_sum<ONE_BLOCK>(sum, workspace, out);
 }
 
-template <bool        ONE_BLOCK,
-          rocblas_int NB,
-          rocblas_int WIN,
-          bool        CONJ,
-          typename T,
-          typename U,
-          typename V,
-          std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}
-                               || std::is_same<T, rocblas_float>{},
-                           int> = 0>
+template <
+    bool        ONE_BLOCK,
+    rocblas_int NB,
+    rocblas_int WIN,
+    bool        CONJ,
+    typename T,
+    typename U,
+    typename V,
+    std::enable_if_t<
+        std::is_same_v<
+            T,
+            rocblas_half> || std::is_same_v<T, rocblas_bfloat16> || std::is_same_v<T, rocblas_float>,
+        int> = 0>
 ROCBLAS_KERNEL(NB)
 rocblas_dot_kernel_inc1by2(rocblas_int n,
                            const U __restrict__ xa,
@@ -316,13 +322,13 @@ rocblas_status rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
     int single_block_threshold = 32768;
-    if(std::is_same<T, float>{})
+    if(std::is_same_v<T, float>)
         single_block_threshold = 31000;
-    else if(std::is_same<T, rocblas_float_complex>{})
+    else if(std::is_same_v<T, rocblas_float_complex>)
         single_block_threshold = 16000;
-    else if(std::is_same<T, double>{})
+    else if(std::is_same_v<T, double>)
         single_block_threshold = 13000;
-    else if(std::is_same<T, rocblas_double_complex>{})
+    else if(std::is_same_v<T, rocblas_double_complex>)
         single_block_threshold = 10000;
 
     if(n <= single_block_threshold)

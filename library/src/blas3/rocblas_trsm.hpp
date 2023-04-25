@@ -1823,16 +1823,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                          size_t*           w_invA_arr_size,
                                          size_t*           w_x_tmp_size_backup)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, false, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
 
@@ -1853,16 +1853,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                  size_t*           w_invA_arr_size,
                                                  size_t*           w_x_tmp_size_backup)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trsm_workspace_size<ROCBLAS_TRSM_NB, true, T>(
             TRSM_WORKSPACE_TEMPLATE_PARAMS);
 
@@ -3220,7 +3220,7 @@ template <typename T,
           typename ATYPE,
           typename BTYPE,
           const int NB,
-          std::enable_if_t<!std::is_same<T, rocblas_double_complex>{}, int> = 0>
+          std::enable_if_t<!std::is_same_v<T, rocblas_double_complex>, int> = 0>
 void rocblas_trsm_small_64(rocblas_handle    handle,
                            rocblas_side      side,
                            rocblas_fill      uplo,
@@ -3268,7 +3268,7 @@ template <typename T,
           typename ATYPE,
           typename BTYPE,
           const int NB,
-          std::enable_if_t<std::is_same<T, rocblas_double_complex>{}, int> = 0>
+          std::enable_if_t<std::is_same_v<T, rocblas_double_complex>, int> = 0>
 void rocblas_trsm_small_64(rocblas_handle    handle,
                            rocblas_side      side,
                            rocblas_fill      uplo,
@@ -3851,16 +3851,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offset_invA        = 0,
                                    rocblas_stride    stride_invA        = 0)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, false, T>(
             TRSM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, false, T>(
             TRSM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, false, T>(
             TRSM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB, false, T>(
             TRSM_TEMPLATE_PARAMS);
 
@@ -3896,16 +3896,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offset_invA        = 0,
                                            rocblas_stride    stride_invA        = 0)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trsm_template<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB, true, T>(
             TRSM_TEMPLATE_PARAMS);
 

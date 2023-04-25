@@ -62,8 +62,11 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
 
     // size checking is only needed for int8x4
     bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    bool int8_invalid   = (pack_to_int8x4 && std::is_same<Ti, int8_t>{}
-                         && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)));
+    bool int8_invalid
+        = (pack_to_int8x4
+           && std::is_same_v<
+               Ti,
+               int8_t> && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)));
 
     if(invalid_size || !M || !N || !batch_count)
     {

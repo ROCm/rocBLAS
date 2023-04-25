@@ -89,7 +89,7 @@ namespace
     template <typename T>
     struct set_get_vector_testing<
         T,
-        std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
+        std::enable_if_t<std::is_same_v<T, float> || std::is_same_v<T, double>>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)

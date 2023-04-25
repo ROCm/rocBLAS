@@ -205,7 +205,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle     handle,
 {
 #if 0
     // if tensile supports we can remove special case handling here, this does not support int8x4
-    if(!std::is_same<Ti, rocblas_int8x4>{} && (k == 0 || (alpha && !*alpha)))
+    if(!std::is_same_v<Ti, rocblas_int8x4> && (k == 0 || (alpha && !*alpha)))
     {
         // null beta earlier return and always on host here so can dereference
         return rocblas_gemm_ex_scale_template(handle,
@@ -346,8 +346,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
         // Pass alpha and beta as simple array (stride of 1)
         // since Tensile does not have gemm_batched, we will have to iterate
         // over batches either way
-        if(check_numerics && !std::is_same<Ti, rocblas_int8x4>{}
-           && !std::is_same<Ti, signed char>{})
+        if(check_numerics
+           && !std::is_same_v<Ti, rocblas_int8x4> && !std::is_same_v<Ti, signed char>)
         {
             bool           is_input = true;
             rocblas_status gemm_ex_check_numerics_status
@@ -405,8 +405,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
         if(status != rocblas_status_success)
             return status;
 
-        if(check_numerics && !std::is_same<Ti, rocblas_int8x4>{}
-           && !std::is_same<Ti, signed char>{})
+        if(check_numerics
+           && !std::is_same_v<Ti, rocblas_int8x4> && !std::is_same_v<Ti, signed char>)
         {
             bool           is_input = false;
             rocblas_status gemm_ex_check_numerics_status
@@ -439,8 +439,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
            || !isAligned(d, sizeof(To)))
             return rocblas_status_invalid_size;
 
-        if(check_numerics && !std::is_same<Ti, rocblas_int8x4>{}
-           && !std::is_same<Ti, signed char>{})
+        if(check_numerics
+           && !std::is_same_v<Ti, rocblas_int8x4> && !std::is_same_v<Ti, signed char>)
         {
             bool           is_input                      = true;
             rocblas_status gemm_ex_check_numerics_status = rocblas_gemm_check_numerics(
@@ -498,8 +498,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle     handle,
         if(status != rocblas_status_success)
             return status;
 
-        if(check_numerics && !std::is_same<Ti, rocblas_int8x4>{}
-           && !std::is_same<Ti, signed char>{})
+        if(check_numerics
+           && !std::is_same_v<Ti, rocblas_int8x4> && !std::is_same_v<Ti, signed char>)
         {
             bool           is_input                      = false;
             rocblas_status gemm_ex_check_numerics_status = rocblas_gemm_check_numerics(
