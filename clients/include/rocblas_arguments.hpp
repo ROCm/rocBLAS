@@ -53,6 +53,9 @@ typedef enum rocblas_client_os_
     ALL     = 3
 } rocblas_client_os;
 
+/*! \brief device matches pattern */
+bool gpu_arch_match(const std::string& gpu_arch, const char pattern[4]);
+
 /***************************************************************************
  *! \brief Class used to parse command arguments in both client & gtest    *
  * WARNING: If this data is changed, then rocblas_common.yaml must also be *
@@ -129,6 +132,10 @@ struct Arguments
 
     rocblas_client_os os_flags;
 
+    // the gpu arch string after "gfx" for which the test is valid
+    // '?' is wildcard char, empty string is default as valid on all
+    char gpu_arch[4];
+
     rocblas_client_api api;
 
     // memory padding for testing write out of bounds
@@ -154,7 +161,7 @@ struct Arguments
     bool pointer_mode_host;
     bool pointer_mode_device;
     bool c_noalias_d;
-    bool HMM;
+    bool HMM; // xnack+
     bool graph_test;
 
     /*************************************************************************
@@ -211,6 +218,7 @@ struct Arguments
     OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
     OPER(os_flags) SEP               \
+    OPER(gpu_arch) SEP               \
     OPER(api) SEP                    \
     OPER(pad) SEP                    \
     OPER(threads) SEP                \

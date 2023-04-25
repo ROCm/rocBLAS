@@ -435,6 +435,7 @@ Arguments:
   - arithmetic_check: rocblas_arithmetic_check
   - atomics_mode: rocblas_atomics_mode
   - os_flags: rocblas_client_os
+  - gpu_arch: c_char*4
   - api: rocblas_api
   - pad: c_uint32
   - threads: c_uint16
@@ -514,6 +515,7 @@ Defaults:
   streams: 0
   devices: 0
   os_flags: ALL
+  gpu_arch: ''
   api: C
   graph_test: false
   norm_check: 0
