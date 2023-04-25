@@ -60,13 +60,13 @@ namespace
         // unique harmonic convergence
         // search half-precision-arithmetic-fp16-versus-bfloat16 harmonic
         result = T(0);
-        if(std::is_same<T, rocblas_half>{})
+        if(std::is_same_v<T, rocblas_half>)
         {
             for(int i = 1; i <= 513; i++)
                 result += T(1.0) / T(i);
             expect_decimals_eq((float)result, 7.08594f, 5);
         }
-        else if(std::is_same<T, rocblas_bfloat16>{})
+        else if(std::is_same_v<T, rocblas_bfloat16>)
         {
             for(int i = 1; i <= 65; i++)
                 result += T(1.0) / T(i);
@@ -84,7 +84,7 @@ namespace
     template <typename T>
     struct half_operators_testing<
         T,
-        std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}>>
+        std::enable_if_t<std::is_same_v<T, rocblas_half> || std::is_same_v<T, rocblas_bfloat16>>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -162,9 +162,10 @@ namespace
     };
 
     template <typename T>
-    struct complex_operators_testing<T,
-                                     std::enable_if_t<std::is_same<T, rocblas_float_complex>{}
-                                                      || std::is_same<T, rocblas_double_complex>{}>>
+    struct complex_operators_testing<
+        T,
+        std::enable_if_t<
+            std::is_same_v<T, rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -242,10 +243,11 @@ namespace
     template <typename T>
     struct helper_utilities_testing<
         T,
-        std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}
-                         || std::is_same<T, rocblas_float_complex>{}
-                         || std::is_same<T, rocblas_double_complex>{} || std::is_same<T, float>{}
-                         || std::is_same<T, double>{}>> : rocblas_test_valid
+        std::enable_if_t<
+            std::is_same_v<
+                T,
+                rocblas_half> || std::is_same_v<T, rocblas_bfloat16> || std::is_same_v<T, rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex> || std::is_same_v<T, float> || std::is_same_v<T, double>>>
+        : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
         {
@@ -565,10 +567,11 @@ namespace
     template <typename T>
     struct check_numerics_vector_testing<
         T,
-        std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}
-                         || std::is_same<T, rocblas_float_complex>{}
-                         || std::is_same<T, rocblas_double_complex>{} || std::is_same<T, float>{}
-                         || std::is_same<T, double>{}>> : rocblas_test_valid
+        std::enable_if_t<
+            std::is_same_v<
+                T,
+                rocblas_half> || std::is_same_v<T, rocblas_bfloat16> || std::is_same_v<T, rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex> || std::is_same_v<T, float> || std::is_same_v<T, double>>>
+        : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
         {
@@ -1190,10 +1193,11 @@ namespace
     template <typename T>
     struct check_numerics_matrix_testing<
         T,
-        std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}
-                         || std::is_same<T, rocblas_float_complex>{}
-                         || std::is_same<T, rocblas_double_complex>{} || std::is_same<T, float>{}
-                         || std::is_same<T, double>{}>> : rocblas_test_valid
+        std::enable_if_t<
+            std::is_same_v<
+                T,
+                rocblas_half> || std::is_same_v<T, rocblas_bfloat16> || std::is_same_v<T, rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex> || std::is_same_v<T, float> || std::is_same_v<T, double>>>
+        : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
         {

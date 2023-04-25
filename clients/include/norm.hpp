@@ -116,7 +116,7 @@ double norm_check_general(
 // For BF16 and half, we convert the results to double first
 template <typename T,
           typename VEC,
-          std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{},
+          std::enable_if_t<std::is_same_v<T, rocblas_half> || std::is_same_v<T, rocblas_bfloat16>,
                            int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, VEC&& hCPU, T* hGPU)

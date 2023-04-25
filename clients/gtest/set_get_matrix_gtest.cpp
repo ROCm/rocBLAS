@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -91,7 +91,7 @@ namespace
     template <typename T>
     struct set_get_matrix_testing<
         T,
-        std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
+        std::enable_if_t<std::is_same_v<T, float> || std::is_same_v<T, double>>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)

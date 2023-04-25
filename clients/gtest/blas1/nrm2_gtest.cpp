@@ -81,14 +81,13 @@ namespace
 
     // This tells whether the BLAS1 tests are enabled
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
-    using nrm2_enabled
-        = std::integral_constant<bool,
-                                 ((BLAS1 == blas1::nrm2 || BLAS1 == blas1::nrm2_batched
-                                   || BLAS1 == blas1::nrm2_strided_batched)
-                                  && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
-                                  && (std::is_same<Ti, rocblas_float_complex>{}
-                                      || std::is_same<Ti, rocblas_double_complex>{}
-                                      || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))>;
+    using nrm2_enabled = std::integral_constant<
+        bool,
+        ((BLAS1 == blas1::nrm2 || BLAS1 == blas1::nrm2_batched
+          || BLAS1 == blas1::nrm2_strided_batched)
+         && std::is_same_v<
+             Ti,
+             To> && std::is_same_v<To, Tc> && (std::is_same_v<Ti, rocblas_float_complex> || std::is_same_v<Ti, rocblas_double_complex> || std::is_same_v<Ti, float> || std::is_same_v<Ti, double>))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function

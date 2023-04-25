@@ -171,7 +171,7 @@ public:
     /*  possible transition helpers for use of both internal and hipComplex
 
     // Conversion from hipFloatComplex
-    template <typename U, std::enable_if_t<std::is_same<T, float>{} && std::is_same<U, hipFloatComplex>{}, int> = 0>
+    template <typename U, std::enable_if_t<std::is_same_v<T, float> && std::is_same_v<U, hipFloatComplex>, int> = 0>
     __device__ __host__ explicit constexpr rocblas_complex_num(const U& z)
         : x{z.x()}
         , y{z.y()}
@@ -179,14 +179,14 @@ public:
     }
 
     // Conversion to hipFloatComplex
-    template <typename U, std::enable_if_t<std::is_same<T, float>{} && std::is_same<U, hipFloatComplex>{}, int> = 0>
+    template <typename U, std::enable_if_t<std::is_same_v<T, float> && std::is_same_v<U, hipFloatComplex>, int> = 0>
     __device__ __host__ explicit constexpr operator U() const
     {
         return {x, y};
     }
 
     // Conversion from hipDoubleComplex
-    template <typename U, std::enable_if_t<std::is_same<T, double>{} && std::is_same<U, hipDoubleComplex>{}, int> = 0>
+    template <typename U, std::enable_if_t<std::is_same_v<T, double> && std::is_same_v<U, hipDoubleComplex>, int> = 0>
     __device__ __host__ explicit constexpr rocblas_complex_num(const U& z)
         : x{z.x()}
         , y{z.y()}
@@ -194,7 +194,7 @@ public:
     }
 
     // Conversion to hipDoubleComplex
-    template <typename U, std::enable_if_t<std::is_same<T, double>{} && std::is_same<U, hipDoubleComplex>{}, int> = 0>
+    template <typename U, std::enable_if_t<std::is_same_v<T, double> && std::is_same_v<U, hipDoubleComplex>, int> = 0>
     __device__ __host__ explicit constexpr operator U() const
     {
         return {x, y};

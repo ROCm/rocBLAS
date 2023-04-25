@@ -997,16 +997,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int       batch_count,
                                    rocblas_int*      w_completed_sec)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_ZTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
 
@@ -1031,16 +1031,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_int       batch_count,
                                            rocblas_int*      w_completed_sec)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_SDCTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trsv_substitution_template<ROCBLAS_ZTRSV_NB, T>(
             TRSV_TEMPLATE_PARAMS);
 

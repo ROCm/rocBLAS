@@ -354,8 +354,9 @@ void testing_gemm_ext2(const Arguments& arg)
     uint32_t          flags(arg.flags);
 
     bool nantest = rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai);
-    if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
-       && !std::is_same<To, rocblas_half>{} && !rocblas_is_complex<To> && nantest)
+    if(!std::is_same_v<
+           To,
+           float> && !std::is_same_v<To, double> && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
@@ -492,7 +493,7 @@ void testing_gemm_ext2(const Arguments& arg)
     host_matrix<To> hC(M, N, col_stride_c);
     host_matrix<To> hD_1(M, N, col_stride_d);
     host_matrix<To> hD_2(M, N, col_stride_d);
-    using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
+    using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
     host_matrix<To_hpa> hD_gold(M, N, col_stride_d);
 
     // Allocate device memory
@@ -523,7 +524,7 @@ void testing_gemm_ext2(const Arguments& arg)
     rocblas_init_matrix(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
     rocblas_init_matrix(hD_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
+    if(std::is_same_v<To, rocblas_half> && std::is_same_v<Tc, float>)
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -573,7 +574,7 @@ void testing_gemm_ext2(const Arguments& arg)
     // copy data from CPU to device
     // do packing only when pack_to_int8x4=true (int8x4)
     // if int8x4 and A not transposed and valid case, pack A
-    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none && pack_to_int8x4)
+    if(std::is_same_v<Ti, int8_t> && transA == rocblas_operation_none && pack_to_int8x4)
     {
         host_matrix<Ti> hA_packed(M, K, lda);
 
@@ -587,7 +588,7 @@ void testing_gemm_ext2(const Arguments& arg)
 
     // do packing only when pack_to_int8x4=true (int8x4)
     // if int8x4 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none && pack_to_int8x4)
+    if(std::is_same_v<Ti, int8_t> && transB != rocblas_operation_none && pack_to_int8x4)
     {
         host_matrix<Ti> hB_packed(N, K, ldb);
 
@@ -703,7 +704,7 @@ void testing_gemm_ext2(const Arguments& arg)
                 near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
                 near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, tol);
             }
-            else if(std::is_same<Tc, rocblas_half>{} && K > 10000)
+            else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

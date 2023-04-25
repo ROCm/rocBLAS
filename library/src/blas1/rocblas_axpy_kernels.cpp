@@ -284,11 +284,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     // Using rocblas_half ?
     static constexpr bool using_rocblas_half
         //cppcheck-suppress duplicateExpression
-        = std::is_same<Ta, rocblas_half>::value && std::is_same<Tex, rocblas_half>::value;
+        = std::is_same_v<Ta, rocblas_half> && std::is_same_v<Tex, rocblas_half>;
 
     // Using float ?
     static constexpr bool using_rocblas_float
-        = std::is_same<Ty, rocblas_float*>{} || std::is_same<Ty, rocblas_float* const*>{};
+        = std::is_same_v<Ty, rocblas_float*> || std::is_same_v<Ty, rocblas_float* const*>;
 
     static constexpr rocblas_stride stride_0 = 0;
 
@@ -369,7 +369,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         }
     }
 
-    else if(batch_count > 8192 && std::is_same<Ta, float>::value)
+    else if(batch_count > 8192 && std::is_same_v<Ta, float>)
     {
         // Optimized kernel for float Datatype when batch_count > 8192
         int64_t shift_x = offset_x + ((incx < 0) ? int64_t(incx) * (1 - n) : 0);

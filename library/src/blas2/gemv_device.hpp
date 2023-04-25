@@ -328,7 +328,7 @@ template <rocblas_int DIM_X,
           typename T_lda,
           typename T,
           typename U,
-          std::enable_if_t<!std::is_same<T, rocblas_double_complex>{}, int> = 0>
+          std::enable_if_t<!std::is_same_v<T, rocblas_double_complex>, int> = 0>
 ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int m,
                                                   rocblas_int n,
                                                   U           alpha,

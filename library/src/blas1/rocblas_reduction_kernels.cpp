@@ -233,7 +233,7 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
                                (Tr*)(workspace + size_t(batch_count) * blocks));
         }
 
-        if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || reduceKernel)
+        if(std::is_same_v<FINALIZE, rocblas_finalize_identity> || reduceKernel)
         {
             // If FINALIZE is trivial or kernel part2 was called, result is in the
             // beginning of workspace[0]+offset, and can be copied directly.
