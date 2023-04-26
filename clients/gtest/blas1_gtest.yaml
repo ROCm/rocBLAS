@@ -564,7 +564,14 @@ Tests:
     pointer_mode_device: false
     function:
       - rot_ex:  *single_precision_complex
-      # complex rot shared kernels with rot_ex so only testing size_t with rot_ex and half.
+      # complex rot shared kernels with rot_ex so only testing size_t with rot_ex and single_precision_complex.
+
+  - name: blas1_size_t
+    category: pre_checkin #stress
+    matrix_size: *size_t_xy_range
+    function:
+      - rotm:  *single_precision
+      #all rotm functions use same templated source so it is only necessary to test single_precision.
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants

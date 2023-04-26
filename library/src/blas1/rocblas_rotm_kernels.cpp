@@ -41,16 +41,16 @@ __device__ void rocblas_rotm_kernel_calc(rocblas_int    n,
                                          U              h12,
                                          U              h22)
 {
-    auto      x   = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
-    auto      y   = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    auto    x   = load_ptr_batch(x_in, blockIdx.y, offset_x, stride_x);
+    auto    y   = load_ptr_batch(y_in, blockIdx.y, offset_y, stride_y);
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n && flag != -2)
     {
-        auto ix = tid * incx;
-        auto iy = tid * incy;
-        auto w  = x[ix];
-        auto z  = y[iy];
+        int64_t ix = tid * incx;
+        int64_t iy = tid * incy;
+        auto    w  = x[ix];
+        auto    z  = y[iy];
         if(flag < 0)
         {
             //cppcheck-suppress unreadVariable # The variables 'x' and 'y' will be copied back to host(CPU)
