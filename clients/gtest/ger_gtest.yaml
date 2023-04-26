@@ -126,6 +126,7 @@ Tests:
   arguments: *size_t_MN_incx_incy
   alpha: [ 0.5 ]
   pointer_mode_host: false
+  os_flags: LINUX
 
 # Regular ger
 - name: ger_fortran
