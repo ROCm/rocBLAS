@@ -556,6 +556,15 @@ Tests:
     pointer_mode_device: false
     function:
       - rot_ex:  *hpa_half_precision
+      # real rot shared kernels with rot_ex so only testing size_t with rot_ex and half.
+
+  - name: blas1_size_t
+    category: pre_checkin #stress
+    matrix_size: *size_t_xy_range
+    pointer_mode_device: false
+    function:
+      - rot_ex:  *single_precision_complex
+      # complex rot shared kernels with rot_ex so only testing size_t with rot_ex and half.
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
