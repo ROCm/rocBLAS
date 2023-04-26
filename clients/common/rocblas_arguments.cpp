@@ -29,6 +29,26 @@
 #include <ostream>
 #include <utility>
 
+/*! \brief device matches pattern */
+bool gpu_arch_match(const std::string& gpu_arch, const char pattern[4])
+{
+    int         gpu_len = gpu_arch.length();
+    const char* gpu     = gpu_arch.c_str();
+
+    // gpu is currently "gfx" followed by 3 or 4 characters, followed by optional ":" sections
+    int prefix_len = 3;
+    for(int i = 0; i < 4; i++)
+    {
+        if(!pattern[i])
+            break;
+        else if(pattern[i] == '?')
+            continue;
+        else if(prefix_len + i >= gpu_len || pattern[i] != gpu[prefix_len + i])
+            return false;
+    }
+    return true;
+};
+
 void Arguments::init()
 {
     // match python in rocblas_common.py
@@ -81,6 +101,8 @@ void Arguments::init()
     algo           = 0;
     solution_index = 0;
 
+    geam_ex_op = rocblas_geam_ex_operation_min_plus;
+
     flags = rocblas_gemm_flags_none;
 
     a_type       = rocblas_datatype_f32_r;
@@ -95,7 +117,11 @@ void Arguments::init()
 
     atomics_mode = rocblas_atomics_allowed;
 
-    api = C;
+    os_flags = rocblas_client_os::ALL;
+
+    gpu_arch[0] = 0; // 4 chars so 32bit
+
+    api = rocblas_client_api::C;
 
     // memory padding for testing write out of bounds
     pad = 4096;

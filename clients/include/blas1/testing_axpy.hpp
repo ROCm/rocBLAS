@@ -160,29 +160,31 @@ void testing_axpy(const Arguments& arg)
             // ROCBLAS pointer mode host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+            handle.pre_test(arg);
             if(arg.api != INTERNAL)
             {
-                handle.pre_test(arg);
                 CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy));
-                handle.post_test(arg);
             }
-            else if(arg.api == INTERNAL)
+            else
             {
                 // only checking offsets not alpha stride
+                rocblas_stride offset_x = arg.lda;
+                rocblas_stride offset_y = arg.ldb;
                 CHECK_ROCBLAS_ERROR(rocblas_internal_axpy_template<T>(handle,
                                                                       N,
                                                                       &h_alpha,
                                                                       0,
-                                                                      dx + arg.lda,
-                                                                      -arg.lda,
+                                                                      dx + offset_x,
+                                                                      -offset_x,
                                                                       incx,
                                                                       arg.stride_x,
-                                                                      dy + arg.ldb,
-                                                                      -arg.ldb,
+                                                                      dy + offset_y,
+                                                                      -offset_y,
                                                                       incy,
                                                                       arg.stride_y,
                                                                       1));
             }
+            handle.post_test(arg);
 
             // copy output from device to CPU
             CHECK_HIP_ERROR(hy.transfer_from(dy));

@@ -342,6 +342,8 @@ public:
     RocBLAS_TestName& operator=(const RocBLAS_TestName&) = delete;
 };
 
+bool rocblas_client_global_filters(const Arguments& args);
+
 // ----------------------------------------------------------------------------
 // RocBLAS_Test base class. All non-legacy rocBLAS Google tests derive from it.
 // It defines a type_filter_functor() and a PrintToStringParamName class
@@ -356,8 +358,13 @@ protected:
     template <typename... T>
     struct type_filter_functor
     {
-        bool operator()(const Arguments&)
+        bool operator()(const Arguments& args)
         {
+            // additional global filters applied first
+            if(!rocblas_client_global_filters(args))
+                return false;
+
+            // type filters
             return static_cast<bool>(FILTER<T...>{});
         }
     };

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -364,6 +364,24 @@ static bool valid_category(const char* category)
             return true;
     }
     return false;
+}
+
+bool rocblas_client_global_filters(const Arguments& args)
+{
+    static std::string gpu_arch = rocblas_internal_get_arch_name();
+
+#ifdef WIN32
+    static constexpr rocblas_client_os os = rocblas_client_os::WINDOWS;
+#else
+    static constexpr rocblas_client_os os = rocblas_client_os::LINUX;
+#endif
+    if(!(args.os_flags & os))
+        return false;
+
+    if(args.gpu_arch[0] && !gpu_arch_match(gpu_arch, args.gpu_arch))
+        return false;
+
+    return true;
 }
 
 /********************************************************************************************

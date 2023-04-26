@@ -264,7 +264,9 @@ inline void regular_to_banded(bool upper, const T& h_A, T& h_AB, rocblas_int k)
     size_t      ldab = h_AB.lda();
     rocblas_int n    = h_AB.n();
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
     {
         auto* A  = h_A[batch_index];
@@ -328,7 +330,9 @@ inline void banded_matrix_setup(bool upper, T& h_A, rocblas_int k)
 {
     rocblas_int n = h_A.n();
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
     {
         auto* A = h_A[batch_index];
@@ -383,7 +387,9 @@ inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
 template <typename U>
 inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
 {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
     {
         auto* AP    = h_AP[batch_index];
@@ -452,7 +458,9 @@ void make_unit_diagonal(rocblas_fill uplo, T& h_A)
     rocblas_int N   = h_A.n();
     size_t      lda = h_A.lda();
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
     {
         auto* A = h_A[batch_index];

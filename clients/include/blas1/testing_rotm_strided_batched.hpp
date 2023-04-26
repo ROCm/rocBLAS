@@ -118,7 +118,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
            norm_error_device_y = 0.0;
     T rel_error                = std::numeric_limits<T>::epsilon() * 1000;
     // increase relative error for ieee64 bit
-    if(std::is_same<T, double>{} || std::is_same<T, rocblas_double_complex>{})
+    if(std::is_same_v<T, double> || std::is_same_v<T, rocblas_double_complex>)
         rel_error *= 10.0;
 
     // check to prevent undefined memory allocation error

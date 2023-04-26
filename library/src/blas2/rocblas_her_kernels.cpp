@@ -34,45 +34,45 @@ ROCBLAS_KERNEL_ILF void rocblas_her_kernel_calc(bool        is_upper,
                                                 T* __restrict__ A,
                                                 rocblas_int lda)
 {
-    rocblas_int tx  = threadIdx.x;
-    rocblas_int col = blockIdx.x;
+    int32_t tx  = threadIdx.x;
+    int32_t col = blockIdx.x;
 
     if(tx < n)
         A += tx;
 
     //Each BlockIdx.x takes care of each column of matrix A
-    A += col * size_t(lda);
+    A += col * int64_t(lda);
 
-    const T res_x = conj(x[col * incx]) * alpha;
+    const T res_x = conj(x[col * int64_t(incx)]) * alpha;
 
     if(is_upper)
     {
         //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
         //If n > DIM_X, then the threads are reused and the multiplied values will be accumalated with matrix A.
-        rocblas_int i = 0;
+        int32_t i = 0;
         for(; tx + i < col; i += DIM_X)
         {
-            A[i] += res_x * x[(tx + i) * incx];
+            A[i] += res_x * x[(tx + i) * int64_t(incx)];
         }
         //Diagonal elements must be real
         if(tx + i == col)
         {
-            A[i] = std::real(A[i]) + std::real(x[col * incx] * res_x);
+            A[i] = std::real(A[i]) + std::real(x[col * int64_t(incx)] * res_x);
         }
     }
     else
     {
-        rocblas_int i = col + 1;
+        int32_t i = col + 1;
         //Diagonal elements must be real
         if(tx == 0)
         {
-            A[i - 1] = std::real(A[i - 1]) + std::real(x[col * incx] * res_x);
+            A[i - 1] = std::real(A[i - 1]) + std::real(x[col * int64_t(incx)] * res_x);
         }
         //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
         //If n > DIM_X, then the threads are reused and the multiplied values will be accumalated with matrix A.
         for(; tx + i < n; i += DIM_X)
         {
-            A[i] += res_x * x[(tx + i) * incx];
+            A[i] += res_x * x[(tx + i) * int64_t(incx)];
         }
     }
 }

@@ -88,14 +88,13 @@ namespace
 
     // This tells whether the BLAS1 tests are enabled
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
-    using copy_enabled
-        = std::integral_constant<bool,
-                                 ((BLAS1 == blas1::copy || BLAS1 == blas1::copy_batched
-                                   || BLAS1 == blas1::copy_strided_batched)
-                                  && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
-                                  && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
-                                      || std::is_same<Ti, rocblas_float_complex>{}
-                                      || std::is_same<Ti, rocblas_double_complex>{}))>;
+    using copy_enabled = std::integral_constant<
+        bool,
+        ((BLAS1 == blas1::copy || BLAS1 == blas1::copy_batched
+          || BLAS1 == blas1::copy_strided_batched)
+         && std::is_same_v<
+             To,
+             Ti> && std::is_same_v<To, Tc> && (std::is_same_v<Ti, float> || std::is_same_v<Ti, double> || std::is_same_v<Ti, rocblas_float_complex> || std::is_same_v<Ti, rocblas_double_complex>))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function

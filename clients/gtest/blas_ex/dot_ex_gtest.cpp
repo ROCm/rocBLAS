@@ -100,14 +100,15 @@ namespace
         ((BLAS1_EX == blas1_ex::dot_ex || BLAS1_EX == blas1_ex::dot_batched_ex
           || BLAS1_EX == blas1_ex::dot_strided_batched_ex || BLAS1_EX == blas1_ex::dotc_ex
           || BLAS1_EX == blas1_ex::dotc_batched_ex || BLAS1_EX == blas1_ex::dotc_strided_batched_ex)
-         && ((std::is_same<T1, T2>{} && std::is_same<T2, T3>{} && std::is_same<T3, T4>{}
-              && (std::is_same<T1, float>{} || std::is_same<T1, double>{}
-                  || std::is_same<T1, rocblas_half>{} || std::is_same<T1, rocblas_float_complex>{}
-                  || std::is_same<T1, rocblas_double_complex>{}))
-             || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{}
-                 && std::is_same<T1, rocblas_half>{} && std::is_same<T4, float>{})
-             || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{}
-                 && std::is_same<T1, rocblas_bfloat16>{} && std::is_same<T4, float>{})))>;
+         && ((std::is_same_v<
+                  T1,
+                  T2> && std::is_same_v<T2, T3> && std::is_same_v<T3, T4> && (std::is_same_v<T1, float> || std::is_same_v<T1, double> || std::is_same_v<T1, rocblas_half> || std::is_same_v<T1, rocblas_float_complex> || std::is_same_v<T1, rocblas_double_complex>))
+             || (std::is_same_v<
+                     T1,
+                     T2> && std::is_same_v<T2, T3> && std::is_same_v<T1, rocblas_half> && std::is_same_v<T4, float>)
+             || (std::is_same_v<
+                     T1,
+                     T2> && std::is_same_v<T2, T3> && std::is_same_v<T1, rocblas_bfloat16> && std::is_same_v<T4, float>)))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function

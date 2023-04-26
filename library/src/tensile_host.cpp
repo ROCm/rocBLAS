@@ -345,12 +345,13 @@ namespace
         // HPA is active iff sizeof(compute type) > sizeof(input type)
         // but when Ti=int8x4 (32-byte), we still need to use HPA since the primitive data is int8
         tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti)
-                                                  || std::is_same<Ti, rocblas_int8x4>{});
+                                                  || std::is_same_v<Ti, rocblas_int8x4>);
 
         // Environment variable to force use of VALU for double precision gemm
         static bool force_valu_for_dgemm = std::getenv("ROCBLAS_INTERNAL_FORCE_VALU_FOR_DGEMM");
-        if(std::is_same<Ti, double>::value && std::is_same<To, double>::value
-           && std::is_same<Tc, double>::value && force_valu_for_dgemm)
+        if(std::is_same_v<
+               Ti,
+               double> && std::is_same_v<To, double> && std::is_same_v<Tc, double> && force_valu_for_dgemm)
         {
             tensileProblem.setArithmeticUnit(Tensile::ArithmeticUnit::VALU);
         }

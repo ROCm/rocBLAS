@@ -100,7 +100,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
         return rocblas_status_success;
 
     static constexpr bool using_rocblas_float
-        = std::is_same<T, rocblas_float*>{} || std::is_same<T, rocblas_float* const*>{};
+        = std::is_same_v<T, rocblas_float*> || std::is_same_v<T, rocblas_float* const*>;
 
     if(!using_rocblas_float || incx != 1 || incy != 1)
     {

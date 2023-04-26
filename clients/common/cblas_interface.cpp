@@ -23,7 +23,9 @@
 #include "rocblas_vector.hpp"
 #include "utility.hpp"
 #include <bitset>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 /*
  * ===========================================================================
@@ -105,13 +107,17 @@ void cblas_scal(int64_t n, T alpha, U x, int64_t incx)
 
     if(incx == 1)
     {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
         for(int64_t i = 0; i < n; i++)
             x[i] = alpha * x[i];
     }
     else
     {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
         for(int64_t i = 0; i < n; i++)
             x[i * incx] = alpha * x[i * incx];
     }
@@ -459,7 +465,9 @@ void cblas_geam_helper(rocblas_operation transA,
     int64_t inc1_B = transB == rocblas_operation_none ? 1 : ldb;
     int64_t inc2_B = transB == rocblas_operation_none ? ldb : 1;
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for(int64_t i = 0; i < M; i++)
     {
         for(int64_t j = 0; j < N; j++)
@@ -891,7 +899,9 @@ void cblas_geam_min_plus(rocblas_operation transA,
     bool TRANSA = transA != rocblas_operation_none;
     bool TRANSB = transB != rocblas_operation_none;
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for(int64_t n1 = 0; n1 < n; n1++)
     {
         for(int64_t m1 = 0; m1 < m; m1++)
@@ -929,7 +939,9 @@ void cblas_geam_plus_min(rocblas_operation transA,
     bool TRANSA = transA != rocblas_operation_none;
     bool TRANSB = transB != rocblas_operation_none;
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
     for(int64_t n1 = 0; n1 < n; n1++)
     {
         for(int64_t m1 = 0; m1 < m; m1++)
@@ -968,7 +980,9 @@ void cblas_herkx(rocblas_fill      uplo,
     {
         if(uplo == rocblas_fill_upper)
         {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
             for(int64_t j = 0; j < n; ++j)
             {
                 for(int64_t i = 0; i <= j; i++)
@@ -990,7 +1004,9 @@ void cblas_herkx(rocblas_fill      uplo,
         }
         else // lower
         {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
             for(int64_t j = 0; j < n; ++j)
             {
                 for(int64_t i = j; i < n; i++)
@@ -1015,7 +1031,9 @@ void cblas_herkx(rocblas_fill      uplo,
     {
         if(uplo == rocblas_fill_upper)
         {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
             for(int64_t j = 0; j < n; ++j)
             {
                 for(int64_t i = 0; i <= j; i++)
@@ -1039,7 +1057,9 @@ void cblas_herkx(rocblas_fill      uplo,
         }
         else // lower
         {
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
             for(int64_t j = 0; j < n; ++j)
             {
                 for(int64_t i = j; i < n; i++)
