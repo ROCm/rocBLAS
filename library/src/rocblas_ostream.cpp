@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -98,12 +98,15 @@ std::shared_ptr<rocblas_internal_ostream::worker> rocblas_internal_ostream::get_
     };
 
     // Verify common initial sequence
-    static_assert(std::is_standard_layout<file_id_t>{} && std::is_standard_layout<struct stat>{}
-                      && offsetof(file_id_t, st_dev) == 0 && offsetof(struct stat, st_dev) == 0
-                      && offsetof(file_id_t, st_ino) == offsetof(struct stat, st_ino)
-                      && std::is_same<decltype(file_id_t::st_dev), decltype(stat::st_dev)>{}
-                      && std::is_same<decltype(file_id_t::st_ino), decltype(stat::st_ino)>{},
-                  "struct stat and file_id_t are not layout-compatible");
+    static_assert(
+        std::is_standard_layout<file_id_t>{} && std::is_standard_layout<struct stat>{}
+            && offsetof(file_id_t, st_dev) == 0 && offsetof(struct stat, st_dev) == 0
+            && offsetof(file_id_t, st_ino) == offsetof(struct stat, st_ino)
+            && std::is_same_v<
+                decltype(file_id_t::st_dev),
+                decltype(stat::
+                             st_dev)> && std::is_same_v<decltype(file_id_t::st_ino), decltype(stat::st_ino)>,
+        "struct stat and file_id_t are not layout-compatible");
 
 #ifndef WIN32
     // Get the device ID and inode, to detect common files

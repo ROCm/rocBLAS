@@ -786,16 +786,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool TWOK    = true;
     constexpr bool HERM    = false;
 
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_SSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_DSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_CSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_ZSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
 
@@ -829,16 +829,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool TWOK    = true;
     constexpr bool HERM    = false;
 
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_SSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_DSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_CSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_ZSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
 
@@ -872,10 +872,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool TWOK    = true;
     constexpr bool HERM    = true;
 
-    if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_CSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_ZSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
 
@@ -909,10 +909,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     constexpr bool TWOK    = true;
     constexpr bool HERM    = true;
 
-    if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_CSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syr2k_her2k_template<ROCBLAS_ZSYR2K_NB, BATCHED, TWOK, HERM, T>(
             ROCBLAS_INTERNAL_SYR2K_HER2K_PARAMS);
 

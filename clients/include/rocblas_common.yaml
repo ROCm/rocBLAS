@@ -49,6 +49,13 @@ Datatypes:
       attr:
         atomics_not_allowed: 0
         atomics_allowed: 1
+  # match client argument_model.hpp enum values
+  - rocblas_client_os:
+      bases: [ c_uint32 ]
+      attr:
+        LINUX: 1
+        WINDOWS: 2
+        ALL: 3
   - rocblas_api:
       bases: [ c_uint32 ]
       attr:
@@ -58,6 +65,7 @@ Datatypes:
         FORTRAN_64: 3
         INTERNAL: 4
         INTERNAL_64: 5
+
 
 Common threads and streams: &common_threads_streams
   - { threads: 0,  streams: 0}
@@ -426,6 +434,8 @@ Arguments:
   - initialization: rocblas_initialization
   - arithmetic_check: rocblas_arithmetic_check
   - atomics_mode: rocblas_atomics_mode
+  - os_flags: rocblas_client_os
+  - gpu_arch: c_char*4
   - api: rocblas_api
   - pad: c_uint32
   - threads: c_uint16
@@ -504,6 +514,8 @@ Defaults:
   threads: 0
   streams: 0
   devices: 0
+  os_flags: ALL
+  gpu_arch: ''
   api: C
   graph_test: false
   norm_check: 0

@@ -154,10 +154,10 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
     bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
 
     //Identifying the precision to have an appropriate optimization
-    static constexpr bool is_float          = std::is_same<T, float>{};
-    static constexpr bool is_double         = std::is_same<T, double>{};
-    static constexpr bool is_complex_float  = std::is_same<T, rocblas_float_complex>{};
-    static constexpr bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
+    static constexpr bool is_float          = std::is_same_v<T, float>;
+    static constexpr bool is_double         = std::is_same_v<T, double>;
+    static constexpr bool is_complex_float  = std::is_same_v<T, rocblas_float_complex>;
+    static constexpr bool is_complex_double = std::is_same_v<T, rocblas_double_complex>;
     const bool is_atomics_allowed = handle->atomics_mode == rocblas_atomics_allowed ? true : false;
 
     //Identifying the architecture to have an appropriate optimization
@@ -216,7 +216,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             static constexpr int GEMVN_DIM_X = 64;
             static constexpr int GEMVN_DIM_Y = 4;
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
-            if(std::is_same<T, rocblas_double_complex>{})
+            if(std::is_same_v<T, rocblas_double_complex>)
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
             dim3 gemvn_grid(blocks, batch_count);
             dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
@@ -341,7 +341,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             static constexpr int GEMVN_DIM_X = 32;
             static constexpr int GEMVN_DIM_Y = 16;
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
-            if(std::is_same<T, rocblas_double_complex>{})
+            if(std::is_same_v<T, rocblas_double_complex>)
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
             dim3 gemvn_grid(blocks, batch_count);
             dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
@@ -376,7 +376,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             static constexpr int GEMVN_DIM_X = 64;
             static constexpr int GEMVN_DIM_Y = 16;
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
-            if(std::is_same<T, rocblas_double_complex>{})
+            if(std::is_same_v<T, rocblas_double_complex>)
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
             dim3 gemvn_grid(blocks, batch_count);
             dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);

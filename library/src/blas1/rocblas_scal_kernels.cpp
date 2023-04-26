@@ -168,11 +168,11 @@ rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
     }
 
     static constexpr bool using_rocblas_float
-        = std::is_same<Tx, rocblas_float*>{} || std::is_same<Tx, rocblas_float* const*>{};
+        = std::is_same_v<Tx, rocblas_float*> || std::is_same_v<Tx, rocblas_float* const*>;
 
     // Using rocblas_half ?
     static constexpr bool using_rocblas_half
-        = std::is_same<Ta, rocblas_half>{} && std::is_same<Tex, rocblas_half>{};
+        = std::is_same_v<Ta, rocblas_half> && std::is_same_v<Tex, rocblas_half>;
 
     if(using_rocblas_float && incx == 1)
     {

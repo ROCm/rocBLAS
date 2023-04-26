@@ -35,7 +35,7 @@
 // Predeclare enumerator
 enum rocblas_argument : int;
 
-enum
+typedef enum rocblas_client_api_
 {
     C,
     FORTRAN,
@@ -43,7 +43,18 @@ enum
     FORTRAN_64,
     INTERNAL,
     INTERNAL_64
-};
+} rocblas_client_api;
+
+// bitmask
+typedef enum rocblas_client_os_
+{
+    LINUX   = 1,
+    WINDOWS = 2,
+    ALL     = 3
+} rocblas_client_os;
+
+/*! \brief device matches pattern */
+bool gpu_arch_match(const std::string& gpu_arch, const char pattern[4]);
 
 /***************************************************************************
  *! \brief Class used to parse command arguments in both client & gtest    *
@@ -119,7 +130,13 @@ struct Arguments
 
     rocblas_atomics_mode atomics_mode;
 
-    uint32_t api;
+    rocblas_client_os os_flags;
+
+    // the gpu arch string after "gfx" for which the test is valid
+    // '?' is wildcard char, empty string is default as valid on all
+    char gpu_arch[4];
+
+    rocblas_client_api api;
 
     // memory padding for testing write out of bounds
     uint32_t pad;
@@ -144,7 +161,7 @@ struct Arguments
     bool pointer_mode_host;
     bool pointer_mode_device;
     bool c_noalias_d;
-    bool HMM;
+    bool HMM; // xnack+
     bool graph_test;
 
     /*************************************************************************
@@ -200,6 +217,8 @@ struct Arguments
     OPER(initialization) SEP         \
     OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
+    OPER(os_flags) SEP               \
+    OPER(gpu_arch) SEP               \
     OPER(api) SEP                    \
     OPER(pad) SEP                    \
     OPER(threads) SEP                \
