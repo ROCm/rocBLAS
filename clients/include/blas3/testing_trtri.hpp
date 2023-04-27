@@ -184,42 +184,26 @@ void testing_trtri(const Arguments& arg)
     /* =====================================================================
            ROCBLAS
     =================================================================== */
-    hipStream_t stream;
-    if(arg.timing)
-    {
-        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-    }
-
-    handle.pre_test(arg);
-    CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
-    handle.post_test(arg);
-
-    if(arg.timing)
-    {
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-    }
-
-    // copy output from device to CPU
-    CHECK_HIP_ERROR(hA.transfer_from(dinvA));
-
     if(arg.unit_check || arg.norm_check)
     {
+        handle.pre_test(arg);
+        CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
+        handle.post_test(arg);
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hA.transfer_from(dinvA));
+
         /* =====================================================================
            CPU BLAS
         =================================================================== */
         if(arg.timing)
-        {
             cpu_time_used = get_time_us_no_sync();
-        }
 
         // CBLAS doesn't have trtri implementation so using the LAPACK trtri
         lapack_xtrtri<T>(char_uplo, char_diag, N, hB, lda);
 
         if(arg.timing)
-        {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        }
 
         if(arg.unit_check)
         {
@@ -235,6 +219,20 @@ void testing_trtri(const Arguments& arg)
 
     if(arg.timing)
     {
+        int number_cold_calls = arg.cold_iters;
+        int total_calls       = number_cold_calls + arg.iters;
+
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        for(int i = 0; i < total_calls; i++)
+        {
+            rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA);
+
+            if(i == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+        }
+
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         ArgumentModel<e_uplo, e_diag, e_N, e_lda>{}.log_args<T>(rocblas_cout,
                                                                 arg,
                                                                 gpu_time_used,
