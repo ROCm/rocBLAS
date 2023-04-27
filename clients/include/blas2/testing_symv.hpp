@@ -40,7 +40,7 @@
 template <typename T>
 void testing_symv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_symv_fn = arg.fortran ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.api == FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -136,7 +136,7 @@ void testing_symv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_symv(const Arguments& arg)
 {
-    auto rocblas_symv_fn = arg.fortran ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.api == FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int lda  = arg.lda;
@@ -149,8 +149,6 @@ void testing_symv(const Arguments& arg)
     beta[0]  = arg.get_beta<T>();
 
     rocblas_fill uplo = char2rocblas_fill(arg.uplo);
-
-    size_t abs_incy = incy >= 0 ? incy : -incy;
 
     rocblas_local_handle handle{arg};
 
@@ -243,21 +241,21 @@ void testing_symv(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
-                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
+                unit_check_general<T>(1, N, incy, hy_gold, hy_1);
+                unit_check_general<T>(1, N, incy, hy_gold, hy_2);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, N, abs_incy, hy_gold, hy_1, tol);
-                near_check_general<T>(1, N, abs_incy, hy_gold, hy_2, tol);
+                near_check_general<T>(1, N, incy, hy_gold, hy_1, tol);
+                near_check_general<T>(1, N, incy, hy_gold, hy_2, tol);
             }
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2);
+            h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1);
+            d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2);
         }
     }
 

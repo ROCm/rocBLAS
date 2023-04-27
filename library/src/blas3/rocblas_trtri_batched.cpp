@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ namespace
     template <>
     constexpr char rocblas_trtri_name<rocblas_double_complex>[] = "rocblas_ztrtri_batched";
 
-    template <rocblas_int NB, typename T>
+    template <typename T>
     rocblas_status rocblas_trtri_batched_impl(rocblas_handle   handle,
                                               rocblas_fill     uplo,
                                               rocblas_diagonal diag,
@@ -54,12 +54,12 @@ namespace
             return rocblas_status_invalid_handle;
 
         // Compute the optimal size for temporary device memory
-        size_t els   = rocblas_internal_trtri_temp_size<NB>(n, 1);
+        size_t els   = rocblas_internal_trtri_temp_elements(n, 1);
         size_t size  = els * batch_count * sizeof(T);
         size_t sizep = batch_count * sizeof(T*);
         if(handle->is_device_memory_size_query())
         {
-            if(n <= NB || !batch_count)
+            if(!n || !batch_count)
                 return rocblas_status_size_unchanged;
             return handle->set_optimal_device_memory_size(size, sizep);
         }
@@ -92,6 +92,32 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
+        // Allocate memory
+        auto  w_mem = handle->device_malloc(size, sizep);
+        void *w_C_tmp, *w_C_tmp_arr;
+        if(!w_mem)
+        {
+            return rocblas_status_memory_error;
+        }
+
+        if(size)
+        {
+            w_C_tmp     = w_mem[0];
+            w_C_tmp_arr = w_mem[1];
+
+            auto w_C_tmp_host = std::make_unique<T*[]>(batch_count);
+            for(int b = 0; b < batch_count; b++)
+            {
+                w_C_tmp_host[b] = (T*)w_C_tmp + b * els;
+            }
+
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(w_C_tmp_arr,
+                                               &w_C_tmp_host[0],
+                                               batch_count * sizeof(T*),
+                                               hipMemcpyHostToDevice,
+                                               handle->get_stream()));
+        }
+
         if(check_numerics)
         {
             bool           is_input = true;
@@ -113,57 +139,27 @@ namespace
                 return trtri_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_status_success;
-        if(n <= NB)
-        {
-            status = rocblas_trtri_small<NB, T>(
-                handle, uplo, diag, n, A, 0, lda, 0, 0, invA, 0, ldinvA, 0, 0, batch_count, 1);
-            if(status != rocblas_status_success)
-                return status;
-        }
-        else
-        {
-            // Allocate memory
-            auto w_mem = handle->device_malloc(size, sizep);
-            if(!w_mem)
-            {
-                return rocblas_status_memory_error;
-            }
-            void* w_C_tmp     = w_mem[0];
-            void* w_C_tmp_arr = w_mem[1];
+        rocblas_status status = rocblas_internal_trtri_batched_template(handle,
+                                                                        uplo,
+                                                                        diag,
+                                                                        n,
+                                                                        A,
+                                                                        0,
+                                                                        lda,
+                                                                        0,
+                                                                        0,
+                                                                        invA,
+                                                                        0,
+                                                                        ldinvA,
+                                                                        0,
+                                                                        0,
+                                                                        batch_count,
+                                                                        1,
+                                                                        (T* const*)w_C_tmp_arr);
 
-            auto w_C_tmp_host = std::make_unique<T*[]>(batch_count);
-            for(int b = 0; b < batch_count; b++)
-            {
-                w_C_tmp_host[b] = (T*)w_C_tmp + b * els;
-            }
+        if(status != rocblas_status_success)
+            return status;
 
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(w_C_tmp_arr,
-                                               &w_C_tmp_host[0],
-                                               batch_count * sizeof(T*),
-                                               hipMemcpyHostToDevice,
-                                               handle->get_stream()));
-
-            status = rocblas_trtri_large<NB, true, false, T>(handle,
-                                                             uplo,
-                                                             diag,
-                                                             n,
-                                                             A,
-                                                             0,
-                                                             lda,
-                                                             0,
-                                                             0,
-                                                             invA,
-                                                             0,
-                                                             ldinvA,
-                                                             0,
-                                                             0,
-                                                             batch_count,
-                                                             1,
-                                                             (T* const*)w_C_tmp_arr);
-            if(status != rocblas_status_success)
-                return status;
-        }
         if(check_numerics)
         {
             bool           is_input = false;
@@ -201,8 +197,7 @@ rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
                                       rocblas_int        batch_count)
 try
 {
-    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
-        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {
@@ -220,8 +215,7 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
                                       rocblas_int         batch_count)
 try
 {
-    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
-        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {
@@ -239,8 +233,7 @@ rocblas_status rocblas_ctrtri_batched(rocblas_handle                     handle,
                                       rocblas_int                        batch_count)
 try
 {
-    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
-        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {
@@ -258,8 +251,7 @@ rocblas_status rocblas_ztrtri_batched(rocblas_handle                      handle
                                       rocblas_int                         batch_count)
 try
 {
-    return rocblas_trtri_batched_impl<ROCBLAS_TRTRI_NB>(
-        handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 catch(...)
 {

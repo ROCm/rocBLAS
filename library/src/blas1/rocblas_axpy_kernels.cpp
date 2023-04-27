@@ -24,6 +24,7 @@
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas_axpy.hpp"
+#include "rocblas_block_sizes.h"
 
 //!
 //! @brief General kernel (batched, strided batched) of axpy.
@@ -48,7 +49,7 @@ rocblas_axpy_kernel(rocblas_int    n,
         return;
     }
 
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n)
     {
         auto tx = load_ptr_batch(x, blockIdx.y, offset_x + tid * incx, stride_x);
@@ -82,12 +83,12 @@ rocblas_saxpy_2_kernel(rocblas_int    n,
     auto* tx = load_ptr_batch(x, blockIdx.y, offset_x, stride_x);
     auto* ty = load_ptr_batch(y, blockIdx.y, offset_y, stride_y);
 
-    ptrdiff_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
+    int64_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
 
     if(tid < n - 1)
     {
         // Each thread access contiguous elements for example Thread '0' access indices '0' and '1' of the vectors `x` and `y`
-        for(rocblas_int j = 0; j < 2; ++j)
+        for(int j = 0; j < 2; ++j)
         {
             ty[tid + j] = ty[tid + j] + Tex(alpha) * tx[tid + j];
         }
@@ -125,8 +126,8 @@ rocblas_axpy_kernel_batched(rocblas_int    n,
     }
     Tex ex_alph = Tex(alpha);
 
-    ptrdiff_t tid = blockIdx.x * DIM_X + threadIdx.x;
-    int       bid = 4 * (blockIdx.y * DIM_Y + threadIdx.y);
+    int64_t tid = blockIdx.x * DIM_X + threadIdx.x;
+    int     bid = 4 * (blockIdx.y * DIM_Y + threadIdx.y);
     if(tid < n)
     {
         offset_x += tid * incx;
@@ -155,17 +156,17 @@ rocblas_haxpy_mod_8_kernel(rocblas_int    n_mod_8,
                            Ta             alpha_device_host,
                            rocblas_stride stride_alpha,
                            Tx             x,
-                           ptrdiff_t      offset_x,
+                           int64_t        offset_x,
                            rocblas_stride stride_x,
                            Ty             y,
-                           ptrdiff_t      offset_y,
+                           int64_t        offset_y,
                            rocblas_stride stride_y)
 {
     auto alpha = load_scalar(alpha_device_host, blockIdx.y, stride_alpha);
     if(!alpha)
         return;
 
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < n_mod_8)
     {
         auto tx = load_ptr_batch(x, blockIdx.y, offset_x + tid, stride_x);
@@ -202,7 +203,7 @@ rocblas_haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
         return;
     }
 
-    ptrdiff_t t8id = threadIdx.x + blockIdx.x * blockDim.x;
+    int64_t t8id = threadIdx.x + blockIdx.x * blockDim.x;
 
     rocblas_half2 y0, y1, y2, y3;
     rocblas_half2 x0, x1, x2, x3;
@@ -261,19 +262,19 @@ rocblas_haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
 //!
 template <int NB, typename Tex, typename Ta, typename Tx, typename Ty>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_axpy_template(rocblas_handle handle,
-                                   rocblas_int    n,
-                                   const Ta*      alpha,
-                                   rocblas_stride stride_alpha,
-                                   Tx             x,
-                                   rocblas_stride offset_x,
-                                   rocblas_int    incx,
-                                   rocblas_stride stride_x,
-                                   Ty             y,
-                                   rocblas_stride offset_y,
-                                   rocblas_int    incy,
-                                   rocblas_stride stride_y,
-                                   rocblas_int    batch_count)
+    rocblas_internal_axpy_ex_template(rocblas_handle handle,
+                                      rocblas_int    n,
+                                      const Ta*      alpha,
+                                      rocblas_stride stride_alpha,
+                                      Tx             x,
+                                      rocblas_stride offset_x,
+                                      rocblas_int    incx,
+                                      rocblas_stride stride_x,
+                                      Ty             y,
+                                      rocblas_stride offset_y,
+                                      rocblas_int    incy,
+                                      rocblas_stride stride_y,
+                                      rocblas_int    batch_count)
 {
     if(n <= 0 || batch_count <= 0) // Quick return if possible. Not Argument error
     {
@@ -371,8 +372,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     else if(batch_count > 8192 && std::is_same<Ta, float>::value)
     {
         // Optimized kernel for float Datatype when batch_count > 8192
-        ptrdiff_t shift_x = offset_x + ((incx < 0) ? ptrdiff_t(incx) * (1 - n) : 0);
-        ptrdiff_t shift_y = offset_y + ((incy < 0) ? ptrdiff_t(incy) * (1 - n) : 0);
+        int64_t shift_x = offset_x + ((incx < 0) ? int64_t(incx) * (1 - n) : 0);
+        int64_t shift_y = offset_y + ((incy < 0) ? int64_t(incy) * (1 - n) : 0);
 
         constexpr int DIM_X = 128;
         constexpr int DIM_Y = 8;
@@ -400,8 +401,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     else
     {
         // Default kernel for AXPY
-        ptrdiff_t shift_x = offset_x + ((incx < 0) ? ptrdiff_t(incx) * (1 - n) : 0);
-        ptrdiff_t shift_y = offset_y + ((incy < 0) ? ptrdiff_t(incy) * (1 - n) : 0);
+        int64_t shift_x = offset_x + ((incx < 0) ? int64_t(incx) * (1 - n) : 0);
+        int64_t shift_y = offset_y + ((incy < 0) ? int64_t(incy) * (1 - n) : 0);
 
         dim3 blocks((n - 1) / (NB) + 1, batch_count);
         dim3 threads(NB);
@@ -422,6 +423,70 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         }
     }
     return rocblas_status_success;
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_axpy_template(rocblas_handle handle,
+                                   rocblas_int    n,
+                                   const T*       alpha,
+                                   rocblas_stride stride_alpha,
+                                   const T*       x,
+                                   rocblas_stride offset_x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stride_x,
+                                   T*             y,
+                                   rocblas_stride offset_y,
+                                   rocblas_int    incy,
+                                   rocblas_stride stride_y,
+                                   rocblas_int    batch_count)
+{
+    // Currently using block size of 256 for all precisions
+    return rocblas_internal_axpy_ex_template<ROCBLAS_AXPY_NB, T>(handle,
+                                                                 n,
+                                                                 alpha,
+                                                                 stride_alpha,
+                                                                 x,
+                                                                 offset_x,
+                                                                 incx,
+                                                                 stride_x,
+                                                                 y,
+                                                                 offset_y,
+                                                                 incy,
+                                                                 stride_y,
+                                                                 batch_count);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_axpy_batched_template(rocblas_handle  handle,
+                                           rocblas_int     n,
+                                           const T*        alpha,
+                                           rocblas_stride  stride_alpha,
+                                           const T* const* x,
+                                           rocblas_stride  offset_x,
+                                           rocblas_int     incx,
+                                           rocblas_stride  stride_x,
+                                           T* const*       y,
+                                           rocblas_stride  offset_y,
+                                           rocblas_int     incy,
+                                           rocblas_stride  stride_y,
+                                           rocblas_int     batch_count)
+{
+    // Currently using block size of 256 for all precisions
+    return rocblas_internal_axpy_ex_template<ROCBLAS_AXPY_NB, T>(handle,
+                                                                 n,
+                                                                 alpha,
+                                                                 stride_alpha,
+                                                                 x,
+                                                                 offset_x,
+                                                                 incx,
+                                                                 stride_x,
+                                                                 y,
+                                                                 offset_y,
+                                                                 incy,
+                                                                 stride_y,
+                                                                 batch_count);
 }
 
 template <typename T, typename U>
@@ -477,54 +542,93 @@ rocblas_status rocblas_axpy_check_numerics(const char*    function_name,
 // instantiations below will need to be manually updated to match the changes.
 
 // clang-format off
-#ifdef INSTANTIATE_AXPY_TEMPLATE
-#error INSTANTIATE_AXPY_TEMPLATE already defined
-#endif
-
-#define INSTANTIATE_AXPY_TEMPLATE(NB_, Tex_, Ta_, Tx_, Ty_)                 \
+#define INSTANTIATE_AXPY_EX_TEMPLATE(NB_, Tex_, Ta_, Tx_, Ty_)              \
 template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                   \
-rocblas_status rocblas_internal_axpy_template<NB_, Tex_, Ta_, Tx_, Ty_>     \
+rocblas_status rocblas_internal_axpy_ex_template<NB_, Tex_, Ta_, Tx_, Ty_>  \
                                               (rocblas_handle handle,       \
                                                rocblas_int    n,            \
-                                               const Ta_*           alpha,  \
+                                               const Ta_*     alpha,        \
                                                rocblas_stride stride_alpha, \
-                                               Tx_             x,           \
-                                               rocblas_stride      offset_x,     \
+                                               Tx_            x,            \
+                                               rocblas_stride offset_x,     \
                                                rocblas_int    incx,         \
                                                rocblas_stride stride_x,     \
-                                               Ty_             y,           \
-                                               rocblas_stride      offset_y,     \
+                                               Ty_            y,            \
+                                               rocblas_stride offset_y,     \
                                                rocblas_int    incy,         \
                                                rocblas_stride stride_y,     \
                                                rocblas_int    batch_count);
 
-// rocblas_Xaxpy and rocblas_axpy_ex
-INSTANTIATE_AXPY_TEMPLATE(256,  float,  float, float const*, float*)
-INSTANTIATE_AXPY_TEMPLATE(256, double, double, double const*, double*)
-INSTANTIATE_AXPY_TEMPLATE(256, rocblas_half, rocblas_half, rocblas_half const*, rocblas_half*)
-INSTANTIATE_AXPY_TEMPLATE(256, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex*)
-INSTANTIATE_AXPY_TEMPLATE(256, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex*)
-
-// rocblas_Xaxpy_batched and rocblas_axpy_batched_ex
-INSTANTIATE_AXPY_TEMPLATE(256,  float,  float, float const* const*, float* const*)
-INSTANTIATE_AXPY_TEMPLATE(256, double, double, double const* const*, double* const*)
-INSTANTIATE_AXPY_TEMPLATE(256, rocblas_half, rocblas_half, rocblas_half const* const*, rocblas_half* const*)
-INSTANTIATE_AXPY_TEMPLATE(256, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex const* const*, rocblas_float_complex* const*)
-INSTANTIATE_AXPY_TEMPLATE(256, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex* const*)
+// explicit instantiations for axpy_ex
 
 // rocblas_axpy_ex
-INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_half, rocblas_half const*, rocblas_half*)
-INSTANTIATE_AXPY_TEMPLATE(256, float, float       , rocblas_half const*, rocblas_half*)
-INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_bfloat16, rocblas_bfloat16 const*, rocblas_bfloat16*)
-INSTANTIATE_AXPY_TEMPLATE(256, float, float, rocblas_bfloat16 const*, rocblas_bfloat16*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, rocblas_half, rocblas_half const*, rocblas_half*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, float       , rocblas_half const*, rocblas_half*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, rocblas_bfloat16, rocblas_bfloat16 const*, rocblas_bfloat16*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, float, rocblas_bfloat16 const*, rocblas_bfloat16*)
 
 // rocblas_axpy_batched_ex
-INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_half, rocblas_half const* const*, rocblas_half* const*)
-INSTANTIATE_AXPY_TEMPLATE(256, float, float       , rocblas_half const* const*, rocblas_half* const*)
-INSTANTIATE_AXPY_TEMPLATE(256, float, rocblas_bfloat16, rocblas_bfloat16 const* const*, rocblas_bfloat16* const*)
-INSTANTIATE_AXPY_TEMPLATE(256, float, float, rocblas_bfloat16 const* const*, rocblas_bfloat16* const*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, rocblas_half, rocblas_half const* const*, rocblas_half* const*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, float       , rocblas_half const* const*, rocblas_half* const*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, rocblas_bfloat16, rocblas_bfloat16 const* const*, rocblas_bfloat16* const*)
+INSTANTIATE_AXPY_EX_TEMPLATE(ROCBLAS_AXPY_NB, float, float, rocblas_bfloat16 const* const*, rocblas_bfloat16* const*)
+
+#undef INSTANTIATE_AXPY_EX_TEMPLATE
+
+#ifdef INSTANTIATE_AXPY_TEMPLATE
+#error INSTANTIATE_AXPY_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_AXPY_TEMPLATE(T_)                 \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE             \
+rocblas_status rocblas_internal_axpy_template<T_>     \
+                        (rocblas_handle handle,       \
+                        rocblas_int    n,             \
+                        const T_*      alpha,         \
+                        rocblas_stride stride_alpha,  \
+                        const T_*      x,             \
+                        rocblas_stride offset_x,      \
+                        rocblas_int    incx,          \
+                        rocblas_stride stride_x,      \
+                        T_*            y,             \
+                        rocblas_stride offset_y,      \
+                        rocblas_int    incy,          \
+                        rocblas_stride stride_y,      \
+                        rocblas_int    batch_count);
+
+// rocblas_Xaxpy and rocblas_axpy_ex
+INSTANTIATE_AXPY_TEMPLATE(float)
+INSTANTIATE_AXPY_TEMPLATE(double)
+INSTANTIATE_AXPY_TEMPLATE(rocblas_half)
+INSTANTIATE_AXPY_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_AXPY_TEMPLATE(rocblas_double_complex)
 
 #undef INSTANTIATE_AXPY_TEMPLATE
+
+#define INSTANTIATE_AXPY_BATCHED_TEMPLATE(T_)              \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE                  \
+rocblas_status rocblas_internal_axpy_batched_template<T_>  \
+                            (rocblas_handle  handle,       \
+                            rocblas_int      n,            \
+                            const T_*        alpha,        \
+                            rocblas_stride   stride_alpha, \
+                            const T_* const* x,            \
+                            rocblas_stride   offset_x,     \
+                            rocblas_int      incx,         \
+                            rocblas_stride   stride_x,     \
+                            T_* const*       y,            \
+                            rocblas_stride   offset_y,     \
+                            rocblas_int      incy,         \
+                            rocblas_stride   stride_y,     \
+                            rocblas_int      batch_count);
+
+INSTANTIATE_AXPY_BATCHED_TEMPLATE(float)
+INSTANTIATE_AXPY_BATCHED_TEMPLATE(double)
+INSTANTIATE_AXPY_BATCHED_TEMPLATE(rocblas_half)
+INSTANTIATE_AXPY_BATCHED_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_AXPY_BATCHED_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_AXPY_BATCHED_TEMPLATE
 
 #ifdef INSTANTIATE_AXPY_CHECK_NUMERICS
 #error INSTANTIATE_AXPY_CHECK_NUMERICS already defined

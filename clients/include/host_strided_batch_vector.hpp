@@ -59,10 +59,10 @@ public:
                                        rocblas_stride stride,
                                        rocblas_int    batch_count)
         : m_n(n)
-        , m_inc(inc)
+        , m_inc(inc ? inc : 1)
         , m_stride(stride)
         , m_batch_count(batch_count)
-        , m_nmemb(calculate_nmemb(n, inc, stride, batch_count))
+        , m_nmemb(calculate_nmemb(n, inc ? inc : 1, stride, batch_count))
     {
         this->m_data = (T*)host_malloc_throw(this->m_nmemb, sizeof(T));
     }

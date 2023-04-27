@@ -41,7 +41,7 @@ template <typename T>
 void testing_tpsv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_tpsv_batched_fn
-        = arg.fortran ? rocblas_tpsv_batched<T, true> : rocblas_tpsv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_tpsv_batched<T, true> : rocblas_tpsv_batched<T, false>;
 
     const rocblas_int       N           = 100;
     const rocblas_int       incx        = 1;
@@ -82,7 +82,7 @@ template <typename T>
 void testing_tpsv_batched(const Arguments& arg)
 {
     auto rocblas_tpsv_batched_fn
-        = arg.fortran ? rocblas_tpsv_batched<T, true> : rocblas_tpsv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_tpsv_batched<T, true> : rocblas_tpsv_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
@@ -109,8 +109,6 @@ void testing_tpsv_batched(const Arguments& arg)
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
-
-    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error;
@@ -222,8 +220,8 @@ void testing_tpsv_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx[b], hx_or_b_1[b]));
-            max_err_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx[b], hx_or_b_2[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx[b], hx_or_b_1[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx[b], hx_or_b_2[b]));
             //unit test
             trsm_err_res_check<T>(max_err_1, N, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, N, error_eps_multiplier, eps);
@@ -239,8 +237,8 @@ void testing_tpsv_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_1[b], hb[b]));
-            max_err_2 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx_or_b_1[b], hb[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_1[b], hb[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(N, incx, hx_or_b_1[b], hb[b]));
             //unit test
             trsm_err_res_check<T>(max_err_1, N, residual_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, N, residual_eps_multiplier, eps);

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,11 +40,12 @@ struct host_vector : std::vector<T, host_memory_allocator<T>>
 
     //!
     //! @brief Constructor.
+    //! @param  inc Element index increment. If zero treated as one
     //!
-    host_vector(size_t n, ptrdiff_t inc = 1)
-        : std::vector<T, host_memory_allocator<T>>(n * std::abs(inc))
+    host_vector(size_t n, int64_t inc = 1)
+        : std::vector<T, host_memory_allocator<T>>(n * std::abs(inc ? inc : 1))
         , m_n(n)
-        , m_inc(inc)
+        , m_inc(inc ? inc : 1)
     {
     }
 
@@ -106,7 +107,7 @@ struct host_vector : std::vector<T, host_memory_allocator<T>>
     //!
     //! @brief Returns the increment of the vector.
     //!
-    ptrdiff_t inc() const
+    int64_t inc() const
     {
         return m_inc;
     }
@@ -136,6 +137,6 @@ struct host_vector : std::vector<T, host_memory_allocator<T>>
     }
 
 private:
-    size_t    m_n   = 0;
-    ptrdiff_t m_inc = 0;
+    size_t  m_n   = 0;
+    int64_t m_inc = 0;
 };

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,6 @@
 
 #pragma once
 
-#define ROCBLAS_NO_DEPRECATED_WARNINGS
 #define ROCBLAS_BETA_FEATURES_API
 #include "../../library/src/include/handle.hpp"
 #include "rocblas.hpp"
@@ -47,13 +46,13 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
     rocblas_local_handle handle{arg};
     auto                 transA = char2rocblas_operation(arg.transA);
     auto                 transB = char2rocblas_operation(arg.transB);
-    auto                 M = arg.M, N = arg.N, K = arg.K;
-    auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    int                  M = arg.M, N = arg.N, K = arg.K;
+    int                  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
     auto                 A_row       = transA == rocblas_operation_none ? M : std::max(K, 1);
     auto                 A_col       = transA == rocblas_operation_none ? std::max(K, 1) : M;
     auto                 B_row       = transB == rocblas_operation_none ? std::max(K, 1) : N;
     auto                 B_col       = transB == rocblas_operation_none ? N : std::max(K, 1);
-    auto                 batch_count = arg.batch_count;
+    int                  batch_count = arg.batch_count;
     auto                 d_type      = arg.d_type;
 
     // Quick-return or error sizes
@@ -230,4 +229,31 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_gemm_batched_exM(GEMM_B_EX_ARGS, max + 1, rocblas_gemm_flags_none),
         rocblas_status_invalid_value);
+
+    // Testing get solutions by type - should be superset of solutions that solve problem
+    rocblas_int size_type;
+    CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_get_solutions_by_type(handle,
+                                                                      arg.a_type,
+                                                                      arg.c_type,
+                                                                      arg.compute_type,
+                                                                      rocblas_gemm_flags_none,
+                                                                      NULL,
+                                                                      &size_type));
+
+    std::vector<rocblas_int> ary_type(size_type);
+    CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_get_solutions_by_type(handle,
+                                                                      arg.a_type,
+                                                                      arg.c_type,
+                                                                      arg.compute_type,
+                                                                      rocblas_gemm_flags_none,
+                                                                      ary_type.data(),
+                                                                      &size_type));
+
+    std::vector<rocblas_int> valid_ary(ary.begin(), ary.begin() + size); // Trim off junk values
+    std::sort(ary_type.begin(), ary_type.end());
+    std::sort(valid_ary.begin(), valid_ary.end());
+
+    bool ary_is_subset
+        = std::includes(ary_type.begin(), ary_type.end(), valid_ary.begin(), valid_ary.end());
+    EXPECT_TRUE(ary_is_subset);
 }

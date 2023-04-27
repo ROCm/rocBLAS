@@ -140,6 +140,7 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas_ex>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
 )
 target_include_directories( rocblas_v3-test
   PRIVATE
@@ -151,6 +152,7 @@ target_include_directories( rocblas_v3-test
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas_ex>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src>
 )
 
 # External header includes included as system files
@@ -204,8 +206,8 @@ if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options( rocblas_v3-test PRIVATE -mf16c )
 endif( )
 
-target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
-target_compile_definitions( rocblas_v3-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
+target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
+target_compile_definitions( rocblas_v3-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
 
 target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 target_compile_options(rocblas_v3-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
@@ -227,7 +229,8 @@ if (WIN32)
     LIST_DIRECTORIES OFF
     CONFIGURE_DEPENDS
     ${OPENBLAS_DIR}/bin/*.dll
-    ${HIP_DIR}/bin/*.dll
+    ${HIP_DIR}/bin/amd*.dll
+    ${HIP_DIR}/bin/hiprt*.dll
     ${HIP_DIR}/bin/hipinfo.exe
     ${CMAKE_SOURCE_DIR}/rtest.*
     C:/Windows/System32/libomp140*.dll

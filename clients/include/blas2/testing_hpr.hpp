@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@
 template <typename T>
 void testing_hpr_bad_arg(const Arguments& arg)
 {
-    auto rocblas_hpr_fn = arg.fortran ? rocblas_hpr<T, true> : rocblas_hpr<T, false>;
+    auto rocblas_hpr_fn = arg.api == FORTRAN ? rocblas_hpr<T, true> : rocblas_hpr<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -107,7 +107,7 @@ void testing_hpr_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_hpr(const Arguments& arg)
 {
-    auto rocblas_hpr_fn = arg.fortran ? rocblas_hpr<T, true> : rocblas_hpr<T, false>;
+    auto rocblas_hpr_fn = arg.api == FORTRAN ? rocblas_hpr<T, true> : rocblas_hpr<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
@@ -124,8 +124,7 @@ void testing_hpr(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = rocblas_packed_matrix_size(N);
+    size_t size_A = rocblas_packed_matrix_size(N);
 
     // Naming: `h` is in CPU (host) memory(eg hAp_1), `d` is in GPU (device) memory (eg dAp_1).
     // Allocate host memory

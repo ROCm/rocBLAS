@@ -35,6 +35,24 @@
 // Predeclare enumerator
 enum rocblas_argument : int;
 
+typedef enum rocblas_client_api_
+{
+    C,
+    FORTRAN,
+    C_64,
+    FORTRAN_64,
+    INTERNAL,
+    INTERNAL_64
+} rocblas_client_api;
+
+// bitmask
+typedef enum rocblas_client_os_
+{
+    LINUX   = 1,
+    WINDOWS = 2,
+    ALL     = 3
+} rocblas_client_os;
+
 /***************************************************************************
  *! \brief Class used to parse command arguments in both client & gtest    *
  * WARNING: If this data is changed, then rocblas_common.yaml must also be *
@@ -42,6 +60,7 @@ enum rocblas_argument : int;
  ***************************************************************************/
 struct Arguments
 {
+
     /*************************************************************************
      *                    Beginning Of Arguments                             *
      *************************************************************************/
@@ -67,29 +86,27 @@ struct Arguments
 
     size_t user_allocated_workspace;
 
-    // 32bit
+    // 64bit
 
-    rocblas_int M;
-    rocblas_int N;
-    rocblas_int K;
+    int64_t M;
+    int64_t N;
+    int64_t K;
 
-    rocblas_int KL;
-    rocblas_int KU;
+    int64_t KL;
+    int64_t KU;
 
-    rocblas_int lda;
-    rocblas_int ldb;
-    rocblas_int ldc;
-    rocblas_int ldd;
+    int64_t lda;
+    int64_t ldb;
+    int64_t ldc;
+    int64_t ldd;
 
-    rocblas_int incx;
-    rocblas_int incy;
-    rocblas_int incd;
-    rocblas_int incb;
+    int64_t incx;
+    int64_t incy;
 
-    rocblas_int batch_count;
+    int64_t batch_count;
 
-    rocblas_int iters;
-    rocblas_int cold_iters;
+    int32_t iters;
+    int32_t cold_iters;
 
     uint32_t algo;
     int32_t  solution_index;
@@ -109,6 +126,10 @@ struct Arguments
     rocblas_arithmetic_check arithmetic_check;
 
     rocblas_atomics_mode atomics_mode;
+
+    rocblas_client_os os_flags;
+
+    rocblas_client_api api;
 
     // memory padding for testing write out of bounds
     uint32_t pad;
@@ -130,9 +151,10 @@ struct Arguments
     char uplo;
     char diag;
 
+    bool pointer_mode_host;
+    bool pointer_mode_device;
     bool c_noalias_d;
     bool HMM;
-    bool fortran;
     bool graph_test;
 
     /*************************************************************************
@@ -173,8 +195,6 @@ struct Arguments
     OPER(ldd) SEP                    \
     OPER(incx) SEP                   \
     OPER(incy) SEP                   \
-    OPER(incd) SEP                   \
-    OPER(incb) SEP                   \
     OPER(batch_count) SEP            \
     OPER(iters) SEP                  \
     OPER(cold_iters) SEP             \
@@ -190,6 +210,8 @@ struct Arguments
     OPER(initialization) SEP         \
     OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
+    OPER(os_flags) SEP               \
+    OPER(api) SEP                    \
     OPER(pad) SEP                    \
     OPER(threads) SEP                \
     OPER(streams) SEP                \
@@ -202,9 +224,10 @@ struct Arguments
     OPER(side) SEP                   \
     OPER(uplo) SEP                   \
     OPER(diag) SEP                   \
+    OPER(pointer_mode_host) SEP      \
+    OPER(pointer_mode_device) SEP    \
     OPER(c_noalias_d) SEP            \
     OPER(HMM) SEP                    \
-    OPER(fortran) SEP                \
     OPER(graph_test)
 
     // clang-format on

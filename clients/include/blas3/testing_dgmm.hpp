@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@
 template <typename T>
 void testing_dgmm_bad_arg(const Arguments& arg)
 {
-    auto rocblas_dgmm_fn = arg.fortran ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+    auto rocblas_dgmm_fn = arg.api == FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
 
     const rocblas_int M = 100;
     const rocblas_int N = 101;
@@ -89,7 +89,7 @@ void testing_dgmm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_dgmm(const Arguments& arg)
 {
-    auto rocblas_dgmm_fn = arg.fortran ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+    auto rocblas_dgmm_fn = arg.api == FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
 
     rocblas_side side = char2rocblas_side(arg.side);
 
@@ -97,10 +97,9 @@ void testing_dgmm(const Arguments& arg)
     rocblas_int N = arg.N;
     rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
-    rocblas_int lda      = arg.lda;
-    rocblas_int incx     = arg.incx;
-    rocblas_int ldc      = arg.ldc;
-    rocblas_int abs_incx = incx > 0 ? incx : -incx;
+    rocblas_int lda  = arg.lda;
+    rocblas_int incx = arg.incx;
+    rocblas_int ldc  = arg.ldc;
 
     double gpu_time_used, cpu_time_used;
 
@@ -121,14 +120,14 @@ void testing_dgmm(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(M, N, lda);
-    host_vector<T> hx(K, incx ? incx : 1);
+    host_vector<T> hx(K, incx);
     host_matrix<T> hC_1(M, N, ldc);
     host_matrix<T> hC_2(M, N, ldc);
     host_matrix<T> hC_gold(M, N, ldc);
 
     // Allocate device memory
     device_matrix<T> dA(M, N, lda);
-    device_vector<T> dx(K, incx ? incx : 1);
+    device_vector<T> dx(K, incx);
     device_matrix<T> dC(M, N, ldc);
 
     // Check device memory allocation

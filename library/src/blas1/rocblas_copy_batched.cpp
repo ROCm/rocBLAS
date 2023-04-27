@@ -112,8 +112,8 @@ namespace
                 return copy_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_copy_template<false, NB>(
-            handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count);
+        rocblas_status status
+            = rocblas_copy_template<NB>(handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count);
         if(status != rocblas_status_success)
             return status;
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ namespace
     constexpr char rocblas_axpy_strided_batched_name<rocblas_double_complex>[]
         = "rocblas_zaxpy_strided_batched";
 
-    template <int NB, typename T>
+    template <typename T>
     rocblas_status rocblas_axpy_strided_batched_impl(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      const T*       alpha,
@@ -155,19 +155,19 @@ namespace
                 return axpy_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_axpy_template<NB, T>(handle,
-                                                                      n,
-                                                                      alpha,
-                                                                      stride_0,
-                                                                      x,
-                                                                      offset_0,
-                                                                      incx,
-                                                                      stridex,
-                                                                      y,
-                                                                      offset_0,
-                                                                      incy,
-                                                                      stridey,
-                                                                      batch_count);
+        rocblas_status status = rocblas_internal_axpy_template(handle,
+                                                               n,
+                                                               alpha,
+                                                               stride_0,
+                                                               x,
+                                                               offset_0,
+                                                               incx,
+                                                               stridex,
+                                                               y,
+                                                               offset_0,
+                                                               incy,
+                                                               stridey,
+                                                               batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -209,35 +209,35 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                                            \
-    rocblas_status routine_name_(rocblas_handle handle,                                    \
-                                 rocblas_int    n,                                         \
-                                 const T_*      alpha,                                     \
-                                 const T_*      x,                                         \
-                                 rocblas_int    incx,                                      \
-                                 rocblas_stride stridex,                                   \
-                                 T_*            y,                                         \
-                                 rocblas_int    incy,                                      \
-                                 rocblas_stride stridey,                                   \
-                                 rocblas_int    batch_count)                               \
-    try                                                                                    \
-    {                                                                                      \
-        return rocblas_axpy_strided_batched_impl<ROCBLAS_AXPY_NB>(handle,                  \
-                                                                  n,                       \
-                                                                  alpha,                   \
-                                                                  x,                       \
-                                                                  incx,                    \
-                                                                  stridex,                 \
-                                                                  y,                       \
-                                                                  incy,                    \
-                                                                  stridey,                 \
-                                                                  batch_count,             \
-                                                                  #routine_name_,          \
-                                                                  "axpy_strided_batched"); \
-    }                                                                                      \
-    catch(...)                                                                             \
-    {                                                                                      \
-        return exception_to_rocblas_status();                                              \
+#define IMPL(routine_name_, T_)                                           \
+    rocblas_status routine_name_(rocblas_handle handle,                   \
+                                 rocblas_int    n,                        \
+                                 const T_*      alpha,                    \
+                                 const T_*      x,                        \
+                                 rocblas_int    incx,                     \
+                                 rocblas_stride stridex,                  \
+                                 T_*            y,                        \
+                                 rocblas_int    incy,                     \
+                                 rocblas_stride stridey,                  \
+                                 rocblas_int    batch_count)              \
+    try                                                                   \
+    {                                                                     \
+        return rocblas_axpy_strided_batched_impl(handle,                  \
+                                                 n,                       \
+                                                 alpha,                   \
+                                                 x,                       \
+                                                 incx,                    \
+                                                 stridex,                 \
+                                                 y,                       \
+                                                 incy,                    \
+                                                 stridey,                 \
+                                                 batch_count,             \
+                                                 #routine_name_,          \
+                                                 "axpy_strided_batched"); \
+    }                                                                     \
+    catch(...)                                                            \
+    {                                                                     \
+        return exception_to_rocblas_status();                             \
     }
 
 IMPL(rocblas_saxpy_strided_batched, float);

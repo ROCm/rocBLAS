@@ -41,7 +41,7 @@ template <typename T>
 void testing_spr2_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_spr2_batched_fn
-        = arg.fortran ? rocblas_spr2_batched<T, true> : rocblas_spr2_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_spr2_batched<T, true> : rocblas_spr2_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -134,7 +134,7 @@ template <typename T>
 void testing_spr2_batched(const Arguments& arg)
 {
     auto rocblas_spr2_batched_fn
-        = arg.fortran ? rocblas_spr2_batched<T, true> : rocblas_spr2_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_spr2_batched<T, true> : rocblas_spr2_batched<T, false>;
 
     rocblas_int  N           = arg.N;
     rocblas_int  incx        = arg.incx;

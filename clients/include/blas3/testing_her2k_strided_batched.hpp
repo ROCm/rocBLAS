@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,10 +46,10 @@ template <typename T, bool TWOK = true>
 void testing_her2k_strided_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_herXX_strided_batched_fn
-        = arg.fortran ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
-                              : rocblas_herkx_strided_batched<T, real_t<T>, true>)
-                      : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
-                              : rocblas_herkx_strided_batched<T, real_t<T>, false>);
+        = arg.api == FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
+                                     : rocblas_herkx_strided_batched<T, real_t<T>, true>)
+                             : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
+                                     : rocblas_herkx_strided_batched<T, real_t<T>, false>);
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -386,10 +386,10 @@ template <typename T, bool TWOK = true>
 void testing_her2k_strided_batched(const Arguments& arg)
 {
     auto rocblas_herXX_strided_batched_fn
-        = arg.fortran ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
-                              : rocblas_herkx_strided_batched<T, real_t<T>, true>)
-                      : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
-                              : rocblas_herkx_strided_batched<T, real_t<T>, false>);
+        = arg.api == FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
+                                     : rocblas_herkx_strided_batched<T, real_t<T>, true>)
+                             : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
+                                     : rocblas_herkx_strided_batched<T, real_t<T>, false>);
     auto herXX_gflop_count_fn = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;
     auto herXX_ref_fn         = TWOK ? cblas_her2k<T> : cblas_herkx<T>;
 

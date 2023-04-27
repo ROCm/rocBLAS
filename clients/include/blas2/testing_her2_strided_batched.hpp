@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,8 +40,9 @@
 template <typename T>
 void testing_her2_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_her2_strided_batched_fn = arg.fortran ? rocblas_her2_strided_batched<T, true>
-                                                       : rocblas_her2_strided_batched<T, false>;
+    auto rocblas_her2_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_her2_strided_batched<T, true>
+                                               : rocblas_her2_strided_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -238,8 +239,9 @@ void testing_her2_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_her2_strided_batched(const Arguments& arg)
 {
-    auto rocblas_her2_strided_batched_fn = arg.fortran ? rocblas_her2_strided_batched<T, true>
-                                                       : rocblas_her2_strided_batched<T, false>;
+    auto rocblas_her2_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_her2_strided_batched<T, true>
+                                               : rocblas_her2_strided_batched<T, false>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    lda         = arg.lda;
@@ -276,9 +278,7 @@ void testing_her2_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = size_t(N) * lda;
+    size_t size_A = size_t(N) * lda;
 
     // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
     // Allocate host memory

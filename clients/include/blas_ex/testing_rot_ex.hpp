@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_rot_ex_fn = arg.fortran ? rocblas_rot_ex_fortran : rocblas_rot_ex;
+    auto rocblas_rot_ex_fn = arg.api == FORTRAN ? rocblas_rot_ex_fortran : rocblas_rot_ex;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -85,7 +85,7 @@ void testing_rot_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_ex(const Arguments& arg)
 {
-    auto rocblas_rot_ex_fn = arg.fortran ? rocblas_rot_ex_fortran : rocblas_rot_ex;
+    auto rocblas_rot_ex_fn = arg.api == FORTRAN ? rocblas_rot_ex_fortran : rocblas_rot_ex;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;
@@ -120,19 +120,16 @@ void testing_rot_ex(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<Tx>  hx(N, incx ? incx : 1);
-    host_vector<Ty>  hy(N, incy ? incy : 1);
+    host_vector<Tx>  hx(N, incx);
+    host_vector<Ty>  hy(N, incy);
     host_vector<Tcs> hc(1, 1);
     host_vector<Tcs> hs(1, 1);
 
     // Allocate device memory
-    device_vector<Tx>  dx(N, incx ? incx : 1);
-    device_vector<Ty>  dy(N, incy ? incy : 1);
+    device_vector<Tx>  dx(N, incx);
+    device_vector<Ty>  dy(N, incy);
     device_vector<Tcs> dc(1, 1);
     device_vector<Tcs> ds(1, 1);
 
@@ -167,21 +164,21 @@ void testing_rot_ex(const Arguments& arg)
             CHECK_ROCBLAS_ERROR((rocblas_rot_ex_fn(
                 handle, N, dx, x_type, incx, dy, y_type, incy, hc, hs, cs_type, execution_type)));
             handle.post_test(arg);
-            host_vector<Tx> rx(N, incx ? incx : 1);
-            host_vector<Ty> ry(N, incy ? incy : 1);
+            host_vector<Tx> rx(N, incx);
+            host_vector<Ty> ry(N, incy);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
 
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, hx_gold, rx);
-                unit_check_general<Ty>(1, N, abs_incy, hy_gold, ry);
+                unit_check_general<Tx>(1, N, incx, hx_gold, rx);
+                unit_check_general<Ty>(1, N, incy, hy_gold, ry);
             }
             if(arg.norm_check)
             {
-                norm_error_host_x = norm_check_general<Tx>('F', 1, N, abs_incx, hx_gold, rx);
-                norm_error_host_y = norm_check_general<Ty>('F', 1, N, abs_incy, hy_gold, ry);
+                norm_error_host_x = norm_check_general<Tx>('F', 1, N, incx, hx_gold, rx);
+                norm_error_host_y = norm_check_general<Ty>('F', 1, N, incy, hy_gold, ry);
             }
         }
 
@@ -196,20 +193,20 @@ void testing_rot_ex(const Arguments& arg)
             CHECK_ROCBLAS_ERROR((rocblas_rot_ex_fn(
                 handle, N, dx, x_type, incx, dy, y_type, incy, dc, ds, cs_type, execution_type)));
 
-            host_vector<Tx> rx(N, incx ? incx : 1);
-            host_vector<Ty> ry(N, incy ? incy : 1);
+            host_vector<Tx> rx(N, incx);
+            host_vector<Ty> ry(N, incy);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, hx_gold, rx);
-                unit_check_general<Ty>(1, N, abs_incy, hy_gold, ry);
+                unit_check_general<Tx>(1, N, incx, hx_gold, rx);
+                unit_check_general<Ty>(1, N, incy, hy_gold, ry);
             }
             if(arg.norm_check)
             {
-                norm_error_device_x = norm_check_general<Tx>('F', 1, N, abs_incx, hx_gold, rx);
-                norm_error_device_y = norm_check_general<Ty>('F', 1, N, abs_incy, hy_gold, ry);
+                norm_error_device_x = norm_check_general<Tx>('F', 1, N, incx, hx_gold, rx);
+                norm_error_device_y = norm_check_general<Ty>('F', 1, N, incy, hy_gold, ry);
             }
         }
     }

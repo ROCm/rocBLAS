@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,10 +59,18 @@ ptrdiff_t host_bytes_available()
         return n_bytes;
     }
 
+    static const char* mem_token     = "MemFree";
+    static auto*       mem_free_type = getenv("ROCBLAS_CLIENT_ALLOC_AVAILABLE");
+    if(mem_free_type)
+    {
+        mem_token = "MemAvail"; // MemAvailable
+    }
+    int mem_token_len = strlen(mem_token);
+
     while(fgets(buf, BUF_MAX, fp) != NULL)
     {
-        const char cMemTok[] = "MemFree"; // Can consider MemAvailable if too many SKIPS occur
-        if(!strncmp(buf, cMemTok, sizeof(cMemTok) - 1))
+        // set env ROCBLAS_CLIENT_ALLOC_AVAILABLE to use MemAvailable if too many SKIPS occur
+        if(!strncmp(buf, mem_token, mem_token_len))
         {
             sscanf(buf, "%*s %td", &n_bytes); // kB assumed as 3rd column and ignored
             n_bytes *= 1024;

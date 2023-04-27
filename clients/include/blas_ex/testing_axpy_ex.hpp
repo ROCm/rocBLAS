@@ -40,7 +40,7 @@
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_axpy_ex_fn = arg.fortran ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
+    auto rocblas_axpy_ex_fn = arg.api == FORTRAN ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -154,7 +154,7 @@ void testing_axpy_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_ex(const Arguments& arg)
 {
-    auto rocblas_axpy_ex_fn = arg.fortran ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
+    auto rocblas_axpy_ex_fn = arg.api == FORTRAN ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
 
     rocblas_datatype alpha_type     = arg.a_type;
     rocblas_datatype x_type         = arg.b_type;
@@ -187,40 +187,36 @@ void testing_axpy_ex(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = std::abs(incx);
-    size_t abs_incy = std::abs(incy);
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
     size_t size_x   = N * (abs_incx ? abs_incx : 1);
     size_t size_y   = N * (abs_incy ? abs_incy : 1);
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_vector<Tx>  hx(N, incx ? incx : 1);
-    host_vector<Tex> hx_ex(N, incx ? incx : 1);
-    host_vector<Ty>  hy_1(N, incy ? incy : 1);
-    host_vector<Ty>  hy_2(N, incy ? incy : 1);
-    host_vector<Ty>  hy_gold(N, incy ? incy : 1);
-    host_vector<Tex> hy_gold_ex(N, incy ? incy : 1);
+    host_vector<Tx>  hx(N, incx);
+    host_vector<Tex> hx_ex(N, incx);
+    host_vector<Ty>  hy(N, incy);
+    host_vector<Ty>  hy_gold(N, incy);
+    host_vector<Tex> hy_gold_ex(N, incy);
 
     // Allocate device memory
-    device_vector<Tx> dx(N, incx ? incx : 1);
-    device_vector<Ty> dy_1(N, incy ? incy : 1);
-    device_vector<Ty> dy_2(N, incy ? incy : 1);
+    device_vector<Tx> dx(N, incx);
+    device_vector<Ty> dy(N, incy);
     device_vector<Ta> d_alpha(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_alpha_sets_nan, false, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false, true);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS
-    hy_2    = hy_1;
-    hy_gold = hy_1;
+    hy_gold = hy;
 
     for(size_t i = 0; i < size_y; i++)
         hy_gold_ex[i] = (Tex)hy_gold[i];
@@ -236,14 +232,13 @@ void testing_axpy_ex(const Arguments& arg)
     {
         // max half value
         hx[0]   = (Tx)65504;
-        hy_1[0] = (Ty)65504;
-        hy_2    = hy_1;
-        hy_gold = hy_1;
+        hy[0]   = (Ty)65504;
+        hy_gold = hy;
     }
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
@@ -251,23 +246,51 @@ void testing_axpy_ex(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(Ta), hipMemcpyHostToDevice));
-        handle.pre_test(arg);
-        // ROCBLAS pointer mode host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_axpy_ex_fn(
-            handle, N, &h_alpha, alpha_type, dx, x_type, incx, dy_1, y_type, incy, execution_type));
-        handle.post_test(arg);
-        // ROCBLAS pointer mode device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_axpy_ex_fn(
-            handle, N, d_alpha, alpha_type, dx, x_type, incx, dy_2, y_type, incy, execution_type));
-        handle.post_test(arg);
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_HIP_ERROR(dy.transfer_from(hy));
+
+            handle.pre_test(arg);
+            // ROCBLAS pointer mode host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_ROCBLAS_ERROR(rocblas_axpy_ex_fn(handle,
+                                                   N,
+                                                   &h_alpha,
+                                                   alpha_type,
+                                                   dx,
+                                                   x_type,
+                                                   incx,
+                                                   dy,
+                                                   y_type,
+                                                   incy,
+                                                   execution_type));
+            handle.post_test(arg);
+
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            // ROCBLAS pointer mode device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold)); // hy_gold not computed yet so still hy
+            CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(Ta), hipMemcpyHostToDevice));
+
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_axpy_ex_fn(handle,
+                                                   N,
+                                                   d_alpha,
+                                                   alpha_type,
+                                                   dx,
+                                                   x_type,
+                                                   incx,
+                                                   dy,
+                                                   y_type,
+                                                   incy,
+                                                   execution_type));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -285,16 +308,33 @@ void testing_axpy_ex(const Arguments& arg)
 
         // No accumulation in axpy, hard to check if we're using the right
         // compute_type
-        if(arg.unit_check)
+
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<Ty>(1, N, abs_incy, hy_gold, hy_1);
-            unit_check_general<Ty>(1, N, abs_incy, hy_gold, hy_2);
+            if(arg.unit_check)
+            {
+                unit_check_general<Ty>(1, N, incy, hy_gold, hy);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<Ty>('F', 1, N, incy, hy_gold, hy);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<Ty>('F', 1, N, abs_incy, hy_gold, hy_1);
-            rocblas_error_2 = norm_check_general<Ty>('F', 1, N, abs_incy, hy_gold, hy_2);
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<Ty>(1, N, incy, hy_gold, hy);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<Ty>('F', 1, N, incy, hy_gold, hy);
+            }
         }
     }
 
@@ -313,7 +353,7 @@ void testing_axpy_ex(const Arguments& arg)
                                dx,
                                x_type,
                                incx,
-                               dy_1,
+                               dy,
                                y_type,
                                incy,
                                execution_type);
@@ -332,7 +372,7 @@ void testing_axpy_ex(const Arguments& arg)
                                dx,
                                x_type,
                                incx,
-                               dy_1,
+                               dy,
                                y_type,
                                incy,
                                execution_type);

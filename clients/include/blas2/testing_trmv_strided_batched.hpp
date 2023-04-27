@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,8 +42,9 @@
 template <typename T>
 void testing_trmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trmv_strided_batched_fn = arg.fortran ? rocblas_trmv_strided_batched<T, true>
-                                                       : rocblas_trmv_strided_batched<T, false>;
+    auto rocblas_trmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_trmv_strided_batched<T, true>
+                                               : rocblas_trmv_strided_batched<T, false>;
 
     const rocblas_int       M           = 100;
     const rocblas_int       lda         = 100;
@@ -100,8 +101,9 @@ void testing_trmv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmv_strided_batched(const Arguments& arg)
 {
-    auto rocblas_trmv_strided_batched_fn = arg.fortran ? rocblas_trmv_strided_batched<T, true>
-                                                       : rocblas_trmv_strided_batched<T, false>;
+    auto rocblas_trmv_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_trmv_strided_batched<T, true>
+                                               : rocblas_trmv_strided_batched<T, false>;
 
     rocblas_int    M = arg.M, lda = arg.lda, incx = arg.incx, batch_count = arg.batch_count;
     rocblas_stride stride_a = arg.stride_a, stride_x = arg.stride_x;
@@ -134,7 +136,6 @@ void testing_trmv_strided_batched(const Arguments& arg)
 
         return;
     }
-    size_t abs_incx = incx >= 0 ? incx : -incx;
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
@@ -193,14 +194,13 @@ void testing_trmv_strided_batched(const Arguments& arg)
         // Unit check.
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, stride_x, hx, hres, batch_count);
+            unit_check_general<T>(1, M, incx, stride_x, hx, hres, batch_count);
         }
 
         // Norm check.
         if(arg.norm_check)
         {
-            rocblas_error
-                = norm_check_general<T>('F', 1, M, abs_incx, stride_x, hx, hres, batch_count);
+            rocblas_error = norm_check_general<T>('F', 1, M, incx, stride_x, hx, hres, batch_count);
         }
     }
 

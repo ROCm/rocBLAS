@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@
 template <typename T>
 void testing_trsv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_trsv_fn = arg.fortran ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
+    auto rocblas_trsv_fn = arg.api == FORTRAN ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
 
     const rocblas_int       M      = 100;
     const rocblas_int       lda    = 100;
@@ -98,7 +98,7 @@ void testing_trsv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trsv(const Arguments& arg)
 {
-    auto rocblas_trsv_fn = arg.fortran ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
+    auto rocblas_trsv_fn = arg.api == FORTRAN ? rocblas_trsv<T, true> : rocblas_trsv<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int lda         = arg.lda;
@@ -124,8 +124,6 @@ void testing_trsv(const Arguments& arg)
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
-
-    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
@@ -209,8 +207,8 @@ void testing_trsv(const Arguments& arg)
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate norm 1 of vector E
-        max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_1));
-        max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_2));
+        max_err_1 = rocblas_abs(vector_norm_1<T>(M, incx, hx, hx_or_b_1));
+        max_err_2 = rocblas_abs(vector_norm_1<T>(M, incx, hx, hx_or_b_2));
 
         //unit test
         trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
@@ -221,8 +219,8 @@ void testing_trsv(const Arguments& arg)
         cblas_trmv<T>(uplo, transA, diag, M, hA, lda, hx_or_b_2, incx);
 
         // Calculate norm 1 of vector res
-        max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
-        max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
+        max_err_1 = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1, hb));
+        max_err_2 = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1, hb));
 
         //unit test
         trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -108,58 +108,66 @@ struct rocblas_reduce_amin
     }
 };
 
-template <rocblas_int NB,
-          typename FETCH,
-          typename REDUCE,
-          typename FINALIZE,
-          typename TPtrX,
-          typename To,
-          typename Tr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_iamax_iamin_template(rocblas_handle handle,
-                                          rocblas_int    n,
-                                          TPtrX          x,
-                                          rocblas_stride shiftx,
-                                          rocblas_int    incx,
-                                          rocblas_stride stridex,
-                                          rocblas_int    batch_count,
-                                          To*            workspace,
-                                          Tr*            result);
-
-template <rocblas_int NB, typename T, typename S>
+/**
+ * @brief internal iamax template. Can be used with regular iamax or iamax_strided_batched.
+ *        Used by rocSOLVER, includes offset params for arrays.
+ */
+template <typename T, typename S>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_iamax_template(rocblas_handle            handle,
                                     rocblas_int               n,
-                                    T                         x,
+                                    const T*                  x,
                                     rocblas_stride            shiftx,
                                     rocblas_int               incx,
                                     rocblas_stride            stridex,
                                     rocblas_int               batch_count,
                                     rocblas_int*              result,
-                                    rocblas_index_value_t<S>* workspace)
-{
-    return rocblas_internal_iamax_iamin_template<NB,
-                                                 rocblas_fetch_amax_amin<S>,
-                                                 rocblas_reduce_amax,
-                                                 rocblas_finalize_amax_amin>(
-        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
-}
+                                    rocblas_index_value_t<S>* workspace);
 
-template <rocblas_int NB, typename T, typename S>
+/**
+ * @brief internal iamax_batched template.
+ *        Used by rocSOLVER, includes offset params for arrays.
+ */
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_batched_template(rocblas_handle            handle,
+                                            rocblas_int               n,
+                                            const T* const*           x,
+                                            rocblas_stride            shiftx,
+                                            rocblas_int               incx,
+                                            rocblas_stride            stridex,
+                                            rocblas_int               batch_count,
+                                            rocblas_int*              result,
+                                            rocblas_index_value_t<S>* workspace);
+
+/**
+ * @brief internal iamin template. Can be used with regular iamin or iamin_strided_batched.
+ *        Used by rocSOLVER, includes offset params for arrays.
+ */
+template <typename T, typename S>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_iamin_template(rocblas_handle            handle,
                                     rocblas_int               n,
-                                    T                         x,
+                                    const T*                  x,
                                     rocblas_stride            shiftx,
                                     rocblas_int               incx,
                                     rocblas_stride            stridex,
                                     rocblas_int               batch_count,
                                     rocblas_int*              result,
-                                    rocblas_index_value_t<S>* workspace)
-{
-    return rocblas_internal_iamax_iamin_template<NB,
-                                                 rocblas_fetch_amax_amin<S>,
-                                                 rocblas_reduce_amin,
-                                                 rocblas_finalize_amax_amin>(
-        handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
-}
+                                    rocblas_index_value_t<S>* workspace);
+
+/**
+ * @brief internal iamin_batched template.
+ *        Used by rocSOLVER, includes offset params for arrays.
+ */
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamin_batched_template(rocblas_handle            handle,
+                                            rocblas_int               n,
+                                            const T* const*           x,
+                                            rocblas_stride            shiftx,
+                                            rocblas_int               incx,
+                                            rocblas_stride            stridex,
+                                            rocblas_int               batch_count,
+                                            rocblas_int*              result,
+                                            rocblas_index_value_t<S>* workspace);

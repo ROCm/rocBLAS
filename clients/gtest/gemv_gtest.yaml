@@ -105,7 +105,7 @@ Tests:
   function: gemv_bad_arg
   precision: *single_double_precisions
   transA: N
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: gemv_arg_check
   category: quick
@@ -130,7 +130,7 @@ Tests:
   transA: [ N, T, C ]
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: gemv_small
   category: quick
@@ -235,7 +235,7 @@ Tests:
   function: gemv_batched_bad_arg
   precision: *single_double_precisions
   transA: N
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: gemv_batched_arg_check
   category: quick
@@ -262,7 +262,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: gemv_batched_double_buffered
   category: pre_checkin
@@ -354,7 +354,7 @@ Tests:
   function: gemv_strided_batched_bad_arg
   precision: *single_double_precisions
   transA: N
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: gemv_strided_batched_arg_check
   category: quick
@@ -381,7 +381,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: gemv_strided_batched_small
   category: quick

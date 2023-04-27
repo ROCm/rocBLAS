@@ -82,47 +82,6 @@ catch(...)
 }
 
 /*******************************************************************************
- * ! \brief get int8 datatype, can be int8_t or rocblas_int8x4
- ******************************************************************************/
-extern "C" rocblas_status
-    rocblas_get_int8_type_for_hipblas(rocblas_handle                 handle,
-                                      rocblas_int8_type_for_hipblas* int8_type)
-try
-{
-    // if handle not valid
-    if(!handle)
-        return rocblas_status_invalid_handle;
-    *int8_type = handle->rocblas_int8_type;
-    if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_get_int8_type_for_hipblas", *int8_type);
-    return rocblas_status_success;
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-/*******************************************************************************
- * ! \brief set int8 datatype, can be int8_t or rocblas_int8x4
- ******************************************************************************/
-extern "C" rocblas_status rocblas_set_int8_type_for_hipblas(rocblas_handle                handle,
-                                                            rocblas_int8_type_for_hipblas int8_type)
-try
-{
-    // if handle not valid
-    if(!handle)
-        return rocblas_status_invalid_handle;
-    if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_set_int8_type_for_hipblas", int8_type);
-    handle->rocblas_int8_type = int8_type;
-    return rocblas_status_success;
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-/*******************************************************************************
  * ! \brief get atomics mode
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_atomics_mode(rocblas_handle        handle,

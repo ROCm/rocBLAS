@@ -60,6 +60,15 @@ Definitions:
   - &large_memory_matrix_size_range
     - { M: 8320, N: 128, lda: 8320, ldb: 8320 }
 
+  - &size_t_left_matrix_size_range
+#   - { M: 4, N: 46435, lda: 4, ldb: 46435 }
+    - { M: 46345, N: 4, lda: 46345, ldb: 46345 }
+#   - { M: 47000, N: 4, lda: 47000, ldb: 47000 } # calls rocblas_internal_gemm_template with batch_count=367, stride_a=6016128
+
+  - &size_t_right_matrix_size_range
+    - { M: 4, N: 46345, lda: 46345, ldb: 4 }
+#   - { M: 4, N: 47000, lda: 47000, ldb: 4 }  # calls rocblas_internal_gemm_template with batch_count=367, stride_a=6016128
+
   - &substitution_size_range_thorough
     - { M:   1, N:  1, lda: 100, ldb: 100 }
     - { M:   1, N: 32, lda: 100, ldb: 100 }
@@ -193,7 +202,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 # alpha = 0 tests
 - name: trsm_zero
@@ -223,7 +232,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   user_allocated_workspace: [0, 1000000]
 
 - name: trsm_small_complex
@@ -236,7 +245,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   user_allocated_workspace: [0, 1000000]
 
 - name: trsm_batched_small
@@ -251,7 +260,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
   batch_count: [-1, 0, 1, 3]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   user_allocated_workspace: [0, 1000000]
 
 - name: trsm_batched_small_complex
@@ -266,7 +275,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
   batch_count: [-1, 0, 1, 3]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   user_allocated_workspace: [0, 1000000]
 
 - name: trsm_strided_batched_small
@@ -282,7 +291,7 @@ Tests:
   alpha: *alpha_range
   stride_scale: [ 1 ]
   batch_count: [ -1, 0, 1, 3 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   user_allocated_workspace: [0, 1000000]
 
 - name: trsm_strided_batched_small_complex
@@ -298,7 +307,7 @@ Tests:
   alpha_beta: *complex_alpha_range
   stride_scale: [ 3 ]
   batch_count: [ -1, 0, 1, 3 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
   user_allocated_workspace: [0, 1000000]
 
 # Medium - pre_checkin
@@ -486,6 +495,24 @@ Tests:
   diag: [U]
   matrix_size: *testset2_matrix_size_range
   alpha: [ 1 ]
+
+- name: trsm_size_t_left
+  category: nightly
+  function: trsm
+  precision: *single_precision
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+  matrix_size: *size_t_left_matrix_size_range
+  alpha: [2]
+
+- name: trsm_size_t_right
+  category: nightly
+  function: trsm
+  precision: *single_precision
+  arguments:
+    - { side: R, uplo: L, transA: N, diag: N }
+  matrix_size: *size_t_right_matrix_size_range
+  alpha: [2]
 
 - name: trsm_large
   category: nightly
@@ -773,7 +800,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 # Small - quick
 - name: trsm_ex_small

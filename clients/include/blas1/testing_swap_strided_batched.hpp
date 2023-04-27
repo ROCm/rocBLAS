@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,9 @@
 template <typename T>
 void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_swap_strided_batched_fn = arg.fortran ? rocblas_swap_strided_batched<T, true>
-                                                       : rocblas_swap_strided_batched<T, false>;
+    auto rocblas_swap_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_swap_strided_batched<T, true>
+                                               : rocblas_swap_strided_batched<T, false>;
 
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
@@ -70,8 +71,9 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_swap_strided_batched(const Arguments& arg)
 {
-    auto rocblas_swap_strided_batched_fn = arg.fortran ? rocblas_swap_strided_batched<T, true>
-                                                       : rocblas_swap_strided_batched<T, false>;
+    auto rocblas_swap_strided_batched_fn = arg.api == FORTRAN
+                                               ? rocblas_swap_strided_batched<T, true>
+                                               : rocblas_swap_strided_batched<T, false>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
@@ -92,19 +94,16 @@ void testing_swap_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<T> hy(N, incy ? incy : 1, stride_y, batch_count);
-    host_strided_batch_vector<T> hx_gold(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<T> hy_gold(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy(N, incy, stride_y, batch_count);
+    host_strided_batch_vector<T> hx_gold(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy_gold(N, incy, stride_y, batch_count);
 
     // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stride_x, batch_count);
-    device_strided_batch_vector<T> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -146,16 +145,16 @@ void testing_swap_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incx, stride_x, hx_gold, hx, batch_count);
-            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
+            unit_check_general<T>(1, N, incx, stride_x, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, incy, stride_y, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', 1, N, abs_incx, stride_x, hx_gold, hx, batch_count);
+                = norm_check_general<T>('F', 1, N, incx, stride_x, hx_gold, hx, batch_count);
             rocblas_error
-                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
+                = norm_check_general<T>('F', 1, N, incy, stride_y, hy_gold, hy, batch_count);
         }
     }
 

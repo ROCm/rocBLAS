@@ -43,7 +43,7 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: tpmv_arg_checks
   category: quick
@@ -65,7 +65,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   incx: *incx_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: tpmv_small
   category: quick
@@ -104,7 +104,7 @@ Tests:
   uplo: [L, U]
   transA: [  N, T, C ]
   diag: [N, U]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: tpmv_batched_small
   category: quick
@@ -116,7 +116,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: *incx_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: tpmv_batched_small
   category: quick
@@ -172,7 +172,7 @@ Tests:
   incx: *incx_range_small
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: tpmv_strided_batched_small
   category: quick

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,9 +40,10 @@ template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bo
 void testing_dot_strided_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_dot_strided_batched_ex_fn
-        = arg.fortran ? (CONJ ? rocblas_dotc_strided_batched_ex_fortran
-                              : rocblas_dot_strided_batched_ex_fortran)
-                      : (CONJ ? rocblas_dotc_strided_batched_ex : rocblas_dot_strided_batched_ex);
+        = arg.api == FORTRAN
+              ? (CONJ ? rocblas_dotc_strided_batched_ex_fortran
+                      : rocblas_dot_strided_batched_ex_fortran)
+              : (CONJ ? rocblas_dotc_strided_batched_ex : rocblas_dot_strided_batched_ex);
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -145,9 +146,10 @@ template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bo
 void testing_dot_strided_batched_ex(const Arguments& arg)
 {
     auto rocblas_dot_strided_batched_ex_fn
-        = arg.fortran ? (CONJ ? rocblas_dotc_strided_batched_ex_fortran
-                              : rocblas_dot_strided_batched_ex_fortran)
-                      : (CONJ ? rocblas_dotc_strided_batched_ex : rocblas_dot_strided_batched_ex);
+        = arg.api == FORTRAN
+              ? (CONJ ? rocblas_dotc_strided_batched_ex_fortran
+                      : rocblas_dot_strided_batched_ex_fortran)
+              : (CONJ ? rocblas_dotc_strided_batched_ex : rocblas_dot_strided_batched_ex);
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;
@@ -158,8 +160,6 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
     rocblas_int    incx        = arg.incx;
     rocblas_int    incy        = arg.incy;
     rocblas_int    batch_count = arg.batch_count;
-    rocblas_int    abs_incx    = incx >= 0 ? incx : -incx;
-    rocblas_int    abs_incy    = incy >= 0 ? incy : -incy;
     rocblas_stride stride_x    = arg.stride_x;
     rocblas_stride stride_y    = arg.stride_y;
 
@@ -224,15 +224,15 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<Tx> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<Ty> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<Tx> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy(N, incy, stride_y, batch_count);
     host_vector<Tr>               cpu_result(batch_count);
     host_vector<Tr>               rocblas_result_1(batch_count);
     host_vector<Tr>               rocblas_result_2(batch_count);
 
     // Allocate device memory
-    device_strided_batch_vector<Tx> dx(N, incx ? incx : 1, stride_x, batch_count);
-    device_strided_batch_vector<Ty> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_strided_batch_vector<Tx> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<Ty> dy(N, incy, stride_y, batch_count);
     device_vector<Tr>               d_rocblas_result_2(batch_count);
 
     // Check device memory allocation
@@ -264,7 +264,6 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_ex_fn)(handle,
                                                                 N,
                                                                 dx,
@@ -279,7 +278,6 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
                                                                 rocblas_result_1,
                                                                 result_type,
                                                                 execution_type));
-        handle.post_test(arg);
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         handle.pre_test(arg);

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@
 template <typename T>
 void testing_tbmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_tbmv_fn = arg.fortran ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
+    auto rocblas_tbmv_fn = arg.api == FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
 
     const rocblas_int       M                 = 100;
     const rocblas_int       K                 = 5;
@@ -91,7 +91,7 @@ void testing_tbmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tbmv(const Arguments& arg)
 {
-    auto rocblas_tbmv_fn = arg.fortran ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
+    auto rocblas_tbmv_fn = arg.api == FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
 
     rocblas_int       M                 = arg.M;
     rocblas_int       K                 = arg.K;
@@ -116,8 +116,6 @@ void testing_tbmv(const Arguments& arg)
 
         return;
     }
-
-    size_t abs_incx = incx >= 0 ? incx : -incx;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
@@ -172,12 +170,12 @@ void testing_tbmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, hx_gold, hx_2);
+            unit_check_general<T>(1, M, incx, hx_gold, hx_2);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, M, abs_incx, hx_gold, hx_2);
+            rocblas_error_1 = norm_check_general<T>('F', 1, M, incx, hx_gold, hx_2);
         }
     }
 

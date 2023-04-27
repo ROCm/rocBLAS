@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,9 @@
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_strided_batched_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_rot_strided_batched_ex_fn
-        = arg.fortran ? rocblas_rot_strided_batched_ex_fortran : rocblas_rot_strided_batched_ex;
+    auto rocblas_rot_strided_batched_ex_fn = arg.api == FORTRAN
+                                                 ? rocblas_rot_strided_batched_ex_fortran
+                                                 : rocblas_rot_strided_batched_ex;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -150,8 +151,9 @@ void testing_rot_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_strided_batched_ex(const Arguments& arg)
 {
-    auto rocblas_rot_strided_batched_ex_fn
-        = arg.fortran ? rocblas_rot_strided_batched_ex_fortran : rocblas_rot_strided_batched_ex;
+    auto rocblas_rot_strided_batched_ex_fn = arg.api == FORTRAN
+                                                 ? rocblas_rot_strided_batched_ex_fortran
+                                                 : rocblas_rot_strided_batched_ex;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;
@@ -193,19 +195,16 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<Tx> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<Ty> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<Tx> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy(N, incy, stride_y, batch_count);
     host_vector<Tcs>              hc(1, 1);
     host_vector<Tcs>              hs(1, 1);
 
     // Allocate device memory
-    device_strided_batch_vector<Tx> dx(N, incx ? incx : 1, stride_x, batch_count);
-    device_strided_batch_vector<Ty> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_strided_batch_vector<Tx> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<Ty> dy(N, incy, stride_y, batch_count);
     device_vector<Tcs>              dc(1, 1);
     device_vector<Tcs>              ds(1, 1);
 
@@ -222,8 +221,8 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
     rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
-    host_strided_batch_vector<Tx> hx_gold(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<Ty> hy_gold(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<Tx> hx_gold(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<Ty> hy_gold(N, incy, stride_y, batch_count);
     hx_gold.copy_from(hx);
     hy_gold.copy_from(hy);
     // cblas_rotg<T, U>(hx_gold, hy_gold, hc, hs);
@@ -260,23 +259,23 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                                                    batch_count,
                                                                    execution_type)));
             handle.post_test(arg);
-            host_strided_batch_vector<Tx> rx(N, incx ? incx : 1, stride_x, batch_count);
-            host_strided_batch_vector<Ty> ry(N, incy ? incy : 1, stride_y, batch_count);
+            host_strided_batch_vector<Tx> rx(N, incx, stride_x, batch_count);
+            host_strided_batch_vector<Ty> ry(N, incy, stride_y, batch_count);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
 
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
-                unit_check_general<Ty>(1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
+                unit_check_general<Tx>(1, N, incx, stride_x, hx_gold, rx, batch_count);
+                unit_check_general<Ty>(1, N, incy, stride_y, hy_gold, ry, batch_count);
             }
             if(arg.norm_check)
             {
-                norm_error_host_x = norm_check_general<Tx>(
-                    'F', 1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
-                norm_error_host_y = norm_check_general<Ty>(
-                    'F', 1, N, abs_incy, stride_x, hy_gold, ry, batch_count);
+                norm_error_host_x
+                    = norm_check_general<Tx>('F', 1, N, incx, stride_x, hx_gold, rx, batch_count);
+                norm_error_host_y
+                    = norm_check_general<Ty>('F', 1, N, incy, stride_x, hy_gold, ry, batch_count);
             }
         }
 
@@ -304,23 +303,23 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                                                    cs_type,
                                                                    batch_count,
                                                                    execution_type)));
-            host_strided_batch_vector<Tx> rx(N, incx ? incx : 1, stride_x, batch_count);
-            host_strided_batch_vector<Ty> ry(N, incy ? incy : 1, stride_y, batch_count);
+            host_strided_batch_vector<Tx> rx(N, incx, stride_x, batch_count);
+            host_strided_batch_vector<Ty> ry(N, incy, stride_y, batch_count);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
 
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
-                unit_check_general<Ty>(1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
+                unit_check_general<Tx>(1, N, incx, stride_x, hx_gold, rx, batch_count);
+                unit_check_general<Ty>(1, N, incy, stride_y, hy_gold, ry, batch_count);
             }
             if(arg.norm_check)
             {
-                norm_error_device_x = norm_check_general<Tx>(
-                    'F', 1, N, abs_incx, stride_x, hx_gold, rx, batch_count);
-                norm_error_device_y = norm_check_general<Ty>(
-                    'F', 1, N, abs_incy, stride_y, hy_gold, ry, batch_count);
+                norm_error_device_x
+                    = norm_check_general<Tx>('F', 1, N, incx, stride_x, hx_gold, rx, batch_count);
+                norm_error_device_y
+                    = norm_check_general<Ty>('F', 1, N, incy, stride_y, hy_gold, ry, batch_count);
             }
         }
     }

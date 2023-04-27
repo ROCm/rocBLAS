@@ -38,8 +38,9 @@
 template <typename Tx, typename Tr>
 void testing_nrm2_strided_batched_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_nrm2_strided_batched_ex_fn
-        = arg.fortran ? rocblas_nrm2_strided_batched_ex_fortran : rocblas_nrm2_strided_batched_ex;
+    auto rocblas_nrm2_strided_batched_ex_fn = arg.api == FORTRAN
+                                                  ? rocblas_nrm2_strided_batched_ex_fortran
+                                                  : rocblas_nrm2_strided_batched_ex;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype result_type    = rocblas_datatype_f32_r;
@@ -100,8 +101,9 @@ void testing_nrm2_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Tr>
 void testing_nrm2_strided_batched_ex(const Arguments& arg)
 {
-    auto rocblas_nrm2_strided_batched_ex_fn
-        = arg.fortran ? rocblas_nrm2_strided_batched_ex_fortran : rocblas_nrm2_strided_batched_ex;
+    auto rocblas_nrm2_strided_batched_ex_fn = arg.api == FORTRAN
+                                                  ? rocblas_nrm2_strided_batched_ex_fortran
+                                                  : rocblas_nrm2_strided_batched_ex;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype result_type    = arg.b_type;

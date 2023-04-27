@@ -55,9 +55,9 @@ public:
     //!
     explicit device_strided_batch_vector(
         size_t n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, bool HMM = false)
-        : d_vector<T>(calculate_nmemb(n, inc, stride, batch_count), HMM)
+        : d_vector<T>(calculate_nmemb(n, inc ? inc : 1, stride, batch_count), HMM)
         , m_n(n)
-        , m_inc(inc)
+        , m_inc(inc ? inc : 1)
         , m_stride(stride)
         , m_batch_count(batch_count)
     {

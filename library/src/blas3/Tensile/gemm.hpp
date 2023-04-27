@@ -150,28 +150,27 @@ inline rocblas_status rocblas_validateArgs(rocblas_handle    handle,
  * ===========================================================================
  */
 template <bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_gemm_template(rocblas_handle    handle,
-                                   rocblas_operation trans_a,
-                                   rocblas_operation trans_b,
-                                   rocblas_int       m,
-                                   rocblas_int       n,
-                                   rocblas_int       k,
-                                   const TScal*      alpha,
-                                   const TConstPtr*  A,
-                                   rocblas_stride    offset_a,
-                                   rocblas_int       lda,
-                                   rocblas_stride    stride_a,
-                                   const TConstPtr*  B,
-                                   rocblas_stride    offset_b,
-                                   rocblas_int       ldb,
-                                   rocblas_stride    stride_b,
-                                   const TScal*      beta,
-                                   TPtr*             C,
-                                   rocblas_stride    offset_c,
-                                   rocblas_int       ldc,
-                                   rocblas_stride    stride_c,
-                                   rocblas_int       batch_count)
+rocblas_status rocblas_internal_gemm_template(rocblas_handle    handle,
+                                              rocblas_operation trans_a,
+                                              rocblas_operation trans_b,
+                                              rocblas_int       m,
+                                              rocblas_int       n,
+                                              rocblas_int       k,
+                                              const TScal*      alpha,
+                                              const TConstPtr*  A,
+                                              rocblas_stride    offset_a,
+                                              rocblas_int       lda,
+                                              rocblas_stride    stride_a,
+                                              const TConstPtr*  B,
+                                              rocblas_stride    offset_b,
+                                              rocblas_int       ldb,
+                                              rocblas_stride    stride_b,
+                                              const TScal*      beta,
+                                              TPtr*             C,
+                                              rocblas_stride    offset_c,
+                                              rocblas_int       ldc,
+                                              rocblas_stride    stride_c,
+                                              rocblas_int       batch_count)
 {
     // quick return 0 is valid in BLAS
     // Note: k==0 is not a quick return, because C must still be multiplied by beta
@@ -263,6 +262,100 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                           rocblas_stream);
     return rocblas_status_success;
 #endif // BUILD_WITH_TENSILE
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_gemm_template(rocblas_handle    handle,
+                                   rocblas_operation trans_a,
+                                   rocblas_operation trans_b,
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   const T*          alpha,
+                                   const T*          A,
+                                   rocblas_stride    offset_a,
+                                   rocblas_int       lda,
+                                   rocblas_stride    stride_a,
+                                   const T*          B,
+                                   rocblas_stride    offset_b,
+                                   rocblas_int       ldb,
+                                   rocblas_stride    stride_b,
+                                   const T*          beta,
+                                   T*                C,
+                                   rocblas_stride    offset_c,
+                                   rocblas_int       ldc,
+                                   rocblas_stride    stride_c,
+                                   rocblas_int       batch_count)
+{
+    return rocblas_internal_gemm_template<false>(handle,
+                                                 trans_a,
+                                                 trans_b,
+                                                 m,
+                                                 n,
+                                                 k,
+                                                 alpha,
+                                                 A,
+                                                 offset_a,
+                                                 lda,
+                                                 stride_a,
+                                                 B,
+                                                 offset_b,
+                                                 ldb,
+                                                 stride_b,
+                                                 beta,
+                                                 C,
+                                                 offset_c,
+                                                 ldc,
+                                                 stride_c,
+                                                 batch_count);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_gemm_batched_template(rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_operation trans_b,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           rocblas_int       k,
+                                           const T*          alpha,
+                                           const T* const*   A,
+                                           rocblas_stride    offset_a,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           const T* const*   B,
+                                           rocblas_stride    offset_b,
+                                           rocblas_int       ldb,
+                                           rocblas_stride    stride_b,
+                                           const T*          beta,
+                                           T* const*         C,
+                                           rocblas_stride    offset_c,
+                                           rocblas_int       ldc,
+                                           rocblas_stride    stride_c,
+                                           rocblas_int       batch_count)
+{
+    return rocblas_internal_gemm_template<true>(handle,
+                                                trans_a,
+                                                trans_b,
+                                                m,
+                                                n,
+                                                k,
+                                                alpha,
+                                                A,
+                                                offset_a,
+                                                lda,
+                                                stride_a,
+                                                B,
+                                                offset_b,
+                                                ldb,
+                                                stride_b,
+                                                beta,
+                                                C,
+                                                offset_c,
+                                                ldc,
+                                                stride_c,
+                                                batch_count);
 }
 
 template <typename TConstPtr, typename TPtr>

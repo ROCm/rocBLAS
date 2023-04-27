@@ -41,7 +41,7 @@ template <typename T>
 void testing_symv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_symv_batched_fn
-        = arg.fortran ? rocblas_symv_batched<T, true> : rocblas_symv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_symv_batched<T, true> : rocblas_symv_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -244,7 +244,7 @@ template <typename T>
 void testing_symv_batched(const Arguments& arg)
 {
     auto rocblas_symv_batched_fn
-        = arg.fortran ? rocblas_symv_batched<T, true> : rocblas_symv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_symv_batched<T, true> : rocblas_symv_batched<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int lda  = arg.lda;
@@ -258,8 +258,6 @@ void testing_symv_batched(const Arguments& arg)
 
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
-
-    size_t abs_incy = incy >= 0 ? incy : -incy;
 
     rocblas_local_handle handle{arg};
 
@@ -391,21 +389,21 @@ void testing_symv_batched(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1, batch_count);
-                unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2, batch_count);
+                unit_check_general<T>(1, N, incy, hy_gold, hy_1, batch_count);
+                unit_check_general<T>(1, N, incy, hy_gold, hy_2, batch_count);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, N, abs_incy, hy_gold, hy_1, batch_count, tol);
-                near_check_general<T>(1, N, abs_incy, hy_gold, hy_2, batch_count, tol);
+                near_check_general<T>(1, N, incy, hy_gold, hy_1, batch_count, tol);
+                near_check_general<T>(1, N, incy, hy_gold, hy_2, batch_count, tol);
             }
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1, batch_count);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2, batch_count);
+            h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1, batch_count);
+            d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2, batch_count);
         }
     }
 

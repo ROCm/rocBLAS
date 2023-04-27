@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         auto rocblas_gemm_batched_fn
-            = arg.fortran ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+            = arg.api == FORTRAN ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
@@ -183,7 +183,7 @@ template <typename T>
 void testing_gemm_batched(const Arguments& arg)
 {
     auto rocblas_gemm_batched_fn
-        = arg.fortran ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_int          M           = arg.M;

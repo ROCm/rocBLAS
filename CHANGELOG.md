@@ -2,8 +2,32 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 2.47.0
+## (Unreleased) rocBLAS 3.0.0
+### Optimizations
+- Improved performance of Level 2 rocBLAS GEMV on gfx90a GPU for non-transposed problems having small matrices and larger batch counts. Performance enhanced for problem sizes when m and n <= 32 and batch_count >= 256.
+- Improved performance of rocBLAS syr2k for single, double, and double-complex precision, and her2k for double-complex precision. Slightly improved performance for general sizes on gfx90a.
+### Added
+- Added bf16 inputs and f32 compute support to Level 1 rocBLAS Extension functions axpy_ex, scal_ex and nrm2_ex.
+### Deprecated
+- trmm inplace is deprecated. It will be replaced by trmm that has both inplace and out-of-place functionality
+- rocblas_query_int8_layout_flag() is deprecated and will be removed in a future release
+- rocblas_gemm_flags_pack_int8x4 enum is deprecated and will be removed in a future release
+- rocblas_set_device_memory_size() is deprecated and will be replaced by a future function rocblas_increase_device_memory_size()
+- rocblas_is_user_managing_device_memory() is deprecated and will be removed in a future release
+### Removed
+- is_complex helper was deprecated and now removed.  Use rocblas_is_complex instead.
+- The enum truncate_t and the value truncate was deprecated and now removed from. It was replaced by rocblas_truncate_t and rocblas_truncate, respectively.
+- rocblas_set_int8_type_for_hipblas was deprecated and is now removed.
+- rocblas_get_int8_type_for_hipblas was deprecated and is now removed.
+### Dependencies
+- build only dependency on python joblib added as used by Tensile build
+- fix for cmake install on some OS when performed by install.sh -d --cmake_install
+### Fixed
+- make trsm offset calculations 64 bit safe
+### Changed
+- refactor rotg test code
 
+## (Unreleased) rocBLAS 2.47.0
 ### Added
 - added functionality rocblas_geam_ex for matrix-matrix minimum operations
 - added HIP Graph support as beta feature for rocBLAS Level 1, Level 2, and Level 3(pointer mode host) functions

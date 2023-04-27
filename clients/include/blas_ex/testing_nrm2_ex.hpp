@@ -39,7 +39,7 @@
 template <typename Tx, typename Tr>
 void testing_nrm2_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_nrm2_ex_fn = arg.fortran ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
+    auto rocblas_nrm2_ex_fn = arg.api == FORTRAN ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype result_type    = rocblas_datatype_f32_r;
@@ -76,7 +76,7 @@ void testing_nrm2_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Tr>
 void testing_nrm2_ex(const Arguments& arg)
 {
-    auto rocblas_nrm2_ex_fn = arg.fortran ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
+    auto rocblas_nrm2_ex_fn = arg.api == FORTRAN ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype result_type    = arg.b_type;

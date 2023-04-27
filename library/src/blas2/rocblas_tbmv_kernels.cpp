@@ -314,7 +314,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     dim3 copy_grid(copy_blocks, batch_count);
     dim3 copy_threads(256);
 
-    rocblas_status status = rocblas_copy_template<false, 256>(
+    rocblas_status status = rocblas_copy_template<256>(
         handle, m, x, offsetx, incx, stridex, w_x_copy, 0, 1, m, batch_count);
 
     if(status != rocblas_status_success)

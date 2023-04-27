@@ -3,17 +3,18 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
-  - &small_incx_incy_incb_range
-    - { incx: [1,3], incy:  1..3, incb:  1..3 }
-  - &large_incx_incy_incb_range
-    - { incx: [1,3], incy: [1,3], incb: [1,3] }
+  - &small_M_incx_incy_range
+    - { incx: [1,3], incy:  1..3 }
+  - &large_M_incx_incy_range
+    - { incx: [1,3], incy: [1,3] }
 
 Tests:
 - name: auxiliary_1
   category: quick
   precision: *single_double_precisions
   M: [ 10, 600 ]
-  incx_incy: *small_incx_incy_incb_range
+  incx_incy: *small_M_incx_incy_range
+  ldd:  1..3 # used for device memory layout of intermediate test results
   function:
   - set_get_vector_sync
   - set_get_vector_async
@@ -22,7 +23,8 @@ Tests:
   category: pre_checkin
   precision: *single_double_precisions
   M: [ 600000 ]
-  incx_incy: *large_incx_incy_incb_range
+  incx_incy: *large_M_incx_incy_range
+  ldd: [1,3]
   function:
   - set_get_vector_sync
   - set_get_vector_async
@@ -31,7 +33,8 @@ Tests:
   category: nightly
   precision: *single_double_precisions
   M: [ 1000000, 6000000 ]
-  incx_incy: *large_incx_incy_incb_range
+  incx_incy: *large_M_incx_incy_range
+  ldd: [1,3]
   function:
   - set_get_vector_sync
   - set_get_vector_async

@@ -60,11 +60,11 @@ public:
                                  rocblas_int inc,
                                  rocblas_int batch_count,
                                  bool        HMM = false)
-        : d_vector<T>(n * std::abs(inc) * batch_count,
+        : d_vector<T>(n * std::abs(inc ? inc : 1) * batch_count,
                       HMM) // d_vector is a single contiguous block for performance
         , m_n(n)
-        , m_inc(inc)
-        , m_nmemb(n * std::abs(inc))
+        , m_inc(inc ? inc : 1)
+        , m_nmemb(n * std::abs(inc ? inc : 1))
         , m_batch_count(batch_count)
     {
         if(false == this->try_initialize_memory())
