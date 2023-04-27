@@ -209,19 +209,9 @@ void testing_rot_batched_ex(const Arguments& arg)
     hx_gold.copy_from(hx);
     hy_gold.copy_from(hy);
 
-    // cblas_rotg<T, U>(hx_gold, hy_gold, hc, hs);
-    // hx_gold[0] = hx[0];
-    // hy_gold[0] = hy[0];
-    cpu_time_used = get_time_us_no_sync();
-    for(int b = 0; b < batch_count; b++)
-    {
-        cblas_rot<Tx, Ty, Tcs, Tcs>(N, hx_gold[b], incx, hy_gold[b], incy, hc, hs);
-    }
-    cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
     if(arg.unit_check || arg.norm_check)
     {
-        // Test rocblas_pointer_mode_host
+        if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -241,31 +231,15 @@ void testing_rot_batched_ex(const Arguments& arg)
                                                            batch_count,
                                                            execution_type)));
             handle.post_test(arg);
-            host_batch_vector<Tx> rx(N, incx, batch_count);
-            host_batch_vector<Ty> ry(N, incy, batch_count);
 
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
-
-            if(arg.unit_check)
-            {
-                unit_check_general<Tx>(1, N, incx, hx_gold, rx, batch_count);
-                unit_check_general<Ty>(1, N, incy, hy_gold, ry, batch_count);
-            }
-            if(arg.norm_check)
-            {
-                norm_error_host_x
-                    = norm_check_general<Tx>('F', 1, N, incx, hx_gold, rx, batch_count);
-                norm_error_host_y
-                    = norm_check_general<Ty>('F', 1, N, incy, hy_gold, ry, batch_count);
-            }
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
         }
-
-        // Test rocblas_pointer_mode_device
+        if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dx.transfer_from(hx));
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
@@ -283,23 +257,46 @@ void testing_rot_batched_ex(const Arguments& arg)
                                                            cs_type,
                                                            batch_count,
                                                            execution_type)));
+        }
 
-            host_batch_vector<Tx> rx(N, incx, batch_count);
-            host_batch_vector<Ty> ry(N, incy, batch_count);
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
+        cpu_time_used = get_time_us_no_sync();
+        for(int b = 0; b < batch_count; b++)
+        {
+            cblas_rot<Tx, Ty, Tcs, Tcs>(N, hx_gold[b], incx, hy_gold[b], incy, hc, hs);
+        }
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+        if(arg.pointer_mode_host)
+        {
+            if(arg.unit_check)
+            {
+                unit_check_general<Tx>(1, N, incx, hx_gold, hx, batch_count);
+                unit_check_general<Ty>(1, N, incy, hy_gold, hy, batch_count);
+            }
+            if(arg.norm_check)
+            {
+                norm_error_host_x
+                    = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx, batch_count);
+                norm_error_host_y
+                    = norm_check_general<Ty>('F', 1, N, incy, hy_gold, hy, batch_count);
+            }
+        }
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
 
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, incx, hx_gold, rx, batch_count);
-                unit_check_general<Ty>(1, N, incy, hy_gold, ry, batch_count);
+                unit_check_general<Tx>(1, N, incx, hx_gold, hx, batch_count);
+                unit_check_general<Ty>(1, N, incy, hy_gold, hy, batch_count);
             }
             if(arg.norm_check)
             {
                 norm_error_device_x
-                    = norm_check_general<Tx>('F', 1, N, incx, hx_gold, rx, batch_count);
+                    = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx, batch_count);
                 norm_error_device_y
-                    = norm_check_general<Ty>('F', 1, N, incy, hy_gold, ry, batch_count);
+                    = norm_check_general<Ty>('F', 1, N, incy, hy_gold, hy, batch_count);
             }
         }
     }
