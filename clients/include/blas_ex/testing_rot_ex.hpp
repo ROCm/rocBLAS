@@ -149,13 +149,9 @@ void testing_rot_ex(const Arguments& arg)
     host_vector<Tx> hx_gold = hx;
     host_vector<Ty> hy_gold = hy;
 
-    cpu_time_used = get_time_us_no_sync();
-    cblas_rot<Tx, Ty, Tcs, Tcs>(N, hx_gold, incx, hy_gold, incy, hc, hs);
-    cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
     if(arg.unit_check || arg.norm_check)
     {
-        // Test rocblas_pointer_mode_host
+        if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -164,49 +160,54 @@ void testing_rot_ex(const Arguments& arg)
             CHECK_ROCBLAS_ERROR((rocblas_rot_ex_fn(
                 handle, N, dx, x_type, incx, dy, y_type, incy, hc, hs, cs_type, execution_type)));
             handle.post_test(arg);
-            host_vector<Tx> rx(N, incx);
-            host_vector<Ty> ry(N, incy);
 
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
-
-            if(arg.unit_check)
-            {
-                unit_check_general<Tx>(1, N, incx, hx_gold, rx);
-                unit_check_general<Ty>(1, N, incy, hy_gold, ry);
-            }
-            if(arg.norm_check)
-            {
-                norm_error_host_x = norm_check_general<Tx>('F', 1, N, incx, hx_gold, rx);
-                norm_error_host_y = norm_check_general<Ty>('F', 1, N, incy, hy_gold, ry);
-            }
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
         }
 
-        // Test rocblas_pointer_mode_device
+        if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dx.transfer_from(hx));
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
 
             CHECK_ROCBLAS_ERROR((rocblas_rot_ex_fn(
                 handle, N, dx, x_type, incx, dy, y_type, incy, dc, ds, cs_type, execution_type)));
+        }
 
-            host_vector<Tx> rx(N, incx);
-            host_vector<Ty> ry(N, incy);
+        cpu_time_used = get_time_us_no_sync();
+        cblas_rot<Tx, Ty, Tcs, Tcs>(N, hx_gold, incx, hy_gold, incy, hc, hs);
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
+        if(arg.pointer_mode_host)
+        {
             if(arg.unit_check)
             {
-                unit_check_general<Tx>(1, N, incx, hx_gold, rx);
-                unit_check_general<Ty>(1, N, incy, hy_gold, ry);
+                unit_check_general<Tx>(1, N, incx, hx_gold, hx);
+                unit_check_general<Ty>(1, N, incy, hy_gold, hy);
             }
             if(arg.norm_check)
             {
-                norm_error_device_x = norm_check_general<Tx>('F', 1, N, incx, hx_gold, rx);
-                norm_error_device_y = norm_check_general<Ty>('F', 1, N, incy, hy_gold, ry);
+                norm_error_host_x = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx);
+                norm_error_host_y = norm_check_general<Ty>('F', 1, N, incy, hy_gold, hy);
+            }
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+            if(arg.unit_check)
+            {
+                unit_check_general<Tx>(1, N, incx, hx_gold, hx);
+                unit_check_general<Ty>(1, N, incy, hy_gold, hy);
+            }
+            if(arg.norm_check)
+            {
+                norm_error_device_x = norm_check_general<Tx>('F', 1, N, incx, hx_gold, hx);
+                norm_error_device_y = norm_check_general<Ty>('F', 1, N, incy, hy_gold, hy);
             }
         }
     }
