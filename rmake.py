@@ -27,6 +27,12 @@ import subprocess
 import argparse
 import pathlib
 
+try:
+  import psutil
+  psutil_imported = True
+except ImportError:
+  psutil_imported = False
+
 args = {}
 OS_info = {}
 
@@ -89,8 +95,8 @@ def parse_args():
     parser.add_argument(     '--install_invoked', required=False, default=False, action='store_true',
                         help='rmake invoked from install.sh so do not do dependency or package installation (default: False)')
 
-    parser.add_argument('-j', '--jobs', type=int, required=False, default=OS_info["NUM_PROC"],
-                        help='Specify number of parallel jobs to launch, increases memory usage (Default logical core count) ')
+    parser.add_argument('-j', '--jobs', type=int, required=False, default=0,
+                        help='Specify number of parallel jobs to launch, increases memory usage (default: heuristic around logical core count)')
 
     parser.add_argument('-k', '--relwithdebinfo', required=False, default=False, action='store_true',
                         help='Build in Release with Debug Info (optional, default: False)')
@@ -158,6 +164,16 @@ def parse_args():
     return parser.parse_args()
 # yapf: enable
 
+def get_ram_GB():
+    """
+    Total amount of GB RAM available or zero if unknown
+    """
+    if psutil_imported:
+        gb = round(psutil.virtual_memory().total / pow(1024, 3))
+    else:
+        gb = 0
+    return gb
+
 def strip_ECC(token):
     return token.replace(':sramecc+', '').replace(':sramecc-', '').strip()
 
@@ -192,7 +208,21 @@ def os_detect():
                         k, v = line.strip().split("=")
                         OS_info[k] = v.replace('"', '')
     OS_info["NUM_PROC"] = os.cpu_count()
+    OS_info["RAM_GB"] = get_ram_GB()
 
+def jobs_heuristic():
+    # auto jobs heuristics
+    jobs = min(OS_info["NUM_PROC"], 128) # disk limiter
+    ram = OS_info["RAM_GB"]
+    if (ram >= 16): # don't apply if below minimum RAM
+        jobs = min(round(ram/2), jobs) # RAM limiter
+    hipcc_flags = os.getenv('HIPCC_COMPILE_FLAGS_APPEND', "")
+    pjstr = hipcc_flags.split("parallel-jobs=")
+    if (len(pjstr) > 1):
+        pjobs = int(pjstr[1][0])
+        if (pjobs > 1 and pjobs < jobs):
+            jobs = round(jobs / pjobs)
+    return int(jobs)
 
 def create_dir(dir_path):
     full_path = ""
@@ -441,6 +471,9 @@ def main():
     global args
     os_detect()
     args = parse_args()
+
+    if args.jobs == 0:
+        args.jobs = jobs_heuristic()
 
     if args.install_invoked:
         # ignore any install handled options

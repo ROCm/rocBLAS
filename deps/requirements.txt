@@ -1,3 +1,5 @@
+# rmake
+psutil
 # rocBLAS clients use
 pyyaml
 # Tensile related
