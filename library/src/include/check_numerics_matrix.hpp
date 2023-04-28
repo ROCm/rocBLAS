@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
                                         rocblas_int               n,
                                         T                         Aa,
                                         rocblas_stride            offset_a,
-                                        rocblas_int               lda,
+                                        int64_t                   lda,
                                         rocblas_stride            stride_a,
                                         rocblas_check_numerics_t* abnormal)
 {
@@ -65,8 +65,8 @@ rocblas_check_numerics_ge_matrix_kernel(rocblas_int               m,
     {
         auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
 
-        ptrdiff_t tid   = tx + ptrdiff_t(lda) * ty;
-        auto      value = A[tid];
+        int64_t tid   = tx + lda * ty;
+        auto    value = A[tid];
         if(!abnormal->has_zero && rocblas_iszero(value))
             abnormal->has_zero = true;
         if(!abnormal->has_NaN && rocblas_isnan(value))
@@ -106,7 +106,7 @@ rocblas_check_numerics_sym_herm_tri_matrix_kernel(bool                      is_u
                                                   rocblas_int               n,
                                                   T                         Aa,
                                                   rocblas_stride            offset_a,
-                                                  rocblas_int               lda,
+                                                  int64_t                   lda,
                                                   rocblas_stride            stride_a,
                                                   rocblas_check_numerics_t* abnormal)
 {
@@ -118,8 +118,8 @@ rocblas_check_numerics_sym_herm_tri_matrix_kernel(bool                      is_u
     {
         auto* A = load_ptr_batch(Aa, blockIdx.z, offset_a, stride_a);
 
-        ptrdiff_t tid   = tx + ptrdiff_t(lda) * ty;
-        auto      value = A[tid];
+        int64_t tid   = tx + lda * ty;
+        auto    value = A[tid];
         if(!abnormal->has_zero && rocblas_iszero(value))
             abnormal->has_zero = true;
         if(!abnormal->has_NaN && rocblas_isnan(value))
@@ -142,7 +142,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                     rocblas_int               n,
                                                     T                         A,
                                                     rocblas_stride            offset_a,
-                                                    rocblas_int               lda,
+                                                    int64_t                   lda,
                                                     rocblas_stride            stride_a,
                                                     rocblas_int               batch_count,
                                                     const int                 check_numerics,

@@ -74,10 +74,9 @@ void template_testing_reduction_batched_bad_arg(const Arguments&                
 }
 
 template <typename T, typename R>
-void template_testing_reduction_batched(
-    const Arguments&                  arg,
-    rocblas_reduction_batched_t<T, R> func,
-    void (*REFBLAS_FUNC)(rocblas_int, const T*, rocblas_int, R*))
+void template_testing_reduction_batched(const Arguments&                  arg,
+                                        rocblas_reduction_batched_t<T, R> func,
+                                        void (*REFBLAS_FUNC)(int64_t, const T*, int64_t, int64_t*))
 {
     rocblas_int          N = arg.N, incx = arg.incx, batch_count = arg.batch_count;
     rocblas_stride       stride_x = arg.stride_x;
@@ -118,6 +117,7 @@ void template_testing_reduction_batched(
     host_vector<R>       hr1(batch_count);
     host_vector<R>       hr2(batch_count);
     host_vector<R>       cpu_result(batch_count);
+    host_vector<int64_t> i64_result(batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hx.memcheck());
@@ -158,7 +158,8 @@ void template_testing_reduction_batched(
 
             for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
             {
-                REFBLAS_FUNC(N, hx[batch_index], incx, cpu_result + batch_index);
+                REFBLAS_FUNC(N, hx[batch_index], incx, i64_result + batch_index);
+                cpu_result[batch_index] = rocblas_int(i64_result[batch_index]);
             }
 
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;

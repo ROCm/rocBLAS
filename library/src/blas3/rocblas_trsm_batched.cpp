@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ namespace
 
     /* ============================================================================================ */
 
-    template <rocblas_int BLOCK, rocblas_int DIM_X, typename T>
+    template <typename T>
     rocblas_status rocblas_trsm_batched_ex_impl(rocblas_handle    handle,
                                                 rocblas_side      side,
                                                 rocblas_fill      uplo,
@@ -198,51 +198,51 @@ namespace
             void* w_mem_invA_arr;
 
             rocblas_status perf_status
-                = rocblas_internal_trsm_template_mem<BLOCK, true, T>(handle,
-                                                                     side,
-                                                                     transA,
-                                                                     m,
-                                                                     n,
-                                                                     batch_count,
-                                                                     w_mem,
-                                                                     w_mem_x_temp,
-                                                                     w_mem_x_temp_arr,
-                                                                     w_mem_invA,
-                                                                     w_mem_invA_arr,
-                                                                     supplied_invA,
-                                                                     supplied_invA_size);
+                = rocblas_internal_trsm_template_mem<true, T>(handle,
+                                                              side,
+                                                              transA,
+                                                              m,
+                                                              n,
+                                                              batch_count,
+                                                              w_mem,
+                                                              w_mem_x_temp,
+                                                              w_mem_x_temp_arr,
+                                                              w_mem_invA,
+                                                              w_mem_invA_arr,
+                                                              supplied_invA,
+                                                              supplied_invA_size);
 
             if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
                 return perf_status;
 
             bool optimal_mem = perf_status == rocblas_status_success;
 
-            status = rocblas_internal_trsm_template<BLOCK, DIM_X, true, T>(handle,
-                                                                           side,
-                                                                           uplo,
-                                                                           transA,
-                                                                           diag,
-                                                                           m,
-                                                                           n,
-                                                                           alpha,
-                                                                           A,
-                                                                           0,
-                                                                           lda,
-                                                                           0,
-                                                                           B,
-                                                                           0,
-                                                                           ldb,
-                                                                           0,
-                                                                           batch_count,
-                                                                           optimal_mem,
-                                                                           w_mem_x_temp,
-                                                                           w_mem_x_temp_arr,
-                                                                           w_mem_invA,
-                                                                           w_mem_invA_arr,
-                                                                           supplied_invA,
-                                                                           supplied_invA_size,
-                                                                           0,
-                                                                           0);
+            status = rocblas_internal_trsm_batched_template(handle,
+                                                            side,
+                                                            uplo,
+                                                            transA,
+                                                            diag,
+                                                            m,
+                                                            n,
+                                                            alpha,
+                                                            A,
+                                                            0,
+                                                            lda,
+                                                            0,
+                                                            B,
+                                                            0,
+                                                            ldb,
+                                                            0,
+                                                            batch_count,
+                                                            optimal_mem,
+                                                            w_mem_x_temp,
+                                                            w_mem_x_temp_arr,
+                                                            w_mem_invA,
+                                                            w_mem_invA_arr,
+                                                            supplied_invA,
+                                                            supplied_invA_size,
+                                                            0,
+                                                            0);
             status = (status != rocblas_status_success) ? status : perf_status;
             if(status != rocblas_status_success)
                 return status;
@@ -298,7 +298,7 @@ rocblas_status rocblas_strsm_batched(rocblas_handle     handle,
                                      rocblas_int        batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+    return rocblas_trsm_batched_ex_impl(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -321,7 +321,7 @@ rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+    return rocblas_trsm_batched_ex_impl(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -344,7 +344,7 @@ rocblas_status rocblas_ctrsm_batched(rocblas_handle                     handle,
                                      rocblas_int                        batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
+    return rocblas_trsm_batched_ex_impl(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -367,7 +367,7 @@ rocblas_status rocblas_ztrsm_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 try
 {
-    return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
+    return rocblas_trsm_batched_ex_impl(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 catch(...)
@@ -396,75 +396,71 @@ try
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
-            handle,
-            side,
-            uplo,
-            transA,
-            diag,
-            m,
-            n,
-            (double*)(alpha),
-            (const double* const*)(A),
-            lda,
-            (double* const*)(B),
-            ldb,
-            batch_count,
-            (const double* const*)(invA),
-            invA_size);
+        return rocblas_trsm_batched_ex_impl(handle,
+                                            side,
+                                            uplo,
+                                            transA,
+                                            diag,
+                                            m,
+                                            n,
+                                            (double*)(alpha),
+                                            (const double* const*)(A),
+                                            lda,
+                                            (double* const*)(B),
+                                            ldb,
+                                            batch_count,
+                                            (const double* const*)(invA),
+                                            invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
-            handle,
-            side,
-            uplo,
-            transA,
-            diag,
-            m,
-            n,
-            (float*)(alpha),
-            (const float* const*)(A),
-            lda,
-            (float* const*)(B),
-            ldb,
-            batch_count,
-            (const float* const*)(invA),
-            invA_size);
+        return rocblas_trsm_batched_ex_impl(handle,
+                                            side,
+                                            uplo,
+                                            transA,
+                                            diag,
+                                            m,
+                                            n,
+                                            (float*)(alpha),
+                                            (const float* const*)(A),
+                                            lda,
+                                            (float* const*)(B),
+                                            ldb,
+                                            batch_count,
+                                            (const float* const*)(invA),
+                                            invA_size);
     case rocblas_datatype_f64_c:
-        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_ZTRSV_NB>(
-            handle,
-            side,
-            uplo,
-            transA,
-            diag,
-            m,
-            n,
-            (rocblas_double_complex*)(alpha),
-            (const rocblas_double_complex* const*)(A),
-            lda,
-            (rocblas_double_complex* const*)(B),
-            ldb,
-            batch_count,
-            (const rocblas_double_complex* const*)(invA),
-            invA_size);
+        return rocblas_trsm_batched_ex_impl(handle,
+                                            side,
+                                            uplo,
+                                            transA,
+                                            diag,
+                                            m,
+                                            n,
+                                            (rocblas_double_complex*)(alpha),
+                                            (const rocblas_double_complex* const*)(A),
+                                            lda,
+                                            (rocblas_double_complex* const*)(B),
+                                            ldb,
+                                            batch_count,
+                                            (const rocblas_double_complex* const*)(invA),
+                                            invA_size);
 
     case rocblas_datatype_f32_c:
-        return rocblas_trsm_batched_ex_impl<ROCBLAS_TRSM_NB, ROCBLAS_SDCTRSV_NB>(
-            handle,
-            side,
-            uplo,
-            transA,
-            diag,
-            m,
-            n,
-            (rocblas_float_complex*)(alpha),
-            (const rocblas_float_complex* const*)(A),
-            lda,
-            (rocblas_float_complex* const*)(B),
-            ldb,
-            batch_count,
-            (const rocblas_float_complex* const*)(invA),
-            invA_size);
+        return rocblas_trsm_batched_ex_impl(handle,
+                                            side,
+                                            uplo,
+                                            transA,
+                                            diag,
+                                            m,
+                                            n,
+                                            (rocblas_float_complex*)(alpha),
+                                            (const rocblas_float_complex* const*)(A),
+                                            lda,
+                                            (rocblas_float_complex* const*)(B),
+                                            ldb,
+                                            batch_count,
+                                            (const rocblas_float_complex* const*)(invA),
+                                            invA_size);
 
     default:
         return rocblas_status_not_implemented;

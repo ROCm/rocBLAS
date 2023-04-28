@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ template <typename T>
 void testing_swap_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_swap_batched_fn
-        = arg.fortran ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
@@ -70,7 +70,7 @@ template <typename T>
 void testing_swap_batched(const Arguments& arg)
 {
     auto rocblas_swap_batched_fn
-        = arg.fortran ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
@@ -88,19 +88,16 @@ void testing_swap_batched(const Arguments& arg)
         return;
     }
 
-    ssize_t abs_incx = incx >= 0 ? incx : -incx;
-    ssize_t abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
-    host_batch_vector<T> hx_gold(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
+    host_batch_vector<T> hx_gold(N, incx, batch_count);
+    host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     // Allocate device memory
-    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -108,18 +105,7 @@ void testing_swap_batched(const Arguments& arg)
 
     // Initialize memory on host.
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-
-    for(int b = 0; b < batch_count; b++)
-    {
-        // make hy different to hx
-        for(size_t j = 0; j < N; j++)
-        {
-            if(rocblas_isnan(arg.alpha))
-                hy[b][j * abs_incy] = T(rocblas_nan_rng());
-            else
-                hy[b][j * abs_incy] = hx[b][j * abs_incx] + 1.0;
-        }
-    }
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
     hx_gold.copy_from(hx); // swapped later by cblas_swap
     hy_gold.copy_from(hy);
@@ -153,14 +139,14 @@ void testing_swap_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incx, hx_gold, hx, batch_count);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy, batch_count);
+            unit_check_general<T>(1, N, incx, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, incy, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, N, abs_incx, hx_gold, hx, batch_count);
-            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy, batch_count);
+            rocblas_error = norm_check_general<T>('F', 1, N, incx, hx_gold, hx, batch_count);
+            rocblas_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy, batch_count);
         }
     }
 

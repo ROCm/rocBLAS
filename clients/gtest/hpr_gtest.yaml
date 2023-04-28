@@ -45,7 +45,7 @@ Tests:
   - hpr_bad_arg: *single_double_precisions_complex
   - hpr_batched_bad_arg: *single_double_precisions_complex
   - hpr_strided_batched_bad_arg: *single_double_precisions_complex
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: hpr_arg_check
   category: quick
@@ -64,7 +64,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
-  fortran: true
+  api: FORTRAN
 
 - name: hpr_NaN
   category: quick
@@ -112,7 +112,7 @@ Tests:
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
-  fortran: true
+  api: FORTRAN
 
 - name: hpr_batched_NaN
   category: quick
@@ -165,7 +165,7 @@ Tests:
   alpha_beta: *alpha_range_small
   batch_count: [ -1, 0, 3 ]
   stride_scale: [ 2 ]
-  fortran: true
+  api: FORTRAN
 
 - name: hpr_strided_batched_NaN
   category: quick

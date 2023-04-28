@@ -44,7 +44,7 @@ template <typename T>
 void testing_trsm_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsm_batched_ex_fn
-        = arg.fortran ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
+        = arg.api == FORTRAN ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -266,7 +266,7 @@ template <typename T>
 void testing_trsm_batched_ex(const Arguments& arg)
 {
     auto rocblas_trsm_batched_ex_fn
-        = arg.fortran ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
+        = arg.api == FORTRAN ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;

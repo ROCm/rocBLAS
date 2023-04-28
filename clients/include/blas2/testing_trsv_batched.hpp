@@ -39,7 +39,7 @@ template <typename T>
 void testing_trsv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_trsv_batched_fn
-        = arg.fortran ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
     const rocblas_int       M           = 100;
     const rocblas_int       lda         = 100;
@@ -112,7 +112,7 @@ template <typename T>
 void testing_trsv_batched(const Arguments& arg)
 {
     auto rocblas_trsv_batched_fn
-        = arg.fortran ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int lda         = arg.lda;
@@ -140,8 +140,6 @@ void testing_trsv_batched(const Arguments& arg)
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
-
-    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
@@ -275,8 +273,8 @@ void testing_trsv_batched(const Arguments& arg)
         // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            error_host       = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_1[b]));
-            error_device     = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_2[b]));
+            error_host       = rocblas_abs(vector_norm_1<T>(M, incx, hx[b], hx_or_b_1[b]));
+            error_device     = rocblas_abs(vector_norm_1<T>(M, incx, hx[b], hx_or_b_2[b]));
             max_error_host   = std::max(max_error_host, error_host);
             max_error_device = std::max(max_error_device, error_device);
 
@@ -295,8 +293,8 @@ void testing_trsv_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            error_host   = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
-            error_device = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
+            error_host   = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1[b], hb[b]));
+            error_device = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1[b], hb[b]));
             //unit test
             trsm_err_res_check<T>(error_host, M, residual_eps_multiplier, eps);
             trsm_err_res_check<T>(error_device, M, residual_eps_multiplier, eps);

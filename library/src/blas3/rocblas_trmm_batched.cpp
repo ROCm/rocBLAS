@@ -39,7 +39,7 @@ namespace
     template <>
     constexpr char rocblas_trmm_batched_name<rocblas_double_complex>[] = "rocblas_ztrmm_batched";
 
-    template <int STOPPING_NB, typename T>
+    template <typename T>
     rocblas_status rocblas_trmm_batched_impl(rocblas_handle    handle,
                                              rocblas_side      side,
                                              rocblas_fill      uplo,
@@ -201,28 +201,28 @@ namespace
 
         rocblas_status status = rocblas_status_success;
 
-        status = rocblas_internal_trmm_template<STOPPING_NB, BATCHED, T>(handle,
-                                                                         side,
-                                                                         uplo,
-                                                                         transa,
-                                                                         diag,
-                                                                         m,
-                                                                         n,
-                                                                         alpha,
-                                                                         stride_alpha,
-                                                                         a,
-                                                                         offset_a,
-                                                                         lda,
-                                                                         stride_a,
-                                                                         (const T* const*)b,
-                                                                         offset_b,
-                                                                         ldb,
-                                                                         stride_b,
-                                                                         b,
-                                                                         offset_b,
-                                                                         ldb,
-                                                                         stride_b,
-                                                                         batch_count);
+        status = rocblas_internal_trmm_batched_template(handle,
+                                                        side,
+                                                        uplo,
+                                                        transa,
+                                                        diag,
+                                                        m,
+                                                        n,
+                                                        alpha,
+                                                        stride_alpha,
+                                                        a,
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        (const T* const*)b,
+                                                        offset_b,
+                                                        ldb,
+                                                        stride_b,
+                                                        b,
+                                                        offset_b,
+                                                        ldb,
+                                                        stride_b,
+                                                        batch_count);
 
         if(status != rocblas_status_success)
             return status;
@@ -267,7 +267,7 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_, BATCHED_STOPPING_NB_)                                    \
+#define IMPL(routine_name_, T_)                                                          \
     rocblas_status routine_name_(rocblas_handle    handle,                               \
                                  rocblas_side      side,                                 \
                                  rocblas_fill      uplo,                                 \
@@ -283,7 +283,7 @@ extern "C" {
                                  rocblas_int       batch_count)                          \
     try                                                                                  \
     {                                                                                    \
-        return rocblas_trmm_batched_impl<BATCHED_STOPPING_NB_>(                          \
+        return rocblas_trmm_batched_impl(                                                \
             handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count); \
     }                                                                                    \
     catch(...)                                                                           \
@@ -291,10 +291,10 @@ extern "C" {
         return exception_to_rocblas_status();                                            \
     }
 
-IMPL(rocblas_strmm_batched, float, ROCBLAS_SDTRMM_NB);
-IMPL(rocblas_dtrmm_batched, double, ROCBLAS_SDTRMM_NB);
-IMPL(rocblas_ctrmm_batched, rocblas_float_complex, ROCBLAS_CZTRMM_NB);
-IMPL(rocblas_ztrmm_batched, rocblas_double_complex, ROCBLAS_CZTRMM_NB);
+IMPL(rocblas_strmm_batched, float);
+IMPL(rocblas_dtrmm_batched, double);
+IMPL(rocblas_ctrmm_batched, rocblas_float_complex);
+IMPL(rocblas_ztrmm_batched, rocblas_double_complex);
 
 #undef IMPL
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@
 template <typename T>
 void testing_swap_bad_arg(const Arguments& arg)
 {
-    auto rocblas_swap_fn = arg.fortran ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+    auto rocblas_swap_fn = arg.api == FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
 
     rocblas_int N    = 100;
     rocblas_int incx = 1;
@@ -65,7 +65,7 @@ void testing_swap_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_swap(const Arguments& arg)
 {
-    auto rocblas_swap_fn = arg.fortran ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+    auto rocblas_swap_fn = arg.api == FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
 
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
@@ -79,19 +79,16 @@ void testing_swap(const Arguments& arg)
         return;
     }
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<T> hx(N, incx ? incx : 1);
-    host_vector<T> hy(N, incy ? incy : 1);
-    host_vector<T> hx_gold(N, incx ? incx : 1);
-    host_vector<T> hy_gold(N, incy ? incy : 1);
+    host_vector<T> hx(N, incx);
+    host_vector<T> hy(N, incy);
+    host_vector<T> hx_gold(N, incx);
+    host_vector<T> hy_gold(N, incy);
 
     // Allocate device memory
-    device_vector<T> dx(N, incx ? incx : 1);
-    device_vector<T> dy(N, incy ? incy : 1);
+    device_vector<T> dx(N, incx);
+    device_vector<T> dy(N, incy);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -99,15 +96,7 @@ void testing_swap(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
-
-    // make hy different to hx
-    for(size_t i = 0; i < N; i++)
-    {
-        if(rocblas_isnan(arg.alpha))
-            hy[i * abs_incy] = T(rocblas_nan_rng());
-        else
-            hy[i * abs_incy] = hx[i * abs_incx] + 1.0;
-    };
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
     // swap vector is easy in STL; hy_gold = hx: save a swap in hy_gold which will be output of CPU
     // BLAS
@@ -137,14 +126,14 @@ void testing_swap(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incx, hx_gold, hx);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
+            unit_check_general<T>(1, N, incx, hx_gold, hx);
+            unit_check_general<T>(1, N, incy, hy_gold, hy);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, N, abs_incx, hx_gold, hx);
-            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy);
+            rocblas_error = norm_check_general<T>('F', 1, N, incx, hx_gold, hx);
+            rocblas_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
         }
     }
 

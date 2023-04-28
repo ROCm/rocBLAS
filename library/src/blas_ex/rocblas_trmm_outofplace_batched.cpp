@@ -43,7 +43,7 @@ namespace
     constexpr char rocblas_trmm_outofplace_batched_name<rocblas_double_complex>[]
         = "rocblas_ztrmm_outofplace_batched";
 
-    template <int NB, typename T>
+    template <typename T>
     rocblas_status rocblas_trmm_outofplace_batched_impl(rocblas_handle    handle,
                                                         rocblas_side      side,
                                                         rocblas_fill      uplo,
@@ -208,28 +208,28 @@ namespace
                 return trmm_outofplace_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_trmm_template<NB, true, T>(handle,
-                                                                            side,
-                                                                            uplo,
-                                                                            transa,
-                                                                            diag,
-                                                                            m,
-                                                                            n,
-                                                                            alpha,
-                                                                            stride_alpha,
-                                                                            a,
-                                                                            offset_a,
-                                                                            lda,
-                                                                            stride_a,
-                                                                            b,
-                                                                            offset_b,
-                                                                            ldb,
-                                                                            stride_b,
-                                                                            c,
-                                                                            offset_c,
-                                                                            ldc,
-                                                                            stride_c,
-                                                                            batch_count);
+        rocblas_status status = rocblas_internal_trmm_batched_template(handle,
+                                                                       side,
+                                                                       uplo,
+                                                                       transa,
+                                                                       diag,
+                                                                       m,
+                                                                       n,
+                                                                       alpha,
+                                                                       stride_alpha,
+                                                                       a,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       b,
+                                                                       offset_b,
+                                                                       ldb,
+                                                                       stride_b,
+                                                                       c,
+                                                                       offset_c,
+                                                                       ldc,
+                                                                       stride_c,
+                                                                       batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -273,7 +273,7 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_, BATCHED_NB_)                                                     \
+#define IMPL(routine_name_, T_)                                                                  \
     rocblas_status routine_name_(rocblas_handle    handle,                                       \
                                  rocblas_side      side,                                         \
                                  rocblas_fill      uplo,                                         \
@@ -291,7 +291,7 @@ extern "C" {
                                  rocblas_int       batch_count)                                  \
     try                                                                                          \
     {                                                                                            \
-        return rocblas_trmm_outofplace_batched_impl<BATCHED_NB_>(                                \
+        return rocblas_trmm_outofplace_batched_impl(                                             \
             handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, c, ldc, batch_count); \
     }                                                                                            \
     catch(...)                                                                                   \
@@ -299,10 +299,10 @@ extern "C" {
         return exception_to_rocblas_status();                                                    \
     }
 
-IMPL(rocblas_strmm_outofplace_batched, float, ROCBLAS_TRMM_OUTOFPLACE_NB);
-IMPL(rocblas_dtrmm_outofplace_batched, double, ROCBLAS_TRMM_OUTOFPLACE_NB);
-IMPL(rocblas_ctrmm_outofplace_batched, rocblas_float_complex, ROCBLAS_TRMM_OUTOFPLACE_NB);
-IMPL(rocblas_ztrmm_outofplace_batched, rocblas_double_complex, ROCBLAS_TRMM_OUTOFPLACE_NB);
+IMPL(rocblas_strmm_outofplace_batched, float);
+IMPL(rocblas_dtrmm_outofplace_batched, double);
+IMPL(rocblas_ctrmm_outofplace_batched, rocblas_float_complex);
+IMPL(rocblas_ztrmm_outofplace_batched, rocblas_double_complex);
 
 #undef IMPL
 

@@ -158,6 +158,9 @@ def parse_args():
     return parser.parse_args()
 # yapf: enable
 
+def strip_ECC(token):
+    return token.replace(':sramecc+', '').replace(':sramecc-', '').strip()
+
 def gpu_detect():
     global OS_info
     OS_info["GPU"] = ""
@@ -167,9 +170,14 @@ def gpu_detect():
         cmd = "rocminfo"
     process = subprocess.run([cmd], stdout=subprocess.PIPE)
     for line_in in process.stdout.decode().splitlines():
-        if 'amdgcn-amd-amdhsa' in line_in:
-            OS_info["GPU"] = line_in.split("--")[1].replace(':sramecc+', '').replace(':sramecc-', '')
-            break
+        if os.name == "nt":
+            if 'gcnArchName' in line_in:
+                OS_info["GPU"] = strip_ECC( line_in.split(":")[1] )
+                break
+        else:
+            if 'amdgcn-amd-amdhsa' in line_in:
+                OS_info["GPU"] = strip_ECC( line_in.split("--")[1] )
+                break
 
 def os_detect():
     global OS_info
@@ -220,7 +228,7 @@ def fatal(msg, code=1):
 def deps_cmd():
     if os.name == "nt":
         exe = f"python3 rdeps.py"
-        cmdline_args = ""
+        all_args = ""
     else:
         exe = f"./install.sh --rmake_invoked -d"
         all_args = ' '.join(sys.argv[1:])
@@ -362,8 +370,12 @@ def config_cmd():
             cmake_options.append(f"-DTENSILE_VENV_UPGRADE_PIP=ON")
         if not args.merge_architectures:
             cmake_options.append(f"-DTensile_SEPARATE_ARCHITECTURES=ON")
+        else:
+            cmake_options.append(f"-DTensile_SEPARATE_ARCHITECTURES=OFF")
         if args.tensile_lazy_library_loading:
             cmake_options.append(f"-DTensile_LAZY_LIBRARY_LOADING=ON")
+        else:
+            cmake_options.append(f"-DTensile_LAZY_LIBRARY_LOADING=OFF")
         if args.tensile_msgpack_backend:
             cmake_options.append(f"-DTensile_LIBRARY_FORMAT=msgpack")
         else:

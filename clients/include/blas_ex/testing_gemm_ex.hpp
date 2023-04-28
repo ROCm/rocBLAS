@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        auto rocblas_gemm_ex_fn = arg.fortran ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+        auto rocblas_gemm_ex_fn = arg.api == FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
 
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
@@ -239,7 +239,7 @@ dD, d_type, ldd, compute_type, algo, solution_index, flags), rocblas_status_succ
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
-    auto rocblas_gemm_ex_fn = arg.fortran ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+    auto rocblas_gemm_ex_fn = arg.api == FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
     int32_t           solution_index(arg.solution_index);
@@ -262,8 +262,8 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_local_handle handle{arg};
     auto                 transA = char2rocblas_operation(arg.transA);
     auto                 transB = char2rocblas_operation(arg.transB);
-    auto                 M = arg.M, N = arg.N, K = arg.K;
-    auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    int                  M = arg.M, N = arg.N, K = arg.K;
+    int                  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
     auto                 A_row  = transA == rocblas_operation_none ? M : std::max(K, 1);
     auto                 A_col  = transA == rocblas_operation_none ? std::max(K, 1) : M;
     auto                 B_row  = transB == rocblas_operation_none ? std::max(K, 1) : N;

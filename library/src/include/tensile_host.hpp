@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,12 @@ typedef struct
     int32_t           solution_index;
     rocblas_gemm_algo algo;
 } rocblas_tensile_problem_info;
+
+typedef enum
+{
+    CAN_SOLVE,
+    MATCHES_TYPE,
+} rocblas_tensile_get_solution_option;
 
 /********************************************************************
  * RocblasContractionProblem captures the arguments for a GEMM-like *
@@ -385,6 +391,7 @@ rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const
 
 template <typename Ti, typename To, typename Tc>
 rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob,
+                               rocblas_tensile_get_solution_option          option,
                                rocblas_int*                                 list_array,
                                rocblas_int*                                 list_size);
 

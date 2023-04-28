@@ -62,20 +62,18 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> 
 template <typename T>
 void testing_iamax_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN          = arg.fortran;
-    auto       rocblas_iamax_fn = FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
+    auto rocblas_iamax_fn = arg.api == FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
     testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamax_fn);
 }
 
 template <typename T>
 void testing_iamin_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN          = arg.fortran;
-    auto       rocblas_iamin_fn = FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
+    auto rocblas_iamin_fn = arg.api == FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
     testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin_fn);
 }
 
-template <typename T, void REFBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
+template <typename T, void REFBLAS_FUNC(int64_t, const T*, int64_t, int64_t*)>
 void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 {
     rocblas_int N    = arg.N;
@@ -151,9 +149,10 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        rocblas_int cpu_result;
-        REFBLAS_FUNC(N, hx, incx, &cpu_result);
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+        int64_t result_i64;
+        REFBLAS_FUNC(N, hx, incx, &result_i64);
+        rocblas_int cpu_result = rocblas_int(result_i64);
+        cpu_time_used          = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
@@ -204,15 +203,13 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
-    const bool FORTRAN          = arg.fortran;
-    auto       rocblas_iamax_fn = FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
+    auto rocblas_iamax_fn = arg.api == FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
     testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamax<T>>(arg, rocblas_iamax_fn);
 }
 
 template <typename T>
 void testing_iamin(const Arguments& arg)
 {
-    const bool FORTRAN          = arg.fortran;
-    auto       rocblas_iamin_fn = FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
+    auto rocblas_iamin_fn = arg.api == FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
     testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamin<T>>(arg, rocblas_iamin_fn);
 }

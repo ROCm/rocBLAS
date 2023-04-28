@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,7 +19,7 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#define ROCBLAS_NO_DEPRECATED_WARNINGS
+
 #define ROCBLAS_BETA_FEATURES_API
 #include "rocblas_data.hpp"
 
@@ -113,7 +113,7 @@ namespace
             if(GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
                 name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
 
-            if(arg.fortran)
+            if(arg.api == FORTRAN)
             {
                 name << "_F";
             }

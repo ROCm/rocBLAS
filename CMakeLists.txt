@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -100,7 +100,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.48.0" )
+set ( VERSION_STRING "3.1.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -156,7 +156,7 @@ if(NOT SKIP_LIBRARY)
     if (TENSILE_VERSION)
       find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     else()
-      find_package(Tensile 4.36.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+      find_package(Tensile 4.37.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     endif()
   endif()
 endif()
@@ -171,6 +171,16 @@ message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
 # setup rocblas defines used for both the library and clients
 if( BUILD_WITH_TENSILE )
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=1)
+    if( Tensile_SEPARATE_ARCHITECTURES )
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_SEPARATE_ARCH=1)
+    else()
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_SEPARATE_ARCH=0)
+    endif()
+    if( Tensile_LAZY_LIBRARY_LOADING )
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_LAZY_LOAD=1)
+  else()
+        list(APPEND TENSILE_DEFINES ROCBLAS_TENSILE_LAZY_LOAD=0)
+  endif()
 else()
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=0)
 endif()
@@ -338,4 +348,43 @@ if(BUILD_CODE_COVERAGE)
     COMMAND find ${CMAKE_BINARY_DIR} -name *.gcda -delete
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
+endif()
+
+# CMake to build documentation
+## Sphinx
+set(SPHINX_DIR "docs/sphinx" CACHE PATH "Path to sphinx root directory")
+set(SPHINX_BUILD_DIR "_build" CACHE PATH "Path to sphinx build directory")
+set(SPHINX_BUILD_TYPE "html" CACHE STRING "Sphinx build type")
+set(SPHINX_EXTRA_ARGS "" CACHE STRING "Extra arguments for Sphinx build")
+set(
+    SPHINX_ARGS
+    -T
+    -b ${SPHINX_BUILD_TYPE}
+    -d ${SPHINX_BUILD_DIR}/doctrees
+    -D language=en
+    ${SPHINX_EXTRA_ARGS}
+)
+add_custom_target(
+    sphinx_docs
+    COMMAND pip3 install -r requirements.txt
+    COMMAND python3 -m sphinx ${SPHINX_ARGS} . ${SPHINX_BUILD_DIR}/${SPHINX_BUILD_TYPE}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${SPHINX_DIR}
+)
+
+## Doxygen
+set(DOXYGEN_DIR "docs/doxygen" CACHE PATH "Path to doxygen root directory")
+### Any other doxygen arguments can go here
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    add_custom_target(
+        doxygen_docs
+        Doxygen::doxygen Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${DOXYGEN_DIR}
+    )
+endif()
+
+## All docs phony target
+add_custom_target(docs DEPENDS sphinx_docs)
+if (DOXYGEN_FOUND)
+    add_dependencies(docs doxygen_docs)
 endif()

@@ -43,7 +43,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ L ]
   side: [ R ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: symm_size_t
   category: nightly
@@ -85,7 +85,7 @@ Tests:
   side: [ L, R ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: symm_large
   category: nightly
@@ -129,7 +129,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 1, 7 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: symm_batched_large
   category: nightly
@@ -174,7 +174,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 1, 7 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: symm_strided_batched_large
   category: nightly

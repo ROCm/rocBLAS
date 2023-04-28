@@ -39,7 +39,7 @@
 template <typename T>
 void testing_spmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.api == FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -134,7 +134,7 @@ void testing_spmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spmv(const Arguments& arg)
 {
-    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.api == FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -146,12 +146,6 @@ void testing_spmv(const Arguments& arg)
     beta[0]  = arg.get_beta<T>();
 
     rocblas_fill uplo = char2rocblas_fill(arg.uplo);
-
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-
-    size_t size_X = size_t(N) * abs_incx;
-    size_t size_Y = size_t(N) * abs_incy;
 
     rocblas_local_handle handle{arg};
 
@@ -247,14 +241,14 @@ void testing_spmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_1);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2);
+            h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1);
+            d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2);
         }
     }
 

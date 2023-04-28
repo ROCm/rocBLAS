@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ template <typename T>
 void testing_dgmm_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_dgmm_batched_fn
-        = arg.fortran ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
 
     const rocblas_int M = 100;
     const rocblas_int N = 101;
@@ -96,7 +96,7 @@ template <typename T>
 void testing_dgmm_batched(const Arguments& arg)
 {
     auto rocblas_dgmm_batched_fn
-        = arg.fortran ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
 
     rocblas_side side = char2rocblas_side(arg.side);
 
@@ -104,10 +104,9 @@ void testing_dgmm_batched(const Arguments& arg)
     rocblas_int N = arg.N;
     rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
 
-    rocblas_int lda      = arg.lda;
-    rocblas_int incx     = arg.incx;
-    rocblas_int ldc      = arg.ldc;
-    rocblas_int abs_incx = incx > 0 ? incx : -incx;
+    rocblas_int lda  = arg.lda;
+    rocblas_int incx = arg.incx;
+    rocblas_int ldc  = arg.ldc;
 
     rocblas_int batch_count = arg.batch_count;
 
@@ -131,7 +130,7 @@ void testing_dgmm_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_batch_matrix<T> hA(M, N, lda, batch_count);
-    host_batch_vector<T> hx(K, incx ? incx : 1, batch_count);
+    host_batch_vector<T> hx(K, incx, batch_count);
     host_batch_matrix<T> hC_1(M, N, ldc, batch_count);
     host_batch_matrix<T> hC_2(M, N, ldc, batch_count);
     host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
@@ -145,7 +144,7 @@ void testing_dgmm_batched(const Arguments& arg)
 
     // Allocate device memory
     device_batch_matrix<T> dA(M, N, lda, batch_count);
-    device_batch_vector<T> dx(K, incx ? incx : 1, batch_count);
+    device_batch_vector<T> dx(K, incx, batch_count);
     device_batch_matrix<T> dC(M, N, ldc, batch_count);
 
     // Check device memory allocation

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ template <typename T>
 void testing_spmv_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_spmv_batched_fn
-        = arg.fortran ? rocblas_spmv_batched<T, true> : rocblas_spmv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_spmv_batched<T, true> : rocblas_spmv_batched<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -210,7 +210,7 @@ template <typename T>
 void testing_spmv_batched(const Arguments& arg)
 {
     auto rocblas_spmv_batched_fn
-        = arg.fortran ? rocblas_spmv_batched<T, true> : rocblas_spmv_batched<T, false>;
+        = arg.api == FORTRAN ? rocblas_spmv_batched<T, true> : rocblas_spmv_batched<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -223,8 +223,6 @@ void testing_spmv_batched(const Arguments& arg)
 
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
-
-    size_t abs_incy = incy >= 0 ? incy : -incy;
 
     rocblas_local_handle handle{arg};
 
@@ -360,14 +358,14 @@ void testing_spmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1, batch_count);
-            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2, batch_count);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_1, batch_count);
+            unit_check_general<T>(1, N, incy, hy_gold, hy_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1, batch_count);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2, batch_count);
+            h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1, batch_count);
+            d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2, batch_count);
         }
     }
 

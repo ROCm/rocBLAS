@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,8 +42,8 @@ template <typename T, bool HERM>
 void testing_symm_hemm_bad_arg(const Arguments& arg)
 {
     // clang-format off
-    auto rocblas_fn = HERM ? (arg.fortran ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
-                           : (arg.fortran ? rocblas_symm<T, true> : rocblas_symm<T, false>);
+    auto rocblas_fn = HERM ? (arg.api == FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
+                           : (arg.api == FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
     // clang-format on
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
@@ -158,8 +158,8 @@ template <typename T, bool HERM>
 void testing_symm_hemm(const Arguments& arg)
 {
     // clang-format off
-    auto rocblas_fn = HERM ? (arg.fortran ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
-                           : (arg.fortran ? rocblas_symm<T, true> : rocblas_symm<T, false>);
+    auto rocblas_fn = HERM ? (arg.api == FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
+                           : (arg.api == FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
     // clang-format on
 

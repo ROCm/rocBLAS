@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,9 @@
 template <typename T, typename U = T, typename V = T>
 void testing_rot_strided_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_rot_strided_batched_fn = arg.fortran ? rocblas_rot_strided_batched<T, U, V, true>
-                                                      : rocblas_rot_strided_batched<T, U, V, false>;
+    auto rocblas_rot_strided_batched_fn = arg.api == FORTRAN
+                                              ? rocblas_rot_strided_batched<T, U, V, true>
+                                              : rocblas_rot_strided_batched<T, U, V, false>;
 
     rocblas_int         N           = 100;
     rocblas_int         incx        = 1;
@@ -86,8 +87,9 @@ void testing_rot_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T, typename V = T>
 void testing_rot_strided_batched(const Arguments& arg)
 {
-    auto rocblas_rot_strided_batched_fn = arg.fortran ? rocblas_rot_strided_batched<T, U, V, true>
-                                                      : rocblas_rot_strided_batched<T, U, V, false>;
+    auto rocblas_rot_strided_batched_fn = arg.api == FORTRAN
+                                              ? rocblas_rot_strided_batched<T, U, V, true>
+                                              : rocblas_rot_strided_batched<T, U, V, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
@@ -120,13 +122,10 @@ void testing_rot_strided_batched(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<T> hy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hy(N, incy, stride_y, batch_count);
     host_vector<U>               hc(1);
     host_vector<V>               hs(1);
 
@@ -135,8 +134,8 @@ void testing_rot_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hy.memcheck());
 
     // Allocate device memory
-    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stride_x, batch_count);
-    device_strided_batch_vector<T> dy(N, incy ? incy : 1, stride_y, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+    device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
     device_vector<U>               dc(1, 1);
     device_vector<V>               ds(1, 1);
 
@@ -153,8 +152,8 @@ void testing_rot_strided_batched(const Arguments& arg)
     rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
-    host_strided_batch_vector<T> cx(N, incx ? incx : 1, stride_x, batch_count);
-    host_strided_batch_vector<T> cy(N, incy ? incy : 1, stride_y, batch_count);
+    host_strided_batch_vector<T> cx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> cy(N, incy, stride_y, batch_count);
     cx.copy_from(hx);
     cy.copy_from(hy);
     // cblas_rotg<T, U>(cx, cy, hc, hs);
@@ -180,22 +179,22 @@ void testing_rot_strided_batched(const Arguments& arg)
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, hc, hs, batch_count)));
             handle.post_test(arg);
 
-            host_strided_batch_vector<T> rx(N, incx ? incx : 1, stride_x, batch_count);
-            host_strided_batch_vector<T> ry(N, incy ? incy : 1, stride_y, batch_count);
+            host_strided_batch_vector<T> rx(N, incx, stride_x, batch_count);
+            host_strided_batch_vector<T> ry(N, incy, stride_y, batch_count);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count);
-                unit_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count);
+                unit_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count);
+                unit_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {
                 norm_error_host_x
-                    = norm_check_general<T>('F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
+                    = norm_check_general<T>('F', 1, N, incx, stride_x, cx, rx, batch_count);
                 norm_error_host_y
-                    = norm_check_general<T>('F', 1, N, abs_incy, stride_x, cy, ry, batch_count);
+                    = norm_check_general<T>('F', 1, N, incy, stride_x, cy, ry, batch_count);
             }
         }
 
@@ -212,23 +211,23 @@ void testing_rot_strided_batched(const Arguments& arg)
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count)));
             handle.post_test(arg);
 
-            host_strided_batch_vector<T> rx(N, incx ? incx : 1, stride_x, batch_count);
-            host_strided_batch_vector<T> ry(N, incy ? incy : 1, stride_y, batch_count);
+            host_strided_batch_vector<T> rx(N, incx, stride_x, batch_count);
+            host_strided_batch_vector<T> ry(N, incy, stride_y, batch_count);
 
             CHECK_HIP_ERROR(rx.transfer_from(dx));
             CHECK_HIP_ERROR(ry.transfer_from(dy));
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count);
-                unit_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count);
+                unit_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count);
+                unit_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {
                 norm_error_device_x
-                    = norm_check_general<T>('F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
+                    = norm_check_general<T>('F', 1, N, incx, stride_x, cx, rx, batch_count);
                 norm_error_device_y
-                    = norm_check_general<T>('F', 1, N, abs_incy, stride_y, cy, ry, batch_count);
+                    = norm_check_general<T>('F', 1, N, incy, stride_y, cy, ry, batch_count);
             }
         }
     }

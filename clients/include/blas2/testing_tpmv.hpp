@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@
 template <typename T>
 void testing_tpmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_tpmv_fn = arg.fortran ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.api == FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
 
     const rocblas_int       M      = 100;
     const rocblas_int       incx   = 1;
@@ -90,7 +90,7 @@ void testing_tpmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tpmv(const Arguments& arg)
 {
-    auto rocblas_tpmv_fn = arg.fortran ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.api == FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
 
     rocblas_int M = arg.M, incx = arg.incx;
 
@@ -110,8 +110,6 @@ void testing_tpmv(const Arguments& arg)
 
         return;
     }
-
-    size_t abs_incx = incx >= 0 ? incx : -incx;
 
     // Naming: `h` is in CPU (host) memory(eg hAp), `d` is in GPU (device) memory (eg dAp).
     // Allocate host memory
@@ -167,13 +165,13 @@ void testing_tpmv(const Arguments& arg)
         // Unit check.
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, hx, hres);
+            unit_check_general<T>(1, M, incx, hx, hres);
         }
 
         // Norm check.
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, abs_incx, hx, hres);
+            rocblas_error = norm_check_general<T>('F', 1, M, incx, hx, hres);
         }
     }
 

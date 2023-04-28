@@ -118,7 +118,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trmm_batched_bad_arg
   category: quick
@@ -130,7 +130,7 @@ Tests:
   uplo: [U]
   transA: [N]
   diag: [N]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trmm_strided_batched_bad_arg
   category: quick
@@ -142,7 +142,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trmm_size_t
   category: nightly
@@ -185,7 +185,7 @@ Tests:
   diag: [N   ]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trmm_batched_fortran
   category: quick
@@ -201,7 +201,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [    2       ]
   batch_count: [           3  ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trmm_strided_batched_fortran
   category: quick
@@ -217,7 +217,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [ 1         ]
   batch_count: [         2 ]
-  fortran: [ false, true ]
+  api: [ C, FORTRAN ]
 
 - name: trmm_strided_batched_small
   category: quick

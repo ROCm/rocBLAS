@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,8 +39,9 @@
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_ex_bad_arg(const Arguments& arg)
 {
-    auto rocblas_dot_ex_fn = arg.fortran ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
-                                         : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
+    auto rocblas_dot_ex_fn = arg.api == FORTRAN
+                                 ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
+                                 : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -125,8 +126,9 @@ void testing_dotc_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_ex(const Arguments& arg)
 {
-    auto rocblas_dot_ex_fn = arg.fortran ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
-                                         : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
+    auto rocblas_dot_ex_fn = arg.api == FORTRAN
+                                 ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
+                                 : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;
@@ -188,15 +190,15 @@ void testing_dot_ex(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hx), `d` is in GPU (device) memory (eg dx).
     // Allocate host memory
-    host_vector<Tx> hx(N, incx ? incx : 1);
-    host_vector<Ty> hy(N, incy ? incy : 1);
+    host_vector<Tx> hx(N, incx);
+    host_vector<Ty> hy(N, incy);
     host_vector<Tr> cpu_result(1, 1);
     host_vector<Tr> rocblas_result_1(1, 1);
     host_vector<Tr> rocblas_result_2(1, 1);
 
     // Allocate device memory
-    device_vector<Tx> dx(N, incx ? incx : 1);
-    device_vector<Ty> dy(N, incy ? incy : 1);
+    device_vector<Tx> dx(N, incx);
+    device_vector<Ty> dy(N, incy);
     device_vector<Tr> d_rocblas_result_2(1);
 
     // Check device memory allocation
@@ -224,7 +226,6 @@ void testing_dot_ex(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR((rocblas_dot_ex_fn)(handle,
                                                 N,
                                                 dx,
@@ -236,7 +237,6 @@ void testing_dot_ex(const Arguments& arg)
                                                 rocblas_result_1,
                                                 result_type,
                                                 execution_type));
-        handle.post_test(arg);
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         handle.pre_test(arg);

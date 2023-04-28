@@ -269,20 +269,19 @@ rocblas_dot_kernel_reduce(rocblas_int n_sums, V* __restrict__ in, T* __restrict_
 // assume workspace has already been allocated, recommended for repeated calling of dot_strided_batched product
 // routine
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
-                                  rocblas_int n,
-                                  const U __restrict__ x,
-                                  rocblas_stride offsetx,
-                                  rocblas_int    incx,
-                                  rocblas_stride stridex,
-                                  const U __restrict__ y,
-                                  rocblas_stride offsety,
-                                  rocblas_int    incy,
-                                  rocblas_stride stridey,
-                                  rocblas_int    batch_count,
-                                  T* __restrict__ results,
-                                  V* __restrict__ workspace)
+rocblas_status rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
+                                             rocblas_int n,
+                                             const U __restrict__ x,
+                                             rocblas_stride offsetx,
+                                             rocblas_int    incx,
+                                             rocblas_stride stridex,
+                                             const U __restrict__ y,
+                                             rocblas_stride offsety,
+                                             rocblas_int    incy,
+                                             rocblas_stride stridey,
+                                             rocblas_int    batch_count,
+                                             T* __restrict__ results,
+                                             V* __restrict__ workspace)
 {
 
     // One or two kernels are used to finish the reduction
@@ -404,11 +403,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
         if(handle->pointer_mode != rocblas_pointer_mode_device)
         {
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&results[0],
-                                               output,
-                                               sizeof(T) * batch_count,
-                                               hipMemcpyDeviceToHost,
-                                               handle->get_stream()));
+            // Changed to hipMemcpy for pointer mode host to match legacy BLAS.
+            RETURN_IF_HIP_ERROR(
+                hipMemcpy(&results[0], output, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
         }
     }
     else
@@ -502,15 +499,136 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    blocks,
                                    workspace,
                                    output);
-
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(&results[0],
-                                               output,
-                                               sizeof(T) * batch_count,
-                                               hipMemcpyDeviceToHost,
-                                               handle->get_stream()));
+            // Changed to hipMemcpy for pointer mode host to match legacy BLAS.
+            RETURN_IF_HIP_ERROR(
+                hipMemcpy(&results[0], output, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
         }
     }
     return rocblas_status_success;
+}
+
+template <typename T, typename Tex>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
+                                  rocblas_int n,
+                                  const T* __restrict__ x,
+                                  rocblas_stride offsetx,
+                                  rocblas_int    incx,
+                                  rocblas_stride stridex,
+                                  const T* __restrict__ y,
+                                  rocblas_stride offsety,
+                                  rocblas_int    incy,
+                                  rocblas_stride stridey,
+                                  rocblas_int    batch_count,
+                                  T* __restrict__ results,
+                                  Tex* __restrict__ workspace)
+{
+    return rocblas_internal_dot_template<ROCBLAS_DOT_NB, false>(handle,
+                                                                n,
+                                                                x,
+                                                                offsetx,
+                                                                incx,
+                                                                stridex,
+                                                                y,
+                                                                offsety,
+                                                                incy,
+                                                                stridey,
+                                                                batch_count,
+                                                                results,
+                                                                workspace);
+}
+
+template <typename T, typename Tex>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_dotc_template(rocblas_handle __restrict__ handle,
+                                   rocblas_int n,
+                                   const T* __restrict__ x,
+                                   rocblas_stride offsetx,
+                                   rocblas_int    incx,
+                                   rocblas_stride stridex,
+                                   const T* __restrict__ y,
+                                   rocblas_stride offsety,
+                                   rocblas_int    incy,
+                                   rocblas_stride stridey,
+                                   rocblas_int    batch_count,
+                                   T* __restrict__ results,
+                                   Tex* __restrict__ workspace)
+{
+    return rocblas_internal_dot_template<ROCBLAS_DOT_NB, true>(handle,
+                                                               n,
+                                                               x,
+                                                               offsetx,
+                                                               incx,
+                                                               stridex,
+                                                               y,
+                                                               offsety,
+                                                               incy,
+                                                               stridey,
+                                                               batch_count,
+                                                               results,
+                                                               workspace);
+}
+
+template <typename T, typename Tex>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_dot_batched_template(rocblas_handle __restrict__ handle,
+                                          rocblas_int n,
+                                          const T* const* __restrict__ x,
+                                          rocblas_stride offsetx,
+                                          rocblas_int    incx,
+                                          rocblas_stride stridex,
+                                          const T* const* __restrict__ y,
+                                          rocblas_stride offsety,
+                                          rocblas_int    incy,
+                                          rocblas_stride stridey,
+                                          rocblas_int    batch_count,
+                                          T* __restrict__ results,
+                                          Tex* __restrict__ workspace)
+{
+    return rocblas_internal_dot_template<ROCBLAS_DOT_NB, false>(handle,
+                                                                n,
+                                                                x,
+                                                                offsetx,
+                                                                incx,
+                                                                stridex,
+                                                                y,
+                                                                offsety,
+                                                                incy,
+                                                                stridey,
+                                                                batch_count,
+                                                                results,
+                                                                workspace);
+}
+
+template <typename T, typename Tex>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_dotc_batched_template(rocblas_handle __restrict__ handle,
+                                           rocblas_int n,
+                                           const T* const* __restrict__ x,
+                                           rocblas_stride offsetx,
+                                           rocblas_int    incx,
+                                           rocblas_stride stridex,
+                                           const T* const* __restrict__ y,
+                                           rocblas_stride offsety,
+                                           rocblas_int    incy,
+                                           rocblas_stride stridey,
+                                           rocblas_int    batch_count,
+                                           T* __restrict__ results,
+                                           Tex* __restrict__ workspace)
+{
+    return rocblas_internal_dot_template<ROCBLAS_DOT_NB, true>(handle,
+                                                               n,
+                                                               x,
+                                                               offsetx,
+                                                               incx,
+                                                               stridex,
+                                                               y,
+                                                               offsety,
+                                                               incy,
+                                                               stridey,
+                                                               batch_count,
+                                                               results,
+                                                               workspace);
 }
 
 template <typename T>
@@ -565,53 +683,148 @@ rocblas_status rocblas_dot_check_numerics(const char*    function_name,
 #error INSTANTIATE_DOT_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_DOT_TEMPLATE(NB_, CONJ_, T_, U_, V_) \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE \
-rocblas_status rocblas_internal_dot_template<NB_, CONJ_, T_, U_, V_>(rocblas_handle __restrict__ handle, \
-    rocblas_int n, \
-    U_  __restrict__ x, \
-    rocblas_stride offsetx, \
-    rocblas_int    incx, \
-    rocblas_stride stridex, \
-    U_  __restrict__ y, \
-    rocblas_stride offsety, \
-    rocblas_int    incy, \
-    rocblas_stride stridey, \
-    rocblas_int    batch_count, \
-    T_* __restrict__ results, \
-    V_* __restrict__ workspace);
+#define INSTANTIATE_DOT_TEMPLATE(T_, Tex_)                                                      \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                                       \
+rocblas_status rocblas_internal_dot_template<T_, Tex_>(rocblas_handle __restrict__ handle,      \
+                                                       rocblas_int                 n,           \
+                                                       const T_*      __restrict__ x,           \
+                                                       rocblas_stride              offsetx,     \
+                                                       rocblas_int                 incx,        \
+                                                       rocblas_stride              stridex,     \
+                                                       const T_*      __restrict__ y,           \
+                                                       rocblas_stride              offsety,     \
+                                                       rocblas_int                 incy,        \
+                                                       rocblas_stride              stridey,     \
+                                                       rocblas_int                 batch_count, \
+                                                       T_*            __restrict__ results,     \
+                                                       Tex_*          __restrict__ workspace);
 
-
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, _Float16, _Float16 const*, _Float16)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, _Float16, _Float16 const* const*, _Float16)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, _Float16, _Float16 const*, _Float16)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, _Float16, _Float16 const* const*, _Float16)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, _Float16, _Float16 const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, _Float16, _Float16 const* const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, _Float16, _Float16 const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, _Float16, _Float16 const* const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_bfloat16, rocblas_bfloat16 const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_bfloat16, rocblas_bfloat16 const* const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_bfloat16, rocblas_bfloat16 const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_bfloat16, rocblas_bfloat16 const* const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, float, float const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, float, float const* const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, float, float const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, float, float const* const*, float)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, double, double const*, double)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, double, double const* const*, double)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, double, double const*, double)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, double, double const* const*, double)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_float_complex, rocblas_float_complex const* const*, rocblas_float_complex)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_float_complex, rocblas_float_complex const* const*, rocblas_float_complex)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex)
-INSTANTIATE_DOT_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_double_complex, rocblas_double_complex const* const*, rocblas_double_complex)
+INSTANTIATE_DOT_TEMPLATE(rocblas_half, rocblas_half)
+INSTANTIATE_DOT_TEMPLATE(rocblas_bfloat16, float)
+INSTANTIATE_DOT_TEMPLATE(float, float)
+INSTANTIATE_DOT_TEMPLATE(double, double)
+INSTANTIATE_DOT_TEMPLATE(rocblas_float_complex, rocblas_float_complex)
+INSTANTIATE_DOT_TEMPLATE(rocblas_double_complex, rocblas_double_complex)
 
 #undef INSTANTIATE_DOT_TEMPLATE
+
+#ifdef INSTANTIATE_DOTC_TEMPLATE
+#error INSTANTIATE_DOTC_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_DOTC_TEMPLATE(T_, Tex_)                                                 \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                                   \
+rocblas_status rocblas_internal_dotc_template<T_, Tex_>(rocblas_handle __restrict__ handle, \
+                                                  rocblas_int                 n,            \
+                                                  const T_*      __restrict__ x,            \
+                                                  rocblas_stride              offsetx,      \
+                                                  rocblas_int                 incx,         \
+                                                  rocblas_stride              stridex,      \
+                                                  const T_*      __restrict__ y,            \
+                                                  rocblas_stride              offsety,      \
+                                                  rocblas_int                 incy,         \
+                                                  rocblas_stride              stridey,      \
+                                                  rocblas_int                 batch_count,  \
+                                                  T_*            __restrict__ results,      \
+                                                  Tex_*          __restrict__ workspace);
+
+INSTANTIATE_DOTC_TEMPLATE(rocblas_float_complex, rocblas_float_complex)
+INSTANTIATE_DOTC_TEMPLATE(rocblas_double_complex, rocblas_double_complex)
+
+#undef INSTANTIATE_DOTC_TEMPLATE
+
+#ifdef INSTANTIATE_DOT_BATCHED_TEMPLATE
+#error INSTANTIATE_DOT_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_DOT_BATCHED_TEMPLATE(T_, Tex_)                                                        \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                                                 \
+rocblas_status rocblas_internal_dot_batched_template<T_, Tex_>(rocblas_handle   __restrict__ handle,      \
+                                                               rocblas_int                   n,           \
+                                                               const T_* const* __restrict__ x,           \
+                                                               rocblas_stride                offsetx,     \
+                                                               rocblas_int                   incx,        \
+                                                               rocblas_stride                stridex,     \
+                                                               const T_* const* __restrict__ y,           \
+                                                               rocblas_stride                offsety,     \
+                                                               rocblas_int                   incy,        \
+                                                               rocblas_stride                stridey,     \
+                                                               rocblas_int                   batch_count, \
+                                                               T_*              __restrict__ results,     \
+                                                               Tex_*            __restrict__ workspace);
+
+INSTANTIATE_DOT_BATCHED_TEMPLATE(rocblas_half, rocblas_half)
+INSTANTIATE_DOT_BATCHED_TEMPLATE(rocblas_bfloat16, float)
+INSTANTIATE_DOT_BATCHED_TEMPLATE(float, float)
+INSTANTIATE_DOT_BATCHED_TEMPLATE(double, double)
+INSTANTIATE_DOT_BATCHED_TEMPLATE(rocblas_float_complex, rocblas_float_complex)
+INSTANTIATE_DOT_BATCHED_TEMPLATE(rocblas_double_complex, rocblas_double_complex)
+
+#undef INSTANTIATE_DOT_BATCHED_TEMPLATE
+
+#ifdef INSTANTIATE_DOTC_BATCHED_TEMPLATE
+#error INSTANTIATE_DOTC_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_DOTC_BATCHED_TEMPLATE(T_, Tex_)                                                        \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE                                                                  \
+rocblas_status rocblas_internal_dotc_batched_template<T_, Tex_>(rocblas_handle   __restrict__ handle,      \
+                                                                rocblas_int                   n,           \
+                                                                const T_* const* __restrict__ x,           \
+                                                                rocblas_stride                offsetx,     \
+                                                                rocblas_int                   incx,        \
+                                                                rocblas_stride                stridex,     \
+                                                                const T_* const* __restrict__ y,           \
+                                                                rocblas_stride                offsety,     \
+                                                                rocblas_int                   incy,        \
+                                                                rocblas_stride                stridey,     \
+                                                                rocblas_int                   batch_count, \
+                                                                T_*              __restrict__ results,     \
+                                                                Tex_*            __restrict__ workspace);
+
+INSTANTIATE_DOTC_BATCHED_TEMPLATE(rocblas_float_complex, rocblas_float_complex)
+INSTANTIATE_DOTC_BATCHED_TEMPLATE(rocblas_double_complex, rocblas_double_complex)
+
+#undef INSTANTIATE_DOTC_BATCHED_TEMPLATE
+
+// for ex interface
+#ifdef INSTANTIATE_DOT_EX_TEMPLATE
+#error INSTANTIATE_DOT_EX_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_DOT_EX_TEMPLATE(NB_, CONJ_, T_, U_, V_) \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE \
+rocblas_status rocblas_internal_dot_template<NB_, CONJ_, T_, U_, V_>(rocblas_handle __restrict__ handle,      \
+                                                                     rocblas_int                 n,           \
+                                                                     U_             __restrict__ x,           \
+                                                                     rocblas_stride              offsetx,     \
+                                                                     rocblas_int                 incx,        \
+                                                                     rocblas_stride              stridex,     \
+                                                                     U_             __restrict__ y,           \
+                                                                     rocblas_stride              offsety,     \
+                                                                     rocblas_int                 incy,        \
+                                                                     rocblas_stride              stridey,     \
+                                                                     rocblas_int                 batch_count, \
+                                                                     T_*            __restrict__ results,     \
+                                                                     V_*            __restrict__ workspace);
+
+// Mixed precision for dot_ex
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_half, rocblas_half const*, float)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, false, rocblas_half, rocblas_half const* const*, float)
+
+// real types are "supported" in dotc_ex
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_half, rocblas_half const*, float)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_half, rocblas_half const* const*, float)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_half, rocblas_half const*, rocblas_half)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_half, rocblas_half const* const*, rocblas_half)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_bfloat16, rocblas_bfloat16 const*, float)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, rocblas_bfloat16, rocblas_bfloat16 const* const*, float)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, float, float const*, float)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, float, float const* const*, float)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, double, double const*, double)
+INSTANTIATE_DOT_EX_TEMPLATE(ROCBLAS_DOT_NB, true, double, double const* const*, double)
+
+#undef INSTANTIATE_DOT_EX_TEMPLATE
 
 #ifdef INSTANTIATE_DOT_CHECK_NUMERICS
 #error INSTANTIATE_DOT_CHECK_NUMERICS already defined
@@ -633,8 +846,8 @@ template rocblas_status rocblas_dot_check_numerics<T_>(const char* function_name
     const int      check_numerics, \
     bool           is_input);
 
-INSTANTIATE_DOT_CHECK_NUMERICS(_Float16 const*)
-INSTANTIATE_DOT_CHECK_NUMERICS(_Float16 const* const*)
+INSTANTIATE_DOT_CHECK_NUMERICS(rocblas_half const*)
+INSTANTIATE_DOT_CHECK_NUMERICS(rocblas_half const* const*)
 INSTANTIATE_DOT_CHECK_NUMERICS(rocblas_bfloat16 const*)
 INSTANTIATE_DOT_CHECK_NUMERICS(rocblas_bfloat16 const* const*)
 INSTANTIATE_DOT_CHECK_NUMERICS(float const*)

@@ -54,7 +54,7 @@ void Arguments::init()
 
     user_allocated_workspace = 0;
 
-    // 32bit
+    // 64bit
 
     M = 128;
     N = 128;
@@ -70,16 +70,18 @@ void Arguments::init()
 
     incx = 0;
     incy = 0;
-    incd = 0;
-    incb = 0;
 
     batch_count = 1;
+
+    // 32bit
 
     iters      = 10;
     cold_iters = 2;
 
     algo           = 0;
     solution_index = 0;
+
+    geam_ex_op = rocblas_geam_ex_operation_min_plus;
 
     flags = rocblas_gemm_flags_none;
 
@@ -94,6 +96,10 @@ void Arguments::init()
     arithmetic_check = rocblas_arithmetic_check::no_check;
 
     atomics_mode = rocblas_atomics_allowed;
+
+    os_flags = rocblas_client_os::ALL;
+
+    api = rocblas_client_api::C;
 
     // memory padding for testing write out of bounds
     pad = 4096;
@@ -115,10 +121,11 @@ void Arguments::init()
     uplo   = '*';
     diag   = '*';
 
-    c_noalias_d = false;
-    HMM         = false;
-    fortran     = false;
-    graph_test  = false;
+    pointer_mode_host   = true;
+    pointer_mode_device = true;
+    c_noalias_d         = false;
+    HMM                 = false;
+    graph_test          = false;
 }
 
 static Arguments& getDefaultArgs()

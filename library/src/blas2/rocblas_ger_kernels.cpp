@@ -72,13 +72,13 @@ rocblas_ger_kernel(rocblas_int    m,
 
     if(threadIdx.y == 0)
     {
-        xdata[threadIdx.x] = tx < m ? x[tx * incx] : 0;
+        xdata[threadIdx.x] = tx < m ? x[tx * int64_t(incx)] : 0;
     }
 
     if(threadIdx.x < WIN)
     {
         ydata[tyi + threadIdx.x]
-            = (ty + ptrdiff_t(threadIdx.x) < n) ? y[(ty + ptrdiff_t(threadIdx.x)) * incy] : 0;
+            = (ty + threadIdx.x < n) ? y[(ty + threadIdx.x) * int64_t(incy)] : 0;
     }
 
     __syncthreads();
@@ -136,14 +136,14 @@ rocblas_sger_kernel(rocblas_int    m,
     //Each blockIdx.x takes care of the computation of each column of matrix 'A'
     A += col * size_t(lda);
 
-    const T res_y = y[col * incy] * alpha;
+    const T res_y = y[col * (int64_t)incy] * alpha;
 
     //scalar-vector-vector product and add the result to a Hermitian matrix 'A'.
     //If m > DIM_X, then the threads are reused and the multiplied values will be accumalated to Hermitian matrix 'A'.
 
     for(rocblas_int i = 0; tx + i < m; i += DIM_X)
     {
-        A[i] += res_y * x[(tx + i) * incx];
+        A[i] += res_y * x[(tx + i) * int64_t(incx)];
     }
 }
 
@@ -204,27 +204,27 @@ rocblas_ger_double_buffered_kernel(bool           host_ptr_mode,
     A += by * DIM_X * size_t(lda);
 
     // Advance 'x'
-    x += (bx * DIM_X) * incx;
+    x += (bx * DIM_X) * int64_t(incx);
 
     // Advance 'y'
-    y += (by * DIM_X) * incy;
+    y += (by * DIM_X) * int64_t(incy);
 
-    const int j = ty_ * elements_per_thread * lda + tx_;
+    const size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
-    x_reg_upper = x[tx_ * incx] * alpha;
-    x_reg_lower = x[((DIM_X / 2) + tx_) * incx] * alpha;
+    x_reg_upper = x[tx_ * int64_t(incx)] * alpha;
+    x_reg_lower = x[((DIM_X / 2) + tx_) * int64_t(incx)] * alpha;
 
 // read upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        areg_upper[k] = A[j + k * lda];
+        areg_upper[k] = A[j + k * size_t(lda)];
 
 // read lower
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
     {
-        areg_lower[k] = A[(DIM_X / 2) + j + k * lda];
-        y_reg[k]      = y[(ty_ * elements_per_thread + k) * incy];
+        areg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
+        y_reg[k]      = y[(ty_ * elements_per_thread + k) * int64_t(incy)];
     }
 
 // compute upper
@@ -235,7 +235,7 @@ rocblas_ger_double_buffered_kernel(bool           host_ptr_mode,
 // store upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        A[j + k * lda] = areg_upper[k];
+        A[j + k * size_t(lda)] = areg_upper[k];
 
 // compute lower
 #pragma unroll
@@ -245,29 +245,28 @@ rocblas_ger_double_buffered_kernel(bool           host_ptr_mode,
 // store lower
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        A[(DIM_X / 2) + j + k * lda] = areg_lower[k];
+        A[(DIM_X / 2) + j + k * size_t(lda)] = areg_lower[k];
 }
 
 template <bool CONJ, typename T, typename U, typename V, typename W>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_ger_template(rocblas_handle handle,
-                                  rocblas_int    m,
-                                  rocblas_int    n,
-                                  const V*       alpha,
-                                  rocblas_stride stride_alpha,
-                                  const U*       x,
-                                  rocblas_stride offsetx,
-                                  rocblas_int    incx,
-                                  rocblas_stride stridex,
-                                  const U*       y,
-                                  rocblas_stride offsety,
-                                  rocblas_int    incy,
-                                  rocblas_stride stridey,
-                                  W*             A,
-                                  rocblas_stride offsetA,
-                                  rocblas_int    lda,
-                                  rocblas_stride strideA,
-                                  rocblas_int    batch_count)
+rocblas_status rocblas_internal_ger_template(rocblas_handle handle,
+                                             rocblas_int    m,
+                                             rocblas_int    n,
+                                             const V*       alpha,
+                                             rocblas_stride stride_alpha,
+                                             const U*       x,
+                                             rocblas_stride offsetx,
+                                             rocblas_int    incx,
+                                             rocblas_stride stridex,
+                                             const U*       y,
+                                             rocblas_stride offsety,
+                                             rocblas_int    incy,
+                                             rocblas_stride stridey,
+                                             W*             A,
+                                             rocblas_stride offsetA,
+                                             rocblas_int    lda,
+                                             rocblas_stride strideA,
+                                             rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(!m || !n || !batch_count)
@@ -370,6 +369,170 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     return rocblas_status_success;
 }
 
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_ger_template(rocblas_handle handle,
+                                  rocblas_int    m,
+                                  rocblas_int    n,
+                                  const T*       alpha,
+                                  rocblas_stride stride_alpha,
+                                  const T*       x,
+                                  rocblas_stride offsetx,
+                                  rocblas_int    incx,
+                                  rocblas_stride stridex,
+                                  const T*       y,
+                                  rocblas_stride offsety,
+                                  rocblas_int    incy,
+                                  rocblas_stride stridey,
+                                  T*             A,
+                                  rocblas_stride offsetA,
+                                  rocblas_int    lda,
+                                  rocblas_stride strideA,
+                                  rocblas_int    batch_count)
+{
+    return rocblas_internal_ger_template<false, T>(handle,
+                                                   m,
+                                                   n,
+                                                   alpha,
+                                                   stride_alpha,
+                                                   x,
+                                                   offsetx,
+                                                   incx,
+                                                   stridex,
+                                                   y,
+                                                   offsety,
+                                                   incy,
+                                                   stridey,
+                                                   A,
+                                                   offsetA,
+                                                   lda,
+                                                   strideA,
+                                                   batch_count);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_gerc_template(rocblas_handle handle,
+                                   rocblas_int    m,
+                                   rocblas_int    n,
+                                   const T*       alpha,
+                                   rocblas_stride stride_alpha,
+                                   const T*       x,
+                                   rocblas_stride offsetx,
+                                   rocblas_int    incx,
+                                   rocblas_stride stridex,
+                                   const T*       y,
+                                   rocblas_stride offsety,
+                                   rocblas_int    incy,
+                                   rocblas_stride stridey,
+                                   T*             A,
+                                   rocblas_stride offsetA,
+                                   rocblas_int    lda,
+                                   rocblas_stride strideA,
+                                   rocblas_int    batch_count)
+{
+    return rocblas_internal_ger_template<true, T>(handle,
+                                                  m,
+                                                  n,
+                                                  alpha,
+                                                  stride_alpha,
+                                                  x,
+                                                  offsetx,
+                                                  incx,
+                                                  stridex,
+                                                  y,
+                                                  offsety,
+                                                  incy,
+                                                  stridey,
+                                                  A,
+                                                  offsetA,
+                                                  lda,
+                                                  strideA,
+                                                  batch_count);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_ger_batched_template(rocblas_handle  handle,
+                                          rocblas_int     m,
+                                          rocblas_int     n,
+                                          const T*        alpha,
+                                          rocblas_stride  stride_alpha,
+                                          const T* const* x,
+                                          rocblas_stride  offsetx,
+                                          rocblas_int     incx,
+                                          rocblas_stride  stridex,
+                                          const T* const* y,
+                                          rocblas_stride  offsety,
+                                          rocblas_int     incy,
+                                          rocblas_stride  stridey,
+                                          T* const*       A,
+                                          rocblas_stride  offsetA,
+                                          rocblas_int     lda,
+                                          rocblas_stride  strideA,
+                                          rocblas_int     batch_count)
+{
+    return rocblas_internal_ger_template<false, T>(handle,
+                                                   m,
+                                                   n,
+                                                   alpha,
+                                                   stride_alpha,
+                                                   x,
+                                                   offsetx,
+                                                   incx,
+                                                   stridex,
+                                                   y,
+                                                   offsety,
+                                                   incy,
+                                                   stridey,
+                                                   A,
+                                                   offsetA,
+                                                   lda,
+                                                   strideA,
+                                                   batch_count);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_gerc_batched_template(rocblas_handle  handle,
+                                           rocblas_int     m,
+                                           rocblas_int     n,
+                                           const T*        alpha,
+                                           rocblas_stride  stride_alpha,
+                                           const T* const* x,
+                                           rocblas_stride  offsetx,
+                                           rocblas_int     incx,
+                                           rocblas_stride  stridex,
+                                           const T* const* y,
+                                           rocblas_stride  offsety,
+                                           rocblas_int     incy,
+                                           rocblas_stride  stridey,
+                                           T* const*       A,
+                                           rocblas_stride  offsetA,
+                                           rocblas_int     lda,
+                                           rocblas_stride  strideA,
+                                           rocblas_int     batch_count)
+{
+    return rocblas_internal_ger_template<true, T>(handle,
+                                                  m,
+                                                  n,
+                                                  alpha,
+                                                  stride_alpha,
+                                                  x,
+                                                  offsetx,
+                                                  incx,
+                                                  stridex,
+                                                  y,
+                                                  offsety,
+                                                  incy,
+                                                  stridey,
+                                                  A,
+                                                  offsetA,
+                                                  lda,
+                                                  strideA,
+                                                  batch_count);
+}
+
 template <typename T, typename U>
 rocblas_status rocblas_ger_check_numerics(const char*    function_name,
                                           rocblas_handle handle,
@@ -447,42 +610,125 @@ rocblas_status rocblas_ger_check_numerics(const char*    function_name,
 #error INSTANTIATE_GER_TEMPLATE already defined
 #endif
 
-#define INSTANTIATE_GER_TEMPLATE(CONJ_, T_, U_, V_, W_)                                \
-template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_ger_template \
-                                 <CONJ_, T_, U_, V_, W_>                               \
-                                 (rocblas_handle handle,                               \
-                                  rocblas_int    m,                                    \
-                                  rocblas_int    n,                                    \
-                                  V_ const *      alpha,                               \
-                                  rocblas_stride stride_alpha,                         \
-                                  U_ const *      x,                                   \
-                                  rocblas_stride    offsetx,                              \
-                                  rocblas_int    incx,                                 \
-                                  rocblas_stride    stridex,                              \
-                                  U_ const *      y,                                   \
-                                  rocblas_stride    offsety,                              \
-                                  rocblas_int    incy,                                 \
-                                  rocblas_stride    stridey,                              \
-                                  W_*            A,                                    \
-                                  rocblas_stride    offsetA,                              \
-                                  rocblas_int    lda,                                  \
-                                  rocblas_stride    strideA,                              \
-                                  rocblas_int    batch_count);
+#define INSTANTIATE_GER_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_ger_template<T_> \
+                                        (rocblas_handle handle,                            \
+                                        rocblas_int    m,                                  \
+                                        rocblas_int    n,                                  \
+                                        const T_*      alpha,                              \
+                                        rocblas_stride stride_alpha,                       \
+                                        const T_*      x,                                  \
+                                        rocblas_stride offsetx,                            \
+                                        rocblas_int    incx,                               \
+                                        rocblas_stride stridex,                            \
+                                        const T_*      y,                                  \
+                                        rocblas_stride offsety,                            \
+                                        rocblas_int    incy,                               \
+                                        rocblas_stride stridey,                            \
+                                        T_*            A,                                  \
+                                        rocblas_stride offsetA,                            \
+                                        rocblas_int    lda,                                \
+                                        rocblas_stride strideA,                            \
+                                        rocblas_int    batch_count);
 
-INSTANTIATE_GER_TEMPLATE(false, float, float, float, float)
-INSTANTIATE_GER_TEMPLATE(false, double, double, double, double)
-INSTANTIATE_GER_TEMPLATE(false, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex)
-INSTANTIATE_GER_TEMPLATE(false, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex)
-INSTANTIATE_GER_TEMPLATE(true, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex, rocblas_float_complex)
-INSTANTIATE_GER_TEMPLATE(true, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex, rocblas_double_complex)
-INSTANTIATE_GER_TEMPLATE(false, float, float const*, float, float* const)
-INSTANTIATE_GER_TEMPLATE(false, double, double const*, double, double* const)
-INSTANTIATE_GER_TEMPLATE(false, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex, rocblas_float_complex* const)
-INSTANTIATE_GER_TEMPLATE(false, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex, rocblas_double_complex* const)
-INSTANTIATE_GER_TEMPLATE(true, rocblas_float_complex, rocblas_float_complex const*, rocblas_float_complex, rocblas_float_complex* const)
-INSTANTIATE_GER_TEMPLATE(true, rocblas_double_complex, rocblas_double_complex const*, rocblas_double_complex, rocblas_double_complex* const)
+INSTANTIATE_GER_TEMPLATE(float)
+INSTANTIATE_GER_TEMPLATE(double)
+INSTANTIATE_GER_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_GER_TEMPLATE(rocblas_double_complex)
 
 #undef INSTANTIATE_GER_TEMPLATE
+
+#ifdef INSTANTIATE_GERC_TEMPLATE
+#error INSTANTIATE_GERC_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_GERC_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_gerc_template<T_> \
+                                        (rocblas_handle handle,                             \
+                                        rocblas_int    m,                                   \
+                                        rocblas_int    n,                                   \
+                                        const T_*      alpha,                               \
+                                        rocblas_stride stride_alpha,                        \
+                                        const T_*      x,                                   \
+                                        rocblas_stride offsetx,                             \
+                                        rocblas_int    incx,                                \
+                                        rocblas_stride stridex,                             \
+                                        const T_*      y,                                   \
+                                        rocblas_stride offsety,                             \
+                                        rocblas_int    incy,                                \
+                                        rocblas_stride stridey,                             \
+                                        T_*            A,                                   \
+                                        rocblas_stride offsetA,                             \
+                                        rocblas_int    lda,                                 \
+                                        rocblas_stride strideA,                             \
+                                        rocblas_int    batch_count);
+
+INSTANTIATE_GERC_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_GERC_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_GERC_TEMPLATE
+
+#ifdef INSTANTIATE_GER_BATCHED_TEMPLATE
+#error INSTANTIATE_GER_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_GER_BATCHED_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_ger_batched_template<T_> \
+                                                (rocblas_handle  handle,                           \
+                                                rocblas_int      m,                                \
+                                                rocblas_int      n,                                \
+                                                const T_*        alpha,                            \
+                                                rocblas_stride   stride_alpha,                     \
+                                                const T_* const* x,                                \
+                                                rocblas_stride   offsetx,                          \
+                                                rocblas_int      incx,                             \
+                                                rocblas_stride   stridex,                          \
+                                                const T_* const* y,                                \
+                                                rocblas_stride   offsety,                          \
+                                                rocblas_int      incy,                             \
+                                                rocblas_stride   stridey,                          \
+                                                T_* const*       A,                                \
+                                                rocblas_stride   offsetA,                          \
+                                                rocblas_int      lda,                              \
+                                                rocblas_stride   strideA,                          \
+                                                rocblas_int      batch_count);
+
+INSTANTIATE_GER_BATCHED_TEMPLATE(float)
+INSTANTIATE_GER_BATCHED_TEMPLATE(double)
+INSTANTIATE_GER_BATCHED_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_GER_BATCHED_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_GER_BATCHED_TEMPLATE
+
+#ifdef INSTANTIATE_GERC_BATCHED_TEMPLATE
+#error INSTANTIATE_GERC_BATCHED_TEMPLATE already defined
+#endif
+
+#define INSTANTIATE_GERC_BATCHED_TEMPLATE(T_)                                                       \
+template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_gerc_batched_template<T_> \
+                                                (rocblas_handle  handle,                            \
+                                                rocblas_int      m,                                 \
+                                                rocblas_int      n,                                 \
+                                                const T_*        alpha,                             \
+                                                rocblas_stride   stride_alpha,                      \
+                                                const T_* const* x,                                 \
+                                                rocblas_stride   offsetx,                           \
+                                                rocblas_int      incx,                              \
+                                                rocblas_stride   stridex,                           \
+                                                const T_* const* y,                                 \
+                                                rocblas_stride   offsety,                           \
+                                                rocblas_int      incy,                              \
+                                                rocblas_stride   stridey,                           \
+                                                T_* const*       A,                                 \
+                                                rocblas_stride   offsetA,                           \
+                                                rocblas_int      lda,                               \
+                                                rocblas_stride   strideA,                           \
+                                                rocblas_int      batch_count);
+
+INSTANTIATE_GERC_BATCHED_TEMPLATE(rocblas_float_complex)
+INSTANTIATE_GERC_BATCHED_TEMPLATE(rocblas_double_complex)
+
+#undef INSTANTIATE_GERC_BATCHED_TEMPLATE
 
 #ifdef INSTANTIATE_GER_NUMERICS
 #error INSTANTIATE_GER_NUMERICS already defined

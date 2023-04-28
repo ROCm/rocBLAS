@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@
 template <typename T>
 void testing_gbmv_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gbmv_fn = arg.fortran ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.api == FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -202,7 +202,7 @@ void testing_gbmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gbmv(const Arguments& arg)
 {
-    auto rocblas_gbmv_fn = arg.fortran ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.api == FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
 
     rocblas_int       M                 = arg.M;
     rocblas_int       N                 = arg.N;
@@ -242,8 +242,8 @@ void testing_gbmv(const Arguments& arg)
         return;
     }
 
-    size_t dim_x, abs_incx;
-    size_t dim_y, abs_incy;
+    size_t dim_x;
+    size_t dim_y;
 
     if(transA == rocblas_operation_none)
     {
@@ -255,9 +255,6 @@ void testing_gbmv(const Arguments& arg)
         dim_x = M;
         dim_y = N;
     }
-
-    abs_incx = incx >= 0 ? incx : -incx;
-    abs_incy = incy >= 0 ? incy : -incy;
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
@@ -341,14 +338,14 @@ void testing_gbmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, dim_y, incy, hy_gold, hy_1);
+            unit_check_general<T>(1, dim_y, incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, dim_y, abs_incy, hy_gold, hy_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, dim_y, abs_incy, hy_gold, hy_2);
+            rocblas_error_1 = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy_1);
+            rocblas_error_2 = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy_2);
         }
     }
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ template <typename T, bool CONJ>
 void testing_ger_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_ger_batched_fn
-        = arg.fortran
+        = arg.api == FORTRAN
               ? (CONJ ? rocblas_ger_batched<T, true, true> : rocblas_ger_batched<T, false, true>)
               : (CONJ ? rocblas_ger_batched<T, true, false> : rocblas_ger_batched<T, false, false>);
 
@@ -179,7 +179,7 @@ template <typename T, bool CONJ>
 void testing_ger_batched(const Arguments& arg)
 {
     auto rocblas_ger_batched_fn
-        = arg.fortran
+        = arg.api == FORTRAN
               ? (CONJ ? rocblas_ger_batched<T, true, true> : rocblas_ger_batched<T, false, true>)
               : (CONJ ? rocblas_ger_batched<T, true, false> : rocblas_ger_batched<T, false, false>);
 
@@ -204,11 +204,6 @@ void testing_ger_batched(const Arguments& arg)
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
-
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = M * abs_incx;
-    size_t size_y   = N * abs_incy;
 
     // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
     // Allocate host memory

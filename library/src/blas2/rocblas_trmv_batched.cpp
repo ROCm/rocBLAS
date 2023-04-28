@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -163,22 +163,22 @@ namespace
 
         constexpr rocblas_stride offset_a = 0, offset_x = 0;
         constexpr rocblas_stride stride_a = 0, stride_x = 0;
-        rocblas_status           status = rocblas_internal_trmv_template(handle,
-                                                               uplo,
-                                                               transa,
-                                                               diag,
-                                                               m,
-                                                               a,
-                                                               offset_a,
-                                                               lda,
-                                                               stride_a,
-                                                               x,
-                                                               offset_x,
-                                                               incx,
-                                                               stride_x,
-                                                               (T*)workspace,
-                                                               stride_w,
-                                                               batch_count);
+        rocblas_status           status = rocblas_internal_trmv_batched_template(handle,
+                                                                       uplo,
+                                                                       transa,
+                                                                       diag,
+                                                                       m,
+                                                                       a,
+                                                                       offset_a,
+                                                                       lda,
+                                                                       stride_a,
+                                                                       x,
+                                                                       offset_x,
+                                                                       incx,
+                                                                       stride_x,
+                                                                       (T*)workspace,
+                                                                       stride_w,
+                                                                       batch_count);
 
         if(status != rocblas_status_success)
             return status;
