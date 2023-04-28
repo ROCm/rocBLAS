@@ -166,8 +166,7 @@ void testing_symv(const Arguments& arg)
     // Allocate host memory
     host_matrix<T> hA(N, N, lda);
     host_vector<T> hx(N, incx);
-    host_vector<T> hy_1(N, incy);
-    host_vector<T> hy_2(N, incy);
+    host_vector<T> hy(N, incy);
     host_vector<T> hy_gold(N, incy); // gold standard
 
     // Allocate device memory
@@ -188,15 +187,14 @@ void testing_symv(const Arguments& arg)
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_symmetric_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
 
     // Make copy in hy_gold which will later be used with CPU BLAS
-    hy_gold = hy_1;
-    hy_2    = hy_1; // device memory re-test
+    hy_gold = hy;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dy.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
     CHECK_HIP_ERROR(dA.transfer_from(hA));
 
     double gpu_time_used, cpu_time_used;
@@ -204,28 +202,34 @@ void testing_symv(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // rocblas_pointer_mode_host test
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        if(arg.pointer_mode_host)
+        {
+            // rocblas_pointer_mode_host test
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_symv_fn(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
-        handle.post_test(arg);
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(
+                rocblas_symv_fn(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
+            handle.post_test(arg);
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy));
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+        }
 
-        // rocblas_pointer_mode_device test
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(beta));
+        if(arg.pointer_mode_device)
+        {
+            // rocblas_pointer_mode_device test
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(beta));
 
-        dy.transfer_from(hy_2);
+            dy.transfer_from(hy_gold);
 
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_symv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
-        handle.post_test(arg);
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(
+                rocblas_symv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
+            handle.post_test(arg);
+        }
 
         cpu_time_used = get_time_us_no_sync();
 
@@ -234,28 +238,49 @@ void testing_symv(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            if(std::is_same_v<T, float> || std::is_same_v<T, double>)
+            if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, incy, hy_gold, hy_1);
-                unit_check_general<T>(1, N, incy, hy_gold, hy_2);
+                if(std::is_same_v<T, float> || std::is_same_v<T, double>)
+                {
+                    unit_check_general<T>(1, N, incy, hy_gold, hy);
+                }
+                else
+                {
+                    const double tol = N * sum_error_tolerance<T>;
+                    near_check_general<T>(1, N, incy, hy_gold, hy, tol);
+                }
             }
-            else
+
+            if(arg.norm_check)
             {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, N, incy, hy_gold, hy_1, tol);
-                near_check_general<T>(1, N, incy, hy_gold, hy_2, tol);
+                h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1);
-            d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                if(std::is_same_v<T, float> || std::is_same_v<T, double>)
+                {
+                    unit_check_general<T>(1, N, incy, hy_gold, hy);
+                }
+                else
+                {
+                    const double tol = N * sum_error_tolerance<T>;
+                    near_check_general<T>(1, N, incy, hy_gold, hy, tol);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
+            }
         }
     }
 

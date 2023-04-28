@@ -165,8 +165,7 @@ void testing_hemv(const Arguments& arg)
     // Allocate host memory
     host_matrix<T> hA(N, N, lda);
     host_vector<T> hx(N, incx);
-    host_vector<T> hy_1(N, incy);
-    host_vector<T> hy_2(N, incy);
+    host_vector<T> hy(N, incy);
     host_vector<T> hy_gold(N, incy);
     host_vector<T> halpha(1);
     host_vector<T> hbeta(1);
@@ -174,16 +173,14 @@ void testing_hemv(const Arguments& arg)
     // Allocate device memory
     device_matrix<T> dA(N, N, lda);
     device_vector<T> dx(N, incx);
-    device_vector<T> dy_1(N, incy);
-    device_vector<T> dy_2(N, incy);
+    device_vector<T> dy(N, incy);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
@@ -191,19 +188,18 @@ void testing_hemv(const Arguments& arg)
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_hermitian_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 
-    // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
+    // copy vector is easy in STL; hy_gold = hy: save a copy in hy_gold which will be output of
     // CPU BLAS
-    hy_gold = hy_1;
-    hy_2    = hy_1;
+    hy_gold = hy;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1;
@@ -214,20 +210,31 @@ void testing_hemv(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(
+                rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy, incy));
+            handle.post_test(arg);
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy));
-        handle.post_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_hemv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
-        handle.post_test(arg);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(
+                rocblas_hemv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -236,20 +243,33 @@ void testing_hemv(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(1, N, incy, hy_gold, hy_1);
-            unit_check_general<T>(1, N, incy, hy_gold, hy_2);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incy, hy_gold, hy);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incy, hy_gold, hy);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
+            }
         }
     }
 
@@ -261,7 +281,7 @@ void testing_hemv(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy, incy);
         }
 
         hipStream_t stream;
@@ -270,7 +290,7 @@ void testing_hemv(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy, incy);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

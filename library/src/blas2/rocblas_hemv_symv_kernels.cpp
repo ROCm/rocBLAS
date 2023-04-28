@@ -155,14 +155,14 @@ template <bool        IS_HEMV,
           rocblas_int bank_shift,
           rocblas_int half_NB_X,
           rocblas_int quarter_NB_X,
-          typename T_lda,
+          typename T_index,
           typename T>
 ROCBLAS_KERNEL_ILF void rocblas_hemvn_kernel_upper_calc(rocblas_int n,
                                                         T           alpha,
                                                         const T* __restrict__ A,
-                                                        T_lda lda,
+                                                        T_index lda,
                                                         const T* __restrict__ x,
-                                                        rocblas_int incx,
+                                                        T_index incx,
                                                         T* __restrict__ workspace)
 {
     if(!alpha)
@@ -615,7 +615,7 @@ ROCBLAS_KERNEL_ILF void rocblas_hemvn_kernel_upper_calc(rocblas_int n,
     y = alpha*[ (A12^H*x1) + (A22*x2 + A23*x3)     ] + beta*y
               [ (A13^H*x1) + (A23^H*x2) + (A33*x3) ]
 *******************************************************************************/
-template <rocblas_int NB_X, typename U, typename TPtr, typename W>
+template <rocblas_int NB_X, typename T_index, typename U, typename TPtr, typename W>
 ROCBLAS_KERNEL(NB_X)
 rocblas_hemvn_kernel_upper_block_sum(rocblas_int    n,
                                      U              alpha_device_host,
@@ -624,7 +624,7 @@ rocblas_hemvn_kernel_upper_block_sum(rocblas_int    n,
                                      rocblas_stride stride_beta,
                                      TPtr __restrict__ ya,
                                      rocblas_stride shifty,
-                                     rocblas_int    incy,
+                                     T_index        incy,
                                      rocblas_stride stridey,
                                      W* __restrict__ workspace)
 {
@@ -699,14 +699,14 @@ template <bool        IS_HEMV,
           rocblas_int bank_shift,
           rocblas_int half_NB_X,
           rocblas_int quarter_NB_X,
-          typename T_lda,
+          typename T_index,
           typename T>
 ROCBLAS_KERNEL_ILF void rocblas_hemvn_kernel_lower_calc(rocblas_int n,
                                                         T           alpha,
                                                         const T* __restrict__ A,
-                                                        T_lda lda,
+                                                        T_index lda,
                                                         const T* __restrict__ x,
-                                                        rocblas_int incx,
+                                                        T_index incx,
                                                         T* __restrict__ workspace)
 {
     if(!alpha)
@@ -1138,7 +1138,7 @@ ROCBLAS_KERNEL_ILF void rocblas_hemvn_kernel_lower_calc(rocblas_int n,
     y = alpha*[ (A21*x1 + A22*x2)     + (A32^H*x3) ] + beta*y
               [ (A21*x1 + A22*x2 + A33*x3)         ]
 *******************************************************************************/
-template <rocblas_int NB_X, typename U, typename TPtr, typename W>
+template <rocblas_int NB_X, typename T_index, typename U, typename TPtr, typename W>
 ROCBLAS_KERNEL(NB_X)
 rocblas_hemvn_kernel_lower_block_sum(rocblas_int    n,
                                      U              alpha_device_host,
@@ -1147,7 +1147,7 @@ rocblas_hemvn_kernel_lower_block_sum(rocblas_int    n,
                                      rocblas_stride stride_beta,
                                      TPtr __restrict__ ya,
                                      rocblas_stride shifty,
-                                     rocblas_int    incy,
+                                     T_index        incy,
                                      rocblas_stride stridey,
                                      W* __restrict__ workspace)
 {
@@ -2591,7 +2591,7 @@ template <bool        IS_HEMV,
           rocblas_int bank_shift,
           rocblas_int half_NB_X,
           rocblas_int quarter_NB_X,
-          typename T_lda,
+          typename T_index,
           typename U,
           typename V,
           typename W>
@@ -2601,11 +2601,11 @@ rocblas_hemvn_kernel_upper(rocblas_int    n,
                            rocblas_stride stride_alpha,
                            V              Aa,
                            rocblas_stride shifta,
-                           T_lda          lda,
+                           T_index        lda,
                            rocblas_stride strideA,
                            V              xa,
                            rocblas_stride shiftx,
-                           rocblas_int    incx,
+                           T_index        incx,
                            rocblas_stride stridex,
                            U              beta_device_host,
                            rocblas_stride stride_beta,
@@ -2625,7 +2625,7 @@ rocblas_hemvn_kernel_upper(rocblas_int    n,
     const auto* A = cond_load_ptr_batch(alpha, Aa, blockIdx.y, shifta, strideA);
     const auto* x = cond_load_ptr_batch(alpha, xa, blockIdx.y, shiftx, stridex);
 
-    rocblas_hemvn_kernel_upper_calc<IS_HEMV, NB_X, bank_shift, half_NB_X, quarter_NB_X, T_lda>(
+    rocblas_hemvn_kernel_upper_calc<IS_HEMV, NB_X, bank_shift, half_NB_X, quarter_NB_X, T_index>(
         n, alpha, A, lda, x, incx, workspace);
 }
 
@@ -3020,8 +3020,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
-    auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+    auto shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
+    auto shifty = incy < 0 ? offsety - int64_t(incy) * (n - 1) : offsety;
 
     //Identifying the precision to have an appropriate optimization
     static constexpr bool is_float
@@ -3030,8 +3030,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     static constexpr bool is_double
         = std::is_same_v<TPtr, double*> || std::is_same_v<TPtr, double* const*>;
 
-    //static constexpr bool is_double   = std::is_same_v<TPtr, double>;
-    bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
+    constexpr size_t max_int32 = std::numeric_limits<rocblas_int>::max();
+    bool i64_indices = size_t(n) * lda > max_int32 || size_t(n) * std::abs(incx) > max_int32
+                       || size_t(n) * std::abs(incy) > max_int32;
 
     const bool is_atomics_allowed = handle->atomics_mode == rocblas_atomics_allowed ? true : false;
 
@@ -3216,10 +3217,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    bank_shift,
                                                                    half_HEMV_DIM_X,
                                                                    quarter_HEMV_DIM_X,
-                                                                   size_t>),
+                                                                   int64_t>),
                                        hemv_kernel_KARGS(alpha, beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                    hipLaunchKernelGGL((rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X, int64_t>),
                                        hemv_kernel_sum_KARGS(alpha, beta));
                 }
                 else
@@ -3233,8 +3234,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    rocblas_int>),
                                        hemv_kernel_KARGS(alpha, beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                                       hemv_kernel_sum_KARGS(alpha, beta));
+                    hipLaunchKernelGGL(
+                        (rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X, rocblas_int>),
+                        hemv_kernel_sum_KARGS(alpha, beta));
                 }
             }
             else
@@ -3249,10 +3251,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    bank_shift,
                                                                    half_HEMV_DIM_X,
                                                                    quarter_HEMV_DIM_X,
-                                                                   size_t>),
+                                                                   int64_t>),
                                        hemv_kernel_KARGS(*alpha, *beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
+                    hipLaunchKernelGGL((rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X, int64_t>),
                                        hemv_kernel_sum_KARGS(*alpha, *beta));
                 }
                 else
@@ -3266,8 +3268,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    rocblas_int>),
                                        hemv_kernel_KARGS(*alpha, *beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X>),
-                                       hemv_kernel_sum_KARGS(*alpha, *beta));
+                    hipLaunchKernelGGL(
+                        (rocblas_hemvn_kernel_upper_block_sum<HEMV_DIM_X, rocblas_int>),
+                        hemv_kernel_sum_KARGS(*alpha, *beta));
                 }
             }
         }
@@ -3417,10 +3420,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    bank_shift,
                                                                    half_HEMV_DIM_X,
                                                                    quarter_HEMV_DIM_X,
-                                                                   size_t>),
+                                                                   int64_t>),
                                        hemv_kernel_KARGS(alpha, beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
+                    hipLaunchKernelGGL((rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X, int64_t>),
                                        hemv_kernel_sum_KARGS(alpha, beta));
                 }
                 else
@@ -3434,8 +3437,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    rocblas_int>),
                                        hemv_kernel_KARGS(alpha, beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
-                                       hemv_kernel_sum_KARGS(alpha, beta));
+                    hipLaunchKernelGGL(
+                        (rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X, rocblas_int>),
+                        hemv_kernel_sum_KARGS(alpha, beta));
                 }
             }
             else
@@ -3450,10 +3454,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    bank_shift,
                                                                    half_HEMV_DIM_X,
                                                                    quarter_HEMV_DIM_X,
-                                                                   size_t>),
+                                                                   int64_t>),
                                        hemv_kernel_KARGS(*alpha, *beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
+                    hipLaunchKernelGGL((rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X, int64_t>),
                                        hemv_kernel_sum_KARGS(*alpha, *beta));
                 }
                 else
@@ -3467,8 +3471,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                    rocblas_int>),
                                        hemv_kernel_KARGS(*alpha, *beta));
 
-                    hipLaunchKernelGGL((rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X>),
-                                       hemv_kernel_sum_KARGS(*alpha, *beta));
+                    hipLaunchKernelGGL(
+                        (rocblas_hemvn_kernel_lower_block_sum<HEMV_DIM_X, rocblas_int>),
+                        hemv_kernel_sum_KARGS(*alpha, *beta));
                 }
             }
         }
