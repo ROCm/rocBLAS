@@ -96,12 +96,15 @@
 #define NOOP (void)0
 
 /*!
- * Initialize rocBLAS for the current HIP device and report
- * the time taken to complete the initialization. This is used to
- * avoid costly startup time at the first call on that device.
- * Internal use for benchmark & testing.
+ * Initialize rocBLAS for the requested number of  HIP devices
+ * and report the time taken to complete the initialization.
+ * This is to avoid costly startup time at the first call on
+ * that device. Internal use for benchmark & testing.
+ * Initializes devices indexed from 0 to parallel_devices-1.
+ * If parallel_devices is 1, hipSetDevice should be called
+ * before calling this function.
  */
-void rocblas_client_initialize();
+void rocblas_parallel_initialize(int parallel_devices);
 
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */

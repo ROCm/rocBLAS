@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,9 +65,6 @@ namespace
     void thread_function(int id, const Arguments& arg)
     {
         CHECK_HIP_ERROR(hipSetDevice(id));
-
-        //Initialize rocblas
-        rocblas_client_initialize();
 
         rocblas_operation transa = rocblas_operation_none, transb = rocblas_operation_transpose;
         float             alpha = 1.1, beta = 0.9;
@@ -191,6 +188,9 @@ namespace
                    << std::endl;
             return;
         }
+
+        rocblas_parallel_initialize(count);
+
         auto thread = std::make_unique<std::thread[]>(count);
 
         for(int id = 0; id < count; ++id)
