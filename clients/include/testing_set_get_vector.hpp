@@ -48,47 +48,34 @@ void testing_set_get_vector(const Arguments& arg)
     // memory
     if(M < 0 || incx <= 0 || incy <= 0 || ldd <= 0)
     {
-        static const size_t safe_size = 100;
-
-        host_vector<T>   hx(safe_size);
-        host_vector<T>   hy(safe_size);
-        device_vector<T> db(safe_size);
-        CHECK_DEVICE_ALLOCATION(db.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_set_vector(M, sizeof(T), hx, incx, db, ldd),
+        EXPECT_ROCBLAS_STATUS(rocblas_set_vector(M, sizeof(T), nullptr, incx, nullptr, ldd),
                               rocblas_status_invalid_size);
-        EXPECT_ROCBLAS_STATUS(rocblas_get_vector(M, sizeof(T), db, ldd, hy, incy),
+        EXPECT_ROCBLAS_STATUS(rocblas_get_vector(M, sizeof(T), nullptr, ldd, nullptr, incy),
                               rocblas_status_invalid_size);
         return;
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hx(M * size_t(incx));
-    host_vector<T> hy(M * size_t(incy));
-    host_vector<T> hb(M * size_t(ldd));
-    host_vector<T> hy_gold(M * size_t(incy));
+    host_vector<T> hx(M, incx);
+    host_vector<T> hy(M, incy);
+    host_vector<T> hy_gold(M, incy);
 
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
     double rocblas_error          = 0.0;
 
     // allocate memory on device
-    device_vector<T> db(M * size_t(ldd));
+    device_vector<T> db(M, ldd);
     CHECK_DEVICE_ALLOCATION(db.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hx, 1, M, incx);
-    rocblas_init<T>(hy, 1, M, incy);
-    rocblas_init<T>(hb, 1, M, ldd);
-    hy_gold = hy;
+    rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
+    rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS
-        rocblas_init<T>(hy, 1, M, incy);
-        rocblas_init<T>(hb, 1, M, ldd);
-        CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * ldd * M, hipMemcpyHostToDevice));
+        // set GPU memory to zero
+        CHECK_HIP_ERROR(hipMemset(db, 0, sizeof(T) * ldd * M));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_vector(M, sizeof(T), hx, incx, db, ldd));
         CHECK_ROCBLAS_ERROR(rocblas_get_vector(M, sizeof(T), db, ldd, hy, incy));
@@ -96,7 +83,7 @@ void testing_set_get_vector(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         // reference calculation
-        for(int i = 0; i < M; i++)
+        for(size_t i = 0; i < M; i++)
         {
             hy_gold[i * incy] = hx[i * incx];
         }
