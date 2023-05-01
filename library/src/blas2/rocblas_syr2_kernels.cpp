@@ -40,8 +40,8 @@ __device__ void rocblas_syr2_kernel_calc(bool        is_upper,
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(is_upper ? ty < n && tx <= ty : tx < n && ty <= tx)
-        A[tx + ty * lda]
-            += alpha * x[tx * incx] * y[ty * incy] + alpha * y[tx * incy] * x[ty * incx];
+        A[tx + ty * int64_t(lda)] += alpha * x[tx * int64_t(incx)] * y[ty * int64_t(incy)]
+                                     + alpha * y[tx * int64_t(incy)] * x[ty * int64_t(incx)];
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
@@ -107,8 +107,8 @@ rocblas_status rocblas_internal_syr2_template(rocblas_handle handle,
         return rocblas_status_success;
 
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc
-    ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
-    ptrdiff_t shift_y = incy < 0 ? offset_y - ptrdiff_t(incy) * (n - 1) : offset_y;
+    int64_t shift_x = incx < 0 ? offset_x - int64_t(incx) * (n - 1) : offset_x;
+    int64_t shift_y = incy < 0 ? offset_y - int64_t(incy) * (n - 1) : offset_y;
 
     static constexpr int SYR2_DIM_X = 128;
     static constexpr int SYR2_DIM_Y = 8;
