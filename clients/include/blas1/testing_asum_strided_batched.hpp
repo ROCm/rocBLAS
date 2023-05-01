@@ -103,17 +103,17 @@ void testing_asum_strided_batched(const Arguments& arg)
         device_vector<real_t<T>> dr(std::max(1, std::abs(batch_count)));
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_asum_strided_batched_fn(handle, N, nullptr, incx, stridex, batch_count, hr_1),
+            rocblas_status_success);
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(
             rocblas_asum_strided_batched_fn(handle, N, nullptr, incx, stridex, batch_count, dr),
             rocblas_status_success);
 
-        CHECK_HIP_ERROR(hr_1.transfer_from(dr));
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_asum_strided_batched_fn(handle, N, nullptr, incx, stridex, batch_count, hr_2),
-            rocblas_status_success);
+        CHECK_HIP_ERROR(hr_2.transfer_from(dr));
 
         if(batch_count > 0)
         {
@@ -152,19 +152,21 @@ void testing_asum_strided_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(
-            rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, hr_2));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_ROCBLAS_ERROR(
+                rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, hr_1));
+        }
 
-        // GPU BgdLAS rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, dr));
-        handle.post_test(arg);
-
-        CHECK_HIP_ERROR(hr_1.transfer_from(dr));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(
+                rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, dr));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -174,16 +176,32 @@ void testing_asum_strided_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_gold, hr_2);
-            unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_gold, hr_1);
+            if(arg.unit_check)
+            {
+                unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_gold, hr_1);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = std::abs((hr_gold[0] - hr_1[0]) / hr_gold[0]);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = std::abs((hr_gold[0] - hr_2[0]) / hr_gold[0]);
-            rocblas_error_2 = std::abs((hr_gold[0] - hr_1[0]) / hr_gold[0]);
+            CHECK_HIP_ERROR(hr_2.transfer_from(dr));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<real_t<T>, real_t<T>>(batch_count, 1, 1, hr_gold, hr_2);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = std::abs((hr_gold[0] - hr_2[0]) / hr_gold[0]);
+            }
         }
     }
 

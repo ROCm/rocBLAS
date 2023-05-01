@@ -527,12 +527,12 @@ Tests:
     pointer_mode_host: false
 
   - name: blas1_size_t
-    category: pre_checkin
+    category: pre_checkin #stress
     matrix_size: *size_t_pos_x_range
     function:
-      - iamax:  *single_precision
+      - iamax: *single_precision
+      - asum: *single_precision
     pointer_mode_host: false
-    os_flags: ALL # default value so can be removed later
 
   - name: blas1_size_t
     category: nightly #stress
@@ -677,6 +677,7 @@ Tests:
       - nrm2_batched_ex: *nrm2_ex_precisions_double
       - iamax_batched: *double_precision_complex_real
       - iamin_batched: *double_precision_complex_real
+    pointer_mode_host: false
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -689,6 +690,7 @@ Tests:
       - nrm2_strided_batched_ex: *nrm2_ex_precisions_double
       - iamax_strided_batched: *double_precision_complex_real
       - iamin_strided_batched: *double_precision_complex_real
+    pointer_mode_device: false
 
 # nightly
   - name: blas1
