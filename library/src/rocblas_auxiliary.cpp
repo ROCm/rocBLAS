@@ -331,11 +331,11 @@ try
 
     if(incx == 1 && incy == 1) // contiguous host vector -> contiguous device vector
     {
-        PRINT_IF_HIP_ERROR(hipMemcpy(y_d, x_h, elem_size * n, hipMemcpyHostToDevice));
+        PRINT_IF_HIP_ERROR(hipMemcpy(y_d, x_h, size_t(elem_size) * n, hipMemcpyHostToDevice));
     }
     else // either non-contiguous host vector or non-contiguous device vector
     {
-        size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(n);
+        size_t bytes_to_copy = size_t(elem_size) * n;
         size_t temp_byte_size
             = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
         int n_elem = temp_byte_size / elem_size; // number of elements in buffer
@@ -345,15 +345,15 @@ try
         dim3 grid(blocks);
         dim3 threads(NB_X);
 
-        size_t x_h_byte_stride = (size_t)elem_size * incx;
-        size_t y_d_byte_stride = (size_t)elem_size * incy;
-        size_t t_h_byte_stride = (size_t)elem_size;
+        size_t x_h_byte_stride = size_t(elem_size) * incx;
+        size_t y_d_byte_stride = size_t(elem_size) * incy;
+        size_t t_h_byte_stride = size_t(elem_size);
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
             int         i_start     = i_copy * n_elem;
             int         n_elem_max  = n - i_start < n_elem ? n - i_start : n_elem;
-            int         contig_size = n_elem_max * elem_size;
+            size_t      contig_size = size_t(n_elem_max) * elem_size;
             void*       y_d_start   = (char*)y_d + i_start * y_d_byte_stride;
             const void* x_h_start   = (const char*)x_h + i_start * x_h_byte_stride;
 
@@ -459,11 +459,11 @@ try
 
     if(incx == 1 && incy == 1) // congiguous device vector -> congiguous host vector
     {
-        PRINT_IF_HIP_ERROR(hipMemcpy(y_h, x_d, elem_size * n, hipMemcpyDeviceToHost));
+        PRINT_IF_HIP_ERROR(hipMemcpy(y_h, x_d, size_t(elem_size) * n, hipMemcpyDeviceToHost));
     }
     else // either device or host vector is non-contiguous
     {
-        size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(n);
+        size_t bytes_to_copy = size_t(elem_size) * n;
         size_t temp_byte_size
             = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
         int n_elem = temp_byte_size / elem_size; // number elements in buffer
@@ -473,15 +473,15 @@ try
         dim3 grid(blocks);
         dim3 threads(NB_X);
 
-        size_t x_d_byte_stride = (size_t)elem_size * incx;
-        size_t y_h_byte_stride = (size_t)elem_size * incy;
-        size_t t_h_byte_stride = (size_t)elem_size;
+        size_t x_d_byte_stride = size_t(elem_size) * incx;
+        size_t y_h_byte_stride = size_t(elem_size) * incy;
+        size_t t_h_byte_stride = size_t(elem_size);
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
-            int i_start           = i_copy * n_elem;
-            int n_elem_max        = n - (n_elem * i_copy) < n_elem ? n - (n_elem * i_copy) : n_elem;
-            int contig_size       = elem_size * n_elem_max;
+            int    i_start        = i_copy * n_elem;
+            int    n_elem_max     = n - (n_elem * i_copy) < n_elem ? n - (n_elem * i_copy) : n_elem;
+            size_t contig_size    = size_t(elem_size) * n_elem_max;
             const void* x_d_start = (const char*)x_d + i_start * x_d_byte_stride;
             void*       y_h_start = (char*)y_h + i_start * y_h_byte_stride;
 
@@ -589,15 +589,16 @@ try
 
     if(incx == 1 && incy == 1) // contiguous host vector -> contiguous device vector
     {
-        PRINT_IF_HIP_ERROR(hipMemcpyAsync(y_d, x_h, elem_size * n, hipMemcpyHostToDevice, stream));
+        PRINT_IF_HIP_ERROR(
+            hipMemcpyAsync(y_d, x_h, size_t(elem_size) * n, hipMemcpyHostToDevice, stream));
     }
     else // either non-contiguous host vector or non-contiguous device vector
     {
         // pretend data is 2D to compensate for non unit increments
         PRINT_IF_HIP_ERROR(hipMemcpy2DAsync(y_d,
-                                            elem_size * incy,
+                                            size_t(elem_size) * incy,
                                             x_h,
-                                            elem_size * incx,
+                                            size_t(elem_size) * incx,
                                             elem_size,
                                             n,
                                             hipMemcpyHostToDevice,
@@ -632,15 +633,16 @@ try
 
     if(incx == 1 && incy == 1) // congiguous device vector -> congiguous host vector
     {
-        PRINT_IF_HIP_ERROR(hipMemcpyAsync(y_h, x_d, elem_size * n, hipMemcpyDeviceToHost, stream));
+        PRINT_IF_HIP_ERROR(
+            hipMemcpyAsync(y_h, x_d, size_t(elem_size) * n, hipMemcpyDeviceToHost, stream));
     }
     else // either device or host vector is non-contiguous
     {
         // pretend data is 2D to compensate for non unit increments
         PRINT_IF_HIP_ERROR(hipMemcpy2DAsync(y_h,
-                                            elem_size * incy,
+                                            size_t(elem_size) * incy,
                                             x_d,
-                                            elem_size * incx,
+                                            size_t(elem_size) * incx,
                                             elem_size,
                                             n,
                                             hipMemcpyDeviceToHost,
