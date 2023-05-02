@@ -240,12 +240,9 @@ void testing_trsm(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(K, K, lda);
-    host_matrix<T> hAAT(K, K, lda);
     host_matrix<T> hB(M, N, ldb);
     host_matrix<T> hX(M, N, ldb);
     host_matrix<T> hXorB_1(M, N, ldb);
-    host_matrix<T> hXorB_2(M, N, ldb);
-    host_matrix<T> cpuXorB(M, N, ldb);
 
     // Allocate device memory
     device_matrix<T> dA(K, K, lda, HMM);
@@ -277,8 +274,6 @@ void testing_trsm(const Arguments& arg)
     // Calculate hB = hA*hX;
     cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hB, ldb);
     hXorB_1 = hB; // hXorB <- B
-    hXorB_2 = hB; // hXorB <- B
-    cpuXorB = hB; // cpuXorB <- B
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -289,8 +284,8 @@ void testing_trsm(const Arguments& arg)
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
-    double max_err_1               = 0.0;
-    double max_err_2               = 0.0;
+    double err_host                = 0.0;
+    double err_device              = 0.0;
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
@@ -308,63 +303,91 @@ void testing_trsm(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+        if(arg.pointer_mode_host)
+        {
+            // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_HIP_ERROR(dXorB.transfer_from(hB));
 
-        // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_2));
-        CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
+                handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+        }
 
-        CHECK_ROCBLAS_ERROR(
-            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
+        if(arg.pointer_mode_device)
+        {
+            // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(dXorB.transfer_from(hB));
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
-        CHECK_HIP_ERROR(hXorB_2.transfer_from(dXorB));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
+                handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
+            handle.post_test(arg);
+        }
 
         if(alpha_h == 0)
         {
             // expecting 0 output, set hX == 0
             rocblas_init_zero((T*)hX, M, N, ldb);
 
-            if(arg.unit_check)
+            if(arg.pointer_mode_host)
             {
-                unit_check_general<T>(M, N, ldb, hX, hXorB_1);
-                unit_check_general<T>(M, N, ldb, hX, hXorB_2);
+                if(arg.unit_check)
+                    unit_check_general<T>(M, N, ldb, hX, hXorB_1);
+                if(arg.norm_check)
+                    err_host = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1));
             }
 
-            if(arg.norm_check)
+            if(arg.pointer_mode_device)
             {
-                max_err_1 = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1));
-                max_err_2 = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_2));
+                CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+
+                if(arg.unit_check)
+                    unit_check_general<T>(M, N, ldb, hX, hXorB_1);
+                if(arg.norm_check)
+                    err_device = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1));
             }
         }
         else
         {
-            //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
-            // calculate vector-induced-norm 1 of matrix E
-            max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
-            max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_2));
+            if(arg.pointer_mode_host)
+            {
+                //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+                // calculate vector-induced-norm 1 of matrix E
+                err_host = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
 
-            //unit test
-            trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
+                if(arg.unit_check)
+                    trsm_err_res_check<T>(err_host, M, error_eps_multiplier, eps);
 
-            // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-            cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
-            cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_2, ldb);
+                // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
+                cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
+                double err_host_res = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
 
-            max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
-            max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_2, hB));
+                if(arg.unit_check)
+                    trsm_err_res_check<T>(err_host_res, M, residual_eps_multiplier, eps);
+                err_host = std::max(err_host, err_host_res);
+            }
 
-            //unit test
-            trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_err_2, M, residual_eps_multiplier, eps);
+            if(arg.pointer_mode_device)
+            {
+                CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+
+                err_device = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
+
+                if(arg.unit_check)
+                    trsm_err_res_check<T>(err_device, M, error_eps_multiplier, eps);
+
+                cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
+                double err_device_res = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
+
+                if(arg.unit_check)
+                    trsm_err_res_check<T>(err_device_res, M, residual_eps_multiplier, eps);
+                err_device = std::max(err_device, err_device_res);
+            }
         }
     }
 
@@ -399,7 +422,7 @@ void testing_trsm(const Arguments& arg)
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, cpuXorB, ldb);
+        cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, hB, ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -410,7 +433,7 @@ void testing_trsm(const Arguments& arg)
                          trsm_gflop_count<T>(M, N, K),
                          ArgumentLogging::NA_value,
                          cpu_time_used,
-                         max_err_1,
-                         max_err_2);
+                         err_host,
+                         err_device);
     }
 }
