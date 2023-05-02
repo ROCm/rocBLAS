@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,38 +64,35 @@ void testing_set_get_matrix(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> ha(cols * size_t(lda));
-    host_vector<T> hb(cols * size_t(ldb));
-    host_vector<T> hc(cols * size_t(ldc));
-    host_vector<T> hb_gold(cols * size_t(ldb));
+    host_vector<T> ha(cols, lda);
+    host_vector<T> hb(cols, ldb);
+    host_vector<T> hb_gold(cols, ldb);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> dc(cols * size_t(ldc));
+    device_vector<T> dc(cols, ldc);
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
     rocblas_init<T>(ha, rows, cols, lda);
     rocblas_init<T>(hb, rows, cols, ldb);
-    rocblas_init<T>(hc, rows, cols, ldc);
-    hb_gold = hb;
 
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
-        rocblas_init<T>(hb, rows, cols, ldb);
-        rocblas_init<T>(hc, rows, cols, ldc);
-        CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(T) * ldc * cols, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemset(dc, 0, sizeof(T) * ldc * cols));
+
         CHECK_ROCBLAS_ERROR(rocblas_set_matrix(rows, cols, sizeof(T), ha, lda, dc, ldc));
         CHECK_ROCBLAS_ERROR(rocblas_get_matrix(rows, cols, sizeof(T), dc, ldc, hb, ldb));
 
         // reference calculation
         cpu_time_used = get_time_us_no_sync();
-        for(int i1 = 0; i1 < rows; i1++)
-            for(int i2 = 0; i2 < cols; i2++)
+
+        for(size_t i1 = 0; i1 < rows; i1++)
+            for(size_t i2 = 0; i2 < cols; i2++)
                 hb_gold[i1 + i2 * ldb] = ha[i1 + i2 * lda];
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

@@ -329,13 +329,15 @@ try
     if(!x_h || !y_d)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64 = size_t(elem_size);
+
     if(incx == 1 && incy == 1) // contiguous host vector -> contiguous device vector
     {
-        PRINT_IF_HIP_ERROR(hipMemcpy(y_d, x_h, size_t(elem_size) * n, hipMemcpyHostToDevice));
+        PRINT_IF_HIP_ERROR(hipMemcpy(y_d, x_h, elem_size_u64 * n, hipMemcpyHostToDevice));
     }
     else // either non-contiguous host vector or non-contiguous device vector
     {
-        size_t bytes_to_copy = size_t(elem_size) * n;
+        size_t bytes_to_copy = elem_size_u64 * n;
         size_t temp_byte_size
             = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
         int n_elem = temp_byte_size / elem_size; // number of elements in buffer
@@ -345,15 +347,15 @@ try
         dim3 grid(blocks);
         dim3 threads(NB_X);
 
-        size_t x_h_byte_stride = size_t(elem_size) * incx;
-        size_t y_d_byte_stride = size_t(elem_size) * incy;
-        size_t t_h_byte_stride = size_t(elem_size);
+        size_t x_h_byte_stride = elem_size_u64 * incx;
+        size_t y_d_byte_stride = elem_size_u64 * incy;
+        size_t t_h_byte_stride = elem_size_u64;
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
             int         i_start     = i_copy * n_elem;
             int         n_elem_max  = n - i_start < n_elem ? n - i_start : n_elem;
-            size_t      contig_size = size_t(n_elem_max) * elem_size;
+            size_t      contig_size = n_elem_max * elem_size_u64;
             void*       y_d_start   = (char*)y_d + i_start * y_d_byte_stride;
             const void* x_h_start   = (const char*)x_h + i_start * x_h_byte_stride;
 
@@ -373,7 +375,7 @@ try
                 {
                     memcpy((char*)t_h + i_b * t_h_byte_stride,
                            (const char*)x_h + i_x * x_h_byte_stride,
-                           elem_size);
+                           elem_size_u64);
                 }
                 // host buffer -> device buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
@@ -457,13 +459,15 @@ try
     if(!x_d || !y_h)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64 = size_t(elem_size);
+
     if(incx == 1 && incy == 1) // congiguous device vector -> congiguous host vector
     {
-        PRINT_IF_HIP_ERROR(hipMemcpy(y_h, x_d, size_t(elem_size) * n, hipMemcpyDeviceToHost));
+        PRINT_IF_HIP_ERROR(hipMemcpy(y_h, x_d, elem_size_u64 * n, hipMemcpyDeviceToHost));
     }
     else // either device or host vector is non-contiguous
     {
-        size_t bytes_to_copy = size_t(elem_size) * n;
+        size_t bytes_to_copy = elem_size_u64 * n;
         size_t temp_byte_size
             = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
         int n_elem = temp_byte_size / elem_size; // number elements in buffer
@@ -473,15 +477,15 @@ try
         dim3 grid(blocks);
         dim3 threads(NB_X);
 
-        size_t x_d_byte_stride = size_t(elem_size) * incx;
-        size_t y_h_byte_stride = size_t(elem_size) * incy;
-        size_t t_h_byte_stride = size_t(elem_size);
+        size_t x_d_byte_stride = elem_size_u64 * incx;
+        size_t y_h_byte_stride = elem_size_u64 * incy;
+        size_t t_h_byte_stride = elem_size_u64;
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
             int    i_start        = i_copy * n_elem;
             int    n_elem_max     = n - (n_elem * i_copy) < n_elem ? n - (n_elem * i_copy) : n_elem;
-            size_t contig_size    = size_t(elem_size) * n_elem_max;
+            size_t contig_size    = elem_size_u64 * n_elem_max;
             const void* x_d_start = (const char*)x_d + i_start * x_d_byte_stride;
             void*       y_h_start = (char*)y_h + i_start * y_h_byte_stride;
 
@@ -587,18 +591,20 @@ try
     if(!x_h || !y_d)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64 = size_t(elem_size);
+
     if(incx == 1 && incy == 1) // contiguous host vector -> contiguous device vector
     {
         PRINT_IF_HIP_ERROR(
-            hipMemcpyAsync(y_d, x_h, size_t(elem_size) * n, hipMemcpyHostToDevice, stream));
+            hipMemcpyAsync(y_d, x_h, elem_size_u64 * n, hipMemcpyHostToDevice, stream));
     }
     else // either non-contiguous host vector or non-contiguous device vector
     {
         // pretend data is 2D to compensate for non unit increments
         PRINT_IF_HIP_ERROR(hipMemcpy2DAsync(y_d,
-                                            size_t(elem_size) * incy,
+                                            elem_size_u64 * incy,
                                             x_h,
-                                            size_t(elem_size) * incx,
+                                            elem_size_u64 * incx,
                                             elem_size,
                                             n,
                                             hipMemcpyHostToDevice,
@@ -631,18 +637,20 @@ try
     if(!x_d || !y_h)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64 = size_t(elem_size);
+
     if(incx == 1 && incy == 1) // congiguous device vector -> congiguous host vector
     {
         PRINT_IF_HIP_ERROR(
-            hipMemcpyAsync(y_h, x_d, size_t(elem_size) * n, hipMemcpyDeviceToHost, stream));
+            hipMemcpyAsync(y_h, x_d, elem_size_u64 * n, hipMemcpyDeviceToHost, stream));
     }
     else // either device or host vector is non-contiguous
     {
         // pretend data is 2D to compensate for non unit increments
         PRINT_IF_HIP_ERROR(hipMemcpy2DAsync(y_h,
-                                            size_t(elem_size) * incy,
+                                            elem_size_u64 * incy,
                                             x_d,
-                                            size_t(elem_size) * incx,
+                                            elem_size_u64 * incx,
                                             elem_size,
                                             n,
                                             hipMemcpyDeviceToHost,
@@ -668,7 +676,7 @@ template <rocblas_int DIM_X, rocblas_int DIM_Y>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
                                     rocblas_int cols,
-                                    size_t      elem_size,
+                                    size_t      elem_size_u64,
                                     const void* a,
                                     rocblas_int lda,
                                     void*       b,
@@ -678,9 +686,9 @@ rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
     rocblas_int ty = blockIdx.y * blockDim.y + threadIdx.y;
 
     if(tx < rows && ty < cols)
-        memcpy((char*)b + (tx + ldb * ty) * elem_size,
-               (const char*)a + (tx + lda * ty) * elem_size,
-               elem_size);
+        memcpy((char*)b + (tx + size_t(ldb) * ty) * elem_size_u64,
+               (const char*)a + (tx + size_t(lda) * ty) * elem_size_u64,
+               elem_size_u64);
 }
 
 /*******************************************************************************
@@ -705,21 +713,22 @@ try
     if(!a_h || !b_d)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64 = size_t(elem_size);
+
     // contiguous host matrix -> contiguous device matrix
     if(lda == rows && ldb == rows)
     {
-        size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows)
-                               * static_cast<size_t>(cols);
+        size_t bytes_to_copy = elem_size_u64 * rows * cols;
         PRINT_IF_HIP_ERROR(hipMemcpy(b_d, a_h, bytes_to_copy, hipMemcpyHostToDevice));
     }
     // matrix colums too large to fit in temp buffer, copy matrix col by col
-    else if(rows * elem_size > MAT_BUFF_MAX_BYTES)
+    else if(rows * elem_size_u64 > MAT_BUFF_MAX_BYTES)
     {
         for(size_t i = 0; i < cols; i++)
         {
-            PRINT_IF_HIP_ERROR(hipMemcpy((char*)b_d + ldb * i * elem_size,
-                                         (const char*)a_h + lda * i * elem_size,
-                                         (size_t)elem_size * rows,
+            PRINT_IF_HIP_ERROR(hipMemcpy((char*)b_d + ldb * i * elem_size_u64,
+                                         (const char*)a_h + lda * i * elem_size_u64,
+                                         elem_size_u64 * rows,
                                          hipMemcpyHostToDevice));
         }
     }
@@ -727,11 +736,10 @@ try
     // columns
     else
     {
-        size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows)
-                               * static_cast<size_t>(cols);
+        size_t bytes_to_copy = elem_size_u64 * rows * cols;
         size_t temp_byte_size
             = bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
-        int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
+        int n_cols = temp_byte_size / (elem_size_u64 * rows); // number of columns in buffer
         int n_copy = ((cols - 1) / n_cols) + 1; // number of times buffer is copied
 
         rocblas_int blocksX = ((rows - 1) / MATRIX_DIM_X) + 1; // parameters for device kernel
@@ -739,15 +747,15 @@ try
         dim3        grid(blocksX, blocksY);
         dim3        threads(MATRIX_DIM_X, MATRIX_DIM_Y);
 
-        size_t lda_h_byte = (size_t)elem_size * lda;
-        size_t ldb_d_byte = (size_t)elem_size * ldb;
-        size_t ldt_h_byte = (size_t)elem_size * rows;
+        size_t lda_h_byte = elem_size_u64 * lda;
+        size_t ldb_d_byte = elem_size_u64 * ldb;
+        size_t ldt_h_byte = elem_size_u64 * rows;
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
             size_t      i_start     = i_copy * n_cols;
             int         n_cols_max  = cols - i_start < n_cols ? cols - i_start : n_cols;
-            int         contig_size = elem_size * rows * n_cols_max;
+            size_t      contig_size = elem_size_u64 * rows * n_cols_max;
             void*       b_d_start   = (char*)b_d + i_start * ldb_d_byte;
             const void* a_h_start   = (const char*)a_h + i_start * lda_h_byte;
 
@@ -780,7 +788,7 @@ try
                     0,
                     rows,
                     n_cols_max,
-                    elem_size,
+                    elem_size_u64,
                     t_d,
                     rows,
                     b_d_start,
@@ -804,7 +812,7 @@ try
                     0,
                     rows,
                     n_cols_max,
-                    elem_size,
+                    elem_size_u64,
                     t_d,
                     rows,
                     b_d_start,
@@ -858,20 +866,22 @@ try
     if(!a_d || !b_h)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64 = size_t(elem_size);
+
     // congiguous device matrix -> congiguous host matrix
     if(lda == rows && ldb == rows)
     {
-        size_t bytes_to_copy = elem_size * static_cast<size_t>(rows) * cols;
+        size_t bytes_to_copy = elem_size_u64 * rows * cols;
         PRINT_IF_HIP_ERROR(hipMemcpy(b_h, a_d, bytes_to_copy, hipMemcpyDeviceToHost));
     }
     // columns too large for temp buffer, hipMemcpy column by column
-    else if(rows * elem_size > MAT_BUFF_MAX_BYTES)
+    else if(rows * elem_size_u64 > MAT_BUFF_MAX_BYTES)
     {
         for(size_t i = 0; i < cols; i++)
         {
             PRINT_IF_HIP_ERROR(hipMemcpy((char*)b_h + i * ldb * elem_size,
                                          (const char*)a_d + i * lda * elem_size,
-                                         elem_size * rows,
+                                         elem_size_u64 * rows,
                                          hipMemcpyDeviceToHost));
         }
     }
@@ -879,10 +889,10 @@ try
     // columns
     else
     {
-        size_t bytes_to_copy = elem_size * static_cast<size_t>(rows) * cols;
+        size_t bytes_to_copy = elem_size_u64 * rows * cols;
         size_t temp_byte_size
             = bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
-        int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
+        int n_cols = temp_byte_size / (elem_size_u64 * rows); // number of columns in buffer
         int n_copy = ((cols - 1) / n_cols) + 1; // number times buffer copied
 
         rocblas_int blocksX = ((rows - 1) / MATRIX_DIM_X) + 1; // parameters for device kernel
@@ -890,15 +900,15 @@ try
         dim3        grid(blocksX, blocksY);
         dim3        threads(MATRIX_DIM_X, MATRIX_DIM_Y);
 
-        size_t lda_d_byte = (size_t)elem_size * lda;
-        size_t ldb_h_byte = (size_t)elem_size * ldb;
-        size_t ldt_h_byte = (size_t)elem_size * rows;
+        size_t lda_d_byte = elem_size_u64 * lda;
+        size_t ldb_h_byte = elem_size_u64 * ldb;
+        size_t ldt_h_byte = elem_size_u64 * rows;
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
             int         i_start     = i_copy * n_cols;
             int         n_cols_max  = cols - i_start < n_cols ? cols - i_start : n_cols;
-            size_t      contig_size = elem_size * (size_t)rows * n_cols_max;
+            size_t      contig_size = elem_size_u64 * rows * n_cols_max;
             const void* a_d_start   = (const char*)a_d + i_start * lda_d_byte;
             void*       b_h_start   = (char*)b_h + i_start * ldb_h_byte;
             if(lda != rows && ldb != rows)
@@ -921,7 +931,7 @@ try
                     0,
                     rows,
                     n_cols_max,
-                    elem_size,
+                    elem_size_u64,
                     a_d_start,
                     lda,
                     t_d,
@@ -969,7 +979,7 @@ try
                     0,
                     rows,
                     n_cols_max,
-                    elem_size,
+                    elem_size_u64,
                     a_d_start,
                     lda,
                     t_d,
@@ -1008,20 +1018,22 @@ try
     if(!a_h || !b_d)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64(elem_size);
+
     // contiguous host matrix -> contiguous device matrix
     if(lda == rows && ldb == rows)
     {
-        size_t bytes_to_copy = size_t(elem_size) * rows * cols;
+        size_t bytes_to_copy = elem_size_u64 * rows * cols;
         PRINT_IF_HIP_ERROR(hipMemcpyAsync(b_d, a_h, bytes_to_copy, hipMemcpyHostToDevice, stream));
     }
     else
     {
         // width is column vector in matrix
         PRINT_IF_HIP_ERROR(hipMemcpy2DAsync(b_d,
-                                            size_t(elem_size) * ldb,
+                                            elem_size_u64 * ldb,
                                             a_h,
-                                            size_t(elem_size) * lda,
-                                            size_t(elem_size) * rows,
+                                            elem_size_u64 * lda,
+                                            elem_size_u64 * rows,
                                             cols,
                                             hipMemcpyHostToDevice,
                                             stream));
@@ -1056,20 +1068,22 @@ try
     if(!a_d || !b_h)
         return rocblas_status_invalid_pointer;
 
+    size_t elem_size_u64(elem_size);
+
     // contiguous host matrix -> contiguous device matrix
     if(lda == rows && ldb == rows)
     {
-        size_t bytes_to_copy = size_t(elem_size) * rows * cols;
+        size_t bytes_to_copy = elem_size_u64 * rows * cols;
         PRINT_IF_HIP_ERROR(hipMemcpyAsync(b_h, a_d, bytes_to_copy, hipMemcpyDeviceToHost, stream));
     }
     else
     {
         // width is column vector in matrix
         PRINT_IF_HIP_ERROR(hipMemcpy2DAsync(b_h,
-                                            size_t(elem_size) * ldb,
+                                            elem_size_u64 * ldb,
                                             a_d,
-                                            size_t(elem_size) * lda,
-                                            size_t(elem_size) * rows,
+                                            elem_size_u64 * lda,
+                                            elem_size_u64 * rows,
                                             cols,
                                             hipMemcpyDeviceToHost,
                                             stream));
