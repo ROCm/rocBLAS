@@ -105,17 +105,10 @@ namespace
             w_C_tmp     = w_mem[0];
             w_C_tmp_arr = w_mem[1];
 
-            auto w_C_tmp_host = std::make_unique<T*[]>(batch_count);
-            for(int b = 0; b < batch_count; b++)
-            {
-                w_C_tmp_host[b] = (T*)w_C_tmp + b * els;
-            }
-
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(w_C_tmp_arr,
-                                               &w_C_tmp_host[0],
-                                               batch_count * sizeof(T*),
-                                               hipMemcpyHostToDevice,
-                                               handle->get_stream()));
+            // kernel to copy strided_batched array to batched format
+            constexpr int ARRAY_NB = 128;
+            setup_batched_array<ARRAY_NB>(
+                handle->get_stream(), (T*)w_C_tmp, els, (T**)w_C_tmp_arr, batch_count);
         }
 
         if(check_numerics)
