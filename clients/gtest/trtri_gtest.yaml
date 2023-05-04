@@ -37,6 +37,11 @@ Definitions:
     - { N: 1025, lda: 1025 }
     - { N: 2016, lda: 2016 }
 
+  - &int32_overflow_sizes
+    - { N: 3,     lda: 1073741825 } # for rocblas_trtri_small
+    - { N: 737,   lda: 2921750 } # should take all paths in rocblas_trtri_large
+    # - { N: 46976, lda: 46976 } # passed initial tests with increased timeout
+
 Tests:
 - name: trtri
   category: quick
@@ -92,6 +97,16 @@ Tests:
   matrix_size: *small_matrix_size_range
   batch_count: [ -1, 0, 1, 25 ]
   api: [ C, FORTRAN ]
+
+- name: trtri_size_t
+  category: stress_trtri
+  function: trtri
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  diag: [ N ]
+  matrix_size: *int32_overflow_sizes
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: trtri_graph_test
   category: pre_checkin
