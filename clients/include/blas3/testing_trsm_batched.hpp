@@ -455,7 +455,6 @@ void testing_trsm_batched(const Arguments& arg)
             CHECK_HIP_ERROR(alpha_d.transfer_from(halpha));
             CHECK_HIP_ERROR(dXorB.transfer_from(hB));
 
-            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
                                                         side,
                                                         uplo,
@@ -469,7 +468,6 @@ void testing_trsm_batched(const Arguments& arg)
                                                         dXorB.ptr_on_device(),
                                                         ldb,
                                                         batch_count));
-            handle.post_test(arg);
         }
 
         if(alpha_h == 0)

@@ -585,7 +585,6 @@ void testing_trsm_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dXorB.transfer_from(hB));
             CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
-            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_fn(handle,
                                                                 side,
                                                                 uplo,
@@ -601,7 +600,6 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                                 ldb,
                                                                 stride_B,
                                                                 batch_count));
-            handle.post_test(arg);
         }
 
         if(alpha_h == 0)
