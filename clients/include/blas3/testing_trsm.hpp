@@ -323,10 +323,8 @@ void testing_trsm(const Arguments& arg)
             CHECK_HIP_ERROR(dXorB.transfer_from(hB));
             CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
-            handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
                 handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
-            handle.post_test(arg);
         }
 
         if(alpha_h == 0)
