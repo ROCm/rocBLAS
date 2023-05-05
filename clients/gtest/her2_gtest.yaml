@@ -74,7 +74,7 @@ Tests:
   matrix_size: *special_case_range
 
 - name: her2_size_t_M
-  category: nightly
+  category: nightly # stress_her2
   function:
   - her2
   precision: *single_precision_complex
@@ -86,7 +86,8 @@ Tests:
   matrix_size: *size_t_index
   incx: 1
   incy: 1
-
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: her2_fortran
   category: quick
