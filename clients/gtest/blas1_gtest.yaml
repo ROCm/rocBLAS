@@ -519,7 +519,7 @@ Tests:
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
 
   - name: blas1_size_t
-    category: nightly #stress
+    category: nightly # stress_axpy
     matrix_size: *size_t_pos_neg_xy_range
     alpha: [ 2 ]
     pointer_mode_host: false
@@ -528,54 +528,70 @@ Tests:
       # axpy shared kernels for axpy_ex so only testing size_t with axpy_ex and half
       # batched kernel only for batch_count > 8192, so large incx incy not practical
       # all other precisions optimized kernels only for incx == incy == 1
+    pointer_mode_host: false
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: pre_checkin #stress
+    category: nightly # stress_iamax_asum
     matrix_size: *size_t_pos_x_range
     pointer_mode_host: false
     function:
       - iamax: *single_precision
       - asum: *single_precision
       - nrm2_ex: *hpa_half_precision
+    pointer_mode_host: false
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: nightly #stress
+    category: nightly # stress_scal_ex
     matrix_size: *size_t_x_range
     pointer_mode_device: false
     alpha: [ 2 ]
     function:
       - scal_ex:  *hpa_half_precision
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: nightly #stress
+    category: nightly # stress_swap_copy
     matrix_size: *size_t_xy_range
     pointer_mode_device: false
     function:
       - swap: *single_precision
       - copy:  *single_precision
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: pre_checkin #stress
+    category: nightly # stress_rot_ex
     matrix_size: *size_t_xy_range
     pointer_mode_device: false
     function:
       - rot_ex:  *hpa_half_precision
       # real rot shared kernels with rot_ex so only testing size_t with rot_ex and half.
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: pre_checkin #stress
+    category: nightly # stress_rot_ex
     matrix_size: *size_t_xy_range
     pointer_mode_device: false
     function:
       - rot_ex:  *single_precision_complex
       # complex rot shared kernels with rot_ex so only testing size_t with rot_ex and single_precision_complex.
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: pre_checkin #stress
+    category: nightly # stress_rotm
     matrix_size: *size_t_xy_range
     function:
       - rotm:  *single_precision
       #all rotm functions use same templated source so it is only necessary to test single_precision.
+    gpu_arch: '90a'
+    os_flags: LINUX
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
