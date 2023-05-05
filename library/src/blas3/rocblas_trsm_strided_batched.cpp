@@ -24,6 +24,7 @@
 #include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_block_sizes.h"
+#include "rocblas_trmm.hpp"
 #include "rocblas_trsm.hpp"
 #include "trtri_trsm.hpp"
 #include "utility.hpp"
