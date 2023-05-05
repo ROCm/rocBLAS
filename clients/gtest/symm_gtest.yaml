@@ -54,6 +54,7 @@ Tests:
   matrix_size:
     - { M:     4, N:  51200, lda: 51200, ldb:     4, ldc:     4 }
     - { M: 51200, N:      4, lda:     4, ldb: 51200, ldc: 51200 }
+  pointer_mode_device: false
   alpha_beta:
     - { alpha:  3.0, alphai:  0.0, beta:  2.0, betai: 0.0 }
 
@@ -94,6 +95,7 @@ Tests:
   uplo: [ U, L ]
   side: [ L, R ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
 
 # batched
@@ -138,6 +140,7 @@ Tests:
   uplo: [ U, L ]
   side: [ L, R ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
 
@@ -183,6 +186,7 @@ Tests:
   uplo: [ U, L ]
   side: [ L, R ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
 
