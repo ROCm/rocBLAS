@@ -149,19 +149,21 @@ void testing_nrm2_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS, rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_fn(
-            handle, N, dx.ptr_on_device(), incx, batch_count, rocblas_result_1));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_fn(
+                handle, N, dx.ptr_on_device(), incx, batch_count, rocblas_result_1));
+        }
 
-        // GPU BLAS, rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_fn(
-            handle, N, dx.ptr_on_device(), incx, batch_count, d_rocblas_result_2));
-        handle.post_test(arg);
-
-        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_nrm2_batched_fn(
+                handle, N, dx.ptr_on_device(), incx, batch_count, d_rocblas_result_2));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -185,25 +187,47 @@ void testing_nrm2_batched(const Arguments& arg)
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
 
-        if(!rocblas_isnan(arg.alpha))
+        if(arg.pointer_mode_host)
         {
-            if(arg.unit_check)
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<real_t<T>, real_t<T>>(
-                    batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
-                near_check_general<real_t<T>, real_t<T>>(
-                    batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<real_t<T>, real_t<T>>(
+                        batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                for(int b = 0; b < batch_count; ++b)
+                {
+                    rocblas_error_1
+                        += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                }
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            for(int b = 0; b < batch_count; ++b)
+            CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+
+            if(!rocblas_isnan(arg.alpha))
             {
-                rocblas_error_1
-                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
-                rocblas_error_2
-                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                if(arg.unit_check)
+                {
+                    near_check_general<real_t<T>, real_t<T>>(
+                        batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                for(int b = 0; b < batch_count; ++b)
+                {
+                    rocblas_error_2
+                        += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                }
             }
         }
     }
