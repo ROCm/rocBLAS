@@ -64,9 +64,7 @@ namespace
 
                 name << '_' << rocblas_datatype2string(arg.compute_type);
 
-                name << '_' << arg.N;
-
-                name << '_' << arg.incx;
+                name << '_' << arg.N << '_' << arg.incx;
 
                 if(is_strided)
                     name << '_' << arg.stride_x;
