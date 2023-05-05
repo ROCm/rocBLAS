@@ -222,6 +222,8 @@ def jobs_heuristic():
         pjobs = int(pjstr[1][0])
         if (pjobs > 1 and pjobs < jobs):
             jobs = round(jobs / pjobs)
+    if os.name == "nt":
+        jobs = min(61, jobs) # multiprocessing limit (used by tensile)
     return int(jobs)
 
 def create_dir(dir_path):
@@ -474,6 +476,8 @@ def main():
 
     if args.jobs == 0:
         args.jobs = jobs_heuristic()
+    if os.name == "nt" and args.jobs > 61:
+        print( f"WARNING: jobs > 61 may fail on windows python multiprocessing (jobs = {args.jobs}).")
 
     if args.install_invoked:
         # ignore any install handled options
