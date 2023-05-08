@@ -415,13 +415,13 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                ? rocblas_trsm_strided_batched<T, true>
                                                : rocblas_trsm_strided_batched<T, false>;
 
-    rocblas_int M           = arg.M;
-    rocblas_int N           = arg.N;
-    rocblas_int lda         = arg.lda;
-    rocblas_int ldb         = arg.ldb;
-    rocblas_int stride_A    = arg.stride_a;
-    rocblas_int stride_B    = arg.stride_b;
-    rocblas_int batch_count = arg.batch_count;
+    rocblas_int    M           = arg.M;
+    rocblas_int    N           = arg.N;
+    rocblas_int    lda         = arg.lda;
+    rocblas_int    ldb         = arg.ldb;
+    rocblas_stride stride_A    = arg.stride_a;
+    rocblas_stride stride_B    = arg.stride_b;
+    rocblas_int    batch_count = arg.batch_count;
 
     char char_side   = arg.side;
     char char_uplo   = arg.uplo;

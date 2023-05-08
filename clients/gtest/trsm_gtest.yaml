@@ -11,7 +11,6 @@ Definitions:
     - { M:    24, N:    33, lda:    33, ldb:    33 }
     - { M:    32, N:    33, lda:    33, ldb:    33 }
     - { M:    33, N:    32, lda:    33, ldb:    33 }
-
     - { M:    64, N: 65, lda: 65, ldb: 65 }
     - { M:    65, N: 64, lda: 64, ldb: 65 }
 
