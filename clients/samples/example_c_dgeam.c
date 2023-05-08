@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include <assert.h>
 #include <hip/hip_runtime.h>
 #include <math.h>
-#include <rocblas.h>
+#include <rocblas/rocblas.h>
 #include <stdio.h>
 #include <stdlib.h>
 

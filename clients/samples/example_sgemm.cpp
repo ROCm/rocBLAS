@@ -20,9 +20,9 @@
  *
  * ************************************************************************ */
 
-#include "rocblas.h"
 #include "utility.hpp"
 #include <hip/hip_runtime.h>
+#include <rocblas/rocblas.h>
 
 #define DIM1 1023
 #define DIM2 1024

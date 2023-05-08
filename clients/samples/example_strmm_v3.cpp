@@ -20,10 +20,10 @@
  *
  * ************************************************************************ */
 
-#include "rocblas.h"
 #include "utility.hpp"
 #include <hip/hip_runtime.h>
 #include <math.h> // isnan
+#include <rocblas/rocblas.h>
 
 #define DIM1 63
 #define DIM2 64
