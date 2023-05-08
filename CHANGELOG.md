@@ -150,7 +150,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ### Optimizations
 - Improved performance of trsm with side == left and n == 1
-- Improved perforamnce of trsm with side == left and m <= 32 along with side == right and n <= 32
+- Improved performance of trsm with side == left and m <= 32 along with side == right and n <= 32
 
 ### Changed
 - For syrkx and trmm internal API use rocblas_stride datatype for offset
@@ -297,7 +297,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
   - rocblas-version.h
   - rocblas_bfloat16.h
 
-  These files should NOT be included directly as this may lead to errors. Instead, /opt/rocm/include/rocblas.h should be included directly. /opt/rocm/include/rocblas_module.f90 can also be direcly used.
+  These files should NOT be included directly as this may lead to errors. Instead, /opt/rocm/include/rocblas.h should be included directly. /opt/rocm/include/rocblas_module.f90 can also be directly used.
 
 
 ## rocBLAS 2.26.0 for ROCm 3.7.0

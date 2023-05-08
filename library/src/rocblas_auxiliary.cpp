@@ -721,7 +721,7 @@ try
         size_t bytes_to_copy = elem_size_u64 * rows * cols;
         PRINT_IF_HIP_ERROR(hipMemcpy(b_d, a_h, bytes_to_copy, hipMemcpyHostToDevice));
     }
-    // matrix colums too large to fit in temp buffer, copy matrix col by col
+    // matrix columns too large to fit in temp buffer, copy matrix col by col
     else if(rows * elem_size_u64 > MAT_BUFF_MAX_BYTES)
     {
         for(size_t i = 0; i < cols; i++)
