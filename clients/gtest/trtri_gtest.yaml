@@ -42,6 +42,11 @@ Definitions:
     - { N: 737,   lda: 2921750 } # should take all paths in rocblas_trtri_large
     # - { N: 46976, lda: 46976 } # passed initial tests with increased timeout
 
+  - &c_pos_overflow_int32
+    - [4294967296]
+  - &c_pos_overflow_int32_2
+    - [4294967297]
+
 Tests:
 - name: trtri
   category: quick
@@ -61,6 +66,19 @@ Tests:
   uplo: L
   diag: N
   api: [ C, FORTRAN ]
+
+- name: trtri_internal
+  category: pre_checkin
+  function: trtri
+  precision: *single_precision
+  uplo: [ U, L ]
+  diag: [ N ]
+  N: [ 9, 737 ]
+  lda: [ 2000 ]
+  ldc: *c_pos_overflow_int32 # ldc, ldd used for internal api offset args
+  ldd: *c_pos_overflow_int32_2
+  stride_scale: [ 1 ]
+  api: INTERNAL
 
 - name: trtri
   category: pre_checkin
@@ -100,7 +118,10 @@ Tests:
 
 - name: trtri_size_t
   category: stress_trtri
-  function: trtri
+  function:
+    - trtri
+    # - trtri_batched
+    # - trtri_strided_batched
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N ]

@@ -147,7 +147,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
     rocblas_int lda         = arg.lda;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_stride stride_A = lda * N;
+    rocblas_stride stride_A = size_t(lda) * N;
 
     char char_uplo = arg.uplo;
     char char_diag = arg.diag;
