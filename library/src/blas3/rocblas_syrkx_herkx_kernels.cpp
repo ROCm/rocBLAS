@@ -114,16 +114,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 {
     constexpr bool BATCHED = false;
     constexpr bool HERM    = false;
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_SSYRKX_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_DCZSYRKX_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_DCZSYRKX_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_DCZSYRKX_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
 
@@ -155,16 +155,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 {
     constexpr bool BATCHED = true;
     constexpr bool HERM    = false;
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_SDSYRKX_BATCHED_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_SDSYRKX_BATCHED_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_CZSYRKX_BATCHED_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_CZSYRKX_BATCHED_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
 
@@ -196,10 +196,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 {
     constexpr bool BATCHED = false;
     constexpr bool HERM    = true;
-    if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_HERKX_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_HERKX_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
 
@@ -231,10 +231,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 {
     constexpr bool BATCHED = true;
     constexpr bool HERM    = true;
-    if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_HERKX_BATCHED_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_syrkx_herkx_template<ROCBLAS_HERKX_BATCHED_NB, BATCHED, HERM, T>(
             ROCBLAS_INTERNAL_SYRKX_HERKX_PARAMS);
 

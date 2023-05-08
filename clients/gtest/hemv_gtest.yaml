@@ -61,6 +61,20 @@ Definitions:
   - &alpha_beta_range_small
     - { alpha: 2.0, beta: 1.5, alphai: -0.5, betai: 2.5 }
 
+  - &c_pos_x2_overflow_int32
+    - [1073741825]
+  - &c_neg_x2_overflow_int32
+    - [-1073741825]
+
+  - &size_t_index
+    - { N: 46976, lda: 46976, stride_a: 2206744576 }
+
+  - &size_t_incx_incy
+    - { N: 3,     lda: 3,     incx: *c_pos_x2_overflow_int32, incy: 1 }  # x is m element
+    - { N: 3,     lda: 3,     incx: *c_neg_x2_overflow_int32, incy: 1 }  # x is m element
+    - { N: 3,     lda: 3,     incx: 1,                        incy: *c_pos_x2_overflow_int32 } # y is n element
+    - { N: 3,     lda: 3,     incx: 1,                        incy: *c_neg_x2_overflow_int32 } # y is n element
+
 Tests:
 - name: hemv_bad_arg
   category: pre_checkin
@@ -120,8 +134,30 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
+  pointer_mode_device: false
 
-# gemv_batched
+- name: hemv_size_t
+  category: pre_checkin # stress
+  function: hemv
+  precision: *single_precision_complex
+  uplo: [ U, L ]
+  matrix_size: *size_t_index
+  incx: 1
+  incy: 1
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+
+- name: hemv_size_t_inc
+  category: pre_checkin # stress
+  function: hemv
+  precision: *single_precision_complex
+  uplo: [ U, L ]
+  arguments: *size_t_incx_incy
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+  gpu_arch: ['906','11??']
+
+# hemv_batched
 - name: hemv_batched_NaN
   category: pre_checkin
   function: hemv_batched
@@ -173,6 +209,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
+  pointer_mode_host: false
 
 # hemv_strided_batched
 - name: hemv_strided_batched_NaN
@@ -231,6 +268,7 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
   stride_scale: [ 1 ]
+  pointer_mode_host: false
 
 - name: hemv_graph_test
   category: pre_checkin

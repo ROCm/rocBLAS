@@ -247,9 +247,9 @@ void testing_gemm_ex(const Arguments& arg)
 
     bool alpha_isnan = arg.alpha_isnan<Tc>();
     bool beta_isnan  = arg.beta_isnan<Tc>();
-    if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
-       && !std::is_same<To, rocblas_half>{}
-       && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
+    if(!std::is_same_v<
+           To,
+           float> && !std::is_same_v<To, double> && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
@@ -275,9 +275,11 @@ void testing_gemm_ex(const Arguments& arg)
 
     // size checking is only needed for int8x4
     bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    bool int8_invalid   = (pack_to_int8x4 && std::is_same<Ti, int8_t>{}
-                         && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
-                             || (transB == rocblas_operation_none && ldb % 4 != 0)));
+    bool int8_invalid
+        = (pack_to_int8x4
+           && std::is_same_v<
+               Ti,
+               int8_t> && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) || (transB == rocblas_operation_none && ldb % 4 != 0)));
 
     if(invalid_size)
     {
@@ -429,8 +431,9 @@ void testing_gemm_ex(const Arguments& arg)
         hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
     rocblas_init_matrix<To>(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{}
-       && arg.arithmetic_check == rocblas_arithmetic_check::ieee16_ieee32)
+    if(std::is_same_v<
+           To,
+           rocblas_half> && std::is_same_v<Tc, float> && arg.arithmetic_check == rocblas_arithmetic_check::ieee16_ieee32)
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -478,7 +481,7 @@ void testing_gemm_ex(const Arguments& arg)
     // copy data from CPU to device
     // do packing only when pack_to_int8x4=true (int8x4)
     // if int8x4 and A not transposed and valid case, pack A
-    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none && pack_to_int8x4)
+    if(std::is_same_v<Ti, int8_t> && transA == rocblas_operation_none && pack_to_int8x4)
     {
         host_matrix<Ti> hA_packed(A_row, A_col, lda);
 
@@ -492,7 +495,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     // do packing only when pack_to_int8x4=true (int8x4)
     // if int8x4 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none && pack_to_int8x4)
+    if(std::is_same_v<Ti, int8_t> && transB != rocblas_operation_none && pack_to_int8x4)
     {
         host_matrix<Ti> hB_packed(B_row, B_col, ldb);
 
@@ -508,7 +511,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
+        using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
         host_matrix<To>     hD_1(M, N, ldd);
         host_matrix<To_hpa> hD_gold(M, N, ldd);
 
@@ -599,7 +602,7 @@ void testing_gemm_ex(const Arguments& arg)
                 const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
                 near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
             }
-            else if(std::is_same<Tc, rocblas_half>{} && K > 10000)
+            else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
@@ -629,7 +632,7 @@ void testing_gemm_ex(const Arguments& arg)
                 const double tol = K * sum_error_tolerance_for_gfx11<Tc, Ti, To>;
                 near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
             }
-            else if(std::is_same<Tc, rocblas_half>{} && K > 10000)
+            else if(std::is_same_v<Tc, rocblas_half> && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

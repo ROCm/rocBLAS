@@ -99,18 +99,20 @@ namespace
         ((BLAS1_EX == blas1_ex::rot_ex || BLAS1_EX == blas1_ex::rot_batched_ex
           || BLAS1_EX == blas1_ex::rot_strided_batched_ex)
          // regular calls where all types are the same
-         && ((std::is_same<T1, T2>{} && std::is_same<T2, T3>{} && std::is_same<T3, T4>{}
-              && (std::is_same<T1, float>{} || std::is_same<T1, double>{}
-                  || std::is_same<T1, rocblas_float_complex>{}
-                  || std::is_same<T1, rocblas_double_complex>{}))
+         && ((std::is_same_v<
+                  T1,
+                  T2> && std::is_same_v<T2, T3> && std::is_same_v<T3, T4> && (std::is_same_v<T1, float> || std::is_same_v<T1, double> || std::is_same_v<T1, rocblas_float_complex> || std::is_same_v<T1, rocblas_double_complex>))
              // float compute and float16/bfloat16 input/output
-             || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{} && std::is_same<T4, float>{}
-                 && (std::is_same<T1, rocblas_bfloat16>{} || std::is_same<T1, rocblas_half>{}))
+             || (std::is_same_v<
+                     T1,
+                     T2> && std::is_same_v<T2, T3> && std::is_same_v<T4, float> && (std::is_same_v<T1, rocblas_bfloat16> || std::is_same_v<T1, rocblas_half>))
              // complex compute and x/y with real cs inputs
-             || (std::is_same<T1, T2>{} && std::is_same<T1, T4>{}
-                 && std::is_same<T1, rocblas_float_complex>{} && std::is_same<T3, float>{})
-             || (std::is_same<T1, T2>{} && std::is_same<T1, T4>{}
-                 && std::is_same<T1, rocblas_double_complex>{} && std::is_same<T3, double>{})))>;
+             || (std::is_same_v<
+                     T1,
+                     T2> && std::is_same_v<T1, T4> && std::is_same_v<T1, rocblas_float_complex> && std::is_same_v<T3, float>)
+             || (std::is_same_v<
+                     T1,
+                     T2> && std::is_same_v<T1, T4> && std::is_same_v<T1, rocblas_double_complex> && std::is_same_v<T3, double>)))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function

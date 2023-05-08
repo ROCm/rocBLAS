@@ -39,9 +39,9 @@ void testing_gemm_ex_get_solutions(const Arguments& arg)
 
     bool alpha_isnan = arg.alpha_isnan<Tc>();
     bool beta_isnan  = arg.beta_isnan<Tc>();
-    if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
-       && !std::is_same<To, rocblas_half>{}
-       && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
+    if(!std::is_same_v<
+           To,
+           float> && !std::is_same_v<To, double> && !std::is_same_v<To, rocblas_half> && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan))
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
@@ -63,9 +63,11 @@ void testing_gemm_ex_get_solutions(const Arguments& arg)
 
     // size checking is only needed for int8x4
     bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    bool int8_invalid   = (pack_to_int8x4 && std::is_same<Ti, int8_t>{}
-                         && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
-                             || (transB == rocblas_operation_none && ldb % 4 != 0)));
+    bool int8_invalid
+        = (pack_to_int8x4
+           && std::is_same_v<
+               Ti,
+               int8_t> && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) || (transB == rocblas_operation_none && ldb % 4 != 0)));
 
     if(invalid_size)
     {

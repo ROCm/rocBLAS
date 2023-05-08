@@ -121,69 +121,68 @@ void testing_rot(const Arguments& arg)
     rocblas_init_vector(hs, arg, rocblas_client_alpha_sets_nan, false);
 
     // CPU BLAS reference data
-    host_vector<T> cx = hx;
-    host_vector<T> cy = hy;
-    // cblas_rotg<T, U>(cx, cy, hc, hs);
-    // cx[0] = hx[0];
-    // cy[0] = hy[0];
-    cpu_time_used = get_time_us_no_sync();
-    cblas_rot<T, T, U, V>(N, cx, incx, cy, incy, hc, hs);
-    cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+    host_vector<T> hx_gold = hx;
+    host_vector<T> hy_gold = hy;
 
     if(arg.unit_check || arg.norm_check)
     {
-        // Test rocblas_pointer_mode_host
+        if(arg.pointer_mode_host)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
+
             handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_fn(handle, N, dx, incx, dy, incy, hc, hs)));
             handle.post_test(arg);
-            // Allocate host memory
-            host_vector<T> rx(N, incx);
-            host_vector<T> ry(N, incy);
 
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
-            if(arg.unit_check)
-            {
-                unit_check_general<T>(1, N, incx, cx, rx);
-                unit_check_general<T>(1, N, incy, cy, ry);
-            }
-            if(arg.norm_check)
-            {
-                norm_error_host_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
-                norm_error_host_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
-            }
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
         }
-
-        // Test rocblas_pointer_mode_device
+        if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dx.transfer_from(hx));
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
+            CHECK_HIP_ERROR(dx.transfer_from(hx_gold));
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
+
             handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR((rocblas_rot_fn(handle, N, dx, incx, dy, incy, dc, ds)));
             handle.post_test(arg);
+        }
 
-            // Allocate host memory
-            host_vector<T> rx(N, incx);
-            host_vector<T> ry(N, incy);
+        cpu_time_used = get_time_us_no_sync();
+        cblas_rot<T, T, U, V>(N, hx_gold, incx, hy_gold, incy, hc, hs);
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-            CHECK_HIP_ERROR(rx.transfer_from(dx));
-            CHECK_HIP_ERROR(ry.transfer_from(dy));
+        if(arg.pointer_mode_host)
+        {
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, incx, cx, rx);
-                unit_check_general<T>(1, N, incy, cy, ry);
+                unit_check_general<T>(1, N, incx, hx_gold, hx);
+                unit_check_general<T>(1, N, incy, hy_gold, hy);
             }
             if(arg.norm_check)
             {
-                norm_error_device_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
-                norm_error_device_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
+                norm_error_host_x = norm_check_general<T>('F', 1, N, incx, hx_gold, hx);
+                norm_error_host_y = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
+            }
+        }
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hx.transfer_from(dx));
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incx, hx_gold, hx);
+                unit_check_general<T>(1, N, incy, hy_gold, hy);
+            }
+            if(arg.norm_check)
+            {
+                norm_error_device_x = norm_check_general<T>('F', 1, N, incx, hx_gold, hx);
+                norm_error_device_y = norm_check_general<T>('F', 1, N, incy, hy_gold, hy);
             }
         }
     }

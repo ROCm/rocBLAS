@@ -52,6 +52,20 @@ Definitions:
     - { alpha: .NaN, beta: 1.5 }
     - { alpha: 1.5, beta: .NaN }
 
+  - &c_pos_x2_overflow_int32
+    - [1073741825]
+  - &c_neg_x2_overflow_int32
+    - [-1073741825]
+
+  - &size_t_index
+    - { N: 46976, lda: 46976, stride_a: 2206744576 }
+
+  - &size_t_incx_incy
+    - { N: 3,     lda: 3,     incx: *c_pos_x2_overflow_int32, incy: 1 }  # x is m element
+    - { N: 3,     lda: 3,     incx: *c_neg_x2_overflow_int32, incy: 1 }  # x is m element
+    - { N: 3,     lda: 3,     incx: 1,                        incy: *c_pos_x2_overflow_int32 } # y is n element
+    - { N: 3,     lda: 3,     incx: 1,                        incy: *c_neg_x2_overflow_int32 } # y is n element
+
 Tests:
 - name: symv_bad
   category: pre_checkin
@@ -114,6 +128,28 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
+
+- name: symv_size_t
+  category: pre_checkin # stress
+  function: symv
+  precision: *single_precision
+  uplo: [ U, L ]
+  matrix_size: *size_t_index
+  incx: 1
+  incy: 1
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_device: false
+
+- name: symv_size_t_inc
+  category: pre_checkin # stress
+  function: symv
+  precision: *single_precision
+  uplo: [ U, L ]
+  arguments: *size_t_incx_incy
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_device: false
+  gpu_arch: ['906','11??']
 
   # batched
 - name: symv_batched_bad
@@ -152,6 +188,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
   batch_count: [ 1, 257 ]
+  pointer_mode_host: false
 
 - name: symv_batched_medium_double_buffered
   category: pre_checkin
@@ -172,6 +209,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 1, 3 ]
+  pointer_mode_host: false
 
   # strided batched
 - name: symv_strided_batched_bad
@@ -210,6 +248,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
   batch_count: [ 1, 257 ]
+  pointer_mode_device: false
 
 - name: symv_strided_batched_medium
   category: pre_checkin
@@ -229,7 +268,8 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range_small
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
+  pointer_mode_device: false
 
 - name: symv_graph_test
   category: pre_checkin

@@ -70,6 +70,8 @@ __device__ __host__ inline T conj_if_true(const T& z)
     return CONJ ? conj(z) : z;
 }
 
+#endif
+
 // Load a scalar. If the argument is a pointer, dereference it; otherwise copy
 // it. Allows the same kernels to be used for host and device scalars.
 
@@ -181,6 +183,8 @@ __forceinline__ __device__ __host__ T*
     return cond ? load_ptr_batch( p, block, offset, stride) : nullptr;
 }
 // clang-format on
+
+#ifndef GOOGLE_TEST
 
 // Helper for batched functions with temporary memory, currently just trsm and trsv.
 // Copys addresses to array of pointers for batched versions.

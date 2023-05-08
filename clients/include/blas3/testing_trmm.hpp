@@ -306,7 +306,7 @@ void testing_trmm(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_half>{} && K > 10000)
+            if(std::is_same_v<T, rocblas_half> && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

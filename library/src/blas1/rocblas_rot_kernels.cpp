@@ -33,16 +33,16 @@ template <typename Tex,
 __device__ void rocblas_rot_kernel_calc(
     rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n)
     {
-        auto ix    = tid * incx;
-        auto iy    = tid * incy;
-        Tex  tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
-        Tex  tempy = Tex(c * y[iy]) - Tex((s)*x[ix]);
-        y[iy]      = Ty(tempy);
-        x[ix]      = Tx(tempx);
+        int64_t ix    = tid * incx;
+        int64_t iy    = tid * incy;
+        Tex     tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
+        Tex     tempy = Tex(c * y[iy]) - Tex((s)*x[ix]);
+        y[iy]         = Ty(tempy);
+        x[ix]         = Tx(tempx);
     }
 }
 
@@ -55,16 +55,16 @@ template <typename Tex,
 __device__ void rocblas_rot_kernel_calc(
     rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < n)
     {
-        auto ix    = tid * incx;
-        auto iy    = tid * incy;
-        Tex  tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
-        Tex  tempy = Tex(c * y[iy]) - Tex(conj(s) * x[ix]);
-        y[iy]      = Ty(tempy);
-        x[ix]      = Tx(tempx);
+        int64_t ix    = tid * incx;
+        int64_t iy    = tid * incy;
+        Tex     tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
+        Tex     tempy = Tex(c * y[iy]) - Tex(conj(s) * x[ix]);
+        y[iy]         = Ty(tempy);
+        x[ix]         = Tx(tempx);
     }
 }
 
@@ -113,8 +113,8 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
     if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
-    auto shiftx = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
-    auto shifty = incy < 0 ? offset_y - ptrdiff_t(incy) * (n - 1) : offset_y;
+    int64_t shiftx = incx < 0 ? offset_x - int64_t(incx) * (n - 1) : offset_x;
+    int64_t shifty = incy < 0 ? offset_y - int64_t(incy) * (n - 1) : offset_y;
 
     dim3        blocks((n - 1) / NB + 1, batch_count);
     dim3        threads(NB);

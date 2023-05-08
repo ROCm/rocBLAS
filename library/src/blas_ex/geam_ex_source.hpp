@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1263,13 +1263,13 @@ namespace
                 constexpr rocblas_int BLK_K = 4;
                 constexpr rocblas_int DIM_M = 32;
                 constexpr rocblas_int DIM_N = 8;
-                if constexpr(std::is_same<rocblas_half, T>{})
+                if constexpr(std::is_same_v<rocblas_half, T>)
                 {
                     using Tc  = array2_t<T>;
                     using Tab = array2_t<T>;
                     LAUNCH_GEAM_SOURCE_KERNEL('N', 'N', DIM_M_A, DIM_N_A, DIM_M_B, DIM_N_B, true);
                 }
-                else if constexpr(std::is_same<float, T>{})
+                else if constexpr(std::is_same_v<float, T>)
                 {
                     using Tc  = T;
                     using Tab = array2_t<T>;
@@ -1290,13 +1290,13 @@ namespace
                 constexpr rocblas_int BLK_K = 4;
                 constexpr rocblas_int DIM_M = 32;
                 constexpr rocblas_int DIM_N = 8;
-                if constexpr(std::is_same<rocblas_half, T>{})
+                if constexpr(std::is_same_v<rocblas_half, T>)
                 {
                     using Tc  = array2_t<T>;
                     using Tab = array2_t<T>;
                     LAUNCH_GEAM_SOURCE_KERNEL('T', 'N', DIM_N_A, DIM_M_A, DIM_M_B, DIM_N_B, true);
                 }
-                else if constexpr(std::is_same<float, T>{})
+                else if constexpr(std::is_same_v<float, T>)
                 {
                     using Tc  = T;
                     using Tab = array2_t<T>;
@@ -1317,13 +1317,13 @@ namespace
                 constexpr rocblas_int BLK_K = 4;
                 constexpr rocblas_int DIM_M = 8;
                 constexpr rocblas_int DIM_N = 32;
-                if constexpr(std::is_same<rocblas_half, T>{})
+                if constexpr(std::is_same_v<rocblas_half, T>)
                 {
                     using Tc  = array2_t<T>;
                     using Tab = array2_t<T>;
                     LAUNCH_GEAM_SOURCE_KERNEL('N', 'T', DIM_M_A, DIM_N_A, DIM_N_B, DIM_M_B, true);
                 }
-                else if constexpr(std::is_same<float, T>{})
+                else if constexpr(std::is_same_v<float, T>)
                 {
                     using Tc  = T;
                     using Tab = array2_t<T>;
@@ -1344,13 +1344,13 @@ namespace
                 constexpr rocblas_int BLK_K = 4;
                 constexpr rocblas_int DIM_M = 8;
                 constexpr rocblas_int DIM_N = 32;
-                if constexpr(std::is_same<rocblas_half, T>{})
+                if constexpr(std::is_same_v<rocblas_half, T>)
                 {
                     using Tc  = array2_t<T>;
                     using Tab = array2_t<T>;
                     LAUNCH_GEAM_SOURCE_KERNEL('T', 'T', DIM_N_A, DIM_M_A, DIM_N_B, DIM_M_B, true);
                 }
-                else if constexpr(std::is_same<float, T>{})
+                else if constexpr(std::is_same_v<float, T>)
                 {
                     using Tc  = T;
                     using Tab = array2_t<T>;
@@ -1366,7 +1366,7 @@ namespace
         }
         else if(geam_ex_op == rocblas_geam_ex_operation_plus_min)
         {
-            if constexpr(std::is_same<rocblas_half, T>{})
+            if constexpr(std::is_same_v<rocblas_half, T>)
             {
                 using Tc                    = array2_t<T>;
                 using Tab                   = array2_t<T>;
@@ -1396,7 +1396,7 @@ namespace
                     LAUNCH_GEAM_SOURCE_KERNEL('T', 'T', DIM_N_A, DIM_M_A, DIM_N_B, DIM_M_B, false);
                 }
             }
-            else if constexpr(std::is_same<float, T>{})
+            else if constexpr(std::is_same_v<float, T>)
             {
                 using Tc                    = array2_t<T>;
                 using Tab                   = array2_t<T>;
@@ -1426,7 +1426,7 @@ namespace
                     LAUNCH_GEAM_SOURCE_KERNEL('T', 'T', DIM_N_A, DIM_M_A, DIM_N_B, DIM_M_B, false);
                 }
             }
-            else if(std::is_same<double, T>{})
+            else if(std::is_same_v<double, T>)
             {
                 using Tc                    = T;
                 using Tab                   = T;

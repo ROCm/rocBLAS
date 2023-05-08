@@ -279,7 +279,7 @@ void testing_dot_batched_ex(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<Tex, rocblas_half>{} && N > 10000)
+            if(std::is_same_v<Tex, rocblas_half> && N > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

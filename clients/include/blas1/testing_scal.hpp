@@ -35,6 +35,8 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas1/rocblas_scal.hpp"
+
 template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
@@ -114,8 +116,18 @@ void testing_scal(const Arguments& arg)
         {
             // GPU BLAS, rocblas_pointer_mode_host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, &h_alpha, dx, incx)));
+            if(arg.api != INTERNAL)
+            {
+                CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, &h_alpha, dx, incx)));
+            }
+            else
+            {
+                rocblas_stride offset_x = arg.lda;
+                CHECK_ROCBLAS_ERROR((rocblas_internal_scal_template(
+                    handle, N, &h_alpha, 0, dx + offset_x, -offset_x, incx, arg.stride_x, 1)));
+            }
             handle.post_test(arg);
 
             // Transfer output from device to CPU

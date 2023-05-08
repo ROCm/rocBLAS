@@ -116,7 +116,7 @@ double norm_check_general(
 // For BF16 and half, we convert the results to double first
 template <typename T,
           typename VEC,
-          std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{},
+          std::enable_if_t<std::is_same_v<T, rocblas_half> || std::is_same_v<T, rocblas_bfloat16>,
                            int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, VEC&& hCPU, T* hGPU)
@@ -365,6 +365,64 @@ inline double norm_check_symmetric(char          norm_type,
     }
 
     return norm_check_symmetric(norm_type, uplo, N, lda, hCPU_double.data(), hGPU_double.data());
+}
+
+template <typename T, bool HERM = false>
+double norm_check_symmetric(char        norm_type,
+                            char        uplo,
+                            rocblas_int N,
+                            rocblas_int lda,
+                            T*          hCPU[],
+                            T*          hGPU[],
+                            rocblas_int batch_count)
+{
+    double cumulative_error = 0.0;
+
+    for(rocblas_int b = 0; b < batch_count; b++)
+    {
+        auto error = norm_check_symmetric<T, HERM>(norm_type, uplo, N, lda, hCPU[b], hGPU[b]);
+
+        if(norm_type == 'F' || norm_type == 'f')
+        {
+            cumulative_error += error;
+        }
+        else if(norm_type == 'O' || norm_type == 'o' || norm_type == 'I' || norm_type == 'i')
+        {
+            cumulative_error = cumulative_error > error ? cumulative_error : error;
+        }
+    }
+
+    return cumulative_error;
+}
+
+template <typename T, bool HERM = false>
+double norm_check_symmetric(char           norm_type,
+                            char           uplo,
+                            rocblas_int    N,
+                            rocblas_int    lda,
+                            rocblas_stride stridea,
+                            T*             hCPU,
+                            T*             hGPU,
+                            rocblas_int    batch_count)
+{
+    double cumulative_error = 0.0;
+
+    for(rocblas_int b = 0; b < batch_count; b++)
+    {
+        auto error = norm_check_symmetric<T, HERM>(
+            norm_type, uplo, N, lda, hCPU + b * stridea, hGPU + b * stridea);
+
+        if(norm_type == 'F' || norm_type == 'f')
+        {
+            cumulative_error += error;
+        }
+        else if(norm_type == 'O' || norm_type == 'o' || norm_type == 'I' || norm_type == 'i')
+        {
+            cumulative_error = cumulative_error > error ? cumulative_error : error;
+        }
+    }
+
+    return cumulative_error;
 }
 
 template <typename T>

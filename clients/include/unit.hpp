@@ -517,7 +517,7 @@ constexpr auto get_epsilon()
 }
 
 template <typename T,
-          std::enable_if_t<!std::is_same<T, double>{} && !std::is_same<T, rocblas_double_complex>{},
+          std::enable_if_t<!std::is_same_v<T, double> && !std::is_same_v<T, rocblas_double_complex>,
                            int> = 0>
 inline double trtri_tolerance(rocblas_int N)
 {
@@ -526,7 +526,7 @@ inline double trtri_tolerance(rocblas_int N)
 }
 
 template <typename T,
-          std::enable_if_t<std::is_same<T, double>{} || std::is_same<T, rocblas_double_complex>{},
+          std::enable_if_t<std::is_same_v<T, double> || std::is_same_v<T, rocblas_double_complex>,
                            int> = 0>
 inline double trtri_tolerance(rocblas_int N)
 {
