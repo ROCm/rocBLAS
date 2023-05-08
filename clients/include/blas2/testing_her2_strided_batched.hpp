@@ -280,18 +280,16 @@ void testing_her2_strided_batched(const Arguments& arg)
 
     size_t size_A = size_t(N) * lda;
 
-    // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_strided_batch_matrix<T> hA_1(N, N, lda, stride_A, batch_count);
-    host_strided_batch_matrix<T> hA_2(N, N, lda, stride_A, batch_count);
+    host_strided_batch_matrix<T> hA(N, N, lda, stride_A, batch_count);
     host_strided_batch_matrix<T> hA_gold(N, N, lda, stride_A, batch_count);
     host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
     host_strided_batch_vector<T> hy(N, incy, stride_y, batch_count);
     host_vector<T>               halpha(1);
 
     // Check host memory allocation
-    CHECK_HIP_ERROR(hA_1.memcheck());
-    CHECK_HIP_ERROR(hA_2.memcheck());
+    CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hA_gold.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hy.memcheck());
@@ -299,30 +297,27 @@ void testing_her2_strided_batched(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA_1(N, N, lda, stride_A, batch_count);
-    device_strided_batch_matrix<T> dA_2(N, N, lda, stride_A, batch_count);
+    device_strided_batch_matrix<T> dA(N, N, lda, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
     device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
     device_vector<T>               d_alpha(1);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
     rocblas_init_matrix(
-        hA_1, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_hermitian_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan);
 
-    hA_2.copy_from(hA_1);
-    hA_gold.copy_from(hA_1);
+    hA_gold.copy_from(hA);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
@@ -332,44 +327,51 @@ void testing_her2_strided_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // copy data from CPU to device
-        CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_her2_strided_batched<T>)(handle,
-                                                              uplo,
-                                                              N,
-                                                              &h_alpha,
-                                                              dx,
-                                                              incx,
-                                                              stride_x,
-                                                              dy,
-                                                              incy,
-                                                              stride_y,
-                                                              dA_1,
-                                                              lda,
-                                                              stride_A,
-                                                              batch_count));
-        handle.post_test(arg);
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_her2_strided_batched<T>)(handle,
+                                                                  uplo,
+                                                                  N,
+                                                                  &h_alpha,
+                                                                  dx,
+                                                                  incx,
+                                                                  stride_x,
+                                                                  dy,
+                                                                  incy,
+                                                                  stride_y,
+                                                                  dA,
+                                                                  lda,
+                                                                  stride_A,
+                                                                  batch_count));
+            handle.post_test(arg);
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_her2_strided_batched<T>)(handle,
-                                                              uplo,
-                                                              N,
-                                                              d_alpha,
-                                                              dx,
-                                                              incx,
-                                                              stride_x,
-                                                              dy,
-                                                              incy,
-                                                              stride_y,
-                                                              dA_2,
-                                                              lda,
-                                                              stride_A,
-                                                              batch_count));
-        handle.post_test(arg);
+            CHECK_HIP_ERROR(hA.transfer_from(dA));
+        }
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(dA.transfer_from(hA_gold));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_her2_strided_batched<T>)(handle,
+                                                                  uplo,
+                                                                  N,
+                                                                  d_alpha,
+                                                                  dx,
+                                                                  incx,
+                                                                  stride_x,
+                                                                  dy,
+                                                                  incy,
+                                                                  stride_y,
+                                                                  dA,
+                                                                  lda,
+                                                                  stride_A,
+                                                                  batch_count));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -379,23 +381,33 @@ void testing_her2_strided_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
-        CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            const double tol = N * sum_error_tolerance<T>;
-            near_check_general<T>(N, N, lda, stride_A, hA_gold, hA_1, batch_count, tol);
-            near_check_general<T>(N, N, lda, stride_A, hA_gold, hA_2, batch_count, tol);
+            if(arg.unit_check)
+            {
+                const double tol = N * sum_error_tolerance<T>;
+                near_check_general<T>(N, N, lda, stride_A, hA_gold, hA, batch_count, tol);
+            }
+            if(arg.norm_check)
+            {
+                rocblas_error_1
+                    = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA, batch_count);
+            }
         }
-
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1
-                = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA_1, batch_count);
-            rocblas_error_2
-                = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA_2, batch_count);
+            CHECK_HIP_ERROR(hA.transfer_from(dA));
+
+            if(arg.unit_check)
+            {
+                const double tol = N * sum_error_tolerance<T>;
+                near_check_general<T>(N, N, lda, stride_A, hA_gold, hA, batch_count, tol);
+            }
+            if(arg.norm_check)
+            {
+                rocblas_error_2
+                    = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA, batch_count);
+            }
         }
     }
 
@@ -417,7 +429,7 @@ void testing_her2_strided_batched(const Arguments& arg)
                                             dy,
                                             incy,
                                             stride_y,
-                                            dA_1,
+                                            dA,
                                             lda,
                                             stride_A,
                                             batch_count);
@@ -439,7 +451,7 @@ void testing_her2_strided_batched(const Arguments& arg)
                                             dy,
                                             incy,
                                             stride_y,
-                                            dA_1,
+                                            dA,
                                             lda,
                                             stride_A,
                                             batch_count);

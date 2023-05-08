@@ -57,14 +57,16 @@ __device__ void rocblas_her2_kernel_calc(bool        is_upper,
 
     if(is_upper ? tx < ty : ty < tx)
     {
-        A[tx + size_t(lda) * ty] += alpha * x[tx * incx] * conj(y[ty * incy])
-                                    + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
+        A[tx + int64_t(lda) * ty]
+            += alpha * x[tx * int64_t(incx)] * conj(y[ty * int64_t(incy)])
+               + conj(alpha) * y[tx * int64_t(incy)] * conj(x[ty * int64_t(incx)]);
     }
     else if(tx == ty)
     {
-        A[tx + size_t(lda) * ty] = std::real(A[tx + size_t(lda) * ty])
-                                   + alpha * x[tx * incx] * conj(y[ty * incy])
-                                   + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
+        A[tx + int64_t(lda) * ty]
+            = std::real(A[tx + int64_t(lda) * ty])
+              + alpha * x[tx * int64_t(incx)] * conj(y[ty * int64_t(incy)])
+              + conj(alpha) * y[tx * int64_t(incy)] * conj(x[ty * int64_t(incx)]);
     }
 }
 
@@ -128,8 +130,8 @@ rocblas_status rocblas_internal_her2_template(rocblas_handle handle,
         return rocblas_status_success;
 
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc
-    ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
-    ptrdiff_t shift_y = incy < 0 ? offset_y - ptrdiff_t(incy) * (n - 1) : offset_y;
+    int64_t shift_x = incx < 0 ? offset_x - int64_t(incx) * (n - 1) : offset_x;
+    int64_t shift_y = incy < 0 ? offset_y - int64_t(incy) * (n - 1) : offset_y;
 
     static constexpr int HER2_DIM_X = 512;
 
