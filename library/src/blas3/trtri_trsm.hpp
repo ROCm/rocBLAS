@@ -129,7 +129,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
     rocblas_status status;
 
     /* sub_blocks is number of divisible NB*NB sub_blocks, but 2 * sub_blocks of IB*IB sub_blocks.
-       if n < NB. Then sub_blocks = 0; the trtri_trsm and batched gemm are diabled */
+       if n < NB. Then sub_blocks = 0; the trtri_trsm and batched gemm are disabled */
 
     rocblas_int sub_blocks = n / NB;
 
