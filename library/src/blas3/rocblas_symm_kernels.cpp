@@ -500,9 +500,9 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
     // clang-format off
     RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
              side, uplo, symm_m, symm_n, alpha,
-             a, offsetA, lda, nb_diag * diag_a_stride,
-             b, offsetB, ldb, nb_diag * diag_b_stride, beta,
-             c, offsetC, ldc, nb_diag * diag_c_stride, n_nb)));
+             a, offsetA, lda, int64_t(nb_diag) * diag_a_stride,
+             b, offsetB, ldb, int64_t(nb_diag) * diag_b_stride, beta,
+             c, offsetC, ldc, int64_t(nb_diag) * diag_c_stride, n_nb)));
 
     // calls to symm for single remainder diagonal block of size nb_rem < nb_diag
     if(nb_rem != 0)
@@ -513,12 +513,13 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
 
         RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
-                 a, i_diag * diag_a_stride + offsetA, lda, 0,
-                 b, i_diag * diag_b_stride + offsetB, ldb, 0, beta,
-                 c, i_diag * diag_c_stride + offsetC, ldc, 0, 1)));
+                 a, int64_t(i_diag) * diag_a_stride + offsetA, lda, 0,
+                 b, int64_t(i_diag) * diag_b_stride + offsetB, ldb, 0, beta,
+                 c, int64_t(i_diag) * diag_c_stride + offsetC, ldc, 0, 1)));
     }
 
-    rocblas_int stride, stride_rem, i_start;
+    int64_t stride;
+    rocblas_int stride_rem, i_start;
     rocblas_int nb; // size of sub-diagonal blocks of matrix a
 
     // calls to gemm for sub-diagonal square blocks in matrix a with size m = n = nb.
@@ -535,8 +536,8 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
             n_nb += 1;
         }
 
-        rocblas_int i1       = i_start;
-        rocblas_int i2       = i_start - nb;
+        int64_t i1       = i_start;
+        int64_t i2       = i_start - nb;
 
         if(rocblas_side_right == side)
         {
@@ -612,8 +613,8 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
         // remainder gemm block of size nb_rem x nb where n_rem < nb
         if(stride_rem != 0)
         {
-            rocblas_int i1     = i_start + n_nb * stride;
-            rocblas_int i2     = i1 - nb;
+            int64_t i1     = i_start + n_nb * stride;
+            int64_t i2     = i1 - nb;
             rocblas_int nb_rem = ka - i1;
 
             if(rocblas_side_right == side)
@@ -873,8 +874,8 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
             n_nb += 1;
         }
 
-        rocblas_int i1       = i_start;
-        rocblas_int i2       = i_start - nb;
+        int64_t i1       = i_start;
+        int64_t i2       = i_start - nb;
 
         for(int i_nb = 0; i_nb < n_nb; i_nb++)
         {
@@ -952,8 +953,8 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
         // remainder gemm block of size nb_rem x nb where n_rem < nb
         if(stride_rem != 0)
         {
-            rocblas_int i1     = i_start + n_nb * stride;
-            rocblas_int i2     = i1 - nb;
+            int64_t i1     = i_start + n_nb * stride;
+            int64_t i2     = i1 - nb;
             rocblas_int nb_rem = ka - i1;
 
             if(rocblas_side_right == side)
