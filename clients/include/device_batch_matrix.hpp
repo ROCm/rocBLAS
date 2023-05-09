@@ -56,15 +56,21 @@ public:
     //! @param lda         The leading dimension of the Matrix.
     //! @param batch_count The batch count.
     //! @param HMM         HipManagedMemory Flag.
+    //! @param offset      The offset to the memory of each Matrix as held by device_data.
     //!
-    explicit device_batch_matrix(
-        size_t m, size_t n, size_t lda, rocblas_int batch_count, bool HMM = false)
+    explicit device_batch_matrix(size_t      m,
+                                 size_t      n,
+                                 size_t      lda,
+                                 rocblas_int batch_count,
+                                 bool        HMM    = false,
+                                 size_t      offset = 0)
         : d_vector<T>(n * lda * batch_count, HMM) // d_vector is single block for all batches
         , m_m(m)
         , m_n(n)
         , m_lda(lda)
         , m_nmemb(n * lda)
         , m_batch_count(batch_count)
+        , m_offset(HMM ? 0 : offset)
     {
         if(false == this->try_initialize_memory())
         {
@@ -110,6 +116,14 @@ public:
     rocblas_int batch_count() const
     {
         return m_batch_count;
+    }
+
+    //!
+    //! @brief Returns the value of offset.
+    //!
+    rocblas_int offset() const
+    {
+        return m_offset;
     }
 
     //!
@@ -229,6 +243,7 @@ private:
     size_t      m_lda{};
     size_t      m_nmemb{};
     rocblas_int m_batch_count{};
+    size_t      m_offset{};
     T**         m_data{};
     T**         m_device_data{};
 
@@ -269,11 +284,24 @@ private:
 
                 if(success && !this->use_HMM)
                 {
+                    if(m_offset)
+                    {
+                        for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+                            m_data[batch_index] += m_offset;
+                    }
+
                     success = (hipSuccess
                                == hipMemcpy(m_device_data,
                                             m_data,
                                             sizeof(T*) * m_batch_count,
                                             hipMemcpyHostToDevice));
+
+                    if(m_offset)
+                    {
+                        // don't want to deal with offset with m_data, just m_device_data.
+                        for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+                            m_data[batch_index] -= m_offset;
+                    }
                 }
             }
         }
