@@ -430,6 +430,15 @@ Due to this the following APIs would be affected:
 * `rocblas_is_user_managing_device_memory()` will be removed.
 * `rocblas_set_device_memory_size()` will be replaced by a future function `rocblas_increase_device_memory_size()`, this new API would allow users to increase the device memory pool size at runtime.
 
+Announced in rocBLAS 3.1
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Removal of __STDC_WANT_IEC_60559_TYPES_EXT__ define
+'''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Prior to rocBLAS 4.0, __STDC_WANT_IEC_60559_TYPES_EXT__ was defined in rocblas.h, or more specifically rocblas-types.h, before including float.h. From rocBLAS 4.0, this
+define will be removed. Users who want ISO/IEC TS 18661-3:2015 functionality must define __STDC_WANT_IEC_60559_TYPES_EXT__ before including float.h and rocblas.h.
+
 =================
 Using rocBLAS API
 =================

@@ -431,8 +431,9 @@ void testing_trmm_outofplace_batched(const Arguments& arg)
                                                   : rocblas_trmm_outofplace_batched<T, false>;
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
-    if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
-       && !rocblas_is_complex<T> && nantest)
+    if(!std::is_same_v<
+           T,
+           float> && !std::is_same_v<T, double> && !std::is_same_v<T, rocblas_half> && !rocblas_is_complex<T> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     rocblas_local_handle handle{arg};
@@ -603,7 +604,7 @@ void testing_trmm_outofplace_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_half>{} && K > 10000)
+            if(std::is_same_v<T, rocblas_half> && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

@@ -236,8 +236,8 @@ void testing_spr_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_float_complex>{}
-               || std::is_same<T, rocblas_double_complex>{})
+            if(std::is_same_v<T,
+                              rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
             {
                 const double tol = N * sum_error_tolerance<T>;
                 near_check_general<T>(1, size_A, 1, hAp_gold, hAp_1, batch_count, tol);

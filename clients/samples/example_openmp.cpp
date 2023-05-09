@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,9 @@
 #include <cstdlib>
 #include <hip/hip_runtime.h>
 #include <iostream>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #include <vector>
 
 #define NUM_THREADS 4
@@ -100,7 +102,9 @@ int main()
 
 // 1st parallel rocblas routine call : scal x
 // spawn openmp threads
+#ifdef _OPENMP
 #pragma omp parallel private(thread_id)
+#endif
     {
 
         thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1
@@ -118,7 +122,9 @@ int main()
 
 // 2nd parallel rocblas routine call : copy x to y
 // spawn openmp threads
+#ifdef _OPENMP
 #pragma omp parallel private(thread_id)
+#endif
     {
 
         thread_id = omp_get_thread_num(); // thread_id from 0,...,NUM_THREADS-1

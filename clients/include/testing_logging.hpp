@@ -324,7 +324,7 @@ void testing_logging(const Arguments& arg)
             rocblas_datatype  d_type;
             rocblas_datatype  compute_type;
 
-            if(std::is_same<T, rocblas_half>{})
+            if(std::is_same_v<T, rocblas_half>)
             {
                 a_type       = rocblas_datatype_f16_r;
                 b_type       = rocblas_datatype_f16_r;
@@ -334,7 +334,7 @@ void testing_logging(const Arguments& arg)
                 alpha        = &alpha_half;
                 beta         = &beta_half;
             }
-            else if(std::is_same<T, float>{})
+            else if(std::is_same_v<T, float>)
             {
                 a_type       = rocblas_datatype_f32_r;
                 b_type       = rocblas_datatype_f32_r;
@@ -344,7 +344,7 @@ void testing_logging(const Arguments& arg)
                 alpha        = &alpha_float;
                 beta         = &beta_float;
             }
-            else if(std::is_same<T, double>{})
+            else if(std::is_same_v<T, double>)
             {
                 a_type       = rocblas_datatype_f64_r;
                 b_type       = rocblas_datatype_f64_r;
@@ -1045,7 +1045,7 @@ void testing_logging(const Arguments& arg)
         {
             rocblas_datatype a_type, b_type, c_type, d_type, compute_type;
 
-            if(std::is_same<T, rocblas_half>{})
+            if(std::is_same_v<T, rocblas_half>)
             {
                 a_type       = rocblas_datatype_f16_r;
                 b_type       = rocblas_datatype_f16_r;
@@ -1053,7 +1053,7 @@ void testing_logging(const Arguments& arg)
                 d_type       = rocblas_datatype_f16_r;
                 compute_type = rocblas_datatype_f16_r;
             }
-            else if(std::is_same<T, float>{})
+            else if(std::is_same_v<T, float>)
             {
                 a_type       = rocblas_datatype_f32_r;
                 b_type       = rocblas_datatype_f32_r;
@@ -1061,7 +1061,7 @@ void testing_logging(const Arguments& arg)
                 d_type       = rocblas_datatype_f32_r;
                 compute_type = rocblas_datatype_f32_r;
             }
-            if(std::is_same<T, double>{})
+            if(std::is_same_v<T, double>)
             {
                 a_type       = rocblas_datatype_f64_r;
                 b_type       = rocblas_datatype_f64_r;

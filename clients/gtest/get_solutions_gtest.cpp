@@ -144,8 +144,10 @@ namespace
         Ti,
         To,
         Tc,
-        std::enable_if_t<!std::is_same<Ti, void>{}
-                         && !(std::is_same<Ti, Tc>{} && std::is_same<Ti, rocblas_bfloat16>{})>>
+        std::enable_if_t<
+            !std::is_same_v<
+                Ti,
+                void> && !(std::is_same_v<Ti, Tc> && std::is_same_v<Ti, rocblas_bfloat16>)>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)

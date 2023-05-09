@@ -1591,13 +1591,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    stride_c,
                                    rocblas_int       batch_count)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trmm_template<ROCBLAS_SDTRMM_NB, false, T>(TRMM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trmm_template<ROCBLAS_SDTRMM_NB, false, T>(TRMM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trmm_template<ROCBLAS_CZTRMM_NB, false, T>(TRMM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trmm_template<ROCBLAS_CZTRMM_NB, false, T>(TRMM_TEMPLATE_PARAMS);
 
     return rocblas_status_internal_error;
@@ -1628,13 +1628,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    stride_c,
                                            rocblas_int       batch_count)
 {
-    if constexpr(std::is_same<T, float>::value)
+    if constexpr(std::is_same_v<T, float>)
         return rocblas_internal_trmm_template<ROCBLAS_SDTRMM_NB, true, T>(TRMM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, double>::value)
+    else if constexpr(std::is_same_v<T, double>)
         return rocblas_internal_trmm_template<ROCBLAS_SDTRMM_NB, true, T>(TRMM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_float_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_float_complex>)
         return rocblas_internal_trmm_template<ROCBLAS_CZTRMM_NB, true, T>(TRMM_TEMPLATE_PARAMS);
-    else if constexpr(std::is_same<T, rocblas_double_complex>::value)
+    else if constexpr(std::is_same_v<T, rocblas_double_complex>)
         return rocblas_internal_trmm_template<ROCBLAS_CZTRMM_NB, true, T>(TRMM_TEMPLATE_PARAMS);
 
     return rocblas_status_internal_error;

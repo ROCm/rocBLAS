@@ -108,7 +108,7 @@ void testing_rotm_batched(const Arguments& arg)
            norm_error_device_y = 0.0;
     T rel_error                = std::numeric_limits<T>::epsilon() * 1000;
     // increase relative error for ieee64 bit
-    if(std::is_same<T, double>{} || std::is_same<T, rocblas_double_complex>{})
+    if(std::is_same_v<T, double> || std::is_same_v<T, rocblas_double_complex>)
         rel_error *= 10.0;
 
     // check to prevent undefined memory allocation error
@@ -235,24 +235,21 @@ void testing_rotm_batched(const Arguments& arg)
                                                              batch_count)));
                 handle.post_test(arg);
 
-                host_batch_vector<T> rx(N, incx, batch_count);
-                host_batch_vector<T> ry(N, incy, batch_count);
-
-                CHECK_HIP_ERROR(rx.transfer_from(dx));
-                CHECK_HIP_ERROR(ry.transfer_from(dy));
+                CHECK_HIP_ERROR(hx.transfer_from(dx));
+                CHECK_HIP_ERROR(hy.transfer_from(dy));
 
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, incx, hx_gold, rx, batch_count, rel_error);
-                    near_check_general<T>(1, N, incy, hy_gold, ry, batch_count, rel_error);
+                    near_check_general<T>(1, N, incx, hx_gold, hx, batch_count, rel_error);
+                    near_check_general<T>(1, N, incy, hy_gold, hy, batch_count, rel_error);
                 }
 
                 if(arg.norm_check)
                 {
                     norm_error_device_x
-                        += norm_check_general<T>('F', 1, N, incx, hx_gold, rx, batch_count);
+                        += norm_check_general<T>('F', 1, N, incx, hx_gold, hx, batch_count);
                     norm_error_device_y
-                        += norm_check_general<T>('F', 1, N, incy, hy_gold, ry, batch_count);
+                        += norm_check_general<T>('F', 1, N, incy, hy_gold, hy, batch_count);
                 }
             }
         }
