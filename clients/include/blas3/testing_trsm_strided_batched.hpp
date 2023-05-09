@@ -559,21 +559,81 @@ void testing_trsm_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_fn(handle,
-                                                                side,
-                                                                uplo,
-                                                                transA,
-                                                                diag,
-                                                                M,
-                                                                N,
-                                                                &alpha_h,
-                                                                dA,
-                                                                lda,
-                                                                stride_A,
-                                                                dXorB,
-                                                                ldb,
-                                                                stride_B,
-                                                                batch_count));
+            if(arg.api != INTERNAL)
+            {
+                CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_fn(handle,
+                                                                    side,
+                                                                    uplo,
+                                                                    transA,
+                                                                    diag,
+                                                                    M,
+                                                                    N,
+                                                                    &alpha_h,
+                                                                    dA,
+                                                                    lda,
+                                                                    stride_A,
+                                                                    dXorB,
+                                                                    ldb,
+                                                                    stride_B,
+                                                                    batch_count));
+            }
+            else
+            {
+                // internal function requires us to supply temporary memory ourselves
+                bool        optimal_mem    = true;
+                rocblas_int supp_invA_size = 0; // used for trsm_ex
+
+                // first exported internal interface - calculate how much mem is needed
+                size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size,
+                    w_x_tmp_size_backup;
+                rocblas_status mem_status
+                    = rocblas_internal_trsm_workspace_size<T>(side,
+                                                              transA,
+                                                              M,
+                                                              N,
+                                                              batch_count,
+                                                              supp_invA_size,
+                                                              &w_x_tmp_size,
+                                                              &w_x_tmp_arr_size,
+                                                              &w_invA_size,
+                                                              &w_invA_arr_size,
+                                                              &w_x_tmp_size_backup);
+
+                if(mem_status != rocblas_status_success && mem_status != rocblas_status_continue)
+                    CHECK_ROCBLAS_ERROR(mem_status);
+
+                // allocate memory ourselves
+                device_vector<T> w_mem_x_tmp(w_x_tmp_size / sizeof(T));
+                device_vector<T> w_mem_x_tmp_arr(w_x_tmp_arr_size / sizeof(T*));
+                device_vector<T> w_mem_invA(w_invA_size / sizeof(T));
+                device_vector<T> w_mem_invA_arr(w_invA_arr_size / sizeof(T*));
+
+                // using ldc/ldd as offsets
+                rocblas_stride offsetA = arg.ldc, offsetB = arg.ldd;
+
+                CHECK_ROCBLAS_ERROR(rocblas_internal_trsm_template(handle,
+                                                                   side,
+                                                                   uplo,
+                                                                   transA,
+                                                                   diag,
+                                                                   M,
+                                                                   N,
+                                                                   &alpha_h,
+                                                                   (const T*)dA + offsetA,
+                                                                   -offsetA,
+                                                                   lda,
+                                                                   stride_A,
+                                                                   (T*)dXorB + offsetB,
+                                                                   -offsetB,
+                                                                   ldb,
+                                                                   stride_B,
+                                                                   batch_count,
+                                                                   optimal_mem,
+                                                                   (void*)w_mem_x_tmp,
+                                                                   (void*)w_mem_x_tmp_arr,
+                                                                   (void*)w_mem_invA,
+                                                                   (void*)w_mem_invA_arr));
+            }
             handle.post_test(arg);
             CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
         }

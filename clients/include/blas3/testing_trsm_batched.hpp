@@ -36,6 +36,8 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas3/rocblas_trsm.hpp"
+
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 40
 
@@ -312,6 +314,11 @@ void testing_trsm_batched(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
+    // for internal interface testing: using ldc/ldd as offsets
+    const bool     internal_api = arg.api == INTERNAL;
+    rocblas_stride offsetA      = internal_api ? arg.ldc : 0;
+    rocblas_stride offsetB      = internal_api ? arg.ldd : 0;
+
     rocblas_int K = side == rocblas_side_left ? M : N;
 
     rocblas_local_handle handle{arg};
@@ -353,8 +360,8 @@ void testing_trsm_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hXorB_1.memcheck());
 
     // Allocate device memory
-    device_batch_matrix<T> dA(K, K, lda, batch_count);
-    device_batch_matrix<T> dXorB(M, N, ldb, batch_count);
+    device_batch_matrix<T> dA(K, K, lda, batch_count, false, offsetA);
+    device_batch_matrix<T> dXorB(M, N, ldb, batch_count, false, offsetB);
     device_vector<T>       alpha_d(1);
 
     // Check device memory allocation
@@ -431,24 +438,86 @@ void testing_trsm_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
-                                                        side,
-                                                        uplo,
-                                                        transA,
-                                                        diag,
-                                                        M,
-                                                        N,
-                                                        &alpha_h,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dXorB.ptr_on_device(),
-                                                        ldb,
-                                                        batch_count));
+            if(!internal_api)
+            {
+                CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
+                                                            side,
+                                                            uplo,
+                                                            transA,
+                                                            diag,
+                                                            M,
+                                                            N,
+                                                            &alpha_h,
+                                                            dA.ptr_on_device(),
+                                                            lda,
+                                                            dXorB.ptr_on_device(),
+                                                            ldb,
+                                                            batch_count));
+            }
+            else
+            {
+                // internal function requires us to supply temporary memory ourselves
+                constexpr bool BATCHED        = true;
+                bool           optimal_mem    = true;
+                rocblas_int    supp_invA_size = 0; // used for trsm_ex
+
+                // first exported internal interface - calculate how much mem is needed
+                size_t w_x_tmp_size, w_x_tmp_arr_size, w_invA_size, w_invA_arr_size,
+                    w_x_tmp_size_backup;
+                rocblas_status mem_status
+                    = rocblas_internal_trsm_batched_workspace_size<T>(side,
+                                                                      transA,
+                                                                      M,
+                                                                      N,
+                                                                      batch_count,
+                                                                      supp_invA_size,
+                                                                      &w_x_tmp_size,
+                                                                      &w_x_tmp_arr_size,
+                                                                      &w_invA_size,
+                                                                      &w_invA_arr_size,
+                                                                      &w_x_tmp_size_backup);
+
+                if(mem_status != rocblas_status_success && mem_status != rocblas_status_continue)
+                    CHECK_ROCBLAS_ERROR(mem_status);
+
+                // allocate memory ourselves
+                device_vector<T>       w_mem_x_tmp(w_x_tmp_size / sizeof(T));
+                device_batch_vector<T> w_mem_x_tmp_arr(1, 1, w_x_tmp_arr_size / sizeof(T*));
+                device_vector<T>       w_mem_invA(w_invA_size / sizeof(T));
+                device_batch_vector<T> w_mem_invA_arr(1, 1, w_invA_arr_size / sizeof(T*));
+
+                rocblas_stride strideA = 0, strideB = 0;
+
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_internal_trsm_batched_template(handle,
+                                                           side,
+                                                           uplo,
+                                                           transA,
+                                                           diag,
+                                                           M,
+                                                           N,
+                                                           &alpha_h,
+                                                           (const T* const*)dA.ptr_on_device(),
+                                                           -offsetA,
+                                                           lda,
+                                                           strideA,
+                                                           (T* const*)dXorB.ptr_on_device(),
+                                                           -offsetB,
+                                                           ldb,
+                                                           strideB,
+                                                           batch_count,
+                                                           optimal_mem,
+                                                           (void*)w_mem_x_tmp,
+                                                           (void*)w_mem_x_tmp_arr.ptr_on_device(),
+                                                           (void*)w_mem_invA,
+                                                           (void*)w_mem_invA_arr.ptr_on_device()));
+            }
+
             handle.post_test(arg);
             CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
         }
 
-        if(arg.pointer_mode_device)
+        if(arg.pointer_mode_device && !internal_api)
         {
             // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -545,7 +614,9 @@ void testing_trsm_batched(const Arguments& arg)
         }
     }
 
-    if(arg.timing)
+    // can't use external interface with device memory as set up with
+    // internal tests/offsets, so ensuring not used when internal_api is set.
+    if(arg.timing && !internal_api)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;

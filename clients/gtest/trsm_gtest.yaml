@@ -129,6 +129,18 @@ Definitions:
     - { M: 16, N: 16, lda: 143165578, ldb: 16 }
     - { M: 16, N: 16, lda: 16, ldb: 143165578 }
 
+  - &internal_interface_sizes_left
+    - { M:  128, N: 128, lda:  128, ldb:  128, ldc: 4294967296, ldd: 4294967297 }
+    - { M: 1000, N:   4, lda: 1000, ldb: 1000, ldc: 4294967297, ldd: 4294967296 }
+    - { M:   16, N:  16, lda:   16, ldb:   16, ldc: 4294967296, ldd: 4294967297 }
+    - { M:   33, N:  65, lda:  128, ldb:  128, ldc: 4294967297, ldd: 4294967296 }
+
+  - &internal_interface_sizes_right
+    - { M:  128, N:  128, lda:  128, ldb:  128, ldc: 4294967297, ldd: 4294967296 }
+    - { M:    4, N: 1000, lda: 1000, ldb: 1000, ldc: 4294967296, ldd: 4294967297 }
+    - { M:   16, N:   16, lda:   16, ldb:   16, ldc: 4294967297, ldd: 4294967296 }
+
+
   - &alpha_range_sub
     - { alpha: 2.0 }
 
@@ -851,6 +863,40 @@ Tests:
   pointer_mode_device: false
   gpu_arch: '90a'
   os_flags: LINUX
+
+- name: trsm_left_internal_api
+  category: pre_checkin
+  function:
+    - trsm: *single_precision
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
+  side: [ L ]
+  uplo: [ L, U ]
+  transA: [ N, C ]
+  diag: [ N ]
+  matrix_size: *internal_interface_sizes_left
+  alpha_beta: *alpha_range_sub
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
+  pointer_mode_device: false
+  api: INTERNAL
+
+- name: trsm_right_internal_api
+  category: pre_checkin
+  function:
+    - trsm: *single_precision
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
+  side: [ R ]
+  uplo: [ L, U ]
+  transA: [ N, C ]
+  diag: [ N ]
+  matrix_size: *internal_interface_sizes_right
+  alpha_beta: *alpha_range_sub
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
+  pointer_mode_device: false
+  api: INTERNAL
 
 #############
 ## trsm_ex ##
