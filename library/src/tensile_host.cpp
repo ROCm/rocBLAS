@@ -394,7 +394,19 @@ namespace
         if(fp16AltImplEnv != -1)
             tensileProblem.setFp16AltImpl(fp16AltImplEnv);
         else
-            tensileProblem.setFp16AltImpl(prob.flags & rocblas_gemm_flags_fp16_alt_impl);
+            tensileProblem.setFp16AltImpl((prob.flags & rocblas_gemm_flags_fp16_alt_impl) == 0 ? 0
+                                                                                               : 1);
+
+        static const char* fp16AltImplRoundEnvStr
+            = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL_RNZ");
+        static const int fp16AltImplRoundEnv
+            = (fp16AltImplRoundEnvStr == NULL ? -1
+                                              : (std::atoi(fp16AltImplRoundEnvStr) == 0 ? 0 : 1));
+        if(fp16AltImplRoundEnv != -1)
+            tensileProblem.setFp16AltImplRound(fp16AltImplRoundEnv);
+        else
+            tensileProblem.setFp16AltImplRound(
+                (prob.flags & rocblas_gemm_flags_fp16_alt_impl_rnz) == 0 ? 0 : 1);
 
         return tensileProblem;
     }

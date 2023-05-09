@@ -54,7 +54,9 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
 
     enum rocblas_truncate_t
     {
-        rocblas_truncate
+        rocblas_truncate,
+        rocblas_round_near_zero,
+        rocblas_round_near_even
     };
 
     __host__ __device__ rocblas_bfloat16() = default;
@@ -65,9 +67,20 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
     {
     }
 
-    explicit __host__ __device__ rocblas_bfloat16(float f, rocblas_truncate_t)
-        : data(truncate_float_to_bfloat16(f))
+    explicit __host__ __device__ rocblas_bfloat16(float f, rocblas_truncate_t round)
     {
+        switch(round)
+        {
+        case rocblas_round_near_even:
+            data = float_to_bfloat16(f);
+            break;
+        case rocblas_round_near_zero:
+            data = rnz_float_to_bfloat16(f);
+            break;
+        case rocblas_truncate:
+            data = truncate_float_to_bfloat16(f);
+            break;
+        }
     }
 
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
@@ -113,6 +126,38 @@ private:
             // incrementing it causes it to become an exponent of 0xFF and a mantissa
             // of 0x00, which is Inf, the next higher value to the unrounded value.
             u.int32 += 0x7fff + ((u.int32 >> 16) & 1); // Round to nearest, round to even
+        }
+        else if(u.int32 & 0xffff)
+        {
+            // When all of the exponent bits are 1, the value is Inf or NaN.
+            // Inf is indicated by a zero mantissa. NaN is indicated by any nonzero
+            // mantissa bit. Quiet NaN is indicated by the most significant mantissa
+            // bit being 1. Signaling NaN is indicated by the most significant
+            // mantissa bit being 0 but some other bit(s) being 1. If any of the
+            // lower 16 bits of the mantissa are 1, we set the least significant bit
+            // of the bfloat16 mantissa, in order to preserve signaling NaN in case
+            // the bloat16's mantissa bits are all 0.
+            u.int32 |= 0x10000; // Preserve signaling NaN
+        }
+
+        return uint16_t(u.int32 >> 16);
+    }
+
+    static __host__ __device__ uint16_t rnz_float_to_bfloat16(float f)
+    {
+        union
+        {
+            float    fp32;
+            uint32_t int32;
+        } u = {f};
+        if(~u.int32 & 0x7f800000)
+        {
+            // When the exponent bits are not all 1s, then the value is zero, normal,
+            // or subnormal. We round the bfloat16 mantissa by adding 0x7FFF
+            // This causes it to be rounded to zero when
+            // the lower 16 bits are exactly 0x8000 or less. If the lower 16th bit is one and
+            // and any of the lower 15 bits are one, then the addition causes a rounding upward
+            u.int32 += 0x7fff; // Round to nearest, round to zero
         }
         else if(u.int32 & 0xffff)
         {
