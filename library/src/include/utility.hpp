@@ -354,10 +354,11 @@ constexpr const char* rocblas_gemm_flags_to_string(rocblas_gemm_flags type)
 {
     switch(type)
     {
-    case rocblas_gemm_flags_none:  return "none";
-    case rocblas_gemm_flags_pack_int8x4:  return "pack_int";
-    case rocblas_gemm_flags_use_cu_efficiency:  return "use_cu_efficiency";
-    case rocblas_gemm_flags_fp16_alt_impl:  return "fp16_alt_impl";
+    case rocblas_gemm_flags_none:                 return "none";
+    case rocblas_gemm_flags_pack_int8x4:          return "pack_int";
+    case rocblas_gemm_flags_use_cu_efficiency:    return "use_cu_efficiency";
+    case rocblas_gemm_flags_fp16_alt_impl:        return "fp16_alt_impl";
+    case rocblas_gemm_flags_fp16_alt_impl_rnz:  return "fp16_alt_impl_round";
     case rocblas_gemm_flags_check_solution_index: return "check_solution_index";
     }
     return "invalid";
@@ -377,7 +378,7 @@ template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<uint3
 template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>       = rocblas_datatype_bf16_r;
 
 // return precision string for data type
-template <typename> static constexpr char rocblas_precision_string                [] = "invalid";
+template <typename> static constexpr char rocblas_precision_string                              [] = "invalid";
 template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_bfloat16      >[] = "bf16_r";
 template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";
 template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<float                 >[] = "f32_r";

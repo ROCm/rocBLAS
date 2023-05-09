@@ -213,8 +213,50 @@ Definitions:
     - { transA: N, transB: T }
     - { transA: T, transB: N }
 
-  - &deepbench_sizes
+  - &deepbench_sizes_small_m_n
     - { M:   192, N:    64, K:   784, lda:   784, ldb:   784, ldc:   192, ldd:   192 }
+    - { M:   196, N:    48, K: 12800, lda:   196, ldb: 12800, ldc:   196, ldd:   196 }
+    - { M:    49, N:   128, K: 20800, lda:    49, ldb: 20800, ldc:    49, ldd:    49 }
+    - { M:    49, N:   512, K:  2048, lda:    49, ldb:  2048, ldc:    49, ldd:    49 }
+    - { M:   369, N:   512, K:  6400, lda:   369, ldb:  6400, ldc:   369, ldd:   369 }
+    - { M:   392, N:   512, K:  1024, lda:   392, ldb:  1024, ldc:   392, ldd:   392 }
+    - { M:   392, N:   512, K:  2048, lda:   392, ldb:  2048, ldc:   392, ldd:   392 }
+    - { M:   392, N:   512, K:   512, lda:   392, ldb:   512, ldc:   392, ldd:   392 }
+    - { M:   784, N:   256, K:   832, lda:   784, ldb:   832, ldc:   784, ldd:   784 }
+    - { M:   784, N:    32, K:  4800, lda:   784, ldb:  4800, ldc:   784, ldd:   784 }
+    - { M:   784, N:   512, K:  1024, lda:   784, ldb:  1024, ldc:   784, ldd:   784 }
+    - { M:   784, N:   512, K:  2048, lda:   784, ldb:  2048, ldc:   784, ldd:   784 }
+    - { M:   784, N:   512, K:   512, lda:   784, ldb:   512, ldc:   784, ldd:   784 }
+    - { M:   392, N:   256, K:  1024, lda:   392, ldb:   256, ldc:   392, ldd:   392 }
+    - { M:   784, N:   256, K:  1024, lda:   784, ldb:   256, ldc:   784, ldd:   784 }
+    - { M:   100, N:    32, K: 26939, lda: 26939, ldb: 26939, ldc:   100, ldd:   100 }
+    - { M:   128, N:   512, K:   196, lda:   196, ldb:   196, ldc:   128, ldd:   128 }
+    - { M:   128, N:   512, K:   784, lda:   784, ldb:   784, ldc:   128, ldd:   128 }
+    - { M:   144, N:    32, K:  5760, lda:  5760, ldb:  5760, ldc:   144, ldd:   144 }
+    - { M:   147, N:    64, K: 12544, lda: 12544, ldb: 12544, ldc:   147, ldd:   147 }
+    - { M:   192, N:    64, K:   784, lda:   784, ldb:   784, ldc:   192, ldd:   192 }
+    - { M:   256, N:   128, K:   784, lda:   784, ldb:   784, ldc:   256, ldd:   256 }
+    - { M:   256, N:   256, K:   196, lda:   196, ldb:   196, ldc:   256, ldd:   256 }
+    - { M:   256, N:    64, K:  3136, lda:  3136, ldb:  3136, ldc:   256, ldd:   256 }
+    - { M:    25, N:    64, K: 27920, lda: 27920, ldb: 27920, ldc:    25, ldd:    25 }
+    - { M:    27, N:    64, K:  2916, lda:  2916, ldb:  2916, ldc:    27, ldd:    27 }
+    - { M:   288, N:    64, K:  1440, lda:  1440, ldb:  1440, ldc:   288, ldd:   288 }
+    - { M:   512, N:   128, K:   784, lda:   784, ldb:   784, ldc:   512, ldd:   512 }
+    - { M:   512, N:   192, K:   196, lda:   196, ldb:   196, ldc:   512, ldd:   512 }
+    - { M:   512, N:   256, K:   196, lda:   196, ldb:   196, ldc:   512, ldd:   512 }
+    - { M:   512, N:   512, K:    49, lda:    49, ldb:    49, ldc:   512, ldd:   512 }
+    - { M:   576, N:   128, K: 12544, lda: 12544, ldb: 12544, ldc:   576, ldd:   576 }
+    - { M:   576, N:   128, K:   360, lda:   360, ldb:   360, ldc:   576, ldd:   576 }
+    - { M:   576, N:    64, K: 28000, lda: 28000, ldb: 28000, ldc:   576, ldd:   576 }
+    - { M:   576, N:    64, K:  2916, lda:  2916, ldb:  2916, ldc:   576, ldd:   576 }
+    - { M:   576, N:    64, K:  3136, lda:  3136, ldb:  3136, ldc:   576, ldd:   576 }
+    - { M:    64, N:   256, K:  3136, lda:  3136, ldb:  3136, ldc:    64, ldd:    64 }
+    - { M:    64, N:   256, K:   784, lda:   784, ldb:   784, ldc:    64, ldd:    64 }
+    - { M:    64, N:    64, K: 12544, lda: 12544, ldb: 12544, ldc:    64, ldd:    64 }
+    - { M:   832, N:   256, K:    49, lda:    49, ldb:    49, ldc:   832, ldd:   832 }
+    - { M:     9, N:    16, K: 23040, lda: 23040, ldb: 23040, ldc:     9, ldd:     9 }
+
+  - &deepbench_sizes
     - { M: 12544, N:   128, K:   256, lda: 12544, ldb:   256, ldc: 12544, ldd: 12544 }
     - { M: 12544, N:   256, K:    64, lda: 12544, ldb:    64, ldc: 12544, ldd: 12544 }
     - { M: 12544, N:    64, K:   147, lda: 12544, ldb:   147, ldc: 12544, ldd: 12544 }
@@ -225,7 +267,6 @@ Definitions:
     - { M:  1568, N:   256, K:   512, lda:  1568, ldb:   512, ldc:  1568, ldd:  1568 }
     - { M:  1568, N:   512, K:   128, lda:  1568, ldb:   128, ldc:  1568, ldd:  1568 }
     - { M:  1653, N:   256, K:  3200, lda:  1653, ldb:  3200, ldc:  1653, ldd:  1653 }
-    - { M:   196, N:    48, K: 12800, lda:   196, ldb: 12800, ldc:   196, ldd:   196 }
     - { M: 23040, N:    16, K:     9, lda: 23040, ldb:     9, ldc: 23040, ldd: 23040 }
     - { M: 26939, N:    32, K:   100, lda: 26939, ldb:   100, ldc: 26939, ldd: 26939 }
     - { M: 27920, N:    64, K:    25, lda: 27920, ldb:    25, ldc: 27920, ldd: 27920 }
@@ -237,15 +278,9 @@ Definitions:
     - { M:  3136, N:   256, K:   256, lda:  3136, ldb:   256, ldc:  3136, ldd:  3136 }
     - { M:  3136, N:   256, K:   512, lda:  3136, ldb:   512, ldc:  3136, ldd:  3136 }
     - { M:  3136, N:   512, K:   128, lda:  3136, ldb:   128, ldc:  3136, ldd:  3136 }
-    - { M:   369, N:   512, K:  6400, lda:   369, ldb:  6400, ldc:   369, ldd:   369 }
     - { M:   392, N:  1024, K:   256, lda:   392, ldb:   256, ldc:   392, ldd:   392 }
     - { M:   392, N:  2048, K:  1024, lda:   392, ldb:  1024, ldc:   392, ldd:   392 }
     - { M:   392, N:  2048, K:   512, lda:   392, ldb:   512, ldc:   392, ldd:   392 }
-    - { M:   392, N:   512, K:  1024, lda:   392, ldb:  1024, ldc:   392, ldd:   392 }
-    - { M:   392, N:   512, K:  2048, lda:   392, ldb:  2048, ldc:   392, ldd:   392 }
-    - { M:   392, N:   512, K:   512, lda:   392, ldb:   512, ldc:   392, ldd:   392 }
-    - { M:    49, N:   128, K: 20800, lda:    49, ldb: 20800, ldc:    49, ldd:    49 }
-    - { M:    49, N:   512, K:  2048, lda:    49, ldb:  2048, ldc:    49, ldd:    49 }
     - { M:  5760, N:    32, K:   144, lda:  5760, ldb:   144, ldc:  5760, ldd:  5760 }
     - { M:  6272, N:   128, K:   256, lda:  6272, ldb:   256, ldc:  6272, ldd:  6272 }
     - { M:  6272, N:   256, K:    64, lda:  6272, ldb:    64, ldc:  6272, ldd:  6272 }
@@ -254,11 +289,6 @@ Definitions:
     - { M:   784, N:  1024, K:   256, lda:   784, ldb:   256, ldc:   784, ldd:   784 }
     - { M:   784, N:  2048, K:  1024, lda:   784, ldb:  1024, ldc:   784, ldd:   784 }
     - { M:   784, N:  2048, K:   512, lda:   784, ldb:   512, ldc:   784, ldd:   784 }
-    - { M:   784, N:   256, K:   832, lda:   784, ldb:   832, ldc:   784, ldd:   784 }
-    - { M:   784, N:    32, K:  4800, lda:   784, ldb:  4800, ldc:   784, ldd:   784 }
-    - { M:   784, N:   512, K:  1024, lda:   784, ldb:  1024, ldc:   784, ldd:   784 }
-    - { M:   784, N:   512, K:  2048, lda:   784, ldb:  2048, ldc:   784, ldd:   784 }
-    - { M:   784, N:   512, K:   512, lda:   784, ldb:   512, ldc:   784, ldd:   784 }
     - { M: 12544, N:   147, K:    64, lda: 12544, ldb:   147, ldc: 12544, ldd: 12544 }
     - { M: 12544, N:   256, K:   128, lda: 12544, ldb:   256, ldc: 12544, ldd: 12544 }
     - { M: 12544, N:    64, K:   256, lda: 12544, ldb:    64, ldc: 12544, ldd: 12544 }
@@ -277,7 +307,6 @@ Definitions:
     - { M:   369, N:  6400, K:   512, lda:   369, ldb:  6400, ldc:   369, ldd:   369 }
     - { M:   392, N:  1024, K:  2048, lda:   392, ldb:  1024, ldc:   392, ldd:   392 }
     - { M:   392, N:  1024, K:   512, lda:   392, ldb:  1024, ldc:   392, ldd:   392 }
-    - { M:   392, N:   256, K:  1024, lda:   392, ldb:   256, ldc:   392, ldd:   392 }
     - { M:    49, N:  2048, K:   512, lda:    49, ldb:  2048, ldc:    49, ldd:    49 }
     - { M:    49, N: 20800, K:   128, lda:    49, ldb: 20800, ldc:    49, ldd:    49 }
     - { M:  6272, N:   256, K:   128, lda:  6272, ldb:   256, ldc:  6272, ldd:  6272 }
@@ -286,9 +315,7 @@ Definitions:
     - { M:  6786, N:  1600, K:   128, lda:  6786, ldb:  1600, ldc:  6786, ldd:  6786 }
     - { M:   784, N:  1024, K:  2048, lda:   784, ldb:  1024, ldc:   784, ldd:   784 }
     - { M:   784, N:  1024, K:   512, lda:   784, ldb:  1024, ldc:   784, ldd:   784 }
-    - { M:   784, N:   256, K:  1024, lda:   784, ldb:   256, ldc:   784, ldd:   784 }
     - { M:   784, N:  4800, K:    32, lda:   784, ldb:  4800, ldc:   784, ldd:   784 }
-    - { M:   100, N:    32, K: 26939, lda: 26939, ldb: 26939, ldc:   100, ldd:   100 }
     - { M:  1024, N:  2048, K:    49, lda:    49, ldb:    49, ldc:  1024, ldd:  1024 }
     - { M:  1024, N:   256, K:   196, lda:   196, ldb:   196, ldc:  1024, ldd:  1024 }
     - { M:  1024, N:   512, K:    49, lda:    49, ldb:    49, ldc:  1024, ldd:  1024 }
@@ -298,13 +325,8 @@ Definitions:
     - { M:  1152, N:   256, K:   196, lda:   196, ldb:   196, ldc:  1152, ldd:  1152 }
     - { M:  1152, N:   256, K:  3136, lda:  3136, ldb:  3136, ldc:  1152, ldd:  1152 }
     - { M: 12800, N:    48, K:   196, lda:   196, ldb:   196, ldc: 12800, ldd: 12800 }
-    - { M:   128, N:   512, K:   196, lda:   196, ldb:   196, ldc:   128, ldd:   128 }
-    - { M:   128, N:   512, K:   784, lda:   784, ldb:   784, ldc:   128, ldd:   128 }
-    - { M:   144, N:    32, K:  5760, lda:  5760, ldb:  5760, ldc:   144, ldd:   144 }
-    - { M:   147, N:    64, K: 12544, lda: 12544, ldb: 12544, ldc:   147, ldd:   147 }
     - { M:  1600, N:   128, K:  6786, lda:  6786, ldb:  6786, ldc:  1600, ldd:  1600 }
     - { M:  1600, N:    32, K:  6308, lda:  6308, ldb:  6308, ldc:  1600, ldd:  1600 }
-    - { M:   192, N:    64, K:   784, lda:   784, ldb:   784, ldc:   192, ldd:   192 }
     - { M:  2048, N:   512, K:    49, lda:    49, ldb:    49, ldc:  2048, ldd:  2048 }
     - { M: 20800, N:   128, K:    49, lda:    49, ldb:    49, ldc: 20800, ldd: 20800 }
     - { M:  2304, N:   256, K:  1680, lda:  1680, ldb:  1680, ldc:  2304, ldd:  2304 }
@@ -313,34 +335,14 @@ Definitions:
     - { M:  2304, N:   512, K:   784, lda:   784, ldb:   784, ldc:  2304, ldd:  2304 }
     - { M:   256, N:  1024, K:   196, lda:   196, ldb:   196, ldc:   256, ldd:   256 }
     - { M:   256, N:  1024, K:    49, lda:    49, ldb:    49, ldc:   256, ldd:   256 }
-    - { M:   256, N:   128, K:   784, lda:   784, ldb:   784, ldc:   256, ldd:   256 }
-    - { M:   256, N:   256, K:   196, lda:   196, ldb:   196, ldc:   256, ldd:   256 }
-    - { M:   256, N:    64, K:  3136, lda:  3136, ldb:  3136, ldc:   256, ldd:   256 }
-    - { M:    25, N:    64, K: 27920, lda: 27920, ldb: 27920, ldc:    25, ldd:    25 }
-    - { M:    27, N:    64, K:  2916, lda:  2916, ldb:  2916, ldc:    27, ldd:    27 }
-    - { M:   288, N:    64, K:  1440, lda:  1440, ldb:  1440, ldc:   288, ldd:   288 }
     - { M:  3200, N:   256, K:  1653, lda:  1653, ldb:  1653, ldc:  3200, ldd:  3200 }
     - { M:  4608, N:   512, K:   196, lda:   196, ldb:   196, ldc:  4608, ldd:  4608 }
     - { M:  4608, N:   512, K:   420, lda:   420, ldb:   420, ldc:  4608, ldd:  4608 }
     - { M:  4608, N:   512, K:    49, lda:    49, ldb:    49, ldc:  4608, ldd:  4608 }
     - { M:  4800, N:    32, K:   784, lda:   784, ldb:   784, ldc:  4800, ldd:  4800 }
     - { M:   512, N:  1024, K:   196, lda:   196, ldb:   196, ldc:   512, ldd:   512 }
-    - { M:   512, N:   128, K:   784, lda:   784, ldb:   784, ldc:   512, ldd:   512 }
-    - { M:   512, N:   192, K:   196, lda:   196, ldb:   196, ldc:   512, ldd:   512 }
     - { M:   512, N:  2048, K:    49, lda:    49, ldb:    49, ldc:   512, ldd:   512 }
-    - { M:   512, N:   256, K:   196, lda:   196, ldb:   196, ldc:   512, ldd:   512 }
-    - { M:   512, N:   512, K:    49, lda:    49, ldb:    49, ldc:   512, ldd:   512 }
-    - { M:   576, N:   128, K: 12544, lda: 12544, ldb: 12544, ldc:   576, ldd:   576 }
-    - { M:   576, N:   128, K:   360, lda:   360, ldb:   360, ldc:   576, ldd:   576 }
-    - { M:   576, N:    64, K: 28000, lda: 28000, ldb: 28000, ldc:   576, ldd:   576 }
-    - { M:   576, N:    64, K:  2916, lda:  2916, ldb:  2916, ldc:   576, ldd:   576 }
-    - { M:   576, N:    64, K:  3136, lda:  3136, ldb:  3136, ldc:   576, ldd:   576 }
     - { M:  6400, N:   512, K:   369, lda:   369, ldb:   369, ldc:  6400, ldd:  6400 }
-    - { M:    64, N:   256, K:  3136, lda:  3136, ldb:  3136, ldc:    64, ldd:    64 }
-    - { M:    64, N:   256, K:   784, lda:   784, ldb:   784, ldc:    64, ldd:    64 }
-    - { M:    64, N:    64, K: 12544, lda: 12544, ldb: 12544, ldc:    64, ldd:    64 }
-    - { M:   832, N:   256, K:    49, lda:    49, ldb:    49, ldc:   832, ldd:   832 }
-    - { M:     9, N:    16, K: 23040, lda: 23040, ldb: 23040, ldc:     9, ldd:     9 }
 
   - &deepbench_large_sizes
     - { M:    27, N:    64, K: 50176, lda: 50176, ldb: 50176, ldc:    27, ldd:    27 }
@@ -2508,8 +2510,8 @@ Tests:
   transA_transB: *transA_transB_range
   alpha: 1
   beta: 0
-  flags: 4
-  initialization: special
+  flags: [4, 20]
+  initialization: [ denorm ]
 
 - name: gemm_medium_HMM
   category: HMM
@@ -2639,6 +2641,14 @@ Tests:
   beta: 3
 
 # Split *int8_half_single_precisions into *int8 and *half_single_precisions. Since int8 has flags 0,1
+- name: gemm_deepbench
+  category: nightly
+  function:
+    gemm: *half_single_precisions
+    gemm_ex: *half_single_precisions
+  matrix_size: *deepbench_sizes_small_m_n
+  alpha_beta: *deepbench_alpha_beta_range
+  transA_transB: *deepbench_transA_transB_range
 
 - name: gemm_deepbench
   category: nightly
@@ -2656,9 +2666,18 @@ Tests:
   matrix_size: *deepbench_sizes
   alpha: 1
   beta: 0
-  flags: 4
-  initialization: special
+  flags: [4, 20]
+  initialization: [ denorm, denorm2 ]
   transA_transB: *deepbench_transA_transB_range
+
+- name: gemm_deepbench_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *deepbench_sizes_small_m_n
+  alpha_beta: *deepbench_alpha_beta_range
+  transA_transB: *deepbench_transA_transB_range
+  flags: [0,1]
 
 - name: gemm_deepbench_int8
   category: nightly
@@ -2699,8 +2718,8 @@ Tests:
   matrix_size: *resnet50_fwd_sizes
   alpha: 1
   beta: 0
-  flags: 4
-  initialization: special
+  flags: [4, 20]
+  initialization: [ denorm, denorm2 ]
 
 - name: resnet50_fwd_int8
   category: nightly

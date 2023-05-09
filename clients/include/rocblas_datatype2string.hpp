@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@ enum class rocblas_initialization
     rand_int   = 111,
     trig_float = 222,
     hpl        = 333,
-    special    = 444,
+    denorm     = 444,
+    denorm2    = 555,
 };
 
 enum class rocblas_arithmetic_check
@@ -152,8 +153,10 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
         return "trig_float";
     case rocblas_initialization::hpl:
         return "hpl";
-    case rocblas_initialization::special:
-        return "special";
+    case rocblas_initialization::denorm:
+        return "denorm";
+    case rocblas_initialization::denorm2:
+        return "denorm2";
     }
     return "invalid";
 }
@@ -207,7 +210,8 @@ inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream&           
         CASE(rocblas_initialization::rand_int);
         CASE(rocblas_initialization::trig_float);
         CASE(rocblas_initialization::hpl);
-        CASE(rocblas_initialization::special);
+        CASE(rocblas_initialization::denorm);
+        CASE(rocblas_initialization::denorm2);
     }
     return os << "invalid";
 }
@@ -302,7 +306,8 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
         value == "rand_int"   ? rocblas_initialization::rand_int   :
         value == "trig_float" ? rocblas_initialization::trig_float :
         value == "hpl"        ? rocblas_initialization::hpl        :
-        value == "special"    ? rocblas_initialization::special    :
+        value == "denorm"    ? rocblas_initialization::denorm    :
+        value == "denorm2"    ? rocblas_initialization::denorm2    :
         static_cast<rocblas_initialization>(0); // zero not in enum
 }
 
