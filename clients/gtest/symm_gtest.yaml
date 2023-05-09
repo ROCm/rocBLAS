@@ -3,6 +3,11 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &size_t_m_n_lda_ldb_ldc
+    - { M: 4096,  N: 4096, lda: 1048600, ldb:    4096, ldc:    4096  }
+    - { M: 4096,  N: 4096, lda:    4096, ldb: 1048600, ldc:    4096  }
+    - { M: 4096,  N: 4096, lda:    4096, ldb:    4096, ldc: 1048600  }
+
   - &quick_matrix_size_range
     - { M:  -1,  N:  1,  lda:  1,  ldb: 1,  ldc:  1 } # bad n
     - { M:   2,  N: -1,  lda:  2,  ldb: 2,  ldc:  1 } # bad k
@@ -45,7 +50,7 @@ Tests:
   side: [ R ]
   api: [ C, FORTRAN ]
 
-- name: symm_size_t
+- name: symm_m_or_n_large
   category: nightly
   function: symm
   precision: *single_precision
@@ -54,7 +59,7 @@ Tests:
   matrix_size:
     - { M:     4, N:  51200, lda: 51200, ldb:     4, ldc:     4 }
     - { M: 51200, N:      4, lda:     4, ldb: 51200, ldc: 51200 }
-  pointer_mode_device: false
+  pointer_mode_host: false
   alpha_beta:
     - { alpha:  3.0, alphai:  0.0, beta:  2.0, betai: 0.0 }
 
@@ -97,6 +102,19 @@ Tests:
   matrix_size: *large_matrix_size_range
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
+
+- name: symm_size_t
+  category: nightly
+  function: symm
+  precision: *single_precision
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *size_t_m_n_lda_ldb_ldc
+  pointer_mode_host: false
+  alpha: [ 2 ]
+  beta: [ 2 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 # batched
 
@@ -143,6 +161,20 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   batch_count: [ 2 ]
+
+- name: symm_batched_size_t
+  category: nightly
+  function: symm_batched
+  precision: *single_precision
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *size_t_m_n_lda_ldb_ldc
+  pointer_mode_host: false
+  alpha: [ 2 ]
+  beta: [ 2 ]
+  batch_count: [ 1 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 # strided batched
 
