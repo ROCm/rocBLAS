@@ -319,7 +319,8 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
     rocblas_int          batch_count = arg.batch_count;
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error = 0.0, err1 = 0.0, err2 = 0.0;
+    double err_host   = 0.0;
+    double err_device = 0.0;
 
     // Note: N==0 is not an early exit, since C still needs to be multiplied by beta
     bool invalid_size = batch_count < 0 || M < 0 || N < 0 || ldc < M || ldb < M
@@ -511,7 +512,7 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
             }
             if(arg.norm_check)
             {
-                err1 = std::abs(
+                err_host = std::abs(
                     norm_check_general<T>('F', M, N, ldc, strideC, hC_gold, hC, batch_count));
             }
         }
@@ -535,12 +536,10 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
 
             if(arg.norm_check)
             {
-                err2 = std::abs(
+                err_device = std::abs(
                     norm_check_general<T>('F', M, N, ldc, strideC, hC_gold, hC, batch_count));
-                rocblas_error = err1 > err2 ? err1 : err2;
             }
         }
-        rocblas_error = err1 > err2 ? err1 : err2;
     }
 
     if(arg.timing)
@@ -619,6 +618,7 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
                          gflop_count_fn(side, M, N),
                          ArgumentLogging::NA_value,
                          cpu_time_used,
-                         rocblas_error);
+                         err_host,
+                         err_device);
     }
 }

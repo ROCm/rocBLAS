@@ -175,7 +175,8 @@ void testing_symm_hemm(const Arguments& arg)
     T                    beta  = arg.get_beta<T>();
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error = 0.0, err1 = 0.0, err2 = 0.0;
+    double err_host   = 0.0;
+    double err_device = 0.0;
 
     // Note: N==0 is not an early exit, since C still needs to be multiplied by beta
     bool invalid_size = M < 0 || N < 0 || ldc < M || ldb < M
@@ -306,7 +307,7 @@ void testing_symm_hemm(const Arguments& arg)
             }
             if(arg.norm_check)
             {
-                err1 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC));
+                err_host = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC));
             }
         }
         if(arg.pointer_mode_device)
@@ -328,10 +329,9 @@ void testing_symm_hemm(const Arguments& arg)
             }
             if(arg.norm_check)
             {
-                err2 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC));
+                err_device = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC));
             }
         }
-        rocblas_error = err1 > err2 ? err1 : err2;
     }
 
     if(arg.timing)
@@ -362,6 +362,7 @@ void testing_symm_hemm(const Arguments& arg)
             gflop_count_fn(side, M, N),
             ArgumentLogging::NA_value,
             cpu_time_used,
-            rocblas_error);
+            err_host,
+            err_device);
     }
 }

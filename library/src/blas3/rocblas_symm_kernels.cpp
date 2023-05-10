@@ -490,9 +490,9 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
     rocblas_int symm_m = rocblas_side_left == side ? nb_diag : m; // diag block symm argument m
     rocblas_int symm_n = rocblas_side_left == side ? n : nb_diag; // diag block symm argument n
 
-    rocblas_int diag_a_stride = 1 + lda; // stride for diag blocks in a
-    rocblas_int diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
-    rocblas_int diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
+    int64_t diag_a_stride = 1 + lda; // stride for diag blocks in a
+    int64_t diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
+    int64_t diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
 
     rocblas_int i_diag; // index of diag block
 
@@ -500,9 +500,9 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
     // clang-format off
     RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
              side, uplo, symm_m, symm_n, alpha,
-             a, offsetA, lda, int64_t(nb_diag) * diag_a_stride,
-             b, offsetB, ldb, int64_t(nb_diag) * diag_b_stride, beta,
-             c, offsetC, ldc, int64_t(nb_diag) * diag_c_stride, n_nb)));
+             a, offsetA, lda, nb_diag * diag_a_stride,
+             b, offsetB, ldb, nb_diag * diag_b_stride, beta,
+             c, offsetC, ldc, nb_diag * diag_c_stride, n_nb)));
 
     // calls to symm for single remainder diagonal block of size nb_rem < nb_diag
     if(nb_rem != 0)
@@ -513,14 +513,13 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
 
         RETURN_IF_ROCBLAS_ERROR( (rocblas_symm_dispatch<HERM>(handle,
                  side, uplo, symm_m, symm_n, alpha,
-                 a, int64_t(i_diag) * diag_a_stride + offsetA, lda, 0,
-                 b, int64_t(i_diag) * diag_b_stride + offsetB, ldb, 0, beta,
-                 c, int64_t(i_diag) * diag_c_stride + offsetC, ldc, 0, 1)));
+                 a, i_diag * diag_a_stride + offsetA, lda, 0,
+                 b, i_diag * diag_b_stride + offsetB, ldb, 0, beta,
+                 c, i_diag * diag_c_stride + offsetC, ldc, 0, 1)));
     }
 
-    int64_t stride;
-    rocblas_int stride_rem, i_start;
-    rocblas_int nb; // size of sub-diagonal blocks of matrix a
+    int64_t stride, stride_rem, i_start;
+    int64_t nb; // size of sub-diagonal blocks of matrix a
 
     // calls to gemm for sub-diagonal square blocks in matrix a with size m = n = nb.
     // Start with nb = nb_diag. Each iteration of the outer loop nb doubles, and the
@@ -827,9 +826,9 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
     rocblas_int symm_m = rocblas_side_left == side ? nb_diag : m; // diag block symm argument m
     rocblas_int symm_n = rocblas_side_left == side ? n : nb_diag; // diag block symm argument n
 
-    rocblas_int diag_a_stride = 1 + lda; // stride for diag blocks in a
-    rocblas_int diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
-    rocblas_int diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
+    int64_t     diag_a_stride = 1 + lda; // stride for diag blocks in a
+    int64_t     diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
+    int64_t     diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
 
     rocblas_int i_diag; // index of diag block
 
@@ -858,8 +857,8 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                  c, i_diag * diag_c_stride + offsetC, ldc, strideC, batch_count)));
     }
 
-    rocblas_int stride, stride_rem, i_start;
-    rocblas_int nb; // size of sub-diagonal blocks of matrix a
+    int64_t stride, stride_rem, i_start;
+    int64_t nb; // size of sub-diagonal blocks of matrix a
     // calls to gemm for sub-diagonal square blocks in matrix a with size m = n = nb.
     // Start with nb = nb_diag. Each iteration of the outer loop nb doubles, and the
     // number of gemm calls halves.

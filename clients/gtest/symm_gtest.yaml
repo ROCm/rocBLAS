@@ -50,7 +50,7 @@ Tests:
   side: [ R ]
   api: [ C, FORTRAN ]
 
-- name: symm_m_or_n_large
+- name: symm_size_t_m_or_n_large
   category: nightly
   function: symm
   precision: *single_precision
