@@ -546,12 +546,15 @@ Tests:
     gpu_arch: '90a'
 
   - name: blas1_size_t
-    category: pre_checkin
+    category: pre_checkin # stress
     matrix_size: *size_t_pos_x_range
     pointer_mode_host: false
     function:
       - iamax: *single_precision
       - asum: *single_precision
+      - nrm2_ex: *hpa_half_precision
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
     category: nightly # stress_scal_ex
