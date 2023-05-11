@@ -224,65 +224,97 @@ void testing_dot_ex(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS, rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_ex_fn)(handle,
-                                                N,
-                                                dx,
-                                                x_type,
-                                                incx,
-                                                dy_ptr,
-                                                y_type,
-                                                incy,
-                                                rocblas_result_1,
-                                                result_type,
-                                                execution_type));
-        // GPU BLAS, rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_dot_ex_fn)(handle,
-                                                N,
-                                                dx,
-                                                x_type,
-                                                incx,
-                                                dy_ptr,
-                                                y_type,
-                                                incy,
-                                                d_rocblas_result_2,
-                                                result_type,
-                                                execution_type));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+        if(arg.pointer_mode_host)
+        {
+            // GPU BLAS, rocblas_pointer_mode_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_ROCBLAS_ERROR((rocblas_dot_ex_fn)(handle,
+                                                    N,
+                                                    dx,
+                                                    x_type,
+                                                    incx,
+                                                    dy_ptr,
+                                                    y_type,
+                                                    incy,
+                                                    rocblas_result_1,
+                                                    result_type,
+                                                    execution_type));
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            // GPU BLAS, rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_dot_ex_fn)(handle,
+                                                    N,
+                                                    dx,
+                                                    x_type,
+                                                    incx,
+                                                    dy_ptr,
+                                                    y_type,
+                                                    incy,
+                                                    d_rocblas_result_2,
+                                                    result_type,
+                                                    execution_type));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         (CONJ ? cblas_dotc<Tx> : cblas_dot<Tx>)(N, hx, incx, hy_ptr, incy, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+            if(arg.unit_check)
             {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = N * sum_error_tolerance<Tex>;
+                if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = N * sum_error_tolerance<Tex>;
 
-                near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_1, tol);
-                near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_2, tol);
+                    near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_1, tol);
+                }
+                else
+                {
+                    unit_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_1);
+                }
             }
-            else
+
+            if(arg.norm_check)
             {
-                unit_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_1);
-                unit_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_2);
+                rocblas_error_1
+                    = double(rocblas_abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]));
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1
-                = double(rocblas_abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]));
-            rocblas_error_2
-                = double(rocblas_abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]));
+            CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+
+            if(arg.unit_check)
+            {
+                if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = N * sum_error_tolerance<Tex>;
+
+                    near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_2, tol);
+                }
+                else
+                {
+                    unit_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_2);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2
+                    = double(rocblas_abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]));
+            }
         }
     }
 
