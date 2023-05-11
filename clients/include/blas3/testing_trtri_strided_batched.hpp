@@ -36,6 +36,8 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas3/rocblas_trtri.hpp"
+
 template <typename T>
 void testing_trtri_strided_batched_bad_arg(const Arguments& arg)
 {
@@ -252,15 +254,50 @@ void testing_trtri_strided_batched(const Arguments& arg)
     {
         // Test out of place
         handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched_fn(
-            handle, uplo, diag, N, dA, lda, stride_A, dinvA, lda, stride_A, batch_count));
+        if(arg.api != INTERNAL)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched_fn(
+                handle, uplo, diag, N, dA, lda, stride_A, dinvA, lda, stride_A, batch_count));
+        }
+        else
+        {
+            rocblas_stride offsetA         = arg.ldc;
+            rocblas_stride offsetinvA      = arg.ldd;
+            rocblas_stride subStride       = 0;
+            rocblas_int    sub_batch_count = 1;
+
+            size_t           work_el = rocblas_internal_trtri_temp_elements(N, batch_count);
+            device_vector<T> workspace(work_el);
+
+            CHECK_ROCBLAS_ERROR(rocblas_internal_trtri_template(handle,
+                                                                uplo,
+                                                                diag,
+                                                                N,
+                                                                (const T*)dA + offsetA,
+                                                                -offsetA,
+                                                                lda,
+                                                                stride_A,
+                                                                subStride,
+                                                                (T*)dinvA + offsetinvA,
+                                                                -offsetinvA,
+                                                                lda,
+                                                                stride_A,
+                                                                subStride,
+                                                                batch_count,
+                                                                sub_batch_count,
+                                                                (T*)workspace));
+        }
         handle.post_test(arg);
 
         // Test in place
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched_fn(
-            handle, uplo, diag, N, dA, lda, stride_A, dA, lda, stride_A, batch_count));
-        handle.post_test(arg);
+        if(arg.api != INTERNAL)
+        {
+            handle.pre_test(arg);
+            // TODO: Need to check in-inplace tests for all sizes, excluding from internal tests for now
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched_fn(
+                handle, uplo, diag, N, dA, lda, stride_A, dA, lda, stride_A, batch_count));
+            handle.post_test(arg);
+        }
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA.transfer_from(dinvA));
@@ -285,16 +322,18 @@ void testing_trtri_strided_batched(const Arguments& arg)
         {
             const double rel_error = trtri_tolerance<T>(N);
             near_check_general<T>(N, N, lda, stride_A, hB, hA, batch_count, rel_error);
-            near_check_general<T>(N, N, lda, stride_A, hB, hA_2, batch_count, rel_error);
+            if(arg.api != INTERNAL)
+                near_check_general<T>(N, N, lda, stride_A, hB, hA_2, batch_count, rel_error);
         }
 
         if(arg.norm_check)
         {
             rocblas_error
                 = norm_check_symmetric<T>('F', char_uplo, N, lda, stride_A, hB, hA, batch_count);
-            rocblas_error = fmax(
-                rocblas_error,
-                norm_check_symmetric<T>('F', char_uplo, N, lda, stride_A, hB, hA, batch_count));
+            if(arg.api != INTERNAL)
+                rocblas_error = fmax(
+                    rocblas_error,
+                    norm_check_symmetric<T>('F', char_uplo, N, lda, stride_A, hB, hA, batch_count));
         }
     } // end of norm_check
 
