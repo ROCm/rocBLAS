@@ -533,16 +533,25 @@ Tests:
     os_flags: LINUX
 
   - name: blas1_size_t
-    category: nightly # stress_iamax_asum
+    category: nightly #stress
+    matrix_size: *size_t_pos_neg_xy_range
+    pointer_mode_host: false
+    function:
+      - dot_ex: *half_precision
+      - dotc_ex: *half_precision
+      # dot shared kernels for dot_ex so only testing size_t with dot_ex and half
+      # batched and strided_batched also shared code
+    algo: [0, 1] # algo 1 is x dot x
+    os_tags: LINUX
+    gpu_arch: '90a'
+
+  - name: blas1_size_t
+    category: pre_checkin
     matrix_size: *size_t_pos_x_range
     pointer_mode_host: false
     function:
       - iamax: *single_precision
       - asum: *single_precision
-      - nrm2_ex: *hpa_half_precision
-    pointer_mode_host: false
-    gpu_arch: '90a'
-    os_flags: LINUX
 
   - name: blas1_size_t
     category: nightly # stress_scal_ex

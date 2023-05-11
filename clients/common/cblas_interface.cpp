@@ -162,24 +162,18 @@ void cblas_dot<rocblas_half>(int64_t             n,
                              int64_t             incy,
                              rocblas_half*       result)
 {
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = n * abs_incx;
-    size_t size_y   = n * abs_incy;
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
-    host_vector<float> x_float(size_x);
-    host_vector<float> y_float(size_y);
+    int64_t ix = incx >= 0 ? 0 : (1 - n) * incx;
+    int64_t iy = incy >= 0 ? 0 : (1 - n) * incy;
 
+    float r = 0.0f;
     for(size_t i = 0; i < n; i++)
     {
-        x_float[i * abs_incx] = x[i * abs_incx];
-        y_float[i * abs_incy] = y[i * abs_incy];
+        r += float(x[ix]) * float(y[iy]);
+        ix += incx;
+        iy += incy;
     }
 
-    *result = rocblas_half(cblas_sdot(n, x_float, incx, y_float, incy));
+    *result = rocblas_half(r);
 }
 
 template <>
@@ -190,24 +184,18 @@ void cblas_dot<rocblas_bfloat16>(int64_t                 n,
                                  int64_t                 incy,
                                  rocblas_bfloat16*       result)
 {
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = n * abs_incx;
-    size_t size_y   = n * abs_incy;
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
-    host_vector<float> x_float(size_x);
-    host_vector<float> y_float(size_y);
+    int64_t ix = incx >= 0 ? 0 : (1 - n) * incx;
+    int64_t iy = incy >= 0 ? 0 : (1 - n) * incy;
 
+    float r = 0.0f;
     for(size_t i = 0; i < n; i++)
     {
-        x_float[i * abs_incx] = float(x[i * abs_incx]);
-        y_float[i * abs_incy] = float(y[i * abs_incy]);
+        r += float(x[ix]) * float(y[iy]);
+        ix += incx;
+        iy += incy;
     }
 
-    *result = rocblas_bfloat16(cblas_sdot(n, x_float, incx, y_float, incy));
+    *result = rocblas_bfloat16(r);
 }
 
 template <>

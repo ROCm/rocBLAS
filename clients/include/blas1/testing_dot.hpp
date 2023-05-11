@@ -165,69 +165,101 @@ void testing_dot(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS, rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, &rocblas_result_1));
-
-        // GPU BLAS, rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-
-        handle.pre_test(arg);
-        if(arg.api != INTERNAL)
+        if(arg.pointer_mode_host)
         {
+            // GPU BLAS, rocblas_pointer_mode_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_ROCBLAS_ERROR(
-                (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2));
+                (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, &rocblas_result_1));
         }
-        else if constexpr(std::is_same_v<T, float>)
-        {
-            rocblas_stride offset_x = arg.lda;
-            rocblas_stride offset_y = arg.ldb;
-            CHECK_ROCBLAS_ERROR((rocblas_internal_dot_template<T, T>)(handle,
-                                                                      N,
-                                                                      dx + offset_x,
-                                                                      -offset_x,
-                                                                      incx,
-                                                                      arg.stride_x,
-                                                                      dy_ptr + offset_y,
-                                                                      -offset_y,
-                                                                      incy,
-                                                                      arg.stride_y,
-                                                                      1,
-                                                                      d_rocblas_result_2,
-                                                                      nullptr)); // N must be small
-        }
-        handle.post_test(arg);
 
-        CHECK_HIP_ERROR(
-            hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T), hipMemcpyDeviceToHost));
+        if(arg.pointer_mode_device)
+        {
+            // GPU BLAS, rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            handle.pre_test(arg);
+            if(arg.api != INTERNAL)
+            {
+                CHECK_ROCBLAS_ERROR(
+                    (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2));
+            }
+            else if constexpr(std::is_same_v<T, float>)
+            {
+                rocblas_stride offset_x = arg.lda;
+                rocblas_stride offset_y = arg.ldb;
+                CHECK_ROCBLAS_ERROR(
+                    (rocblas_internal_dot_template<T, T>)(handle,
+                                                          N,
+                                                          dx + offset_x,
+                                                          -offset_x,
+                                                          incx,
+                                                          arg.stride_x,
+                                                          dy_ptr + offset_y,
+                                                          -offset_y,
+                                                          incy,
+                                                          arg.stride_y,
+                                                          1,
+                                                          d_rocblas_result_2,
+                                                          nullptr)); // N must be small
+            }
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N, hx, incx, hy_ptr, incy, &cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            if(std::is_same_v<T, rocblas_half> && N > 10000)
+            if(arg.unit_check)
             {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = N * sum_error_tolerance<T>;
+                if(std::is_same_v<T, rocblas_half> && N > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = N * sum_error_tolerance<T>;
 
-                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
-                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
+                    near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1);
+                }
             }
-            else
+
+            if(arg.norm_check)
             {
-                unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1);
-                unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2);
+                rocblas_error_1 = double(rocblas_abs((cpu_result - rocblas_result_1) / cpu_result));
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = double(rocblas_abs((cpu_result - rocblas_result_1) / cpu_result));
-            rocblas_error_2 = double(rocblas_abs((cpu_result - rocblas_result_2) / cpu_result));
+            CHECK_HIP_ERROR(
+                hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T), hipMemcpyDeviceToHost));
+
+            if(arg.unit_check)
+            {
+                if(std::is_same_v<T, rocblas_half> && N > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = N * sum_error_tolerance<T>;
+
+                    near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = double(rocblas_abs((cpu_result - rocblas_result_2) / cpu_result));
+            }
         }
     }
 
