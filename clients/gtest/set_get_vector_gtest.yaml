@@ -73,5 +73,8 @@ Tests:
   function:
   - set_get_vector_sync
   - set_get_vector_async
+  # also avoid Navi hipmemcpy2DAsync issue
+  os_flags: LINUX
+  gpu_arch: ['908', '90a']
 
 ...
