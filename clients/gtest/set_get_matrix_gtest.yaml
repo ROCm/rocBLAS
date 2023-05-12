@@ -77,6 +77,8 @@ Tests:
   function:
   - set_get_matrix_sync
   # can add async after hipmemcpy2Dasync fixed
+  os_flags: LINUX
+  gpu_arch: ['90a']
 
 - name: set_get_matrix_size_t
   category: [pre_checkin] # stress
@@ -85,5 +87,7 @@ Tests:
   function:
   - set_get_matrix_sync
   - set_get_matrix_async
+  os_flags: LINUX
+  gpu_arch: ['90a']
 
 ...
