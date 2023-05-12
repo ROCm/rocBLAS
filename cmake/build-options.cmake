@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ option(BUILD_CODE_COVERAGE "Build rocBLAS with code coverage enabled" OFF)
 # FOR OPTIONAL ADDRESS SANITIZER
 option(BUILD_ADDRESS_SANITIZER "Build with address sanitizer enabled" OFF)
 
-# FOR OPTIONAL HEADER TESTSING
+# FOR OPTIONAL HEADER TESTING
 option(RUN_HEADER_TESTING "Post build header compatibility testing" OFF)
 
 if( BUILD_WITH_TENSILE )
@@ -83,7 +83,8 @@ if( BUILD_WITH_TENSILE )
     option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
   endif()
 
-  option( TENSILE_VENV_UPGRADE_PIP "Upgrade pip in Tensile virtuaal environment" OFF)
+  option( TENSILE_VENV_UPGRADE_PIP "Upgrade pip in Tensile virtual environment" OFF)
+  option( BUILD_WITH_PIP "Use pip to install Python dependencies" ON)
 
 endif()
 
