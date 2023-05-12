@@ -217,7 +217,7 @@ ROCBLAS_KERNEL_ILF void rocblas_hemvn_kernel_upper_calc(rocblas_int n,
 
     // --------------------
     // move to block row
-    workspace += blk * n; // workspace is workspace(0, blk)
+    workspace += blk * size_t(n); // workspace is workspace(0, blk)
 
     A += blk_ind; // A is A(blk_ind, 0)
     A += ty2 * lda + tx2; // A is A(blk_ind + tx2, ty2)
@@ -1216,13 +1216,13 @@ ROCBLAS_KERNEL_ILF void
     __shared__ T accum[DIM_X * (2 * DIM_Y)];
 
     // Advance 'y'
-    y += (bx * DIM_X) * incy;
+    y += (bx * DIM_X) * int64_t(incy);
 
     // Early return when alpha == 0
     if(!alpha)
     {
         if(ty == 0)
-            y[incy * tx] *= beta;
+            y[int64_t(incy) * tx] *= beta;
         return;
     }
 
@@ -1230,18 +1230,18 @@ ROCBLAS_KERNEL_ILF void
     A += DIM_X * bx * (size_t(lda) + 1);
 
     // Advance 'A' to start row for each thread inside the diagonal block
-    A += ty * lda + tx;
+    A += ty * size_t(lda) + tx;
 
     // Advance 'x'
-    x += (bx * DIM_X) * incx;
+    x += (bx * DIM_X) * int64_t(incx);
 
     if(ty == 0)
     {
         // skip beta * y when beta == 0
         if(beta)
-            yold = beta * y[incy * tx];
+            yold = beta * y[int64_t(incy) * tx];
 
-        buff[tx] = x[incx * tx];
+        buff[tx] = x[int64_t(incx) * tx];
     }
 
     // load first chunk
@@ -1249,16 +1249,16 @@ ROCBLAS_KERNEL_ILF void
     {
 #pragma unroll
         for(int j = 0; j < (DIM_X / 2); j += DIM_Y)
-            la[td + j * DIM_X] = A[j * lda];
+            la[td + j * DIM_X] = A[j * size_t(lda)];
     }
 
     // Advance to second chunk
-    A += (DIM_X / 2) * lda;
+    A += (DIM_X / 2) * size_t(lda);
 
 // load second chunk first
 #pragma unroll
     for(int j = 0; j < (DIM_X / 2); j += DIM_Y)
-        la[DIM_X * ((DIM_X / 2) + j + ty) + tx] = A[j * lda];
+        la[DIM_X * ((DIM_X / 2) + j + ty) + tx] = A[j * size_t(lda)];
 
     __syncthreads();
 
@@ -1304,7 +1304,7 @@ ROCBLAS_KERNEL_ILF void
         if(beta)
             res += yold;
 
-        y[tx * incy] = res;
+        y[tx * int64_t(incy)] = res;
     }
 }
 
@@ -1355,19 +1355,19 @@ ROCBLAS_KERNEL_ILF void
     // divide the work among y-direction of the grid
     A += (by * count) * DIM_X;
 
-    xcopy = x + (bx * DIM_X) * incx;
-    x += (by * count * DIM_X) * incx;
+    xcopy = x + (bx * DIM_X) * int64_t(incx);
+    x += (by * count * DIM_X) * int64_t(incx);
 
     if(bx == 0)
         return;
 
     if(ty == 0)
-        xbuff[tx] = xcopy[tx * incx];
+        xbuff[tx] = xcopy[tx * int64_t(incx)];
 
     // Advance 'y'
     ycopy = y;
-    y += (bx * DIM_X) * incy;
-    ycopy += (by * count * DIM_X) * incy;
+    y += (bx * DIM_X) * int64_t(incy);
+    ycopy += (by * count * DIM_X) * int64_t(incy);
 
     if(by == gridDim.y - 1)
         count += bx % gridDim.y;
@@ -1375,16 +1375,16 @@ ROCBLAS_KERNEL_ILF void
     if(count == 0)
         return;
 
-    const int j = ty_ * elements_per_thread * lda + tx_;
+    size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
     __syncthreads();
 
 // prefetch upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        A_reg_upper[k] = A[j + k * lda];
+        A_reg_upper[k] = A[j + k * size_t(lda)];
 
-    x1 = x[incx * tx_];
+    x1 = x[int64_t(incx) * tx_];
 
     //#pragma unroll
     for(int Vblocks = 0; Vblocks < count; Vblocks++)
@@ -1392,12 +1392,12 @@ ROCBLAS_KERNEL_ILF void
         res_1_ = T(0);
         res_2_ = T(0);
 
-        x2 = x[incx * (tx_ + (DIM_X / 2))];
+        x2 = x[int64_t(incx) * (tx_ + (DIM_X / 2))];
 
 // prefetch lower
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+            A_reg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
 
 // compute upper
 #pragma unroll
@@ -1409,14 +1409,14 @@ ROCBLAS_KERNEL_ILF void
 
         // Advance to next block in A
         A += DIM_X;
-        x += DIM_X * incx;
+        x += DIM_X * int64_t(incx);
 
         if(Vblocks != count - 1)
         {
 // prefetch upper of next block
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                A_reg_upper[k] = A[j + k * lda];
+                A_reg_upper[k] = A[j + k * size_t(lda)];
 
             x1 = x[incx * tx_];
         }
@@ -1441,8 +1441,8 @@ ROCBLAS_KERNEL_ILF void
                 res_1_ += accum[k * DIM_X + tx];
 
             // use atomics
-            atomicAdd(&ycopy[incy * tx], res_1_ * alpha);
-            ycopy += DIM_X * incy;
+            atomicAdd(&ycopy[tx * int64_t(incy)], res_1_ * alpha);
+            ycopy += DIM_X * int64_t(incy);
         }
     } // end of for loop on blocks
 
@@ -1460,7 +1460,7 @@ ROCBLAS_KERNEL_ILF void
             treg[0] += la[tx * (DIM_X / 2) + (k % (DIM_X / 2))];
 
         // use atomics
-        atomicAdd(&y[tx * incy], treg[0] * alpha);
+        atomicAdd(&y[tx * int64_t(incy)], treg[0] * alpha);
     }
 }
 
@@ -1507,13 +1507,13 @@ ROCBLAS_KERNEL_ILF void
     __shared__ T accum_shared[DIM_X * (2 * DIM_Y)];
 
     // Advance 'y'
-    y += (bx * DIM_X) * incy;
+    y += (bx * DIM_X) * int64_t(incy);
 
     // Early return when alpha == 0
     if(!alpha)
     {
         if(ty == 0 && (tx < n_mod_DIM_X || bx < gridDim.x - 1))
-            y[tx * incy] *= beta;
+            y[tx * int64_t(incy)] *= beta;
 
         return;
     }
@@ -1522,17 +1522,17 @@ ROCBLAS_KERNEL_ILF void
     A += DIM_X * bx * (size_t(lda) + 1);
 
     // Advance 'A' to start row for each thread inside the diagonal block
-    A += ty * lda + tx;
+    A += ty * size_t(lda) + tx;
 
     // Advance 'x'
-    x += (bx * DIM_X) * incx;
+    x += (bx * DIM_X) * int64_t(incx);
 
     // load part of vector 'x'
     if(ty == 0 && (tx < n_mod_DIM_X || bx < gridDim.x - 1))
     {
-        x_buff_shared[tx] = x[incx * tx];
+        x_buff_shared[tx] = x[tx * int64_t(incx)];
         if(beta)
-            yold = beta * y[incy * tx];
+            yold = beta * y[tx * int64_t(incy)];
     }
 
     // init shmem (last TB only)
@@ -1554,17 +1554,17 @@ ROCBLAS_KERNEL_ILF void
             int j;
 #pragma unroll
             for(j = 0; j < n_mod_DIM_X / DIM_Y; j++)
-                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * lda];
+                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * size_t(lda)];
 
             if(ty < (n_mod_DIM_X % DIM_Y))
-                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * lda];
+                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * size_t(lda)];
         }
     }
     else
     {
 #pragma unroll
         for(int j = 0; j < DIM_X; j += DIM_Y)
-            la_shared[j * DIM_X + td] = A[j * lda];
+            la_shared[j * DIM_X + td] = A[j * size_t(lda)];
     }
     // end of reading a diagonal block of data
 
@@ -1614,7 +1614,7 @@ ROCBLAS_KERNEL_ILF void
             res += yold;
 
         if(tx < n_mod_DIM_X || bx < gridDim.x - 1)
-            y[tx * incy] = res;
+            y[tx * int64_t(incy)] = res;
     }
 }
 
@@ -1667,13 +1667,13 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
     A += (by * count) * DIM_X;
 
     // Advance 'x'
-    xcopy = x + (bx * DIM_X) * incx;
-    x += (by * count * DIM_X) * incx;
+    xcopy = x + (bx * DIM_X) * int64_t(incx);
+    x += (by * count * DIM_X) * int64_t(incx);
 
     // Advance 'y'
     ycopy = y;
-    y += (bx * DIM_X) * incy;
-    ycopy += (by * count * DIM_X) * incy;
+    y += (bx * DIM_X) * int64_t(incy);
+    ycopy += (by * count * DIM_X) * int64_t(incy);
 
     if(bx == 0)
         return;
@@ -1692,7 +1692,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
         if(ty == 0)
         {
             if(tx < n_mod_DIM_X)
-                x_buff_shared[tx] = xcopy[tx * incx];
+                x_buff_shared[tx] = xcopy[tx * int64_t(incx)];
             else
                 x_buff_shared[tx] = T(0);
         }
@@ -1705,12 +1705,12 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
     else // not the last TB
     {
         if(ty == 0)
-            x_buff_shared[tx] = xcopy[tx * incx];
+            x_buff_shared[tx] = xcopy[tx * int64_t(incx)];
     }
 
     __syncthreads();
 
-    const int j = ty_ * elements_per_thread * lda + tx_;
+    const size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
     // prefetch upper
     if(bx == gridDim.x - 1) // last TB "irregular"
@@ -1719,30 +1719,30 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                A_reg_upper[k] = A[j + k * lda];
+                A_reg_upper[k] = A[j + k * size_t(lda)];
         }
         else if(ty_ == num_active_thread_cols)
         {
 #pragma unroll
             for(int k = 0; k < irregular_part; k++)
-                A_reg_upper[k] = A[j + k * lda];
+                A_reg_upper[k] = A[j + k * size_t(lda)];
         }
     }
     else // not last TB
     {
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            A_reg_upper[k] = A[j + k * lda];
+            A_reg_upper[k] = A[j + k * size_t(lda)];
     }
 
-    x1 = x[incx * tx_];
+    x1 = x[tx_ * int64_t(incx)];
 
     for(int Vblocks = 0; Vblocks < count; Vblocks++)
     {
         res_1_ = T(0);
         res_2_ = T(0);
 
-        x2 = x[incx * (tx_ + (DIM_X / 2))];
+        x2 = x[(tx_ + (DIM_X / 2)) * int64_t(incx)];
 
         // prefetch lower
         if(bx == gridDim.x - 1)
@@ -1751,20 +1751,20 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
             {
 #pragma unroll
                 for(int k = 0; k < elements_per_thread; k++)
-                    A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+                    A_reg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
             }
             else if(ty_ == num_active_thread_cols)
             {
 #pragma unroll
                 for(int k = 0; k < irregular_part; k++)
-                    A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+                    A_reg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
             }
         }
         else
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+                A_reg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
         } // end of prefetch lower
 
 // compute upper
@@ -1777,7 +1777,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
 
         // Advance to next block
         A += DIM_X;
-        x += DIM_X * incx;
+        x += DIM_X * int64_t(incx);
 
         // prefetch upper of next block
         if(Vblocks != count - 1)
@@ -1788,22 +1788,22 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
                 {
 #pragma unroll
                     for(int k = 0; k < elements_per_thread; k++)
-                        A_reg_upper[k] = A[j + k * lda];
+                        A_reg_upper[k] = A[j + k * size_t(lda)];
                 }
                 else if(ty_ == num_active_thread_cols)
                 {
 #pragma unroll
                     for(int k = 0; k < irregular_part; k++)
-                        A_reg_upper[k] = A[j + k * lda];
+                        A_reg_upper[k] = A[j + k * size_t(lda)];
                 }
             }
             else // not last TB
             {
 #pragma unroll
                 for(int k = 0; k < elements_per_thread; k++)
-                    A_reg_upper[k] = A[j + k * lda];
+                    A_reg_upper[k] = A[j + k * size_t(lda)];
             }
-            x1 = x[incx * tx_];
+            x1 = x[tx_ * int64_t(incx)];
         }
 
 #pragma unroll
@@ -1827,8 +1827,8 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
                 res_1_ += accum_shared[k * DIM_X + tx];
 
             // use atomics
-            atomicAdd(&ycopy[incy * tx], res_1_ * alpha);
-            ycopy += DIM_X * incy;
+            atomicAdd(&ycopy[tx * int64_t(incy)], res_1_ * alpha);
+            ycopy += DIM_X * int64_t(incy);
         }
     } // end of for loop on blocks
 
@@ -1847,7 +1847,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_upper_double_buffered_non_diagonal_g
 
         // use atomics
         if(tx < n_mod_DIM_X || bx < gridDim.x - 1)
-            atomicAdd(&y[tx * incy], treg[0] * alpha);
+            atomicAdd(&y[tx * int64_t(incy)], treg[0] * alpha);
     }
 }
 
@@ -1895,13 +1895,13 @@ ROCBLAS_KERNEL_ILF void
     __shared__ T accum[DIM_X * (2 * DIM_Y)];
 
     // Advance 'y'
-    y += (bx * DIM_X) * incy;
+    y += (bx * DIM_X) * int64_t(incy);
 
     // Early return when alpha == 0
     if(!alpha)
     {
         if(ty == 0)
-            y[incy * tx] *= beta;
+            y[tx * int64_t(incy)] *= beta;
         return;
     }
 
@@ -1909,26 +1909,26 @@ ROCBLAS_KERNEL_ILF void
     A += DIM_X * bx * (size_t(lda) + 1);
 
     // Advance 'A' to start row for each thread inside the diagonal block
-    A += ty * lda + tx;
+    A += ty * size_t(lda) + tx;
 
     // Advance 'x'
-    x += (bx * DIM_X) * incx;
+    x += (bx * DIM_X) * int64_t(incx);
 
     if(ty == 0)
     {
         // skip beta * y when beta == 0
         if(beta)
-            yold = beta * y[incy * tx];
-        buff[tx] = x[incx * tx];
+            yold = beta * y[tx * int64_t(incy)];
+        buff[tx] = x[tx * int64_t(incx)];
     }
 
 // load first chunk
 #pragma unroll
     for(int k = 0; k < (DIM_X / 2); k += DIM_Y)
-        la[td + k * DIM_X] = A[k * lda];
+        la[td + k * DIM_X] = A[k * size_t(lda)];
 
     // Advance to second chunk
-    A += (DIM_X / 2) * lda;
+    A += (DIM_X / 2) * size_t(lda);
 
     // load second chunk
     if(tx
@@ -1937,7 +1937,7 @@ ROCBLAS_KERNEL_ILF void
     {
 #pragma unroll
         for(int k = 0; k < (DIM_X / 2); k += DIM_Y)
-            la[DIM_X * ((DIM_X / 2) + k + ty) + tx] = A[k * lda];
+            la[DIM_X * ((DIM_X / 2) + k + ty) + tx] = A[k * size_t(lda)];
     }
 
     __syncthreads();
@@ -1984,7 +1984,7 @@ ROCBLAS_KERNEL_ILF void
         if(beta)
             res += yold;
 
-        y[incy * tx] = res;
+        y[tx * int64_t(incy)] = res;
     }
 }
 
@@ -2034,17 +2034,17 @@ ROCBLAS_KERNEL_ILF void
         A += (by * count) * DIM_X;
 
         // Advance 'x'
-        x += (bx * DIM_X) * incx;
+        x += (bx * DIM_X) * int64_t(incx);
         xcopy = x;
-        x += (by * count * DIM_X) * incx;
+        x += (by * count * DIM_X) * int64_t(incx);
 
         if(ty == 0)
-            xbuff[tx] = xcopy[tx * incx];
+            xbuff[tx] = xcopy[tx * int64_t(incx)];
 
         // Advance 'y'
-        y += (bx * DIM_X) * incy;
+        y += (bx * DIM_X) * int64_t(incy);
         ycopy = y;
-        ycopy += (by * count * DIM_X) * incy;
+        ycopy += (by * count * DIM_X) * int64_t(incy);
     }
 
     if(by == gridDim.y - 1)
@@ -2053,21 +2053,22 @@ ROCBLAS_KERNEL_ILF void
     if(count == 0)
         return;
 
-    T         res_1_ = T(0);
-    T         res_2_ = T(0);
-    T         x1     = T(0);
-    T         x2     = T(0);
-    const int j      = ty_ * elements_per_thread * lda + tx_;
+    T res_1_ = T(0);
+    T res_2_ = T(0);
+    T x1     = T(0);
+    T x2     = T(0);
+
+    const size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
     A += DIM_X;
-    x += DIM_X * incx;
+    x += DIM_X * int64_t(incx);
 
     __syncthreads();
 
 // read upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        A_reg_upper[k] = A[j + k * lda];
+        A_reg_upper[k] = A[j + k * size_t(lda)];
 
     for(int Vblocks = 0; Vblocks < count; Vblocks++)
     {
@@ -2075,13 +2076,13 @@ ROCBLAS_KERNEL_ILF void
         res_1_ = T(0);
         res_2_ = T(0);
 
-        x1 = x[incx * tx_];
-        x2 = x[incx * (tx_ + (DIM_X / 2))];
+        x1 = x[int64_t(incx) * tx_];
+        x2 = x[int64_t(incx) * (tx_ + (DIM_X / 2))];
 
 // read lower
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+            A_reg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
 
 // compute upper
 #pragma unroll
@@ -2092,14 +2093,14 @@ ROCBLAS_KERNEL_ILF void
         }
 
         A += DIM_X;
-        x += DIM_X * incx;
+        x += DIM_X * int64_t(incx);
 
         // read upper from next block
         if(Vblocks != count - 1)
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                A_reg_upper[k] = A[j + k * lda];
+                A_reg_upper[k] = A[j + k * size_t(lda)];
         }
 
 // compute lower
@@ -2117,14 +2118,14 @@ ROCBLAS_KERNEL_ILF void
         __syncthreads();
         if(ty == 0)
         {
-            ycopy += DIM_X * incy;
+            ycopy += DIM_X * int64_t(incy);
             res_1_ = T(0);
 #pragma unroll
             for(int k = 0; k < (2 * DIM_Y); k++)
                 res_1_ += accum[k * DIM_X + tx];
 
             // use atomics
-            atomicAdd(&ycopy[incy * tx], res_1_ * alpha);
+            atomicAdd(&ycopy[tx * int64_t(incy)], res_1_ * alpha);
         }
     }
 
@@ -2145,7 +2146,7 @@ ROCBLAS_KERNEL_ILF void
                 treg[0] += la[tx * (DIM_X / 2) + (k % (DIM_X / 2))];
 
             // use atomics
-            atomicAdd(&y[incy * tx], treg[0] * alpha);
+            atomicAdd(&y[tx * int64_t(incy)], treg[0] * alpha);
         }
     }
 }
@@ -2193,13 +2194,13 @@ ROCBLAS_KERNEL_ILF void
     __shared__ T accum_shared[DIM_X * (2 * DIM_Y)];
 
     // Advance y
-    y += (bx * DIM_X) * incy;
+    y += (bx * DIM_X) * int64_t(incy);
 
     // Early return when alpha == 0
     if(!alpha)
     {
         if(ty == 0 && (tx < n_mod_DIM_X || bx < gridDim.x - 1))
-            y[tx * incy] *= beta;
+            y[tx * int64_t(incy)] *= beta;
 
         return;
     }
@@ -2208,10 +2209,10 @@ ROCBLAS_KERNEL_ILF void
     A += DIM_X * bx * (size_t(lda) + 1);
 
     // Advance 'A' to start row for each thread inside the diagonal block
-    A += ty * lda + tx;
+    A += ty * size_t(lda) + tx;
 
     // Advance x
-    x += (bx * DIM_X) * incx;
+    x += (bx * DIM_X) * int64_t(incx);
 
     // load part of vector x
     if(bx == gridDim.x - 1)
@@ -2220,11 +2221,11 @@ ROCBLAS_KERNEL_ILF void
         {
             if(tx < n_mod_DIM_X)
             {
-                x_buff_shared[tx] = x[incx * tx];
+                x_buff_shared[tx] = x[tx * int64_t(incx)];
 
                 // skip beta * y when beta == 0
                 if(beta)
-                    yold = beta * y[tx * incy];
+                    yold = beta * y[tx * int64_t(incy)];
             }
             else
             {
@@ -2237,11 +2238,11 @@ ROCBLAS_KERNEL_ILF void
     {
         if(ty == 0)
         {
-            x_buff_shared[tx] = x[incx * tx];
+            x_buff_shared[tx] = x[int64_t(incx) * tx];
 
             // skip beta * y when beta == 0
             if(beta)
-                yold = beta * y[tx * incy];
+                yold = beta * y[tx * int64_t(incy)];
         }
     } // end of load part of vector x
 
@@ -2262,17 +2263,17 @@ ROCBLAS_KERNEL_ILF void
             int j;
 #pragma unroll
             for(j = 0; j < n_mod_DIM_X / DIM_Y; j++)
-                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * lda];
+                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * size_t(lda)];
 
             if(ty < (n_mod_DIM_X % DIM_Y))
-                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * lda];
+                la_shared[(j * DIM_Y) * DIM_X + td] = A[(j * DIM_Y) * size_t(lda)];
         }
     }
     else
     {
 #pragma unroll
         for(int j = 0; j < DIM_X; j += DIM_Y)
-            la_shared[j * DIM_X + td] = A[j * lda];
+            la_shared[j * DIM_X + td] = A[j * size_t(lda)];
     }
     // end of reading a diagonal block of data
 
@@ -2323,11 +2324,11 @@ ROCBLAS_KERNEL_ILF void
         if(bx == gridDim.x - 1)
         {
             if(tx < n_mod_DIM_X)
-                y[tx * incy] = res;
+                y[tx * int64_t(incy)] = res;
         }
         else
         {
-            y[tx * incy] = res;
+            y[tx * int64_t(incy)] = res;
         }
     }
 }
@@ -2383,17 +2384,17 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
     A += (by * count) * DIM_X;
 
     // Advance 'x'
-    x += (bx * DIM_X) * incx;
+    x += (bx * DIM_X) * int64_t(incx);
     xcopy = x;
-    x += (by * count * DIM_X) * incx;
+    x += (by * count * DIM_X) * int64_t(incx);
 
     if(ty == 0)
-        x_buff_shared[tx] = xcopy[incx * tx];
+        x_buff_shared[tx] = xcopy[tx * int64_t(incx)];
 
     //Advance 'y'
-    y += (bx * DIM_X) * incy;
+    y += (bx * DIM_X) * int64_t(incy);
     ycopy = y;
-    ycopy += (by * count * DIM_X) * incy;
+    ycopy += (by * count * DIM_X) * int64_t(incy);
 
     if(by == gridDim.y - 1)
         count += ((gridDim.x - bx - 1 - 1) % gridDim.y); // -1 for the generic block at the bottom
@@ -2404,37 +2405,37 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
             return;
     }
 
-    int j = ty_ * elements_per_thread * lda + tx_;
+    size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
     __syncthreads();
 
     A += DIM_X;
-    x += DIM_X * incx;
+    x += DIM_X * int64_t(incx);
 
     if(bx < gridDim.x - 2) // to prevent out of bound access
     {
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            A_reg_upper[k] = A[j + k * lda];
-        x1 = x[incx * tx_];
+            A_reg_upper[k] = A[j + k * size_t(lda)];
+        x1 = x[tx_ * int64_t(incx)];
     }
 
     A -= DIM_X;
-    x -= DIM_X * incx;
+    x -= DIM_X * int64_t(incx);
 
     for(int Vblocks = 0; Vblocks < count; Vblocks++)
     {
         A += DIM_X;
-        x += DIM_X * incx;
+        x += DIM_X * int64_t(incx);
 
         res_1_ = T(0);
         res_2_ = T(0);
 
-        x2 = x[incx * (tx_ + (DIM_X / 2))];
+        x2 = x[(tx_ + (DIM_X / 2)) * int64_t(incx)];
 
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+            A_reg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
 
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
@@ -2444,18 +2445,18 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
         }
 
         A += DIM_X;
-        x += DIM_X * incx;
+        x += DIM_X * int64_t(incx);
 
         if(Vblocks != count - 1)
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                A_reg_upper[k] = A[j + k * lda];
-            x1 = x[incx * tx_];
+                A_reg_upper[k] = A[j + k * size_t(lda)];
+            x1 = x[tx_ * int64_t(incx)];
         }
 
         A -= DIM_X;
-        x -= DIM_X * incx;
+        x -= DIM_X * int64_t(incx);
 
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
@@ -2471,14 +2472,14 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
         __syncthreads();
         if(ty == 0)
         {
-            ycopy += DIM_X * incy;
+            ycopy += DIM_X * int64_t(incy);
             res_1_ = T(0);
 #pragma unroll
             for(int k = 0; k < (2 * DIM_Y); k++)
                 res_1_ += accum_shared[k * DIM_X + tx];
 
             // use atomics
-            atomicAdd(&ycopy[incy * tx], res_1_ * alpha);
+            atomicAdd(&ycopy[tx * int64_t(incy)], res_1_ * alpha);
         }
     } // end of for loop on blocks
 
@@ -2490,7 +2491,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
         res_2_ = T(0);
 
         A += DIM_X;
-        x += DIM_X * incx;
+        x += DIM_X * int64_t(incx);
 
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
@@ -2503,18 +2504,18 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                A_reg_upper[k] = A[j + k * lda];
+                A_reg_upper[k] = A[j + k * size_t(lda)];
 
-            x1 = x[incx * tx_];
+            x1 = x[tx_ * int64_t(incx)];
         }
 
         if((tx_ + (DIM_X / 2)) < n_mod_DIM_X)
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                A_reg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+                A_reg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
 
-            x2 = x[incx * (tx_ + (DIM_X / 2))];
+            x2 = x[(tx_ + (DIM_X / 2)) * int64_t(incx)];
         }
 
 #pragma unroll
@@ -2538,7 +2539,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
         __syncthreads();
         if(ty == 0)
         {
-            ycopy += DIM_X * incy;
+            ycopy += DIM_X * int64_t(incy);
             res_1_ = T(0);
 #pragma unroll
             for(int k = 0; k < (2 * DIM_Y); k++)
@@ -2546,7 +2547,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
 
             // use atomics
             if(tx < n_mod_DIM_X)
-                atomicAdd(&ycopy[incy * tx], res_1_ * alpha);
+                atomicAdd(&ycopy[tx * int64_t(incy)], res_1_ * alpha);
         }
     }
 
@@ -2563,7 +2564,7 @@ ROCBLAS_KERNEL_ILF void rocblas_symv_kernel_lower_double_buffered_non_diagonal_g
         for(int k = tx; k < tx + (DIM_X / 2); k++)
             treg[0] += la_shared[tx * (DIM_X / 2) + (k % (DIM_X / 2))];
 
-        atomicAdd(&y[incy * tx], treg[0] * alpha);
+        atomicAdd(&y[tx * int64_t(incy)], treg[0] * alpha);
     }
 }
 
