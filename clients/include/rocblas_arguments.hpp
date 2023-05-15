@@ -63,6 +63,7 @@ bool gpu_arch_match(const std::string& gpu_arch, const char pattern[4]);
  ***************************************************************************/
 struct Arguments
 {
+    static constexpr int64_t c_scan_value = -999;
 
     /*************************************************************************
      *                    Beginning Of Arguments                             *
@@ -107,6 +108,8 @@ struct Arguments
     int64_t incy;
 
     int64_t batch_count;
+
+    int64_t scan;
 
     int32_t iters;
     int32_t cold_iters;
@@ -172,6 +175,10 @@ struct Arguments
     // thus this is for other use where we want defaults to match those specified in rocblas_common.yaml
     void init();
 
+    // This should be called before use and may internally modify values to match rules
+    // if the arguments don't make sense it will return false
+    bool validate();
+
     // clang-format off
 
 // Generic macro which operates over the list of arguments in order of declaration
@@ -203,6 +210,7 @@ struct Arguments
     OPER(incx) SEP                   \
     OPER(incy) SEP                   \
     OPER(batch_count) SEP            \
+    OPER(scan) SEP                   \
     OPER(iters) SEP                  \
     OPER(cold_iters) SEP             \
     OPER(algo) SEP                   \

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,10 +61,15 @@ class RocBLAS_TestData
     {
         bool (*const filter)(const Arguments&) = nullptr;
 
-        // Skip entries for which filter is false
+        // Skip entries for which validate or filter returns false
         void skip_filter()
         {
             static auto endIter = std::istream_iterator<Arguments>{};
+
+            // warning we may update the Arguments in validate, thus the const_cast
+            while(*this != endIter && !(const_cast<Arguments&>(**this).validate()))
+                ++*static_cast<std::istream_iterator<Arguments>*>(this);
+
             if(filter)
                 while(*this != endIter && !filter(**this))
                     ++*static_cast<std::istream_iterator<Arguments>*>(this);
