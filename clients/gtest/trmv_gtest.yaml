@@ -33,8 +33,17 @@ Definitions:
     - { M:  4011, lda: 4011, stride_a: 16088200 }
     - { M:  8000, lda: 8000, stride_a: 64000000 }
 
+  - &c_pos_x2_overflow_int32
+    - [ 1073741825 ]
+  - &c_neg_x2_overflow_int32
+    - [ -1073741825 ]
+
   - &size_t_index
-    - { M:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341 }
+    - { M:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341, incx: 1 }
+
+  - &size_t_incx
+    - { M: 3, lda: 3, incx: *c_pos_x2_overflow_int32 }
+    - { M: 3, lda: 3, incx: *c_neg_x2_overflow_int32 }
 
   - &incx_range
     - [2, -2, 1, -1, 3, 10]
@@ -64,18 +73,27 @@ Tests:
   diag: N
   matrix_size: *special_case_range
 
-- name: trmv_size_t_M
-  category: nightly
-  function:
-  - trmv: *single_precision
-  # shared code for size_t with non-batched
-  #- trmv_batched: *single_precision
-  #- trmv_strided_batched: *single_precision
-  uplo: [U]
+- name: trmv_size_t_lda
+  category: pre_checkin # stress
+  function: trmv
+  precision: *single_precision
+  uplo: [U, L]
   transA: [N, T]
-  diag: [N]
+  diag: [N, U]
   matrix_size: *size_t_index
-  incx: 1
+  os_flags: LINUX
+  gpu_arch: ['90a']
+
+- name: trmv_size_t_inc
+  category: pre_checkin #stress
+  function: trmv
+  precision: *single_precision
+  uplo: [U, L]
+  transA: [N, T]
+  diag: [N, U]
+  matrix_size: *size_t_incx
+  os_flags: LINUX
+  gpu_arch: ['90a']
 
 - name: trmv_fortran
   category: quick

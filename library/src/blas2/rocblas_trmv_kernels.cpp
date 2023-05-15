@@ -46,16 +46,16 @@ ROCBLAS_KERNEL_ILF void rocblas_trmvn_kernel_calc(
     if(ty == 0 && row < m)
     {
         if(UNIT)
-            res_A = x[row * incx];
+            res_A = x[row * int64_t(incx)];
         else
-            res_A = A[row + row * size_t(lda)] * x[row * incx];
+            res_A = A[row + row * size_t(lda)] * x[row * int64_t(incx)];
     }
 
     // multiply and sum across columns
     for(rocblas_int col = ty; col < m; col += DIM_Y)
     {
         if(row < m && ((!LOWER && col > row) || (LOWER && col < row)))
-            res_A += A[row + col * size_t(lda)] * x[col * incx];
+            res_A += A[row + col * size_t(lda)] * x[col * int64_t(incx)];
     }
 
     // move partial sum to shared memory to sum further
@@ -92,15 +92,15 @@ ROCBLAS_KERNEL_ILF void rocblas_trmvt_kernel_calc(
     if(tx == 0)
     {
         if(UNIT)
-            res += x[col * incx];
+            res += x[col * int64_t(incx)];
         else
-            res += (CONJ ? conj(A[col]) : A[col]) * x[col * incx];
+            res += (CONJ ? conj(A[col]) : A[col]) * x[col * int64_t(incx)];
     }
 
     for(rocblas_int i = 0; tx + i < m; i += NB)
     {
         if((tx + i > col && LOWER) || (tx + i < col && !LOWER))
-            res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * incx];
+            res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * int64_t(incx)];
     }
 
     res = rocblas_dot_block_reduce<NB>(res);
