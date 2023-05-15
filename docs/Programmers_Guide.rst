@@ -1426,6 +1426,12 @@ This ``rocblas_smoke.yaml`` test set should only require a few minutes to test a
 
    ./rocblas-test --yaml rocblas_smoke.yaml
 
+* yaml extension for lock step multiple variable scanning
+
+Both rocblas-test and rocblas-bench can use an extension added to scan over multiple variables in lock step implemented by the Arguments class.  For this purpose set the Arugments member variable
+``scan`` to the range to scan over and use ``*c_scan_value`` to retrieve the values. This can be used to avoid all combinations of yaml variable values that are normally generated.
+For example, `` - { scan: [32..256..32], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value } ``
+
 
 Add New rocBLAS Unit Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -33,6 +33,9 @@ Definitions:
     - { N:  7000, lda:  7000 }
     - { N:  19001, lda: 19001 }
 
+  - &matrix_scan
+    - { scan: [2..128..7], N: *c_scan_value, lda: *c_scan_value }
+
   - &incx_incy_range
     - { incx:   2, incy:   1 }
     - { incx:  -1, incy:  -1 }
@@ -118,6 +121,15 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
+
+- name: symv_scan
+  category: pre_checkin
+  function: symv
+  precision: *single_precision
+  uplo: [ U, L ]
+  matrix_size: *matrix_scan
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
 
 - name: symv_medium_double_buffered
   category: pre_checkin
