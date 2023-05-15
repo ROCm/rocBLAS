@@ -3,6 +3,24 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &uint32_t_m_n_lda_ldb
+    - { M: 4097,  N: 4097, lda: 1048600, ldb:    4097  }
+    - { M: 4097,  N: 4097, lda:    4097, ldb: 1048600  }
+
+  - &uint32_t_m_n_lda_ldb_ldc
+    - { M: 4097,  N: 4097, lda: 1048600, ldb:    4097, ldc:    4097  }
+    - { M: 4097,  N: 4097, lda:    4097, ldb: 1048600, ldc:    4097  }
+    - { M: 4097,  N: 4097, lda:    4097, ldb:    4097, ldc: 1048600  }
+
+  - &int32_t_m_n_lda_ldb
+    - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049  }
+    - { M: 2049,  N: 2049, lda:    2049, ldb: 1048600  }
+
+  - &int32_t_m_n_lda_ldb_ldc
+    - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049, ldc:    2049  }
+    - { M: 2049,  N: 2049, lda:    2049, ldb: 1048600, ldc:    2049  }
+    - { M: 2049,  N: 2049, lda:    2049, ldb:    2049, ldc: 1048600  }
+
   - &small_matrix_size
     - { M:    20, N:    30, lda:    40, ldb:   100, ldc: 60 }
 
@@ -156,7 +174,84 @@ Tests:
   matrix_size:
      - { M:  51200,  N:     4,  lda:     4, ldb:   51200, ldc: 51200 }
      - { M:      1,  N: 51200,  lda: 51200, ldb:       1, ldc:     1 }
+  pointer_mode_device: false
   alpha: [ 1 ]
+
+# to prevent excessively long runtime only run one combination of side,uplo,transA,diag for uint32_t overflow
+- name: trmm_size_t_inplace_uint32
+  category: nightly
+  function:
+    - trmm
+    - trmm_batched
+  precision: *single_precision
+  side: [   R]
+  uplo: [   U]
+  transA: [   T   ]
+  diag: [   U]
+  matrix_size: *uint32_t_m_n_lda_ldb
+  pointer_mode_device: false
+  alpha: [ 2 ]
+  stride_scale: [ 1         ]
+  batch_count: [           1 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
+
+# to prevent excessively long runtime only run one combination of side,uplo,transA,diag for uint32_t overflow
+- name: trmm_size_t_outofplace_uint32
+  category: nightly
+  function:
+    - trmm_outofplace
+    - trmm_outofplace_batched
+  precision: *single_precision
+  side: [L   ]
+  uplo: [L   ]
+  transA: [N      ]
+  diag: [N   ]
+  matrix_size: *uint32_t_m_n_lda_ldb_ldc
+  pointer_mode_device: false
+  alpha: [ 2 ]
+  stride_scale: [ 1         ]
+  batch_count: [           1 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
+
+# to prevent excessively long runtime only run one value of diag and batch_count=1
+- name: trmm_size_t_inplace_int32
+  category: nightly
+  function:
+    - trmm
+    - trmm_batched
+  precision: *single_precision
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T   ]
+  diag: [N   ]
+  matrix_size: *int32_t_m_n_lda_ldb
+  pointer_mode_device: false
+  alpha: [ 2 ]
+  stride_scale: [ 1         ]
+  batch_count: [           1 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
+
+# to prevent excessively long runtime only run one value of diag and batch_count=1
+- name: trmm_size_t_outofplace_int32
+  category: nightly
+  function:
+    - trmm_outofplace
+    - trmm_outofplace_batched
+  precision: *single_precision
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T   ]
+  diag: [   U]
+  matrix_size: *int32_t_m_n_lda_ldb_ldc
+  pointer_mode_device: false
+  alpha: [ 2 ]
+  stride_scale: [ 1         ]
+  batch_count: [           1 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: trmm_batched_small
   category: quick
@@ -368,6 +463,7 @@ Tests:
   transA: [T]
   diag: [U]
   matrix_size: *testset2_matrix_size_range
+  pointer_mode_host: false
   alpha: [ 1 ]
 
 - name: trmm_large
@@ -381,6 +477,7 @@ Tests:
     - { side: R, uplo: L, transA: N, diag: N }
     - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   alpha: *alpha_range
 
 - name: trmm_large
@@ -394,6 +491,7 @@ Tests:
     - { side: R, uplo: L, transA: T, diag: N }
     - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   alpha_beta: *complex_alpha
 
 - name: trmm_graph_test
