@@ -24,12 +24,6 @@
 
 #include <cstring> // std::memcpy for graph capture use cases
 
-#ifdef BUILD_WITH_TENSILE
-#include "gemm_tensile.hpp"
-#else
-#include "gemm_source.hpp"
-#endif
-
 #include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 
@@ -157,112 +151,20 @@ rocblas_status rocblas_internal_gemm_template(rocblas_handle    handle,
                                               rocblas_int       n,
                                               rocblas_int       k,
                                               const TScal*      alpha,
-                                              const TConstPtr*  A,
+                                              TConstPtr         A,
                                               rocblas_stride    offset_a,
                                               rocblas_int       lda,
                                               rocblas_stride    stride_a,
-                                              const TConstPtr*  B,
+                                              TConstPtr         B,
                                               rocblas_stride    offset_b,
                                               rocblas_int       ldb,
                                               rocblas_stride    stride_b,
                                               const TScal*      beta,
-                                              TPtr*             C,
+                                              TPtr              C,
                                               rocblas_stride    offset_c,
                                               rocblas_int       ldc,
                                               rocblas_stride    stride_c,
-                                              rocblas_int       batch_count)
-{
-    // quick return 0 is valid in BLAS
-    // Note: k==0 is not a quick return, because C must still be multiplied by beta
-    if(!m || !n || !batch_count)
-        return rocblas_status_success;
-
-    TScal alpha_h, beta_h;
-    RETURN_IF_ROCBLAS_ERROR(
-        rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
-
-#ifdef BUILD_WITH_TENSILE
-    if(BATCHED)
-    {
-        return rocblas_call_tensile(handle,
-                                    alpha,
-                                    beta,
-                                    A,
-                                    B,
-                                    C,
-                                    trans_a,
-                                    trans_b,
-                                    ldc,
-                                    stride_c,
-                                    offset_c,
-                                    lda,
-                                    stride_a,
-                                    offset_a,
-                                    ldb,
-                                    stride_b,
-                                    offset_b,
-                                    m,
-                                    n,
-                                    k,
-                                    batch_count);
-    }
-    else
-    {
-        return rocblas_call_tensile(handle,
-                                    alpha,
-                                    beta,
-                                    A + offset_a,
-                                    B + offset_b,
-                                    C + offset_c,
-                                    trans_a,
-                                    trans_b,
-                                    ldc,
-                                    stride_c,
-                                    0,
-                                    lda,
-                                    stride_a,
-                                    0,
-                                    ldb,
-                                    stride_b,
-                                    0,
-                                    m,
-                                    n,
-                                    k,
-                                    batch_count);
-    }
-#else // BUILD_WITH_TENSILE
-    hipStream_t rocblas_stream = handle->get_stream();
-
-    if(k == 0 || (alpha && *alpha == 0))
-    {
-        return rocblas_gemm_scale_template(
-            m, n, *beta, C, offset_c, ldc, stride_c, batch_count, rocblas_stream);
-    }
-
-    rocblas_gemm_source_solution<BATCHED>(trans_a,
-                                          trans_b,
-                                          m,
-                                          n,
-                                          k,
-                                          *alpha,
-                                          A,
-                                          lda,
-                                          stride_a,
-                                          offset_a,
-                                          B,
-                                          ldb,
-                                          stride_b,
-                                          offset_b,
-                                          *beta,
-                                          C,
-                                          ldc,
-                                          stride_c,
-                                          offset_c,
-                                          batch_count,
-                                          rocblas_stream);
-    return rocblas_status_success;
-#endif // BUILD_WITH_TENSILE
-}
+                                              rocblas_int       batch_count);
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -286,30 +188,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    offset_c,
                                    rocblas_int       ldc,
                                    rocblas_stride    stride_c,
-                                   rocblas_int       batch_count)
-{
-    return rocblas_internal_gemm_template<false>(handle,
-                                                 trans_a,
-                                                 trans_b,
-                                                 m,
-                                                 n,
-                                                 k,
-                                                 alpha,
-                                                 A,
-                                                 offset_a,
-                                                 lda,
-                                                 stride_a,
-                                                 B,
-                                                 offset_b,
-                                                 ldb,
-                                                 stride_b,
-                                                 beta,
-                                                 C,
-                                                 offset_c,
-                                                 ldc,
-                                                 stride_c,
-                                                 batch_count);
-}
+                                   rocblas_int       batch_count);
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -333,30 +212,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    offset_c,
                                            rocblas_int       ldc,
                                            rocblas_stride    stride_c,
-                                           rocblas_int       batch_count)
-{
-    return rocblas_internal_gemm_template<true>(handle,
-                                                trans_a,
-                                                trans_b,
-                                                m,
-                                                n,
-                                                k,
-                                                alpha,
-                                                A,
-                                                offset_a,
-                                                lda,
-                                                stride_a,
-                                                B,
-                                                offset_b,
-                                                ldb,
-                                                stride_b,
-                                                beta,
-                                                C,
-                                                offset_c,
-                                                ldc,
-                                                stride_c,
-                                                batch_count);
-}
+                                           rocblas_int       batch_count);
 
 template <typename TConstPtr, typename TPtr>
 rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
