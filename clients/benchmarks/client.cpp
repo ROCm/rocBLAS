@@ -1557,9 +1557,22 @@ try
             flags |= rocblas_gemm_flags_fp16_alt_impl;
     }
 
-    if((rocblas_gemm_flags_fp16_alt_impl & arg.flags)
-       && rocblas_internal_get_arch_name() != "gfx90a")
+    static const char* fp16AltImplRoundEnvStr = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL_RNZ");
+    static const int   fp16AltImplRoundEnv
+        = (fp16AltImplRoundEnvStr == NULL ? -1 : (std::atoi(fp16AltImplRoundEnvStr) == 0 ? 0 : 1));
+    if(fp16AltImplRoundEnv != -1)
+    {
+        if(fp16AltImplRoundEnv == 0)
+            flags &= ~rocblas_gemm_flags_fp16_alt_impl_rnz;
+        else
+            flags |= rocblas_gemm_flags_fp16_alt_impl_rnz;
+    }
+
+    if(rocblas_internal_get_arch_name() != "gfx90a")
+    {
         flags &= ~rocblas_gemm_flags_fp16_alt_impl;
+        flags &= ~rocblas_gemm_flags_fp16_alt_impl_rnz;
+    }
 
     arg.flags = rocblas_gemm_flags(flags);
 

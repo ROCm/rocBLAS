@@ -298,7 +298,8 @@ typedef enum rocblas_gemm_flags_
     * input/output data to zero. See the "MI200 (gfx90a) Considerations"
     * section for more details. */
     rocblas_gemm_flags_fp16_alt_impl        = 0x4,
-    rocblas_gemm_flags_check_solution_index = 0x8
+    rocblas_gemm_flags_check_solution_index = 0x8,
+    rocblas_gemm_flags_fp16_alt_impl_rnz    = 0x10
 } rocblas_gemm_flags;
 
 // rocblas_int8_type_for_hipblas enum will be removed in a future release.

@@ -822,32 +822,116 @@ void rocblas_init_denorm(T* A, size_t start_offset, size_t end_offset)
         A[i] = T(rocblas_denorm_rng());
 }
 
+template <typename T, typename U>
+void rocblas_init_identity(U& hA)
+{
+    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                if(i == j)
+                    A[i + j * lda] = T(1);
+                else
+                    A[i + j * lda] = T(0);
+    }
+}
+
+template <typename T, typename U>
+void rocblas_init_non_rep_bf16_vals(U& hA)
+{
+    const rocblas_half ieee_half_vals[4] = {2028, 2034, 2036, 2038};
+    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda] = T(ieee_half_vals[(i + j * lda) % 4]);
+    }
+}
+
+template <typename T, typename U>
+void rocblas_init_alt_impl_big(U& hA)
+{
+    const rocblas_half ieee_half_large(65280.0);
+    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda] = T(ieee_half_large);
+    }
+}
+
 template <typename T>
 void rocblas_init_alt_impl_big(
     host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
-    const rocblas_half ieee_half_max(65280.0);
+    const rocblas_half ieee_half_large(65280.0);
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
             for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = T(ieee_half_max);
+                A[i + j * lda + i_batch * stride] = T(ieee_half_large);
 }
 
 template <typename T>
 inline void rocblas_init_alt_impl_big(
     T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
-    const rocblas_half ieee_half_max(65280.0);
+    const rocblas_half ieee_half_large(65280.0);
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
             for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = T(ieee_half_max);
+                A[i + j * lda + i_batch * stride] = T(ieee_half_large);
+}
+
+template <typename T, typename U>
+void rocblas_init_alt_impl_small(U& hA)
+{
+    //using a rocblas_half sunormal value
+    const rocblas_half ieee_half_small(0.0000607967376708984375);
+    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    {
+        auto* A   = hA[batch_index];
+        auto  M   = hA.m();
+        auto  N   = hA.n();
+        auto  lda = hA.lda();
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda] = T(ieee_half_small);
+    }
 }
 
 template <typename T>
 void rocblas_init_alt_impl_small(
     host_vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
+    //using a rocblas_half sunormal value
     const rocblas_half ieee_half_small(0.0000607967376708984375);
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
@@ -859,6 +943,7 @@ template <typename T>
 void rocblas_init_alt_impl_small(
     T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
+    //using a rocblas_half sunormal value
     const rocblas_half ieee_half_small(0.0000607967376708984375);
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
