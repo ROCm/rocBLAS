@@ -3,6 +3,11 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+
+  # using stride_x,y,d to test out offsets of rocblas_internal_gemm_interface()
+  - &gemm_internal_matrix_size
+    - { M: 511, N: 511, K: 511, lda: 511, ldb: 511, ldc: 511, ldd: 511, stride_a: 0, stride_b: 261121, stride_c: 261121, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+
   - &small_matrix_size_range
     - { M:     0, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8, stride_a:       64, stride_b:       64, stride_c:       64, stride_d:       64 } # m==0
     - { M:     8, N:     0, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8, stride_a:       64, stride_b:       64, stride_c:       64, stride_d:       64 } # n==0
@@ -292,6 +297,16 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   api: FORTRAN
   flags: [0,1]
+
+- name: gemm_strided_batched_internal
+  category: quick
+  function:
+    - gemm_strided_batched: *single_precision
+  matrix_size: *gemm_internal_matrix_size
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 3 ]
+  api: INTERNAL
 
 - name: gemm_strided_batched_small
   category: quick

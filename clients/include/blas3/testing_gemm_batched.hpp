@@ -37,6 +37,8 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas3/Tensile/gemm.hpp"
+
 template <typename T>
 void testing_gemm_batched_bad_arg(const Arguments& arg)
 {
@@ -202,6 +204,12 @@ void testing_gemm_batched(const Arguments& arg)
     rocblas_int          B_row       = transB == rocblas_operation_none ? std::max(K, 1) : N;
     rocblas_int          B_col       = transB == rocblas_operation_none ? N : std::max(K, 1);
 
+    // for internal interface testing
+    // using arg.stride_x,y,d for offset testing
+    rocblas_stride offsetA = arg.api == INTERNAL ? arg.stride_x : 0;
+    rocblas_stride offsetB = arg.api == INTERNAL ? arg.stride_y : 0;
+    rocblas_stride offsetC = arg.api == INTERNAL ? arg.stride_d : 0;
+
     // check here to prevent undefined memory allocation error
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta.
     bool invalid_size
@@ -273,9 +281,9 @@ void testing_gemm_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hC_1.memcheck());
 
     // Allocate device memory
-    device_batch_matrix<T> dA(A_row, A_col, lda, batch_count);
-    device_batch_matrix<T> dB(B_row, B_col, ldb, batch_count);
-    device_batch_matrix<T> dC(M, N, ldc, batch_count);
+    device_batch_matrix<T> dA(A_row, A_col, lda, batch_count, false, offsetA);
+    device_batch_matrix<T> dB(B_row, B_col, ldb, batch_count, false, offsetB);
+    device_batch_matrix<T> dC(M, N, ldc, batch_count, false, offsetC);
     device_vector<T>       d_alpha(1);
     device_vector<T>       d_beta(1);
 
@@ -307,48 +315,113 @@ void testing_gemm_batched(const Arguments& arg)
         hC_gold.copy_from(hC_1);
 
         // ROCBLAS rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     &h_alpha,
-                                                     dA.ptr_on_device(),
-                                                     lda,
-                                                     dB.ptr_on_device(),
-                                                     ldb,
-                                                     &h_beta,
-                                                     dC.ptr_on_device(),
-                                                     ldc,
-                                                     batch_count)));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            if(arg.api != INTERNAL)
+            {
+                CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
+                                                             transA,
+                                                             transB,
+                                                             M,
+                                                             N,
+                                                             K,
+                                                             &h_alpha,
+                                                             dA.ptr_on_device(),
+                                                             lda,
+                                                             dB.ptr_on_device(),
+                                                             ldb,
+                                                             &h_beta,
+                                                             dC.ptr_on_device(),
+                                                             ldc,
+                                                             batch_count)));
+            }
+            else
+            {
+                constexpr rocblas_stride strideA = 0, strideB = 0, strideC = 0;
 
-        // ROCBLAS rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+                CHECK_ROCBLAS_ERROR(rocblas_internal_gemm_batched_template<T>(handle,
+                                                                              transA,
+                                                                              transB,
+                                                                              M,
+                                                                              N,
+                                                                              K,
+                                                                              &h_alpha,
+                                                                              dA.ptr_on_device(),
+                                                                              -offsetA,
+                                                                              lda,
+                                                                              strideA,
+                                                                              dB.ptr_on_device(),
+                                                                              -offsetB,
+                                                                              ldb,
+                                                                              strideB,
+                                                                              &h_beta,
+                                                                              dC.ptr_on_device(),
+                                                                              -offsetC,
+                                                                              ldc,
+                                                                              strideC,
+                                                                              batch_count));
+            }
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        }
 
-        CHECK_HIP_ERROR(dC.transfer_from(hC_2));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
+        if(arg.pointer_mode_device)
+        {
+            // ROCBLAS rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     d_alpha,
-                                                     dA.ptr_on_device(),
-                                                     lda,
-                                                     dB.ptr_on_device(),
-                                                     ldb,
-                                                     d_beta,
-                                                     dC.ptr_on_device(),
-                                                     ldc,
-                                                     batch_count)));
+            CHECK_HIP_ERROR(dC.transfer_from(hC_2));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
+
+            if(arg.api != INTERNAL)
+            {
+                CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
+                                                             transA,
+                                                             transB,
+                                                             M,
+                                                             N,
+                                                             K,
+                                                             d_alpha,
+                                                             dA.ptr_on_device(),
+                                                             lda,
+                                                             dB.ptr_on_device(),
+                                                             ldb,
+                                                             d_beta,
+                                                             dC.ptr_on_device(),
+                                                             ldc,
+                                                             batch_count)));
+            }
+            else
+            {
+                // only testing internal for simpler code since using different device_batch_matrix initialization
+                constexpr rocblas_stride strideA = 0, strideB = 0, strideC = 0;
+
+                CHECK_ROCBLAS_ERROR(rocblas_internal_gemm_batched_template<T>(handle,
+                                                                              transA,
+                                                                              transB,
+                                                                              M,
+                                                                              N,
+                                                                              K,
+                                                                              d_alpha,
+                                                                              dA.ptr_on_device(),
+                                                                              -offsetA,
+                                                                              lda,
+                                                                              strideA,
+                                                                              dB.ptr_on_device(),
+                                                                              -offsetB,
+                                                                              ldb,
+                                                                              strideB,
+                                                                              d_beta,
+                                                                              dC.ptr_on_device(),
+                                                                              -offsetC,
+                                                                              ldc,
+                                                                              strideC,
+                                                                              batch_count));
+            }
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -360,43 +433,54 @@ void testing_gemm_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // GPU fetch
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
+        if(arg.pointer_mode_device)
+            CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
             if(std::is_same_v<T, rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
             {
                 const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
-                near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
-                near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
+                if(arg.pointer_mode_host)
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
+                if(arg.pointer_mode_device)
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
             }
             else if(std::is_same_v<T, rocblas_half> && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
-                near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
+                if(arg.pointer_mode_host)
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
+                if(arg.pointer_mode_device)
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count);
-                unit_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count);
+                if(arg.pointer_mode_host)
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count);
+                if(arg.pointer_mode_device)
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
             double error_hst_ptr
-                = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1, batch_count));
+                = arg.pointer_mode_host
+                      ? std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1, batch_count))
+                      : 0;
             double error_dev_ptr
-                = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2, batch_count));
+                = arg.pointer_mode_device
+                      ? std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2, batch_count))
+                      : 0;
             rocblas_error = error_hst_ptr > rocblas_error ? error_hst_ptr : rocblas_error;
             rocblas_error = error_dev_ptr > rocblas_error ? error_dev_ptr : rocblas_error;
         }
     }
 
-    if(arg.timing)
+    if(arg.timing && arg.api != INTERNAL)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;

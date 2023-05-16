@@ -30,6 +30,10 @@ Definitions:
     - { M:    19, N:    19, K:    19, lda:    19, ldb:    19, ldc:    19, ldd:    19 }
     - { M:    20, N:    20, K:    20, lda:    20, ldb:    20, ldc:    20, ldd:    20 }
 
+  # using stride_x,y,d to test out offsets of rocblas_internal_gemm_interface()
+  - &gemm_internal_matrix_size
+    - { M: 1000, N: 1001, K: 101, lda: 2002, ldb: 1003, ldc: 1004, ldd: 1004, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+
   - &small_matrix_size_range
     - { M:     0, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # m==0
     - { M:     8, N:     0, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # n==0
@@ -2447,6 +2451,15 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   api: FORTRAN
   flags: [0,1]
+
+- name: gemm_internal
+  category: quick
+  function:
+    - gemm: *single_precision
+  matrix_size: *gemm_internal_matrix_size
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  api: INTERNAL
 
 - name: gemm_small
   category: quick

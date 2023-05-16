@@ -10,6 +10,12 @@ Definitions:
     - { M:    32, N:    64, K:    16, lda:    65, ldb:    66, ldc:    67, ldd:    67 }
     - { M:    25, N:    26, K:    27, lda:    28, ldb:    29, ldc:    30, ldd:    30 }
 
+  # using stride_x,y,d to test out offsets of rocblas_internal_gemm_interface()
+  - &gemm_internal_matrix_size
+    - { M:  1000, N: 1001, K: 101, lda:  2002, ldb: 1003, ldc:  1004, ldd:  1004, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+    - { M:   128, N:  128, K: 128, lda:   128, ldb:  128, ldc:   128, ldd:   128, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+    - { M: 32768, N:  480, K:   1, lda: 32768, ldb:  480, ldc: 32768, ldd: 32768, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+
   - &small_matrix_size_range
     - { M:    -1, N:    -1, K:    -1, lda:    -1, ldb:     1, ldc:     1, ldd:     1 }
     - { M:     0, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # m==0
@@ -289,6 +295,18 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   api: FORTRAN
   flags: [0,1]
+
+# general batched gemm passes offset into tensile, strided_batched
+# and non-batched just offset pointer beforehand
+- name: gemm_batched_internal
+  category: quick
+  function:
+    - gemm_batched: *single_precision
+  matrix_size: *gemm_internal_matrix_size
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 3 ]
+  api: INTERNAL
 
 - name: gemm_batched_small
   category: quick
