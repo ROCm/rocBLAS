@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -338,4 +338,43 @@ if(BUILD_CODE_COVERAGE)
     COMMAND find ${CMAKE_BINARY_DIR} -name *.gcda -delete
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
+endif()
+
+# CMake to build documentation
+## Sphinx
+set(SPHINX_DIR "docs/sphinx" CACHE PATH "Path to sphinx root directory")
+set(SPHINX_BUILD_DIR "_build" CACHE PATH "Path to sphinx build directory")
+set(SPHINX_BUILD_TYPE "html" CACHE STRING "Sphinx build type")
+set(SPHINX_EXTRA_ARGS "" CACHE STRING "Extra arguments for Sphinx build")
+set(
+    SPHINX_ARGS
+    -T
+    -b ${SPHINX_BUILD_TYPE}
+    -d ${SPHINX_BUILD_DIR}/doctrees
+    -D language=en
+    ${SPHINX_EXTRA_ARGS}
+)
+add_custom_target(
+    sphinx_docs
+    COMMAND pip3 install -r requirements.txt
+    COMMAND python3 -m sphinx ${SPHINX_ARGS} . ${SPHINX_BUILD_DIR}/${SPHINX_BUILD_TYPE}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${SPHINX_DIR}
+)
+
+## Doxygen
+set(DOXYGEN_DIR "docs/doxygen" CACHE PATH "Path to doxygen root directory")
+### Any other doxygen arguments can go here
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    add_custom_target(
+        doxygen_docs
+        Doxygen::doxygen Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${DOXYGEN_DIR}
+    )
+endif()
+
+## All docs phony target
+add_custom_target(docs DEPENDS sphinx_docs)
+if (DOXYGEN_FOUND)
+    add_dependencies(docs doxygen_docs)
 endif()
