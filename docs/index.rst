@@ -1,5 +1,5 @@
 =====================
-Getting Started Guide
+rocBLAS Documentation
 =====================
 
 ------------
@@ -13,10 +13,10 @@ Documentation Roadmap
 ^^^^^^^^^^^^^^^^^^^^^
 The following is a list of rocBLAS documents in the suggested reading order:
 
- - Installation Guide (either Linux or Windows): Describes how to install and configure the rocBLAS library; designed to get users up and running quickly with the library
- - API Reference Guide : Provides detailed information about rocBLAS functions, data types and other programming constructs
- - Programmer's Guide: Describes the code organization, Design implementation detail, Optimizations used in the library, and those that should be considered for new development and Testing & Benchmarking detail
- - Contributor's Guide : Describes coding guidelines for contributors
+ - Installation Guide (either `Linux <Linux_Install_Guide.html>`__ or `Windows <Windows_Install_Guide.html>`__): Describes how to install and configure the rocBLAS library; designed to get users up and running quickly with the library
+ - `API Reference Guide <API_Reference_Guide.html>`__: Provides detailed information about rocBLAS functions, data types and other programming constructs
+ - `Programmer's Guide <Programmers_Guide.html>`__: Describes the code organization, Design implementation detail, Optimizations used in the library, and those that should be considered for new development and Testing & Benchmarking detail
+ - `Contributor's Guide <Contributors_Guide.html>`__: Describes coding guidelines for contributors
 
 
 Use of Tensile
