@@ -6,6 +6,18 @@ implemented in the [HIP programming language][2] and optimized for AMD GPUs.
 Information about the library API and other user topics can be found in the
 [rocBLAS documentation][3].
 
+### How to build documentation
+
+Run the steps below to build documentation locally.
+
+```
+cd docs
+
+pip3 install -r .sphinx/requirements.txt
+
+python3 -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
+```
+
 ## Prerequisites
 The [AMD ROCm install guide][4] describes how to set up the ROCm repositories
 and install the required platform dependencies.
