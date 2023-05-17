@@ -576,20 +576,20 @@ void cblas_geam(rocblas_operation       transa,
 
 // gemm
 template <>
-void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation       transA,
-                                                rocblas_operation       transB,
-                                                rocblas_int             m,
-                                                rocblas_int             n,
-                                                rocblas_int             k,
-                                                float                   alpha,
-                                                const rocblas_bfloat16* A,
-                                                rocblas_int             lda,
-                                                const rocblas_bfloat16* B,
-                                                rocblas_int             ldb,
-                                                float                   beta,
-                                                float*                  C,
-                                                rocblas_int             ldc,
-                                                bool                    alt)
+void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation                    transA,
+                                                rocblas_operation                    transB,
+                                                rocblas_int                          m,
+                                                rocblas_int                          n,
+                                                rocblas_int                          k,
+                                                float                                alpha,
+                                                const rocblas_bfloat16*              A,
+                                                rocblas_int                          lda,
+                                                const rocblas_bfloat16*              B,
+                                                rocblas_int                          ldb,
+                                                float                                beta,
+                                                float*                               C,
+                                                rocblas_int                          ldc,
+                                                rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -623,20 +623,21 @@ void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation       transA,
 }
 
 template <>
-void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation       transA,
-                                                           rocblas_operation       transB,
-                                                           rocblas_int             m,
-                                                           rocblas_int             n,
-                                                           rocblas_int             k,
-                                                           float                   alpha,
-                                                           const rocblas_bfloat16* A,
-                                                           rocblas_int             lda,
-                                                           const rocblas_bfloat16* B,
-                                                           rocblas_int             ldb,
-                                                           float                   beta,
-                                                           rocblas_bfloat16*       C,
-                                                           rocblas_int             ldc,
-                                                           bool                    alt)
+void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(
+    rocblas_operation                    transA,
+    rocblas_operation                    transB,
+    rocblas_int                          m,
+    rocblas_int                          n,
+    rocblas_int                          k,
+    float                                alpha,
+    const rocblas_bfloat16*              A,
+    rocblas_int                          lda,
+    const rocblas_bfloat16*              B,
+    rocblas_int                          ldb,
+    float                                beta,
+    rocblas_bfloat16*                    C,
+    rocblas_int                          ldc,
+    rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -676,20 +677,20 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation    
 }
 
 template <>
-void cblas_gemm<rocblas_half, float, float>(rocblas_operation   transA,
-                                            rocblas_operation   transB,
-                                            rocblas_int         m,
-                                            rocblas_int         n,
-                                            rocblas_int         k,
-                                            float               alpha,
-                                            const rocblas_half* A,
-                                            rocblas_int         lda,
-                                            const rocblas_half* B,
-                                            rocblas_int         ldb,
-                                            float               beta,
-                                            float*              C,
-                                            rocblas_int         ldc,
-                                            bool                alt)
+void cblas_gemm<rocblas_half, float, float>(rocblas_operation                    transA,
+                                            rocblas_operation                    transB,
+                                            rocblas_int                          m,
+                                            rocblas_int                          n,
+                                            rocblas_int                          k,
+                                            float                                alpha,
+                                            const rocblas_half*                  A,
+                                            rocblas_int                          lda,
+                                            const rocblas_half*                  B,
+                                            rocblas_int                          ldb,
+                                            float                                beta,
+                                            float*                               C,
+                                            rocblas_int                          ldc,
+                                            rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -723,20 +724,20 @@ void cblas_gemm<rocblas_half, float, float>(rocblas_operation   transA,
 }
 
 template <>
-void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation   transA,
-                                                   rocblas_operation   transB,
-                                                   rocblas_int         m,
-                                                   rocblas_int         n,
-                                                   rocblas_int         k,
-                                                   float               alpha,
-                                                   const rocblas_half* A,
-                                                   rocblas_int         lda,
-                                                   const rocblas_half* B,
-                                                   rocblas_int         ldb,
-                                                   float               beta,
-                                                   rocblas_half*       C,
-                                                   rocblas_int         ldc,
-                                                   bool                alt)
+void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation                    transA,
+                                                   rocblas_operation                    transB,
+                                                   rocblas_int                          m,
+                                                   rocblas_int                          n,
+                                                   rocblas_int                          k,
+                                                   float                                alpha,
+                                                   const rocblas_half*                  A,
+                                                   rocblas_int                          lda,
+                                                   const rocblas_half*                  B,
+                                                   rocblas_int                          ldb,
+                                                   float                                beta,
+                                                   rocblas_half*                        C,
+                                                   rocblas_int                          ldc,
+                                                   rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -747,17 +748,14 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation   transA,
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
-    if(alt)
+    if(round != rocblas_bfloat16::rocblas_truncate_t::rocblas_round_near_even)
     {
         for(size_t i = 0; i < sizeA; i++)
-            A_float[i] = rocblas_bfloat16(float(A[i]),
-                                          rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate);
+            A_float[i] = rocblas_bfloat16(float(A[i]), round);
         for(size_t i = 0; i < sizeB; i++)
-            B_float[i] = rocblas_bfloat16(float(B[i]),
-                                          rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate);
+            B_float[i] = rocblas_bfloat16(float(B[i]), round);
         for(size_t i = 0; i < sizeC; i++)
-            C_float[i] = rocblas_bfloat16(float(C[i]),
-                                          rocblas_bfloat16::rocblas_truncate_t::rocblas_truncate);
+            C_float[i] = rocblas_bfloat16(float(C[i]), round);
     }
     else
     {
@@ -791,20 +789,21 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation   transA,
 }
 
 template <>
-void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation   transA,
-                                                          rocblas_operation   transB,
-                                                          rocblas_int         m,
-                                                          rocblas_int         n,
-                                                          rocblas_int         k,
-                                                          rocblas_half        alpha,
-                                                          const rocblas_half* A,
-                                                          rocblas_int         lda,
-                                                          const rocblas_half* B,
-                                                          rocblas_int         ldb,
-                                                          rocblas_half        beta,
-                                                          rocblas_half*       C,
-                                                          rocblas_int         ldc,
-                                                          bool                alt)
+void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(
+    rocblas_operation                    transA,
+    rocblas_operation                    transB,
+    rocblas_int                          m,
+    rocblas_int                          n,
+    rocblas_int                          k,
+    rocblas_half                         alpha,
+    const rocblas_half*                  A,
+    rocblas_int                          lda,
+    const rocblas_half*                  B,
+    rocblas_int                          ldb,
+    rocblas_half                         beta,
+    rocblas_half*                        C,
+    rocblas_int                          ldc,
+    rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -846,20 +845,20 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation   tr
 }
 
 template <>
-void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation transA,
-                                          rocblas_operation transB,
-                                          rocblas_int       m,
-                                          rocblas_int       n,
-                                          rocblas_int       k,
-                                          int32_t           alpha,
-                                          const int8_t*     A,
-                                          rocblas_int       lda,
-                                          const int8_t*     B,
-                                          rocblas_int       ldb,
-                                          int32_t           beta,
-                                          int32_t*          C,
-                                          rocblas_int       ldc,
-                                          bool              alt)
+void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation                    transA,
+                                          rocblas_operation                    transB,
+                                          rocblas_int                          m,
+                                          rocblas_int                          n,
+                                          rocblas_int                          k,
+                                          int32_t                              alpha,
+                                          const int8_t*                        A,
+                                          rocblas_int                          lda,
+                                          const int8_t*                        B,
+                                          rocblas_int                          ldb,
+                                          int32_t                              beta,
+                                          int32_t*                             C,
+                                          rocblas_int                          ldc,
+                                          rocblas_bfloat16::rocblas_truncate_t round)
 {
     // cblas does not support int8_t input / int32_t output, however non-overflowing
     // 32-bit integer operations can be represented accurately with double-precision

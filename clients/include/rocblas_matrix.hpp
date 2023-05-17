@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@
 //! @param seedReset reset the seed if true, do not reset the seed otherwise. Use init_cos if seedReset is true else use init_sin.
 //! @param alternating_sign Initialize matrix so adjacent entries have alternating sign.
 //!
-template <typename T>
+template <typename T, bool altInit = false>
 inline void rocblas_init_matrix(host_strided_batch_matrix<T>& hA,
                                 const Arguments&              arg,
                                 rocblas_check_nan_init        nan_init,
@@ -80,6 +80,30 @@ inline void rocblas_init_matrix(host_strided_batch_matrix<T>& hA,
     {
         rocblas_init_matrix_trig<T>(matrix_type, arg.uplo, hA, seedReset);
     }
+    else if(arg.initialization == rocblas_initialization::denorm)
+    {
+        if(altInit)
+            rocblas_init_alt_impl_small<T>(hA);
+        else
+            rocblas_init_alt_impl_big<T>(hA);
+    }
+    else if(arg.initialization == rocblas_initialization::denorm2)
+    {
+        if(altInit)
+            rocblas_init_non_rep_bf16_vals<T>(hA);
+        else
+            rocblas_init_identity<T>(hA);
+    }
+    else
+    {
+#ifdef GOOGLE_TEST
+        FAIL() << "unknown initialization type";
+        return;
+#else
+        rocblas_cerr << "unknown initialization type" << std::endl;
+        rocblas_abort();
+#endif
+    }
 }
 
 //!
@@ -91,7 +115,7 @@ inline void rocblas_init_matrix(host_strided_batch_matrix<T>& hA,
 //! @param seedReset reset the seed if true, do not reset the seed otherwise. Use init_cos if seedReset is true else use init_sin.
 //! @param alternating_sign Initialize matrix so adjacent entries have alternating sign.
 //!
-template <typename T>
+template <typename T, bool altInit = false>
 inline void rocblas_init_matrix(host_batch_matrix<T>&     hA,
                                 const Arguments&          arg,
                                 rocblas_check_nan_init    nan_init,
@@ -129,6 +153,30 @@ inline void rocblas_init_matrix(host_batch_matrix<T>&     hA,
     {
         rocblas_init_matrix_trig<T>(matrix_type, arg.uplo, hA, seedReset);
     }
+    else if(arg.initialization == rocblas_initialization::denorm)
+    {
+        if(altInit)
+            rocblas_init_alt_impl_small<T>(hA);
+        else
+            rocblas_init_alt_impl_big<T>(hA);
+    }
+    else if(arg.initialization == rocblas_initialization::denorm2)
+    {
+        if(altInit)
+            rocblas_init_non_rep_bf16_vals<T>(hA);
+        else
+            rocblas_init_identity<T>(hA);
+    }
+    else
+    {
+#ifdef GOOGLE_TEST
+        FAIL() << "unknown initialization type";
+        return;
+#else
+        rocblas_cerr << "unknown initialization type" << std::endl;
+        rocblas_abort();
+#endif
+    }
 }
 
 //!
@@ -139,7 +187,7 @@ inline void rocblas_init_matrix(host_batch_matrix<T>&     hA,
 //! @param matrix_type Initialization of the matrix based upon the rocblas_check_matrix_type enum value.
 //! @param alternating_sign Initialize matrix so adjacent entries have alternating sign.
 //!
-template <typename T>
+template <typename T, bool altInit = false>
 inline void rocblas_init_matrix(host_matrix<T>&           hA,
                                 const Arguments&          arg,
                                 rocblas_check_nan_init    nan_init,
@@ -176,5 +224,29 @@ inline void rocblas_init_matrix(host_matrix<T>&           hA,
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
         rocblas_init_matrix_trig<T>(matrix_type, arg.uplo, hA, seedReset);
+    }
+    else if(arg.initialization == rocblas_initialization::denorm)
+    {
+        if(altInit)
+            rocblas_init_alt_impl_small<T>(hA);
+        else
+            rocblas_init_alt_impl_big<T>(hA);
+    }
+    else if(arg.initialization == rocblas_initialization::denorm2)
+    {
+        if(altInit)
+            rocblas_init_non_rep_bf16_vals<T>(hA);
+        else
+            rocblas_init_identity<T>(hA);
+    }
+    else
+    {
+#ifdef GOOGLE_TEST
+        FAIL() << "unknown initialization type";
+        return;
+#else
+        rocblas_cerr << "unknown initialization type" << std::endl;
+        rocblas_abort();
+#endif
     }
 }
