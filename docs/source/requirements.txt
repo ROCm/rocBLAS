@@ -1,7 +1,0 @@
-docutils==0.16
-sphinx==4.3.1
-sphinx_rtd_theme==1.0.0
-readthedocs_sphinx_ext==2.1.4
-breathe==4.31.0
-m2r2==0.3.1
-mistune==0.8.4
