@@ -352,10 +352,14 @@ void rocblas_local_handle::rocblas_stream_end_capture()
 #endif
 }
 
-void rocblas_parallel_initialize_thread(int id)
+void rocblas_parallel_initialize_thread(int id, size_t& memory_used)
 {
+    size_t before_init, after_init, total_memory;
     CHECK_HIP_ERROR(hipSetDevice(id));
+    CHECK_HIP_ERROR(hipMemGetInfo(&before_init, &total_memory));
     rocblas_initialize();
+    CHECK_HIP_ERROR(hipMemGetInfo(&after_init, &total_memory));
+    memory_used = before_init - after_init;
 }
 
 /*!
@@ -369,17 +373,26 @@ void rocblas_parallel_initialize_thread(int id)
  */
 void rocblas_parallel_initialize(int parallel_devices)
 {
-    auto thread = std::make_unique<std::thread[]>(parallel_devices);
+    auto                thread = std::make_unique<std::thread[]>(parallel_devices);
+    std::vector<size_t> init_memory(parallel_devices);
 
     // Store the start timepoint of rocblas initialize
     auto start_time = std::chrono::steady_clock::now();
 
     if(parallel_devices == 1)
+    {
+        size_t before_init, after_init, total_memory;
+        CHECK_HIP_ERROR(hipMemGetInfo(&before_init, &total_memory));
         rocblas_initialize();
+        CHECK_HIP_ERROR(hipMemGetInfo(&after_init, &total_memory));
+        init_memory[0] = before_init - after_init;
+    }
     else
     {
+
         for(int id = 0; id < parallel_devices; ++id)
-            thread[id] = std::thread(rocblas_parallel_initialize_thread, id);
+            thread[id]
+                = std::thread(rocblas_parallel_initialize_thread, id, std::ref(init_memory[id]));
         for(int id = 0; id < parallel_devices; ++id)
             thread[id].join();
     }
@@ -410,4 +423,15 @@ void rocblas_parallel_initialize(int parallel_devices)
         rocblas_cerr << "\nrocBLAS info: average time to initialize each device exceeded the max "
                         "duration of "
                      << max_duration << " milliseconds. Check CPU's load metrics." << std::endl;
+
+    constexpr static float max_memory = 1.0;
+    auto                   max_library_size
+        = *std::max_element(std::begin(init_memory), std::end(init_memory)) * 1.0e-9;
+
+    rocblas_cout << "\nrocBLAS info: maximum library size per device is " << max_library_size
+                 << " GB." << std::endl;
+    if(max_library_size > max_memory)
+        rocblas_cerr << "\nrocBLAS info: max kernel library size " << max_library_size
+                     << " GB exceeds the max recommended memory " << max_memory
+                     << " GB. Check library logic file sizes." << std::endl;
 }
