@@ -48,17 +48,43 @@ Tests:
 
 # non batched
 
-- name: syrk_size_t
-  category: nightly
+- name: syrk_size_t_T
+  category: nightly #stress
   function: syrk
   precision: *single_precision
-  uplo: [ L ]
-  transA: [ T ]
+  uplo: [ L, U ]
+  transA: [ T ] # A is KxN for tranpose, C is NxN
   matrix_size:
-    - { N:  51200, ldc: 51200, K:     4, lda:     4 }
-    - { N:      4, ldc:     4, K: 51200, lda: 51200 }
+    - { N:  51201, ldc: 51201, K:     4, lda:     4 }
+    - { N:  51200, ldc: 51200, K:     8, lda:     8 } # N mod 32 == 0 && k % 8 == 0
+    - { N:  51200, ldc: 51200, K:    16, lda:    16 } # N mod 16 == 0 && k % 16 == 0
+    - { N:  51200, ldc: 51200, K:     7, lda:     7 } # N mod 16 == 0 && k % 16 != 0
+    - { N:      4, ldc:     4, K: 51201, lda: 51201 }
+    - { N:     32, ldc:    32, K: 51200, lda: 51200 } # N mod 32 == 0 && k % 8 == 0
   alpha_beta:
-    - { alpha:  1.0, alphai:  0.0, beta:  1.0, betai: 0.0 } # quick success
+    - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
+  pointer_mode_host: false
+  gpu_arch: '90a'
+  os_flags: LINUX
+
+- name: syrk_size_t_N
+  category: nightly #stress
+  function: syrk
+  precision: *single_precision
+  uplo: [ L, U ]
+  transA: [ N ] # A is NxK, C is NxN
+  matrix_size:
+    - { N:  51201, ldc: 51201, K:     4, lda:     51201 }
+    - { N:  51200, ldc: 51200, K:     8, lda:     51200 } # N mod 32 == 0 && k % 8 == 0
+    - { N:  51200, ldc: 51200, K:    16, lda:     51200 } # N mod 16 == 0 && k % 16 == 0
+    - { N:  51200, ldc: 51200, K:     7, lda:     51200 } # N mod 16 == 0 && k % 16 != 0
+    - { N:      4, ldc:     4, K: 51201, lda: 4         }
+    - { N:     32, ldc:    32, K: 51200, lda: 32        } # N mod 32 == 0 && k % 8 == 0
+  alpha_beta:
+    - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
+  pointer_mode_host: false
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: syrk_quick
   category: quick
@@ -108,6 +134,7 @@ Tests:
   transA: [N, T]
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
+  pointer_mode_host: false
 
   # batched
 
@@ -153,9 +180,9 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
+  pointer_mode_device: false
 
   # strided batched
-
 
 - name: syrk_strided_batched_quick
   category: quick
@@ -199,6 +226,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
+  pointer_mode_host: false
 
 - name: syrk_graph_test
   category: pre_checkin
