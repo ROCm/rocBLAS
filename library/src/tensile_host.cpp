@@ -701,14 +701,12 @@ namespace
                 int    g = glob(dir.c_str(), GLOB_NOSORT, nullptr, &glob_result);
                 if(!g)
                 {
-                    const char* experimental = getenv("ROCBLAS_TENSILE_EXPERIMENTAL_SELECTION");
                     for(size_t i = 0; i < glob_result.gl_pathc; ++i)
                     {
                         std::string cofile = glob_result.gl_pathv[i];
                         if(!skip_xnack.empty() && cofile.find(skip_xnack) != std::string::npos)
                             continue;
-                        if((experimental == nullptr || experimental[0] == '\0')
-                           && cofile.find("Experimental") != std::string::npos)
+                        if(cofile.find("Experimental") != std::string::npos)
                             continue;
                         adapter.loadCodeObjectFile(cofile);
                     }
