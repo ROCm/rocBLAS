@@ -44,6 +44,20 @@ Tests:
   precision: *single_double_precisions_complex
   api: [ C, FORTRAN ]
 
+- name: herkx_size_t
+  category: nightly #stress
+  function: herkx
+  precision: *single_precision_complex
+  uplo: [ L, U ]
+  transA: [ T ] # A and B are KxN for transA==T
+  matrix_size:
+    - { N: 46975, K:     3, lda:     3, ldb:     3, ldc: 46975 }
+  alpha_beta:
+    - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
+  pointer_mode_device: false
+  gpu_arch: '90a'
+  os_flags: LINUX
+
 - name: herkx_quick
   category: quick
   function: herkx
@@ -82,6 +96,7 @@ Tests:
   transA: [ N, C ]
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta_range_small
+  pointer_mode_host: false
 
   # batched
 - name: herkx_batched_bad
@@ -132,6 +147,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 2 ]
+  pointer_mode_device: false
 
   # strided batched
 - name: herkx_strided_batched_bad
@@ -182,6 +198,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 2 ]
+  pointer_mode_host: false
 
 - name: herkx_graph_test
   category: pre_checkin
