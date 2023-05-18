@@ -70,7 +70,7 @@ rocblas_gemv_scal_kernel(rocblas_int    n,
     auto beta            = load_scalar(beta_device_host, blockIdx.y, stride_beta);
     if(beta == 1)
         return;
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
     // bound
     if(tid < n)
     {
@@ -124,21 +124,21 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_double_buffered_kernel_calc(rocblas_int ro
         A += start * DIM_X * size_t(lda);
 
         // Advance 'x'
-        x += start * DIM_X * incx;
+        x += start * DIM_X * int64_t(incx);
 
         // Advance 'y'
-        y += (bx * DIM_X) * incy;
+        y += (bx * DIM_X) * int64_t(incy);
     }
 
     if(count == 0)
         return;
 
-    const int j = ty_ * elements_per_thread * lda + tx_;
+    const size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
 // read upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        areg_upper[k] = A[j + k * lda];
+        areg_upper[k] = A[j + k * size_t(lda)];
 
     int Vblocks = 0;
     //#pragma unroll
@@ -147,27 +147,27 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_double_buffered_kernel_calc(rocblas_int ro
 // read lower
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            areg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+            areg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
 
 // compute upper
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            res_1_ += areg_upper[k] * x[(ty_ * elements_per_thread + k) * incx];
+            res_1_ += areg_upper[k] * x[(ty_ * elements_per_thread + k) * int64_t(incx)];
 
-        A += DIM_X * lda;
+        A += DIM_X * size_t(lda);
 
         // read upper from next block
         if(Vblocks != count - 1)
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                areg_upper[k] = A[j + k * lda];
+                areg_upper[k] = A[j + k * size_t(lda)];
         }
 
 // compute lower
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            res_2_ += areg_lower[k] * x[(ty_ * elements_per_thread + k) * incx];
+            res_2_ += areg_lower[k] * x[(ty_ * elements_per_thread + k) * int64_t(incx)];
 
         x += DIM_X * incx;
     }
@@ -183,7 +183,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_double_buffered_kernel_calc(rocblas_int ro
         for(int k = 0; k < 2 * DIM_Y; k++)
             res_1_ += la[k * DIM_X + tx];
 
-        atomicAdd(&y[tx * incy], (alpha * res_1_));
+        atomicAdd(&y[tx * int64_t(incy)], (alpha * res_1_));
     }
 }
 
@@ -242,33 +242,33 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_double_buffered_kernel_calc(rocblas_int ro
         A += start * DIM_X;
 
         // Advance 'x'
-        x += start * DIM_X * incx;
+        x += start * DIM_X * int64_t(incx);
 
         // Advance 'y'
-        y += (bx * DIM_X) * incy;
+        y += (bx * DIM_X) * int64_t(incy);
     }
 
     if(count == 0)
         return;
 
-    const int j = ty_ * elements_per_thread * lda + tx_;
+    const size_t j = ty_ * elements_per_thread * size_t(lda) + tx_;
 
 // read upper
 #pragma unroll
     for(int k = 0; k < elements_per_thread; k++)
-        Areg_upper[k] = A[j + k * lda];
+        Areg_upper[k] = A[j + k * size_t(lda)];
 
     for(int Vblocks = 0; Vblocks < count; Vblocks++)
     {
 // read lower
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            Areg_lower[k] = A[(DIM_X / 2) + j + k * lda];
+            Areg_lower[k] = A[(DIM_X / 2) + j + k * size_t(lda)];
 
 // compute upper
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            treg[k] += (CONJ ? conj(Areg_upper[k]) : Areg_upper[k]) * x[tx_ * incx];
+            treg[k] += (CONJ ? conj(Areg_upper[k]) : Areg_upper[k]) * x[tx_ * int64_t(incx)];
 
         A += DIM_X;
 
@@ -277,15 +277,16 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_double_buffered_kernel_calc(rocblas_int ro
         {
 #pragma unroll
             for(int k = 0; k < elements_per_thread; k++)
-                Areg_upper[k] = A[j + k * lda];
+                Areg_upper[k] = A[j + k * size_t(lda)];
         }
 
 //compute lower
 #pragma unroll
         for(int k = 0; k < elements_per_thread; k++)
-            treg[k] += (CONJ ? conj(Areg_lower[k]) : Areg_lower[k]) * x[(tx_ + (DIM_X / 2)) * incx];
+            treg[k] += (CONJ ? conj(Areg_lower[k]) : Areg_lower[k])
+                       * x[(tx_ + (DIM_X / 2)) * int64_t(incx)];
 
-        x += DIM_X * incx;
+        x += DIM_X * int64_t(incx);
     }
 
 // final reduction
@@ -302,7 +303,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_double_buffered_kernel_calc(rocblas_int ro
         for(int k = tx; k < tx + (DIM_X / 2); k++)
             treg[0] += la[tx * (DIM_X / 2) + (k % (DIM_X / 2))];
 
-        atomicAdd(&y[tx * incy], (treg[0] * alpha));
+        atomicAdd(&y[tx * int64_t(incy)], (treg[0] * alpha));
     }
 }
 
@@ -346,7 +347,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int m,
     {
         if(thread_id < DIM_X * 4)
         {
-            rocblas_int ind = blockIdx.x * DIM_X * 4 + thread_id;
+            int64_t ind = blockIdx.x * DIM_X * 4 + thread_id;
             if(ind < m)
                 y[ind * incy] = beta ? beta * y[ind * incy] : 0;
         }
@@ -373,38 +374,38 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int m,
 
     for(col = ty * 4; col < (n - n_tail); col += 4 * DIM_Y)
     {
-        res_x[0] = x[(col + 0) * incx];
-        res_x[1] = x[(col + 1) * incx];
-        res_x[2] = x[(col + 2) * incx];
-        res_x[3] = x[(col + 3) * incx];
+        res_x[0] = x[(col + 0) * int64_t(incx)];
+        res_x[1] = x[(col + 1) * int64_t(incx)];
+        res_x[2] = x[(col + 2) * int64_t(incx)];
+        res_x[3] = x[(col + 3) * int64_t(incx)];
 
         if(ind < m)
         {
-            res_A[0] += A[ind + (col + 0) * lda] * res_x[0];
-            res_A[0] += A[ind + (col + 1) * lda] * res_x[1];
-            res_A[0] += A[ind + (col + 2) * lda] * res_x[2];
-            res_A[0] += A[ind + (col + 3) * lda] * res_x[3];
+            res_A[0] += A[ind + (col + 0) * size_t(lda)] * res_x[0];
+            res_A[0] += A[ind + (col + 1) * size_t(lda)] * res_x[1];
+            res_A[0] += A[ind + (col + 2) * size_t(lda)] * res_x[2];
+            res_A[0] += A[ind + (col + 3) * size_t(lda)] * res_x[3];
 
             if(ind + DIM_X < m)
             {
-                res_A[1] += A[ind + DIM_X + (col + 0) * lda] * res_x[0];
-                res_A[1] += A[ind + DIM_X + (col + 1) * lda] * res_x[1];
-                res_A[1] += A[ind + DIM_X + (col + 2) * lda] * res_x[2];
-                res_A[1] += A[ind + DIM_X + (col + 3) * lda] * res_x[3];
+                res_A[1] += A[ind + DIM_X + (col + 0) * size_t(lda)] * res_x[0];
+                res_A[1] += A[ind + DIM_X + (col + 1) * size_t(lda)] * res_x[1];
+                res_A[1] += A[ind + DIM_X + (col + 2) * size_t(lda)] * res_x[2];
+                res_A[1] += A[ind + DIM_X + (col + 3) * size_t(lda)] * res_x[3];
 
                 if(ind + 2 * DIM_X < m)
                 {
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 0) * lda] * res_x[0];
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 1) * lda] * res_x[1];
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 2) * lda] * res_x[2];
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 3) * lda] * res_x[3];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 0) * size_t(lda)] * res_x[0];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 1) * size_t(lda)] * res_x[1];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 2) * size_t(lda)] * res_x[2];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 3) * size_t(lda)] * res_x[3];
 
                     if(ind + 3 * DIM_X < m)
                     {
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 0) * lda] * res_x[0];
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 1) * lda] * res_x[1];
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 2) * lda] * res_x[2];
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 3) * lda] * res_x[3];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 0) * size_t(lda)] * res_x[0];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 1) * size_t(lda)] * res_x[1];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 2) * size_t(lda)] * res_x[2];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 3) * size_t(lda)] * res_x[3];
                     }
                 }
             }
@@ -418,49 +419,57 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int m,
 
         if(col + 0 < n)
         {
-            res_x[0] = x[(col + 0) * incx];
+            res_x[0] = x[(col + 0) * int64_t(incx)];
 
             if(col + 1 < n)
             {
-                res_x[1] = x[(col + 1) * incx];
+                res_x[1] = x[(col + 1) * int64_t(incx)];
 
                 if(col + 2 < n)
                 {
-                    res_x[2] = x[(col + 2) * incx];
+                    res_x[2] = x[(col + 2) * int64_t(incx)];
 
                     if(col + 3 < n)
-                        res_x[3] = x[(col + 3) * incx];
+                        res_x[3] = x[(col + 3) * int64_t(incx)];
                 }
             }
         }
 
         if(ind < m)
         {
-            res_A[0] += A[ind + (col + 0) * lda * (col + 0 < n)] * res_x[0];
-            res_A[0] += A[ind + (col + 1) * lda * (col + 1 < n)] * res_x[1];
-            res_A[0] += A[ind + (col + 2) * lda * (col + 2 < n)] * res_x[2];
-            res_A[0] += A[ind + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+            res_A[0] += A[ind + (col + 0) * size_t(lda) * (col + 0 < n)] * res_x[0];
+            res_A[0] += A[ind + (col + 1) * size_t(lda) * (col + 1 < n)] * res_x[1];
+            res_A[0] += A[ind + (col + 2) * size_t(lda) * (col + 2 < n)] * res_x[2];
+            res_A[0] += A[ind + (col + 3) * size_t(lda) * (col + 3 < n)] * res_x[3];
 
             if(ind + DIM_X < m)
             {
-                res_A[1] += A[ind + DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
-                res_A[1] += A[ind + DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
-                res_A[1] += A[ind + DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
-                res_A[1] += A[ind + DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+                res_A[1] += A[ind + DIM_X + (col + 0) * size_t(lda) * (col + 0 < n)] * res_x[0];
+                res_A[1] += A[ind + DIM_X + (col + 1) * size_t(lda) * (col + 1 < n)] * res_x[1];
+                res_A[1] += A[ind + DIM_X + (col + 2) * size_t(lda) * (col + 2 < n)] * res_x[2];
+                res_A[1] += A[ind + DIM_X + (col + 3) * size_t(lda) * (col + 3 < n)] * res_x[3];
 
                 if(ind + 2 * DIM_X < m)
                 {
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
-                    res_A[2] += A[ind + 2 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+                    res_A[2]
+                        += A[ind + 2 * DIM_X + (col + 0) * size_t(lda) * (col + 0 < n)] * res_x[0];
+                    res_A[2]
+                        += A[ind + 2 * DIM_X + (col + 1) * size_t(lda) * (col + 1 < n)] * res_x[1];
+                    res_A[2]
+                        += A[ind + 2 * DIM_X + (col + 2) * size_t(lda) * (col + 2 < n)] * res_x[2];
+                    res_A[2]
+                        += A[ind + 2 * DIM_X + (col + 3) * size_t(lda) * (col + 3 < n)] * res_x[3];
 
                     if(ind + 3 * DIM_X < m)
                     {
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
-                        res_A[3] += A[ind + 3 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 0) * size_t(lda) * (col + 0 < n)]
+                                    * res_x[0];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 1) * size_t(lda) * (col + 1 < n)]
+                                    * res_x[1];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 2) * size_t(lda) * (col + 2 < n)]
+                                    * res_x[2];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 3) * size_t(lda) * (col + 3 < n)]
+                                    * res_x[3];
                     }
                 }
             }
@@ -482,8 +491,8 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int m,
         ind = blockIdx.x * DIM_X * 4 + thread_id;
 
         if(ind < m)
-            y[ind * incy]
-                = beta ? alpha * sdata[thread_id] + beta * y[ind * incy] : alpha * sdata[thread_id];
+            y[ind * int64_t(incy)] = beta ? alpha * sdata[thread_id] + beta * y[ind * int64_t(incy)]
+                                          : alpha * sdata[thread_id];
     }
 }
 
@@ -507,7 +516,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int                   
     {
         if(thread_id < DIM_X)
         {
-            rocblas_int ind = blockIdx.x * DIM_X + thread_id;
+            int64_t ind = blockIdx.x * DIM_X + thread_id;
             if(ind < m)
                 y[ind * incy] = beta ? beta * y[ind * incy] : 0;
         }
@@ -535,7 +544,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int                   
 
         if(ind < m)
         {
-            res_A += A[ind + col * lda] * x[col * incx];
+            res_A += A[ind + col * size_t(lda)] * x[col * int64_t(incx)];
         }
     }
 
@@ -543,13 +552,13 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int                   
     if(n_tail > 0)
     {
         if(col + 0 < n)
-            res_x = x[(col)*incx];
+            res_x = x[col * int64_t(incx)];
         else
             res_x = rocblas_double_complex{0, 0};
 
         if(ind < m)
         {
-            res_A += A[ind + (col)*lda * (col < n)] * res_x;
+            res_A += A[ind + col * size_t(lda) * (col < n)] * res_x;
         }
     }
 
@@ -567,8 +576,8 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_kernel_calc(rocblas_int                   
 
         if(ind < m)
         {
-            y[ind * incy]
-                = beta ? alpha * sdata[thread_id] + beta * y[ind * incy] : alpha * sdata[thread_id];
+            y[ind * int64_t(incy)] = beta ? alpha * sdata[thread_id] + beta * y[ind * int64_t(incy)]
+                                          : alpha * sdata[thread_id];
         }
     }
 }
@@ -591,7 +600,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_kernel_calc(rocblas_int m,
     if(!alpha)
     {
         if(tx == 0)
-            y[col * incy] = beta ? beta * y[col * incy] : 0;
+            y[col * int64_t(incy)] = beta ? beta * y[col * int64_t(incy)] : 0;
         return;
     }
 
@@ -608,10 +617,10 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_kernel_calc(rocblas_int m,
     rocblas_int m_full = (m / NB_X) * NB_X;
 
     for(rocblas_int i = 0; i < m_full; i += NB_X)
-        res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * incx];
+        res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * int64_t(incx)];
 
     if(tx + m_full < m)
-        res += (CONJ ? conj(A[m_full]) : A[m_full]) * x[(tx + m_full) * incx];
+        res += (CONJ ? conj(A[m_full]) : A[m_full]) * x[(tx + m_full) * int64_t(incx)];
 
     sdata[tx] = res;
 
@@ -636,7 +645,8 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_kernel_calc(rocblas_int m,
     if(tx == 0)
     {
         // !alpha handled earlier by early return
-        y[col * incy] = beta ? alpha * sdata[0] + beta * y[col * incy] : alpha * sdata[0];
+        y[col * int64_t(incy)]
+            = beta ? alpha * sdata[0] + beta * y[col * int64_t(incy)] : alpha * sdata[0];
     }
 }
 
@@ -659,7 +669,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_warp_reduce_kernel_calc(rocblas_int m,
     if(!alpha)
     {
         if(tx == 0)
-            y[col * incy] = beta ? beta * y[col * incy] : 0;
+            y[col * int64_t(incy)] = beta ? beta * y[col * int64_t(incy)] : 0;
         return;
     }
 
@@ -677,10 +687,10 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_warp_reduce_kernel_calc(rocblas_int m,
     //Each column of Matrix A is multiplied with vector x and the resultant value is stored in res.
     //If m > NB_X, then the threads are reused and the multiplied values will be accumalated.
     for(rocblas_int i = 0; tx + i < m_full; i += NB_X)
-        res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * incx];
+        res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * int64_t(incx)];
 
     if(tx + m_full < m)
-        res += (CONJ ? conj(A[m_full]) : A[m_full]) * x[(tx + m_full) * incx];
+        res += (CONJ ? conj(A[m_full]) : A[m_full]) * x[(tx + m_full) * int64_t(incx)];
 
     if(NB_X <= warpSize)
     {
@@ -696,7 +706,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_warp_reduce_kernel_calc(rocblas_int m,
     if(tx == 0)
     {
         // !alpha handled earlier by early return
-        y[col * incy] = beta ? alpha * res + beta * y[col * incy] : alpha * res;
+        y[col * int64_t(incy)] = beta ? alpha * res + beta * y[col * int64_t(incy)] : alpha * res;
     }
 }
 
@@ -747,24 +757,28 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_sn_kernel_calc(rocblas_int m,
         {
             for(int j = 0; j < WIN; j++)
             {
-                xvec[j] = x[(row + j) * incx];
+                xvec[j] = x[(row + j) * int64_t(incx)];
             }
             for(int j = 0; j < WIN; j++)
             {
                 for(int k = 0; k < NC; k++)
-                    sum[k] += (CONJ ? conj(A[(i + k) * lda + j]) : A[(i + k) * lda + j]) * xvec[j];
+                    sum[k] += (CONJ ? conj(A[(i + k) * size_t(lda) + j])
+                                    : A[(i + k) * size_t(lda) + j])
+                              * xvec[j];
             }
         }
         else if(row + m_tail <= m)
         {
             for(int j = 0; j < m_tail; j++)
             {
-                xvec[j] = x[(row + j) * incx];
+                xvec[j] = x[(row + j) * int64_t(incx)];
             }
             for(int j = 0; j < m_tail; j++)
             {
                 for(int k = 0; k < NC; k++)
-                    sum[k] += (CONJ ? conj(A[(i + k) * lda + j]) : A[(i + k) * lda + j]) * xvec[j];
+                    sum[k] += (CONJ ? conj(A[(i + k) * size_t(lda) + j])
+                                    : A[(i + k) * size_t(lda) + j])
+                              * xvec[j];
             }
         }
 
@@ -785,22 +799,24 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_sn_kernel_calc(rocblas_int m,
         {
             for(int j = 0; j < WIN; j++)
             {
-                xvec[j] = x[(row + j) * incx];
+                xvec[j] = x[(row + j) * int64_t(incx)];
             }
             for(int j = 0; j < WIN; j++)
             {
-                sum[0] += (CONJ ? conj(A[(i + 0) * lda + j]) : A[(i + 0) * lda + j]) * xvec[j];
+                sum[0] += (CONJ ? conj(A[(i + 0) * size_t(lda) + j]) : A[(i + 0) * size_t(lda) + j])
+                          * xvec[j];
             }
         }
         else if(row + m_tail <= m)
         {
             for(int j = 0; j < m_tail; j++)
             {
-                xvec[j] = x[(row + j) * incx];
+                xvec[j] = x[(row + j) * int64_t(incx)];
             }
             for(int j = 0; j < m_tail; j++)
             {
-                sum[0] += (CONJ ? conj(A[(i + 0) * lda + j]) : A[(i + 0) * lda + j]) * xvec[j];
+                sum[0] += (CONJ ? conj(A[(i + 0) * size_t(lda) + j]) : A[(i + 0) * size_t(lda) + j])
+                          * xvec[j];
             }
         }
         sum[0] = rocblas_dot_block_reduce<NB_X>(sum[0]);
@@ -846,8 +862,7 @@ rocblas_gemvt_sn_reduce(rocblas_int    n_sums,
 
     if(threadIdx.x == 0)
     {
-        y[ptrdiff_t(blockIdx.y) * incy]
-            = beta ? (y[ptrdiff_t(blockIdx.y) * incy] * beta) + sum : sum;
+        y[blockIdx.y * int64_t(incy)] = beta ? (y[blockIdx.y * int64_t(incy)] * beta) + sum : sum;
     }
 }
 
@@ -872,14 +887,14 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvtsm_kernel_calc(rocblas_int m,
         if(beta)
             for(rocblas_int i = 0; i < n; i += NB_X)
             {
-                rocblas_int col = i + tx;
+                int64_t col = i + tx;
                 if(col < n)
                     y[col * incy] *= beta;
             }
         else
             for(rocblas_int i = 0; i < n; i += NB_X)
             {
-                rocblas_int col = i + tx;
+                int64_t col = i + tx;
                 if(col < n)
                     y[col * incy] = 0;
             }
@@ -889,7 +904,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvtsm_kernel_calc(rocblas_int m,
     __shared__ T shared_x[64];
 
     if(tx < m)
-        shared_x[tx] = alpha * x[tx * incx];
+        shared_x[tx] = alpha * x[tx * int64_t(incx)];
     __syncthreads();
 
     for(rocblas_int i = 0; i < n; i += NB_X)
@@ -897,9 +912,9 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvtsm_kernel_calc(rocblas_int m,
         rocblas_int col = i + tx;
         if(col < n)
         {
-            rocblas_int idx  = col * incy;
-            T           res  = beta ? beta * y[idx] : 0;
-            const T*    Aptr = A + col * size_t(lda);
+            int64_t  idx  = col * int64_t(incy);
+            T        res  = beta ? beta * y[idx] : 0;
+            const T* Aptr = A + col * size_t(lda);
             for(rocblas_int l = 0; l < m; ++l)
                 res += shared_x[l] * (CONJ ? conj(Aptr[l]) : Aptr[l]);
             y[idx] = res;
@@ -1191,12 +1206,12 @@ ROCBLAS_KERNEL_ILF void rocblas_gemv_sm_mn_batched_kernel_calc(rocblas_int m,
         if(beta)
         {
             if(tx < m)
-                y[tx * incy] *= beta;
+                y[tx * int64_t(incy)] *= beta;
         }
         else
         {
             if(tx < m)
-                y[tx * incy] = 0;
+                y[tx * int64_t(incy)] = 0;
         }
         return;
     }
@@ -1207,24 +1222,24 @@ ROCBLAS_KERNEL_ILF void rocblas_gemv_sm_mn_batched_kernel_calc(rocblas_int m,
     sx += ty * NB_X;
 
     if(tx < n)
-        sx[tx] = alpha * x[tx * incx];
+        sx[tx] = alpha * x[tx * int64_t(incx)];
 
     __syncthreads();
 
     if(tx < m)
     {
-        T res = beta ? beta * y[tx * incy] : 0;
+        T res = beta ? beta * y[tx * int64_t(incy)] : 0;
         T rA[NB_X];
 
 #pragma unroll
         for(int j = 0; j < NB_X; j++)
-            rA[j] = j < n ? A[j * lda + tx] : 0;
+            rA[j] = j < n ? A[j * size_t(lda) + tx] : 0;
 
 #pragma unroll
         for(int j = 0; j < NB_X; j++)
             res += j < n ? rA[j] * sx[j] : 0;
 
-        y[tx * incy] = res;
+        y[tx * int64_t(incy)] = res;
     }
 }
 
