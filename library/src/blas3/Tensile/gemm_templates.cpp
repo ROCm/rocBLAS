@@ -64,11 +64,11 @@ rocblas_status rocblas_internal_gemm_template(rocblas_handle    handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
+#ifdef BUILD_WITH_TENSILE
     TScal alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
         rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
-#ifdef BUILD_WITH_TENSILE
     if(BATCHED)
     {
         return rocblas_call_tensile(handle,
