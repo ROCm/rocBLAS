@@ -226,7 +226,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error          = 0.0;
+    double rocblas_error_out, rocblas_error_in;
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
@@ -290,14 +290,40 @@ void testing_trtri_strided_batched(const Arguments& arg)
         handle.post_test(arg);
 
         // Test in place
+        handle.pre_test(arg);
         if(arg.api != INTERNAL)
         {
-            handle.pre_test(arg);
-            // TODO: Need to check in-inplace tests for all sizes, excluding from internal tests for now
             CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched_fn(
                 handle, uplo, diag, N, dA, lda, stride_A, dA, lda, stride_A, batch_count));
-            handle.post_test(arg);
         }
+        else
+        {
+            rocblas_stride offsetA         = arg.ldc;
+            rocblas_stride subStride       = 0;
+            rocblas_int    sub_batch_count = 1;
+
+            size_t           work_el = rocblas_internal_trtri_temp_elements(N, batch_count);
+            device_vector<T> workspace(work_el);
+
+            CHECK_ROCBLAS_ERROR(rocblas_internal_trtri_template(handle,
+                                                                uplo,
+                                                                diag,
+                                                                N,
+                                                                (const T*)dA + offsetA,
+                                                                -offsetA,
+                                                                lda,
+                                                                stride_A,
+                                                                subStride,
+                                                                (T*)dA + offsetA,
+                                                                -offsetA,
+                                                                lda,
+                                                                stride_A,
+                                                                subStride,
+                                                                batch_count,
+                                                                sub_batch_count,
+                                                                (T*)workspace));
+        }
+        handle.post_test(arg);
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA.transfer_from(dinvA));
@@ -322,18 +348,15 @@ void testing_trtri_strided_batched(const Arguments& arg)
         {
             const double rel_error = trtri_tolerance<T>(N);
             near_check_general<T>(N, N, lda, stride_A, hB, hA, batch_count, rel_error);
-            if(arg.api != INTERNAL)
-                near_check_general<T>(N, N, lda, stride_A, hB, hA_2, batch_count, rel_error);
+            near_check_general<T>(N, N, lda, stride_A, hB, hA_2, batch_count, rel_error);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error
+            rocblas_error_out
                 = norm_check_symmetric<T>('F', char_uplo, N, lda, stride_A, hB, hA, batch_count);
-            if(arg.api != INTERNAL)
-                rocblas_error = fmax(
-                    rocblas_error,
-                    norm_check_symmetric<T>('F', char_uplo, N, lda, stride_A, hB, hA, batch_count));
+            rocblas_error_in
+                = norm_check_symmetric<T>('F', char_uplo, N, lda, stride_A, hB, hA, batch_count);
         }
     } // end of norm_check
 
@@ -362,6 +385,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
             trtri_gflop_count<T>(N),
             ArgumentLogging::NA_value,
             cpu_time_used,
-            rocblas_error);
+            rocblas_error_out,
+            rocblas_error_in);
     }
 }
