@@ -6,6 +6,8 @@ Definitions:
 
   - &small_matrix_size_range
     - { N:    -1, lda:    -1 }
+    - { N:     5, lda:   100 }
+    - { N:    15, lda:    16 }
     - { N:    10, lda:    10 }
     - { N:    10, lda:    20 }
     - { N:    20, lda:   160 }
@@ -24,6 +26,10 @@ Definitions:
     - { N:    181, lda:    181 }
     - { N:    197, lda:    275 }
     - { N:    352, lda:    352 }
+    # below needed to test multiple iterations of remainder loop w/ IB = 32
+    - { N:    480, lda:    480 }
+    - { N:    500, lda:    500 }
+    - { N:    736, lda:    736 }
 
   - &large_matrix_size_range
     - { N:  357, lda:  400 }
@@ -48,15 +54,6 @@ Definitions:
     - [4294967297]
 
 Tests:
-- name: trtri
-  category: quick
-  function: trtri
-  precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
-  diag: [ N, U ]
-  matrix_size: *small_matrix_size_range
-  api: [ C, FORTRAN ]
-
 - name: trtri_bad_arg
   category: pre_checkin
   function:
@@ -71,12 +68,12 @@ Tests:
   category: pre_checkin
   function:
     - trtri
-    - trtri_batched # need to fix in-place
+    - trtri_batched
     - trtri_strided_batched
   precision: *single_precision
   uplo: [ U, L ]
   diag: [ N ]
-  N: [ 9, 737 ]
+  N: [ 9, 736 ]
   lda: [ 2000 ]
   ldc: *c_pos_overflow_int32 # ldc, ldd used for internal api offset args
   ldd: *c_pos_overflow_int32_2
@@ -84,41 +81,50 @@ Tests:
   batch_count: [ 3 ]
   api: INTERNAL
 
-- name: trtri
-  category: pre_checkin
+- name: trtri_quick
+  category: quick
   function: trtri
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *small_matrix_size_range
+  api: [ C, FORTRAN ]
+
+- name: trtri_batched_quick
+  category: quick
+  function:
+    - trtri_batched
+    - trtri_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *small_matrix_size_range
+  batch_count: [ -1, 0, 1, 25 ]
+  api: [ C, FORTRAN ]
+
+- name: trtri_pre
+  category: pre_checkin
+  function:
+    - trtri
+    - trtri_batched
+    - trtri_strided_batched
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *medium_matrix_size_range
+  batch_count: [ 3 ]
 
-- name: trtri
+- name: trtri_nightly
   category: nightly
-  function: trtri
+  function:
+    - trtri
+    - trtri_batched
+    - trtri_strided_batched
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *large_matrix_size_range
-
-- name: trtri_batched
-  category: quick
-  function: trtri_batched
-  precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
-  diag: [ N, U ]
-  matrix_size: *small_matrix_size_range
-  batch_count: [ -1, 0, 1, 25 ]
-  api: [ C, FORTRAN ]
-
-- name: trtri_strided_batched
-  category: quick
-  function: trtri_strided_batched
-  precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
-  diag: [ N, U ]
-  matrix_size: *small_matrix_size_range
-  batch_count: [ -1, 0, 1, 25 ]
-  api: [ C, FORTRAN ]
+  batch_count: [ 2 ]
 
 - name: trtri_size_t
   category: stress_trtri

@@ -14388,6 +14388,13 @@ ROCBLAS_EXPORT rocblas_status
               specifies the leading dimension of A.
     @param[out]
     invA      device pointer storing matrix invA.
+    Partial inplace operation is supported. See below:
+            -If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
+                the inverse of the upper triangular matrix, and the strictly lower
+                triangular part of invA may be cleared.
+            - If UPLO = 'L', the leading N-by-N lower triangular part of the invA will store
+                the inverse of the lower triangular matrix, and the strictly upper
+                triangular part of invA may be cleared.
     @param[in]
     ldinvA    [rocblas_int]
               specifies the leading dimension of invA.
@@ -14460,10 +14467,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri(rocblas_handle                handl
     Partial inplace operation is supported. See below:
             -If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
                 the inverse of the upper triangular matrix, and the strictly lower
-                triangular part of invA is cleared.
+                triangular part of invA may be cleared.
             - If UPLO = 'L', the leading N-by-N lower triangular part of the invA will store
                 the inverse of the lower triangular matrix, and the strictly upper
-                triangular part of invA is cleared.
+                triangular part of invA may be cleared.
     @param[in]
     ldinvA    [rocblas_int]
               specifies the leading dimension of each invA_i.
@@ -14546,11 +14553,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_batched(rocblas_handle             
 
                 - If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
                 the inverse of the upper triangular matrix, and the strictly lower
-                triangular part of invA is cleared.
+                triangular part of invA may be cleared.
 
                 - If UPLO = 'L', the leading N-by-N lower triangular part of the invA will store
                 the inverse of the lower triangular matrix, and the strictly upper
-                triangular part of invA is cleared.
+                triangular part of invA may be cleared.
     @param[in]
     ldinvA    [rocblas_int]
               specifies the leading dimension of each invA_i.
