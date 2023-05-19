@@ -462,3 +462,36 @@ double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
 
     return max_err / max_err_scal;
 }
+
+template <typename T>
+double vector_norm_1(rocblas_int                 M,
+                     rocblas_int                 incx,
+                     const host_batch_vector<T>& hx_gold,
+                     const host_batch_vector<T>& hx)
+{
+    double max_err = 0.0;
+
+    for(int b = 0; b < hx_gold.batch_count(); b++)
+    {
+        max_err = std::max(max_err, vector_norm_1(M, incx, hx_gold[b], hx[b]));
+    }
+
+    return max_err;
+}
+
+template <typename T>
+double vector_norm_1(rocblas_int                         M,
+                     rocblas_int                         incx,
+                     const host_strided_batch_vector<T>& hx_gold,
+                     const host_strided_batch_vector<T>& hx)
+{
+    double max_err = 0.0;
+
+    for(int b = 0; b < hx_gold.batch_count(); b++)
+    {
+        max_err = std::max(
+            max_err, vector_norm_1(M, incx, hx_gold + b * hx_gold.stride(), hx + b * hx.stride()));
+    }
+
+    return max_err;
+}
