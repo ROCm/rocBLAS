@@ -49,9 +49,9 @@ Tests:
   function: herkx
   precision: *single_precision_complex
   uplo: [ L, U ]
-  transA: [ T ] # A and B are KxN for transA==T
+  transA: [ N ] # A and B are lda/ldb x K for transA==N
   matrix_size:
-    - { N: 46975, K:     3, lda:     3, ldb:     3, ldc: 46975 }
+    - { N: 46975, K:     3, lda:     46975, ldb:     46975, ldc: 46975 }
   alpha_beta:
     - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
   pointer_mode_device: false
