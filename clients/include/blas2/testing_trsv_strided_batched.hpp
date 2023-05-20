@@ -300,6 +300,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
         if(arg.pointer_mode_device)
         {
+            CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
             error_device = vector_norm_1(M, incx, hx, hx_or_b);
 
             if(arg.unit_check)
