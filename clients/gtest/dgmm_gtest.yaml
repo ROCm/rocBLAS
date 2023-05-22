@@ -55,11 +55,15 @@ Tests:
   category: nightly
   function: dgmm
   precision: *single_precision
-  side: [R]
+  side: [ L, R ]
   matrix_size:
-    - { M:  4, N:  51200, lda:  51200, incx:     1, ldc:       4}
+    - { M:  2048, N:  2048, lda: 1049100, ldc:    2048, incx:        1}
+    - { M:  2048, N:  2048, lda:    2048, ldc: 1049100, incx:        1}
+    - { M:  2048, N:  2048, lda:    2048, ldc:    2048, incx: 1049100 }
   batch_count: [        1    ]
   api: C
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: dgmm_quick_return
   category: quick
