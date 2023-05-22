@@ -51,11 +51,11 @@ rocblas_dgmm_device(rocblas_int    m,
 
         if(side_right)
         {
-            C[tx + size_t(ldc) * ty] = A[tx + size_t(lda) * ty] * X[ty * incx];
+            C[tx + size_t(ldc) * ty] = A[tx + size_t(lda) * ty] * X[ty * int64_t(incx)];
         }
         else
         {
-            C[tx + size_t(ldc) * ty] = A[tx + size_t(lda) * ty] * X[tx * incx];
+            C[tx + size_t(ldc) * ty] = A[tx + size_t(lda) * ty] * X[tx * int64_t(incx)];
         }
     }
 }

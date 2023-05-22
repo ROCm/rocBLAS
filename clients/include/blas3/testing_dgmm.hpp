@@ -121,8 +121,7 @@ void testing_dgmm(const Arguments& arg)
     // Allocate host memory
     host_matrix<T> hA(M, N, lda);
     host_vector<T> hx(K, incx);
-    host_matrix<T> hC_1(M, N, ldc);
-    host_matrix<T> hC_2(M, N, ldc);
+    host_matrix<T> hC(M, N, ldc);
     host_matrix<T> hC_gold(M, N, ldc);
 
     // Allocate device memory
@@ -138,12 +137,12 @@ void testing_dgmm(const Arguments& arg)
     // Initialize data on host memory
     rocblas_init_matrix(hA, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
-    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
+    rocblas_init_matrix(hC, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dC.transfer_from(hC_1));
+    CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -158,16 +157,16 @@ void testing_dgmm(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // fecth from GPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
+        CHECK_HIP_ERROR(hC.transfer_from(dC));
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
+            unit_check_general<T>(M, N, ldc, hC_gold, hC);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2);
+            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC);
         }
 
     } // end of if unit/norm check
