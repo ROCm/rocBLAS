@@ -147,8 +147,7 @@ void testing_trsv_batched(const Arguments& arg)
     host_batch_matrix<T> hAAT(M, M, lda, batch_count);
     host_batch_vector<T> hb(M, incx, batch_count);
     host_batch_vector<T> hx(M, incx, batch_count);
-    host_batch_vector<T> hx_or_b_1(M, incx, batch_count);
-    host_batch_vector<T> hx_or_b_2(M, incx, batch_count);
+    host_batch_vector<T> hx_or_b(M, incx, batch_count);
     host_batch_vector<T> cpu_x_or_b(M, incx, batch_count);
 
     // Check host memory allocation
@@ -156,8 +155,7 @@ void testing_trsv_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hAAT.memcheck());
     CHECK_HIP_ERROR(hb.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hx_or_b_1.memcheck());
-    CHECK_HIP_ERROR(hx_or_b_2.memcheck());
+    CHECK_HIP_ERROR(hx_or_b.memcheck());
     CHECK_HIP_ERROR(cpu_x_or_b.memcheck());
 
     // Allocate device memory
@@ -191,17 +189,14 @@ void testing_trsv_batched(const Arguments& arg)
     }
 
     cpu_x_or_b.copy_from(hb);
-    hx_or_b_1.copy_from(hb);
-    hx_or_b_2.copy_from(hb);
+    hx_or_b.copy_from(hb);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
+    CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
     CHECK_HIP_ERROR(dA.transfer_from(hA));
 
-    double error_host       = 0.0;
-    double error_device     = 0.0;
-    double max_error_host   = 0.0;
-    double max_error_device = 0.0;
+    double error_host   = 0.0;
+    double error_device = 0.0;
     double gpu_time_used, cpu_time_used;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
@@ -231,80 +226,91 @@ void testing_trsv_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_trsv_batched_fn(handle,
-                                                    uplo,
-                                                    transA,
-                                                    diag,
-                                                    M,
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dx_or_b.ptr_on_device(),
-                                                    incx,
-                                                    batch_count));
-        handle.post_test(arg);
-
-        CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
-
-        // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-
-        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
-
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_trsv_batched_fn(handle,
-                                                    uplo,
-                                                    transA,
-                                                    diag,
-                                                    M,
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dx_or_b.ptr_on_device(),
-                                                    incx,
-                                                    batch_count));
-        handle.post_test(arg);
-
-        CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
-
-        //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
-        // calculate norm 1 of vector E
-        for(int b = 0; b < batch_count; b++)
+        if(arg.pointer_mode_host)
         {
-            error_host       = rocblas_abs(vector_norm_1<T>(M, incx, hx[b], hx_or_b_1[b]));
-            error_device     = rocblas_abs(vector_norm_1<T>(M, incx, hx[b], hx_or_b_2[b]));
-            max_error_host   = std::max(max_error_host, error_host);
-            max_error_device = std::max(max_error_device, error_device);
+            // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-            //unit test
-            trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
-            trsm_err_res_check<T>(error_device, M, error_eps_multiplier, eps);
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_trsv_batched_fn(handle,
+                                                        uplo,
+                                                        transA,
+                                                        diag,
+                                                        M,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        dx_or_b.ptr_on_device(),
+                                                        incx,
+                                                        batch_count));
+            handle.post_test(arg);
+
+            CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
         }
 
-        // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-        for(int b = 0; b < batch_count; b++)
+        if(arg.pointer_mode_device)
         {
-            cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b_1[b], incx);
-            cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b_2[b], incx);
+            // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            CHECK_HIP_ERROR(dx_or_b.transfer_from(cpu_x_or_b));
+
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_trsv_batched_fn(handle,
+                                                        uplo,
+                                                        transA,
+                                                        diag,
+                                                        M,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        dx_or_b.ptr_on_device(),
+                                                        incx,
+                                                        batch_count));
+            handle.post_test(arg);
         }
 
-        //calculate norm 1 of res
-        for(int b = 0; b < batch_count; b++)
+        if(arg.pointer_mode_host)
         {
-            error_host   = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1[b], hb[b]));
-            error_device = rocblas_abs(vector_norm_1<T>(M, incx, hx_or_b_1[b], hb[b]));
-            //unit test
-            trsm_err_res_check<T>(error_host, M, residual_eps_multiplier, eps);
-            trsm_err_res_check<T>(error_device, M, residual_eps_multiplier, eps);
+            //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+            // calculate norm 1 of vector E
+            error_host = vector_norm_1(M, incx, hx, hx_or_b);
+
+            if(arg.unit_check)
+                trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
+
+            // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
+            for(int b = 0; b < batch_count; b++)
+                cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b[b], incx);
+
+            auto error_host_res = vector_norm_1(M, incx, hx_or_b, hb);
+
+            if(arg.unit_check)
+                trsm_err_res_check<T>(error_host_res, M, residual_eps_multiplier, eps);
+            error_host = std::max(error_host, error_host_res);
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
+            error_device = vector_norm_1(M, incx, hx, hx_or_b);
+
+            if(arg.unit_check)
+                trsm_err_res_check<T>(error_device, M, error_eps_multiplier, eps);
+
+            for(int b = 0; b < batch_count; b++)
+                cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b[b], incx);
+
+            auto error_device_res = vector_norm_1(M, incx, hx_or_b, hb);
+
+            if(arg.unit_check)
+                trsm_err_res_check<T>(error_device_res, M, residual_eps_multiplier, eps);
+            error_device = std::max(error_device, error_device_res);
         }
     }
 
     if(arg.timing)
     {
         // GPU rocBLAS
-        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
+        CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -357,7 +363,7 @@ void testing_trsv_batched(const Arguments& arg)
             trsv_gflop_count<T>(M),
             ArgumentLogging::NA_value,
             cpu_time_used,
-            max_error_host,
-            max_error_device);
+            error_host,
+            error_device);
     }
 }

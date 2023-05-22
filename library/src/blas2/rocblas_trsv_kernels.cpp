@@ -636,7 +636,7 @@ rocblas_trsv_device(rocblas_int    m,
         if(!row_is_remainder || tx < remainder)
         {
             // multiply by alpha when reading from device memory x
-            val = -alpha * x[(block_row * DIM_X + tx) * incx];
+            val = -alpha * x[(block_row * DIM_X + tx) * int64_t(incx)];
         }
     }
 
@@ -651,7 +651,7 @@ rocblas_trsv_device(rocblas_int    m,
         const rocblas_int local_col = TRANS ? block_row * DIM_X + tx : block_col * DIM_X + ty;
         const rocblas_int local_row = TRANS ? block_col * DIM_X + ty : block_row * DIM_X + tx;
         const size_t      A_idx     = local_col * size_t(lda) + local_row;
-        const rocblas_int x_idx     = (block_col * DIM_X) * incx;
+        const int64_t     x_idx     = (block_col * DIM_X) * int64_t(incx);
 
         if(tid == 0)
         {
@@ -677,7 +677,7 @@ rocblas_trsv_device(rocblas_int    m,
             else
             {
                 // Don't multiply by alpha here as this is a solved value
-                sx[tid] = x[x_idx + tid * incx];
+                sx[tid] = x[x_idx + tid * int64_t(incx)];
             }
         }
 
@@ -733,7 +733,7 @@ rocblas_trsv_device(rocblas_int    m,
         {
             if(ty == 0)
             {
-                x[(block_row * DIM_X + tid) * incx] = val;
+                x[(block_row * DIM_X + tid) * int64_t(incx)] = val;
             }
         }
     }
@@ -748,7 +748,7 @@ rocblas_trsv_device(rocblas_int    m,
         // Store solved value into x
         if(!row_is_remainder || tx < remainder)
             if(ty == 0)
-                x[(block_row * DIM_X + tid) * incx] = val;
+                x[(block_row * DIM_X + tid) * int64_t(incx)] = val;
     }
 #else
     // Solve the diagonal block
@@ -760,7 +760,7 @@ rocblas_trsv_device(rocblas_int    m,
     // Store solved value into x
     if(!row_is_remainder || tx < remainder)
         if(ty == 0)
-            x[(block_row * DIM_X + tid) * incx] = val;
+            x[(block_row * DIM_X + tid) * int64_t(incx)] = val;
 #endif
 
     // ensure solved x values are saved
@@ -801,7 +801,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
     // cppcheck-suppress unreadVariable
     auto saved_device_id = handle->push_device_id();
 
-    offset_x = incx < 0 ? offset_x + ptrdiff_t(incx) * (1 - m) : offset_x;
+    offset_x = incx < 0 ? offset_x + int64_t(incx) * (1 - m) : offset_x;
 
     constexpr rocblas_int DIM_Y  = 16;
     rocblas_int           blocks = (m + DIM_X - 1) / DIM_X;
