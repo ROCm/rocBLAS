@@ -85,20 +85,35 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: geam_size_t
-  category: nightly
+  category: nightly #stress
   function: geam
   precision: *single_precision
-  transA: [N]
-  transB: [N]
-  matrix_size:
-    - { M:     4, N: 51200, lda: 51200, ldb:     4, ldc:     4 }
-    - { M:     4, N: 51200, lda:     4, ldb: 51200, ldc:     4 }
-    - { M:     4, N: 51200, lda:     4, ldb:     4, ldc: 51200 }
+  arguments:
+      # inplace has matching leading dims and can't be tranpose
+    - { transA: N, transB: N, M: 2048, N: 2048, lda: 1049100, ldb: 2048, ldc: 1049100 }
+    - { transA: N, transB: T, M: 2048, N: 2048, lda: 1049100, ldb: 2048, ldc: 1049100 }
+    - { transA: N, transB: N, M: 2048, N: 2048, lda: 2048, ldb: 1049100, ldc: 1049100 }
+    - { transA: T, transB: N, M: 2048, N: 2048, lda: 2048, ldb: 1049100, ldc: 1049100 }
+    # iterate over large leading dims for A, B, C for all tranposes
+    - { transA: N, transB: N, M: 2048, N: 2048, lda: 1049100, ldb: 2048, ldc: 2048 }
+    - { transA: N, transB: N, M: 2048, N: 2048, lda: 2048, ldb: 1049100, ldc: 2048 }
+    - { transA: N, transB: N, M: 2048, N: 2048, lda: 2048, ldb: 2048, ldc: 1049100 }
+    - { transA: N, transB: T, M: 2048, N: 2048, lda: 1049100, ldb: 2048, ldc: 2048 }
+    - { transA: N, transB: T, M: 2048, N: 2048, lda: 2048, ldb: 1049100, ldc: 2048 }
+    - { transA: N, transB: T, M: 2048, N: 2048, lda: 2048, ldb: 2048, ldc: 1049100 }
+    - { transA: T, transB: N, M: 2048, N: 2048, lda: 1049100, ldb: 2048, ldc: 2048 }
+    - { transA: T, transB: N, M: 2048, N: 2048, lda: 2048, ldb: 1049100, ldc: 2048 }
+    - { transA: T, transB: N, M: 2048, N: 2048, lda: 2048, ldb: 2048, ldc: 1049100 }
+    - { transA: T, transB: T, M: 2048, N: 2048, lda: 1049100, ldb: 2048, ldc: 2048 }
+    - { transA: T, transB: T, M: 2048, N: 2048, lda: 2048, ldb: 1049100, ldc: 2048 }
+    - { transA: T, transB: T, M: 2048, N: 2048, lda: 2048, ldb: 2048, ldc: 1049100 }
   alpha_beta:
     - { alpha:  1.0, beta:  1.0 }
   stride_scale: [ 1 ]
   batch_count: [ 1 ]
-  api: C
+  pointer_mode_device: false
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: geam_NaN
   category: quick
@@ -197,6 +212,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *large_matrix_size_range
   alpha_beta: *large_alpha_beta_range
+  pointer_mode_device: false
 
 - name: geam_large_complex
   category: pre_checkin
@@ -205,6 +221,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *large_matrix_size_range
   alpha_beta: *large_complex_alpha_beta_range
+  pointer_mode_device: false
 
 - name: geam_batched_large_complex
   category: pre_checkin
@@ -214,6 +231,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *large_complex_alpha_beta_range
   batch_count: [        1, 2 ]
+  pointer_mode_host: false
 
 - name: geam_strided_batched_large_complex
   category: pre_checkin
@@ -224,6 +242,7 @@ Tests:
   alpha_beta: *large_complex_alpha_beta_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+  pointer_mode_host: false
 
 - name: geam_huge
   category: nightly
@@ -240,6 +259,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *huge_matrix_size_range
   alpha_beta: *huge_complex_alpha_beta_range
+  pointer_mode_device: false
 
 - name: geam_graph_test
   category: pre_checkin

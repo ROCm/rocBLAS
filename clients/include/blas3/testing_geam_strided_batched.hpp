@@ -457,8 +457,7 @@ void testing_geam_strided_batched(const Arguments& arg)
         hA_copy(A_row, A_col, lda, stride_a, batch_count);
     host_strided_batch_matrix<T> hB(B_row, B_col, ldb, stride_b, batch_count),
         hB_copy(B_row, B_col, ldb, stride_b, batch_count);
-    host_strided_batch_matrix<T> hC_1(M, N, ldc, stride_c, batch_count);
-    host_strided_batch_matrix<T> hC_2(M, N, ldc, stride_c, batch_count);
+    host_strided_batch_matrix<T> hC(M, N, ldc, stride_c, batch_count);
     host_strided_batch_matrix<T> hC_gold(M, N, ldc, stride_c, batch_count);
     host_vector<T>               h_alpha(1);
     host_vector<T>               h_beta(1);
@@ -472,8 +471,7 @@ void testing_geam_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hA_copy.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
     CHECK_HIP_ERROR(hB_copy.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_2.memcheck());
+    CHECK_HIP_ERROR(hC.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
     // Allocate device memory
@@ -497,65 +495,69 @@ void testing_geam_strided_batched(const Arguments& arg)
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_matrix(
         hB, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix, false, true);
-    rocblas_init_matrix(hC_1, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
+    rocblas_init_matrix(hC, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix);
 
     hA_copy.copy_from(hA);
     hB_copy.copy_from(hB);
-    hC_2.copy_from(hC_1);
+    hC_gold.copy_from(hC);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
-    CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
+
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
 
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_geam_strided_batched_fn(handle,
+                                                                transA,
+                                                                transB,
+                                                                M,
+                                                                N,
+                                                                &alpha,
+                                                                dA,
+                                                                lda,
+                                                                stride_a,
+                                                                &beta,
+                                                                dB,
+                                                                ldb,
+                                                                stride_b,
+                                                                dC,
+                                                                ldc,
+                                                                stride_c,
+                                                                batch_count));
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
+        }
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_geam_strided_batched_fn(handle,
-                                                            transA,
-                                                            transB,
-                                                            M,
-                                                            N,
-                                                            &alpha,
-                                                            dA,
-                                                            lda,
-                                                            stride_a,
-                                                            &beta,
-                                                            dB,
-                                                            ldb,
-                                                            stride_b,
-                                                            dC,
-                                                            ldc,
-                                                            stride_c,
-                                                            batch_count));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
-
-        CHECK_HIP_ERROR(dC.transfer_from(hC_2));
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-
-        CHECK_ROCBLAS_ERROR(rocblas_geam_strided_batched_fn(handle,
-                                                            transA,
-                                                            transB,
-                                                            M,
-                                                            N,
-                                                            d_alpha,
-                                                            dA,
-                                                            lda,
-                                                            stride_a,
-                                                            d_beta,
-                                                            dB,
-                                                            ldb,
-                                                            stride_b,
-                                                            dC,
-                                                            ldc,
-                                                            stride_c,
-                                                            batch_count));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
+            CHECK_ROCBLAS_ERROR(rocblas_geam_strided_batched_fn(handle,
+                                                                transA,
+                                                                transB,
+                                                                M,
+                                                                N,
+                                                                d_alpha,
+                                                                dA,
+                                                                lda,
+                                                                stride_a,
+                                                                d_beta,
+                                                                dB,
+                                                                ldb,
+                                                                stride_b,
+                                                                dC,
+                                                                ldc,
+                                                                stride_c,
+                                                                batch_count));
+        }
 
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
@@ -578,24 +580,39 @@ void testing_geam_strided_batched(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // fetch GPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
-            unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_2, batch_count);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_1
+                    = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC, batch_count);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1
-                = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
-            rocblas_error_2
-                = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_2, batch_count);
+            // fetch GPU
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2
+                    = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC, batch_count);
+            }
         }
 
         // inplace check for dC == dA
+        if(arg.pointer_mode_host)
         {
             if((lda == ldc) && (transA == rocblas_operation_none))
                 CHECK_HIP_ERROR(dC_in_place.transfer_from(hA));
@@ -625,7 +642,7 @@ void testing_geam_strided_batched(const Arguments& arg)
             }
             else
             {
-                CHECK_HIP_ERROR(hC_1.transfer_from(dC_in_place));
+                CHECK_HIP_ERROR(hC.transfer_from(dC_in_place));
                 // dA was clobbered by dC_in_place, so copy hA back to dA
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
@@ -648,18 +665,19 @@ void testing_geam_strided_batched(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+                    unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC, batch_count);
                 }
 
                 if(arg.norm_check)
                 {
-                    rocblas_error = norm_check_general<T>(
-                        'F', M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+                    rocblas_error
+                        = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC, batch_count);
                 }
             }
         }
 
         // inplace check for dC == dB
+        if(arg.pointer_mode_host)
         {
             if((ldb == ldc) && (transB == rocblas_operation_none))
                 CHECK_HIP_ERROR(dC_in_place.transfer_from(hB));
@@ -691,7 +709,7 @@ void testing_geam_strided_batched(const Arguments& arg)
             {
                 CHECK_ROCBLAS_ERROR(status_h);
 
-                CHECK_HIP_ERROR(hC_1.transfer_from(dC_in_place));
+                CHECK_HIP_ERROR(hC.transfer_from(dC_in_place));
                 // reference calculation
                 for(int b = 0; b < batch_count; b++)
                 {
@@ -711,13 +729,13 @@ void testing_geam_strided_batched(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+                    unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC, batch_count);
                 }
 
                 if(arg.norm_check)
                 {
-                    rocblas_error = norm_check_general<T>(
-                        'F', M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+                    rocblas_error
+                        = norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC, batch_count);
                 }
             }
         }

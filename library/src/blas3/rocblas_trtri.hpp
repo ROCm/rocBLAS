@@ -1025,6 +1025,22 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         offset_invA2 += offset_invAin;
         offset_invA3 += offset_invAin;
 
+        // If oddRemainder > IB and is not a power of 2, then there's
+        // still some leftover, so calculate new remainders.
+        int nextOddRem = 0;
+        if(!rocblas_is_po2(oddRemainder) && oddRemainder > IB)
+        {
+            nextOddRem = rocblas_previous_po2(oddRemainder);
+            nextOddRem = n - current_n - nextOddRem;
+        }
+        else
+        {
+            // We're done everything.
+            nextOddRem = 0;
+        }
+
+        oddRemainder -= nextOddRem;
+
         rocblas_trtri_gemm_block<BATCHED, T>(handle,
                                              uplo == rocblas_fill_lower ? oddRemainder : current_n,
                                              uplo == rocblas_fill_lower ? current_n : oddRemainder,
@@ -1050,18 +1066,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                                              offset_invA3,
                                              0);
 
-        // If oddRemainder > IB and is not a power of 2, then there's
-        // still some leftover, so calculate new remainders.
-        if(!rocblas_is_po2(oddRemainder) && oddRemainder > IB)
-        {
-            oddRemainder = rocblas_previous_po2(oddRemainder);
-            oddRemainder = n - current_n - oddRemainder;
-        }
-        else
-        {
-            // We're done everything.
-            oddRemainder = 0;
-        }
+        oddRemainder = nextOddRem;
     }
 
     return rocblas_status_success;
