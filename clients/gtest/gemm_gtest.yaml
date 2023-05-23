@@ -2493,6 +2493,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *small_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   flags: [0,1]
@@ -2503,6 +2504,7 @@ Tests:
     gemm: *single_double_precisions_complex
     gemm_ex: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *complex_alpha_beta_range
 
@@ -2512,6 +2514,7 @@ Tests:
     gemm: *half_single_double_precisions
     gemm_ex: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
@@ -2520,6 +2523,7 @@ Tests:
   function:
     gemm_ex: *hpa_half_precision
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha: 1
   beta: 0
@@ -2531,6 +2535,7 @@ Tests:
   function:
     gemm: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   transA: [ N ]
   transB: [ N ]
   alpha: 1
@@ -2542,6 +2547,7 @@ Tests:
   function:
     gemm_ex: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   transA: [ N, T ]
   transB: [ N, T ]
   alpha: 1
@@ -2554,6 +2560,7 @@ Tests:
   function:
     gemm_ex: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   transA: [ N, T ]
   transB: [ N, T ]
   alpha: 1
@@ -2566,6 +2573,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   flags: [0,1]
@@ -2575,6 +2583,7 @@ Tests:
   function:
     gemm: *int8_precision
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   transA: [ N ]
   transB: [ N ]
   alpha: 1
@@ -2587,6 +2596,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   transA: [ N, T ]
   transB: [ N, T ]
   alpha: 1
@@ -2600,6 +2610,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   transA: [ N, T ]
   transB: [ N, T ]
   alpha: 1
@@ -2613,6 +2624,7 @@ Tests:
     gemm: *single_double_precisions_complex
     gemm_ex: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
@@ -2622,6 +2634,7 @@ Tests:
     gemm: *half_single_double_precisions
     gemm_ex: *nonint8_real_precisions
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
@@ -2630,6 +2643,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   flags: [0,1]
@@ -2640,6 +2654,7 @@ Tests:
     gemm: *single_double_precisions_complex
     gemm_ex: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
@@ -2649,6 +2664,7 @@ Tests:
     gemm: *half_single_precisions
     gemm_ex: *half_single_precisions
   matrix_size: *chunk_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha: 2
   beta: 3
@@ -2660,6 +2676,7 @@ Tests:
     gemm: *half_single_precisions
     gemm_ex: *half_single_precisions
   matrix_size: *deepbench_sizes_small_m_n
+  pointer_mode_device: false
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
 
@@ -2669,6 +2686,7 @@ Tests:
     gemm: *half_single_precisions
     gemm_ex: *half_single_precisions
   matrix_size: *deepbench_sizes
+  pointer_mode_host: false
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
 
@@ -2677,6 +2695,7 @@ Tests:
   function:
     gemm_ex: *hpa_half_precision
   matrix_size: *deepbench_sizes
+  pointer_mode_device: false
   alpha: 1
   beta: 0
   flags: [4, 20]
@@ -2688,6 +2707,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *deepbench_sizes_small_m_n
+  pointer_mode_host: false
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
   flags: [0,1]
@@ -2697,6 +2717,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *deepbench_sizes
+  pointer_mode_device: false
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
   flags: [0,1]
@@ -2706,6 +2727,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *deepbench_large_sizes
+  pointer_mode_host: false
   alpha_beta: *deepbench_alpha_beta_range
   transA: T
   transB: N
@@ -2719,6 +2741,7 @@ Tests:
   transA: N
   transB: N
   matrix_size: *resnet50_fwd_sizes
+  pointer_mode_device: false
   alpha: 1
   beta: 0
 
@@ -2729,6 +2752,7 @@ Tests:
   transA: N
   transB: N
   matrix_size: *resnet50_fwd_sizes
+  pointer_mode_host: false
   alpha: 1
   beta: 0
   flags: [4, 20]
@@ -2741,6 +2765,7 @@ Tests:
   transA: N
   transB: N
   matrix_size: *resnet50_fwd_sizes
+  pointer_mode_device: false
   alpha: 1
   beta: 0
   flags: [0,1]
@@ -2753,6 +2778,7 @@ Tests:
   transA: T
   transB: N
   matrix_size: *resnet50_bwdwrw_sizes
+  pointer_mode_host: false
   alpha: 1
   beta: 1
 
@@ -2763,6 +2789,7 @@ Tests:
   transA: T
   transB: N
   matrix_size: *resnet50_bwdwrw_sizes
+  pointer_mode_device: false
   alpha: 1
   beta: 1
   flags: [0,1]
@@ -2775,6 +2802,7 @@ Tests:
   transA: N
   transB: T
   matrix_size: *resnet50_bwddata_sizes
+  pointer_mode_host: false
   alpha: 1
   beta: 0
 
@@ -2785,6 +2813,7 @@ Tests:
   transA: N
   transB: T
   matrix_size: *resnet50_bwddata_sizes
+  pointer_mode_device: false
   alpha: 1
   beta: 0
   flags: [0,1]
@@ -2796,6 +2825,7 @@ Tests:
   transA: N
   transB: N
   matrix_size: *inception4_fwd_sizes
+  pointer_mode_host: false
   alpha: 1
   beta: 0
 
@@ -2806,6 +2836,7 @@ Tests:
   transA: T
   transB: N
   matrix_size: *inception4_bwdwrw_sizes
+  pointer_mode_device: false
   alpha: 1
   beta: 1
 
@@ -2816,6 +2847,7 @@ Tests:
   transA: N
   transB: T
   matrix_size: *inception4_bwddata_sizes
+  pointer_mode_host: false
   alpha: 1
   beta: 0
 
@@ -2826,6 +2858,7 @@ Tests:
   transA: N
   transB: T
   matrix_size: *ctest_bwddata_sizes
+  pointer_mode_device: false
   alpha: 1
   beta: 0
 
@@ -2838,6 +2871,7 @@ Tests:
   alpha: 1
   beta: 1
   matrix_size: *ctest_bwdwrw_sizes
+  pointer_mode_host: false
 
 - name: ctest_fwd
   category: nightly
@@ -2848,6 +2882,7 @@ Tests:
   alpha: 1
   beta: 0
   matrix_size: *ctest_fwd_sizes
+  pointer_mode_device: false
 
 - name: gemm_1_8
   category: quick
@@ -2857,6 +2892,7 @@ Tests:
   M: 1..8
   N: 1..8
   K: 1..8
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2868,6 +2904,7 @@ Tests:
   M: 9..12
   N: 9..12
   K: 9..12
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2879,6 +2916,7 @@ Tests:
   M: 13..16
   N: 13..16
   K: 13..16
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2890,6 +2928,7 @@ Tests:
   M: 17..20
   N: 17..20
   K: 17..20
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2901,6 +2940,7 @@ Tests:
   M: 20..23
   N: 20..23
   K: 20..23
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2912,6 +2952,7 @@ Tests:
   M: 24..27
   N: 24..27
   K: 24..27
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2923,6 +2964,7 @@ Tests:
   M: 28..31
   N: 28..31
   K: 28..31
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2934,6 +2976,7 @@ Tests:
   M: 31..33
   N: 31..33
   K: 31..33
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2945,6 +2988,7 @@ Tests:
   M: 9..129
   N: 31..33
   K: 31..33
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2956,6 +3000,7 @@ Tests:
   M: 47..49
   N: 47..49
   K: 47..49
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2967,6 +3012,7 @@ Tests:
   M: 47..49
   N: 9..129
   K: 47..49
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2978,6 +3024,7 @@ Tests:
   M: 63..65
   N: 63..65
   K: 63..65
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -2989,6 +3036,7 @@ Tests:
   M: 63..65
   N: 63..65
   K: 9..129
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3000,6 +3048,7 @@ Tests:
   M: 63..65
   N: 1..4
   K: 5..8
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3011,6 +3060,7 @@ Tests:
   M: 5..8
   N: 63..65
   K: 1..4
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3022,6 +3072,7 @@ Tests:
   M: 1..4
   N: 5..8
   K: 63..65
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3033,6 +3084,7 @@ Tests:
   M: 69
   N: 65
   K: 66..67
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   c_noalias_d: [false, true]
@@ -3045,6 +3097,7 @@ Tests:
   M: 95..97
   N: 95..97
   K: 95..97
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3056,6 +3109,7 @@ Tests:
   M: 127..129
   N: 127..129
   K: 127..129
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3067,6 +3121,7 @@ Tests:
   M: 255..257
   N: 255..257
   K: 255..257
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3078,6 +3133,7 @@ Tests:
   M: 255..257
   N: 9..12
   K: 13..16
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3089,6 +3145,7 @@ Tests:
   M: 13..16
   N: 255..257
   K: 9..12
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3100,6 +3157,7 @@ Tests:
   M: 9..12
   N: 13..16
   K: 255..257
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3111,6 +3169,7 @@ Tests:
   M: 511..513
   N: 511..513
   K: 511..513
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3122,6 +3181,7 @@ Tests:
   M: 1023..1025
   N: 1023..1025
   K: 1023..1025
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
@@ -3130,6 +3190,7 @@ Tests:
   function:
     gemm_ex: *nonint8_real_precisions
   matrix_size: *ldd_size_range
+  pointer_mode_device: false
   c_noalias_d: [false, true]
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -3142,6 +3203,7 @@ Tests:
   M: 1..8
   N: 1..8
   K: 1..8
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3153,6 +3215,7 @@ Tests:
   M: 9..12
   N: 9..12
   K: 9..12
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3164,6 +3227,7 @@ Tests:
   M: 13..16
   N: 13..16
   K: 13..16
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3175,6 +3239,7 @@ Tests:
   M: 17..20
   N: 17..20
   K: 17..20
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3186,6 +3251,7 @@ Tests:
   M: 20..23
   N: 20..23
   K: 20..23
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3197,6 +3263,7 @@ Tests:
   M: 24..27
   N: 24..27
   K: 24..27
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3208,6 +3275,7 @@ Tests:
   M: 28..31
   N: 28..31
   K: 28..31
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3219,6 +3287,7 @@ Tests:
   M: 31..33
   N: 31..33
   K: 31..33
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3230,6 +3299,7 @@ Tests:
   M: 9..129
   N: 31..33
   K: 31..33
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3241,6 +3311,7 @@ Tests:
   M: 47..49
   N: 47..49
   K: 47..49
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3252,6 +3323,7 @@ Tests:
   M: 47..49
   N: 9..129
   K: 47..49
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3263,6 +3335,7 @@ Tests:
   M: 63..65
   N: 63..65
   K: 63..65
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3274,6 +3347,7 @@ Tests:
   M: 63..65
   N: 63..65
   K: 9..129
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3285,6 +3359,7 @@ Tests:
   M: 63..65
   N: 1..4
   K: 5..8
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3296,6 +3371,7 @@ Tests:
   M: 5..8
   N: 63..65
   K: 1..4
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3307,6 +3383,7 @@ Tests:
   M: 1..4
   N: 5..8
   K: 63..65
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3318,6 +3395,7 @@ Tests:
   M: 95..97
   N: 95..97
   K: 95..97
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3329,6 +3407,7 @@ Tests:
   M: 127..129
   N: 127..129
   K: 127..129
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3340,6 +3419,7 @@ Tests:
   M: 255..257
   N: 255..257
   K: 255..257
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3351,6 +3431,7 @@ Tests:
   M: 255..257
   N: 9..12
   K: 13..16
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3362,6 +3443,7 @@ Tests:
   M: 13..16
   N: 255..257
   K: 9..12
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3373,6 +3455,7 @@ Tests:
   M: 9..12
   N: 13..16
   K: 255..257
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3384,6 +3467,7 @@ Tests:
   M: 511..513
   N: 511..513
   K: 511..513
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3395,6 +3479,7 @@ Tests:
   M: 1023..1025
   N: 1023..1025
   K: 1023..1025
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   flags: [0,1]
@@ -3404,6 +3489,7 @@ Tests:
   function:
     gemm_ex: *int8_precision
   matrix_size: *ldd_size_range
+  pointer_mode_host: false
   c_noalias_d: true
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -3424,6 +3510,7 @@ Tests:
     - { M: 1536, N: 1536 }
     - { M: 3072, N: 3072 }
     - { M: 6144, N: 6144 }
+  pointer_mode_device: false
 
 - name: gemm_bf16
   category: quick
@@ -3440,6 +3527,7 @@ Tests:
     - { M: 4096, N: 4096, K: 4096 }
     - { M:  960, N: 1024, K: 1024 }
     - { M: 3840, N: 4096, K: 4096 }
+  pointer_mode_host: false
 
 - name: gemm_zerok
   category: quick
@@ -3457,6 +3545,7 @@ Tests:
     - { M:  512, N:  100 }
     - { M:  63,  N:  512 }
     - { M: 100,  N: 1000 }
+  pointer_mode_device: false
 
 - name: atomics_mode
   category: quick
@@ -3475,6 +3564,7 @@ Tests:
   M: 128
   N: 128
   K: 1000
+  pointer_mode_host: false
   transA: N
   transB: N
   alpha: 0.001
@@ -3490,6 +3580,7 @@ Tests:
     - { M:  512, N:  512, K:  512 }
     - { M: 960,  N: 1024, K: 1024 }
     - { M: 1024, N: 1024, K: 1024 }
+  pointer_mode_device: false
   c_noalias_d: [true]
   alpha: [ 0.0, 0.5, 1.0 ]
   beta:  [ 0.0, 0.5, 1.0 ]
@@ -3502,10 +3593,27 @@ Tests:
     - gemm_ex: *single_double_precisions_complex
   matrix_size:
     - { M:  960, N: 1024, K: 1024 }
+  pointer_mode_host: false
   transA: N
   transB: N
   alpha_beta: *alpha_beta_range
   graph_test: true
+
+- name: gemm_size_t
+  category: nightly
+  function:
+    - gemm: *single_precision
+  matrix_size:
+    - { M: 2048, N: 2048, K: 2048, lda: 1049100, ldb:    2048, ldc:    2048 }
+    - { M: 2048, N: 2048, K: 2048, lda:    2048, ldb: 1049100, ldc:    2048 }
+    - { M: 2048, N: 2048, K: 2048, lda:    2048, ldb:    2048, ldc: 1049100 }
+  pointer_mode_device: false
+  transA: [ N, T ]
+  transB: [ N, T ]
+  alpha: 2
+  beta: 4
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 # Commented out as the category known_bug has no value in adding only to be excluded
 # gemm_ext2 may be deprecated and removed in the future

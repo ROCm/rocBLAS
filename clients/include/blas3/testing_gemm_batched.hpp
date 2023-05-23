@@ -238,7 +238,7 @@ void testing_gemm_batched(const Arguments& arg)
 
     double cpu_time_used = 0.0;
 
-    double rocblas_error = 0.0;
+    double rocblas_error = 0.0, error_hst_ptr = 0.0, error_dev_ptr = 0.0;
 
 #ifdef ROCBLAS_BENCH
     if(rocblas_internal_tensile_debug_skip_launch())
@@ -269,7 +269,7 @@ void testing_gemm_batched(const Arguments& arg)
     // Allocate host memory
     host_batch_matrix<T> hA(A_row, A_col, lda, batch_count);
     host_batch_matrix<T> hB(B_row, B_col, ldb, batch_count);
-    host_batch_matrix<T> hC_1(M, N, ldc, batch_count);
+    host_batch_matrix<T> hC(M, N, ldc, batch_count);
     host_vector<T>       halpha(1);
     host_vector<T>       hbeta(1);
     halpha[0] = h_alpha;
@@ -278,7 +278,7 @@ void testing_gemm_batched(const Arguments& arg)
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
+    CHECK_HIP_ERROR(hC.memcheck());
 
     // Allocate device memory
     device_batch_matrix<T> dA(A_row, A_col, lda, batch_count, false, offsetA);
@@ -299,20 +299,17 @@ void testing_gemm_batched(const Arguments& arg)
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_matrix(
         hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
-    rocblas_init_matrix(hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+    rocblas_init_matrix(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
 
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
-    CHECK_HIP_ERROR(dC.transfer_from(hC_1));
+    CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)
     {
-        host_batch_matrix<T> hC_2(M, N, ldc, batch_count);
         host_batch_matrix<T> hC_gold(M, N, ldc, batch_count);
-        CHECK_HIP_ERROR(hC_2.memcheck());
         CHECK_HIP_ERROR(hC_gold.memcheck());
-        hC_2.copy_from(hC_1);
-        hC_gold.copy_from(hC_1);
+        hC_gold.copy_from(hC);
 
         // ROCBLAS rocblas_pointer_mode_host
         if(arg.pointer_mode_host)
@@ -364,7 +361,7 @@ void testing_gemm_batched(const Arguments& arg)
                                                                               batch_count));
             }
             handle.post_test(arg);
-            CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
         }
 
         if(arg.pointer_mode_device)
@@ -372,7 +369,7 @@ void testing_gemm_batched(const Arguments& arg)
             // ROCBLAS rocblas_pointer_mode_device
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-            CHECK_HIP_ERROR(dC.transfer_from(hC_2));
+            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
             CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
             CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
@@ -433,51 +430,66 @@ void testing_gemm_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // GPU fetch
+        if(arg.pointer_mode_host)
+        {
+            if(arg.unit_check)
+            {
+                if(std::is_same_v<T,
+                                  rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
+                {
+                    const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC, batch_count, tol);
+                }
+                else if(std::is_same_v<T, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC, batch_count);
+                }
+            }
+            if(arg.norm_check)
+            {
+                error_hst_ptr
+                    = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC, batch_count));
+            }
+        }
         if(arg.pointer_mode_device)
-            CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
-        if(arg.unit_check)
         {
-            if(std::is_same_v<T, rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+            if(arg.unit_check)
             {
-                const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
-                if(arg.pointer_mode_host)
-                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
-                if(arg.pointer_mode_device)
-                    near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
+                if(std::is_same_v<T,
+                                  rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
+                {
+                    const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC, batch_count, tol);
+                }
+                else if(std::is_same_v<T, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC, batch_count);
+                }
             }
-            else if(std::is_same_v<T, rocblas_half> && K > 10000)
+            if(arg.norm_check)
             {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = K * sum_error_tolerance<T>;
-                if(arg.pointer_mode_host)
-                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
-                if(arg.pointer_mode_device)
-                    near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
-            }
-            else
-            {
-                if(arg.pointer_mode_host)
-                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count);
-                if(arg.pointer_mode_device)
-                    unit_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count);
+                error_dev_ptr
+                    = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC, batch_count));
             }
         }
 
-        if(arg.norm_check)
-        {
-            double error_hst_ptr
-                = arg.pointer_mode_host
-                      ? std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1, batch_count))
-                      : 0;
-            double error_dev_ptr
-                = arg.pointer_mode_device
-                      ? std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2, batch_count))
-                      : 0;
-            rocblas_error = error_hst_ptr > rocblas_error ? error_hst_ptr : rocblas_error;
-            rocblas_error = error_dev_ptr > rocblas_error ? error_dev_ptr : rocblas_error;
-        }
+        rocblas_error = error_dev_ptr > error_hst_ptr ? error_dev_ptr : error_hst_ptr;
     }
 
     if(arg.timing && arg.api != INTERNAL)
