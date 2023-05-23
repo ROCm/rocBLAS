@@ -2,6 +2,27 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+## (Unreleased) rocBLAS 3.1.0
+### Added
+- yaml lock step argument scanning for rocblas-bench and rocblas-test clients. See Programmers Guide for details.
+### Fixed
+- make offset calculations for rocBLAS functions 64 bit safe.  Fixes for very large leading dimensions or increments potentially causing overflow:
+  - Level 1: axpy, copy, rot, rotm, scal, swap, asum, dot, iamax, iamin, nrm2
+  - Level 2: gemv, symv, hemv, trmv, ger, syr, her, syr2, her2, trsv
+  - Level 3: gemm, symm, hemm, trmm, syrk, herk, syr2k, her2k, syrkx, herkx, trsm, trtri, dgmm, geam
+  - General: set_vector, get_vector, set_matrix, get_matrix
+  - Related fixes: internal scalar loads with > 32bit offsets
+  - fix in-place functionality for all trtri sizes
+### Changed
+- dot when using rocblas_pointer_mode_host is now synchronous to match legacy BLAS as it stores results in host memory
+- enhanced reporting of installation issues caused by runtime libraries (Tensile)
+- standardized internal rocblas C++ interface across most functions
+### Deprecated
+- Removal of __STDC_WANT_IEC_60559_TYPES_EXT__ define in future release
+### Dependencies
+- optional use of AOCL BLIS 4.0 on Linux for clients
+- optional build tool only dependency on python psutil
+
 ## (Unreleased) rocBLAS 3.0.0
 ### Optimizations
 - Improved performance of Level 2 rocBLAS GEMV on gfx90a GPU for non-transposed problems having small matrices and larger batch counts. Performance enhanced for problem sizes when m and n <= 32 and batch_count >= 256.
@@ -27,7 +48,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Changed
 - refactor rotg test code
 
-## (Unreleased) rocBLAS 2.47.0
+## rocBLAS 2.47.0 for ROCm 5.5.0
 ### Added
 - added functionality rocblas_geam_ex for matrix-matrix minimum operations
 - added HIP Graph support as beta feature for rocBLAS Level 1, Level 2, and Level 3(pointer mode host) functions
