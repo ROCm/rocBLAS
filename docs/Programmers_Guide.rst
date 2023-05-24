@@ -875,15 +875,17 @@ Below is a code snippet from NETLIB for legacy L3 BLAS dgemm. It has both argume
 rocBLAS Benchmarking and Testing
 --------------------------------
 
-There are two client executables that can be used with rocBLAS. They are:
+There are three client executables that can be used with rocBLAS. They are:
 
 - rocblas-bench
 
+- rocblas-gemm-tune
+
 - rocblas-test
 
-These two clients can be built by following the instructions in the Building and Installing section of the User Guide. After building the rocBLAS clients, they can be found in the directory ``rocBLAS/build/release/clients/staging``.
+These three clients can be built by following the instructions in the Building and Installing section of the User Guide. After building the rocBLAS clients, they can be found in the directory ``rocBLAS/build/release/clients/staging``.
 
-The next two sections will cover a brief explanation and the usage of each rocBLAS client.
+The next three sections will cover a brief explanation and the usage of each rocBLAS client.
 
 rocblas-bench
 ^^^^^^^^^^^^^
@@ -1379,6 +1381,34 @@ The user can copy and change the above command. For example, to change the datat
 Logging affects performance, so only use it to log the command to copy and change, then run the command without logging to measure performance.
 
 Note that rocblas-bench also has the flag ``-v 1`` for correctness checks.
+
+rocblas-gemm-tune
+^^^^^^^^^^^^^^^^^
+
+rocblas-gemm-tune is used to find the best performing GEMM kernel for each of a given set of GEMM problems.
+
+It has a command line interface, which mimics the ``--yaml`` input used by rocblas-bench (see above section for details).
+
+To generate the expected ``--yaml`` input, profile logging can be used, by setting environment variable ``ROCBLAS_LAYER=4``.
+
+For more information on rocBLAS logging, see ``Logging in rocBLAS``, in the ``API Reference Guide``.
+
+An example input file:
+
+.. code-block:: bash
+    - {'rocblas_function': 'gemm_ex', 'transA': 'N', 'transB': 'N', 'M': 320, 'N': 588, 'K': 4096, 'alpha': 1, 'a_type': 'f32_r', 'lda': 320, 'b_type': 'f32_r', 'ldb': 6144, 'beta': 0, 'c_type': 'f32_r', 'ldc': 320, 'd_type': 'f32_r', 'ldd': 320, 'compute_type': 'f32_r', 'device': 0}
+    - {'rocblas_function': 'gemm_ex', 'transA': 'N', 'transB': 'N', 'M': 320, 'N': 588, 'K': 4096, 'alpha': 1, 'a_type': 'f32_r', 'lda': 320, 'b_type': 'f32_r', 'ldb': 6144, 'beta': 0, 'c_type': 'f32_r', 'ldc': 320, 'd_type': 'f32_r', 'ldd': 320, 'compute_type': 'f32_r', 'device': 0}
+
+Expected output (note selected GEMM idx may differ):
+
+.. code-block:: bash
+    transA,transB,M,N,batch_count,K,alpha,beta,lda,ldb,ldc,input_type,output_type,compute_type,solution_index
+    N,N,320,588,1,4096,1,0,320,6144,320,f32_r,f32_r,f32_r,3788
+    N,N,512,3096,1,512,1,0,512,512,512,f16_r,f16_r,f32_r,4546
+
+Where the far right values (``solution_index``) are the indices of the best performing kernels for those GEMMs in the rocBLAS kernel library. These indices can be directly used in future GEMM calls.
+
+See ``rocBLAS/samples/example_user_driven_tuning.cpp`` for sample code of directly using kernels via their indices.
 
 rocblas-test
 ^^^^^^^^^^^^

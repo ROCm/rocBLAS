@@ -5,6 +5,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## (Unreleased) rocBLAS 3.1.0
 ### Added
 - yaml lock step argument scanning for rocblas-bench and rocblas-test clients. See Programmers Guide for details.
+- rocblas-gemm-tune is used to find the best performing GEMM kernel for each of a given set of GEMM problems.
 ### Fixed
 - make offset calculations for rocBLAS functions 64 bit safe.  Fixes for very large leading dimensions or increments potentially causing overflow:
   - Level 1: axpy, copy, rot, rotm, scal, swap, asum, dot, iamax, iamin, nrm2
