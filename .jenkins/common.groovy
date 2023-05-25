@@ -144,7 +144,7 @@ def runPackageCommand(platform, project)
         platform.archiveArtifacts(this, packageHelper[1])
         def cleanCommand = """#!/usr/bin/env bash
                                 set -x
-                                cd ${project.paths.project_build_prefix}/build/release/
+                                cd ${project.paths.project_build_prefix}/build/
                                 find -name '*.o' -delete
                                 find -type d -name '*build_tmp*' -exec rm -rf {} +
                                 find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
