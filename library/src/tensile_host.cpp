@@ -495,6 +495,7 @@ namespace
 
         // TensileHost is not copyable or assignable
         TensileHost(const TensileHost&) = delete;
+
         TensileHost& operator=(const TensileHost&) = delete;
 
         // Get the number of devices
@@ -793,6 +794,23 @@ namespace
             HIP_CHECK_EXC(hipGetDeviceProperties(&prop, deviceId));
 
             m_deviceProp = std::make_shared<hipDeviceProp_t>(prop);
+
+            // Preload problem/solution mappings
+            const char* overrideEnv = getenv("ROCBLAS_TENSILE_GEMM_OVERRIDE_PATH");
+            if(overrideEnv)
+            {
+                std::string                        overridePath = overrideEnv;
+                std::shared_ptr<Tensile::Hardware> hardware
+                    = Tensile::hip::GetDevice(*m_deviceProp);
+                bool success = m_library->setOverridesFromFile(*hardware, overridePath);
+
+                if(!success)
+                {
+                    rocblas_cerr
+                        << "\nrocBLAS warning: One or more problem overrides failed to load from: "
+                        << overridePath << std::endl;
+                }
+            }
         }
     };
 

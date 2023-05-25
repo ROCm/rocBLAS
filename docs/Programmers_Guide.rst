@@ -1410,6 +1410,8 @@ Where the far right values (``solution_index``) are the indices of the best perf
 
 See ``rocBLAS/samples/example_user_driven_tuning.cpp`` for sample code of directly using kernels via their indices.
 
+If the output is stored in a file, the results can be used to override default kernel selection with the kernels found, by setting the environment variable ``ROCBLAS_TENSILE_GEMM_OVERRIDE_PATH=<path>``, where ``<path>`` points to the stored file.
+
 rocblas-test
 ^^^^^^^^^^^^
 
