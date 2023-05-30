@@ -941,7 +941,7 @@ int run_bench_test(bool               init,
 {
     if(init)
     {
-        static int runOnce = (rocblas_client_initialize(), 0); // Initialize rocBLAS
+        static int runOnce = (rocblas_parallel_initialize(1), 0); // Initialize rocBLAS
     }
 
     rocblas_cout << std::setiosflags(std::ios::fixed)
@@ -1177,8 +1177,6 @@ void gpu_thread_init_device(int                id,
 {
     CHECK_HIP_ERROR(hipSetDevice(id));
 
-    rocblas_client_initialize();
-
     Arguments   a(arg);
     std::string name_filter = "";
     a.cold_iters            = 1;
@@ -1207,6 +1205,9 @@ int run_bench_gpu_test(int                parallel_devices,
         return 1;
 
     // initialization
+    rocblas_parallel_initialize(parallel_devices);
+
+    // run cold call on each device
     auto thread_init = std::make_unique<std::thread[]>(parallel_devices);
 
     for(int id = 0; id < parallel_devices; ++id)
@@ -1215,7 +1216,7 @@ int run_bench_gpu_test(int                parallel_devices,
     for(int id = 0; id < parallel_devices; ++id)
         thread_init[id].join();
 
-    // synchronzied launch of cold & hot calls
+    // synchronized launch of cold & hot calls
     auto thread = std::make_unique<std::thread[]>(parallel_devices);
 
     for(int id = 0; id < parallel_devices; ++id)

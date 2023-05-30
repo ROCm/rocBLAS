@@ -685,6 +685,9 @@ namespace
                         if(!skip_xnack.empty()
                            && codeObjectFile.find(skip_xnack) != std::string::npos)
                             continue;
+                        // Skip experimental libraries
+                        if(codeObjectFile.find("Experimental") != std::string::npos)
+                            continue;
                         adapter.loadCodeObjectFile(codeObjectFile.c_str());
                     } while(FindNextFileA(hfine, &finddata));
                 }
@@ -702,6 +705,8 @@ namespace
                     {
                         std::string cofile = glob_result.gl_pathv[i];
                         if(!skip_xnack.empty() && cofile.find(skip_xnack) != std::string::npos)
+                            continue;
+                        if(cofile.find("Experimental") != std::string::npos)
                             continue;
                         adapter.loadCodeObjectFile(cofile);
                     }

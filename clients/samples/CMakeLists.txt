@@ -80,7 +80,7 @@ foreach( exe ${sample_list_fortran} )
 endforeach( )
 
 foreach( exe ${sample_list_all} )
-  target_link_libraries( ${exe} PRIVATE roc::rocblas )
+  target_link_libraries( ${exe} PRIVATE roc::rocblas Threads::Threads )
 
   set_target_properties( ${exe} PROPERTIES
     CXX_STANDARD 14

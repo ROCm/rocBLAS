@@ -352,32 +352,53 @@ void rocblas_local_handle::rocblas_stream_end_capture()
 #endif
 }
 
-/*!
- * Initialize rocBLAS for the current HIP device and report
- * the time taken to complete the initialization. This is to
- * avoid costly startup time at the first call on that device.
- * Internal use for benchmark & testing.
- */
-void rocblas_client_initialize()
+void rocblas_parallel_initialize_thread(int id, size_t& memory_used)
 {
-    // when executed on a CPU under normal load( Disk I/O, memory etc.),
-    // this routine completes execution under max limit of 12 seconds.
-    // The minimum time it takes to complete varies based on
-    // the architecture & build options used while building the library.
-    // Setting a max duration of 5 seconds for rocblas library initialization to complete.
-    constexpr static int max_duration = 5;
+    size_t before_init, after_init, total_memory;
+    CHECK_HIP_ERROR(hipSetDevice(id));
+    CHECK_HIP_ERROR(hipMemGetInfo(&before_init, &total_memory));
+    rocblas_initialize();
+    CHECK_HIP_ERROR(hipMemGetInfo(&after_init, &total_memory));
+    memory_used = before_init - after_init;
+}
+
+/*!
+ * Initialize rocBLAS for the requested number of  HIP devices
+ * and report the time taken to complete the initialization.
+ * This is to avoid costly startup time at the first call on
+ * that device. Internal use for benchmark & testing.
+ * Initializes devices indexed from 0 to parallel_devices-1.
+ * If parallel_devices is 1, hipSetDevice should be called
+ * before calling this function.
+ */
+void rocblas_parallel_initialize(int parallel_devices)
+{
+    auto                thread = std::make_unique<std::thread[]>(parallel_devices);
+    std::vector<size_t> init_memory(parallel_devices);
 
     // Store the start timepoint of rocblas initialize
     auto start_time = std::chrono::steady_clock::now();
 
-    rocblas_initialize();
+    if(parallel_devices == 1)
+    {
+        size_t before_init, after_init, total_memory;
+        CHECK_HIP_ERROR(hipMemGetInfo(&before_init, &total_memory));
+        rocblas_initialize();
+        CHECK_HIP_ERROR(hipMemGetInfo(&after_init, &total_memory));
+        init_memory[0] = before_init - after_init;
+    }
+    else
+    {
+
+        for(int id = 0; id < parallel_devices; ++id)
+            thread[id]
+                = std::thread(rocblas_parallel_initialize_thread, id, std::ref(init_memory[id]));
+        for(int id = 0; id < parallel_devices; ++id)
+            thread[id].join();
+    }
 
     // Store the end timepoint of rocblas initialize
     auto end_time = std::chrono::steady_clock::now();
-
-    // Compute the time taken to load the Tensile kernels (in seconds).
-    auto total_library_initialize_time
-        = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
 
     // Compute the time taken to load the Tensile kernels (in milliseconds).
     auto init_time_in_ms
@@ -386,8 +407,31 @@ void rocblas_client_initialize()
     rocblas_cout << "\nrocBLAS info: Time taken to complete rocBLAS library initialization is "
                  << init_time_in_ms << " milliseconds." << std::endl;
 
-    // If initialization time exceeds the max duration, display the following info message.
-    if(total_library_initialize_time > max_duration)
-        rocblas_cerr << "\nrocBLAS info: rocBLAS initialization exceeded the max duration of "
-                     << max_duration << " seconds. Check CPU's load metrics." << std::endl;
+    // Calculate average initialization time per GPU
+    auto avg_init_time_in_ms = init_time_in_ms / parallel_devices;
+    if(parallel_devices > 1)
+    {
+        rocblas_cout
+            << "\nrocBLAS info: Average time taken to complete rocBLAS library initialization "
+               "per device is "
+            << avg_init_time_in_ms << " milliseconds." << std::endl;
+    }
+
+    // If average initialization time exceeds the max duration, display the following info message.
+    constexpr static int max_duration = 5000;
+    if(avg_init_time_in_ms > max_duration)
+        rocblas_cerr << "\nrocBLAS info: average time to initialize each device exceeded the max "
+                        "duration of "
+                     << max_duration << " milliseconds. Check CPU's load metrics." << std::endl;
+
+    constexpr static float max_memory = 1.0;
+    auto                   max_library_size
+        = *std::max_element(std::begin(init_memory), std::end(init_memory)) * 1.0e-9;
+
+    rocblas_cout << "\nrocBLAS info: maximum library size per device is " << max_library_size
+                 << " GB." << std::endl;
+    if(max_library_size > max_memory)
+        rocblas_cerr << "\nrocBLAS info: max kernel library size " << max_library_size
+                     << " GB exceeds the max recommended memory " << max_memory
+                     << " GB. Check library logic file sizes." << std::endl;
 }
