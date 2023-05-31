@@ -64,16 +64,16 @@ namespace
             }
             else
             {
-                bool is_rot   = (BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
-                               || BLAS1 == blas1::rot_strided_batched);
-                bool is_rotg  = (BLAS1 == blas1::rotg || BLAS1 == blas1::rotg_batched
-                                || BLAS1 == blas1::rotg_strided_batched);
-                bool is_rotmg = (BLAS1 == blas1::rotmg || BLAS1 == blas1::rotmg_batched
-                                 || BLAS1 == blas1::rotmg_strided_batched);
-                bool is_batched
+                constexpr bool is_rot   = (BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
+                                         || BLAS1 == blas1::rot_strided_batched);
+                constexpr bool is_rotg  = (BLAS1 == blas1::rotg || BLAS1 == blas1::rotg_batched
+                                          || BLAS1 == blas1::rotg_strided_batched);
+                constexpr bool is_rotmg = (BLAS1 == blas1::rotmg || BLAS1 == blas1::rotmg_batched
+                                           || BLAS1 == blas1::rotmg_strided_batched);
+                constexpr bool is_batched
                     = (BLAS1 == blas1::rot_batched || BLAS1 == blas1::rotm_batched
                        || BLAS1 == blas1::rotg_batched || BLAS1 == blas1::rotmg_batched);
-                bool is_strided
+                constexpr bool is_strided
                     = (BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotm_strided_batched
                        || BLAS1 == blas1::rotg_strided_batched
                        || BLAS1 == blas1::rotmg_strided_batched);

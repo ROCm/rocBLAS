@@ -54,10 +54,10 @@ namespace
             }
             else
             {
-                bool is_batched = (BLAS1 == blas1::asum_batched);
-                bool is_strided = (BLAS1 == blas1::asum_strided_batched);
+                constexpr bool is_batched = (BLAS1 == blas1::asum_batched);
+                constexpr bool is_strided = (BLAS1 == blas1::asum_strided_batched);
 
-                name << '_' << arg.incx;
+                name << '_' << arg.N << '_' << arg.incx;
 
                 if(is_strided)
                 {
