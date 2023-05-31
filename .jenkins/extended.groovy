@@ -49,14 +49,15 @@ def runCI =
                 if (it == "TestTensileOnly")
                 {
                     testFilter += "*blas3_tensile/nightly*:"
+                    testFilter += "*blas2_tensile/nightly*:"
                 }
                 else if(it == "TestLevel3Only")
                 {
-                    testFilter += "*blas3/nightly*:"
+                    testFilter += "*blas3*nightly*:"
                 }
                 else if(it == "TestLevel2Only")
                 {
-                    testFilter += "*blas2/nightly*:"
+                    testFilter += "*blas2*nightly*:"
                 }
                 else if(it == "TestLevel1Only")
                 {

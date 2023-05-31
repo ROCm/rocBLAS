@@ -48,14 +48,15 @@ def runCI =
                 if (it == "TestTensileOnly")
                 {
                     testFilter += "*blas3_tensile/multi_gpu*:"
+                    testFilter += "*blas2_tensile/multi_gpu*:"
                 }
                 else if(it == "TestLevel3Only")
                 {
-                    testFilter += "*blas3/multi_gpu*:"
+                    testFilter += "*blas3*multi_gpu*:"
                 }
                 else if(it == "TestLevel2Only")
                 {
-                    testFilter += "*blas2/multi_gpu*:"
+                    testFilter += "*blas2*multi_gpu*:"
                 }
                 else if(it == "TestLevel1Only")
                 {

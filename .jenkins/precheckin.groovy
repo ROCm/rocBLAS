@@ -49,14 +49,15 @@ def runCI =
                 if (it == "TestTensileOnly")
                 {
                     testFilter += "*blas3_tensile/quick*:*blas3_tensile/pre_checkin*:"
+                    testFilter += "*blas2_tensile/quick*:*blas2_tensile/pre_checkin*:"
                 }
                 else if(it == "TestLevel3Only")
                 {
-                    testFilter += "*blas3/quick*:*blas3/pre_checkin*:"
+                    testFilter += "*blas3*quick*:*blas3*pre_checkin*:"
                 }
                 else if(it == "TestLevel2Only")
                 {
-                    testFilter += "*blas2/quick*:*blas2/pre_checkin*:"
+                    testFilter += "*blas2*quick*:*blas2*pre_checkin*:"
                 }
                 else if(it == "TestLevel1Only")
                 {
