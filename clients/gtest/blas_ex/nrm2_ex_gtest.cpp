@@ -56,8 +56,8 @@ namespace
             }
             else
             {
-                bool is_batched = (BLAS1_EX == blas1_ex::nrm2_batched_ex);
-                bool is_strided = (BLAS1_EX == blas1_ex::nrm2_strided_batched_ex);
+                constexpr bool is_batched = (BLAS1_EX == blas1_ex::nrm2_batched_ex);
+                constexpr bool is_strided = (BLAS1_EX == blas1_ex::nrm2_strided_batched_ex);
 
                 name << rocblas_datatype2string(arg.a_type) << '_'
                      << rocblas_datatype2string(arg.b_type);
