@@ -9,4 +9,10 @@ updates:
     directory: "/docs/.sphinx" # Location of package manifests
     open-pull-requests-limit: 10
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    labels:
+      - "documentation"
+      - "dependencies"
+      - "noCI"
+    reviewers:
+      - "samjwu"
