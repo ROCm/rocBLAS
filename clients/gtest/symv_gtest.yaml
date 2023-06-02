@@ -151,7 +151,7 @@ Tests:
   pointer_mode_host: false
 
 - name: symv_size_t
-  category: pre_checkin # stress
+  category: nightly # stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]
@@ -162,7 +162,7 @@ Tests:
   pointer_mode_device: false
 
 - name: symv_size_t_double_buffered
-  category: pre_checkin # stress
+  category: nightly # stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]
@@ -175,7 +175,7 @@ Tests:
   gpu_arch: ['90a']
 
 - name: symv_size_t_inc
-  category: pre_checkin # stress
+  category: nightly # stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]

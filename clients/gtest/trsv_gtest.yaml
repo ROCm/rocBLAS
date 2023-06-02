@@ -71,7 +71,7 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: trsv_size_t_lda
-  category: pre_checkin
+  category: nightly
   function: trsv
   precision: *single_precision
   uplo: [ L, U ]
@@ -83,7 +83,7 @@ Tests:
   gpu_arch: [ '90a' ]
 
 - name: trsv_size_t_inc
-  category: pre_checkin
+  category: nightly
   function: trsv
   precision: *single_precision
   uplo: [ L, U ]

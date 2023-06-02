@@ -74,7 +74,7 @@ Tests:
   matrix_size: *special_case_range
 
 - name: trmv_size_t_lda
-  category: pre_checkin # stress
+  category: nightly # stress
   function: trmv
   precision: *single_precision
   uplo: [U, L]
@@ -85,7 +85,7 @@ Tests:
   gpu_arch: ['90a']
 
 - name: trmv_size_t_inc
-  category: pre_checkin #stress
+  category: nightly #stress
   function: trmv
   precision: *single_precision
   uplo: [U, L]
