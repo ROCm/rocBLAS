@@ -557,7 +557,7 @@ Tests:
     os_flags: LINUX
 
   - name: blas1_size_t
-    category: nightly # stress_scal_ex
+    category: stress
     matrix_size: *size_t_x_range
     pointer_mode_device: false
     alpha: [ 2 ]
