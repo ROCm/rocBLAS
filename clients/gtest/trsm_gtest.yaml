@@ -826,43 +826,45 @@ Tests:
 # also use a lot of memory
 # Only testing non-unit-diag as unit-diag should never
 # be indexing non-shared memory outside of what non-unit-diag does
-- name: trsm_left_size_t_overflow
-  category: stress_trsm
-  function:
-    - trsm
-    - trsm_batched
-    # - trsm_strided_batched
-  precision: *single_double_precisions_complex_real
-  side: [L]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [ N ] #, U]
-  matrix_size: *left_overflow_sizes
-  alpha_beta: *alpha_range_sub
-  stride_scale: [ 1 ]
-  batch_count: [ 1 ]
-  pointer_mode_device: false
-  gpu_arch: '90a'
-  os_flags: LINUX
+# TODO: reduce memory use before enabling
+# - name: trsm_left_size_t_overflow
+#   category: stress_trsm
+#   function:
+#     - trsm
+#     - trsm_batched
+#     # - trsm_strided_batched
+#   precision: *single_double_precisions_complex_real
+#   side: [L]
+#   uplo: [L, U]
+#   transA: [N, C]
+#   diag: [ N ] #, U]
+#   matrix_size: *left_overflow_sizes
+#   alpha_beta: *alpha_range_sub
+#   stride_scale: [ 1 ]
+#   batch_count: [ 1 ]
+#   pointer_mode_device: false
+#   gpu_arch: '90a'
+#   os_flags: LINUX
 
-- name: trsm_right_size_t_overflow
-  category: stress_trsm
-  function:
-    - trsm
-    - trsm_batched
-    # - trsm_strided_batched
-  precision: *single_double_precisions_complex_real
-  side: [R]
-  uplo: [L, U]
-  transA: [N, C]
-  diag: [ N ] #, U]
-  matrix_size: *right_overflow_sizes
-  alpha_beta: *alpha_range_sub
-  stride_scale: [ 1 ]
-  batch_count: [ 1 ]
-  pointer_mode_device: false
-  gpu_arch: '90a'
-  os_flags: LINUX
+# TODO: reduce memory use before enabling
+# - name: trsm_right_size_t_overflow
+#   category: stress_trsm
+#   function:
+#     - trsm
+#     - trsm_batched
+#     # - trsm_strided_batched
+#   precision: *single_double_precisions_complex_real
+#   side: [R]
+#   uplo: [L, U]
+#   transA: [N, C]
+#   diag: [ N ] #, U]
+#   matrix_size: *right_overflow_sizes
+#   alpha_beta: *alpha_range_sub
+#   stride_scale: [ 1 ]
+#   batch_count: [ 1 ]
+#   pointer_mode_device: false
+#   gpu_arch: '90a'
+#   os_flags: LINUX
 
 - name: trsm_left_internal_api
   category: pre_checkin
