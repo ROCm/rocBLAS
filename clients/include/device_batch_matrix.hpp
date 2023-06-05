@@ -58,12 +58,8 @@ public:
     //! @param HMM         HipManagedMemory Flag.
     //! @param offset      The offset to the memory of each Matrix as held by device_data.
     //!
-    explicit device_batch_matrix(size_t      m,
-                                 size_t      n,
-                                 size_t      lda,
-                                 rocblas_int batch_count,
-                                 bool        HMM    = false,
-                                 size_t      offset = 0)
+    explicit device_batch_matrix(
+        size_t m, size_t n, size_t lda, int64_t batch_count, bool HMM = false, size_t offset = 0)
         : d_vector<T>(n * lda * batch_count, HMM) // d_vector is single block for all batches
         , m_m(m)
         , m_n(n)
@@ -113,7 +109,7 @@ public:
     //!
     //! @brief Returns the value of batch_count.
     //!
-    rocblas_int batch_count() const
+    int64_t batch_count() const
     {
         return m_batch_count;
     }
@@ -121,7 +117,7 @@ public:
     //!
     //! @brief Returns the value of offset.
     //!
-    rocblas_int offset() const
+    int64_t offset() const
     {
         return m_offset;
     }
@@ -158,7 +154,7 @@ public:
     //! @param batch_index The batch index.
     //! @return Pointer to the array on device.
     //!
-    T* operator[](rocblas_int batch_index)
+    T* operator[](int64_t batch_index)
     {
 
         return m_data[batch_index];
@@ -169,7 +165,7 @@ public:
     //! @param batch_index The batch index.
     //! @return Constant pointer to the array on device.
     //!
-    const T* operator[](rocblas_int batch_index) const
+    const T* operator[](int64_t batch_index) const
     {
 
         return m_data[batch_index];
@@ -238,14 +234,14 @@ public:
     }
 
 private:
-    size_t      m_m{};
-    size_t      m_n{};
-    size_t      m_lda{};
-    size_t      m_nmemb{};
-    rocblas_int m_batch_count{};
-    size_t      m_offset{};
-    T**         m_data{};
-    T**         m_device_data{};
+    size_t  m_m{};
+    size_t  m_n{};
+    size_t  m_lda{};
+    size_t  m_nmemb{};
+    int64_t m_batch_count{};
+    size_t  m_offset{};
+    T**     m_data{};
+    T**     m_device_data{};
 
     //!
     //! @brief Try to allocate the resources.
@@ -266,7 +262,7 @@ private:
                                                    : m_device_data));
             if(success)
             {
-                for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+                for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
                 {
                     if(batch_index == 0)
                     {
@@ -286,7 +282,7 @@ private:
                 {
                     if(m_offset)
                     {
-                        for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+                        for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
                             m_data[batch_index] += m_offset;
                     }
 
@@ -299,7 +295,7 @@ private:
                     if(m_offset)
                     {
                         // don't want to deal with offset with m_data, just m_device_data.
-                        for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+                        for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
                             m_data[batch_index] -= m_offset;
                     }
                 }
@@ -315,7 +311,7 @@ private:
     {
         if(nullptr != m_data)
         {
-            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+            for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
                 if(batch_index == 0 && nullptr != m_data[batch_index])
                 {

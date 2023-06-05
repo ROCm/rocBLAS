@@ -166,7 +166,7 @@ void cblas_dot<rocblas_half>(int64_t             n,
     int64_t iy = incy >= 0 ? 0 : (1 - n) * incy;
 
     float r = 0.0f;
-    for(size_t i = 0; i < n; i++)
+    for(int64_t i = 0; i < n; i++)
     {
         r += float(x[ix]) * float(y[iy]);
         ix += incx;
@@ -188,7 +188,7 @@ void cblas_dot<rocblas_bfloat16>(int64_t                 n,
     int64_t iy = incy >= 0 ? 0 : (1 - n) * incy;
 
     float r = 0.0f;
-    for(size_t i = 0; i < n; i++)
+    for(int64_t i = 0; i < n; i++)
     {
         r += float(x[ix]) * float(y[iy]);
         ix += incx;

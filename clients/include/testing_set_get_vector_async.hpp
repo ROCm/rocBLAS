@@ -82,7 +82,7 @@ void testing_set_get_vector_async(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // set device memory to be zero
-        CHECK_HIP_ERROR(hipMemsetAsync(db, 0, sizeof(T) * ldd * M, stream));
+        CHECK_HIP_ERROR(hipMemsetAsync(db, 0, sizeof(T) * (1 + size_t(ldd) * (M - 1)), stream));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_vector_async(M, sizeof(T), hx, incx, db, ldd, stream));
         CHECK_ROCBLAS_ERROR(rocblas_get_vector_async(M, sizeof(T), db, ldd, hy, incy, stream));

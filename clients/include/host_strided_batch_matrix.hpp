@@ -56,7 +56,7 @@ public:
     //! @param batch_count The batch count.
     //!
     explicit host_strided_batch_matrix(
-        size_t m, size_t n, size_t lda, rocblas_stride stride, rocblas_int batch_count)
+        size_t m, size_t n, size_t lda, rocblas_stride stride, int64_t batch_count)
         : m_m(m)
         , m_n(n)
         , m_lda(lda)
@@ -126,7 +126,7 @@ public:
     //!
     //! @brief Returns the batch count.
     //!
-    rocblas_int batch_count() const
+    int64_t batch_count() const
     {
         return this->m_batch_count;
     }
@@ -144,7 +144,7 @@ public:
     //! @param batch_index The batch index.
     //! @return A mutable pointer to the batch_index'th matrix.
     //!
-    T* operator[](rocblas_int batch_index)
+    T* operator[](int64_t batch_index)
     {
 
         return (this->m_stride >= 0)
@@ -157,7 +157,7 @@ public:
     //! @param batch_index The batch index.
     //! @return A non-mutable mutable pointer to the batch_index'th matrix.
     //!
-    const T* operator[](rocblas_int batch_index) const
+    const T* operator[](int64_t batch_index) const
     {
 
         return (this->m_stride >= 0)
@@ -242,12 +242,11 @@ private:
     size_t         m_n{};
     size_t         m_lda{};
     rocblas_stride m_stride{};
-    rocblas_int    m_batch_count{};
+    int64_t        m_batch_count{};
     size_t         m_nmemb{};
     T*             m_data{};
 
-    static size_t
-        calculate_nmemb(size_t n, size_t lda, rocblas_stride stride, rocblas_int batch_count)
+    static size_t calculate_nmemb(size_t n, size_t lda, rocblas_stride stride, int64_t batch_count)
     {
         return lda * n + size_t(batch_count - 1) * std::abs(stride);
     }
@@ -267,7 +266,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream&           os,
     auto lda         = that.lda();
     auto batch_count = that.batch_count();
 
-    for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
+    for(int64_t batch_index = 0; batch_index < batch_count; ++batch_index)
     {
         auto batch_data = that[batch_index];
         os << "[" << batch_index << "]" << std::endl;

@@ -80,7 +80,7 @@ struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
     //!
     size_t n() const
     {
-        return this->m_n;
+        return m_n;
     }
 
     //!
@@ -88,7 +88,7 @@ struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
     //!
     int64_t inc() const
     {
-        return this->m_inc;
+        return m_inc;
     }
 
     //!

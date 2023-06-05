@@ -75,7 +75,7 @@ void testing_set_get_vector(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // set GPU memory to zero
-        CHECK_HIP_ERROR(hipMemset(db, 0, sizeof(T) * ldd * M));
+        CHECK_HIP_ERROR(hipMemset(db, 0, sizeof(T) * (1 + ldd * (M - 1))));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_vector(M, sizeof(T), hx, incx, db, ldd));
         CHECK_ROCBLAS_ERROR(rocblas_get_vector(M, sizeof(T), db, ldd, hy, incy));
