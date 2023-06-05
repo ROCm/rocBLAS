@@ -29,9 +29,9 @@
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
+#include "rocblas_matrix.hpp"
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -64,15 +64,15 @@ void testing_set_get_matrix(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> ha(cols, lda);
-    host_vector<T> hb(cols, ldb);
-    host_vector<T> hb_gold(cols, ldb);
+    host_matrix<T> ha(rows, cols, lda);
+    host_matrix<T> hb(rows, cols, ldb);
+    host_matrix<T> hb_gold(rows, cols, ldb);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> dc(cols, ldc);
+    device_matrix<T> dc(rows, cols, ldc);
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
     // Initial Data on CPU
@@ -93,7 +93,7 @@ void testing_set_get_matrix(const Arguments& arg)
 
         for(size_t i1 = 0; i1 < rows; i1++)
             for(size_t i2 = 0; i2 < cols; i2++)
-                hb_gold[i1 + i2 * ldb] = ha[i1 + i2 * lda];
+                *(hb_gold + i1 + i2 * ldb) = *(ha + i1 + i2 * lda);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

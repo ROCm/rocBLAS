@@ -56,20 +56,17 @@ public:
     //! @param batch_count The batch count.
     //! @param HMM         HipManagedMemory Flag.
     //!
-    explicit device_batch_vector(size_t      n,
-                                 rocblas_int inc,
-                                 rocblas_int batch_count,
-                                 bool        HMM = false)
-        : d_vector<T>(n * std::abs(inc ? inc : 1) * batch_count,
-                      HMM) // d_vector is a single contiguous block for performance
+    explicit device_batch_vector(size_t n, int64_t inc, int64_t batch_count, bool HMM = false)
+        : d_vector<T>(calculate_nmemb(n, inc) * batch_count, HMM)
+        // d_vector is a single contiguous block for performance
         , m_n(n)
         , m_inc(inc ? inc : 1)
-        , m_nmemb(n * std::abs(inc ? inc : 1))
+        , m_nmemb(calculate_nmemb(n, inc))
         , m_batch_count(batch_count)
     {
-        if(false == this->try_initialize_memory())
+        if(false == try_initialize_memory())
         {
-            this->free_memory();
+            free_memory();
         }
     }
 
@@ -78,7 +75,7 @@ public:
     //!
     ~device_batch_vector()
     {
-        this->free_memory();
+        free_memory();
     }
 
     //!
@@ -92,7 +89,7 @@ public:
     //!
     //! @brief Returns the increment of the vector.
     //!
-    rocblas_int inc() const
+    int64_t inc() const
     {
         return m_inc;
     }
@@ -100,7 +97,7 @@ public:
     //!
     //! @brief Returns the value of batch_count.
     //!
-    rocblas_int batch_count() const
+    int64_t batch_count() const
     {
         return m_batch_count;
     }
@@ -225,12 +222,18 @@ public:
     }
 
 private:
-    size_t      m_n{};
-    rocblas_int m_inc{};
-    size_t      m_nmemb{}; // in one batch
-    rocblas_int m_batch_count{};
-    T**         m_data{};
-    T**         m_device_data{};
+    size_t  m_n{};
+    int64_t m_inc{};
+    size_t  m_nmemb{}; // in one batch
+    int64_t m_batch_count{};
+    T**     m_data{};
+    T**     m_device_data{};
+
+    static size_t calculate_nmemb(size_t n, int64_t inc)
+    {
+        // allocate even for zero n
+        return 1 + ((n ? n : 1) - 1) * std::abs(inc ? inc : 1);
+    }
 
     //!
     //! @brief Try to allocate the resources.
@@ -251,7 +254,7 @@ private:
                                                    : m_device_data));
             if(success)
             {
-                for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+                for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
                 {
                     if(batch_index == 0)
                     {
@@ -287,7 +290,7 @@ private:
     {
         if(nullptr != m_data)
         {
-            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+            for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
                 if(batch_index == 0 && nullptr != m_data[batch_index])
                 {

@@ -189,8 +189,6 @@ void testing_axpy_ex(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x   = N * (abs_incx ? abs_incx : 1);
-    size_t size_y   = N * (abs_incy ? abs_incy : 1);
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
@@ -218,11 +216,11 @@ void testing_axpy_ex(const Arguments& arg)
     // BLAS
     hy_gold = hy;
 
-    for(size_t i = 0; i < size_y; i++)
-        hy_gold_ex[i] = (Tex)hy_gold[i];
+    for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
+        hy_gold_ex[idx] = (Tex)hy_gold[idx];
 
-    for(size_t i = 0; i < size_x; i++)
-        hx_ex[i] = (Tex)hx[i];
+    for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incx)
+        hx_ex[idx] = (Tex)hx[idx];
 
     Tex h_alpha_ex = (Tex)h_alpha;
 
@@ -300,8 +298,8 @@ void testing_axpy_ex(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        for(size_t i = 0; i < size_y; i++)
-            hy_gold[i] = (Ty)hy_gold_ex[i];
+        for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
+            hy_gold[idx] = (Ty)hy_gold_ex[idx];
 
         if(special_compute_test)
             hy_gold[0] = Ty(Tex(h_alpha + 1) * Tex(65504));

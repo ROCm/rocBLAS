@@ -42,9 +42,9 @@ void testing_nrm2_strided_batched_ex_bad_arg(const Arguments& arg)
                                                   ? rocblas_nrm2_strided_batched_ex_fortran
                                                   : rocblas_nrm2_strided_batched_ex;
 
-    rocblas_datatype x_type         = rocblas_datatype_f32_r;
-    rocblas_datatype result_type    = rocblas_datatype_f32_r;
-    rocblas_datatype execution_type = rocblas_datatype_f32_r;
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype result_type    = rocblas_type2datatype<Tr>();
+    rocblas_datatype execution_type = arg.compute_type;
 
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;

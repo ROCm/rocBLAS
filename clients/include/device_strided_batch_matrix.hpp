@@ -58,7 +58,7 @@ public:
                                          size_t         n,
                                          size_t         lda,
                                          rocblas_stride stride,
-                                         rocblas_int    batch_count,
+                                         int64_t        batch_count,
                                          bool           HMM = false)
         : d_vector<T>(calculate_nmemb(n, lda, stride, batch_count), HMM)
         , m_m(m)
@@ -129,7 +129,7 @@ public:
     //!
     //! @brief Returns the batch count.
     //!
-    rocblas_int batch_count() const
+    int64_t batch_count() const
     {
         return this->m_batch_count;
     }
@@ -147,7 +147,7 @@ public:
     //! @param batch_index The batch index.
     //! @return A mutable pointer to the batch_index'th matrix.
     //!
-    T* operator[](rocblas_int batch_index)
+    T* operator[](int64_t batch_index)
     {
         return (this->m_stride >= 0)
                    ? this->m_data + batch_index * this->m_stride
@@ -159,7 +159,7 @@ public:
     //! @param batch_index The batch index.
     //! @return A non-mutable mutable pointer to the batch_index'th matrix.
     //!
-    const T* operator[](rocblas_int batch_index) const
+    const T* operator[](int64_t batch_index) const
     {
         return (this->m_stride >= 0)
                    ? this->m_data + batch_index * this->m_stride
@@ -222,11 +222,10 @@ private:
     size_t         m_n{};
     size_t         m_lda{};
     rocblas_stride m_stride{};
-    rocblas_int    m_batch_count{};
+    int64_t        m_batch_count{};
     T*             m_data{};
 
-    static size_t
-        calculate_nmemb(size_t n, size_t lda, rocblas_stride stride, rocblas_int batch_count)
+    static size_t calculate_nmemb(size_t n, size_t lda, rocblas_stride stride, int64_t batch_count)
     {
         return lda * n + size_t(batch_count - 1) * std::abs(stride);
     }

@@ -44,15 +44,14 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
               ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
               : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
 
-    rocblas_datatype x_type         = rocblas_datatype_f32_r;
-    rocblas_datatype y_type         = rocblas_datatype_f32_r;
-    rocblas_datatype result_type    = rocblas_datatype_f32_r;
-    rocblas_datatype execution_type = rocblas_datatype_f32_r;
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
+    rocblas_datatype result_type    = rocblas_type2datatype<Tr>();
+    rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     rocblas_int incy        = 1;
-    rocblas_int stride_y    = incy * N;
     rocblas_int batch_count = 2;
 
     rocblas_local_handle handle{arg};

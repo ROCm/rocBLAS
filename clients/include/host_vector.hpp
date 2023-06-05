@@ -43,7 +43,7 @@ struct host_vector : std::vector<T, host_memory_allocator<T>>
     //! @param  inc Element index increment. If zero treated as one
     //!
     host_vector(size_t n, int64_t inc = 1)
-        : std::vector<T, host_memory_allocator<T>>(n * std::abs(inc ? inc : 1))
+        : std::vector<T, host_memory_allocator<T>>(calculate_nmemb(n, inc))
         , m_n(n)
         , m_inc(inc ? inc : 1)
     {
@@ -139,4 +139,9 @@ struct host_vector : std::vector<T, host_memory_allocator<T>>
 private:
     size_t  m_n   = 0;
     int64_t m_inc = 0;
+
+    static size_t calculate_nmemb(size_t n, int64_t inc)
+    {
+        return 1 + ((n ? n : 1) - 1) * std::abs(inc ? inc : 1);
+    }
 };

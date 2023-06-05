@@ -68,15 +68,15 @@ void testing_set_get_matrix_async(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory,
-    host_pinned_vector<T> ha(cols, lda);
-    host_pinned_vector<T> hb(cols, ldb);
-    host_vector<T>        hb_gold(cols, ldb);
+    host_pinned_vector<T> ha(cols * size_t(lda)); // using vector layout to reuse pinned_vector
+    host_pinned_vector<T> hb(cols * size_t(ldb));
+    host_vector<T>        hb_gold(cols * size_t(ldb));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> dc(cols, ldc);
+    device_vector<T> dc(cols * size_t(ldc)); // vector layout
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
     // Initial Data on CPU
@@ -86,7 +86,7 @@ void testing_set_get_matrix_async(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemset(dc, 0, sizeof(T) * ldc * cols));
+        CHECK_HIP_ERROR(hipMemset(dc, 0, sizeof(T) * cols * ldc)); // vector layout
 
         CHECK_ROCBLAS_ERROR(
             rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream));
@@ -96,8 +96,8 @@ void testing_set_get_matrix_async(const Arguments& arg)
         // reference calculation
         cpu_time_used = get_time_us_no_sync();
 
-        for(size_t i1 = 0; i1 < rows; i1++)
-            for(size_t i2 = 0; i2 < cols; i2++)
+        for(size_t i2 = 0; i2 < cols; i2++)
+            for(size_t i1 = 0; i1 < rows; i1++)
                 hb_gold[i1 + i2 * ldb] = ha[i1 + i2 * lda];
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;

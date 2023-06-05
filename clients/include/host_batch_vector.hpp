@@ -56,15 +56,15 @@ public:
     //! @param inc         The increment.
     //! @param batch_count The batch count.
     //!
-    explicit host_batch_vector(size_t n, rocblas_int inc, rocblas_int batch_count)
+    explicit host_batch_vector(size_t n, int64_t inc, int64_t batch_count)
         : m_n(n)
         , m_inc(inc ? inc : 1)
-        , m_nmemb(n * std::abs(inc ? inc : 1))
+        , m_nmemb(calculate_nmemb(n, inc))
         , m_batch_count(batch_count)
     {
-        if(false == this->try_initialize_memory())
+        if(false == try_initialize_memory())
         {
-            this->free_memory();
+            free_memory();
         }
     }
 
@@ -73,7 +73,7 @@ public:
     //!
     ~host_batch_vector()
     {
-        this->free_memory();
+        free_memory();
     }
 
     //!
@@ -87,7 +87,7 @@ public:
     //!
     //! @brief Returns the increment of the vector.
     //!
-    rocblas_int inc() const
+    int64_t inc() const
     {
         return m_inc;
     }
@@ -95,7 +95,7 @@ public:
     //!
     //! @brief Returns the batch count.
     //!
-    rocblas_int batch_count() const
+    int64_t batch_count() const
     {
         return m_batch_count;
     }
@@ -113,7 +113,7 @@ public:
     //! @param batch_index the batch index.
     //! @return The mutable pointer.
     //!
-    T* operator[](rocblas_int batch_index)
+    T* operator[](int64_t batch_index)
     {
 
         return m_data[batch_index];
@@ -124,7 +124,7 @@ public:
     //! @param batch_index the batch index.
     //! @return The non-mutable pointer.
     //!
-    const T* operator[](rocblas_int batch_index) const
+    const T* operator[](int64_t batch_index) const
     {
 
         return m_data[batch_index];
@@ -155,8 +155,7 @@ public:
     //!
     bool copy_from(const host_batch_vector<T>& that)
     {
-        if((this->batch_count() == that.batch_count()) && (this->n() == that.n())
-           && (this->inc() == that.inc()))
+        if((batch_count() == that.batch_count()) && (n() == that.n()) && (inc() == that.inc()))
         {
             size_t num_bytes = m_nmemb * sizeof(T) * m_batch_count;
             if(m_batch_count > 0)
@@ -204,18 +203,24 @@ public:
     }
 
 private:
-    size_t      m_n{}; // This may hold a matrix so using size_t.
-    rocblas_int m_inc{};
-    size_t      m_nmemb{};
-    rocblas_int m_batch_count{};
-    T**         m_data{};
+    size_t  m_n{}; // This may hold a matrix so using size_t.
+    int64_t m_inc{};
+    size_t  m_nmemb{};
+    int64_t m_batch_count{};
+    T**     m_data{};
+
+    static size_t calculate_nmemb(size_t n, int64_t inc)
+    {
+        // allocate when n is zero
+        return 1 + ((n ? n : 1) - 1) * std::abs(inc ? inc : 1);
+    }
 
     bool try_initialize_memory()
     {
         bool success = (nullptr != (m_data = (T**)host_calloc_throw(m_batch_count, sizeof(T*))));
         if(success)
         {
-            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+            for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
                 if(batch_index == 0)
                 {
@@ -240,7 +245,7 @@ private:
     {
         if(nullptr != m_data)
         {
-            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+            for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
                 if(batch_index == 0 && nullptr != m_data[batch_index])
                 {
@@ -271,7 +276,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const host_ba
     auto inc         = std::abs(that.inc());
     auto batch_count = that.batch_count();
 
-    for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
+    for(int64_t batch_index = 0; batch_index < batch_count; ++batch_index)
     {
         auto batch_data = that[batch_index];
         os << "[" << batch_index << "] = { " << batch_data[0];
