@@ -439,6 +439,14 @@ Removal of __STDC_WANT_IEC_60559_TYPES_EXT__ define
 Prior to rocBLAS 4.0, __STDC_WANT_IEC_60559_TYPES_EXT__ was defined in rocblas.h, or more specifically rocblas-types.h, before including float.h. From rocBLAS 4.0, this
 define will be removed. Users who want ISO/IEC TS 18661-3:2015 functionality must define __STDC_WANT_IEC_60559_TYPES_EXT__ before including float.h and rocblas.h.
 
+Removed in rocBLAS 4.0
+^^^^^^^^^^^^^^^^^^^^^^
+
+rocblas_gemm_ext2 removed
+'''''''''''''''''''''''''
+
+As announced earlier, rocblas_gemm_ext2 was removed in 4.0.
+
 =================
 Using rocBLAS API
 =================
@@ -1845,11 +1853,6 @@ rocblas_gemm_ex + batched, strided_batched
 .. doxygenfunction:: rocblas_gemm_ex
 .. doxygenfunction:: rocblas_gemm_batched_ex
 .. doxygenfunction:: rocblas_gemm_strided_batched_ex
-
-rocblas_gemm_ext2
-^^^^^^^^^^^^^^^^^
-
-.. doxygenfunction:: rocblas_gemm_ext2
 
 rocblas_trsm_ex + batched, strided_batched
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

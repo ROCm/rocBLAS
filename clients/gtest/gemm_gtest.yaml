@@ -2399,8 +2399,6 @@ Tests:
     - gemm_bad_arg: *half_single_double_precisions_complex_real
     - gemm_ex_bad_arg: *real_precisions
     - gemm_ex_bad_arg: *complex_precisions
-    - gemm_ext2_bad_arg: *real_precisions
-    - gemm_ext2_bad_arg: *complex_precisions
   transA: N
   transB: N
   api: [ C, FORTRAN ]
@@ -3570,22 +3568,6 @@ Tests:
   alpha: 0.001
   beta: 1
 
-- name: gemm_ext2_small
-  category: pre_checkin
-  transA: N
-  transB: N
-  function:
-    - gemm_ext2: *hpa_half_single_precisions
-  matrix_size:
-    - { M:  512, N:  512, K:  512 }
-    - { M: 960,  N: 1024, K: 1024 }
-    - { M: 1024, N: 1024, K: 1024 }
-  pointer_mode_device: false
-  c_noalias_d: [true]
-  alpha: [ 0.0, 0.5, 1.0 ]
-  beta:  [ 0.0, 0.5, 1.0 ]
-  api: [ C, FORTRAN ]
-
 - name: gemm_graph_test
   category: pre_checkin
   function:
@@ -3615,17 +3597,15 @@ Tests:
   gpu_arch: '90a'
   os_flags: LINUX
 
-# Commented out as the category known_bug has no value in adding only to be excluded
-# gemm_ext2 may be deprecated and removed in the future
-#
+# Commented out as the category known_bug has currently no good purpose
 # This is category known_bug until the sizes are supported by Tensile,
 # since they take too long with a naive host-side algorithm.
-# - name: gemm_ext2_large
+# - name: TBD
 #   category: known_bug
 #   transA: N
 #   transB: N
 #   function:
-#     - gemm_ext2: *hpa_half_single_precisions
+#     - TBD: *hpa_half_single_precisions
 #   matrix_size:
 #     - { M: 4096, N: 4096, K: 4096 }
 #   c_noalias_d: true
