@@ -275,15 +275,6 @@ void testing_gemm_batched_ex(const Arguments& arg)
     // Note: K==0 is not an early exit, since we still must multiply C by beta
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
                         || batch_count < 0;
-
-    // size checking is only needed for int8x4
-    bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    bool int8_invalid
-        = (pack_to_int8x4
-           && std::is_same_v<
-               Ti,
-               int8_t> && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)));
-
     if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
@@ -312,49 +303,6 @@ void testing_gemm_batched_ex(const Arguments& arg)
                                                          solution_index,
                                                          flags),
                               invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
-        return;
-    }
-    if(int8_invalid)
-    {
-        // This check is currently done below the invalid_pointer checks, so we can't pass in nullptrs.
-        // Allocate host memory
-        device_batch_matrix<Ti> dA(A_row, A_col, lda, batch_count);
-        device_batch_matrix<Ti> dB(B_row, B_col, ldb, batch_count);
-        device_batch_matrix<To> dC(M, N, ldc, batch_count);
-        device_batch_matrix<To> dD(M, N, ldd, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                         transA,
-                                                         transB,
-                                                         M,
-                                                         N,
-                                                         K,
-                                                         &h_alpha_Tc,
-                                                         dA.ptr_on_device(),
-                                                         arg.a_type,
-                                                         lda,
-                                                         dB.ptr_on_device(),
-                                                         arg.b_type,
-                                                         ldb,
-                                                         &h_beta_Tc,
-                                                         dC.ptr_on_device(),
-                                                         arg.c_type,
-                                                         ldc,
-                                                         dD.ptr_on_device(),
-                                                         arg.d_type,
-                                                         ldd,
-                                                         batch_count,
-                                                         arg.compute_type,
-                                                         algo,
-                                                         solution_index,
-                                                         flags),
-                              rocblas_status_invalid_size);
         return;
     }
 
@@ -483,35 +431,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
 #endif
 
     // copy data from CPU to device
-    if(std::is_same_v<Ti, int8_t> && transA == rocblas_operation_none && pack_to_int8x4)
-    {
-        host_batch_matrix<Ti> hA_packed(A_row, A_col, lda, batch_count);
-        hA_packed.copy_from(hA);
-
-        for(int b = 0; b < batch_count; b++)
-            rocblas_packInt8(hA_packed[b], hA[b], M, K, lda);
-
-        CHECK_HIP_ERROR(dA.transfer_from(hA_packed));
-    }
-    else
-    {
-        CHECK_HIP_ERROR(dA.transfer_from(hA));
-    }
-
-    if(std::is_same_v<Ti, int8_t> && transB != rocblas_operation_none && pack_to_int8x4)
-    {
-        host_batch_matrix<Ti> hB_packed(B_row, B_col, ldb, batch_count);
-        hB_packed.copy_from(hB);
-
-        for(int b = 0; b < batch_count; b++)
-            rocblas_packInt8(hB_packed[b], hB[b], N, K, ldb);
-
-        CHECK_HIP_ERROR(dB.transfer_from(hB_packed));
-    }
-    else
-    {
-        CHECK_HIP_ERROR(dB.transfer_from(hB));
-    }
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
     CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)

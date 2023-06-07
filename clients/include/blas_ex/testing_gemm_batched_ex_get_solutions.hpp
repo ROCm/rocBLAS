@@ -60,14 +60,6 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
                         || batch_count < 0;
 
-    // size checking is only needed for int8x4
-    bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    bool int8_invalid
-        = (pack_to_int8x4
-           && std::is_same_v<
-               Ti,
-               int8_t> && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)));
-
     if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex(handle,
@@ -96,48 +88,6 @@ void testing_gemm_batched_ex_get_solutions(const Arguments& arg)
                                                       solution_index,
                                                       flags),
                               invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
-        return;
-    }
-    if(int8_invalid)
-    {
-        // Allocate device memory
-        device_batch_matrix<Ti> dA(A_row, A_col, lda, batch_count);
-        device_batch_matrix<Ti> dB(B_row, B_col, ldb, batch_count);
-        device_batch_matrix<To> dC(M, N, ldc, batch_count);
-        device_batch_matrix<To> dD(M, N, ldd, batch_count);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex(handle,
-                                                      transA,
-                                                      transB,
-                                                      M,
-                                                      N,
-                                                      K,
-                                                      &h_alpha_Tc,
-                                                      dA.ptr_on_device(),
-                                                      arg.a_type,
-                                                      lda,
-                                                      dB.ptr_on_device(),
-                                                      arg.b_type,
-                                                      ldb,
-                                                      &h_beta_Tc,
-                                                      dC.ptr_on_device(),
-                                                      arg.c_type,
-                                                      ldc,
-                                                      dD.ptr_on_device(),
-                                                      arg.d_type,
-                                                      ldd,
-                                                      batch_count,
-                                                      arg.compute_type,
-                                                      algo,
-                                                      solution_index,
-                                                      flags),
-                              rocblas_status_invalid_size);
         return;
     }
 

@@ -445,7 +445,17 @@ Removed in rocBLAS 4.0
 rocblas_gemm_ext2 removed
 '''''''''''''''''''''''''
 
-As announced earlier, rocblas_gemm_ext2 was removed in 4.0.
+rocblas_gemm_ext2 API function was removed in 4.0.
+
+rocblas_gemm_flags_pack_int8x4 gemm support removed
+'''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Packed int8x4 support was removed as support for arbitrary dimensioned int8_t data is a superset of this functionality:
+
+* rocblas_gemm_flags_pack_int8x4 enum value in rocblas_gemm_flags was removed
+* struct rocblas_int8x4 was removed
+* function rocblas_query_int8_layout_flag was removed
+* enum rocblas_int8_type_for_hipblas type was removed
 
 =================
 Using rocBLAS API
@@ -589,7 +599,6 @@ Auxiliary Functions
 .. doxygenfunction:: rocblas_get_pointer_mode
 .. doxygenfunction:: rocblas_set_atomics_mode
 .. doxygenfunction:: rocblas_get_atomics_mode
-.. doxygenfunction:: rocblas_query_int8_layout_flag
 .. doxygenfunction:: rocblas_pointer_to_mode
 .. doxygenfunction:: rocblas_set_vector
 .. doxygenfunction:: rocblas_get_vector

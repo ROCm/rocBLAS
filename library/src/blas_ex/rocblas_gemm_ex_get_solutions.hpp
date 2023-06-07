@@ -243,40 +243,8 @@ rocblas_status rocblas_gemm_ex_get_solutions_template(rocblas_handle    handle,
             && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
             && compute_type == rocblas_datatype_i32_r)
     {
-        bool useInt8x4 = flags & rocblas_gemm_flags_pack_int8x4;
-
-        // Here is point where we decide to branch to real int8 or rocblas_int8x4
-        // MatrixInstruction kernel uses general int8 (unless rocblas_gemm_flags_pack_int8x4 is set)
-        if(!useInt8x4)
-        {
-            rb_status
-                = gemm_ex_get_solutions_typecasting<BATCHED, int8_t, int32_t>(EX_TYPECASTING_PARM);
-        }
-        // Else, we check if we can pack 4 int8:
-        else
-        {
-            // For now, K must be a multiple of 4
-            if(k % 4 != 0 || ((trans_a == rocblas_operation_transpose) && (lda % 4 != 0))
-               || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0))
-               || (batch_count > 1 && (stride_a % 4 != 0 || stride_b % 4 != 0)))
-            {
-                rb_status = rocblas_status_invalid_size;
-            }
-            else
-            {
-                // adjust by 4 for Tensile
-                lda = (trans_a == rocblas_operation_none) ? lda : lda / 4;
-                ldb = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
-                k   = k / 4;
-                if(!BATCHED)
-                {
-                    stride_a = stride_a / 4;
-                    stride_b = stride_b / 4;
-                }
-                rb_status = gemm_ex_get_solutions_typecasting<BATCHED, rocblas_int8x4, int32_t>(
-                    EX_TYPECASTING_PARM);
-            }
-        }
+        rb_status
+            = gemm_ex_get_solutions_typecasting<BATCHED, int8_t, int32_t>(EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_f32_c && b_type == rocblas_datatype_f32_c
             && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c

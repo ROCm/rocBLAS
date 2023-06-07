@@ -121,52 +121,6 @@ catch(...)
 }
 
 /*******************************************************************************
- * ! \brief query the preferable supported int8 input layout for gemm by device
- ******************************************************************************/
-extern "C" rocblas_status rocblas_query_int8_layout_flag(rocblas_handle      handle,
-                                                         rocblas_gemm_flags* flag)
-
-// This funnction is called by hipBLAS. The default is to use int8_t only
-// for gfx908. Other architectures use int8x4. This was the behavior before
-// ROCm 4.2. Support for int8_t for all architectures was provided by
-// by the following PRs for ROCm 4.2:
-// - Tensile PR 680
-// - rocBLAS-internal PR 1328
-// Setting rocblas_int8_type in the handle will result in this function
-// selecting int8_t or int8x4 regardless of architecture. It does this by
-// either setting or clearing the rocblas_gemm_flags_pack_int8x4 bit of flags.
-try
-{
-    if(!handle)
-        return rocblas_status_invalid_handle;
-
-    if(rocblas_int8_type_for_hipblas_default == handle->rocblas_int8_type)
-    {
-        *flag = handle->getArch() == 908 ? rocblas_gemm_flags_none : rocblas_gemm_flags_pack_int8x4;
-    }
-    else if(rocblas_int8_type_for_hipblas_int8 == handle->rocblas_int8_type)
-    {
-        *flag = rocblas_gemm_flags(*flag & (~rocblas_gemm_flags_pack_int8x4));
-    }
-    else if(rocblas_int8_type_for_hipblas_pack_int8x4 == handle->rocblas_int8_type)
-    {
-        *flag = rocblas_gemm_flags(*flag | rocblas_gemm_flags_pack_int8x4);
-    }
-    else
-    {
-        return rocblas_status_invalid_value;
-    }
-    // clear the rocblas_gemm_flags_pack_int8x4 bit
-    if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_query_int8_layout_flag", *flag);
-    return rocblas_status_success;
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-/*******************************************************************************
  * ! \brief create rocblas handle called before any rocblas library routines
  ******************************************************************************/
 extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)

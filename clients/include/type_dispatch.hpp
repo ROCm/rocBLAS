@@ -381,11 +381,8 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
 
     if(arg.b_type == Ti && arg.d_type == To)
     {
-        if(Ti != To) // covers HPA: HSS, BSS, I8II, 4xi8II
+        if(Ti != To) // covers HPA: HSS, BSS, I8II
         {
-            // TODO- Maybe we could add a new datatype_enum such as rocblas_datatype_i8x4_r
-            // So that we could go to the correct branch here.
-            // So far, using whether int8_t or int8x4 is determined in TEST function (gemm_ex)
             if(Ti == rocblas_datatype_i8_r && To == rocblas_datatype_i32_r && Tc == To)
             {
                 return TEST<int8_t, int32_t, int32_t>{}(arg);

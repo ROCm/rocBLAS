@@ -110,19 +110,6 @@ namespace std
 
 #endif
 
-/* Structure definition of rocblas_int8x4
-    (For internal use only)
-    (4.2) When rocblas API takes input --a/b_type as i8_r,
-            we use --flags (0/1) to determine which TensileType (int8_t or int8x4) to be cast
-            in order to having a way to call gemm_ex_typecasting<?>(),
-            we can define a minimal definition of rocblas_int8x4, and int8 is for MI-kernel
-
-    ********************************************************************************************/
-typedef struct
-{
-    int8_t a, b, c, d;
-} rocblas_int8x4;
-
 // complex types
 #include "rocblas-complex-types.h"
 
@@ -284,10 +271,7 @@ typedef enum rocblas_gemm_flags_
 {
     /*! \brief Default empty flags */
     rocblas_gemm_flags_none = 0x0,
-    /*! \brief Before ROCm 4.2, this flags is not implemented and rocblas uses packed-Int8x4 by default.
-    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked.
-    * As of rocBLAS 3.0 in ROCm 5.6, rocblas_gemm_flags_pack_int8x4 is deprecated and support will be removed in a future release. */
-    rocblas_gemm_flags_pack_int8x4 = 0x1,
+    /*! \brief Before ROCm 6.0 rocblas_gemm_flags_pack_int8x4 = 0x1, as has now been removed so is available for future use */
     /*! \brief Select the gemm problem with the highest efficiency per compute unit used. Useful for running multiple smaller problems
     * simultaneously. This takes precedence over the performance metric set in rocblas_handle and currently only works for
     * gemm_*_ex problems. */
@@ -302,15 +286,6 @@ typedef enum rocblas_gemm_flags_
     rocblas_gemm_flags_check_solution_index = 0x8,
     rocblas_gemm_flags_fp16_alt_impl_rnz    = 0x10
 } rocblas_gemm_flags;
-
-// rocblas_int8_type_for_hipblas enum will be removed in a future release.
-// This enum is used by hipBLAS and support for pack_int8x4 datatype will be removed from hipBLAS.
-typedef enum rocblas_int8_type_for_hipblas_
-{
-    rocblas_int8_type_for_hipblas_default     = 0x0,
-    rocblas_int8_type_for_hipblas_int8        = 0x1,
-    rocblas_int8_type_for_hipblas_pack_int8x4 = 0x2
-} rocblas_int8_type_for_hipblas;
 
 /*! \brief Union for representing scalar values */
 typedef union rocblas_union_u
