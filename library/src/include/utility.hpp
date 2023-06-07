@@ -355,7 +355,6 @@ constexpr const char* rocblas_gemm_flags_to_string(rocblas_gemm_flags type)
     switch(type)
     {
     case rocblas_gemm_flags_none:                 return "none";
-    case rocblas_gemm_flags_pack_int8x4:          return "pack_int";
     case rocblas_gemm_flags_use_cu_efficiency:    return "use_cu_efficiency";
     case rocblas_gemm_flags_fp16_alt_impl:        return "fp16_alt_impl";
     case rocblas_gemm_flags_fp16_alt_impl_rnz:  return "fp16_alt_impl_round";

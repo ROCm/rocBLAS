@@ -222,9 +222,6 @@ public:
     // default check_numerics_mode is no numeric_check
     rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_no_check;
 
-    // used by hipBLAS to set int8 datatype to int8_t or rocblas_int8x4
-    rocblas_int8_type_for_hipblas rocblas_int8_type = rocblas_int8_type_for_hipblas_default;
-
     // logging streams
     std::unique_ptr<rocblas_internal_ostream> log_trace_os;
     std::unique_ptr<rocblas_internal_ostream> log_bench_os;

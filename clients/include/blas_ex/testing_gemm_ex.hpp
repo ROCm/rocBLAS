@@ -272,15 +272,6 @@ void testing_gemm_ex(const Arguments& arg)
 
     // check for invalid sizes
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M;
-
-    // size checking is only needed for int8x4
-    bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    bool int8_invalid
-        = (pack_to_int8x4
-           && std::is_same_v<
-               Ti,
-               int8_t> && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) || (transB == rocblas_operation_none && ldb % 4 != 0)));
-
     if(invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
@@ -302,49 +293,6 @@ void testing_gemm_ex(const Arguments& arg)
                                                  ldc,
                                                  nullptr,
                                                  arg.d_type,
-                                                 ldd,
-                                                 arg.compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags),
-                              rocblas_status_invalid_size);
-        return;
-    }
-
-    if(int8_invalid)
-    {
-        // This check is currently done below the invalid_pointer checks, so we can't pass in nullptrs.
-        // Allocate host memory
-        device_matrix<Ti> dA(A_row, A_col, lda);
-        device_matrix<Ti> dB(B_row, B_col, ldb);
-        device_vector<To> dC(M, N, ldc);
-        device_vector<To> dD(M, N, ldd);
-
-        // Check device memory allocation
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-        CHECK_DEVICE_ALLOCATION(dD.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &h_alpha_Tc,
-                                                 dA,
-                                                 arg.a_type,
-                                                 lda,
-                                                 dB,
-                                                 arg.b_type,
-                                                 ldb,
-                                                 &h_beta_Tc,
-                                                 dC,
-                                                 arg.c_type,
-                                                 ldc,
-                                                 dD,
-                                                 d_type,
                                                  ldd,
                                                  arg.compute_type,
                                                  algo,
@@ -480,34 +428,8 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
     // copy data from CPU to device
-    // do packing only when pack_to_int8x4=true (int8x4)
-    // if int8x4 and A not transposed and valid case, pack A
-    if(std::is_same_v<Ti, int8_t> && transA == rocblas_operation_none && pack_to_int8x4)
-    {
-        host_matrix<Ti> hA_packed(A_row, A_col, lda);
-
-        rocblas_packInt8((Ti*)hA_packed, (Ti*)hA, M, K, lda);
-        CHECK_HIP_ERROR(dA.transfer_from(hA_packed));
-    }
-    else
-    {
-        CHECK_HIP_ERROR(dA.transfer_from(hA));
-    }
-
-    // do packing only when pack_to_int8x4=true (int8x4)
-    // if int8x4 and B transposed and valid case, pack B
-    if(std::is_same_v<Ti, int8_t> && transB != rocblas_operation_none && pack_to_int8x4)
-    {
-        host_matrix<Ti> hB_packed(B_row, B_col, ldb);
-
-        rocblas_packInt8((Ti*)hB_packed, (Ti*)hB, N, K, ldb);
-        CHECK_HIP_ERROR(dB.transfer_from(hB_packed));
-    }
-    else
-    {
-        CHECK_HIP_ERROR(dB.transfer_from(hB));
-    }
-
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
     CHECK_HIP_ERROR(dC.transfer_from(hC));
 
     if(arg.unit_check || arg.norm_check)

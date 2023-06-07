@@ -15,13 +15,7 @@ if [ ${#agent} -eq 0 ] || [ ! -f ${agent} ]; then
 fi
 
 flagsArg=""
-arch=$(${agent} | grep 'gfx908\|gfx90a')
-if [ ${#arch} -gt 0 ]; then
-        echo ">> use un-packed-int8"
-else
-        flagsArg="--flags 1"
-        echo ">> use packed-int8x4"
-fi
+echo ">> use un-packed-int8"
 
 echo "-----------------------------------------------------------------------------------------------------"
 echo "----------i8_r-i32_r-gemm_ex-------------------------------------------------------------------------"
