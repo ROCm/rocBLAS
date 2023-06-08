@@ -3,6 +3,10 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &size_t_matrix_size_range
+    - { M:  4097, N:  4097, KL: 6, KU: 6, lda:   1048600, incx:       1, incy:      1 }
+    - { M:  4097, N:  4097, KL: 6, KU: 6, lda:        13, incx: 1048600, incy:      1 }
+    - { M:  4097, N:  4097, KL: 6, KU: 6, lda:        13, incx:       1, incy: 104860 }
 
   - &tiny_matrix_size
     - { M:    10, N:    20, lda:   20, KL:  6, KU:  3 }
@@ -138,6 +142,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
 
@@ -147,6 +152,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   transA: [  N, T, C ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
 
@@ -189,6 +195,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
@@ -199,6 +206,7 @@ Tests:
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
@@ -243,6 +251,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
@@ -253,6 +262,7 @@ Tests:
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
@@ -271,4 +281,16 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 5 ]
   graph_test: true
+
+- name: gbmv_size_t
+  category: stress
+  function: gbmv
+  precision: *single_precision
+  transA: [ N, T ]
+  matrix_size: *size_t_matrix_size_range
+  pointer_mode_device: false
+  alpha: [ 2.0 ]
+  beta: [ 3.0 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
 ...

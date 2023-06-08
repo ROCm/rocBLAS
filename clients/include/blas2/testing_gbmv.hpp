@@ -260,8 +260,7 @@ void testing_gbmv(const Arguments& arg)
     // Allocate host memory
     host_matrix<T> hAb(banded_matrix_row, N, lda);
     host_vector<T> hx(dim_x, incx);
-    host_vector<T> hy_1(dim_y, incy);
-    host_vector<T> hy_2(dim_y, incy);
+    host_vector<T> hy(dim_y, incy);
     host_vector<T> hy_gold(dim_y, incy);
     host_vector<T> halpha(1);
     host_vector<T> hbeta(1);
@@ -271,16 +270,14 @@ void testing_gbmv(const Arguments& arg)
     // Allocate device memory
     device_matrix<T> dAb(banded_matrix_row, N, lda);
     device_vector<T> dx(dim_x, incx);
-    device_vector<T> dy_1(dim_y, incy);
-    device_vector<T> dy_2(dim_y, incy);
+    device_vector<T> dy(dim_y, incy);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
@@ -288,64 +285,77 @@ void testing_gbmv(const Arguments& arg)
     rocblas_init_matrix(
         hAb, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
 
-    // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
+    // copy vector is easy in STL; hy_gold = hy: save a copy in hy_gold which will be output of
     // CPU BLAS
-    hy_gold = hy_1;
-    hy_2    = hy_1;
+    hy_gold = hy;
 
     // copy data from CPU to device
     dAb.transfer_from(hAb);
     dx.transfer_from(hx);
-    dy_1.transfer_from(hy_1);
+    dy.transfer_from(hy);
+    d_alpha.transfer_from(halpha);
+    d_beta.transfer_from(hbeta);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
+    double error_host = 0.0, error_device = 0.0;
 
     /* =====================================================================
            ROCBLAS
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        dy_2.transfer_from(hy_2);
-        d_alpha.transfer_from(halpha);
-        d_beta.transfer_from(hbeta);
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
-            handle, transA, M, N, KL, KU, &h_alpha, dAb, lda, dx, incx, &h_beta, dy_1, incy));
-        handle.post_test(arg);
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
-            handle, transA, M, N, KL, KU, d_alpha, dAb, lda, dx, incx, d_beta, dy_2, incy));
-        handle.post_test(arg);
-
-        // CPU BLAS
-        cpu_time_used = get_time_us_no_sync();
-
-        cblas_gbmv<T>(transA, M, N, KL, KU, h_alpha, hAb, lda, hx, incx, h_beta, hy_gold, incy);
-
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-
-        // copy output from device to CPU
-        hy_1.transfer_from(dy_1);
-        hy_2.transfer_from(dy_2);
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(1, dim_y, incy, hy_gold, hy_1);
-            unit_check_general<T>(1, dim_y, incy, hy_gold, hy_2);
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
+                handle, transA, M, N, KL, KU, &h_alpha, dAb, lda, dx, incx, &h_beta, dy, incy));
+            handle.post_test(arg);
+
+            hy.transfer_from(dy);
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy_2);
+            dy.transfer_from(hy_gold);
+
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
+                handle, transA, M, N, KL, KU, d_alpha, dAb, lda, dx, incx, d_beta, dy, incy));
+            handle.post_test(arg);
+        }
+        // CPU BLAS
+        cpu_time_used = get_time_us_no_sync();
+        cblas_gbmv<T>(transA, M, N, KL, KU, h_alpha, hAb, lda, hx, incx, h_beta, hy_gold, incy);
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+        if(arg.pointer_mode_host)
+        {
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, dim_y, incy, hy_gold, hy);
+            }
+            if(arg.norm_check)
+            {
+                error_host = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy);
+            }
+        }
+        if(arg.pointer_mode_device)
+        {
+            // copy output from device to CPU
+            hy.transfer_from(dy);
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, dim_y, incy, hy_gold, hy);
+            }
+            if(arg.norm_check)
+            {
+                error_device = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy);
+            }
         }
     }
 
@@ -358,7 +368,7 @@ void testing_gbmv(const Arguments& arg)
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_gbmv_fn(
-                handle, transA, M, N, KL, KU, &h_alpha, dAb, lda, dx, incx, &h_beta, dy_1, incy);
+                handle, transA, M, N, KL, KU, &h_alpha, dAb, lda, dx, incx, &h_beta, dy, incy);
         }
 
         hipStream_t stream;
@@ -368,7 +378,7 @@ void testing_gbmv(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_gbmv_fn(
-                handle, transA, M, N, KL, KU, &h_alpha, dAb, lda, dx, incx, &h_beta, dy_1, incy);
+                handle, transA, M, N, KL, KU, &h_alpha, dAb, lda, dx, incx, &h_beta, dy, incy);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
@@ -380,7 +390,7 @@ void testing_gbmv(const Arguments& arg)
                          gbmv_gflop_count<T>(transA, M, N, KL, KU),
                          gbmv_gbyte_count<T>(transA, M, N, KL, KU),
                          cpu_time_used,
-                         rocblas_error_1,
-                         rocblas_error_2);
+                         error_host,
+                         error_device);
     }
 }

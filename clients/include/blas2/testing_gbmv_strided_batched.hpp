@@ -416,8 +416,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     // Allocate host memory
     host_strided_batch_matrix<T> hAb(banded_matrix_row, N, lda, stride_A, batch_count);
     host_strided_batch_vector<T> hx(dim_x, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> hy_1(dim_y, incy, stride_y, batch_count);
-    host_strided_batch_vector<T> hy_2(dim_y, incy, stride_y, batch_count);
+    host_strided_batch_vector<T> hy(dim_y, incy, stride_y, batch_count);
     host_strided_batch_vector<T> hy_gold(dim_y, incy, stride_y, batch_count);
     host_vector<T>               halpha(1);
     host_vector<T>               hbeta(1);
@@ -427,23 +426,20 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     // Check host memory allocation
     CHECK_HIP_ERROR(hAb.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy_1.memcheck());
-    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
     CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Allocate device memory
     device_strided_batch_matrix<T> dAb(banded_matrix_row, N, lda, stride_A, batch_count);
     device_strided_batch_vector<T> dx(dim_x, incx, stride_x, batch_count);
-    device_strided_batch_vector<T> dy_1(dim_y, incy, stride_y, batch_count);
-    device_strided_batch_vector<T> dy_2(dim_y, incy, stride_y, batch_count);
+    device_strided_batch_vector<T> dy(dim_y, incy, stride_y, batch_count);
     device_vector<T>               d_alpha(1);
     device_vector<T>               d_beta(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
@@ -451,74 +447,79 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     rocblas_init_matrix(
         hAb, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
 
-    // copy vector is easy in STL; hy_gold = hy_1: save a copy in hy_gold which will be output of
+    // copy vector is easy in STL; hy_gold = hy: save a copy in hy_gold which will be output of
     // CPU BLAS
-    hy_gold.copy_from(hy_1);
-    hy_2.copy_from(hy_1);
+    hy_gold.copy_from(hy);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dAb.transfer_from(hAb));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
+    CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+    CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
+    double error_host = 0.0, error_device = 0.0;
 
     /* =====================================================================
            ROCBLAS
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched_fn(handle,
+                                                                transA,
+                                                                M,
+                                                                N,
+                                                                KL,
+                                                                KU,
+                                                                &h_alpha,
+                                                                dAb,
+                                                                lda,
+                                                                stride_A,
+                                                                dx,
+                                                                incx,
+                                                                stride_x,
+                                                                &h_beta,
+                                                                dy,
+                                                                incy,
+                                                                stride_y,
+                                                                batch_count));
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+        }
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched_fn(handle,
-                                                            transA,
-                                                            M,
-                                                            N,
-                                                            KL,
-                                                            KU,
-                                                            &h_alpha,
-                                                            dAb,
-                                                            lda,
-                                                            stride_A,
-                                                            dx,
-                                                            incx,
-                                                            stride_x,
-                                                            &h_beta,
-                                                            dy_1,
-                                                            incy,
-                                                            stride_y,
-                                                            batch_count));
-        handle.post_test(arg);
+        if(arg.pointer_mode_device)
+        {
+            CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched_fn(handle,
-                                                            transA,
-                                                            M,
-                                                            N,
-                                                            KL,
-                                                            KU,
-                                                            d_alpha,
-                                                            dAb,
-                                                            lda,
-                                                            stride_A,
-                                                            dx,
-                                                            incx,
-                                                            stride_x,
-                                                            d_beta,
-                                                            dy_2,
-                                                            incy,
-                                                            stride_y,
-                                                            batch_count));
-        handle.post_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched_fn(handle,
+                                                                transA,
+                                                                M,
+                                                                N,
+                                                                KL,
+                                                                KU,
+                                                                d_alpha,
+                                                                dAb,
+                                                                lda,
+                                                                stride_A,
+                                                                dx,
+                                                                incx,
+                                                                stride_x,
+                                                                d_beta,
+                                                                dy,
+                                                                incy,
+                                                                stride_y,
+                                                                batch_count));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -529,22 +530,34 @@ void testing_gbmv_strided_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(1, dim_y, incy, stride_y, hy_gold, hy_1, batch_count);
-            unit_check_general<T>(1, dim_y, incy, stride_y, hy_gold, hy_2, batch_count);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, dim_y, incy, stride_y, hy_gold, hy, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                error_host = norm_check_general<T>(
+                    'F', 1, dim_y, incy, stride_y, hy_gold, hy, batch_count);
+            }
         }
-
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1
-                = norm_check_general<T>('F', 1, dim_y, incy, stride_y, hy_gold, hy_1, batch_count);
-            rocblas_error_2
-                = norm_check_general<T>('F', 1, dim_y, incy, stride_y, hy_gold, hy_2, batch_count);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, dim_y, incy, stride_y, hy_gold, hy, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                error_device = norm_check_general<T>(
+                    'F', 1, dim_y, incy, stride_y, hy_gold, hy, batch_count);
+            }
         }
     }
 
@@ -570,7 +583,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
                                             incx,
                                             stride_x,
                                             &h_beta,
-                                            dy_1,
+                                            dy,
                                             incy,
                                             stride_y,
                                             batch_count);
@@ -596,7 +609,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
                                             incx,
                                             stride_x,
                                             &h_beta,
-                                            dy_1,
+                                            dy,
                                             incy,
                                             stride_y,
                                             batch_count);
@@ -624,7 +637,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
                          gbmv_gflop_count<T>(transA, M, N, KL, KU),
                          gbmv_gbyte_count<T>(transA, M, N, KL, KU),
                          cpu_time_used,
-                         rocblas_error_1,
-                         rocblas_error_2);
+                         error_host,
+                         error_device);
     }
 }
