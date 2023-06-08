@@ -57,11 +57,11 @@ __device__ T rocblas_gbmvn_kernel_helper(rocblas_int ty,
             {
                 if(row <= ku && col >= (ku - row) && col < (ku - row + m))
                 {
-                    res_A += (A[row + col * lda] * x[col * incx]);
+                    res_A += (A[row + col * size_t(lda)] * x[col * int64_t(incx)]);
                 }
                 if(row > ku && col < m - (row - ku))
                 {
-                    res_A += (A[row + col * lda] * x[col * incx]);
+                    res_A += (A[row + col * size_t(lda)] * x[col * int64_t(incx)]);
                 }
             }
         }
@@ -104,13 +104,15 @@ __device__ T rocblas_gbmvt_kernel_helper(bool        is_conj,
             {
                 if(row <= ku && col >= (ku - row) && col < (ku - row + m))
                 {
-                    res_A += ((is_conj ? conj(A[row + col * lda]) : A[row + col * lda])
-                              * x[(row - ku + col) * incx]);
+                    res_A += ((is_conj ? conj(A[row + col * size_t(lda)])
+                                       : A[row + col * size_t(lda)])
+                              * x[(row - ku + col) * int64_t(incx)]);
                 }
                 else if((row > ku && row <= kl + ku) && col < m - (row - ku))
                 {
-                    res_A += ((is_conj ? conj(A[row + col * lda]) : A[row + col * lda])
-                              * x[(row - ku + col) * incx]);
+                    res_A += ((is_conj ? conj(A[row + col * size_t(lda)])
+                                       : A[row + col * size_t(lda)])
+                              * x[(row - ku + col) * int64_t(incx)]);
                 }
             }
         }
@@ -183,10 +185,11 @@ __device__ void rocblas_gbmvx_kernel_calc(rocblas_operation transA,
 
         // Update y.
         if(beta != 0)
-            y[ind * incy]
-                = alpha ? alpha * sdata[thread_id] + beta * y[ind * incy] : beta * y[ind * incy];
+            y[ind * int64_t(incy)] = alpha
+                                         ? alpha * sdata[thread_id] + beta * y[ind * int64_t(incy)]
+                                         : beta * y[ind * int64_t(incy)];
         else
-            y[ind * incy] = alpha ? alpha * sdata[thread_id] : 0;
+            y[ind * int64_t(incy)] = alpha ? alpha * sdata[thread_id] : 0;
     }
 }
 
