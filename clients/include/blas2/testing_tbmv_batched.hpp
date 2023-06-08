@@ -143,14 +143,12 @@ void testing_tbmv_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
     host_batch_matrix<T> hAb(banded_matrix_row, M, lda, batch_count);
-    host_batch_vector<T> hx_1(M, incx, batch_count);
-    host_batch_vector<T> hx_2(M, incx, batch_count);
+    host_batch_vector<T> hx(M, incx, batch_count);
     host_batch_vector<T> hx_gold(M, incx, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hAb.memcheck());
-    CHECK_HIP_ERROR(hx_1.memcheck());
-    CHECK_HIP_ERROR(hx_2.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hx_gold.memcheck());
 
     // Allocate device memory
@@ -165,17 +163,16 @@ void testing_tbmv_batched(const Arguments& arg)
     // Initializing the banded-matrix 'hAb' as a general matrix as the banded matrix is not triangular
     rocblas_init_matrix(
         hAb, arg, rocblas_client_never_set_nan, rocblas_client_general_matrix, true);
-    rocblas_init_vector(hx_1, arg, rocblas_client_never_set_nan, false, true);
+    rocblas_init_vector(hx, arg, rocblas_client_never_set_nan, false, true);
 
-    hx_gold.copy_from(hx_1);
+    hx_gold.copy_from(hx);
 
     // Copy data from CPU to device
     CHECK_HIP_ERROR(dAb.transfer_from(hAb));
-    CHECK_HIP_ERROR(dx.transfer_from(hx_1));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error_1;
-    double rocblas_error_2;
+    double rocblas_error = 0.0;
 
     /* =====================================================================
            ROCBLAS
@@ -207,16 +204,16 @@ void testing_tbmv_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hx_2.transfer_from(dx));
+        CHECK_HIP_ERROR(hx.transfer_from(dx));
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, incx, hx_gold, hx_2, batch_count);
+            unit_check_general<T>(1, M, incx, hx_gold, hx, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, M, incx, hx_gold, hx_2, batch_count);
+            rocblas_error = norm_check_general<T>('F', 1, M, incx, hx_gold, hx, batch_count);
         }
     }
 
@@ -268,6 +265,6 @@ void testing_tbmv_batched(const Arguments& arg)
                          tbmv_gflop_count<T>(M, K),
                          tbmv_gbyte_count<T>(M, K),
                          cpu_time_used,
-                         rocblas_error_1);
+                         rocblas_error);
     }
 }

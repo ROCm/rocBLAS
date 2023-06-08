@@ -55,7 +55,7 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
             // Regular case, simply multiply
             if(row < k && row > 0)
             {
-                res_A += (A[row + col * lda] * w_x_copy[col]);
+                res_A += (A[row + col * size_t(lda)] * w_x_copy[col]);
             }
             else if(row == 0)
             {
@@ -63,7 +63,7 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
                 if(is_unit_diag && (!is_upper || k == 0 && is_upper))
                     res_A += w_x_copy[col];
                 else
-                    res_A += (A[row + col * lda] * w_x_copy[col]);
+                    res_A += (A[row + col * size_t(lda)] * w_x_copy[col]);
             }
             else if(row == k)
             {
@@ -71,7 +71,7 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
                 if(is_unit_diag && is_upper)
                     res_A += w_x_copy[col];
                 else
-                    res_A += (A[row + col * lda] * w_x_copy[col]);
+                    res_A += (A[row + col * size_t(lda)] * w_x_copy[col]);
             }
         }
     }
@@ -115,7 +115,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
                 // cppcheck-suppress knownConditionTrueFalse
                 if(row < k && row >= k - col && row != k)
                 {
-                    res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                    res_A += ((CONJ ? conj(A[row + col * size_t(lda)]) : A[row + col * size_t(lda)])
                               * w_x_copy[row - min_row]);
                 }
                 else if(row == k)
@@ -124,7 +124,8 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
                     if(is_unit_diag)
                         res_A += w_x_copy[row - min_row];
                     else
-                        res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                        res_A += ((CONJ ? conj(A[row + col * size_t(lda)])
+                                        : A[row + col * size_t(lda)])
                                   * w_x_copy[row - min_row]);
                 }
                 else if(row > k)
@@ -134,7 +135,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
             {
                 if(row <= k && row <= m - 1 - col && row > 0)
                 {
-                    res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                    res_A += ((CONJ ? conj(A[row + col * size_t(lda)]) : A[row + col * size_t(lda)])
                               * w_x_copy[row + col]);
                 }
                 else if(row == 0)
@@ -142,7 +143,8 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
                     if(is_unit_diag)
                         res_A += w_x_copy[row + col];
                     else
-                        res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                        res_A += ((CONJ ? conj(A[row + col * size_t(lda)])
+                                        : A[row + col * size_t(lda)])
                                   * w_x_copy[row + col]);
                 }
                 else if(row > k)
@@ -211,7 +213,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
         }
 
         // Update x.
-        x[ind * incx] = (sdata[thread_id]);
+        x[ind * int64_t(incx)] = (sdata[thread_id]);
     }
 }
 

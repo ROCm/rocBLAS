@@ -3,6 +3,10 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &size_t_matrix_size_range
+    - { M: 4097, K: 6, lda: 1048600, incx:       1 }
+    - { M: 4097, K: 6, lda:       6, incx: 1048600 }
+
   - &small_matrix_size_range
     - { M:     4, K:     2, lda:    10 }
     - { M:    10, K:     2, lda:    10 }
@@ -269,4 +273,15 @@ Tests:
   batch_count: [3]
   incx_incy: *incx_range
   graph_test: true
+
+- name: tbmv_size_t
+  category: stress
+  function: tbmv
+  precision: *single_precision
+  matrix_size: *size_t_matrix_size_range
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  diag: [ U, N ]
+  gpu_arch: '90a'
+  os_flags: LINUX
 ...
