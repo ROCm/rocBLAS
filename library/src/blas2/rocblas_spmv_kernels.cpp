@@ -48,7 +48,7 @@ __device__ void rocblas_spmv_kernel_calc(bool        is_upper,
         rocblas_int ind = blockIdx.x * DIM_X + thread_id;
         if(thread_id < DIM_X && ind < n)
         {
-            y[ind * incy] = beta ? (beta * y[ind * incy]) : 0;
+            y[ind * int64_t(incy)] = beta ? (beta * y[ind * int64_t(incy)]) : 0;
         }
         return;
     }
@@ -78,10 +78,10 @@ __device__ void rocblas_spmv_kernel_calc(bool        is_upper,
             }
 
             // row, col to packed index
-            int index = is_upper ? ((ind_y * (ind_y + 1)) / 2) + ind_x
-                                 : ((ind_y * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
+            size_t index = is_upper ? ((ind_y * (size_t(ind_y) + 1)) / 2) + ind_x
+                                    : ((ind_y * (2 * size_t(n) - ind_y + 1)) / 2) + (ind_x - ind_y);
 
-            res_A += AP[index] * x[col * incx];
+            res_A += AP[index] * x[col * int64_t(incx)];
         }
     }
 
@@ -99,8 +99,8 @@ __device__ void rocblas_spmv_kernel_calc(bool        is_upper,
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
         }
 
-        y[ind * incy]
-            = beta ? (alpha * sdata[thread_id]) + (beta * y[ind * incy]) : alpha * sdata[thread_id];
+        y[ind * int64_t(incy)] = beta ? (alpha * sdata[thread_id]) + (beta * y[ind * int64_t(incy)])
+                                      : alpha * sdata[thread_id];
     }
 }
 
@@ -172,8 +172,8 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
-    auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+    auto shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
+    auto shifty = incy < 0 ? offsety - int64_t(incy) * (n - 1) : offsety;
 
     static constexpr int spmv_DIM_X = 64;
     static constexpr int spmv_DIM_Y = 16;

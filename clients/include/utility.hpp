@@ -360,7 +360,7 @@ inline void banded_matrix_setup(bool upper, T& h_A, rocblas_int k)
 template <typename T>
 inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
 {
-    int index = 0;
+    size_t index = 0;
     if(upper)
     {
         for(int i = 0; i < n; i++)
@@ -395,9 +395,9 @@ inline void regular_to_packed(bool upper, U& h_A, U& h_AP, rocblas_int n)
 #endif
     for(rocblas_int batch_index = 0; batch_index < h_A.batch_count(); ++batch_index)
     {
-        auto* AP    = h_AP[batch_index];
-        auto* A     = h_A[batch_index];
-        int   index = 0;
+        auto*  AP    = h_AP[batch_index];
+        auto*  A     = h_A[batch_index];
+        size_t index = 0;
         if(upper)
         {
             for(int i = 0; i < n; i++)

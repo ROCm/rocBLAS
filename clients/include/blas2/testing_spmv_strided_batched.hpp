@@ -299,16 +299,14 @@ void testing_spmv_strided_batched(const Arguments& arg)
     host_strided_batch_matrix<T> hA(N, N, N, strideA, batch_count);
     host_strided_batch_matrix<T> hAp(1, rocblas_packed_matrix_size(N), 1, strideA, batch_count);
     host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
-    host_strided_batch_vector<T> hy_1(N, incy, stridey, batch_count);
-    host_strided_batch_vector<T> hy_2(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hy(N, incy, stridey, batch_count);
     host_strided_batch_vector<T> hy_gold(N, incy, stridey, batch_count); // gold standard
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hAp.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy_1.memcheck());
-    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
     CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Allocate device memory
@@ -329,70 +327,73 @@ void testing_spmv_strided_batched(const Arguments& arg)
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_symmetric_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
 
     // Helper function to convert regular matrix `hA` to packed matrix `hAp`
     regular_to_packed(uplo == rocblas_fill_upper, hA, hAp, N);
 
-    hy_gold.copy_from(hy_1);
-    hy_2.copy_from(hy_1);
+    hy_gold.copy_from(hy);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
-    CHECK_HIP_ERROR(dy.transfer_from(hy_1));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
     CHECK_HIP_ERROR(dAp.transfer_from(hAp));
 
     double gpu_time_used, cpu_time_used;
-    double h_error, d_error;
+    double h_error = 0.0, d_error = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
-        // rocblas_pointer_mode_host test
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_spmv_strided_batched_fn(handle,
-                                                            uplo,
-                                                            N,
-                                                            alpha,
-                                                            dAp,
-                                                            strideA,
-                                                            dx,
-                                                            incx,
-                                                            stridex,
-                                                            beta,
-                                                            dy,
-                                                            incy,
-                                                            stridey,
-                                                            batch_count));
-        handle.post_test(arg);
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_spmv_strided_batched_fn(handle,
+                                                                uplo,
+                                                                N,
+                                                                alpha,
+                                                                dAp,
+                                                                strideA,
+                                                                dx,
+                                                                incx,
+                                                                stridex,
+                                                                beta,
+                                                                dy,
+                                                                incy,
+                                                                stridey,
+                                                                batch_count));
+            handle.post_test(arg);
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy));
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+        }
 
-        // rocblas_pointer_mode_device test
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(beta));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(beta));
 
-        dy.transfer_from(hy_2);
+            dy.transfer_from(hy_gold);
 
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_spmv_strided_batched_fn(handle,
-                                                            uplo,
-                                                            N,
-                                                            d_alpha,
-                                                            dAp,
-                                                            strideA,
-                                                            dx,
-                                                            incx,
-                                                            stridex,
-                                                            d_beta,
-                                                            dy,
-                                                            incy,
-                                                            stridey,
-                                                            batch_count));
-        handle.post_test(arg);
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_spmv_strided_batched_fn(handle,
+                                                                uplo,
+                                                                N,
+                                                                d_alpha,
+                                                                dAp,
+                                                                strideA,
+                                                                dx,
+                                                                incx,
+                                                                stridex,
+                                                                d_beta,
+                                                                dy,
+                                                                incy,
+                                                                stridey,
+                                                                batch_count));
+            handle.post_test(arg);
+        }
 
         // cpu reference
         cpu_time_used = get_time_us_no_sync();
@@ -404,19 +405,33 @@ void testing_spmv_strided_batched(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(1, N, incy, stridey, hy_gold, hy_1, batch_count);
-            unit_check_general<T>(1, N, incy, stridey, hy_gold, hy_2, batch_count);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incy, stridey, hy_gold, hy, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                h_error = norm_check_general<T>('F', 1, N, incy, stridey, hy_gold, hy, batch_count);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            h_error = norm_check_general<T>('F', 1, N, incy, stridey, hy_gold, hy_1, batch_count);
-            d_error = norm_check_general<T>('F', 1, N, incy, stridey, hy_gold, hy_2, batch_count);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incy, stridey, hy_gold, hy, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                d_error = norm_check_general<T>('F', 1, N, incy, stridey, hy_gold, hy, batch_count);
+            }
         }
     }
 
