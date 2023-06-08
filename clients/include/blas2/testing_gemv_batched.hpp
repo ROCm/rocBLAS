@@ -38,11 +38,14 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T>
+//The Template parameter Ti, Tex and To is to test the special cases where the input/compute/output types could be HSH (Half, single, half), HSS (Half, single, single),
+// TST (rocblas_bfloat16, single, rocblas_bfloat16), TSS (rocblas_bfloat16, single, single)
+// Ti==Tex==To (float, double, rocblas_complex_float, rocblas_complex double)
+template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_gemv_batched_fn
-        = arg.api == FORTRAN ? rocblas_gemv_batched<T, true> : rocblas_gemv_batched<T, false>;
+    auto rocblas_gemv_batched_fn = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
+                                                      : rocblas_gemv_batched<Ti, Tex, To, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -57,13 +60,13 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
         const rocblas_int       incy        = 1;
         const rocblas_int       batch_count = 2;
 
-        device_vector<T> alpha_d(1), beta_d(1), zero_d(1), one_d(1);
-        const T          alpha_h(1), beta_h(1), zero_h(0), one_h(1);
+        device_vector<Tex> alpha_d(1), beta_d(1), zero_d(1), one_d(1);
+        const Tex          alpha_h(1), beta_h(1), zero_h(0), one_h(1);
 
-        const T* alpha = &alpha_h;
-        const T* beta  = &beta_h;
-        const T* zero  = &zero_h;
-        const T* one   = &one_h;
+        const Tex* alpha = &alpha_h;
+        const Tex* beta  = &beta_h;
+        const Tex* zero  = &zero_h;
+        const Tex* one   = &one_h;
 
         if(pointer_mode == rocblas_pointer_mode_device)
         {
@@ -78,9 +81,9 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
         }
 
         // Allocate device memory
-        device_batch_matrix<T> dA(M, N, lda, batch_count);
-        device_batch_vector<T> dx(N, incx, batch_count);
-        device_batch_vector<T> dy(N, incx, batch_count);
+        device_batch_matrix<Ti> dA(M, N, lda, batch_count);
+        device_batch_vector<Ti> dx(N, incx, batch_count);
+        device_batch_vector<To> dy(N, incx, batch_count);
 
         // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -277,19 +280,22 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
     }
 }
 
-template <typename T>
+//The Template parameter Ti, Tex and To is to test the special cases where the input/compute/output types could be HSH (Half, single, half), HSS (Half, single, single),
+// TST (rocblas_bfloat16, single, rocblas_bfloat16), TSS (rocblas_bfloat16, single, single)
+// Ti==Tex==To (float, double, rocblas_complex_float, rocblas_complex double)
+template <typename Ti, typename Tex = Ti, typename To = Tex>
 void testing_gemv_batched(const Arguments& arg)
 {
-    auto rocblas_gemv_batched_fn
-        = arg.api == FORTRAN ? rocblas_gemv_batched<T, true> : rocblas_gemv_batched<T, false>;
+    auto rocblas_gemv_batched_fn = arg.api == FORTRAN ? rocblas_gemv_batched<Ti, Tex, To, true>
+                                                      : rocblas_gemv_batched<Ti, Tex, To, false>;
 
     rocblas_int       M           = arg.M;
     rocblas_int       N           = arg.N;
     rocblas_int       lda         = arg.lda;
     rocblas_int       incx        = arg.incx;
     rocblas_int       incy        = arg.incy;
-    T                 h_alpha     = arg.get_alpha<T>();
-    T                 h_beta      = arg.get_beta<T>();
+    Tex               h_alpha     = arg.get_alpha<Tex>();
+    Tex               h_beta      = arg.get_beta<Tex>();
     rocblas_operation transA      = char2rocblas_operation(arg.transA);
     rocblas_int       batch_count = arg.batch_count;
 
@@ -332,12 +338,12 @@ void testing_gemv_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_batch_matrix<T> hA(M, N, lda, batch_count);
-    host_batch_vector<T> hx(dim_x, incx, batch_count);
-    host_batch_vector<T> hy(dim_y, incy, batch_count);
-    host_batch_vector<T> hy_gold(dim_y, incy, batch_count);
-    host_vector<T>       halpha(1);
-    host_vector<T>       hbeta(1);
+    host_batch_matrix<Ti> hA(M, N, lda, batch_count);
+    host_batch_vector<Ti> hx(dim_x, incx, batch_count);
+    host_batch_vector<To> hy(dim_y, incy, batch_count);
+    host_batch_vector<To> hy_gold(dim_y, incy, batch_count);
+    host_vector<Tex>      halpha(1);
+    host_vector<Tex>      hbeta(1);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
@@ -346,11 +352,11 @@ void testing_gemv_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Allocate device memory
-    device_batch_matrix<T> dA(M, N, lda, batch_count);
-    device_batch_vector<T> dx(dim_x, incx, batch_count);
-    device_batch_vector<T> dy(dim_y, incy, batch_count);
-    device_vector<T>       d_alpha(1);
-    device_vector<T>       d_beta(1);
+    device_batch_matrix<Ti> dA(M, N, lda, batch_count);
+    device_batch_vector<Ti> dx(dim_x, incx, batch_count);
+    device_batch_vector<To> dy(dim_y, incy, batch_count);
+    device_vector<Tex>      d_alpha(1);
+    device_vector<Tex>      d_beta(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -432,27 +438,28 @@ void testing_gemv_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
         {
-            cblas_gemv<T>(transA, M, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
+            cblas_gemv<Ti, To>(
+                transA, M, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)
         {
             if(arg.unit_check)
-                unit_check_general<T>(1, dim_y, incy, hy_gold, hy, batch_count);
+                unit_check_general<To>(1, dim_y, incy, hy_gold, hy, batch_count);
             if(arg.norm_check)
                 rocblas_error_1
-                    = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy, batch_count);
+                    = norm_check_general<To>('F', 1, dim_y, incy, hy_gold, hy, batch_count);
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_HIP_ERROR(hy.transfer_from(dy));
             if(arg.unit_check)
-                unit_check_general<T>(1, dim_y, incy, hy_gold, hy, batch_count);
+                unit_check_general<To>(1, dim_y, incy, hy_gold, hy, batch_count);
             if(arg.norm_check)
                 rocblas_error_2
-                    = norm_check_general<T>('F', 1, dim_y, incy, hy_gold, hy, batch_count);
+                    = norm_check_general<To>('F', 1, dim_y, incy, hy_gold, hy, batch_count);
         }
     }
 
@@ -503,13 +510,13 @@ void testing_gemv_batched(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_transA, e_M, e_N, e_alpha, e_lda, e_incx, e_beta, e_incy, e_batch_count>{}
-            .log_args<T>(rocblas_cout,
-                         arg,
-                         gpu_time_used,
-                         gemv_gflop_count<T>(transA, M, N),
-                         gemv_gbyte_count<T>(transA, M, N),
-                         cpu_time_used,
-                         rocblas_error_1,
-                         rocblas_error_2);
+            .log_args<Tex>(rocblas_cout,
+                           arg,
+                           gpu_time_used,
+                           gemv_gflop_count<Tex>(transA, M, N),
+                           gemv_gbyte_count<Tex>(transA, M, N),
+                           cpu_time_used,
+                           rocblas_error_1,
+                           rocblas_error_2);
     }
 }

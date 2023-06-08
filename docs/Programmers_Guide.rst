@@ -1148,7 +1148,8 @@ The following table shows all possible gemm functions in rocBLAS.
 
     \newpage
 
-* How to benchmark the performance of a gemm function using rocblas-bench:
+How to benchmark the performance of a gemm function using rocblas-bench
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This method is good only if you want to test a few sizes, otherwise, refer to the next section. The following listing shows how to configure rocblas-bench to call each of the gemm funcitons:
 
@@ -1381,6 +1382,19 @@ The user can copy and change the above command. For example, to change the datat
 Logging affects performance, so only use it to log the command to copy and change, then run the command without logging to measure performance.
 
 Note that rocblas-bench also has the flag ``-v 1`` for correctness checks.
+
+How to benchmark the performance of special case gemv_batched and gemv_strided_batched functions for mixed precision (HSH, HSS, TST, TSS) using rocblas-bench
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The command to execute rocblas-bench for rocblas_hshgemv_batched with half-precision input, single precision compute, and half-precision output (HSH):
+
+.. code-block:: bash
+
+   ./rocblas-bench -f gemv_batched --a_type f16_r --c_type f16_r --compute_type f32_r --transposeA N -m 128 -n 128 --alpha 1  --lda 128  --incx 1 --beta 1 --incy 1  --batch_count 2
+
+For the above command, instead of using the -r to specify the precision, we need to pass three additional arguments (a_type, c_type, and compute_type) to resolve the ambiguity of using mixed precision compute.
+
+This mixed-precision support is only available for gemv_batched, gemv_strided_batched, and rocBLAS extension functions (e.g, axpy_ex, scal_ex, gemm_ex, etc.). For further information, refer to the rocBLAS User Guide.
 
 rocblas-gemm-tune
 ^^^^^^^^^^^^^^^^^

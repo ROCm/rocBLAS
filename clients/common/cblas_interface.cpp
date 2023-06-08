@@ -320,6 +320,146 @@ void cblas_rot<rocblas_bfloat16>(int64_t                 n,
  * ===========================================================================
  */
 
+/**
+  *
+  * cblas_gemv(rocblas_operation transA, rocblas_int m, rocblas_int n, float  alpha, Ti* A, rocblas_int lda, Ti* x, rocblas_int incx, float beta, To* y, rocblas_int incy)
+  *
+  * Info about cblas_gemv function:
+  *
+  *    The reason why we call cblas_gemv instead of directly calling BLIS gemv is because of different input/output parameter type
+  *
+  *  Currently supported datatypes are as follows:
+  *
+  *  |---------------------------------------|
+  *  | input_type(Ti)    | ouptut_type (To)  |
+  *  |-------------------|-------------------|
+  *  |        bf16_r     |     f32_r         |
+  *  |        bf16_r     |     bf16_r        |
+  *  |        f16_r      |     f16_r         |
+  *  |        f16_r      |     f32_r         |
+  *  |---------------------------------------|
+  *
+**/
+
+template <typename Ti, typename To, typename Ta>
+void cblas_gemv(rocblas_operation transA,
+                rocblas_int       m,
+                rocblas_int       n,
+                Ta                alpha,
+                Ti*               A,
+                rocblas_int       lda,
+                Ti*               x,
+                rocblas_int       incx,
+                Ta                beta,
+                To*               y,
+                rocblas_int       incy)
+{
+    if constexpr(std::is_same_v<Ti, rocblas_half> || std::is_same_v<Ti, rocblas_bfloat16>)
+    {
+        // Ti == fp16/bf16
+        // To == Ti/float
+        // Ta == float
+        rocblas_int dim_x    = transA == rocblas_operation_none ? n : m;
+        rocblas_int dim_y    = transA == rocblas_operation_none ? m : n;
+        size_t      abs_incx = incx >= 0 ? incx : -incx;
+        size_t      abs_incy = incy >= 0 ? incy : -incy;
+
+        host_vector<float> A_float(size_t(lda) * n), X_float(dim_x * abs_incx);
+
+        for(int i = 0; i < lda * n; i++)
+            A_float[i] = static_cast<float>(A[i]);
+
+        for(int i = 0; i < dim_x; i++)
+            X_float[i * abs_incx] = static_cast<float>(x[i * abs_incx]);
+
+        if constexpr(std::is_same_v<To, rocblas_half> || std::is_same_v<To, rocblas_bfloat16>)
+        {
+            host_vector<float> Y_float(dim_y * abs_incy);
+
+            for(int i = 0; i < dim_y; i++)
+                Y_float[i * abs_incy] = static_cast<float>(y[i * abs_incy]);
+
+            cblas_sgemv(CblasColMajor,
+                        CBLAS_TRANSPOSE(transA),
+                        m,
+                        n,
+                        alpha,
+                        A_float,
+                        lda,
+                        X_float,
+                        incx,
+                        beta,
+                        Y_float,
+                        incy);
+
+            for(int i = 0; i < dim_y; i++)
+                y[i * abs_incy] = (To)Y_float[i * abs_incy];
+        }
+        else
+        {
+            cblas_sgemv(CblasColMajor,
+                        CBLAS_TRANSPOSE(transA),
+                        m,
+                        n,
+                        alpha,
+                        A_float,
+                        lda,
+                        X_float,
+                        incx,
+                        beta,
+                        y,
+                        incy);
+        }
+    }
+    else if constexpr(std::is_same_v<Ti, float>)
+    {
+        // If not special case above, Ti == To == Ta for all other instantiations
+        cblas_sgemv(
+            CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, alpha, A, lda, x, incx, beta, y, incy);
+    }
+    else if constexpr(std::is_same_v<Ti, double>)
+    {
+        cblas_dgemv(
+            CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, alpha, A, lda, x, incx, beta, y, incy);
+    }
+    else if constexpr(std::is_same_v<Ti, rocblas_float_complex>)
+    {
+        cblas_cgemv(
+            CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, &alpha, A, lda, x, incx, &beta, y, incy);
+    }
+    else if constexpr(std::is_same_v<Ti, rocblas_double_complex>)
+    {
+        cblas_zgemv(
+            CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, &alpha, A, lda, x, incx, &beta, y, incy);
+    }
+}
+
+#define INSTANTIATE_CBLAS_GEMV_TEMPLATE(Ti_, To_, Ta_)                \
+    template void cblas_gemv<Ti_, To_, Ta_>(rocblas_operation transA, \
+                                            rocblas_int       m,      \
+                                            rocblas_int       n,      \
+                                            Ta_               alpha,  \
+                                            Ti_ * A,                  \
+                                            rocblas_int lda,          \
+                                            Ti_ * x,                  \
+                                            rocblas_int incx,         \
+                                            Ta_         beta,         \
+                                            To_ * y,                  \
+                                            rocblas_int incy);
+
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_half, rocblas_half, float)
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_half, float, float)
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_bfloat16, rocblas_bfloat16, float)
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_bfloat16, float, float)
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(float, float, float)
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(double, double, double)
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex)
+INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_double_complex,
+                                rocblas_double_complex,
+                                rocblas_double_complex)
+
+#undef INSTANTIATE_CBLAS_GEMV_TEMPLATE
+
 /*
  * ===========================================================================
  *    level 3 BLAS

@@ -357,8 +357,6 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same_v<T, float> || std::is_same
                 {"geam_strided_batched", testing_geam_strided_batched<T>},
                 {"geam_ex", testing_geam_ex<T>},
                 {"gemv", testing_gemv<T>},
-                {"gemv_batched", testing_gemv_batched<T>},
-                {"gemv_strided_batched", testing_gemv_strided_batched<T>},
                 {"ger", testing_ger<T, false>},
                 {"ger_batched", testing_ger_batched<T, false>},
                 {"ger_strided_batched", testing_ger_strided_batched<T, false>},
@@ -481,6 +479,39 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same_v<T, rocblas_half>>> : rocb
     }
 };
 
+// rocblas-bench dispatch for gemv_batched and gemv_strided_batched tests
+template <typename Ti, typename Tex = Ti, typename To = Tex, typename = void>
+struct perf_gemv_batched_and_strided_batched : rocblas_test_invalid
+{
+};
+
+template <typename Ti, typename Tex, typename To>
+struct perf_gemv_batched_and_strided_batched<
+    Ti,
+    Tex,
+    To,
+    std::enable_if_t<
+        (std::is_same<Ti, float>{} && std::is_same<To, Ti>{} && std::is_same<Tex, To>{})
+        || (std::is_same<Ti, double>{} && std::is_same<To, Ti>{} && std::is_same<Tex, To>{})
+        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, Ti>{}
+            && std::is_same<Tex, To>{})
+        || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, Ti>{}
+            && std::is_same<Tex, To>{})
+        || (std::is_same<Ti, rocblas_half>{} && std::is_same<Tex, float>{}
+            && (std::is_same<To, Ti>{} || std::is_same<To, float>{}))
+        || (std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tex, float>{}
+            && (std::is_same<To, Ti>{} || std::is_same<To, float>{}))>> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"gemv_batched", testing_gemv_batched<Ti, Tex, To>},
+            {"gemv_strided_batched", testing_gemv_strided_batched<Ti, Tex, To>},
+        };
+        run_function(map, arg);
+    }
+};
+
 template <typename T, typename U>
 struct perf_blas<
     T,
@@ -529,8 +560,6 @@ struct perf_blas<
                 {"gbmv_batched", testing_gbmv_batched<T>},
                 {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
-                {"gemv_batched", testing_gemv_batched<T>},
-                {"gemv_strided_batched", testing_gemv_strided_batched<T>},
                 {"geru", testing_ger<T, false>},
                 {"geru_batched", testing_ger_batched<T, false>},
                 {"geru_strided_batched", testing_ger_strided_batched<T, false>},
@@ -1205,6 +1234,9 @@ int run_bench_test(bool               init,
         else if(!strcmp(function, "scal_ex") || !strcmp(function, "scal_batched_ex")
                 || !strcmp(function, "scal_strided_batched_ex"))
             rocblas_blas1_ex_dispatch<perf_blas_scal_ex>(arg);
+        else if(!strcmp(function, "gemv_batched") || !strcmp(function, "gemv_strided_batched"))
+            rocblas_gemv_batched_and_strided_batched_dispatch<
+                perf_gemv_batched_and_strided_batched>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);
     }

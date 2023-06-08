@@ -28,24 +28,24 @@
 #include "handle.hpp"
 #include "rocblas_level2_threshold.hpp"
 
-template <typename T, typename U, typename V, typename W>
+template <typename Ti, typename Tex, typename To>
 inline rocblas_status rocblas_internal_gemv_arg_check(rocblas_handle    handle,
                                                       rocblas_operation transA,
                                                       rocblas_int       m,
                                                       rocblas_int       n,
-                                                      const U*          alpha,
+                                                      const Tex*        alpha,
                                                       rocblas_stride    stride_alpha,
-                                                      const V*          A,
+                                                      const Ti*         A,
                                                       rocblas_stride    offseta,
                                                       rocblas_int       lda,
                                                       rocblas_stride    strideA,
-                                                      const V*          x,
+                                                      const Ti*         x,
                                                       rocblas_stride    offsetx,
                                                       rocblas_int       incx,
                                                       rocblas_stride    stridex,
-                                                      const U*          beta,
+                                                      const Tex*        beta,
                                                       rocblas_stride    stride_beta,
-                                                      W*                y,
+                                                      To*               y,
                                                       rocblas_stride    offsety,
                                                       rocblas_int       incy,
                                                       rocblas_stride    stridey,
@@ -80,29 +80,29 @@ template <typename To>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_size(
     rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int batch_count = 1);
 
-template <typename T, typename U, typename V, typename W>
+template <typename Ti, typename Tex, typename To>
 rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                                               rocblas_operation transA,
                                               rocblas_int       m,
                                               rocblas_int       n,
-                                              U                 alpha,
+                                              const Tex*        alpha,
                                               rocblas_stride    stride_alpha,
-                                              V                 A,
+                                              const Ti*         A,
                                               rocblas_stride    offseta,
                                               rocblas_int       lda,
                                               rocblas_stride    strideA,
-                                              V                 x,
+                                              const Ti*         x,
                                               rocblas_stride    offsetx,
                                               rocblas_int       incx,
                                               rocblas_stride    stridex,
-                                              U                 beta,
+                                              const Tex*        beta,
                                               rocblas_stride    stride_beta,
-                                              W                 y,
+                                              To*               y,
                                               rocblas_stride    offsety,
                                               rocblas_int       incy,
                                               rocblas_stride    stridey,
                                               rocblas_int       batch_count,
-                                              T*                workspace = nullptr);
+                                              Tex*              workspace = nullptr);
 
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -154,21 +154,21 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_int       batch_count,
                                            T*                workspace = nullptr);
 
-template <typename T, typename U>
+template <typename Ti, typename To>
 rocblas_status rocblas_gemv_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
                                            rocblas_int       m,
                                            rocblas_int       n,
-                                           T                 A,
+                                           Ti                A,
                                            rocblas_stride    offset_a,
                                            rocblas_int       lda,
                                            rocblas_stride    stride_a,
-                                           T                 x,
+                                           Ti                x,
                                            rocblas_stride    offset_x,
                                            rocblas_int       inc_x,
                                            rocblas_stride    stride_x,
-                                           U                 y,
+                                           To                y,
                                            rocblas_stride    offset_y,
                                            rocblas_int       inc_y,
                                            rocblas_stride    stride_y,
