@@ -25,11 +25,13 @@
 #include "rocblas_tbsv.hpp"
 
 template <bool UPPER, bool TRANS>
-ROCBLAS_KERNEL_ILF inline rocblas_int rocblas_banded_matrix_index(
+ROCBLAS_KERNEL_ILF inline size_t rocblas_banded_matrix_index(
     rocblas_int n, rocblas_int lda, rocblas_int k, rocblas_int row, rocblas_int col)
 {
-    return UPPER ? (TRANS ? ((row * lda + col + (k - row))) : (col * lda + row + (k - col)))
-                 : (TRANS ? ((row * lda + (col - row))) : (col * lda + (row - col)));
+    return UPPER
+               ? (TRANS ? ((row * size_t(lda) + col + (k - row)))
+                        : (col * size_t(lda) + row + (k - col)))
+               : (TRANS ? ((row * size_t(lda) + (col - row))) : (col * size_t(lda) + (row - col)));
 }
 
 // Uses forward substitution to solve Ax = b. Used for a non-transposed lower-triangular matrix
@@ -46,7 +48,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
     {
         // cache x into shared memory
         if(tx + i < n)
-            xshared[tx] = x[(tx + i) * incx];
+            xshared[tx] = x[(tx + i) * int64_t(incx)];
 
         __syncthreads();
 
@@ -63,9 +65,8 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
             {
                 rocblas_int colA = j + i;
                 rocblas_int rowA = j + i;
-                rocblas_int indexA
-                    = rocblas_banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
-                xshared[tx] = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
+                size_t indexA    = rocblas_banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
+                xshared[tx]      = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
             }
 
             __syncthreads();
@@ -75,8 +76,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
             {
                 rocblas_int colA = j + i;
                 rocblas_int rowA = tx + i;
-                rocblas_int indexA
-                    = rocblas_banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
+                size_t indexA    = rocblas_banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
 
                 // Ensure row is in range, and subtract
                 if(rowA < n && colA >= rowA - k)
@@ -99,8 +99,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
             {
                 rocblas_int colA = i + p;
                 rocblas_int rowA = tx + j;
-                rocblas_int indexA
-                    = rocblas_banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
+                size_t indexA    = rocblas_banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
 
                 if(is_unit_diag && colA == rowA)
                     val += xshared[p];
@@ -108,12 +107,12 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_forward_substitution_calc(
                     val += (CONJ ? conj(A[indexA]) : A[indexA]) * xshared[p];
             }
 
-            x[(tx + j) * incx] -= val;
+            x[(tx + j) * int64_t(incx)] -= val;
         }
 
         // store solved part back to global memory
         if(tx + i < n)
-            x[(tx + i) * incx] = xshared[tx];
+            x[(tx + i) * int64_t(incx)] = xshared[tx];
 
         __syncthreads();
     }
@@ -133,7 +132,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
     {
         // cache x into shared memory
         if(tx + i >= 0)
-            xshared[tx] = x[(tx + i) * incx];
+            xshared[tx] = x[(tx + i) * int64_t(incx)];
 
         __syncthreads();
 
@@ -150,9 +149,8 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
             {
                 rocblas_int colA = j + i;
                 rocblas_int rowA = j + i;
-                rocblas_int indexA
-                    = rocblas_banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
-                xshared[tx] = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
+                size_t indexA = rocblas_banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
+                xshared[tx]   = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
             }
 
             __syncthreads();
@@ -162,8 +160,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
             {
                 rocblas_int colA = j + i;
                 rocblas_int rowA = tx + i;
-                rocblas_int indexA
-                    = rocblas_banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
+                size_t indexA = rocblas_banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
 
                 // Ensure row is in range, and subtract
                 if(rowA >= 0 && colA <= rowA + k)
@@ -186,8 +183,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
             {
                 rocblas_int colA = i + p;
                 rocblas_int rowA = tx + j;
-                rocblas_int indexA
-                    = rocblas_banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
+                size_t indexA = rocblas_banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
 
                 if(is_unit_diag && colA == rowA)
                     val += xshared[p];
@@ -195,12 +191,12 @@ ROCBLAS_KERNEL_ILF void rocblas_tbsv_backward_substitution_calc(
                     val += (CONJ ? conj(A[indexA]) : A[indexA]) * xshared[p];
             }
 
-            x[(tx + j) * incx] -= val;
+            x[(tx + j) * int64_t(incx)] -= val;
         }
 
         // store solved part back to global memory
         if(tx + i >= 0)
-            x[(tx + i) * incx] = xshared[tx];
+            x[(tx + i) * int64_t(incx)] = xshared[tx];
 
         __syncthreads();
     }

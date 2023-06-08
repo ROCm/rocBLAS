@@ -35,6 +35,16 @@ Definitions:
     - { N:  1024, K: 1025, lda: 1026 }
     - { N:  2000, K:  256, lda: 1000 }
 
+  - &c_pos_x2_overflow_int32
+    - [ 1073741825 ]
+  - &c_neg_x2_overflow_int32
+    - [ -1073741825 ]
+
+  - &size_t_index
+    - { N:  3, K: 2, lda: *c_pos_x2_overflow_int32, incx: 1 }
+    - { N:  3, K: 2, lda: 3, incx: *c_pos_x2_overflow_int32 }
+    - { N:  3, K: 2, lda: 3, incx: *c_neg_x2_overflow_int32 }
+
   - &common_args
     precision: *single_double_precisions_complex_real
     uplo: [L, U]
@@ -52,6 +62,17 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+
+- name: tbsv_size_t
+  category: pre_checkin # stress
+  function: tbsv
+  precision: *single_precision
+  uplo: [U, L]
+  transA: [N, T]
+  diag: [N]
+  matrix_size: *size_t_index
+  os_flags: LINUX
+  gpu_arch: ['90a']
 
 # Regular tbsv
 - name: tbsv_bad_arg
