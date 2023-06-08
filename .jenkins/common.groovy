@@ -60,12 +60,12 @@ def runTestCommand (platform, project, gfilter)
                          """
     }
 
-//  For the trmm_outofplace tests the deprecated functions rocblas_Xtrmm_outofplace 
-//  are called by rocblas-test, and the new functions rocblas_Xtrmm are called by 
-//  rocblas_v3-test. Both call it with the arguments A, B, C. 
+//  For the trmm_outofplace tests the deprecated functions rocblas_Xtrmm_outofplace
+//  are called by rocblas-test, and the new functions rocblas_Xtrmm are called by
+//  rocblas_v3-test. Both call it with the arguments A, B, C.
 
-//  This is done in testing_trmm_outofplace.hpp where rocblas.hpp maps the 
-//  string rocblas_trmm_outofplace_fn to the deprecated rocblas_Xtrmm_outofplace 
+//  This is done in testing_trmm_outofplace.hpp where rocblas.hpp maps the
+//  string rocblas_trmm_outofplace_fn to the deprecated rocblas_Xtrmm_outofplace
 //  for rocblas-test and to the new function rocblas_Xtrmm for rocblas_v3-test. Thus
 //  rocblas-test tests the deprecated function and rocblas_v3-test tests the new function.
 

@@ -594,86 +594,18 @@ inline void cblas_gbmv(rocblas_operation       transA,
 }
 
 // gemv
-template <typename T>
+template <typename Ti, typename To, typename Ta>
 void cblas_gemv(rocblas_operation transA,
-                int64_t           m,
-                int64_t           n,
-                T                 alpha,
-                T*                A,
-                int64_t           lda,
-                T*                x,
-                int64_t           incx,
-                T                 beta,
-                T*                y,
-                int64_t           incy);
-
-template <>
-inline void cblas_gemv(rocblas_operation transA,
-                       int64_t           m,
-                       int64_t           n,
-                       float             alpha,
-                       float*            A,
-                       int64_t           lda,
-                       float*            x,
-                       int64_t           incx,
-                       float             beta,
-                       float*            y,
-                       int64_t           incy)
-{
-    cblas_sgemv(
-        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, alpha, A, lda, x, incx, beta, y, incy);
-}
-
-template <>
-inline void cblas_gemv(rocblas_operation transA,
-                       int64_t           m,
-                       int64_t           n,
-                       double            alpha,
-                       double*           A,
-                       int64_t           lda,
-                       double*           x,
-                       int64_t           incx,
-                       double            beta,
-                       double*           y,
-                       int64_t           incy)
-{
-    cblas_dgemv(
-        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, alpha, A, lda, x, incx, beta, y, incy);
-}
-
-template <>
-inline void cblas_gemv(rocblas_operation      transA,
-                       int64_t                m,
-                       int64_t                n,
-                       rocblas_float_complex  alpha,
-                       rocblas_float_complex* A,
-                       int64_t                lda,
-                       rocblas_float_complex* x,
-                       int64_t                incx,
-                       rocblas_float_complex  beta,
-                       rocblas_float_complex* y,
-                       int64_t                incy)
-{
-    cblas_cgemv(
-        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, &alpha, A, lda, x, incx, &beta, y, incy);
-}
-
-template <>
-inline void cblas_gemv(rocblas_operation       transA,
-                       int64_t                 m,
-                       int64_t                 n,
-                       rocblas_double_complex  alpha,
-                       rocblas_double_complex* A,
-                       int64_t                 lda,
-                       rocblas_double_complex* x,
-                       int64_t                 incx,
-                       rocblas_double_complex  beta,
-                       rocblas_double_complex* y,
-                       int64_t                 incy)
-{
-    cblas_zgemv(
-        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, &alpha, A, lda, x, incx, &beta, y, incy);
-}
+                rocblas_int       m,
+                rocblas_int       n,
+                Ta                alpha,
+                Ti*               A,
+                rocblas_int       lda,
+                Ti*               x,
+                rocblas_int       incx,
+                Ta                beta,
+                To*               y,
+                rocblas_int       incy);
 
 // tbmv
 template <typename T>

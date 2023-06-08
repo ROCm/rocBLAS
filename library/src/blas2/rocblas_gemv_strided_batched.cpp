@@ -27,31 +27,43 @@
 
 namespace
 {
-    template <typename>
+    template <typename, typename>
     constexpr char rocblas_gemv_name[] = "unknown";
     template <>
-    constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_strided_batched";
+    constexpr char rocblas_gemv_name<float, float>[] = "rocblas_sgemv_strided_batched";
     template <>
-    constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_strided_batched";
+    constexpr char rocblas_gemv_name<double, double>[] = "rocblas_dgemv_strided_batched";
     template <>
-    constexpr char rocblas_gemv_name<rocblas_float_complex>[] = "rocblas_cgemv_strided_batched";
+    constexpr char rocblas_gemv_name<rocblas_float_complex, rocblas_float_complex>[]
+        = "rocblas_cgemv_strided_batched";
     template <>
-    constexpr char rocblas_gemv_name<rocblas_double_complex>[] = "rocblas_zgemv_strided_batched";
+    constexpr char rocblas_gemv_name<rocblas_double_complex, rocblas_double_complex>[]
+        = "rocblas_zgemv_strided_batched";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_half, rocblas_half>[]
+        = "rocblas_hshgemv_strided_batched";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_half, float>[] = "rocblas_hssgemv_strided_batched";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_bfloat16, rocblas_bfloat16>[]
+        = "rocblas_tstgemv_strided_batched";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_bfloat16, float>[] = "rocblas_tssgemv_strided_batched";
 
-    template <typename T>
+    template <typename Ti, typename Tex = Ti, typename To = Ti>
     rocblas_status rocblas_gemv_strided_batched_impl(rocblas_handle    handle,
                                                      rocblas_operation transA,
                                                      rocblas_int       m,
                                                      rocblas_int       n,
-                                                     const T*          alpha,
-                                                     const T*          A,
+                                                     const Tex*        alpha,
+                                                     const Ti*         A,
                                                      rocblas_int       lda,
                                                      rocblas_stride    strideA,
-                                                     const T*          x,
+                                                     const Ti*         x,
                                                      rocblas_int       incx,
                                                      rocblas_stride    stridex,
-                                                     const T*          beta,
-                                                     T*                y,
+                                                     const Tex*        beta,
+                                                     To*               y,
                                                      rocblas_int       incy,
                                                      rocblas_stride    stridey,
                                                      rocblas_int       batch_count)
@@ -60,7 +72,7 @@ namespace
             return rocblas_status_invalid_handle;
 
         size_t dev_bytes
-            = rocblas_internal_gemv_kernel_workspace_size<T>(transA, m, n, batch_count);
+            = rocblas_internal_gemv_kernel_workspace_size<Tex>(transA, m, n, batch_count);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 
@@ -75,7 +87,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle,
-                          rocblas_gemv_name<T>,
+                          rocblas_gemv_name<Ti, To>,
                           transA,
                           m,
                           n,
@@ -93,35 +105,73 @@ namespace
                           batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f gemv_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--transposeA",
-                          transA_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          strideA,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stridex,
-                          LOG_BENCH_SCALAR_VALUE(handle, beta),
-                          "--incy",
-                          incy,
-                          "--stride_y",
-                          stridey,
-                          "--batch_count",
-                          batch_count);
+            {
+                if constexpr(std::is_same<Ti, rocblas_half>{}
+                             || std::is_same<Ti, rocblas_bfloat16>{})
+                {
+                    log_bench(handle,
+                              "./rocblas-bench -f gemv_strided_batched --a_type",
+                              rocblas_precision_string<Ti>,
+                              "--c_type",
+                              rocblas_precision_string<To>,
+                              "--compute_type",
+                              rocblas_precision_string<Tex>,
+                              "--transposeA",
+                              transA_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                              "--lda",
+                              lda,
+                              "--stride_a",
+                              strideA,
+                              "--incx",
+                              incx,
+                              "--stride_x",
+                              stridex,
+                              LOG_BENCH_SCALAR_VALUE(handle, beta),
+                              "--incy",
+                              incy,
+                              "--stride_y",
+                              stridey,
+                              "--batch_count",
+                              batch_count);
+                }
+                else
+                {
+                    log_bench(handle,
+                              "./rocblas-bench -f gemv_strided_batched -r",
+                              rocblas_precision_string<Ti>,
+                              "--transposeA",
+                              transA_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                              "--lda",
+                              lda,
+                              "--stride_a",
+                              strideA,
+                              "--incx",
+                              incx,
+                              "--stride_x",
+                              stridex,
+                              LOG_BENCH_SCALAR_VALUE(handle, beta),
+                              "--incy",
+                              incy,
+                              "--stride_y",
+                              stridey,
+                              "--batch_count",
+                              batch_count);
+                }
+            }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
-                            rocblas_gemv_name<T>,
+                            rocblas_gemv_name<Ti, To>,
                             "transA",
                             transA_letter,
                             "M",
@@ -144,27 +194,27 @@ namespace
                             batch_count);
         }
 
-        rocblas_status arg_status = rocblas_internal_gemv_arg_check<T>(handle,
-                                                                       transA,
-                                                                       m,
-                                                                       n,
-                                                                       alpha,
-                                                                       0,
-                                                                       A,
-                                                                       0,
-                                                                       lda,
-                                                                       strideA,
-                                                                       x,
-                                                                       0,
-                                                                       incx,
-                                                                       stridex,
-                                                                       beta,
-                                                                       0,
-                                                                       y,
-                                                                       0,
-                                                                       incy,
-                                                                       stridey,
-                                                                       batch_count);
+        rocblas_status arg_status = rocblas_internal_gemv_arg_check(handle,
+                                                                    transA,
+                                                                    m,
+                                                                    n,
+                                                                    alpha,
+                                                                    0,
+                                                                    A,
+                                                                    0,
+                                                                    lda,
+                                                                    strideA,
+                                                                    x,
+                                                                    0,
+                                                                    incx,
+                                                                    stridex,
+                                                                    beta,
+                                                                    0,
+                                                                    y,
+                                                                    0,
+                                                                    incy,
+                                                                    stridey,
+                                                                    batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
@@ -177,7 +227,7 @@ namespace
         {
             bool           is_input = true;
             rocblas_status gemv_check_numerics_status
-                = rocblas_gemv_check_numerics(rocblas_gemv_name<T>,
+                = rocblas_gemv_check_numerics(rocblas_gemv_name<Ti, To>,
                                               handle,
                                               transA,
                                               m,
@@ -222,7 +272,7 @@ namespace
                                                                incy,
                                                                stridey,
                                                                batch_count,
-                                                               (T*)w_mem);
+                                                               (Tex*)w_mem);
 
         status = (status != rocblas_status_success) ? status : perf_status;
         if(status != rocblas_status_success)
@@ -232,7 +282,7 @@ namespace
         {
             bool           is_input = false;
             rocblas_status gemv_check_numerics_status
-                = rocblas_gemv_check_numerics(rocblas_gemv_name<T>,
+                = rocblas_gemv_check_numerics(rocblas_gemv_name<Ti, To>,
                                               handle,
                                               transA,
                                               m,
@@ -421,6 +471,167 @@ try
                                              incy,
                                              stridey,
                                              batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_hshgemv_strided_batched(rocblas_handle      handle,
+                                               rocblas_operation   transA,
+                                               rocblas_int         m,
+                                               rocblas_int         n,
+                                               const float*        alpha,
+                                               const rocblas_half* A,
+                                               rocblas_int         lda,
+                                               rocblas_stride      strideA,
+                                               const rocblas_half* x,
+                                               rocblas_int         incx,
+                                               rocblas_stride      stridex,
+                                               const float*        beta,
+                                               rocblas_half*       y,
+                                               rocblas_int         incy,
+                                               rocblas_stride      stridey,
+                                               rocblas_int         batch_count)
+try
+{
+    return rocblas_gemv_strided_batched_impl<rocblas_half, float, rocblas_half>(handle,
+                                                                                transA,
+                                                                                m,
+                                                                                n,
+                                                                                alpha,
+                                                                                A,
+                                                                                lda,
+                                                                                strideA,
+                                                                                x,
+                                                                                incx,
+                                                                                stridex,
+                                                                                beta,
+                                                                                y,
+                                                                                incy,
+                                                                                stridey,
+                                                                                batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_hssgemv_strided_batched(rocblas_handle      handle,
+                                               rocblas_operation   transA,
+                                               rocblas_int         m,
+                                               rocblas_int         n,
+                                               const float*        alpha,
+                                               const rocblas_half* A,
+                                               rocblas_int         lda,
+                                               rocblas_stride      strideA,
+                                               const rocblas_half* x,
+                                               rocblas_int         incx,
+                                               rocblas_stride      stridex,
+                                               const float*        beta,
+                                               float*              y,
+                                               rocblas_int         incy,
+                                               rocblas_stride      stridey,
+                                               rocblas_int         batch_count)
+try
+{
+    return rocblas_gemv_strided_batched_impl<rocblas_half, float, float>(handle,
+                                                                         transA,
+                                                                         m,
+                                                                         n,
+                                                                         alpha,
+                                                                         A,
+                                                                         lda,
+                                                                         strideA,
+                                                                         x,
+                                                                         incx,
+                                                                         stridex,
+                                                                         beta,
+                                                                         y,
+                                                                         incy,
+                                                                         stridey,
+                                                                         batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_tstgemv_strided_batched(rocblas_handle          handle,
+                                               rocblas_operation       transA,
+                                               rocblas_int             m,
+                                               rocblas_int             n,
+                                               const float*            alpha,
+                                               const rocblas_bfloat16* A,
+                                               rocblas_int             lda,
+                                               rocblas_stride          strideA,
+                                               const rocblas_bfloat16* x,
+                                               rocblas_int             incx,
+                                               rocblas_stride          stridex,
+                                               const float*            beta,
+                                               rocblas_bfloat16*       y,
+                                               rocblas_int             incy,
+                                               rocblas_stride          stridey,
+                                               rocblas_int             batch_count)
+try
+{
+    return rocblas_gemv_strided_batched_impl<rocblas_bfloat16, float, rocblas_bfloat16>(
+        handle,
+        transA,
+        m,
+        n,
+        alpha,
+        A,
+        lda,
+        strideA,
+        x,
+        incx,
+        stridex,
+        beta,
+        y,
+        incy,
+        stridey,
+        batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_tssgemv_strided_batched(rocblas_handle          handle,
+                                               rocblas_operation       transA,
+                                               rocblas_int             m,
+                                               rocblas_int             n,
+                                               const float*            alpha,
+                                               const rocblas_bfloat16* A,
+                                               rocblas_int             lda,
+                                               rocblas_stride          strideA,
+                                               const rocblas_bfloat16* x,
+                                               rocblas_int             incx,
+                                               rocblas_stride          stridex,
+                                               const float*            beta,
+                                               float*                  y,
+                                               rocblas_int             incy,
+                                               rocblas_stride          stridey,
+                                               rocblas_int             batch_count)
+try
+{
+    return rocblas_gemv_strided_batched_impl<rocblas_bfloat16, float, float>(handle,
+                                                                             transA,
+                                                                             m,
+                                                                             n,
+                                                                             alpha,
+                                                                             A,
+                                                                             lda,
+                                                                             strideA,
+                                                                             x,
+                                                                             incx,
+                                                                             stridex,
+                                                                             beta,
+                                                                             y,
+                                                                             incy,
+                                                                             stridey,
+                                                                             batch_count);
 }
 catch(...)
 {

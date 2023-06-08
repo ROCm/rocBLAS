@@ -369,6 +369,41 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     return TEST<void>{}(arg);
 }
 
+// gemv_batched and gev_strided_batched functions
+template <template <typename...> class TEST>
+auto rocblas_gemv_batched_and_strided_batched_dispatch(const Arguments& arg)
+{
+    const auto Ti = arg.a_type, To = arg.c_type, Tex = arg.compute_type;
+
+    // covers HSH, HSS, TST, TSS precisions for gemv_batched and gev_strided_batched
+    if(Ti != Tex && (Ti == rocblas_datatype_f16_r || Ti == rocblas_datatype_bf16_r)
+       && (To == Ti || To == rocblas_datatype_f32_r))
+    {
+        if(Ti == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r && To == Ti)
+        {
+            return TEST<rocblas_half, float, rocblas_half>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r && To == Tex)
+        {
+            return TEST<rocblas_half, float, float>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_bf16_r && Tex == rocblas_datatype_f32_r && To == Ti)
+        {
+            return TEST<rocblas_bfloat16, float, rocblas_bfloat16>{}(arg);
+        }
+        else if(Ti == rocblas_datatype_bf16_r && Tex == rocblas_datatype_f32_r && To == Tex)
+        {
+            return TEST<rocblas_bfloat16, float, float>{}(arg);
+        }
+    }
+    // covers s, d, c, z precisions for gemv_batched and gev_strided_batched
+    else
+    {
+        return rocblas_simple_dispatch<TEST>(arg); // Ti = Tex = To
+    }
+    return TEST<void, void, void>{}(arg);
+}
+
 // gemm functions
 template <template <typename...> class TEST>
 auto rocblas_gemm_dispatch(const Arguments& arg)

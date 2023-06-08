@@ -382,20 +382,20 @@ Tests:
 - name: gemv_batched_bad_arg
   category: pre_checkin
   function: gemv_batched_bad_arg
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
   api: [ C, FORTRAN ]
 
 - name: gemv_batched_arg_check
   category: quick
   function: gemv_batched
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
 
 - name: gemv_batched_NaN
   category: pre_checkin
   function: gemv_batched
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N, T, C ]
   matrix_size: *all_algo_matrix_size_range
   incx_incy: *incx_incy_range_small
@@ -406,7 +406,7 @@ Tests:
 - name: gemv_batched_fortran
   category: quick
   function: gemv_batched
-  precision: *single_double_precisions_complex_real
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N, T, C ]
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
@@ -448,7 +448,7 @@ Tests:
   function:
     - gemv_batched
     - gemv_strided_batched
-  precision: *single_double_precisions_complex_real
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N ]
   matrix_size: *sm_mn_matrix_size_range
   incx_incy: *incx_incy_range_small
@@ -480,7 +480,7 @@ Tests:
 - name: gemv_batched_large
   category: nightly
   function: gemv_batched
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
@@ -501,20 +501,20 @@ Tests:
 - name: gemv_strided_batched_bad_arg
   category: pre_checkin
   function: gemv_strided_batched_bad_arg
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
   api: [ C, FORTRAN ]
 
 - name: gemv_strided_batched_arg_check
   category: quick
   function: gemv_strided_batched
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
 
 - name: gemv_strided_batched_NaN
   category: pre_checkin
   function: gemv_strided_batched
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N, T, C ]
   matrix_size: *all_algo_matrix_size_range
   incx_incy: *incx_incy_range_small
@@ -535,7 +535,7 @@ Tests:
 - name: gemv_strided_batched_small
   category: quick
   function: gemv_strided_batched
-  precision: *single_double_precisions
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N, T, C ]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
@@ -555,7 +555,7 @@ Tests:
 - name: gemv_strided_batched_skinny_n
   category: pre_checkin
   function: gemv_strided_batched
-  precision: *single_double_precisions_complex_real
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N, T, C ]
   matrix_size: *skinny_n_matrix_size_range
   incx_incy: *incx_incy_range_small
@@ -566,7 +566,7 @@ Tests:
 - name: gemv_strided_batched_qmcpack
   category: quick
   function: gemv_strided_batched
-  precision: *single_double_precisions_complex_real
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ T, C ]
   matrix_size: *qmcpack_matrix_size_range
   incx: [ 2 ]
@@ -578,7 +578,7 @@ Tests:
 - name: gemv_strided_batched_medium
   category: pre_checkin
   function: gemv_strided_batched
-  precision: *single_double_precisions_complex_real
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
@@ -598,7 +598,7 @@ Tests:
 - name: gemv_strided_batched_very_large
   category: nightly
   function: gemv_strided_batched
-  precision: *double_precision
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: [ N ]
   matrix_size: *very_large_matrix_size_range
   incx_incy: *incx_incy_range_small
@@ -611,7 +611,7 @@ Tests:
         - gemv
         - gemv_batched
         - gemv_strided_batched
-  precision: *single_double_precisions_complex_real
+  precision: *gemv_bfloat_half_single_double_complex_real_precisions
   transA: N
   matrix_size:
         - { M:   100, N:   200, lda:  200, stride_a:    40000 }

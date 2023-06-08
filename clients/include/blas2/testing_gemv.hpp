@@ -291,7 +291,9 @@ void testing_gemv(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_gemv<T>(transA, M, N, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
+
+        cblas_gemv<T>(transA, M, N, h_alpha, (T*)hA, lda, (T*)hx, incx, h_beta, (T*)hy_gold, incy);
+
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.pointer_mode_host)

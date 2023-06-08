@@ -236,7 +236,20 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
   - *single_precision_complex
   - *double_precision_complex
 
+#############################################################################################################
+#               Used for gemv_batched and gemv_strided_batched                                              #
+# Special test cases are added to test gemv_batched and gemv_strided_batched for types HSH, HSS, TST, TSS   #
+#############################################################################################################
 
+gemv batched and strided batched: &gemv_bfloat_half_single_double_complex_real_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
+  - *double_precision_complex
+  - *hpa_bf16_precision
+  - *hpa_bf16_in_single_out_precision
+  - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
 
 #############################################
 #               Used for Scal               #
