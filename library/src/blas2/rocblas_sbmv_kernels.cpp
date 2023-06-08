@@ -54,7 +54,7 @@ inline __device__ T rocblas_sbmv_kernel_helper(rocblas_int ty,
                 // in upper/lower triangular part
                 if(row <= k && row >= 0)
                 {
-                    res_A += A[row + col * lda] * x[col * incx];
+                    res_A += A[row + col * size_t(lda)] * x[col * int64_t(incx)];
                 }
             }
             else
@@ -65,7 +65,7 @@ inline __device__ T rocblas_sbmv_kernel_helper(rocblas_int ty,
                 trans_row             = UPPER ? trans_row + (k - trans_col) : trans_row - trans_col;
                 if(trans_row <= k && trans_row >= 0)
                 {
-                    res_A += A[trans_row + trans_col * lda] * x[col * incx];
+                    res_A += A[trans_row + trans_col * size_t(lda)] * x[col * int64_t(incx)];
                 }
             }
         }
@@ -97,7 +97,7 @@ inline __device__ void rocblas_sbmv_kernel_calc(rocblas_int n,
         rocblas_int ind = blockIdx.x * DIM_X + thread_id;
         if(thread_id < DIM_X && ind < n)
         {
-            y[ind * incy] = beta ? (beta * y[ind * incy]) : 0;
+            y[ind * int64_t(incy)] = beta ? (beta * y[ind * int64_t(incy)]) : 0;
         }
         return;
     }
@@ -124,8 +124,8 @@ inline __device__ void rocblas_sbmv_kernel_calc(rocblas_int n,
         for(rocblas_int i = 1; i < DIM_Y; i++)
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
-        y[ind * incy]
-            = beta ? (alpha * sdata[thread_id]) + (beta * y[ind * incy]) : alpha * sdata[thread_id];
+        y[ind * int64_t(incy)] = beta ? (alpha * sdata[thread_id]) + (beta * y[ind * int64_t(incy)])
+                                      : alpha * sdata[thread_id];
     }
 }
 
@@ -202,8 +202,8 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
-    auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+    auto shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
+    auto shifty = incy < 0 ? offsety - int64_t(incy) * (n - 1) : offsety;
 
     static constexpr int sbmv_DIM_X = 64;
     static constexpr int sbmv_DIM_Y = 16;

@@ -313,15 +313,13 @@ void testing_sbmv_batched(const Arguments& arg)
     // Allocate host memory
     host_batch_matrix<T> hAb(banded_matrix_row, N, lda, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
-    host_batch_vector<T> hy_1(N, incy, batch_count);
-    host_batch_vector<T> hy_2(N, incy, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
     host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hAb.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy_1.memcheck());
-    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
     CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Allocate device memory
@@ -340,69 +338,70 @@ void testing_sbmv_batched(const Arguments& arg)
     rocblas_init_matrix(
         hAb, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
-    rocblas_init_vector(hy_1, arg, rocblas_client_beta_sets_nan);
+    rocblas_init_vector(hy, arg, rocblas_client_beta_sets_nan);
 
     // save a copy in hy_gold which will later get output of CPU BLAS
-    hy_gold.copy_from(hy_1);
-    hy_2.copy_from(hy_1);
+    hy_gold.copy_from(hy);
 
     // copy data from CPU to device
     dx.transfer_from(hx);
-    dy.transfer_from(hy_1);
+    dy.transfer_from(hy);
     dAb.transfer_from(hAb);
 
     double gpu_time_used, cpu_time_used;
-    double h_error, d_error;
+    double h_error = 0.0, d_error = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
+        if(arg.pointer_mode_host)
+        {
+            // rocblas_pointer_mode_host test
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_sbmv_batched_fn(handle,
+                                                        uplo,
+                                                        N,
+                                                        K,
+                                                        alpha,
+                                                        dAb.ptr_on_device(),
+                                                        lda,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        beta,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        batch_count));
+            handle.post_test(arg);
 
-        // rocblas_pointer_mode_host test
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_sbmv_batched_fn(handle,
-                                                    uplo,
-                                                    N,
-                                                    K,
-                                                    alpha,
-                                                    dAb.ptr_on_device(),
-                                                    lda,
-                                                    dx.ptr_on_device(),
-                                                    incx,
-                                                    beta,
-                                                    dy.ptr_on_device(),
-                                                    incy,
-                                                    batch_count));
-        handle.post_test(arg);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+        }
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy));
+        if(arg.pointer_mode_device)
+        {
+            // rocblas_pointer_mode_device test
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(beta));
 
-        // rocblas_pointer_mode_device test
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(alpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(beta));
+            dy.transfer_from(hy_gold);
 
-        dy.transfer_from(hy_2);
-
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_sbmv_batched_fn(handle,
-                                                    uplo,
-                                                    N,
-                                                    K,
-                                                    d_alpha,
-                                                    dAb.ptr_on_device(),
-                                                    lda,
-                                                    dx.ptr_on_device(),
-                                                    incx,
-                                                    d_beta,
-                                                    dy.ptr_on_device(),
-                                                    incy,
-                                                    batch_count));
-        handle.post_test(arg);
-
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_sbmv_batched_fn(handle,
+                                                        uplo,
+                                                        N,
+                                                        K,
+                                                        d_alpha,
+                                                        dAb.ptr_on_device(),
+                                                        lda,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        d_beta,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        batch_count));
+            handle.post_test(arg);
+        }
 
         cpu_time_used = get_time_us_no_sync();
         // cpu reference
@@ -413,16 +412,33 @@ void testing_sbmv_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(1, N, incy, hy_gold, hy_1, batch_count);
-            unit_check_general<T>(1, N, incy, hy_gold, hy_2, batch_count);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incy, hy_gold, hy, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy, batch_count);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            h_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_1, batch_count);
-            d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy_2, batch_count);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hy.transfer_from(dy));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, incy, hy_gold, hy, batch_count);
+            }
+
+            if(arg.norm_check)
+            {
+                d_error = norm_check_general<T>('F', 1, N, incy, hy_gold, hy, batch_count);
+            }
         }
     }
 
