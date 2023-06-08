@@ -64,7 +64,7 @@ Tests:
   matrix_size: *special_case_range
 
 - name: tbsv_size_t
-  category: pre_checkin # stress
+  category: stress
   function: tbsv
   precision: *single_precision
   uplo: [U, L]

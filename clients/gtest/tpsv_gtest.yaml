@@ -30,6 +30,16 @@ Definitions:
     - { N:  1024 }
     - { N:  2000 }
 
+  - &c_pos_x2_overflow_int32
+    - [ 1073741825 ]
+  - &c_neg_x2_overflow_int32
+    - [ -1073741825 ]
+
+  - &size_t_index
+    - { N: 65536, incx: 1 }
+    - { N: 3, incx: *c_pos_x2_overflow_int32 }
+    - { N: 3, incx: *c_neg_x2_overflow_int32 }
+
   - &common_args
     precision: *single_double_precisions_complex_real
     uplo: [L, U]
@@ -47,6 +57,17 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+
+- name: tpsv_size_t
+  category: stress
+  function: tpsv
+  precision: *single_precision
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  diag: [ N ]
+  matrix_size: *size_t_index
+  os_flags: LINUX
+  gpu_arch: ['90a']
 
 # Regular tpsv
 - name: tpsv_bad_arg
