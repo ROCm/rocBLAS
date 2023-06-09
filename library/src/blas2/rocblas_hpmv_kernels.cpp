@@ -33,10 +33,10 @@ __device__ void rocblas_hpmv_kernel_calc(bool        is_upper,
                                          T           alpha,
                                          const T*    AP,
                                          const T*    x,
-                                         ptrdiff_t   incx,
+                                         rocblas_int incx,
                                          T           beta,
                                          T*          y,
-                                         ptrdiff_t   incy)
+                                         rocblas_int incy)
 {
     rocblas_int thread_id = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -44,7 +44,7 @@ __device__ void rocblas_hpmv_kernel_calc(bool        is_upper,
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
-    rocblas_int ind = blockIdx.x * DIM_X + tx;
+    size_t ind = blockIdx.x * DIM_X + tx;
 
     if(!alpha)
     {
@@ -52,7 +52,7 @@ __device__ void rocblas_hpmv_kernel_calc(bool        is_upper,
         {
             rocblas_int idx = blockIdx.x * DIM_X + thread_id;
             if(idx < n)
-                y[idx * incy] = beta ? beta * y[idx * incy] : 0;
+                y[idx * int64_t(incy)] = beta ? beta * y[idx * int64_t(incy)] : 0;
         }
         return;
     }
@@ -86,12 +86,15 @@ __device__ void rocblas_hpmv_kernel_calc(bool        is_upper,
             //                              col-1
             // For lower matrices, index = sigma(n-i) + row
             //                              i=0
-            int index = is_upper ? ((ind_y * (ind_y + 1)) / 2) + ind_x
-                                 : ((ind_y * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
-            // clang-format off
-            res_A += (ind_x == ind_y ? std::real(AP[index]) : CONJ ? conj(AP[index]) : (AP[index]))
-                     * x[col * incx];
-            // clang-format on
+
+            int64_t index = is_upper
+                                ? ((int64_t(ind_y) * (ind_y + 1)) / 2) + ind_x
+                                : ((int64_t(ind_y) * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
+
+            res_A += (ind_x == ind_y ? std::real(AP[index])
+                      : CONJ         ? conj(AP[index])
+                                     : (AP[index]))
+                     * x[col * int64_t(incx)];
         }
     }
 
@@ -105,11 +108,11 @@ __device__ void rocblas_hpmv_kernel_calc(bool        is_upper,
         for(rocblas_int i = 1; i < DIM_Y; i++)
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
-        rocblas_int idx = blockIdx.x * DIM_X + thread_id;
+        int64_t idx = blockIdx.x * DIM_X + thread_id;
         // Update y.
         if(idx < n)
-            y[idx * incy]
-                = beta ? alpha * sdata[thread_id] + beta * y[idx * incy] : alpha * sdata[thread_id];
+            y[idx * int64_t(incy)] = beta ? alpha * sdata[thread_id] + beta * y[idx * int64_t(incy)]
+                                          : alpha * sdata[thread_id];
     }
 }
 
