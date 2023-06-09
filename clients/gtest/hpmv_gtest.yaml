@@ -3,6 +3,15 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &size_t_index
+    - { N: 65536, incx: 1, incy: 1 } # overflow packed index as int (n*(n+1)/2)
+
+  - &size_t_incx_incy
+    - { N: 4097, incx:  1048600, incy:      1  }
+    - { N: 4097, incx: -1048600, incy:      1  }
+    - { N: 4097, incx:       1, incy:  1048600 }
+    - { N: 4097, incx:       1, incy: -1048600 }
+
   - &small_matrix_size_range
     - { N:   1 }
     - { N:   4 }
@@ -120,6 +129,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
 
@@ -173,6 +183,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
@@ -232,6 +243,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
@@ -252,4 +264,26 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 5 ]
   graph_test: true
+
+- name: hpmv_size_t
+  category: stress
+  function: hpmv
+  precision: *single_precision_complex
+  matrix_size: *size_t_index
+  pointer_mode_host: false
+  uplo: [ U, L ]
+  alpha_beta: *alpha_beta_range_small
+  os_flags: LINUX
+  gpu_arch: ['90a']
+
+- name: hpmv_size_t_incx_incy
+  category: stress
+  function: hpmv
+  precision: *single_precision_complex
+  matrix_size: *size_t_incx_incy
+  pointer_mode_device: false
+  uplo: [ U, L ]
+  alpha_beta: *alpha_beta_range_small
+  os_flags: LINUX
+  gpu_arch: ['90a']
 ...
