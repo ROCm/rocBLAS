@@ -35,6 +35,16 @@ Definitions:
   - &incx_range_small
     - [ 2 ]
 
+  - &c_pos_x2_overflow_int32
+    - [ 1073741825 ]
+  - &c_neg_x2_overflow_int32
+    - [ -1073741825 ]
+
+  - &size_t_index
+    - { M: 65536, incx: 1 }
+    - { M: 3, incx: *c_pos_x2_overflow_int32 }
+    - { M: 3, incx: *c_neg_x2_overflow_int32 }
+
 Tests:
 - name: tpmv_bad_arg
   category: pre_checkin
@@ -55,6 +65,28 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+
+- name: tpmv_size_t
+  category: pre_checkin #stress
+  function: tpmv
+  precision: *single_precision
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  diag: [ N ]
+  matrix_size: *size_t_index
+  os_flags: LINUX
+  gpu_arch: ['90a']
+
+- name: tpmv_size_t
+  category: pre_checkin #stress
+  function: tpmv
+  precision: *single_precision_complex
+  uplo: [ U, L ]
+  transA: [ C ]
+  diag: [ N ]
+  matrix_size: *size_t_index
+  os_flags: LINUX
+  gpu_arch: ['90a']
 
 - name: tpmv_small
   category: quick
