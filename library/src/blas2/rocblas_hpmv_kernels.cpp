@@ -44,7 +44,7 @@ __device__ void rocblas_hpmv_kernel_calc(bool        is_upper,
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
-    size_t ind = blockIdx.x * DIM_X + tx;
+    rocblas_int ind = blockIdx.x * DIM_X + tx;
 
     if(!alpha)
     {
