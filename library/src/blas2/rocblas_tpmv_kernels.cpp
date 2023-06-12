@@ -29,12 +29,12 @@
 #ifdef tmpv_calc_upperat
 #error tmpv_calc_upperat is already defined
 #endif
-#define tmpv_calc_upperat(_i, _j) (((_j) * ((_j) + 1)) / 2 + (_i))
+#define tmpv_calc_upperat(_i, _j) ((size_t(_j) * ((_j) + 1)) / 2 + (_i))
 
 #ifdef tmpv_calc_lowerat
 #error tmpv_calc_lowerat is already defined
 #endif
-#define tmpv_calc_lowerat(_i, _j) ((_j)*m + ((_i) - (_j)) - (((_j)-1) * (_j)) / 2)
+#define tmpv_calc_lowerat(_i, _j) (size_t(_j) * m + ((_i) - (_j)) - ((size_t(_j) - 1) * (_j)) / 2)
 
 template <rocblas_int NB, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
@@ -45,11 +45,11 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
                                                   rocblas_int incx,
                                                   T*          workspace)
 {
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < m)
     {
-        T res = x[tid * incx];
+        T res = x[tid * int64_t(incx)];
         if(is_upper)
         {
             if(!is_unit_diag)
@@ -58,7 +58,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
             }
             for(rocblas_int col = tid + 1; col < m; ++col)
             {
-                res += A[tmpv_calc_upperat(tid, col)] * x[col * incx];
+                res += A[tmpv_calc_upperat(tid, col)] * x[col * int64_t(incx)];
             }
         }
         else
@@ -70,7 +70,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
             }
             for(rocblas_int col = 0; col < tid; ++col)
             {
-                res += A[tmpv_calc_lowerat(tid, col)] * x[col * incx];
+                res += A[tmpv_calc_lowerat(tid, col)] * x[col * int64_t(incx)];
             }
         }
 
@@ -87,11 +87,11 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
                                                   rocblas_int incx,
                                                   T*          workspace)
 {
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(tid < m)
     {
-        T res = x[tid * incx];
+        T res = x[tid * int64_t(incx)];
         if(is_upper)
         {
             if(!is_unit_diag)
@@ -100,7 +100,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
             }
             for(rocblas_int row = 0; row < tid; ++row)
             {
-                res += conj(A[tmpv_calc_upperat(row, tid)]) * x[row * incx];
+                res += conj(A[tmpv_calc_upperat(row, tid)]) * x[row * int64_t(incx)];
             }
         }
         else
@@ -112,7 +112,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
             }
             for(rocblas_int row = tid + 1; row < m; ++row)
             {
-                res += conj(A[tmpv_calc_lowerat(row, tid)]) * x[row * incx];
+                res += conj(A[tmpv_calc_lowerat(row, tid)]) * x[row * int64_t(incx)];
             }
         }
         workspace[tid] = res;
@@ -128,15 +128,14 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(bool        is_upper,
                                                   rocblas_int incx,
                                                   T*          workspace)
 {
-    ptrdiff_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     T           res;
     rocblas_int row;
 
     if(tid < m)
     {
-
-        res = x[tid * incx];
+        res = x[tid * int64_t(incx)];
         if(is_upper)
         {
             if(!is_unit_diag)
@@ -146,7 +145,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(bool        is_upper,
 
             for(row = 0; row < tid; ++row)
             {
-                res += A[tmpv_calc_upperat(row, tid)] * x[row * incx];
+                res += A[tmpv_calc_upperat(row, tid)] * x[row * int64_t(incx)];
             }
         }
         else
@@ -159,7 +158,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(bool        is_upper,
 
             for(row = tid + 1; row < m; ++row)
             {
-                res += A[tmpv_calc_lowerat(row, tid)] * x[row * incx];
+                res += A[tmpv_calc_lowerat(row, tid)] * x[row * int64_t(incx)];
             }
         }
         workspace[tid] = res;
@@ -271,7 +270,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
 
     hipStream_t rocblas_stream = handle->get_stream();
 
-    ptrdiff_t shiftx = incx < 0 ? offsetx + ptrdiff_t(incx) * (1 - m) : offsetx;
+    int64_t shiftx = incx < 0 ? offsetx + int64_t(incx) * (1 - m) : offsetx;
 
     dim3 tpmv_grid((m - 1) / NB + 1, batch_count);
     dim3 tpmv_threads(NB);
