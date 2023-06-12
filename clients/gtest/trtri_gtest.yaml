@@ -44,7 +44,7 @@ Definitions:
     - { N: 2016, lda: 2016 }
 
   - &int32_overflow_sizes
-    - { N: 3,     lda: 1073741825 } # for rocblas_trtri_small
+    - { N: 8,     lda: 306783380 } # for rocblas_trtri_small
     - { N: 737,   lda: 2921750 } # should take all paths in rocblas_trtri_large
     # - { N: 46976, lda: 46976 } # passed initial tests with increased timeout
 
