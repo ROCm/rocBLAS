@@ -124,7 +124,6 @@ void testing_trtri(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(N, N, lda);
-    host_matrix<T> hA_2(N, N, lda);
     host_matrix<T> hB(N, N, lda);
 
     // Allocate device memory
@@ -266,7 +265,6 @@ void testing_trtri(const Arguments& arg)
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA.transfer_from(dinvA));
-        CHECK_HIP_ERROR(hA_2.transfer_from(dA));
 
         /* =====================================================================
            CPU BLAS
@@ -280,18 +278,21 @@ void testing_trtri(const Arguments& arg)
         if(arg.timing)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
+        // test out-of-place
+        const double rel_error = trtri_tolerance<T>(N);
         if(arg.unit_check)
-        {
-            const double rel_error = trtri_tolerance<T>(N);
             near_check_general<T>(N, N, lda, hB, hA, rel_error);
-            near_check_general<T>(N, N, lda, hB, hA_2, rel_error);
-        }
 
         if(arg.norm_check)
-        {
             rocblas_error_out = norm_check_symmetric<T>('F', char_uplo, N, lda, hB, hA);
-            rocblas_error_in  = norm_check_symmetric<T>('F', char_uplo, N, lda, hB, hA_2);
-        }
+
+        // test in-place
+        CHECK_HIP_ERROR(hA.transfer_from(dA));
+        if(arg.unit_check)
+            near_check_general<T>(N, N, lda, hB, hA, rel_error);
+
+        if(arg.norm_check)
+            rocblas_error_in = norm_check_symmetric<T>('F', char_uplo, N, lda, hB, hA);
     }
 
     if(arg.timing)
