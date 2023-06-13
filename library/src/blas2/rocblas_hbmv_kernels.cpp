@@ -57,24 +57,24 @@ __device__ T rocblas_hbmvn_kernel_helper(rocblas_int ty,
                 if(row < k && row > 0)
                 {
                     // not on main diagonal, simply multiply
-                    res_A += (A[row + col * lda] * x[col * incx]);
+                    res_A += (A[row + col * size_t(lda)] * x[col * int64_t(incx)]);
                 }
                 else if(row == 0)
                 {
                     // cppcheck-suppress knownConditionTrueFalse
                     // If main diagonal, assume 0 imaginary part.
                     if(!is_upper || (k == 0 && is_upper))
-                        res_A += (std::real(A[row + col * lda]) * x[col * incx]);
+                        res_A += (std::real(A[row + col * size_t(lda)]) * x[col * int64_t(incx)]);
                     else
-                        res_A += (A[row + col * lda] * x[col * incx]);
+                        res_A += (A[row + col * size_t(lda)] * x[col * int64_t(incx)]);
                 }
                 else if(row == k)
                 {
                     // If main diagonal, assume 0 imaginary part.
                     if(is_upper)
-                        res_A += (std::real(A[row + col * lda]) * x[col * incx]);
+                        res_A += (std::real(A[row + col * size_t(lda)]) * x[col * int64_t(incx)]);
                     else
-                        res_A += (A[row + col * lda] * x[col * incx]);
+                        res_A += (A[row + col * size_t(lda)] * x[col * int64_t(incx)]);
                 }
             }
             else
@@ -85,7 +85,8 @@ __device__ T rocblas_hbmvn_kernel_helper(rocblas_int ty,
                 trans_row = is_upper ? trans_row + (k - trans_col) : trans_row - trans_col;
                 if(trans_row <= k && trans_row >= 0)
                 {
-                    res_A += (conj(A[trans_row + trans_col * lda]) * x[col * incx]);
+                    res_A
+                        += (conj(A[trans_row + trans_col * size_t(lda)]) * x[col * int64_t(incx)]);
                 }
             }
         }
@@ -136,13 +137,14 @@ __device__ void rocblas_hbmvn_kernel_calc(bool        is_upper,
                 sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
             if(ind < n)
-                y[ind * incy] = beta ? alpha * sdata[thread_id] + beta * y[ind * incy]
-                                     : alpha * sdata[thread_id];
+                y[ind * int64_t(incy)]
+                    = beta ? alpha * sdata[thread_id] + beta * y[ind * int64_t(incy)]
+                           : alpha * sdata[thread_id];
         }
         else
         {
             if(ind < n)
-                y[ind * incy] = beta ? y[ind * incy] * beta : 0;
+                y[ind * int64_t(incy)] = beta ? y[ind * int64_t(incy)] * beta : 0;
         }
     }
 }
@@ -223,8 +225,8 @@ rocblas_status rocblas_hbmv_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
-    auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+    auto shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
+    auto shifty = incy < 0 ? offsety - int64_t(incy) * (n - 1) : offsety;
 
     // hbmvN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
     static constexpr int hbmvN_DIM_X = 64;
