@@ -12889,151 +12889,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
     \brief <b> BLAS Level 3 API </b>
 
     \details
-    The rocBLAS trmm API is from Legacy BLAS and it supports only in-place functionality.
-    It is deprecated and it will be replaced with an API that supports both in-place and
-    out-of-place functionality. The new API is available in rocBLAS versions 3.x.x and later.
-    To get the new API compile with the directive -DROCBLAS_V3
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_strmm(rocblas_handle        handle,
-                                         rocblas_side          side,
-                                         rocblas_fill          uplo,
-                                         rocblas_operation     transA,
-                                         rocblas_diagonal      diag,
-                                         rocblas_int           m,
-                                         rocblas_int           n,
-                                         const float*          alpha,
-                                         const float*          A,
-                                         rocblas_int           lda,
-                                         float*                B,
-                                         rocblas_int           ldb)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_strmm(rocblas_handle        handle,
-                                         rocblas_side          side,
-                                         rocblas_fill          uplo,
-                                         rocblas_operation     transA,
-                                         rocblas_diagonal      diag,
-                                         rocblas_int           m,
-                                         rocblas_int           n,
-                                         const float*          alpha,
-                                         const float*          A,
-                                         rocblas_int           lda,
-                                         const float*          B,
-                                         rocblas_int           ldb,
-                                         float*                C,
-                                         rocblas_int           ldc)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_dtrmm(rocblas_handle        handle,
-                                         rocblas_side          side,
-                                         rocblas_fill          uplo,
-                                         rocblas_operation     transA,
-                                         rocblas_diagonal      diag,
-                                         rocblas_int           m,
-                                         rocblas_int           n,
-                                         const double*         alpha,
-                                         const double*         A,
-                                         rocblas_int           lda,
-                                         double*               B,
-                                         rocblas_int           ldb)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_dtrmm(rocblas_handle        handle,
-                                         rocblas_side          side,
-                                         rocblas_fill          uplo,
-                                         rocblas_operation     transA,
-                                         rocblas_diagonal      diag,
-                                         rocblas_int           m,
-                                         rocblas_int           n,
-                                         const double*         alpha,
-                                         const double*         A,
-                                         rocblas_int           lda,
-                                         const double*         B,
-                                         rocblas_int           ldb,
-                                         double*               C,
-                                         rocblas_int           ldc)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_ctrmm(rocblas_handle                 handle,
-                                         rocblas_side                   side,
-                                         rocblas_fill                   uplo,
-                                         rocblas_operation              transA,
-                                         rocblas_diagonal               diag,
-                                         rocblas_int                    m,
-                                         rocblas_int                    n,
-                                         const rocblas_float_complex*   alpha,
-                                         const rocblas_float_complex*   A,
-                                         rocblas_int                    lda,
-                                         rocblas_float_complex*         B,
-                                         rocblas_int                    ldb)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_ctrmm(rocblas_handle                 handle,
-                                         rocblas_side                   side,
-                                         rocblas_fill                   uplo,
-                                         rocblas_operation              transA,
-                                         rocblas_diagonal               diag,
-                                         rocblas_int                    m,
-                                         rocblas_int                    n,
-                                         const rocblas_float_complex*   alpha,
-                                         const rocblas_float_complex*   A,
-                                         rocblas_int                    lda,
-                                         const rocblas_float_complex*   B,
-                                         rocblas_int                    ldb,
-                                         rocblas_float_complex*         C,
-                                         rocblas_int                    ldc)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_ztrmm(rocblas_handle                  handle,
-                                         rocblas_side                    side,
-                                         rocblas_fill                    uplo,
-                                         rocblas_operation               transA,
-                                         rocblas_diagonal                diag,
-                                         rocblas_int                     m,
-                                         rocblas_int                     n,
-                                         const rocblas_double_complex*   alpha,
-                                         const rocblas_double_complex*   A,
-                                         rocblas_int                     lda,
-                                         rocblas_double_complex*         B,
-                                         rocblas_int                     ldb)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_ztrmm(rocblas_handle                  handle,
-                                         rocblas_side                    side,
-                                         rocblas_fill                    uplo,
-                                         rocblas_operation               transA,
-                                         rocblas_diagonal                diag,
-                                         rocblas_int                     m,
-                                         rocblas_int                     n,
-                                         const rocblas_double_complex*   alpha,
-                                         const rocblas_double_complex*   A,
-                                         rocblas_int                     lda,
-                                         const rocblas_double_complex*   B,
-                                         rocblas_int                     ldb,
-                                         rocblas_double_complex*         C,
-                                         rocblas_int                     ldc)
-        #endif
-
-    The deprecated Legacy BLAS in-place trmm performs one of the matrix-matrix operations:
-
-        B := alpha*op( A )*B,   or
-        B := alpha*B*op( A ),
-
-    The new trmm performs one of the matrix-matrix operations:
+    trmm performs one of the matrix-matrix operations:
 
         C := alpha*op( A )*B,   or
         C := alpha*B*op( A ),
 
-    The in-place functionality is still available in the new trmmm by setting pointer C equal to pointer B,
-    and ldc equal to ldb.
+    The Legacy BLAS in-place trmm functionality,
+
+        B := alpha*op( A )*B,   or
+        B := alpha*B*op( A ),
+
+    is available by setting pointer C equal to pointer B, and ldc equal to ldb.
 
         alpha  is a scalar,  B  is an m by n matrix, C  is an m by n matrix,  A  is a unit, or
         non-unit,  upper or lower triangular matrix  and  op( A )  is one  of
@@ -13124,9 +12990,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
 
     ********************************************************************/
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_strmm with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_strmm with A, B, and C arguments. The new rocblas_strmm has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_strmm")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_strmm(rocblas_handle    handle,
                                             rocblas_side      side,
                                             rocblas_fill      uplo,
@@ -13140,9 +13003,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm(rocblas_handle    handle,
                                             float*            B,
                                             rocblas_int       ldb);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_dtrmm with A, B, and C arguments. The new rocblas_dtrmm has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_dtrmm")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm(rocblas_handle    handle,
                                             rocblas_side      side,
                                             rocblas_fill      uplo,
@@ -13156,9 +13016,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm(rocblas_handle    handle,
                                             double*           B,
                                             rocblas_int       ldb);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_ctrmm with A, B, and C arguments. The new rocblas_ctrmm has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_ctrmm")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
                                             rocblas_side                 side,
                                             rocblas_fill                 uplo,
@@ -13172,9 +13029,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
                                             rocblas_float_complex*       B,
                                             rocblas_int                  ldb);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_ztrmm with A, B, and C arguments. The new rocblas_ztrmm has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_ztrmm")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle,
                                             rocblas_side                  side,
                                             rocblas_fill                  uplo,
@@ -13193,165 +13047,39 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle
     \brief <b> BLAS Level 3 API </b>
 
     \details
-    The rocBLAS trmm_batched API is from Legacy BLAS and it supports only in-place functionality.
-    It is deprecated and it will be replaced with an API that supports both in-place and
-    out-of-place functionality. The new API is available in rocBLAS versions 3.x.x and later.
-    To get the new API compile with the directive -DROCBLAS_V3.
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
-                                                 rocblas_side       side,
-                                                 rocblas_fill       uplo,
-                                                 rocblas_operation  transA,
-                                                 rocblas_diagonal   diag,
-                                                 rocblas_int        m,
-                                                 rocblas_int        n,
-                                                 const float*       alpha,
-                                                 const float* const A[],
-                                                 rocblas_int        lda,
-                                                 float* const       B[],
-                                                 rocblas_int        ldb,
-                                                 rocblas_int        batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
-                                                 rocblas_side       side,
-                                                 rocblas_fill       uplo,
-                                                 rocblas_operation  transA,
-                                                 rocblas_diagonal   diag,
-                                                 rocblas_int        m,
-                                                 rocblas_int        n,
-                                                 const float*       alpha,
-                                                 const float* const A[],
-                                                 rocblas_int        lda,
-                                                 const float* const B[],
-                                                 rocblas_int        ldb,
-                                                 float* const       C[],
-                                                 rocblas_int        ldc,
-                                                 rocblas_int        batch_count)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
-                                                 rocblas_side        side,
-                                                 rocblas_fill        uplo,
-                                                 rocblas_operation   transA,
-                                                 rocblas_diagonal    diag,
-                                                 rocblas_int         m,
-                                                 rocblas_int         n,
-                                                 const double*       alpha,
-                                                 const double* const A[],
-                                                 rocblas_int         lda,
-                                                 double* const       B[],
-                                                 rocblas_int         ldb,
-                                                 rocblas_int         batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
-                                                 rocblas_side        side,
-                                                 rocblas_fill        uplo,
-                                                 rocblas_operation   transA,
-                                                 rocblas_diagonal    diag,
-                                                 rocblas_int         m,
-                                                 rocblas_int         n,
-                                                 const double*       alpha,
-                                                 const double* const A[],
-                                                 rocblas_int         lda,
-                                                 const double* const B[],
-                                                 rocblas_int         ldb,
-                                                 double* const       C[],
-                                                 rocblas_int         ldc,
-                                                 rocblas_int         batch_count)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_ctrmm_batched(rocblas_handle                     handle,
-                                                 rocblas_side                       side,
-                                                 rocblas_fill                       uplo,
-                                                 rocblas_operation                  transA,
-                                                 rocblas_diagonal                   diag,
-                                                 rocblas_int                        m,
-                                                 rocblas_int                        n,
-                                                 const rocblas_float_complex*       alpha,
-                                                 const rocblas_float_complex* const A[],
-                                                 rocblas_int                        lda,
-                                                 rocblas_float_complex* const       B[],
-                                                 rocblas_int                        ldb,
-                                                 rocblas_int                        batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_ctrmm_batched(rocblas_handle                     handle,
-                                                 rocblas_side                       side,
-                                                 rocblas_fill                       uplo,
-                                                 rocblas_operation                  transA,
-                                                 rocblas_diagonal                   diag,
-                                                 rocblas_int                        m,
-                                                 rocblas_int                        n,
-                                                 const rocblas_float_complex*       alpha,
-                                                 const rocblas_float_complex* const A[],
-                                                 rocblas_int                        lda,
-                                                 const rocblas_float_complex* const B[],
-                                                 rocblas_int                        ldb,
-                                                 rocblas_float_complex* const       C[],
-                                                 rocblas_int                        ldc,
-                                                 rocblas_int                        batch_count)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_ztrmm_batched(rocblas_handle                      handle,
-                                                 rocblas_side                        side,
-                                                 rocblas_fill                        uplo,
-                                                 rocblas_operation                   transA,
-                                                 rocblas_diagonal                    diag,
-                                                 rocblas_int                         m,
-                                                 rocblas_int                         n,
-                                                 const rocblas_double_complex*       alpha,
-                                                 const rocblas_double_complex* const A[],
-                                                 rocblas_int                         lda,
-                                                 rocblas_double_complex* const       B[],
-                                                 rocblas_int                         ldb,
-                                                 rocblas_int                         batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_ztrmm_batched(rocblas_handle                      handle,
-                                                 rocblas_side                        side,
-                                                 rocblas_fill                        uplo,
-                                                 rocblas_operation                   transA,
-                                                 rocblas_diagonal                    diag,
-                                                 rocblas_int                         m,
-                                                 rocblas_int                         n,
-                                                 const rocblas_double_complex*       alpha,
-                                                 const rocblas_double_complex* const A[],
-                                                 rocblas_int                         lda,
-                                                 const rocblas_double_complex* const B[],
-                                                 rocblas_int                         ldb,
-                                                 rocblas_double_complex* const       C[],
-                                                 rocblas_int                         ldc,
-                                                 rocblas_int                         batch_count)
-        #endif
-
-    The deprecated Legacy BLAS in-place trmm_batched performs one of the batched matrix-matrix operations:
-
-        B_i := alpha*op( A_i )*B_i,   or
-        B_i := alpha*B_i*op( A_i )  for i = 0, 1, ... batch_count -1,
-
-    The new trmm_batched performs one of the matrix-matrix operations:
+    trmm_batched performs one of the matrix-matrix operations:
 
         C_i := alpha*op( A_i )*B_i,   or
         C_i := alpha*B_i*op( A_i )  for i = 0, 1, ... batch_count -1,
 
-    The in-place functionality is still available in the new trmmm_batched by setting pointer C equal to pointer B
-    and ldc equal to ldb.
+    The Legacy BLAS in-place trmm_batched functionality,
+
+        B_i := alpha*op( A_i )*B_i,   or
+        B_i := alpha*B_i*op( A_i )  for i = 0, 1, ... batch_count -1,
+
+    is available by setting pointer C equal to pointer B and ldc equal to ldb.
 
         alpha  is a scalar,  B_i  is an m by n matrix, C_i  is an m by n matrix,  A_i  is a unit, or
         non-unit,  upper or lower triangular matrix  and  op( A_i )  is one  of
 
-        op( A_i ) = A_i   or   op( A_i ) = A_i^T   or   op( A_i ) = A_i^H.
+        op( A_i ) = A_i     or
+        op( A_i ) = A_i^T   or
+        op( A_i ) = A_i^H.
 
+        When uplo == rocblas_fill_upper the  leading  k by k
+        upper triangular part of the array  A must contain the upper
+        triangular matrix and the strictly lower triangular part of
+        A is not referenced. Here k is m when side == rocblas_side_left
+        and is n when side == rocblas_side_right.
+
+        When uplo == rocblas_fill_lower the  leading  k by k
+        lower triangular part of the array  A must contain the lower
+        triangular matrix  and the strictly upper triangular part of
+        A is not referenced. Here k is m when  side == rocblas_side_left
+        and is n when side == rocblas_side_right.
+
+        Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
+        A  are not referenced either,  but are assumed to be  unity.
 
     @param[in]
     handle    [rocblas_handle]
@@ -13437,9 +13165,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle
                 number of instances i in the batch.
     ********************************************************************/
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_strmm_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_strmm_batched with A, B, and C arguments. The new rocblas_strmm_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_strmm_batched")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
                                                     rocblas_side       side,
                                                     rocblas_fill       uplo,
@@ -13454,9 +13179,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
                                                     rocblas_int        ldb,
                                                     rocblas_int        batch_count);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_dtrmm_batched with A, B, and C arguments. The new rocblas_dtrmm_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_dtrmm_batched")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
                                                     rocblas_side        side,
                                                     rocblas_fill        uplo,
@@ -13471,9 +13193,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
                                                     rocblas_int         ldb,
                                                     rocblas_int         batch_count);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_ctrmm_batched with A, B, and C arguments. The new rocblas_ctrmm_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_ctrmm_batched")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_batched(rocblas_handle                     handle,
                                                     rocblas_side                       side,
                                                     rocblas_fill                       uplo,
@@ -13488,9 +13207,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_batched(rocblas_handle              
                                                     rocblas_int                        ldb,
                                                     rocblas_int                        batch_count);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_ztrmm_batched with A, B, and C arguments. The new rocblas_ztrmm_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_ztrmm_batched")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle                      handle,
                                                     rocblas_side                        side,
                                                     rocblas_fill                        uplo,
@@ -13515,174 +13231,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
     out-of-place functionality. The new API is available in rocBLAS versions 3.x.x and later.
     To get the new API compile with the directive -DROCBLAS_V3.
 
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
-                                                         rocblas_side      side,
-                                                         rocblas_fill      uplo,
-                                                         rocblas_operation transA,
-                                                         rocblas_diagonal  diag,
-                                                         rocblas_int       m,
-                                                         rocblas_int       n,
-                                                         const float*      alpha,
-                                                         const float*      A,
-                                                         rocblas_int       lda,
-                                                         rocblas_stride    stride_A,
-                                                         float*            B,
-                                                         rocblas_int       ldb,
-                                                         rocblas_stride    stride_B,
-                                                         rocblas_int       batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
-                                                         rocblas_side      side,
-                                                         rocblas_fill      uplo,
-                                                         rocblas_operation transA,
-                                                         rocblas_diagonal  diag,
-                                                         rocblas_int       m,
-                                                         rocblas_int       n,
-                                                         const float*      alpha,
-                                                         const float*      A,
-                                                         rocblas_int       lda,
-                                                         rocblas_stride    stride_A,
-                                                         const float*      B,
-                                                         rocblas_int       ldb,
-                                                         rocblas_stride    stride_B,
-                                                         float*            C,
-                                                         rocblas_int       ldc,
-                                                         rocblas_stride    stride_C,
-                                                         rocblas_int       batch_count)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
-                                                         rocblas_side      side,
-                                                         rocblas_fill      uplo,
-                                                         rocblas_operation transA,
-                                                         rocblas_diagonal  diag,
-                                                         rocblas_int       m,
-                                                         rocblas_int       n,
-                                                         const double*     alpha,
-                                                         const double*     A,
-                                                         rocblas_int       lda,
-                                                         rocblas_stride    stride_A,
-                                                         double*           B,
-                                                         rocblas_int       ldb,
-                                                         rocblas_stride    stride_B,
-                                                         rocblas_int       batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
-                                                         rocblas_side      side,
-                                                         rocblas_fill      uplo,
-                                                         rocblas_operation transA,
-                                                         rocblas_diagonal  diag,
-                                                         rocblas_int       m,
-                                                         rocblas_int       n,
-                                                         const double*     alpha,
-                                                         const double*     A,
-                                                         rocblas_int       lda,
-                                                         rocblas_stride    stride_A,
-                                                         const double*     B,
-                                                         rocblas_int       ldb,
-                                                         rocblas_stride    stride_B,
-                                                         double*           C,
-                                                         rocblas_int       ldc,
-                                                         rocblas_stride    stride_C,
-                                                         rocblas_int       batch_count)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle,
-                                                         rocblas_side                 side,
-                                                         rocblas_fill                 uplo,
-                                                         rocblas_operation            transA,
-                                                         rocblas_diagonal             diag,
-                                                         rocblas_int                  m,
-                                                         rocblas_int                  n,
-                                                         const rocblas_float_complex* alpha,
-                                                         const rocblas_float_complex* A,
-                                                         rocblas_int                  lda,
-                                                         rocblas_stride               stride_A,
-                                                         rocblas_float_complex*       B,
-                                                         rocblas_int                  ldb,
-                                                         rocblas_stride               stride_B,
-                                                         rocblas_int batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle,
-                                                         rocblas_side                 side,
-                                                         rocblas_fill                 uplo,
-                                                         rocblas_operation            transA,
-                                                         rocblas_diagonal             diag,
-                                                         rocblas_int                  m,
-                                                         rocblas_int                  n,
-                                                         const rocblas_float_complex* alpha,
-                                                         const rocblas_float_complex* A,
-                                                         rocblas_int                  lda,
-                                                         rocblas_stride               stride_A,
-                                                         const rocblas_float_complex* B,
-                                                         rocblas_int                  ldb,
-                                                         rocblas_stride               stride_B,
-                                                         rocblas_float_complex*       C,
-                                                         rocblas_int                  ldc,
-                                                         rocblas_stride               stride_C,
-                                                         rocblas_int batch_count)
-        #endif
-
-        #ifndef ROCBLAS_V3  //  deprecated
-            rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                handle,
-                                                         rocblas_side                  side,
-                                                         rocblas_fill                  uplo,
-                                                         rocblas_operation             transA,
-                                                         rocblas_diagonal              diag,
-                                                         rocblas_int                   m,
-                                                         rocblas_int                   n,
-                                                         const rocblas_double_complex* alpha,
-                                                         const rocblas_double_complex* A,
-                                                         rocblas_int                   lda,
-                                                         rocblas_stride                stride_A,
-                                                         rocblas_double_complex*       B,
-                                                         rocblas_int                   ldb,
-                                                         rocblas_stride                stride_B,
-                                                         rocblas_int batch_count)
-
-        #else  //  available in rocBLAS version 3.x.x and later with -DROCBLAS_V3
-
-            rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                handle,
-                                                         rocblas_side                  side,
-                                                         rocblas_fill                  uplo,
-                                                         rocblas_operation             transA,
-                                                         rocblas_diagonal              diag,
-                                                         rocblas_int                   m,
-                                                         rocblas_int                   n,
-                                                         const rocblas_double_complex* alpha,
-                                                         const rocblas_double_complex* A,
-                                                         rocblas_int                   lda,
-                                                         rocblas_stride                stride_A,
-                                                         const rocblas_double_complex* B,
-                                                         rocblas_int                   ldb,
-                                                         rocblas_stride                stride_B,
-                                                         rocblas_double_complex*       C,
-                                                         rocblas_int                   ldc,
-                                                         rocblas_stride                stride_C,
-                                                         rocblas_int batch_count)
-        #endif
-
-    The deprecated Legacy BLAS in-place trmm_strided_batched performs one of the strided_batched matrix-matrix operations:
-
-        B_i := alpha*op( A_i )*B_i,   or
-        B_i := alpha*B_i*op( A_i )  for i = 0, 1, ... batch_count -1,
-
-    The new trmm_batched performs one of the matrix-matrix operations:
+    trmm_batched performs one of the matrix-matrix operations:
 
         C_i := alpha*op( A_i )*B_i,   or
         C_i := alpha*B_i*op( A_i )  for i = 0, 1, ... batch_count -1,
 
-    The in-place functionality is still available in the new trmmm_batched by setting pointer C equal to pointer B,
-    setting ldc equal to ldb, and setting stride_C equal to stride_B.
+    The Legacy BLAS in-place trmm_strided_batched functionality,
+
+        B_i := alpha*op( A_i )*B_i,   or
+        B_i := alpha*B_i*op( A_i )  for i = 0, 1, ... batch_count -1,
+
+
+    is available by setting pointer C equal to pointer B, ldc equal to ldb, and stride_C equal to stride_B.
 
         alpha  is a scalar,  B_i  is an m by n matrix, C_i  is an m by n matrix,  A_i  is a unit, or
         non-unit,  upper or lower triangular matrix  and  op( A_i )  is one  of
@@ -13691,6 +13251,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
         op( A_i ) = A_i^T   or
         op( A_i ) = A_i^H.
 
+        When uplo == rocblas_fill_upper the  leading  k by k
+        upper triangular part of the array  A must contain the upper
+        triangular matrix and the strictly lower triangular part of
+        A is not referenced. Here k is m when side == rocblas_side_left
+        and is n when side == rocblas_side_right.
+
+        When uplo == rocblas_fill_lower the  leading  k by k
+        lower triangular part of the array  A must contain the lower
+        triangular matrix  and the strictly upper triangular part of
+        A is not referenced. Here k is m when  side == rocblas_side_left
+        and is n when side == rocblas_side_right.
+
+        Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
+        A  are not referenced either,  but are assumed to be  unity.
 
     @param[in]
     handle    [rocblas_handle]
@@ -13782,9 +13356,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
     batch_count [rocblas_int]
                 number of instances i in the batch.
     ********************************************************************/
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_strmm_strided_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_strmm_strided_batched with A, B, and C arguments. The new rocblas_strmm_strided_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_strmm_strided_batched")
-// clang-format on
+
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
                                                             rocblas_side      side,
                                                             rocblas_fill      uplo,
@@ -13801,9 +13373,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_strided_batched(rocblas_handle    ha
                                                             rocblas_stride    stride_B,
                                                             rocblas_int       batch_count);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_strided_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_dtrmm_strided_batched with A, B, and C arguments. The new rocblas_dtrmm_strided_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_dtrmm_strided_batched")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
                                                             rocblas_side      side,
                                                             rocblas_fill      uplo,
@@ -13820,9 +13389,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    ha
                                                             rocblas_stride    stride_B,
                                                             rocblas_int       batch_count);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_strided_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_ctrmm_strided_batched with A, B, and C arguments. The new rocblas_ctrmm_strided_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_ctrmm_strided_batched")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle,
                                                             rocblas_side                 side,
                                                             rocblas_fill                 uplo,
@@ -13839,9 +13405,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle      
                                                             rocblas_stride               stride_B,
                                                             rocblas_int batch_count);
 
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_strided_batched with A and B arguments provides in-place functionality. It is deprecated, and it will be replaced by rocblas_ztrmm_strided_batched with A, B, and C arguments. The new rocblas_ztrmm_strided_batched has in-place and out-of-place functionality. Compiling with -DROCBLAS_V3 will provide the new rocblas_ztrmm_strided_batched")
-// clang-format on
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                handle,
                                                             rocblas_side                  side,
                                                             rocblas_fill                  uplo,
@@ -13965,11 +13528,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle      
           rocblas_status_invalid_size will be returned.
 
     ********************************************************************/
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_strmm_outofplace is deprecated, and it will be replaced by rocblas_strmm. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace(rocblas_handle    handle,
                                                        rocblas_side      side,
                                                        rocblas_fill      uplo,
@@ -13985,11 +13543,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace(rocblas_handle    handle,
                                                        float*            C,
                                                        rocblas_int       ldc);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_outofplace is deprecated, and it will be replaced by rocblas_dtrmm. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace(rocblas_handle    handle,
                                                        rocblas_side      side,
                                                        rocblas_fill      uplo,
@@ -14005,11 +13558,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace(rocblas_handle    handle,
                                                        double*           C,
                                                        rocblas_int       ldc);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_outofplace is deprecated, and it will be replaced by rocblas_ctrmm. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_outofplace(rocblas_handle               handle,
                                                        rocblas_side                 side,
                                                        rocblas_fill                 uplo,
@@ -14025,11 +13573,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_outofplace(rocblas_handle           
                                                        rocblas_float_complex*       C,
                                                        rocblas_int                  ldc);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_outofplace is deprecated, and it will be replaced by rocblas_ztrmm. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_outofplace(rocblas_handle                handle,
                                                        rocblas_side                  side,
                                                        rocblas_fill                  uplo,
@@ -14154,11 +13697,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_outofplace(rocblas_handle           
     batch_count [rocblas_int]
                 number of instances i in the batch.
     ********************************************************************/
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_strmm_outofplace_batched is deprecated, and it will be replaced by rocblas_strmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_batched(rocblas_handle     handle,
                                                                rocblas_side       side,
                                                                rocblas_fill       uplo,
@@ -14175,11 +13713,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_batched(rocblas_handle   
                                                                rocblas_int        ldc,
                                                                rocblas_int        batch_count);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_outofplace_batched is deprecated, and it will be replaced by rocblas_dtrmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_batched(rocblas_handle      handle,
                                                                rocblas_side        side,
                                                                rocblas_fill        uplo,
@@ -14196,11 +13729,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_batched(rocblas_handle   
                                                                rocblas_int         ldc,
                                                                rocblas_int         batch_count);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_outofplace_batched is deprecated, and it will be replaced by rocblas_ctrmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ctrmm_outofplace_batched(rocblas_handle                     handle,
                                      rocblas_side                       side,
@@ -14218,11 +13746,6 @@ ROCBLAS_EXPORT rocblas_status
                                      rocblas_int                        ldc,
                                      rocblas_int                        batch_count);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_outofplace_batched is deprecated, and it will be replaced by rocblas_ztrmm_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ztrmm_outofplace_batched(rocblas_handle                      handle,
                                      rocblas_side                        side,
@@ -14361,11 +13884,6 @@ ROCBLAS_EXPORT rocblas_status
     batch_count [rocblas_int]
                 number of instances i in the batch.
     ********************************************************************/
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_strmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_strmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_strided_batched(rocblas_handle    handle,
                                                                        rocblas_side      side,
                                                                        rocblas_fill      uplo,
@@ -14385,11 +13903,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmm_outofplace_strided_batched(rocblas_h
                                                                        rocblas_stride    stride_C,
                                                                        rocblas_int batch_count);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_dtrmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_dtrmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_strided_batched(rocblas_handle    handle,
                                                                        rocblas_side      side,
                                                                        rocblas_fill      uplo,
@@ -14409,11 +13922,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_outofplace_strided_batched(rocblas_h
                                                                        rocblas_stride    stride_C,
                                                                        rocblas_int batch_count);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ctrmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_ctrmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ctrmm_outofplace_strided_batched(rocblas_handle               handle,
                                              rocblas_side                 side,
@@ -14434,11 +13942,6 @@ ROCBLAS_EXPORT rocblas_status
                                              rocblas_stride               stride_C,
                                              rocblas_int                  batch_count);
 
-#ifndef ROCBLAS_V3
-// clang-format off
-ROCBLAS_DEPRECATED_MSG("rocblas_ztrmm_outofplace_strided_batched is deprecated, and it will be replaced by rocblas_ztrmm_strided_batched. Compiling with -DROCBLAS_V3 will provide the new function")
-// clang-format on
-#endif
 ROCBLAS_EXPORT rocblas_status
     rocblas_ztrmm_outofplace_strided_batched(rocblas_handle                handle,
                                              rocblas_side                  side,
