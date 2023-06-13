@@ -366,7 +366,7 @@ void cblas_gemv(rocblas_operation transA,
 
         host_vector<float> A_float(size_t(lda) * n), X_float(dim_x * abs_incx);
 
-        for(int i = 0; i < lda * n; i++)
+        for(size_t i = 0; i < size_t(lda) * n; i++)
             A_float[i] = static_cast<float>(A[i]);
 
         for(int i = 0; i < dim_x; i++)
