@@ -47,9 +47,8 @@ if ( BUILD_FORTRAN_CLIENTS )
   add_executable( rocblas-example-fortran-axpy example_fortran_axpy.f90 $<TARGET_OBJECTS:rocblas_fortran>)
   add_executable( rocblas-example-fortran-scal example_fortran_scal.f90 $<TARGET_OBJECTS:rocblas_fortran>)
   add_executable( rocblas-example-fortran-gemv example_fortran_gemv.f90 $<TARGET_OBJECTS:rocblas_fortran>)
-  add_executable( rocblas-example-fortran-trmm_v3 example_fortran_trmm_v3.F90 $<TARGET_OBJECTS:rocblas_fortran>)
 
-  set( sample_list_fortran rocblas-example-fortran-axpy rocblas-example-fortran-scal rocblas-example-fortran-gemv rocblas-example-fortran-trmm_v3 )
+  set( sample_list_fortran rocblas-example-fortran-axpy rocblas-example-fortran-scal rocblas-example-fortran-gemv )
 endif( )
 
 if( BUILD_WITH_TENSILE )
@@ -60,10 +59,9 @@ endif()
 
 # L3 examples with or with tensile or source gemm builds
 add_executable( rocblas-example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
-add_executable( rocblas-example-strmm_v3 example_strmm_v3.cpp ${rocblas_samples_common} )
 add_executable( rocblas-example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
 
-set( sample_list_L3 rocblas-example-sgemm rocblas-example-strmm_v3 rocblas-example-sgemm-strided-batched )
+set( sample_list_L3 rocblas-example-sgemm rocblas-example-sgemm-strided-batched )
 
 # device includes
 set( sample_list_hip_device ${sample_list_base} ${sample_list_tensile} ${sample_list_L3} )
@@ -115,8 +113,3 @@ endforeach( )
 foreach( exe ${sample_list_hip_device} )
   target_link_libraries( ${exe} PRIVATE hip::device )
 endforeach( )
-
-target_compile_definitions( rocblas-example-strmm_v3 PRIVATE ROCBLAS_V3)
-if ( BUILD_FORTRAN_CLIENTS )
-  target_compile_definitions( rocblas-example-fortran-trmm_v3 PRIVATE ROCBLAS_V3)
-endif( )

@@ -229,11 +229,9 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
-#ifndef ROCBLAS_V3
 #include "testing_trmm.hpp"
 #include "testing_trmm_batched.hpp"
 #include "testing_trmm_strided_batched.hpp"
-#endif //  ROCBLAS_V3
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
@@ -419,11 +417,6 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same_v<T, float> || std::is_same
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
-#ifndef ROCBLAS_V3
-                {"trmm", testing_trmm<T>},
-                {"trmm_batched", testing_trmm_batched<T>},
-                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
-#endif //  ROCBLAS_V3
                 {"trtri", testing_trtri<T>},
                 {"trtri_batched", testing_trtri_batched<T>},
                 {"trtri_strided_batched", testing_trtri_strided_batched<T>},
@@ -664,11 +657,6 @@ struct perf_blas<
                 {"trsm_batched_ex", testing_trsm_batched_ex<T>},
                 {"trsm_strided_batched", testing_trsm_strided_batched<T>},
                 {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
-#ifndef ROCBLAS_V3
-                {"trmm", testing_trmm<T>},
-                {"trmm_batched", testing_trmm_batched<T>},
-                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
-#endif //  ROCBLAS_V3
 #endif
               };
         run_function(map, arg);
