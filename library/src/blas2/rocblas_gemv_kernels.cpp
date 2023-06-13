@@ -145,13 +145,18 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
     hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx
-        = incx < 0 ? offsetx - ptrdiff_t(incx) * (transA == rocblas_operation_none ? n - 1 : m - 1)
-                   : offsetx;
-    auto shifty
-        = incy < 0 ? offsety - ptrdiff_t(incy) * (transA == rocblas_operation_none ? m - 1 : n - 1)
-                   : offsety;
-    bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
+    auto shiftx = incx < 0
+                      ? offsetx - int64_t(incx) * (transA == rocblas_operation_none ? n - 1 : m - 1)
+                      : offsetx;
+    auto shifty = incy < 0
+                      ? offsety - int64_t(incy) * (transA == rocblas_operation_none ? m - 1 : n - 1)
+                      : offsety;
+
+    constexpr size_t max_int32 = std::numeric_limits<rocblas_int>::max();
+    bool             i64_indices
+        = size_t(n) * lda > max_int32
+          || size_t(transA == rocblas_operation_none ? n - 1 : m - 1) * std::abs(incx) >= max_int32
+          || size_t(transA == rocblas_operation_none ? m - 1 : n - 1) * std::abs(incy) >= max_int32;
 
     //Identifying the precision to have an appropriate optimization
     static constexpr bool is_float = std::is_same_v<Ti, float> || std::is_same_v<Ti, float const*>;
@@ -232,7 +237,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
                                        gemvn_KARGS(alpha, beta));
             }
             else
@@ -245,7 +250,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
                                        gemvn_KARGS(*alpha, *beta));
             }
         }
@@ -358,7 +363,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
                                        gemvn_KARGS(alpha, beta));
             }
             else
@@ -371,7 +376,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
                                        gemvn_KARGS(*alpha, *beta));
             }
         }
@@ -393,7 +398,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
                                        gemvn_KARGS(alpha, beta));
             }
             else
@@ -406,7 +411,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
                                        gemvn_KARGS(*alpha, *beta));
             }
         }
@@ -497,7 +502,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
                                        gemvt_sn_KARGS(alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
                                        gemvt_sn_KARGS(alpha));
 
                 hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
@@ -523,7 +528,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
                                        gemvt_sn_KARGS(*alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
                                        gemvt_sn_KARGS(*alpha));
 
                 hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
@@ -786,7 +791,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
                                        gemvt_sn_KARGS(alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
                                        gemvt_sn_KARGS(alpha));
 
                 hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
@@ -812,7 +817,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
                                        gemvt_sn_KARGS(*alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, size_t>),
+                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
                                        gemvt_sn_KARGS(*alpha));
 
                 hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
