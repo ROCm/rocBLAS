@@ -459,8 +459,8 @@ Packed int8x4 support was removed as support for arbitrary dimensioned int8_t da
 
 Legacy BLAS in-place trmm API removed
 '''''''''''''''''''''''''''''''''''''
-The functionality is provided by the trmm API that supports both in-place and out-of-place functionality. The Legacy BLAS
-in-place trmm calculated
+The Legacy BLAS in-place trmm API is removed. It is replaced by an API that supports both in-place and out-of-place trmm.
+The Legacy BLAS in-place trmm calculated
 
 ::
 
@@ -472,7 +472,7 @@ The in-place and out-of-place trmm API calculates
 
 C <- alpha * op(A) * B
 
-The in-place functionality is still available by setting C the same as B. For out-of-place functionality C and B are different.
+The in-place functionality is available by setting C the same as B. For out-of-place functionality C and B are different.
 
 =================
 Using rocBLAS API

@@ -46,7 +46,7 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
                                                               rocblas_int    lda,
                                                               rocblas_stride a_st_or_of,
                                                               rocblas_int    batch_count);
-
+/*
 template <typename TScal, typename TPtr, typename TConstPtr>
 rocblas_status rocblas_trmm_arg_check(rocblas_handle    handle,
                                       rocblas_side      side,
@@ -87,23 +87,23 @@ rocblas_status rocblas_trmm_arg_check(rocblas_handle    handle,
 
     return rocblas_status_continue;
 }
-
+*/
 template <typename TScal, typename TPtr, typename TConstPtr>
-rocblas_status rocblas_trmm_outofplace_arg_check(rocblas_handle    handle,
-                                                 rocblas_side      side,
-                                                 rocblas_fill      uplo,
-                                                 rocblas_operation trans,
-                                                 rocblas_diagonal  diag,
-                                                 rocblas_int       m,
-                                                 rocblas_int       n,
-                                                 const TScal*      alpha,
-                                                 TConstPtr         a,
-                                                 rocblas_int       lda,
-                                                 TConstPtr         b,
-                                                 rocblas_int       ldb,
-                                                 TPtr              c,
-                                                 rocblas_int       ldc,
-                                                 rocblas_int       batch_count)
+rocblas_status rocblas_trmm_arg_check(rocblas_handle    handle,
+                                      rocblas_side      side,
+                                      rocblas_fill      uplo,
+                                      rocblas_operation trans,
+                                      rocblas_diagonal  diag,
+                                      rocblas_int       m,
+                                      rocblas_int       n,
+                                      const TScal*      alpha,
+                                      TConstPtr         a,
+                                      rocblas_int       lda,
+                                      TConstPtr         b,
+                                      rocblas_int       ldb,
+                                      TPtr              c,
+                                      rocblas_int       ldc,
+                                      rocblas_int       batch_count)
 {
     if(side != rocblas_side_left && side != rocblas_side_right)
         return rocblas_status_invalid_value;

@@ -39,9 +39,6 @@ namespace
         TRMM,
         TRMM_BATCHED,
         TRMM_STRIDED_BATCHED,
-        TRMM_OUTOFPLACE,
-        TRMM_OUTOFPLACE_BATCHED,
-        TRMM_OUTOFPLACE_STRIDED_BATCHED
     };
 
     //trmm test template
@@ -84,10 +81,7 @@ namespace
             }
             else
             {
-                bool is_ex = TRMM_TYPE == TRMM_OUTOFPLACE || TRMM_TYPE == TRMM_OUTOFPLACE_BATCHED
-                             || TRMM_TYPE == TRMM_OUTOFPLACE_STRIDED_BATCHED;
-                bool is_strided = TRMM_TYPE == TRMM_OUTOFPLACE_STRIDED_BATCHED
-                                  || TRMM_TYPE == TRMM_STRIDED_BATCHED;
+                bool is_strided = TRMM_TYPE == TRMM_STRIDED_BATCHED;
 
                 name << '_' << (char)std::toupper(arg.side) << (char)std::toupper(arg.uplo)
                      << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_'
@@ -109,15 +103,12 @@ namespace
                 if(is_strided)
                     name << '_' << arg.stride_b;
 
-                if(is_ex)
-                    name << '_' << arg.ldc;
+                name << '_' << arg.ldc;
 
-                if(TRMM_TYPE == TRMM_OUTOFPLACE_STRIDED_BATCHED)
+                if(TRMM_TYPE == TRMM_STRIDED_BATCHED)
                     name << '_' << arg.stride_c;
 
-                if(TRMM_TYPE == TRMM_STRIDED_BATCHED || TRMM_TYPE == TRMM_BATCHED
-                   || TRMM_TYPE == TRMM_OUTOFPLACE_STRIDED_BATCHED
-                   || TRMM_TYPE == TRMM_OUTOFPLACE_BATCHED)
+                if(TRMM_TYPE == TRMM_STRIDED_BATCHED || TRMM_TYPE == TRMM_BATCHED)
                     name << '_' << arg.batch_count;
             }
 

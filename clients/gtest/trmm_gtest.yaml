@@ -130,7 +130,6 @@ Tests:
   category: quick
   function:
     - trmm_bad_arg
-#   - trmm_outofplace_bad_arg
   precision: *single_double_precisions_complex_real
   side: [L]
   uplo: [L]
@@ -142,7 +141,6 @@ Tests:
   category: quick
   function:
     - trmm_batched_bad_arg
-#   - trmm_outofplace_batched_bad_arg
   precision: *single_double_precisions_complex_real
   side: [L]
   uplo: [U]
@@ -154,7 +152,6 @@ Tests:
   category: quick
   function:
     - trmm_strided_batched_bad_arg
-#   - trmm_outofplace_strided_batched_bad_arg
   precision: *single_double_precisions_complex_real
   side: [L]
   uplo: [L]
@@ -197,23 +194,23 @@ Tests:
   os_flags: LINUX
 
 # to prevent excessively long runtime only run one combination of side,uplo,transA,diag for uint32_t overflow
-#- name: trmm_size_t_outofplace_uint32
-#  category: nightly
-#  function:
-#    - trmm_outofplace
-#    - trmm_outofplace_batched
-#  precision: *single_precision
-#  side: [L   ]
-#  uplo: [L   ]
-#  transA: [N      ]
-#  diag: [N   ]
-#  matrix_size: *uint32_t_m_n_lda_ldb_ldc
-#  pointer_mode_device: false
-#  alpha: [ 2 ]
-#  stride_scale: [ 1         ]
-#  batch_count: [           1 ]
-#  gpu_arch: '90a'
-#  os_flags: LINUX
+- name: trmm_size_t_uint32
+  category: nightly
+  function:
+    - trmm
+    - trmm_batched
+  precision: *single_precision
+  side: [L   ]
+  uplo: [L   ]
+  transA: [N      ]
+  diag: [N   ]
+  matrix_size: *uint32_t_m_n_lda_ldb_ldc
+  pointer_mode_device: false
+  alpha: [ 2 ]
+  stride_scale: [ 1         ]
+  batch_count: [           1 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 # to prevent excessively long runtime only run one value of diag and batch_count=1
 - name: trmm_size_t_inplace_int32
@@ -225,7 +222,7 @@ Tests:
   side: [L, R]
   uplo: [L, U]
   transA: [N, T   ]
-  diag: [N   ]
+  diag: [U   ]
   matrix_size: *int32_t_m_n_lda_ldb
   pointer_mode_device: false
   alpha: [ 2 ]
@@ -234,30 +231,10 @@ Tests:
   gpu_arch: '90a'
   os_flags: LINUX
 
-# to prevent excessively long runtime only run one value of diag and batch_count=1
-#- name: trmm_size_t_outofplace_int32
-#  category: nightly
-#  function:
-#    - trmm_outofplace
-#    - trmm_outofplace_batched
-#  precision: *single_precision
-#  side: [L, R]
-#  uplo: [L, U]
-#  transA: [N, T   ]
-#  diag: [   U]
-#  matrix_size: *int32_t_m_n_lda_ldb_ldc
-#  pointer_mode_device: false
-#  alpha: [ 2 ]
-#  stride_scale: [ 1         ]
-#  batch_count: [           1 ]
-#  gpu_arch: '90a'
-#  os_flags: LINUX
-
 - name: trmm_batched_small
   category: quick
   function:
     - trmm_batched
-#   - trmm_outofplace_batched
   precision: *single_double_precisions
   side: [L   ]
   uplo: [   U]
@@ -272,7 +249,6 @@ Tests:
   category: quick
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions
   side: [L   ]
   uplo: [   U]
@@ -286,7 +262,6 @@ Tests:
   category: quick
   function:
     - trmm_batched
-#   - trmm_outofplace_batched
   precision: *single_double_precisions_complex
   side: [   R]
   uplo: [   U]
@@ -302,7 +277,6 @@ Tests:
   category: quick
   function:
     - trmm_strided_batched
-#   - trmm_outofplace_strided_batched
   precision: *single_double_precisions_complex
   side: [L]
   uplo: [L]
@@ -318,7 +292,6 @@ Tests:
   category: quick
   function:
     - trmm_strided_batched
-#   - trmm_outofplace_strided_batched
   precision: *single_double_precisions_complex
   side: [L   ]
   uplo: [L   ]
@@ -333,7 +306,6 @@ Tests:
   category: pre_checkin
   function:
     - trmm_batched
-#   - trmm_outofplace_batched
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -348,7 +320,6 @@ Tests:
   category: pre_checkin
   function:
     - trmm_strided_batched
-#   - trmm_outofplace_strided_batched
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -363,7 +334,6 @@ Tests:
   category: quick
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -376,7 +346,6 @@ Tests:
   category: quick
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -389,7 +358,6 @@ Tests:
   category: pre_checkin
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -402,7 +370,6 @@ Tests:
   category: pre_checkin
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions_complex
   side: [L, R]
   uplo: [L, U]
@@ -415,7 +382,6 @@ Tests:
   category: pre_checkin
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -428,7 +394,6 @@ Tests:
   category: pre_checkin
   function:
     - trmm_strided_batched
-#   - trmm_outofplace_strided_batched
   precision: *single_double_precisions
   side: [L,  ]
   uplo: [L,  ]
@@ -443,7 +408,6 @@ Tests:
   category: nightly
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -456,7 +420,6 @@ Tests:
   category: nightly
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions
   side: [R]
   uplo: [L]
@@ -470,7 +433,6 @@ Tests:
   category: nightly
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
@@ -484,7 +446,6 @@ Tests:
   category: nightly
   function:
     - trmm
-#   - trmm_outofplace
   precision: *single_double_precisions_complex
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
@@ -498,11 +459,8 @@ Tests:
   category: pre_checkin
   function:
     - trmm
-#   - trmm_outofplace
     - trmm_batched
     - trmm_strided_batched
-#   - trmm_outofplace_batched
-#   - trmm_outofplace_strided_batched
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
