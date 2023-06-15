@@ -155,9 +155,6 @@ set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_nrm2_ex.cpp
     blas_ex/rocblas_nrm2_batched_ex.cpp
     blas_ex/rocblas_nrm2_strided_batched_ex.cpp
-    blas_ex/rocblas_trmm_outofplace.cpp
-    blas_ex/rocblas_trmm_outofplace_batched.cpp
-    blas_ex/rocblas_trmm_outofplace_strided_batched.cpp
     blas_ex/rocblas_geam_ex.cpp
     blas_ex/rocblas_geam_ex_kernels.cpp
 

@@ -10377,10 +10377,11 @@ module rocblas
         end function rocblas_zsyrkx_strided_batched
     end interface
 
+
     ! trmm
     interface
         function rocblas_strmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                               A, lda, B, ldb) &
+                                          A, lda, B, ldb, C, ldc) &
             bind(c, name='rocblas_strmm')
             use iso_c_binding
             use rocblas_enums
@@ -10398,12 +10399,14 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
         end function rocblas_strmm
     end interface
 
     interface
         function rocblas_dtrmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                               A, lda, B, ldb) &
+                                          A, lda, B, ldb, C, ldc) &
             bind(c, name='rocblas_dtrmm')
             use iso_c_binding
             use rocblas_enums
@@ -10421,12 +10424,14 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
         end function rocblas_dtrmm
     end interface
 
     interface
         function rocblas_ctrmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                               A, lda, B, ldb) &
+                                          A, lda, B, ldb, C, ldc) &
             bind(c, name='rocblas_ctrmm')
             use iso_c_binding
             use rocblas_enums
@@ -10444,12 +10449,14 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
         end function rocblas_ctrmm
     end interface
 
     interface
         function rocblas_ztrmm(handle, side, uplo, transA, diag, m, n, alpha, &
-                               A, lda, B, ldb) &
+                                          A, lda, B, ldb, C, ldc) &
             bind(c, name='rocblas_ztrmm')
             use iso_c_binding
             use rocblas_enums
@@ -10467,13 +10474,15 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
         end function rocblas_ztrmm
     end interface
 
     ! trmm_batched
     interface
         function rocblas_strmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                       A, lda, B, ldb, batch_count) &
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
             bind(c, name='rocblas_strmm_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10491,13 +10500,15 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
             integer(c_int), value :: batch_count
         end function rocblas_strmm_batched
     end interface
 
     interface
         function rocblas_dtrmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                       A, lda, B, ldb, batch_count) &
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
             bind(c, name='rocblas_dtrmm_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10515,13 +10526,15 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
             integer(c_int), value :: batch_count
         end function rocblas_dtrmm_batched
     end interface
 
     interface
         function rocblas_ctrmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                       A, lda, B, ldb, batch_count) &
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
             bind(c, name='rocblas_ctrmm_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10539,13 +10552,15 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
             integer(c_int), value :: batch_count
         end function rocblas_ctrmm_batched
     end interface
 
     interface
         function rocblas_ztrmm_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                       A, lda, B, ldb, batch_count) &
+                                                  A, lda, B, ldb, C, ldc, batch_count) &
             bind(c, name='rocblas_ztrmm_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10563,6 +10578,8 @@ module rocblas
             integer(c_int), value :: lda
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
             integer(c_int), value :: batch_count
         end function rocblas_ztrmm_batched
     end interface
@@ -10570,7 +10587,7 @@ module rocblas
     ! trmm_strided_batched
     interface
         function rocblas_strmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
             bind(c, name='rocblas_strmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10590,13 +10607,16 @@ module rocblas
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
             integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
+            integer(c_int64_t), value :: stride_C
             integer(c_int), value :: batch_count
         end function rocblas_strmm_strided_batched
     end interface
 
     interface
         function rocblas_dtrmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
             bind(c, name='rocblas_dtrmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10616,13 +10636,16 @@ module rocblas
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
             integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
+            integer(c_int64_t), value :: stride_C
             integer(c_int), value :: batch_count
         end function rocblas_dtrmm_strided_batched
     end interface
 
     interface
         function rocblas_ctrmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
             bind(c, name='rocblas_ctrmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10642,13 +10665,16 @@ module rocblas
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
             integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
+            integer(c_int64_t), value :: stride_C
             integer(c_int), value :: batch_count
         end function rocblas_ctrmm_strided_batched
     end interface
 
     interface
         function rocblas_ztrmm_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                               A, lda, stride_A, B, ldb, stride_B, batch_count) &
+                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
             bind(c, name='rocblas_ztrmm_strided_batched')
             use iso_c_binding
             use rocblas_enums
@@ -10668,331 +10694,11 @@ module rocblas
             type(c_ptr), value :: B
             integer(c_int), value :: ldb
             integer(c_int64_t), value :: stride_B
+            type(c_ptr), value :: C
+            integer(c_int), value :: ldc
+            integer(c_int64_t), value :: stride_C
             integer(c_int), value :: batch_count
         end function rocblas_ztrmm_strided_batched
-    end interface
-
-    ! trmm_outofplace
-    interface
-        function rocblas_strmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                                          A, lda, B, ldb, C, ldc) &
-            bind(c, name='rocblas_strmm_outofplace')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_strmm_outofplace
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-        end function rocblas_strmm_outofplace
-    end interface
-
-    interface
-        function rocblas_dtrmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                                          A, lda, B, ldb, C, ldc) &
-            bind(c, name='rocblas_dtrmm_outofplace')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_outofplace
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-        end function rocblas_dtrmm_outofplace
-    end interface
-
-    interface
-        function rocblas_ctrmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                                          A, lda, B, ldb, C, ldc) &
-            bind(c, name='rocblas_ctrmm_outofplace')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_outofplace
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-        end function rocblas_ctrmm_outofplace
-    end interface
-
-    interface
-        function rocblas_ztrmm_outofplace(handle, side, uplo, transA, diag, m, n, alpha, &
-                                          A, lda, B, ldb, C, ldc) &
-            bind(c, name='rocblas_ztrmm_outofplace')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_outofplace
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-        end function rocblas_ztrmm_outofplace
-    end interface
-
-    ! trmm_outofplace_batched
-    interface
-        function rocblas_strmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                  A, lda, B, ldb, C, ldc, batch_count) &
-            bind(c, name='rocblas_strmm_outofplace_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_strmm_outofplace_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int), value :: batch_count
-        end function rocblas_strmm_outofplace_batched
-    end interface
-
-    interface
-        function rocblas_dtrmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                  A, lda, B, ldb, C, ldc, batch_count) &
-            bind(c, name='rocblas_dtrmm_outofplace_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_outofplace_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int), value :: batch_count
-        end function rocblas_dtrmm_outofplace_batched
-    end interface
-
-    interface
-        function rocblas_ctrmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                  A, lda, B, ldb, C, ldc, batch_count) &
-            bind(c, name='rocblas_ctrmm_outofplace_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_outofplace_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int), value :: batch_count
-        end function rocblas_ctrmm_outofplace_batched
-    end interface
-
-    interface
-        function rocblas_ztrmm_outofplace_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                  A, lda, B, ldb, C, ldc, batch_count) &
-            bind(c, name='rocblas_ztrmm_outofplace_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_outofplace_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int), value :: batch_count
-        end function rocblas_ztrmm_outofplace_batched
-    end interface
-
-    ! trmm_outofplace_strided_batched
-    interface
-        function rocblas_strmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-            bind(c, name='rocblas_strmm_outofplace_strided_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_strmm_outofplace_strided_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            integer(c_int64_t), value :: stride_A
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            integer(c_int64_t), value :: stride_B
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int64_t), value :: stride_C
-            integer(c_int), value :: batch_count
-        end function rocblas_strmm_outofplace_strided_batched
-    end interface
-
-    interface
-        function rocblas_dtrmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-            bind(c, name='rocblas_dtrmm_outofplace_strided_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_dtrmm_outofplace_strided_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            integer(c_int64_t), value :: stride_A
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            integer(c_int64_t), value :: stride_B
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int64_t), value :: stride_C
-            integer(c_int), value :: batch_count
-        end function rocblas_dtrmm_outofplace_strided_batched
-    end interface
-
-    interface
-        function rocblas_ctrmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-            bind(c, name='rocblas_ctrmm_outofplace_strided_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_ctrmm_outofplace_strided_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            integer(c_int64_t), value :: stride_A
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            integer(c_int64_t), value :: stride_B
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int64_t), value :: stride_C
-            integer(c_int), value :: batch_count
-        end function rocblas_ctrmm_outofplace_strided_batched
-    end interface
-
-    interface
-        function rocblas_ztrmm_outofplace_strided_batched(handle, side, uplo, transA, diag, m, n, alpha, &
-                                                          A, lda, stride_A, B, ldb, stride_B, C, ldc, stride_C, batch_count) &
-            bind(c, name='rocblas_ztrmm_outofplace_strided_batched')
-            use iso_c_binding
-            use rocblas_enums
-            implicit none
-            integer(kind(rocblas_status_success)) :: rocblas_ztrmm_outofplace_strided_batched
-            type(c_ptr), value :: handle
-            integer(kind(rocblas_side_left)), value :: side
-            integer(kind(rocblas_fill_full)), value :: uplo
-            integer(kind(rocblas_operation_none)), value :: transA
-            integer(kind(rocblas_diagonal_unit)), value :: diag
-            integer(c_int), value :: m
-            integer(c_int), value :: n
-            type(c_ptr), value :: alpha
-            type(c_ptr), value :: A
-            integer(c_int), value :: lda
-            integer(c_int64_t), value :: stride_A
-            type(c_ptr), value :: B
-            integer(c_int), value :: ldb
-            integer(c_int64_t), value :: stride_B
-            type(c_ptr), value :: C
-            integer(c_int), value :: ldc
-            integer(c_int64_t), value :: stride_C
-            integer(c_int), value :: batch_count
-        end function rocblas_ztrmm_outofplace_strided_batched
     end interface
 
     ! trtri

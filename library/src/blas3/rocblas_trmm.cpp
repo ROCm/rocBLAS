@@ -70,16 +70,16 @@ namespace
                                      const T*          alpha,
                                      const T*          a,
                                      rocblas_int       lda,
-                                     T*                b,
-                                     rocblas_int       ldb)
+                                     const T*          b,
+                                     rocblas_int       ldb,
+                                     T*                c,
+                                     rocblas_int       ldc)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        // Copy alpha and beta to host if on device. This is because gemm is called and it
-        // requires alpha and beta to be on host
         T        alpha_h, beta_h;
         const T* beta = nullptr;
         RETURN_IF_ROCBLAS_ERROR(rocblas_copy_alpha_beta_to_host_if_on_device(
@@ -88,7 +88,6 @@ namespace
 
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
-
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
                   | rocblas_layer_mode_log_profile)
@@ -112,7 +111,9 @@ namespace
                           a,
                           lda,
                           b,
-                          ldb);
+                          ldb,
+                          c,
+                          ldc);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
@@ -134,7 +135,9 @@ namespace
                           "--lda",
                           lda,
                           "--ldb",
-                          ldb);
+                          ldb,
+                          "--ldc",
+                          ldc);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
@@ -154,27 +157,30 @@ namespace
                             "lda",
                             lda,
                             "ldb",
-                            ldb);
+                            ldb,
+                            "ldc",
+                            ldc);
         }
 
-        rocblas_status arg_status = rocblas_trmm_arg_check(
-            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, 1);
+        static constexpr rocblas_stride offset_a     = 0;
+        static constexpr rocblas_stride offset_b     = 0;
+        static constexpr rocblas_stride offset_c     = 0;
+        static constexpr rocblas_stride stride_a     = 0;
+        static constexpr rocblas_stride stride_b     = 0;
+        static constexpr rocblas_stride stride_c     = 0;
+        static constexpr rocblas_stride stride_mem   = 0;
+        static constexpr rocblas_stride stride_alpha = 0;
+        static constexpr rocblas_int    batch_count  = 1;
 
+        rocblas_status arg_status = rocblas_trmm_arg_check(
+            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, c, ldc, batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
-
-        rocblas_stride offset_a     = 0;
-        rocblas_stride offset_b     = 0;
-        rocblas_stride stride_a     = 0;
-        rocblas_stride stride_b     = 0;
-        rocblas_stride stride_mem   = 0;
-        rocblas_int    batch_count  = 1;
-        rocblas_stride stride_alpha = 0;
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_set_matrix_zero_if_alpha_zero_template(
-                handle, m, n, alpha, 0, b, ldb, stride_b, batch_count));
+                handle, m, n, alpha, 0, c, ldc, stride_c, batch_count));
             return rocblas_status_success;
         }
         else if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -184,7 +190,7 @@ namespace
             // it should not be copied from device to host because this is
             // an asynchronous function and the copy would make it synchronous.
             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_set_matrix_zero_if_alpha_zero_template(
-                handle, m, n, alpha, 0, b, ldb, stride_b, batch_count));
+                handle, m, n, alpha, 0, c, ldc, stride_c, batch_count));
         }
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && !a)
@@ -214,33 +220,28 @@ namespace
                 return trmm_check_numerics_status;
         }
 
-        constexpr bool BATCHED = false;
-
-        rocblas_status status = rocblas_status_success;
-
-        status = rocblas_internal_trmm_template(handle,
-                                                side,
-                                                uplo,
-                                                transa,
-                                                diag,
-                                                m,
-                                                n,
-                                                alpha,
-                                                stride_alpha,
-                                                a,
-                                                offset_a,
-                                                lda,
-                                                stride_a,
-                                                (const T*)b,
-                                                offset_b,
-                                                ldb,
-                                                stride_b,
-                                                b,
-                                                offset_b,
-                                                ldb,
-                                                stride_b,
-                                                batch_count);
-
+        rocblas_status status = rocblas_internal_trmm_template(handle,
+                                                               side,
+                                                               uplo,
+                                                               transa,
+                                                               diag,
+                                                               m,
+                                                               n,
+                                                               alpha,
+                                                               stride_alpha,
+                                                               a,
+                                                               offset_a,
+                                                               lda,
+                                                               stride_a,
+                                                               b,
+                                                               offset_b,
+                                                               ldb,
+                                                               stride_b,
+                                                               c,
+                                                               offset_c,
+                                                               ldc,
+                                                               stride_c,
+                                                               batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -258,15 +259,16 @@ namespace
                                               a,
                                               lda,
                                               stride_a,
-                                              b,
-                                              ldb,
-                                              stride_b,
+                                              c,
+                                              ldc,
+                                              stride_c,
                                               batch_count,
                                               check_numerics,
                                               is_input);
             if(trmm_check_numerics_status != rocblas_status_success)
                 return trmm_check_numerics_status;
         }
+
         return status;
     }
 
@@ -284,26 +286,29 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                                                  \
-    rocblas_status routine_name_(rocblas_handle    handle,                                       \
-                                 rocblas_side      side,                                         \
-                                 rocblas_fill      uplo,                                         \
-                                 rocblas_operation transa,                                       \
-                                 rocblas_diagonal  diag,                                         \
-                                 rocblas_int       m,                                            \
-                                 rocblas_int       n,                                            \
-                                 const T_*         alpha,                                        \
-                                 const T_*         a,                                            \
-                                 rocblas_int       lda,                                          \
-                                 T_*               b,                                            \
-                                 rocblas_int       ldb)                                          \
-    try                                                                                          \
-    {                                                                                            \
-        return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb); \
-    }                                                                                            \
-    catch(...)                                                                                   \
-    {                                                                                            \
-        return exception_to_rocblas_status();                                                    \
+#define IMPL(routine_name_, T_)                                                     \
+    rocblas_status routine_name_(rocblas_handle    handle,                          \
+                                 rocblas_side      side,                            \
+                                 rocblas_fill      uplo,                            \
+                                 rocblas_operation transa,                          \
+                                 rocblas_diagonal  diag,                            \
+                                 rocblas_int       m,                               \
+                                 rocblas_int       n,                               \
+                                 const T_*         alpha,                           \
+                                 const T_*         a,                               \
+                                 rocblas_int       lda,                             \
+                                 const T_*         b,                               \
+                                 rocblas_int       ldb,                             \
+                                 T_*               c,                               \
+                                 rocblas_int       ldc)                             \
+    try                                                                             \
+    {                                                                               \
+        return rocblas_trmm_impl(                                                   \
+            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, c, ldc); \
+    }                                                                               \
+    catch(...)                                                                      \
+    {                                                                               \
+        return exception_to_rocblas_status();                                       \
     }
 
 IMPL(rocblas_strmm, float);
