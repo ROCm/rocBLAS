@@ -1431,11 +1431,12 @@ rocblas-test
 
 rocblas-test is used in performing rocBLAS unit tests and it uses Googletest framework.
 
-The tests are in four categories:
+The tests are in five categories:
 
 - quick
 - pre_checkin
 - nightly
+- stress
 - known_bug
 
 To run the quick tests:
@@ -1478,6 +1479,14 @@ Both rocblas-test and rocblas-bench can use an extension added to scan over mult
 ``scan`` to the range to scan over and use ``*c_scan_value`` to retrieve the values. This can be used to avoid all combinations of yaml variable values that are normally generated.
 For example, `` - { scan: [32..256..32], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value } ``
 
+* large memory tests (stress category)
+
+Some tests in the stress category may attempt to allocate more RAM than available.  While these tests should automatically get skipped, in some cases, such
+as running in a docker container, they may instead result in process termination.  You can limit the peak RAM allocations in GB using the environment variable:
+
+.. code-block:: bash
+
+   ROCBLAS_CLIENT_RAM_GB_LIMIT=32 ./rocblas-test --gtest_filter=*stress*
 
 Add New rocBLAS Unit Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^
