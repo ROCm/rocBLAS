@@ -56,7 +56,7 @@ def runTestCommand (platform, project, gfilter)
     if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
     {
         hmmTestCommand = """
-                            HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
+                            HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
                          """
     }
 
@@ -75,7 +75,7 @@ def runTestCommand (platform, project, gfilter)
     if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
     {
         v3TestCommand = """
-                            GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_v3_TEST --gtest_output=xml:test_detail_V3.xml --gtest_color=yes --gtest_filter=*trmm_outofplace*quick*-*known_bug*
+                            GTEST_LISTENER=NO_PASS_LINE_IN_LOG ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_v3_TEST --gtest_output=xml:test_detail_V3.xml --gtest_color=yes --gtest_filter=*trmm_outofplace*quick*-*known_bug*
                          """
     }
 
@@ -87,7 +87,7 @@ def runTestCommand (platform, project, gfilter)
                     mv build build_BAK
                     ROCBLAS_TEST=/opt/rocm/bin/rocblas-test
                     ROCBLAS_v3_TEST=/opt/rocm/bin/rocblas_v3-test
-                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                     if (( \$? != 0 )); then
                         exit 1
                     fi
@@ -109,7 +109,7 @@ def runTestCommand (platform, project, gfilter)
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
                     ROCBLAS_TEST=./rocblas-test
                     ROCBLAS_v3_TEST=./rocblas_v3-test
-                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                     if (( \$? != 0 )); then
                         exit 1
                     fi

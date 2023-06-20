@@ -249,7 +249,7 @@ private:
             {
                 if(batch_index == 0 && nullptr != m_data[batch_index])
                 {
-                    free(m_data[batch_index]);
+                    host_free(m_data[batch_index]);
                     m_data[batch_index] = nullptr;
                 }
                 else
@@ -258,7 +258,7 @@ private:
                 }
             }
 
-            free(m_data);
+            host_free(m_data);
             m_data = nullptr;
         }
     }

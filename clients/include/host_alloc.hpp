@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,11 @@
 //! @brief Host free memory w/o swap.  Returns kB or -1 if unknown.
 //!
 ptrdiff_t host_bytes_available();
+
+//!
+//! @brief Return rough estimate of memory used via host_ helper APIs only.
+//!
+size_t host_bytes_allocated();
 
 //!
 //! @brief Allocates memory which can be freed with free.  Returns nullptr if swap required.
@@ -64,6 +69,11 @@ inline void* host_calloc_throw(size_t nmemb, size_t size)
 }
 
 //!
+//! @brief Release memory allocated with host_ prefixed allocators
+//!
+void host_free(void* ptr);
+
+//!
 //! @brief  Allocator which allocates with host_calloc
 //!
 template <class T>
@@ -85,7 +95,7 @@ struct host_memory_allocator
 
     void deallocate(T* ptr, std::size_t n)
     {
-        free(ptr);
+        host_free(ptr);
     }
 };
 

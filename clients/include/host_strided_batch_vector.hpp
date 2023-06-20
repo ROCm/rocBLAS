@@ -74,7 +74,7 @@ public:
     {
         if(nullptr != m_data)
         {
-            free(m_data);
+            host_free(m_data);
             m_data = nullptr;
         }
     }
