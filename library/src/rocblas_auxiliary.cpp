@@ -121,6 +121,68 @@ catch(...)
 }
 
 /*******************************************************************************
+ * ! \brief get math mode
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_get_math_mode(rocblas_handle handle, rocblas_math_mode* mode)
+try
+{
+    // if handle not valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    *mode = handle->math_mode;
+    if(handle->layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, "rocblas_get_math_mode", *mode);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * ! \brief set math mode
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_math_mode(rocblas_handle handle, rocblas_math_mode mode)
+try
+{
+    // if handle not valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    bool supported = true;
+    switch(mode)
+    {
+    case rocblas_default_math:
+        supported = true;
+        break;
+    case rocblas_xf32_xdl_math_op:
+        supported = rocblas_internal_tensile_supports_xdl_math_op(mode);
+        break;
+    default:
+        supported = false;
+        break;
+    }
+
+    if(!supported)
+    {
+        if(handle->layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, "rocblas_set_math_mode", mode, "is not supported");
+    }
+    else
+    {
+        if(handle->layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, "rocblas_set_math_mode", mode);
+
+        handle->math_mode = mode;
+    }
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
  * ! \brief query the preferable supported int8 input layout for gemm by device
  ******************************************************************************/
 extern "C" rocblas_status rocblas_query_int8_layout_flag(rocblas_handle      handle,
@@ -1117,6 +1179,7 @@ extern "C" const char* rocblas_status_to_string(rocblas_status status)
         CASE(rocblas_status_invalid_value);
         CASE(rocblas_status_continue);
         CASE(rocblas_status_check_numerics_fail);
+        CASE(rocblas_status_arch_mismatch);
     }
 #undef CASE
     // We don't use default: so that the compiler warns us if any valid enums are missing
@@ -1203,6 +1266,15 @@ struct XnackMode<PROP, void_t<decltype(PROP::gcnArchName)>>
 bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle)
 {
     return handle->getArch() >= 906;
+}
+
+bool rocblas_internal_tensile_supports_xdl_math_op(rocblas_math_mode mode)
+{
+    int deviceId;
+    hipGetDevice(&deviceId);
+    hipDeviceProp_t deviceProperties;
+    hipGetDeviceProperties(&deviceProperties, deviceId);
+    return deviceProperties.gcnArch >= 940 && deviceProperties.gcnArch < 1000;
 }
 
 // exported. Get architecture name

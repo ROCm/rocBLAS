@@ -56,7 +56,13 @@ typedef enum
  * RocblasContractionProblem captures the arguments for a GEMM-like *
  * contraction problem, to be passed to runContractionProblem.      *
  ********************************************************************/
-template <typename Ti, typename To = Ti, typename Tc = To>
+template <typename TiA,
+          typename To  = TiA,
+          typename Tc  = To,
+          typename TiB = TiA,
+          typename TcA = TiA,
+          typename TcB = TiA>
+//   <typename Ti, typename To = Ti, typename Tc = To>
 struct RocblasContractionProblem
 {
     rocblas_handle     handle;
@@ -74,19 +80,19 @@ struct RocblasContractionProblem
 
     const Tc* alpha;
 
-    const Ti*        A;
-    const Ti* const* batch_A;
-    size_t           row_stride_a;
-    size_t           col_stride_a;
-    size_t           batch_stride_a;
-    size_t           buffer_offset_a;
+    const TiA*        A;
+    const TiA* const* batch_A;
+    size_t            row_stride_a;
+    size_t            col_stride_a;
+    size_t            batch_stride_a;
+    size_t            buffer_offset_a;
 
-    const Ti*        B;
-    const Ti* const* batch_B;
-    size_t           row_stride_b;
-    size_t           col_stride_b;
-    size_t           batch_stride_b;
-    size_t           buffer_offset_b;
+    const TiB*        B;
+    const TiB* const* batch_B;
+    size_t            row_stride_b;
+    size_t            col_stride_b;
+    size_t            batch_stride_b;
+    size_t            buffer_offset_b;
 
     const Tc* beta;
 
@@ -116,13 +122,13 @@ struct RocblasContractionProblem
                               rocblas_int        n,
                               rocblas_int        k,
                               const Tc*          alpha,
-                              const Ti*          A,
-                              const Ti* const*   batch_A,
+                              const TiA*         A,
+                              const TiA* const*  batch_A,
                               rocblas_int        ld_a,
                               rocblas_stride     batch_stride_a,
                               rocblas_stride     offset_a,
-                              const Ti*          B,
-                              const Ti* const*   batch_B,
+                              const TiB*         B,
+                              const TiB* const*  batch_B,
                               rocblas_int        ld_b,
                               rocblas_stride     batch_stride_b,
                               rocblas_stride     offset_b,
@@ -182,13 +188,13 @@ struct RocblasContractionProblem
                               rocblas_int        n,
                               rocblas_int        k,
                               const Tc*          alpha,
-                              const Ti*          A,
-                              const Ti* const*   batch_A,
+                              const TiA*         A,
+                              const TiA* const*  batch_A,
                               rocblas_int        ld_a,
                               rocblas_stride     batch_stride_a,
                               rocblas_stride     offset_a,
-                              const Ti*          B,
-                              const Ti* const*   batch_B,
+                              const TiB*         B,
+                              const TiB* const*  batch_B,
                               rocblas_int        ld_b,
                               rocblas_stride     batch_stride_b,
                               rocblas_stride     offset_b,
@@ -246,38 +252,38 @@ struct RocblasContractionProblem
 
     // gemm_ext2
     // gemm_strided_batched_ext2
-    RocblasContractionProblem(rocblas_handle   handle,
-                              rocblas_int      m,
-                              rocblas_int      n,
-                              rocblas_int      k,
-                              const Tc*        alpha,
-                              const Ti*        A,
-                              const Ti* const* batch_A,
-                              rocblas_stride   row_stride_a,
-                              rocblas_stride   col_stride_a,
-                              rocblas_stride   batch_stride_a,
-                              rocblas_stride   offset_a,
-                              const Ti*        B,
-                              const Ti* const* batch_B,
-                              rocblas_stride   row_stride_b,
-                              rocblas_stride   col_stride_b,
-                              rocblas_stride   batch_stride_b,
-                              rocblas_stride   offset_b,
-                              const Tc*        beta,
-                              const To*        C,
-                              const To* const* batch_C,
-                              rocblas_stride   row_stride_c,
-                              rocblas_stride   col_stride_c,
-                              rocblas_stride   batch_stride_c,
-                              rocblas_stride   offset_c,
-                              To*              D,
-                              To* const*       batch_D,
-                              rocblas_stride   row_stride_d,
-                              rocblas_stride   col_stride_d,
-                              rocblas_stride   batch_stride_d,
-                              rocblas_stride   offset_d,
-                              rocblas_int      batch_count,
-                              bool             strided_batch)
+    RocblasContractionProblem(rocblas_handle    handle,
+                              rocblas_int       m,
+                              rocblas_int       n,
+                              rocblas_int       k,
+                              const Tc*         alpha,
+                              const TiA*        A,
+                              const TiA* const* batch_A,
+                              rocblas_stride    row_stride_a,
+                              rocblas_stride    col_stride_a,
+                              rocblas_stride    batch_stride_a,
+                              rocblas_stride    offset_a,
+                              const TiB*        B,
+                              const TiB* const* batch_B,
+                              rocblas_stride    row_stride_b,
+                              rocblas_stride    col_stride_b,
+                              rocblas_stride    batch_stride_b,
+                              rocblas_stride    offset_b,
+                              const Tc*         beta,
+                              const To*         C,
+                              const To* const*  batch_C,
+                              rocblas_stride    row_stride_c,
+                              rocblas_stride    col_stride_c,
+                              rocblas_stride    batch_stride_c,
+                              rocblas_stride    offset_c,
+                              To*               D,
+                              To* const*        batch_D,
+                              rocblas_stride    row_stride_d,
+                              rocblas_stride    col_stride_d,
+                              rocblas_stride    batch_stride_d,
+                              rocblas_stride    offset_d,
+                              rocblas_int       batch_count,
+                              bool              strided_batch)
         : handle(handle)
         , flags(rocblas_gemm_flags_none)
         , trans_a(rocblas_operation_none)
@@ -325,9 +331,9 @@ struct RocblasContractionProblem
         return tuple_helper::print_tuple_pairs(
             os,
             std::make_tuple("a_type",
-                            rocblas_precision_string<Ti>,
+                            rocblas_precision_string<TiA>,
                             "b_type",
-                            rocblas_precision_string<Ti>,
+                            rocblas_precision_string<TiB>,
                             "c_type",
                             rocblas_precision_string<To>,
                             "d_type",
@@ -384,16 +390,29 @@ struct RocblasContractionProblem
 /*******************************************************************************
  * runContractionProblem() solves a RocblasContractionProblem                  *
  *******************************************************************************/
-template <typename Ti, typename To, typename Tc>
-rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const& problem,
-                                     rocblas_gemm_algo algo           = rocblas_gemm_algo_standard,
-                                     int32_t           solution_index = 0);
+template <typename TiA,
+          typename To,
+          typename Tc,
+          typename TiB = TiA,
+          typename TcA = TiA,
+          typename TcB = TiA>
+// <typename Ti, typename To, typename Tc>
+rocblas_status
+    runContractionProblem(const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& problem,
+                          rocblas_gemm_algo algo           = rocblas_gemm_algo_standard,
+                          int32_t           solution_index = 0);
 
-template <typename Ti, typename To, typename Tc>
-rocblas_status getAllSolutions(const RocblasContractionProblem<Ti, To, Tc>& prob,
-                               rocblas_tensile_get_solution_option          option,
-                               rocblas_int*                                 list_array,
-                               rocblas_int*                                 list_size);
+template <typename TiA,
+          typename To,
+          typename Tc,
+          typename TiB = TiA,
+          typename TcA = TiA,
+          typename TcB = TiA>
+//template <typename Ti, typename To, typename Tc>
+rocblas_status getAllSolutions(const RocblasContractionProblem<TiA, To, Tc, TiB, TcA, TcB>& prob,
+                               rocblas_tensile_get_solution_option                          option,
+                               rocblas_int* list_array,
+                               rocblas_int* list_size);
 
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *

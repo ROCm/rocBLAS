@@ -148,6 +148,9 @@ namespace
 
                 if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
                     name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
+
+                if(arg.math_mode == rocblas_xf32_xdl_math_op)
+                    name << "_xf32";
             }
 
             if(arg.api == FORTRAN)

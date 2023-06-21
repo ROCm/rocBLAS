@@ -126,6 +126,7 @@ if( BUILD_WITH_TENSILE )
   #rocblas gemm_ex, gemm_ext2 and trsv require tensile
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex.cpp
+    blas_ex/rocblas_gemm_ex3.cpp
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
     blas_ex/rocblas_gemm_ext2.cpp

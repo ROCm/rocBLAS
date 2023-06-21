@@ -121,11 +121,12 @@ struct Arguments
 
     rocblas_gemm_flags flags;
 
-    rocblas_datatype a_type;
-    rocblas_datatype b_type;
-    rocblas_datatype c_type;
-    rocblas_datatype d_type;
-    rocblas_datatype compute_type;
+    rocblas_datatype    a_type;
+    rocblas_datatype    b_type;
+    rocblas_datatype    c_type;
+    rocblas_datatype    d_type;
+    rocblas_datatype    compute_type;
+    rocblas_computetype composite_compute_type;
 
     rocblas_initialization initialization;
 
@@ -144,6 +145,8 @@ struct Arguments
     // memory padding for testing write out of bounds
     uint32_t pad;
 
+    uint32_t math_mode;
+
     // 16 bit
     uint16_t threads;
     uint16_t streams;
@@ -153,6 +156,7 @@ struct Arguments
 
     int8_t norm_check;
     int8_t unit_check;
+    int8_t res_check;
     int8_t timing;
 
     char transA;
@@ -163,6 +167,7 @@ struct Arguments
 
     bool pointer_mode_host;
     bool pointer_mode_device;
+    bool stochastic_rounding;
     bool c_noalias_d;
     bool HMM; // xnack+
     bool graph_test;
@@ -222,6 +227,7 @@ struct Arguments
     OPER(c_type) SEP                 \
     OPER(d_type) SEP                 \
     OPER(compute_type) SEP           \
+    OPER(composite_compute_type) SEP       \
     OPER(initialization) SEP         \
     OPER(arithmetic_check) SEP       \
     OPER(atomics_mode) SEP           \
@@ -229,11 +235,13 @@ struct Arguments
     OPER(gpu_arch) SEP               \
     OPER(api) SEP                    \
     OPER(pad) SEP                    \
+    OPER(math_mode) SEP              \
     OPER(threads) SEP                \
     OPER(streams) SEP                \
     OPER(devices) SEP                \
     OPER(norm_check) SEP             \
     OPER(unit_check) SEP             \
+    OPER(res_check) SEP              \
     OPER(timing) SEP                 \
     OPER(transA) SEP                 \
     OPER(transB) SEP                 \
@@ -242,6 +250,7 @@ struct Arguments
     OPER(diag) SEP                   \
     OPER(pointer_mode_host) SEP      \
     OPER(pointer_mode_device) SEP    \
+    OPER(stochastic_rounding) SEP    \
     OPER(c_noalias_d) SEP            \
     OPER(HMM) SEP                    \
     OPER(graph_test)
@@ -386,7 +395,7 @@ namespace ArgumentsHelper
             func("beta", arg.get_beta<decltype(T)>());
         };
 };
-    // clang-format on
+// clang-format on
 
 #else
 
