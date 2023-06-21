@@ -183,7 +183,7 @@ namespace
         if(check_numerics)
         {
             bool           is_input = true;
-            rocblas_status trmm__check_numerics_status
+            rocblas_status trmm_check_numerics_status
                 = rocblas_trmm_check_numerics(rocblas_trmm_batched_name<T>,
                                               handle,
                                               side,
@@ -200,8 +200,8 @@ namespace
                                               batch_count,
                                               check_numerics,
                                               is_input);
-            if(trmm__check_numerics_status != rocblas_status_success)
-                return trmm__check_numerics_status;
+            if(trmm_check_numerics_status != rocblas_status_success)
+                return trmm_check_numerics_status;
         }
 
         rocblas_status status = rocblas_internal_trmm_batched_template(handle,
@@ -232,7 +232,7 @@ namespace
         if(check_numerics)
         {
             bool           is_input = false;
-            rocblas_status trmm__check_numerics_status
+            rocblas_status trmm_check_numerics_status
                 = rocblas_trmm_check_numerics(rocblas_trmm_batched_name<T>,
                                               handle,
                                               side,
@@ -249,8 +249,8 @@ namespace
                                               batch_count,
                                               check_numerics,
                                               is_input);
-            if(trmm__check_numerics_status != rocblas_status_success)
-                return trmm__check_numerics_status;
+            if(trmm_check_numerics_status != rocblas_status_success)
+                return trmm_check_numerics_status;
         }
         return status;
     }
