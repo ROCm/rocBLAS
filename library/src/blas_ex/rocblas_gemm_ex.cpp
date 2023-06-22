@@ -464,7 +464,7 @@ extern "C" rocblas_status rocblas_gemm_ex_get_solutions(rocblas_handle    handle
                                                              list_array,
                                                              list_size);
 #else
-        return rocblas_status_not_implemented;
+        return rocblas_status_excluded_from_build;
 #endif
     }
     catch(...)
@@ -522,6 +522,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions_by_type(rocblas_hand
                                                          list_array,
                                                          list_size);
 #else
-    return rocblas_status_not_implemented;
+    return rocblas_status_excluded_from_build;
 #endif
 }
