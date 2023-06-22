@@ -64,6 +64,8 @@ module rocblas_enums
         enumerator :: rocblas_status_size_unchanged = 10
         enumerator :: rocblas_status_invalid_value = 11
         enumerator :: rocblas_status_continue = 12
+        enumerator :: rocblas_status_check_numerics_fail = 13
+        enumerator :: rocblas_status_excluded_from_build = 14
     end enum
 
     enum, bind(c)
