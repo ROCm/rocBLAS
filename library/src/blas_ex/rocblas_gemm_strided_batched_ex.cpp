@@ -434,7 +434,7 @@ extern "C" rocblas_status
                                                              list_array,
                                                              list_size);
 #else
-        return rocblas_status_not_implemented;
+        return rocblas_status_excluded_from_build;
 #endif
     }
     catch(...)
