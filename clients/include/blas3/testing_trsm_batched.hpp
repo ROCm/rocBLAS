@@ -347,7 +347,7 @@ void testing_trsm_batched(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_batch_matrix<T> hA(K, K, lda, batch_count);
-    host_batch_matrix<T> hB(M, N, ldb, batch_count);
+    host_batch_matrix<T> hB(M, N, M, batch_count); // save memory when large ldb
     host_batch_matrix<T> hX(M, N, ldb, batch_count);
     host_batch_matrix<T> hXorB_1(M, N, ldb, batch_count);
     host_vector<T>       halpha(1);
@@ -384,15 +384,15 @@ void testing_trsm_batched(const Arguments& arg)
         make_unit_diagonal(uplo, hA);
     }
 
-    hB.copy_from(hX);
+    copy_matrix_with_different_leading_dimensions(hX, hB);
 
     for(int b = 0; b < batch_count; b++)
     {
         // Calculate hB = hA*hX
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], ldb);
+        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], M);
     }
 
-    hXorB_1.copy_from(hB);
+    copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
 
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
@@ -515,14 +515,55 @@ void testing_trsm_batched(const Arguments& arg)
 
             handle.post_test(arg);
             CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+
+            // doing unit tests here to save memory by having hB just use M as leading dimension,
+            // need to reuse hXorB for hipMemcpy later
+            if(alpha_h == 0)
+            {
+                // expecting 0 output, set hX == 0
+                for(rocblas_int b = 0; b < batch_count; b++)
+                    rocblas_init_zero((T*)hX[b], M, N, ldb);
+
+                if(arg.unit_check)
+                    unit_check_general<T>(M, N, ldb, hX, hXorB_1, batch_count);
+                if(arg.norm_check)
+                    err_host
+                        = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1, batch_count));
+            }
+            else
+            {
+                //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+                // calculate vector-induced-norm 1 of matrix E
+                for(int b = 0; b < batch_count; b++)
+                {
+                    double err_host_batch = matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_1[b]);
+
+                    if(arg.unit_check)
+                        trsm_err_res_check<T>(err_host_batch, M, error_eps_multiplier, eps);
+
+                    // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
+                    cblas_trmm<T>(
+                        side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
+                    // calculate vector-induced-norm 1 of matrix res
+                    double err_host_res_batch = matrix_norm_1<T>(M, N, hXorB_1[b], ldb, hB[b], M);
+
+                    if(arg.unit_check)
+                        trsm_err_res_check<T>(err_host_res_batch, M, residual_eps_multiplier, eps);
+                    err_host = std::max(std::max(err_host_batch, err_host_res_batch), err_host);
+                }
+            }
         }
 
         if(arg.pointer_mode_device && !internal_api)
         {
             // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            // copy hB to hXorB with correct leading dimension as hB still holds input
+            copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
+
+            CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
             CHECK_HIP_ERROR(alpha_d.transfer_from(halpha));
-            CHECK_HIP_ERROR(dXorB.transfer_from(hB));
 
             CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
                                                         side,
@@ -537,72 +578,35 @@ void testing_trsm_batched(const Arguments& arg)
                                                         dXorB.ptr_on_device(),
                                                         ldb,
                                                         batch_count));
-        }
 
-        if(alpha_h == 0)
-        {
-            // expecting 0 output, set hX == 0
-            for(rocblas_int b = 0; b < batch_count; b++)
-                rocblas_init_zero((T*)hX[b], M, N, ldb);
+            CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
-            if(arg.pointer_mode_host)
+            if(alpha_h == 0)
             {
-                if(arg.unit_check)
-                    unit_check_general<T>(M, N, ldb, hX, hXorB_1, batch_count);
-                if(arg.norm_check)
-                    err_host
-                        = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1, batch_count));
-            }
+                // expecting 0 output, set hX == 0
+                for(rocblas_int b = 0; b < batch_count; b++)
+                    rocblas_init_zero((T*)hX[b], M, N, ldb);
 
-            if(arg.pointer_mode_device)
-            {
-                CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
                 if(arg.unit_check)
                     unit_check_general<T>(M, N, ldb, hX, hXorB_1, batch_count);
                 if(arg.norm_check)
                     err_device
                         = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1, batch_count));
             }
-        }
-        else
-        {
-            //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
-            // calculate vector-induced-norm 1 of matrix E
-            for(int b = 0; b < batch_count; b++)
+            else
             {
-                if(arg.pointer_mode_host)
+                //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+                // calculate vector-induced-norm 1 of matrix E
+                for(int b = 0; b < batch_count; b++)
                 {
-                    double err_host_batch
-                        = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_1[b]));
-
-                    if(arg.unit_check)
-                        trsm_err_res_check<T>(err_host_batch, M, error_eps_multiplier, eps);
-
-                    // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
-                    cblas_trmm<T>(
-                        side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
-                    // calculate vector-induced-norm 1 of matrix res
-                    double err_host_res_batch
-                        = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1[b], hB[b]));
-
-                    if(arg.unit_check)
-                        trsm_err_res_check<T>(err_host_res_batch, M, residual_eps_multiplier, eps);
-                    err_host = std::max(std::max(err_host_batch, err_host_res_batch), err_host);
-                }
-
-                if(arg.pointer_mode_device)
-                {
-                    CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
-                    double err_device_batch
-                        = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_1[b]));
+                    double err_device_batch = matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_1[b]);
 
                     if(arg.unit_check)
                         trsm_err_res_check<T>(err_device_batch, M, error_eps_multiplier, eps);
 
                     cblas_trmm<T>(
                         side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
-                    double err_device_res_batch
-                        = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1[b], hB[b]));
+                    double err_device_res_batch = matrix_norm_1<T>(M, N, hXorB_1[b], ldb, hB[b], M);
 
                     if(arg.unit_check)
                         trsm_err_res_check<T>(
@@ -672,7 +676,7 @@ void testing_trsm_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, hB[b], ldb);
+            cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA[b], lda, hXorB_1[b], ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

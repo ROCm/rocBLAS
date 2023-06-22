@@ -447,6 +447,31 @@ double matrix_norm_1(rocblas_int M, rocblas_int N, rocblas_int lda, T* hA_gold, 
     return max_err / max_err_scal;
 }
 
+// overload with different leading dimensions
+template <typename T>
+double matrix_norm_1(
+    rocblas_int M, rocblas_int N, T* hA_gold, rocblas_int lda_gold, T* hA, rocblas_int lda)
+{
+    double max_err_scal = 0.0;
+    double max_err      = 0.0;
+    double err          = 0.0;
+    double err_scal     = 0.0;
+    for(int i = 0; i < N; i++)
+    {
+        for(int j = 0; j < M; j++)
+        {
+            size_t idxAg = j + i * (size_t)lda_gold;
+            size_t idxA  = j + i * (size_t)lda;
+            err += rocblas_abs((hA_gold[idxAg] - hA[idxA]));
+            err_scal += rocblas_abs(hA_gold[idxAg]);
+        }
+        max_err_scal = max_err_scal > err_scal ? max_err_scal : err_scal;
+        max_err      = max_err > err ? max_err : err;
+    }
+
+    return max_err / max_err_scal;
+}
+
 template <typename T>
 double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
 {
