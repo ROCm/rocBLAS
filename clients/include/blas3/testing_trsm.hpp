@@ -242,7 +242,7 @@ void testing_trsm(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(K, K, lda);
-    host_matrix<T> hB(M, N, ldb);
+    host_matrix<T> hB(M, N, M); // save memory when large ldb
     host_matrix<T> hX(M, N, ldb);
     host_matrix<T> hXorB_1(M, N, ldb);
 
@@ -271,11 +271,11 @@ void testing_trsm(const Arguments& arg)
         make_unit_diagonal(uplo, (T*)hA, lda, K);
     }
 
-    hB = hX;
+    copy_matrix_with_different_leading_dimensions(hX, hB);
 
     // Calculate hB = hA*hX;
-    cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hB, ldb);
-    hXorB_1 = hB; // hXorB <- B
+    cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hB, M);
+    copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
@@ -309,7 +309,7 @@ void testing_trsm(const Arguments& arg)
         {
             // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_HIP_ERROR(dXorB.transfer_from(hB));
+            CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
             handle.pre_test(arg);
             if(arg.api != INTERNAL)
@@ -380,73 +380,73 @@ void testing_trsm(const Arguments& arg)
             handle.post_test(arg);
 
             CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
-        }
 
-        if(arg.pointer_mode_device)
-        {
-            // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dXorB.transfer_from(hB));
-            CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
-
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
-        }
-
-        if(alpha_h == 0)
-        {
-            // expecting 0 output, set hX == 0
-            rocblas_init_zero((T*)hX, M, N, ldb);
-
-            if(arg.pointer_mode_host)
+            // doing unit tests here to save memory by having hB just use M as leading dimension,
+            // need to reuse hXorB for hipMemcpy later
+            if(alpha_h == 0)
             {
+                // expecting 0 output, set hX == 0
+                rocblas_init_zero((T*)hX, M, N, ldb);
+
                 if(arg.unit_check)
                     unit_check_general<T>(M, N, ldb, hX, hXorB_1);
                 if(arg.norm_check)
                     err_host = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1));
             }
-
-            if(arg.pointer_mode_device)
-            {
-                CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
-
-                if(arg.unit_check)
-                    unit_check_general<T>(M, N, ldb, hX, hXorB_1);
-                if(arg.norm_check)
-                    err_device = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1));
-            }
-        }
-        else
-        {
-            if(arg.pointer_mode_host)
+            else
             {
                 //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
                 // calculate vector-induced-norm 1 of matrix E
-                err_host = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
+                err_host = matrix_norm_1<T>(M, N, ldb, hX, hXorB_1);
 
                 if(arg.unit_check)
                     trsm_err_res_check<T>(err_host, M, error_eps_multiplier, eps);
 
                 // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
                 cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
-                double err_host_res = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
+                double err_host_res = matrix_norm_1<T>(M, N, hXorB_1, ldb, hB, M);
 
                 if(arg.unit_check)
                     trsm_err_res_check<T>(err_host_res, M, residual_eps_multiplier, eps);
                 err_host = std::max(err_host, err_host_res);
             }
+        }
 
-            if(arg.pointer_mode_device)
+        if(arg.pointer_mode_device)
+        {
+            // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            // copy hB to hXorB with correct leading dimension as hB still holds input
+            copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
+
+            CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
+                handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
+
+            CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+
+            if(alpha_h == 0)
             {
-                CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
+                // expecting 0 output, set hX == 0
+                rocblas_init_zero((T*)hX, M, N, ldb);
 
-                err_device = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
+                if(arg.unit_check)
+                    unit_check_general<T>(M, N, ldb, hX, hXorB_1);
+                if(arg.norm_check)
+                    err_device = std::abs(norm_check_general<T>('F', M, N, ldb, hX, hXorB_1));
+            }
+            else
+            {
+                err_device = matrix_norm_1<T>(M, N, ldb, hX, hXorB_1);
 
                 if(arg.unit_check)
                     trsm_err_res_check<T>(err_device, M, error_eps_multiplier, eps);
 
                 cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
-                double err_device_res = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
+                double err_device_res = matrix_norm_1<T>(M, N, hXorB_1, ldb, hB, M);
 
                 if(arg.unit_check)
                     trsm_err_res_check<T>(err_device_res, M, residual_eps_multiplier, eps);
@@ -484,9 +484,10 @@ void testing_trsm(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         // CPU cblas
+        copy_matrix_with_different_leading_dimensions(hB, hXorB_1);
         cpu_time_used = get_time_us_no_sync();
 
-        cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, hB, ldb);
+        cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, hXorB_1, ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
