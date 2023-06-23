@@ -20,11 +20,16 @@
  *
  * ************************************************************************ */
 #include "handle.hpp"
-#include "logging.hpp"
 #include "rocblas.h"
+
+#ifdef BUILD_WITH_TENSILE
+
+#include "logging.hpp"
 #include "rocblas_gemm_ex.hpp"
 #include "rocblas_gemm_ex_get_solutions.hpp"
 #include "utility.hpp"
+
+#endif
 
 extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    handle,
                                                           rocblas_operation trans_a,
@@ -57,6 +62,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                                                           uint32_t          flags)
 try
 {
+#ifdef BUILD_WITH_TENSILE
     if(!handle)
         return rocblas_status_invalid_handle;
 
@@ -312,6 +318,9 @@ try
                                            algo,
                                            solution_index,
                                            flags);
+#else
+    return rocblas_status_excluded_from_build;
+#endif
 }
 catch(...)
 {
@@ -352,6 +361,7 @@ extern "C" rocblas_status
 {
     try
     {
+#ifdef BUILD_WITH_TENSILE
         if(!handle)
             return rocblas_status_invalid_handle;
 
@@ -423,6 +433,9 @@ extern "C" rocblas_status
                                                              CAN_SOLVE,
                                                              list_array,
                                                              list_size);
+#else
+        return rocblas_status_excluded_from_build;
+#endif
     }
     catch(...)
     {
