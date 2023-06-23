@@ -1550,56 +1550,51 @@ inline rocblas_int get_index(const rocblas_int* intervals, rocblas_int max, rocb
 /** This function returns the block size for the internal blocked trsm implementation.
  *  The block sizes and logic is taken directly from rocSOLVER.
  */
-template <bool BATCHED, typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
+template <bool BATCHED, typename T>
 rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
 {
     rocblas_int blk = 0;
 
     if(BATCHED)
     {
-        rocblas_int M = TRSM_BATCH_NUMROWS_REAL - 1;
-        rocblas_int N = TRSM_BATCH_NUMCOLS_REAL - 1;
-        blk           = trsm_blksizes_real_batch[get_index(trsm_intervals_row_real_batch, M, m)]
-                                      [get_index(trsm_intervals_col_real_batch, N, n)];
+        if constexpr(rocblas_is_complex<T>)
+        {
+            rocblas_int M = TRSM_BATCH_NUMROWS_COMPLEX - 1;
+            rocblas_int N = TRSM_BATCH_NUMCOLS_COMPLEX - 1;
+            blk = trsm_blksizes_complex_batch[get_index(trsm_intervals_row_complex_batch, M, m)]
+                                             [get_index(trsm_intervals_col_complex_batch, N, n)];
+        }
+        else
+        {
+            rocblas_int M = TRSM_BATCH_NUMROWS_REAL - 1;
+            rocblas_int N = TRSM_BATCH_NUMCOLS_REAL - 1;
+            blk           = trsm_blksizes_real_batch[get_index(trsm_intervals_row_real_batch, M, m)]
+                                          [get_index(trsm_intervals_col_real_batch, N, n)];
+        }
     }
     else
     {
-        rocblas_int M = TRSM_NUMROWS_REAL - 1;
-        rocblas_int N = TRSM_NUMCOLS_REAL - 1;
-        blk = trsm_blksizes_real_nonbatch[get_index(trsm_intervals_row_real_nonbatch, M, m)]
-                                         [get_index(trsm_intervals_col_real_nonbatch, N, n)];
+        if constexpr(rocblas_is_complex<T>)
+        {
+            rocblas_int M = TRSM_NUMROWS_COMPLEX - 1;
+            rocblas_int N = TRSM_NUMCOLS_COMPLEX - 1;
+            blk           = trsm_blksizes_complex_nonbatch
+                [get_index(trsm_intervals_row_complex_nonbatch, M, m)]
+                [get_index(trsm_intervals_col_complex_nonbatch, N, n)];
+        }
+        else
+        {
+            rocblas_int M = TRSM_NUMROWS_REAL - 1;
+            rocblas_int N = TRSM_NUMCOLS_REAL - 1;
+            blk = trsm_blksizes_real_nonbatch[get_index(trsm_intervals_row_real_nonbatch, M, m)]
+                                             [get_index(trsm_intervals_col_real_nonbatch, N, n)];
+        }
     }
 
     if(blk == 1)
         blk = std::min(m, 512);
 
     // Note: If blk remains zero, we won't be using the substitution method.
-    return blk;
-}
-
-template <bool BATCHED, typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
-rocblas_int rocblas_trsm_blksize(rocblas_int m, rocblas_int n)
-{
-    rocblas_int blk = 0;
-
-    if(BATCHED)
-    {
-        rocblas_int M = TRSM_BATCH_NUMROWS_COMPLEX - 1;
-        rocblas_int N = TRSM_BATCH_NUMCOLS_COMPLEX - 1;
-        blk = trsm_blksizes_complex_batch[get_index(trsm_intervals_row_complex_batch, M, m)]
-                                         [get_index(trsm_intervals_col_complex_batch, N, n)];
-    }
-    else
-    {
-        rocblas_int M = TRSM_NUMROWS_COMPLEX - 1;
-        rocblas_int N = TRSM_NUMCOLS_COMPLEX - 1;
-        blk = trsm_blksizes_complex_nonbatch[get_index(trsm_intervals_row_complex_nonbatch, M, m)]
-                                            [get_index(trsm_intervals_col_complex_nonbatch, N, n)];
-    }
-
-    if(blk == 1)
-        blk = std::min(m, 512);
-
     return blk;
 }
 
@@ -3166,135 +3161,6 @@ void rocblas_trsm_small_substitution(rocblas_handle handle,
     }
 }
 
-/*
- * For sizes in (32, 64] we need a specialization for double complex types. This function is for all other cases where we can use the
- * regular substitution kernels.
- */
-template <typename T,
-          typename SCAL,
-          typename ATYPE,
-          typename BTYPE,
-          const int NB,
-          std::enable_if_t<!std::is_same_v<T, rocblas_double_complex>, int> = 0>
-void rocblas_trsm_small_64(rocblas_handle    handle,
-                           rocblas_side      side,
-                           rocblas_fill      uplo,
-                           rocblas_operation transA,
-                           rocblas_diagonal  diag,
-                           rocblas_int       m,
-                           rocblas_int       n,
-                           SCAL              alpha,
-                           ATYPE             dA,
-                           rocblas_stride    offset_A,
-                           rocblas_int       lda,
-                           rocblas_stride    stride_A,
-                           BTYPE             dB,
-                           rocblas_stride    offset_B,
-                           rocblas_int       ldb,
-                           rocblas_stride    stride_B,
-                           rocblas_int       batch_count)
-{
-    rocblas_trsm_small<T, SCAL, ATYPE, BTYPE, NB>(handle,
-                                                  side,
-                                                  uplo,
-                                                  transA,
-                                                  diag,
-                                                  m,
-                                                  n,
-                                                  alpha,
-                                                  dA,
-                                                  offset_A,
-                                                  lda,
-                                                  stride_A,
-                                                  dB,
-                                                  offset_B,
-                                                  ldb,
-                                                  stride_B,
-                                                  batch_count);
-}
-
-/*
- * For sizes in (32, 64] we need a specialization for double complex types. This function sets
- * kernel parameters and launches the appropriate kernel (with less shared memory)
- * for a double complex trsm problem.
- */
-template <typename T,
-          typename SCAL,
-          typename ATYPE,
-          typename BTYPE,
-          const int NB,
-          std::enable_if_t<std::is_same_v<T, rocblas_double_complex>, int> = 0>
-void rocblas_trsm_small_64(rocblas_handle    handle,
-                           rocblas_side      side,
-                           rocblas_fill      uplo,
-                           rocblas_operation transA,
-                           rocblas_diagonal  diag,
-                           rocblas_int       m,
-                           rocblas_int       n,
-                           SCAL              alpha,
-                           ATYPE             dA,
-                           rocblas_stride    offset_A,
-                           rocblas_int       lda,
-                           rocblas_stride    stride_A,
-                           BTYPE             dB,
-                           rocblas_stride    offset_B,
-                           rocblas_int       ldb,
-                           rocblas_stride    stride_B,
-                           rocblas_int       batch_count)
-{
-    // threadIdx.x = NB >= m
-    dim3 threads(NB, 1, 1);
-
-    // blockIdx.x = divide B's columns into NB sized blocks
-    // blockIdx.y = batch_count
-    if(side == rocblas_side_left)
-    {
-        dim3 grid((n + NB - 1) / NB, batch_count);
-        hipLaunchKernelGGL((rocblas_trsm_small_64_left_device<T, SCAL, ATYPE, BTYPE, NB>),
-                           grid,
-                           threads,
-                           0,
-                           handle->get_stream(),
-                           uplo,
-                           transA,
-                           diag,
-                           m,
-                           n,
-                           alpha,
-                           dA,
-                           offset_A,
-                           lda,
-                           stride_A,
-                           dB,
-                           offset_B,
-                           ldb,
-                           stride_B);
-    }
-    else
-    {
-        dim3 grid((m + NB - 1) / NB, batch_count);
-        hipLaunchKernelGGL((rocblas_trsm_small_64_right_device<T, SCAL, ATYPE, BTYPE, NB>),
-                           grid,
-                           threads,
-                           0,
-                           handle->get_stream(),
-                           uplo,
-                           transA,
-                           diag,
-                           m,
-                           n,
-                           alpha,
-                           dA,
-                           offset_A,
-                           lda,
-                           stride_A,
-                           dB,
-                           offset_B,
-                           ldb,
-                           stride_B);
-    }
-}
-
 //////////////////////////////
 //////////////////////////////
 //////////////////////////////
@@ -3469,23 +3335,86 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
                                                    stride_B,
                                                    batch_count);
             else if(k <= 64)
-                rocblas_trsm_small_64<T, T, U, V, 64>(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      m,
-                                                      n,
-                                                      alpha_h,
-                                                      A,
-                                                      offset_A,
-                                                      lda,
-                                                      stride_A,
-                                                      B,
-                                                      offset_B,
-                                                      ldb,
-                                                      stride_B,
-                                                      batch_count);
+            {
+                if constexpr(std::is_same<T, rocblas_double_complex>{})
+                {
+                    // This function sets kernel parameters and launches the appropriate kernel (with less shared memory) for a double complex trsm problem.
+
+                    // threadIdx.x = NB >= m
+                    dim3 threads(64, 1, 1);
+
+                    // blockIdx.x = divide B's columns into NB sized blocks
+                    // blockIdx.y = batch_count
+                    if(side == rocblas_side_left)
+                    {
+                        dim3 grid((n + 64 - 1) / 64, batch_count);
+                        hipLaunchKernelGGL((rocblas_trsm_small_64_left_device<T, T, U, V, 64>),
+                                           grid,
+                                           threads,
+                                           0,
+                                           handle->get_stream(),
+                                           uplo,
+                                           transA,
+                                           diag,
+                                           m,
+                                           n,
+                                           alpha_h,
+                                           A,
+                                           offset_A,
+                                           lda,
+                                           stride_A,
+                                           B,
+                                           offset_B,
+                                           ldb,
+                                           stride_B);
+                    }
+                    else
+                    {
+                        dim3 grid((m + 64 - 1) / 64, batch_count);
+                        hipLaunchKernelGGL((rocblas_trsm_small_64_right_device<T, T, U, V, 64>),
+                                           grid,
+                                           threads,
+                                           0,
+                                           handle->get_stream(),
+                                           uplo,
+                                           transA,
+                                           diag,
+                                           m,
+                                           n,
+                                           alpha_h,
+                                           A,
+                                           offset_A,
+                                           lda,
+                                           stride_A,
+                                           B,
+                                           offset_B,
+                                           ldb,
+                                           stride_B);
+                    }
+                }
+                else
+                {
+                    // This function is for all other cases where we can use the regular substitution kernels.
+
+                    rocblas_trsm_small<T, T, U, V, 64>(handle,
+                                                       side,
+                                                       uplo,
+                                                       transA,
+                                                       diag,
+                                                       m,
+                                                       n,
+                                                       alpha_h,
+                                                       A,
+                                                       offset_A,
+                                                       lda,
+                                                       stride_A,
+                                                       B,
+                                                       offset_B,
+                                                       ldb,
+                                                       stride_B,
+                                                       batch_count);
+                }
+            }
         }
         else
         {
