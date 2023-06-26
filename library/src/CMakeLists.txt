@@ -586,10 +586,13 @@ if( BUILD_WITH_TENSILE )
   else()
     set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}${CMAKE_INSTALL_LIBDIR}/rocblas" CACHE PATH "path to tensile library" )
   endif()
-  rocm_install(
-    DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
-    DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
-    COMPONENT ${CMAKE_INSTALL_DEFAULT_COMPONENT_NAME}) # Use this cmake variable to be compatible with rocm-cmake 0.6 and 0.7
+  # For ASAN package, Tensile library files(which are not shared libraries) are not required
+  if( NOT ENABLE_ASAN_PACKAGING )
+    rocm_install(
+      DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library
+      DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR}
+      COMPONENT ${CMAKE_INSTALL_DEFAULT_COMPONENT_NAME}) # Use this cmake variable to be compatible with rocm-cmake 0.6 and 0.7
+  endif()
 endif()
 
 #         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
