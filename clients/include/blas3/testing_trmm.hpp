@@ -41,17 +41,19 @@ template <typename T>
 void testing_trmm_bad_arg(const Arguments& arg)
 {
     auto rocblas_trmm_fn = arg.api == FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
+    bool inplace         = arg.c_noalias_d;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        const rocblas_int M   = 100;
-        const rocblas_int N   = 100;
-        const rocblas_int lda = 100;
-        const rocblas_int ldb = 100;
-        const rocblas_int ldc = 100;
+        const rocblas_int M     = 100;
+        const rocblas_int N     = 100;
+        const rocblas_int lda   = 100;
+        const rocblas_int ldb   = 100;
+        const rocblas_int ldc   = 100;
+        const rocblas_int ldOut = inplace ? ldb : ldc;
 
         device_vector<T> alpha_d(1), zero_d(1);
 
@@ -78,7 +80,14 @@ void testing_trmm_bad_arg(const Arguments& arg)
         // Allocate device memory
         device_matrix<T> dA(K, K, lda);
         device_matrix<T> dB(M, N, ldb);
-        device_matrix<T> dC(M, N, ldc);
+
+        rocblas_int dC_M   = inplace ? 1 : M;
+        rocblas_int dC_N   = inplace ? 1 : N;
+        rocblas_int dC_ldc = inplace ? 1 : ldc;
+
+        device_matrix<T> dC(dC_M, dC_N, dC_ldc);
+
+        device_matrix<T>* dOut = inplace ? &dB : &dC;
 
         // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -98,8 +107,8 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               lda,
                                               dB,
                                               ldb,
-                                              dC,
-                                              ldc),
+                                              *dOut,
+                                              ldOut),
                               rocblas_status_invalid_value);
 
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
@@ -114,8 +123,8 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               lda,
                                               dB,
                                               ldb,
-                                              dC,
-                                              ldc),
+                                              *dOut,
+                                              ldOut),
                               rocblas_status_invalid_value);
 
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
@@ -130,8 +139,8 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               lda,
                                               dB,
                                               ldb,
-                                              dC,
-                                              ldc),
+                                              *dOut,
+                                              ldOut),
                               rocblas_status_invalid_value);
 
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
@@ -146,30 +155,30 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               lda,
                                               dB,
                                               ldb,
-                                              dC,
-                                              ldc),
+                                              *dOut,
+                                              ldOut),
                               rocblas_status_invalid_value);
 
         // check for invalid size
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, -1, N, alpha, dA, lda, dB, ldb, dC, ldc),
+                handle, side, uplo, transA, diag, -1, N, alpha, dA, lda, dB, ldb, *dOut, ldOut),
             rocblas_status_invalid_size);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, -1, alpha, dA, lda, dB, ldb, dC, ldc),
+                handle, side, uplo, transA, diag, M, -1, alpha, dA, lda, dB, ldb, *dOut, ldOut),
             rocblas_status_invalid_size);
 
         // check for invalid leading dimension
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, M - 1, dC, ldc),
+                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, M - 1, *dOut, ldOut),
             rocblas_status_invalid_size);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, dC, M - 1),
+                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, *dOut, M - 1),
             rocblas_status_invalid_size);
 
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
@@ -184,8 +193,8 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               M - 1,
                                               dB,
                                               ldb,
-                                              dC,
-                                              ldc),
+                                              *dOut,
+                                              ldOut),
                               rocblas_status_invalid_size);
 
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
@@ -200,41 +209,52 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               N - 1,
                                               dB,
                                               ldb,
-                                              dC,
-                                              ldc),
+                                              *dOut,
+                                              ldOut),
                               rocblas_status_invalid_size);
 
         // check that nullpointer gives rocblas_status_invalid_handle or rocblas_status_invalid_pointer
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                nullptr, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, dC, ldc),
+                nullptr, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, *dOut, ldOut),
             rocblas_status_invalid_handle);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, dC, ldc),
+                handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, *dOut, ldOut),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, nullptr, lda, dB, ldb, dC, ldc),
+                handle, side, uplo, transA, diag, M, N, alpha, nullptr, lda, dB, ldb, *dOut, ldOut),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, nullptr, ldb, dC, ldc),
+                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, nullptr, ldb, *dOut, ldOut),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, nullptr, ldc),
+                handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, nullptr, ldOut),
             rocblas_status_invalid_pointer);
 
         // quick return: If alpha==0, then A and B can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, zero, nullptr, lda, nullptr, ldb, dC, ldc),
-            rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              diag,
+                                              M,
+                                              N,
+                                              zero,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              ldb,
+                                              *dOut,
+                                              ldOut),
+                              rocblas_status_success);
 
         // quick return: If M==0, then all pointers can be nullptr without error
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
@@ -250,7 +270,7 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               nullptr,
                                               ldb,
                                               nullptr,
-                                              ldc),
+                                              ldOut),
                               rocblas_status_success);
 
         // quick return: If N==0, then all pointers can be nullptr without error
@@ -267,8 +287,28 @@ void testing_trmm_bad_arg(const Arguments& arg)
                                               nullptr,
                                               ldb,
                                               nullptr,
-                                              ldc),
+                                              ldOut),
                               rocblas_status_success);
+        // in-place only checks
+        if(inplace)
+        {
+            // if inplace, must have ldb == ldc
+            EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  alpha,
+                                                  dA,
+                                                  lda,
+                                                  dB,
+                                                  ldb,
+                                                  *dOut,
+                                                  ldb + 1),
+                                  rocblas_status_invalid_value);
+        }
     }
 }
 
@@ -277,11 +317,16 @@ void testing_trmm(const Arguments& arg)
 {
     auto rocblas_trmm_fn = arg.api == FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
 
-    rocblas_int M   = arg.M;
-    rocblas_int N   = arg.N;
-    rocblas_int lda = arg.lda;
-    rocblas_int ldb = arg.ldb;
-    rocblas_int ldc = arg.ldc;
+    // trmm has both inplace and outofplace versions.
+    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
+    bool inplace = !arg.c_noalias_d;
+
+    rocblas_int M     = arg.M;
+    rocblas_int N     = arg.N;
+    rocblas_int lda   = arg.lda;
+    rocblas_int ldb   = arg.ldb;
+    rocblas_int ldc   = arg.ldc;
+    rocblas_int ldOut = inplace ? ldb : ldc;
 
     char char_side   = arg.side;
     char char_uplo   = arg.uplo;
@@ -294,10 +339,7 @@ void testing_trmm(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K      = side == rocblas_side_left ? M : N;
-    size_t      size_A = lda * size_t(K);
-    size_t      size_B = ldb * size_t(N);
-    size_t      size_C = ldc * size_t(N);
+    rocblas_int K = side == rocblas_side_left ? M : N;
 
     rocblas_local_handle handle{arg};
 
@@ -333,13 +375,12 @@ void testing_trmm(const Arguments& arg)
     // Allocate device memory
     device_matrix<T> dA(K, K, lda);
     device_matrix<T> dB(M, N, ldb);
-    device_matrix<T> dC(M, N, ldc);
+
     device_vector<T> alpha_d(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     // Initialize data on host memory
@@ -352,9 +393,47 @@ void testing_trmm(const Arguments& arg)
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
-    CHECK_HIP_ERROR(dC.transfer_from(hC));
 
-    hC_gold = hC;
+    // inplace    trmm is given by B <- alpha * op(A) * B so  matrix C is not used
+    // outofplace trmm is given by C <- alpha * op(A) * B and matrix C is used
+    rocblas_int dC_M   = inplace ? 1 : M;
+    rocblas_int dC_N   = inplace ? 1 : N;
+    rocblas_int dC_ldc = inplace ? 1 : ldc;
+
+    device_matrix<T> dC(dC_M, dC_N, dC_ldc);
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+    device_matrix<T>* dOut = inplace ? &dB : &dC;
+
+    if(inplace)
+    {
+        if(ldb != ldc)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  N,
+                                                  &h_alpha_T,
+                                                  dA,
+                                                  lda,
+                                                  dB,
+                                                  ldb,
+                                                  *dOut,
+                                                  ldc),
+                                  rocblas_status_invalid_value);
+            return;
+        }
+
+        hC_gold = hB;
+    }
+    else
+    {
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
+        hC_gold = hC;
+    }
 
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
@@ -366,20 +445,32 @@ void testing_trmm(const Arguments& arg)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb, dC, ldc));
+            CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(handle,
+                                                side,
+                                                uplo,
+                                                transA,
+                                                diag,
+                                                M,
+                                                N,
+                                                &h_alpha_T,
+                                                dA,
+                                                lda,
+                                                dB,
+                                                ldb,
+                                                *dOut,
+                                                ldOut));
             handle.post_test(arg);
-            CHECK_HIP_ERROR(hC.transfer_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_from(*dOut));
         }
 
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+            CHECK_HIP_ERROR((*dOut).transfer_from(hC_gold));
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_HIP_ERROR(hipMemcpy(alpha_d, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
 
             CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb, dC, ldc));
+                handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb, *dOut, ldOut));
         }
 
         // CPU BLAS
@@ -413,7 +504,7 @@ void testing_trmm(const Arguments& arg)
         }
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(hC.transfer_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_from(*dOut));
 
             if(arg.unit_check)
             {
@@ -445,8 +536,20 @@ void testing_trmm(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb, dC, ldc));
+            CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(handle,
+                                                side,
+                                                uplo,
+                                                transA,
+                                                diag,
+                                                M,
+                                                N,
+                                                &h_alpha_T,
+                                                dA,
+                                                lda,
+                                                dB,
+                                                ldb,
+                                                *dOut,
+                                                ldOut));
         }
 
         hipStream_t stream;
@@ -454,8 +557,20 @@ void testing_trmm(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(
-                handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb, dC, ldc));
+            CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(handle,
+                                                side,
+                                                uplo,
+                                                transA,
+                                                diag,
+                                                M,
+                                                N,
+                                                &h_alpha_T,
+                                                dA,
+                                                lda,
+                                                dB,
+                                                ldb,
+                                                *dOut,
+                                                ldOut));
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 

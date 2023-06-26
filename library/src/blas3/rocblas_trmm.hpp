@@ -132,7 +132,7 @@ rocblas_status rocblas_trmm_arg_check(rocblas_handle    handle,
     // ensuring ldb == ldc when B and C are the same
     // matching gemm_ex behaviour
     if(b == c && ldb != ldc)
-        return rocblas_status_invalid_size;
+        return rocblas_status_invalid_value;
 
     return rocblas_status_continue;
 }
