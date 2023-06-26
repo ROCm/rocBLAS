@@ -345,7 +345,7 @@ Tests:
 # fortran
   - name: scal_blas1_with_alpha
     category: quick
-    N: [ -1, 0, 64 ]
+    N: [ -1, 0, 2, 64 ]
     incx: *incx_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
