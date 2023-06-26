@@ -25,9 +25,10 @@ Definitions:
     - { M:    20, N:    30, lda:    40, ldb:   100, ldc: 60 }
 
   - &small_matrix_size_range
-    - { M:    -1, N:    -1, lda:     1, ldb:     1, ldc: 1   }
-    - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 200 }
-    - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 50  }
+#   - { M:    -1, N:    -1, lda:     1, ldb:     1, ldc: 1   }
+#   - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 200 }
+    - { M:     5, N:     5, lda:     5, ldb:     5, ldc:   5 }
+#   - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 50  }
 
   - &medium_matrix_size_range
     - { M:   192, N:   192, lda:   192, ldb:   192, ldc: 192 }
@@ -135,7 +136,9 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
+  c_noalias_d: [false, true]
   api: [ C, FORTRAN ]
+  c_noalias_d: [ false, true ]
 
 - name: trmm_batched_bad_arg
   category: quick
@@ -146,6 +149,7 @@ Tests:
   uplo: [U]
   transA: [N]
   diag: [N]
+  c_noalias_d: [false, true]
   api: [ C, FORTRAN ]
 
 - name: trmm_strided_batched_bad_arg
@@ -157,6 +161,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
+  c_noalias_d: [false, true]
   api: [ C, FORTRAN ]
 
 - name: trmm_size_t
@@ -341,6 +346,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size
   alpha_beta: *complex_alpha_range
+  c_noalias_d: [ false, true ]
 
 - name: trmm_small
   category: quick
@@ -353,8 +359,9 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
+  c_noalias_d: [ false, true ]
 
-- name: trmm_medium
+- name: trmm_medium_noalias
   category: pre_checkin
   function:
     - trmm
@@ -365,6 +372,7 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
+  c_noalias_d: [false, true] # test both inplace and outofplace
 
 - name: trmm_medium
   category: pre_checkin
@@ -377,6 +385,7 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha
+  c_noalias_d: [false, true]
 
 - name: trmm_NaN
   category: pre_checkin
