@@ -292,6 +292,7 @@ Tests:
   stride_scale: [ 1         ]
   batch_count: [         2 ]
   api: [ C, FORTRAN ]
+  c_noalias_d: [false, true]
 
 - name: trmm_strided_batched_small
   category: quick
@@ -306,6 +307,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+  c_noalias_d: [false, true]
 
 - name: trmm_batched_medium
   category: pre_checkin
@@ -334,6 +336,7 @@ Tests:
   alpha_beta: *complex_alpha
   stride_scale: [ 1         ]
   batch_count: [           2 ]
+  c_noalias_d: [false, true]
 
 - name: trmm_small
   category: quick
@@ -412,6 +415,7 @@ Tests:
   stride_scale: [ 1, 2      ]
   alpha: [ .NaN ] # NaN is converted to 0.0 in test code
   batch_count: [ 2  ]
+  c_noalias_d: [false, true]
 
 - name: trmm_testset1
   category: nightly
