@@ -41,7 +41,9 @@ template <typename T>
 void testing_trmm_bad_arg(const Arguments& arg)
 {
     auto rocblas_trmm_fn = arg.api == FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
-    bool inplace         = arg.c_noalias_d;
+    // trmm has both inplace and outofplace versions.
+    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
+    bool inplace = !arg.c_noalias_d;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -293,21 +295,10 @@ void testing_trmm_bad_arg(const Arguments& arg)
         if(inplace)
         {
             // if inplace, must have ldb == ldc
-            EXPECT_ROCBLAS_STATUS(rocblas_trmm_fn(handle,
-                                                  side,
-                                                  uplo,
-                                                  transA,
-                                                  diag,
-                                                  M,
-                                                  N,
-                                                  alpha,
-                                                  dA,
-                                                  lda,
-                                                  dB,
-                                                  ldb,
-                                                  *dOut,
-                                                  ldb + 1),
-                                  rocblas_status_invalid_value);
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_trmm_fn(
+                    handle, side, uplo, transA, diag, M, N, alpha, dA, lda, dB, ldb, dB, ldb + 1),
+                rocblas_status_invalid_value);
         }
     }
 }
