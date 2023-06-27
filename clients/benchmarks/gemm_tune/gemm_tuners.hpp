@@ -21,7 +21,9 @@
  * ************************************************************************ */
 #pragma once
 
+#ifndef ROCBLAS_NO_DEPRECATED_WARNINGS
 #define ROCBLAS_NO_DEPRECATED_WARNINGS
+#endif
 #define ROCBLAS_BETA_FEATURES_API
 #include "rocblas.hpp"
 #include "rocblas_arguments.hpp"
