@@ -472,7 +472,7 @@ The in-place and out-of-place trmm API calculates
 
 C <- alpha * op(A) * B
 
-The in-place functionality is available by setting C the same as B. For out-of-place functionality C and B are different.
+The in-place functionality is available by setting C the same as B and ldb = ldc. For out-of-place functionality C and B are different.
 
 =================
 Using rocBLAS API
