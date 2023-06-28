@@ -42,6 +42,9 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_trmm_batched_fn
         = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+    // trmm has both inplace and outofplace versions.
+    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
+    bool inplace = !arg.c_noalias_d;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -53,6 +56,7 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
         const rocblas_int lda         = 101;
         const rocblas_int ldb         = 101;
         const rocblas_int ldc         = 101;
+        const rocblas_int ldOut       = inplace ? ldb : ldc;
         const rocblas_int batch_count = 2;
 
         device_vector<T> alpha_d(1), zero_d(1);
@@ -80,12 +84,19 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
         // Allocate device memory
         device_batch_matrix<T> dA(K, K, lda, batch_count);
         device_batch_matrix<T> dB(M, N, ldb, batch_count);
-        device_batch_matrix<T> dC(M, N, ldc, batch_count);
+
+        rocblas_int dC_M   = inplace ? 1 : M;
+        rocblas_int dC_N   = inplace ? 1 : N;
+        rocblas_int dC_ldc = inplace ? 1 : ldc;
+
+        device_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, batch_count);
 
         // Check device memory allocation
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+        device_batch_matrix<T>* dOut = inplace ? &dB : &dC;
 
         // check for invalid enum
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
@@ -96,12 +107,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_value);
 
@@ -113,12 +124,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_value);
 
@@ -130,12 +141,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_value);
 
@@ -147,12 +158,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_value);
 
@@ -165,12 +176,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       -1,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_size);
 
@@ -182,12 +193,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       -1,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_size);
 
@@ -200,12 +211,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       M - 1,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_size);
 
@@ -217,11 +228,11 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
+                                                      (*dOut).ptr_on_device(),
                                                       M - 1,
                                                       batch_count),
                               rocblas_status_invalid_size);
@@ -234,12 +245,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       M - 1,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_size);
 
@@ -251,12 +262,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       N - 1,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_size);
 
@@ -269,12 +280,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_handle);
 
@@ -286,12 +297,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       nullptr,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_pointer);
 
@@ -305,10 +316,10 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       alpha,
                                                       nullptr,
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_pointer);
 
@@ -320,12 +331,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
                                                       nullptr,
                                                       ldb,
-                                                      dC,
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_pointer);
 
@@ -337,12 +348,12 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       alpha,
-                                                      dA,
+                                                      dA.ptr_on_device(),
                                                       lda,
-                                                      dB,
+                                                      dB.ptr_on_device(),
                                                       ldb,
                                                       nullptr,
-                                                      ldc,
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_invalid_pointer);
 
@@ -359,8 +370,8 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       lda,
                                                       nullptr,
                                                       ldb,
-                                                      dC.ptr_on_device(),
-                                                      ldc,
+                                                      (*dOut).ptr_on_device(),
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_success);
 
@@ -378,7 +389,7 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       nullptr,
                                                       ldb,
                                                       nullptr,
-                                                      ldc,
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_success);
 
@@ -396,7 +407,7 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       nullptr,
                                                       ldb,
                                                       nullptr,
-                                                      ldc,
+                                                      ldOut,
                                                       batch_count),
                               rocblas_status_success);
 
@@ -414,9 +425,29 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                       nullptr,
                                                       ldb,
                                                       nullptr,
-                                                      ldc,
+                                                      ldOut,
                                                       0),
                               rocblas_status_success);
+        if(inplace)
+        {
+            // if inplace, must have ldb == ldc
+            EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                          side,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          N,
+                                                          alpha,
+                                                          dA.ptr_on_device(),
+                                                          lda,
+                                                          dB.ptr_on_device(),
+                                                          ldb,
+                                                          dB.ptr_on_device(),
+                                                          ldb + 1,
+                                                          batch_count),
+                                  rocblas_status_invalid_value);
+        }
     }
 }
 
@@ -425,6 +456,10 @@ void testing_trmm_batched(const Arguments& arg)
 {
     auto rocblas_trmm_batched_fn
         = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+
+    // trmm has both inplace and outofplace versions.
+    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
+    bool inplace = !arg.c_noalias_d;
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same_v<
@@ -438,6 +473,7 @@ void testing_trmm_batched(const Arguments& arg)
     rocblas_int          lda         = arg.lda;
     rocblas_int          ldb         = arg.ldb;
     rocblas_int          ldc         = arg.ldc;
+    rocblas_int          ldOut       = inplace ? ldb : ldc;
     rocblas_int          batch_count = arg.batch_count;
 
     char char_side   = arg.side;
@@ -500,13 +536,11 @@ void testing_trmm_batched(const Arguments& arg)
     // Allocate device memory
     device_batch_matrix<T> dA(K, K, lda, batch_count);
     device_batch_matrix<T> dB(M, N, ldb, batch_count);
-    device_batch_matrix<T> dC(M, N, ldc, batch_count);
     device_vector<T>       d_alpha(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
@@ -521,7 +555,48 @@ void testing_trmm_batched(const Arguments& arg)
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
-    CHECK_HIP_ERROR(dC.transfer_from(hC));
+
+    // inplace    trmm is given by B <- alpha * op(A) * B so  matrix C is not used
+    // outofplace trmm is given by C <- alpha * op(A) * B and matrix C is used
+    rocblas_int dC_M   = inplace ? 1 : M;
+    rocblas_int dC_N   = inplace ? 1 : N;
+    rocblas_int dC_ldc = inplace ? 1 : ldc;
+
+    device_batch_matrix<T> dC(dC_M, dC_N, dC_ldc, batch_count);
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+
+    device_batch_matrix<T>* dOut = inplace ? &dB : &dC;
+
+    if(inplace)
+    {
+        // if ldc != ldb inplace returns rocblas_status_invalid_value
+        if(ldb != ldc)
+        {
+            EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                          side,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          N,
+                                                          &h_alpha[0],
+                                                          dA.ptr_on_device(),
+                                                          lda,
+                                                          dB.ptr_on_device(),
+                                                          ldb,
+                                                          (*dOut).ptr_on_device(),
+                                                          ldc,
+                                                          batch_count),
+                                  rocblas_status_invalid_value);
+            return;
+        }
+        hC_gold.copy_from(hB);
+    }
+    else
+    {
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
+        hC_gold.copy_from(hC);
+    }
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -541,17 +616,17 @@ void testing_trmm_batched(const Arguments& arg)
                                                         lda,
                                                         dB.ptr_on_device(),
                                                         ldb,
-                                                        dC.ptr_on_device(),
-                                                        ldc,
+                                                        (*dOut).ptr_on_device(),
+                                                        ldOut,
                                                         batch_count));
             handle.post_test(arg);
-            CHECK_HIP_ERROR(hC.transfer_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_from(*dOut));
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+            CHECK_HIP_ERROR((*dOut).transfer_from(hC_gold));
             CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
 
             CHECK_ROCBLAS_ERROR(rocblas_trmm_batched_fn(handle,
@@ -566,8 +641,8 @@ void testing_trmm_batched(const Arguments& arg)
                                                         lda,
                                                         dB.ptr_on_device(),
                                                         ldb,
-                                                        dC.ptr_on_device(),
-                                                        ldc,
+                                                        (*dOut).ptr_on_device(),
+                                                        ldOut,
                                                         batch_count));
         }
 
@@ -606,7 +681,7 @@ void testing_trmm_batched(const Arguments& arg)
         }
         if(arg.pointer_mode_device)
         {
-            CHECK_HIP_ERROR(hC.transfer_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_from(*dOut));
 
             if(arg.unit_check)
             {
@@ -651,8 +726,8 @@ void testing_trmm_batched(const Arguments& arg)
                                                         lda,
                                                         dB.ptr_on_device(),
                                                         ldb,
-                                                        dC.ptr_on_device(),
-                                                        ldc,
+                                                        (*dOut).ptr_on_device(),
+                                                        ldOut,
                                                         batch_count));
         }
 
@@ -673,8 +748,8 @@ void testing_trmm_batched(const Arguments& arg)
                                     lda,
                                     dB.ptr_on_device(),
                                     ldb,
-                                    dC.ptr_on_device(),
-                                    ldc,
+                                    (*dOut).ptr_on_device(),
+                                    ldOut,
                                     batch_count);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
