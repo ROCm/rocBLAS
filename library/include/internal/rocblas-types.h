@@ -231,6 +231,8 @@ typedef enum rocblas_status_
     rocblas_status_continue            = 12, /**< Nothing preventing function to proceed */
     rocblas_status_check_numerics_fail
     = 13, /**< Will be set if the vector/matrix has a NaN/Infinity/denormal value */
+    rocblas_status_excluded_from_build
+    = 14, /**< Function is not available in build, likely a function requiring Tensile built without Tensile */
     rocblas_status_arch_mismatch
     = 15, /**< The function requires a feature absent from the device architecture */
 } rocblas_status;

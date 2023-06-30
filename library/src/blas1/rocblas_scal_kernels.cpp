@@ -72,7 +72,7 @@ rocblas_sscal_2_kernel(rocblas_int    n,
 
     uint32_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 2;
 
-    if(tid < n - 1)
+    if(tid + 1 < n)
     {
         // Each thread access contiguous elements for example Thread '0' access indices '0' and '1' of the vector `x`
         for(int32_t j = 0; j < 2; ++j)
@@ -115,7 +115,7 @@ rocblas_hscal_mlt_4_kernel(rocblas_int    n,
 
     uint32_t tid = (blockIdx.x * blockDim.x + threadIdx.x) * 4;
 
-    if(tid < n - 3)
+    if(tid + 3 < n)
     {
         rocblas_half4* x = (rocblas_half4*)load_ptr_batch(xa, blockIdx.y, offset_x + tid, stride_x);
 

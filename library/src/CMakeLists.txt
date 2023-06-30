@@ -123,16 +123,10 @@ if( BUILD_WITH_TENSILE )
     tensile_host.cpp
   )
 
-  #rocblas gemm_ex, gemm_ext2 and trsv require tensile
+  # gemm_ext2 requires tensile and doesn't need stub
   set( rocblas_ex_source
-    blas_ex/rocblas_gemm_ex.cpp
     blas_ex/rocblas_gemm_ex3.cpp
-    blas_ex/rocblas_gemm_batched_ex.cpp
-    blas_ex/rocblas_gemm_strided_batched_ex.cpp
     blas_ex/rocblas_gemm_ext2.cpp
-    blas_ex/rocblas_trsv_ex.cpp
-    blas_ex/rocblas_trsv_strided_batched_ex.cpp
-    blas_ex/rocblas_trsv_batched_ex.cpp
     ${Tensile_SRC}
   )
 
@@ -169,6 +163,14 @@ set(rocblas_ex_source_no_tensile
     blas_ex/rocblas_trmm_outofplace_strided_batched.cpp
     blas_ex/rocblas_geam_ex.cpp
     blas_ex/rocblas_geam_ex_kernels.cpp
+
+    # these require tensile but export no-op symbols to build downstream components
+    blas_ex/rocblas_gemm_ex.cpp
+    blas_ex/rocblas_gemm_batched_ex.cpp
+    blas_ex/rocblas_gemm_strided_batched_ex.cpp
+    blas_ex/rocblas_trsv_ex.cpp
+    blas_ex/rocblas_trsv_strided_batched_ex.cpp
+    blas_ex/rocblas_trsv_batched_ex.cpp
 )
 
 set( rocblas_blas3_source_no_tensile

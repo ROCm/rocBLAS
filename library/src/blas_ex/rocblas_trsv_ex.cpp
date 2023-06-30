@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,11 @@
  *
  * ************************************************************************ */
 #include "handle.hpp"
-#include "logging.hpp"
 #include "rocblas.h"
+
+#ifdef BUILD_WITH_TENSILE
+
+#include "logging.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_trsv_inverse.hpp"
 #include "utility.hpp"
@@ -208,6 +211,8 @@ namespace
 
 } // namespace
 
+#endif // BUILD_WITH_TENSILE
+
 /*
  * ===========================================================================
  *    C wrapper
@@ -230,6 +235,7 @@ rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
                                rocblas_datatype  compute_type)
 try
 {
+#ifdef BUILD_WITH_TENSILE
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
@@ -289,6 +295,9 @@ try
     default:
         return rocblas_status_not_implemented;
     }
+#else
+    return rocblas_status_excluded_from_build;
+#endif
 }
 catch(...)
 {
