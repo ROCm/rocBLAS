@@ -96,6 +96,7 @@ void testing_syr2k_bad_arg(const Arguments& arg)
             rocblas_syrXX_fn(nullptr, uplo, transA, N, K, alpha, dA, lda, dB, ldb, beta, dC, ldc),
             rocblas_status_invalid_handle);
 
+        // invalid values
         EXPECT_ROCBLAS_STATUS(
             rocblas_syrXX_fn(
                 handle, rocblas_fill_full, transA, N, K, alpha, dA, lda, dB, ldb, beta, dC, ldc),
@@ -161,27 +162,6 @@ void testing_syr2k_bad_arg(const Arguments& arg)
                     handle, uplo, transA, N, K, alpha, dA, lda, dB, ldb, beta, nullptr, ldc),
                 rocblas_status_invalid_pointer);
         }
-
-        // invalid values
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_syrXX_fn(
-                handle, rocblas_fill_full, transA, N, K, alpha, dA, lda, dB, ldb, beta, dC, ldc),
-            rocblas_status_invalid_value);
-
-        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_fn(handle,
-                                               uplo,
-                                               (rocblas_operation)rocblas_fill_full,
-                                               N,
-                                               K,
-                                               alpha,
-                                               dA,
-                                               lda,
-                                               dB,
-                                               ldb,
-                                               beta,
-                                               dC,
-                                               ldc),
-                              rocblas_status_invalid_value);
 
         // size
         EXPECT_ROCBLAS_STATUS(
