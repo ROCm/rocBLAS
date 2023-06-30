@@ -99,6 +99,7 @@ void testing_syr2k_batched_bad_arg(const Arguments& arg)
                 nullptr, uplo, transA, N, K, alpha, dA, lda, dB, ldb, beta, dC, ldc, batch_count),
             rocblas_status_invalid_handle);
 
+        // invalid values
         EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
                                                        rocblas_fill_full,
                                                        transA,
@@ -212,39 +213,6 @@ void testing_syr2k_batched_bad_arg(const Arguments& arg)
                                                            batch_count),
                                   rocblas_status_invalid_pointer);
         }
-
-        // invalid values
-        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
-                                                       rocblas_fill_full,
-                                                       transA,
-                                                       N,
-                                                       K,
-                                                       alpha,
-                                                       dA,
-                                                       lda,
-                                                       dB,
-                                                       ldb,
-                                                       beta,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
-                              rocblas_status_invalid_value);
-
-        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
-                                                       uplo,
-                                                       (rocblas_operation)rocblas_fill_full,
-                                                       N,
-                                                       K,
-                                                       alpha,
-                                                       dA,
-                                                       lda,
-                                                       dB,
-                                                       ldb,
-                                                       beta,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
-                              rocblas_status_invalid_value);
 
         // batch_count==0 quick return for no ops with null pointers
         EXPECT_ROCBLAS_STATUS(rocblas_syrXX_batched_fn(handle,
