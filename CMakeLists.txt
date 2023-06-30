@@ -100,7 +100,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "3.1.0" )
+set ( VERSION_STRING "4.0.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -113,7 +113,7 @@ set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
 set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1012 gfx1030 gfx1100 gfx1101 gfx1102 )
 
 # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
-# Sets the AMDGPU_TARGETS with backward compatiblity
+# Sets the AMDGPU_TARGETS with backward compatibility
 if (AMDGPU_TARGETS STREQUAL "all")
   rocm_check_target_ids(target_list
       TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
@@ -131,33 +131,32 @@ if(NOT SKIP_LIBRARY)
   if( BUILD_WITH_TENSILE )
     # we will have expanded "all" for tensile to ensure consistency as we have local rules
     set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
+    set( TENSILE_VERSION 4.38.0 CACHE STRING "The version of Tensile to be used")
 
-    if (WIN32)
-      set( Tensile_ROOT "${CMAKE_BINARY_DIR}/virtualenv/Lib/site-packages/Tensile" )
+    if(BUILD_WITH_PIP)
+      if (WIN32)
+        set( Tensile_ROOT "${CMAKE_BINARY_DIR}/virtualenv/Lib/site-packages/Tensile" )
+      endif()
+
+      set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
+
+      include(virtualenv)
+
+      if (Tensile_TEST_LOCAL_PATH)
+        virtualenv_install(${Tensile_TEST_LOCAL_PATH})
+        message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
+      else()
+        # Use the virtual-env setup and download package from specified repot:
+        set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
+        file (STRINGS "tensile_tag.txt" read_tensile_tag)
+        set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
+        virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
+        message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
+      endif()
+      message(STATUS "Adding ${VIRTUALENV_HOME_DIR} to CMAKE_PREFIX_PATH")
+      list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
     endif()
-
-    set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
-
-    include(virtualenv)
-
-    if (Tensile_TEST_LOCAL_PATH)
-      virtualenv_install(${Tensile_TEST_LOCAL_PATH})
-      message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
-    else()
-      # Use the virtual-env setup and download package from specified repot:
-      set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-      file (STRINGS "tensile_tag.txt" read_tensile_tag)
-      set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
-      virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
-      message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
-    endif()
-    message(STATUS "Adding ${VIRTUALENV_HOME_DIR} to CMAKE_PREFIX_PATH")
-    list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-    if (TENSILE_VERSION)
-      find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
-    else()
-      find_package(Tensile 4.37.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
-    endif()
+    find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM)
   endif()
 endif()
 

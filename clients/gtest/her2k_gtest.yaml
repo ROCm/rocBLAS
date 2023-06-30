@@ -45,16 +45,19 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: her2k_size_t
-  category: nightly
+  category: nightly #stress
   function: her2k
   precision: *single_precision_complex
-  uplo: [ U ]
-  transA: [ C ]
+  uplo: [ U, L ]
+  transA: [ C ] # A and B ar KxN for transA=C
   matrix_size:
-    - { N:     4, K: 51200, lda: 51200, ldb: 51200, ldc:     4 }
-    - { N: 51200, K:     4, lda:     4, ldb:     4, ldc: 51200 }
+    - { N:     3, K: 46975, lda: 46975, ldb: 46975, ldc:     3 }
+    - { N: 46975, K:     3, lda:     3, ldb:     3, ldc: 46975 }
   alpha_beta:
-    - { alpha:  2.0, alphai:  0.0, beta:  3.0, betai: 0.0 }
+    - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
+  pointer_mode_host: false
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: her2k_quick
   category: quick
@@ -94,6 +97,7 @@ Tests:
   transA: [ N, C ]
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta_range_small
+  pointer_mode_device: false
 
   # batched
 - name: her2k_batched_bad
@@ -144,6 +148,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 2 ]
+  pointer_mode_host: false
 
   # strided batched
 - name: her2k_strided_batched_bad

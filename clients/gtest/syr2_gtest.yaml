@@ -3,6 +3,13 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &size_t_n_incx_incy
+    - { N: 2048, lda: 2097200, incx:        1, incy:        1 }
+    - { N: 2048, lda:    2048, incx:  2097200, incy:        1 }
+    - { N: 2048, lda:    2048, incx:        1, incy:  2097200 }
+    - { N: 2048, lda:    2048, incx: -2097200, incy:        1 }
+    - { N: 2048, lda:    2048, incx:        1, incy: -2097200 }
+
   - &small_matrix_size_range
     - { N:     5, lda:   4 }
     - { N:     1, lda:  10 }
@@ -105,6 +112,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
 
@@ -114,8 +122,20 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
+
+- name: syr2_size_t
+  category: nightly # stress_syr2
+  function: syr2
+  precision: *single_precision
+  uplo: [ U    ]
+  matrix_size: *size_t_n_incx_incy
+  pointer_mode_device: false
+  alpha_beta: *alpha_range_small
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 # batched
 - name: syr2_batched_fortran
@@ -156,6 +176,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
@@ -166,6 +187,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
@@ -212,6 +234,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
@@ -223,6 +246,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ L ]
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]

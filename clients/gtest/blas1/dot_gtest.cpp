@@ -54,16 +54,17 @@ namespace
             }
             else
             {
-                bool is_dot
+                constexpr bool is_dot
                     = (BLAS1 == blas1::dot || BLAS1 == blas1::dot_batched
                        || BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc
                        || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::dotc_strided_batched);
 
-                bool is_batched = (BLAS1 == blas1::dot_batched || BLAS1 == blas1::dotc_batched);
-                bool is_strided
+                constexpr bool is_batched
+                    = (BLAS1 == blas1::dot_batched || BLAS1 == blas1::dotc_batched);
+                constexpr bool is_strided
                     = (BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_strided_batched);
 
-                name << '_' << arg.incx;
+                name << '_' << arg.N << '_' << arg.incx;
 
                 if(is_strided)
                 {

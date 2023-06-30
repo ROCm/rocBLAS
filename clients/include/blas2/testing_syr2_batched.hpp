@@ -160,10 +160,9 @@ void testing_syr2_batched(const Arguments& arg)
         return;
     }
 
-    // Naming: `h` is in CPU (host) memory(eg hA_1), `d` is in GPU (device) memory (eg dA_1).
+    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_batch_matrix<T> hA_1(N, N, lda, batch_count);
-    host_batch_matrix<T> hA_2(N, N, lda, batch_count);
+    host_batch_matrix<T> hA(N, N, lda, batch_count);
     host_batch_matrix<T> hA_gold(N, N, lda, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
     host_batch_vector<T> hy(N, incy, batch_count);
@@ -171,37 +170,33 @@ void testing_syr2_batched(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Check host memory allocation
-    CHECK_HIP_ERROR(hA_1.memcheck());
-    CHECK_HIP_ERROR(hA_2.memcheck());
+    CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hA_gold.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
     CHECK_HIP_ERROR(hy.memcheck());
 
     // Allocate device memory
-    device_batch_matrix<T> dA_1(N, N, lda, batch_count);
-    device_batch_matrix<T> dA_2(N, N, lda, batch_count);
+    device_batch_matrix<T> dA(N, N, lda, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<T>       d_alpha(1);
 
     // Check device memory allocation
-    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
-    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Initialize data on host memory
     rocblas_init_matrix(
-        hA_1, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
+        hA, arg, rocblas_client_never_set_nan, rocblas_client_symmetric_matrix, true);
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, false, true);
     rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan);
 
-    hA_2.copy_from(hA_1);
-    hA_gold.copy_from(hA_1);
+    hA_gold.copy_from(hA);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
@@ -211,39 +206,48 @@ void testing_syr2_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // copy data from CPU to device
-        CHECK_HIP_ERROR(dA_2.transfer_from(hA_1));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_syr2_batched_fn(handle,
-                                                    uplo,
-                                                    N,
-                                                    &h_alpha,
-                                                    dx.ptr_on_device(),
-                                                    incx,
-                                                    dy.ptr_on_device(),
-                                                    incy,
-                                                    dA_1.ptr_on_device(),
-                                                    lda,
-                                                    batch_count));
-        handle.post_test(arg);
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_syr2_batched_fn(handle,
+                                                        uplo,
+                                                        N,
+                                                        &h_alpha,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        batch_count));
+            handle.post_test(arg);
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_syr2_batched_fn(handle,
-                                                    uplo,
-                                                    N,
-                                                    d_alpha,
-                                                    dx.ptr_on_device(),
-                                                    incx,
-                                                    dy.ptr_on_device(),
-                                                    incy,
-                                                    dA_2.ptr_on_device(),
-                                                    lda,
-                                                    batch_count));
-        handle.post_test(arg);
+            CHECK_HIP_ERROR(hA.transfer_from(dA));
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            // copy data from CPU to device
+            CHECK_HIP_ERROR(dA.transfer_from(hA_gold));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_syr2_batched_fn(handle,
+                                                        uplo,
+                                                        N,
+                                                        d_alpha,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        batch_count));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -253,19 +257,29 @@ void testing_syr2_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
-        CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(N, N, lda, hA_gold, hA_1, batch_count);
-            unit_check_general<T>(N, N, lda, hA_gold, hA_2, batch_count);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(N, N, lda, hA_gold, hA, batch_count);
+            }
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<T>('F', N, N, lda, hA_gold, hA, batch_count);
+            }
         }
-
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<T>('F', N, N, lda, hA_gold, hA_1, batch_count);
-            rocblas_error_2 = norm_check_general<T>('F', N, N, lda, hA_gold, hA_2, batch_count);
+            CHECK_HIP_ERROR(hA.transfer_from(dA));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(N, N, lda, hA_gold, hA, batch_count);
+            }
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<T>('F', N, N, lda, hA_gold, hA, batch_count);
+            }
         }
     }
 
@@ -285,7 +299,7 @@ void testing_syr2_batched(const Arguments& arg)
                                     incx,
                                     dy.ptr_on_device(),
                                     incy,
-                                    dA_1.ptr_on_device(),
+                                    dA.ptr_on_device(),
                                     lda,
                                     batch_count);
         }
@@ -304,7 +318,7 @@ void testing_syr2_batched(const Arguments& arg)
                                     incx,
                                     dy.ptr_on_device(),
                                     incy,
-                                    dA_1.ptr_on_device(),
+                                    dA.ptr_on_device(),
                                     lda,
                                     batch_count);
         }

@@ -93,6 +93,8 @@ void Arguments::init()
 
     batch_count = 1;
 
+    scan = c_scan_value; // default value disables scanning
+
     // 32bit
 
     iters      = 10;
@@ -148,6 +150,48 @@ void Arguments::init()
     c_noalias_d         = false;
     HMM                 = false;
     graph_test          = false;
+}
+
+bool Arguments::validate()
+{
+// c_scan_value must matching value in rocblas_common.yaml definition
+#define SCAN_VALUE_CHECK(arg_) \
+    if(arg_ == c_scan_value)   \
+    arg_ = scan
+
+    if(scan != c_scan_value)
+    {
+        // int64_t variables all same as scan
+
+        SCAN_VALUE_CHECK(stride_a);
+        SCAN_VALUE_CHECK(stride_b);
+        SCAN_VALUE_CHECK(stride_c);
+        SCAN_VALUE_CHECK(stride_d);
+        SCAN_VALUE_CHECK(stride_x);
+        SCAN_VALUE_CHECK(stride_y);
+
+        SCAN_VALUE_CHECK(M);
+        SCAN_VALUE_CHECK(N);
+        SCAN_VALUE_CHECK(K);
+
+        SCAN_VALUE_CHECK(KL);
+        SCAN_VALUE_CHECK(KU);
+
+        SCAN_VALUE_CHECK(lda);
+        SCAN_VALUE_CHECK(ldb);
+        SCAN_VALUE_CHECK(ldc);
+        SCAN_VALUE_CHECK(ldd);
+
+        SCAN_VALUE_CHECK(incx);
+        SCAN_VALUE_CHECK(incy);
+
+        SCAN_VALUE_CHECK(batch_count);
+    }
+
+#undef SCAN_VALUE_CHECK
+
+    // future use, for now everything is valid after rules appled
+    return true;
 }
 
 static Arguments& getDefaultArgs()

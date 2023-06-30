@@ -56,11 +56,12 @@ namespace
             }
             else
             {
-                bool is_batched = (BLAS1 == blas1::iamax_batched || BLAS1 == blas1::iamin_batched);
-                bool is_strided = (BLAS1 == blas1::iamax_strided_batched
-                                   || BLAS1 == blas1::iamin_strided_batched);
+                constexpr bool is_batched
+                    = (BLAS1 == blas1::iamax_batched || BLAS1 == blas1::iamin_batched);
+                constexpr bool is_strided = (BLAS1 == blas1::iamax_strided_batched
+                                             || BLAS1 == blas1::iamin_strided_batched);
 
-                name << '_' << arg.incx;
+                name << '_' << arg.N << '_' << arg.incx;
 
                 if(is_strided)
                 {

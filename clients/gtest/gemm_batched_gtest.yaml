@@ -10,6 +10,12 @@ Definitions:
     - { M:    32, N:    64, K:    16, lda:    65, ldb:    66, ldc:    67, ldd:    67 }
     - { M:    25, N:    26, K:    27, lda:    28, ldb:    29, ldc:    30, ldd:    30 }
 
+  # using stride_x,y,d to test out offsets of rocblas_internal_gemm_interface()
+  - &gemm_internal_matrix_size
+    - { M:  1000, N: 1001, K: 101, lda:  2002, ldb: 1003, ldc:  1004, ldd:  1004, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+    - { M:   128, N:  128, K: 128, lda:   128, ldb:  128, ldc:   128, ldd:   128, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+    - { M: 32768, N:  480, K:   1, lda: 32768, ldb:  480, ldc: 32768, ldd: 32768, stride_x: 4294967296, stride_y: 4294967297, stride_d: 4294967298 }
+
   - &small_matrix_size_range
     - { M:    -1, N:    -1, K:    -1, lda:    -1, ldb:     1, ldc:     1, ldd:     1 }
     - { M:     0, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 } # m==0
@@ -215,6 +221,7 @@ Tests:
   function:
     - gemm_batched: *single_double_precisions_complex
   matrix_size: *algorithm_coverage_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *algorithm_coverage_transA_transB_range
   alpha_beta: *algorithm_coverage_alpha_beta_range
   batch_count: [ 1, 3 ]
@@ -225,6 +232,7 @@ Tests:
   function:
     - gemm_batched: *single_double_precisions_complex
   matrix_size: *algorithm_coverage_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *algorithm_coverage_transA_transB_conj_range
   alpha_beta: *algorithm_coverage_alpha_beta_range
   batch_count: [ 1, 3 ]
@@ -235,6 +243,7 @@ Tests:
   function:
     - gemm_batched: *single_double_precisions
   matrix_size: *algorithm_coverage_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *algorithm_coverage_transA_transB_range
   alpha_beta: *algorithm_coverage_alpha_beta_range
   batch_count: [ 1, 3 ]
@@ -274,6 +283,7 @@ Tests:
     - gemm_batched_ex: *nonint8_real_precisions
     - gemm_batched_ex: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
@@ -284,11 +294,25 @@ Tests:
   function:
     - gemm_batched_ex: *int8_precision
   matrix_size: *small_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 3 ]
   api: FORTRAN
   flags: [0,1]
+
+# general batched gemm passes offset into tensile, strided_batched
+# and non-batched just offset pointer beforehand
+- name: gemm_batched_internal
+  category: quick
+  function:
+    - gemm_batched: *single_precision
+  matrix_size: *gemm_internal_matrix_size
+  pointer_mode_device: false
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 3 ]
+  api: INTERNAL
 
 - name: gemm_batched_small
   category: quick
@@ -296,6 +320,7 @@ Tests:
     - gemm_batched: *half_single_double_precisions
     - gemm_batched_ex: *nonint8_real_precisions
   matrix_size: *small_matrix_size_range
+  pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   batch_count: [ -1, 0, 1, 3 ]
@@ -305,6 +330,7 @@ Tests:
   function:
     - gemm_batched_ex: *int8_precision
   matrix_size: *small_matrix_size_range
+  pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   batch_count: [ -1, 0, 1, 3 ]
@@ -316,6 +342,7 @@ Tests:
     gemm_batched: *single_double_precisions_complex
     gemm_batched_ex: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
+  pointer_mode_host: false
   alpha_beta: *complex_alpha_beta_range
   transA_transB: *transA_transB_range
   batch_count: [ -1, 0, 1, 3 ]
@@ -326,6 +353,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *medium_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
@@ -336,6 +364,7 @@ Tests:
     gemm_batched: *single_double_precisions_complex
     gemm_batched_ex: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *complex_alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
@@ -346,6 +375,7 @@ Tests:
     - gemm_batched: *half_single_double_precisions
     - gemm_batched_ex: *half_single_double_precisions
   matrix_size: *large_matrix_size_range
+  pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
@@ -356,6 +386,7 @@ Tests:
     gemm_batched: *single_double_precisions_complex
     gemm_batched_ex: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
+  pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
@@ -366,6 +397,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *deepbench_vec
+  pointer_mode_device: false
   alpha: 1.0
   beta: 0.0
   transA: N
@@ -378,6 +410,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *conv_resnet50_fwd
+  pointer_mode_host: false
   alpha: 1.0
   beta: 0.0
   transA: N
@@ -390,6 +423,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *conv_resnet50_bwddata
+  pointer_mode_device: false
   alpha: 1.0
   beta: 0.0
   transA: N
@@ -402,6 +436,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *conv_inception4_fwd
+  pointer_mode_host: false
   alpha: 1.0
   beta: 0.0
   transA: N
@@ -414,6 +449,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *conv_inception4_bwddata
+  pointer_mode_device: false
   alpha: 1.0
   beta: 0.0
   transA: N
@@ -426,6 +462,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *conv_ctest_bwddata
+  pointer_mode_host: false
   alpha: 1.0
   beta: 0.0
   transA: N
@@ -438,6 +475,7 @@ Tests:
     - gemm_batched: *half_single_precisions
     - gemm_batched_ex: *half_single_precisions
   matrix_size: *conv_ctest_fwd
+  pointer_mode_device: false
   alpha: 1.0
   beta: 0.0
   transA: N
@@ -451,6 +489,7 @@ Tests:
   M: 128
   N: 128
   K: 1000
+  pointer_mode_host: false
   transA: N
   transB: N
   alpha: 0.001
@@ -472,6 +511,7 @@ Tests:
     - { M:  3,   N:  5 }
     - { M:  512, N:  100 }
     - { M:  63,  N:  512 }
+  pointer_mode_device: false
   batch_count: 1
 
 - name: gemm_batched_graph_test
@@ -481,6 +521,7 @@ Tests:
     - gemm_batched_ex: *half_single_precisions
   matrix_size:
       - { M:  512, N:  100 }
+  pointer_mode_host: false
   transA: N
   transB: N
   alpha_beta: *alpha_beta_range

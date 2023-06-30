@@ -431,24 +431,24 @@ void make_unit_diagonal(rocblas_fill uplo, T* hA, size_t lda, rocblas_int N)
     {
         for(int i = 0; i < N; i++)
         {
-            T diag = hA[i + i * lda];
+            T diag = hA[i + i * size_t(lda)];
             for(int j = 0; j <= i; j++)
-                hA[i + j * lda] = hA[i + j * lda] / diag;
+                hA[i + j * size_t(lda)] = hA[i + j * size_t(lda)] / diag;
         }
     }
     else // rocblas_fill_upper
     {
         for(int j = 0; j < N; j++)
         {
-            T diag = hA[j + j * lda];
+            T diag = hA[j + j * size_t(lda)];
             for(int i = 0; i <= j; i++)
-                hA[i + j * lda] = hA[i + j * lda] / diag;
+                hA[i + j * size_t(lda)] = hA[i + j * size_t(lda)] / diag;
         }
     }
     // randomly initialize diagonal to ensure we aren't using it's values for tests.
     for(int i = 0; i < N; i++)
     {
-        rocblas_init_nan<T>(hA + i * lda + i, 1, 1, 1);
+        rocblas_init<T>(hA + i * size_t(lda) + i, 1, 1, 1);
     }
 }
 

@@ -23,9 +23,9 @@
 // need to enable unstable api
 #define ROCBLAS_NO_DEPRECATED_WARNINGS
 #define ROCBLAS_BETA_FEATURES_API
-#include "rocblas.h"
 #include "utility.hpp"
 #include <hip/hip_runtime.h>
+#include <rocblas/rocblas.h>
 
 #include <chrono>
 #include <map>

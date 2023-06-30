@@ -20,13 +20,13 @@
  *
  * ************************************************************************ */
 
-#include "rocblas.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <hip/hip_runtime.h>
 #include <iostream>
 #include <limits>
+#include <rocblas/rocblas.h>
 #include <string>
 #include <vector>
 

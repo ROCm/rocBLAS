@@ -392,7 +392,19 @@ namespace
         if(fp16AltImplEnv != -1)
             tensileProblem.setFp16AltImpl(fp16AltImplEnv);
         else
-            tensileProblem.setFp16AltImpl(prob.flags & rocblas_gemm_flags_fp16_alt_impl);
+            tensileProblem.setFp16AltImpl((prob.flags & rocblas_gemm_flags_fp16_alt_impl) == 0 ? 0
+                                                                                               : 1);
+
+        static const char* fp16AltImplRoundEnvStr
+            = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL_RNZ");
+        static const int fp16AltImplRoundEnv
+            = (fp16AltImplRoundEnvStr == NULL ? -1
+                                              : (std::atoi(fp16AltImplRoundEnvStr) == 0 ? 0 : 1));
+        if(fp16AltImplRoundEnv != -1)
+            tensileProblem.setFp16AltImplRound(fp16AltImplRoundEnv);
+        else
+            tensileProblem.setFp16AltImplRound(
+                (prob.flags & rocblas_gemm_flags_fp16_alt_impl_rnz) == 0 ? 0 : 1);
 
         return tensileProblem;
     }
@@ -483,6 +495,7 @@ namespace
 
         // TensileHost is not copyable or assignable
         TensileHost(const TensileHost&) = delete;
+
         TensileHost& operator=(const TensileHost&) = delete;
 
         // Get the number of devices
@@ -689,6 +702,9 @@ namespace
                         if(!skip_xnack.empty()
                            && codeObjectFile.find(skip_xnack) != std::string::npos)
                             continue;
+                        // Skip experimental libraries
+                        if(codeObjectFile.find("Experimental") != std::string::npos)
+                            continue;
                         adapter.loadCodeObjectFile(codeObjectFile.c_str());
                     } while(FindNextFileA(hfine, &finddata));
                 }
@@ -706,6 +722,8 @@ namespace
                     {
                         std::string cofile = glob_result.gl_pathv[i];
                         if(!skip_xnack.empty() && cofile.find(skip_xnack) != std::string::npos)
+                            continue;
+                        if(cofile.find("Experimental") != std::string::npos)
                             continue;
                         adapter.loadCodeObjectFile(cofile);
                     }
@@ -776,6 +794,23 @@ namespace
             HIP_CHECK_EXC(hipGetDeviceProperties(&prop, deviceId));
 
             m_deviceProp = std::make_shared<hipDeviceProp_t>(prop);
+
+            // Preload problem/solution mappings
+            const char* overrideEnv = getenv("ROCBLAS_TENSILE_GEMM_OVERRIDE_PATH");
+            if(overrideEnv)
+            {
+                std::string                        overridePath = overrideEnv;
+                std::shared_ptr<Tensile::Hardware> hardware
+                    = Tensile::hip::GetDevice(*m_deviceProp);
+                bool success = m_library->setOverridesFromFile(*hardware, overridePath);
+
+                if(!success)
+                {
+                    rocblas_cerr
+                        << "\nrocBLAS warning: One or more problem overrides failed to load from: "
+                        << overridePath << std::endl;
+                }
+            }
         }
     };
 

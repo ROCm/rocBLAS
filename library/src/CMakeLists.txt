@@ -123,12 +123,11 @@ if( BUILD_WITH_TENSILE )
     tensile_host.cpp
   )
 
-  #rocblas gemm_ex, gemm_ext2 and trsv require tensile
+  #rocblas gemm_ex and trsv require tensile
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex.cpp
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
-    blas_ex/rocblas_gemm_ext2.cpp
     blas_ex/rocblas_trsv_ex.cpp
     blas_ex/rocblas_trsv_strided_batched_ex.cpp
     blas_ex/rocblas_trsv_batched_ex.cpp
@@ -210,6 +209,7 @@ set( rocblas_blas3_source
     blas3/Tensile/gemm.cpp
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
+    blas3/Tensile/gemm_templates.cpp
     blas3/rocblas_syrkx.cpp
     blas3/rocblas_syrkx_herkx_kernels.cpp
     blas3/rocblas_syrkx_batched.cpp
@@ -221,6 +221,7 @@ set( rocblas_blas3_source
     blas3/rocblas_trsm.cpp
     blas3/rocblas_trsm_batched.cpp
     blas3/rocblas_trsm_strided_batched.cpp
+    blas3/rocblas_trsm_kernels.cpp
     blas3/rocblas_trtri.cpp
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp

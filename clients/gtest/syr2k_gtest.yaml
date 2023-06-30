@@ -45,16 +45,21 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: syr2k_size_t
-  category: nightly
+  category: nightly #stress
   function: syr2k
   precision: *single_precision
-  uplo: [ U ]
-  transA: [ T ]
+  uplo: [ U, L ]
+  # A and B are KxN for transA==T, NxK for transA==N
   matrix_size:
-    - { N:     4, K: 51200, lda: 51200, ldb: 51200, ldc:     4 }
-    - { N: 51200, K:     4, lda:     4, ldb:     4, ldc: 51200 }
+    - { transA: T,  N:     4, K: 46975, lda: 46975, ldb: 46975, ldc:     4 }
+    - { transA: T,  N: 46975, K:     4, lda:     4, ldb:     4, ldc: 46975 }
+    - { transA: N,  N:     4, K: 51203, lda: 4,     ldb: 4,     ldc:     4 }
+    - { transA: N,  N: 46975, K:     4, lda: 46975, ldb: 46975, ldc: 46975 }
   alpha_beta:
-    - { alpha:  2.0, alphai:  0.0, beta:  3.0, betai: 0.0 }
+    - { alpha:  0.5, alphai:  0.0, beta:  0.5, betai: 0.0 }
+  pointer_mode_device: false
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: syr2k_quick
   category: quick
@@ -116,6 +121,7 @@ Tests:
   transA: [ N, T ]
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
+  pointer_mode_host: false
 
 # batched
 - name: syr2k_batched_bad
@@ -123,6 +129,22 @@ Tests:
   function: syr2k_batched_bad_arg
   precision: *single_double_precisions_complex_real
   api: [ C, FORTRAN ]
+
+- name: syr2k_batched_size_t
+  category: nightly #stress
+  function: syr2k_batched
+  precision: *single_precision
+  uplo: [ L ]
+  transA: [ N, T ]
+  matrix_size:
+    - { N:     2, K: 49153, lda: 49153, ldb: 49153, ldc:     2 }
+    - { N: 49153, K:     2, lda:     2, ldb:     2, ldc: 49153 }
+  alpha_beta:
+    - { alpha:  2.0, alphai:  0.0, beta:  2.0, betai: 0.0 }
+  pointer_mode_device: false
+  batch_count: [ 1 ]
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 - name: syr2k_batched_quick
   category: quick
@@ -166,6 +188,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
+  pointer_mode_device: false
 
 # strided batched
 - name: syr2k_strided_batched_bad
@@ -216,6 +239,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
+  pointer_mode_host: false
 
 - name: syr2k_graph_test
   category: pre_checkin

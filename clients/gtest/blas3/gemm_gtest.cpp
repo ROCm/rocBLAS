@@ -26,7 +26,6 @@
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
 #include "testing_gemm_ex.hpp"
-#include "testing_gemm_ext2.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
@@ -45,7 +44,6 @@ namespace
         GEMM_BATCHED_EX,
         GEMM_STRIDED_BATCHED,
         GEMM_STRIDED_BATCHED_EX,
-        GEMM_EXT2,
     };
 
     // ----------------------------------------------------------------------------
@@ -100,10 +98,6 @@ namespace
             case GEMM_STRIDED_BATCHED_EX:
                 return !strcmp(arg.function, "gemm_strided_batched_ex")
                        || !strcmp(arg.function, "gemm_strided_batched_ex_bad_arg");
-
-            case GEMM_EXT2:
-                return !strcmp(arg.function, "gemm_ext2")
-                       || !strcmp(arg.function, "gemm_ext2_bad_arg");
 #endif
             }
 
@@ -123,8 +117,7 @@ namespace
             else
             {
                 constexpr bool isEx = GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
-                                      || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
-                                      || GEMM_TYPE == GEMM_EXT2;
+                                      || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX;
                 constexpr bool isBatched
                     = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
                        || GEMM_TYPE == GEMM_BATCHED || GEMM_TYPE == GEMM_BATCHED_EX);
@@ -228,7 +221,6 @@ namespace
     // gemm_ex
     // gemm_batched_ex
     // gemm_strided_batched_ex
-    // gemm_ext2
     // ----------------------------------------------------------------------------
 
     // In the general case of <Ti, To, Tc>, these tests do not apply, and if this
@@ -266,10 +258,6 @@ namespace
                 testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_strided_batched_ex_bad_arg"))
                 testing_gemm_strided_batched_ex_bad_arg<Ti, To, Tc>(arg);
-            else if(!strcmp(arg.function, "gemm_ext2"))
-                testing_gemm_ext2<Ti, To, Tc>(arg);
-            else if(!strcmp(arg.function, "gemm_ext2_bad_arg"))
-                testing_gemm_ext2_bad_arg<Ti, To, Tc>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -298,13 +286,6 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
 
-    using gemm_ext2 = gemm_test_template<gemm_ex_testing, GEMM_EXT2>;
-    TEST_P(gemm_ext2, blas3_tensile)
-    {
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
-            rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
-    }
-    INSTANTIATE_TEST_CATEGORIES(gemm_ext2);
 #endif //  BUILD_WITH_TENSILE
 
 } // namespace

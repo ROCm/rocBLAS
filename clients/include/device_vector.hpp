@@ -54,8 +54,8 @@ public:
     //! @param inc Element index increment. If zero treated as one.
     //! @param HMM HipManagedMemory Flag.
     //!
-    explicit device_vector(size_t n, rocblas_int inc = 1, bool HMM = false)
-        : d_vector<T>{n * std::abs(inc ? inc : 1), HMM}
+    explicit device_vector(size_t n, int64_t inc = 1, bool HMM = false)
+        : d_vector<T>{calculate_nmemb(n, inc), HMM}
         , m_n{n}
         , m_inc{inc ? inc : 1}
         , m_data{this->device_vector_setup()}
@@ -82,7 +82,7 @@ public:
     //!
     //! @brief Returns the increment of the vector.
     //!
-    rocblas_int inc() const
+    int64_t inc() const
     {
         return m_inc;
     }
@@ -90,7 +90,7 @@ public:
     //!
     //! @brief Returns the batch count (always 1).
     //!
-    rocblas_int batch_count() const
+    int64_t batch_count() const
     {
         return 1;
     }
@@ -138,7 +138,13 @@ public:
     }
 
 private:
-    size_t      m_n{};
-    rocblas_int m_inc{};
-    T*          m_data{};
+    size_t  m_n{};
+    int64_t m_inc{};
+    T*      m_data{};
+
+    static size_t calculate_nmemb(size_t n, int64_t inc)
+    {
+        // alllocate when n is zero
+        return 1 + ((n ? n : 1) - 1) * std::abs(inc ? inc : 1);
+    }
 };

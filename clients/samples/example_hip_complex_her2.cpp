@@ -29,7 +29,7 @@
 #include <vector>
 
 #define ROCM_MATHLIBS_API_USE_HIP_COMPLEX
-#include <rocblas.h>
+#include <rocblas/rocblas.h>
 
 #ifndef CHECK_HIP_ERROR
 #define CHECK_HIP_ERROR(error)                    \

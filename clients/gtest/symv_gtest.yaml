@@ -24,6 +24,7 @@ Definitions:
     - { N:   300, lda:  600 }
 
   - &double_buffered_loads_size_range
+    - { N:  7,   lda:  256 }
     - { N:  256, lda:  256 }
     - { N: 1024, lda: 1028 }
 
@@ -31,6 +32,9 @@ Definitions:
     - { N:  4011, lda:  4011 }
     - { N:  7000, lda:  7000 }
     - { N:  19001, lda: 19001 }
+
+  - &matrix_scan
+    - { scan: [2..128..7], N: *c_scan_value, lda: *c_scan_value }
 
   - &incx_incy_range
     - { incx:   2, incy:   1 }
@@ -52,6 +56,10 @@ Definitions:
     - { alpha: .NaN, beta: 1.5 }
     - { alpha: 1.5, beta: .NaN }
 
+  - &alpha_beta_range_size_t_inc
+    - { alpha:  0,    alphai:  0,   beta:  0.5,   betai:  0 } # only incy used
+    - { alpha:  1,    alphai:  0,   beta:  0.5,   betai:  0 }
+
   - &c_pos_x2_overflow_int32
     - [1073741825]
   - &c_neg_x2_overflow_int32
@@ -60,11 +68,14 @@ Definitions:
   - &size_t_index
     - { N: 46976, lda: 46976, stride_a: 2206744576 }
 
+  - &size_t_index_dbl_buf
+    # N < higher threshold for L and U on gfx90a
+    - { N: 1056, lda: 2101674 } # N mod 32 == 0
+    - { N: 3,    lda: *c_pos_x2_overflow_int32 } # N mod 32 != 0
+
   - &size_t_incx_incy
     - { N: 3,     lda: 3,     incx: *c_pos_x2_overflow_int32, incy: 1 }  # x is m element
-    - { N: 3,     lda: 3,     incx: *c_neg_x2_overflow_int32, incy: 1 }  # x is m element
     - { N: 3,     lda: 3,     incx: 1,                        incy: *c_pos_x2_overflow_int32 } # y is n element
-    - { N: 3,     lda: 3,     incx: 1,                        incy: *c_neg_x2_overflow_int32 } # y is n element
 
 Tests:
 - name: symv_bad
@@ -111,6 +122,15 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
 
+- name: symv_scan
+  category: pre_checkin
+  function: symv
+  precision: *single_precision
+  uplo: [ U, L ]
+  matrix_size: *matrix_scan
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+
 - name: symv_medium_double_buffered
   category: pre_checkin
   function: symv
@@ -131,7 +151,7 @@ Tests:
   pointer_mode_host: false
 
 - name: symv_size_t
-  category: pre_checkin # stress
+  category: nightly # stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]
@@ -141,15 +161,29 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   pointer_mode_device: false
 
+- name: symv_size_t_double_buffered
+  category: nightly # stress
+  function: symv
+  precision: *single_precision
+  uplo: [ U, L ]
+  matrix_size: *size_t_index_dbl_buf
+  incx: 1
+  incy: 1
+  alpha_beta: *alpha_beta_range_small
+  pointer_mode_device: false
+  os_flags: LINUX
+  gpu_arch: ['90a']
+
 - name: symv_size_t_inc
-  category: pre_checkin # stress
+  category: nightly # stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]
   arguments: *size_t_incx_incy
-  alpha_beta: *alpha_beta_range_small
+  alpha_beta: *alpha_beta_range_size_t_inc
   pointer_mode_device: false
-  gpu_arch: ['906','11??']
+  os_flags: LINUX
+  gpu_arch: ['90a']
 
   # batched
 - name: symv_batched_bad

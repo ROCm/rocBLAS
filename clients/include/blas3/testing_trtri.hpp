@@ -36,6 +36,8 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas3/rocblas_trtri.hpp"
+
 template <typename T>
 void testing_trtri_bad_arg(const Arguments& arg)
 {
@@ -122,6 +124,7 @@ void testing_trtri(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(N, N, lda);
+    host_matrix<T> hA_2(N, N, lda);
     host_matrix<T> hB(N, N, lda);
 
     // Allocate device memory
@@ -165,7 +168,7 @@ void testing_trtri(const Arguments& arg)
 
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error;
+    double rocblas_error_out, rocblas_error_in;
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
@@ -187,11 +190,83 @@ void testing_trtri(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
+        if(arg.api != INTERNAL)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
+        }
+        else
+        {
+            rocblas_stride offsetA         = arg.ldc;
+            rocblas_stride offsetinvA      = arg.ldd;
+            rocblas_stride strideA         = arg.stride_a;
+            rocblas_stride strideinvA      = arg.stride_b;
+            rocblas_stride subStride       = 0;
+            rocblas_int    batch_count     = 1;
+            rocblas_int    sub_batch_count = 1;
+
+            size_t           work_el = rocblas_internal_trtri_temp_elements(N, 1);
+            device_vector<T> workspace(work_el);
+
+            // Note: sub_strides and sub_batch_count don't seem to be used anywhere in rocBLAS or rocSOLVER,
+            //       and should be able to be removed in a future release. They are not tested.
+            CHECK_ROCBLAS_ERROR(rocblas_internal_trtri_template(handle,
+                                                                uplo,
+                                                                diag,
+                                                                N,
+                                                                (const T*)dA + offsetA,
+                                                                -offsetA,
+                                                                lda,
+                                                                strideA,
+                                                                subStride,
+                                                                (T*)dinvA + offsetinvA,
+                                                                -offsetinvA,
+                                                                ldinvA,
+                                                                strideinvA,
+                                                                subStride,
+                                                                batch_count,
+                                                                sub_batch_count,
+                                                                (T*)workspace));
+        }
+
+        // test in-place
         handle.post_test(arg);
+        if(arg.api != INTERNAL)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dA, lda));
+        }
+        else
+        {
+            rocblas_stride offsetA         = arg.ldc;
+            rocblas_stride strideA         = arg.stride_a;
+            rocblas_stride subStride       = 0;
+            rocblas_int    batch_count     = 1;
+            rocblas_int    sub_batch_count = 1;
+
+            size_t           work_el = rocblas_internal_trtri_temp_elements(N, 1);
+            device_vector<T> workspace(work_el);
+
+            CHECK_ROCBLAS_ERROR(rocblas_internal_trtri_template(handle,
+                                                                uplo,
+                                                                diag,
+                                                                N,
+                                                                (const T*)dA + offsetA,
+                                                                -offsetA,
+                                                                lda,
+                                                                strideA,
+                                                                subStride,
+                                                                (T*)dA + offsetA,
+                                                                -offsetA,
+                                                                lda,
+                                                                strideA,
+                                                                subStride,
+                                                                batch_count,
+                                                                sub_batch_count,
+                                                                (T*)workspace));
+        }
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA.transfer_from(dinvA));
+        CHECK_HIP_ERROR(hA_2.transfer_from(dA));
 
         /* =====================================================================
            CPU BLAS
@@ -209,11 +284,13 @@ void testing_trtri(const Arguments& arg)
         {
             const double rel_error = trtri_tolerance<T>(N);
             near_check_general<T>(N, N, lda, hB, hA, rel_error);
+            near_check_general<T>(N, N, lda, hB, hA_2, rel_error);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_symmetric<T>('F', char_uplo, N, lda, hB, hA);
+            rocblas_error_out = norm_check_symmetric<T>('F', char_uplo, N, lda, hB, hA);
+            rocblas_error_in  = norm_check_symmetric<T>('F', char_uplo, N, lda, hB, hA_2);
         }
     }
 
@@ -239,6 +316,7 @@ void testing_trtri(const Arguments& arg)
                                                                 trtri_gflop_count<T>(N),
                                                                 ArgumentLogging::NA_value,
                                                                 cpu_time_used,
-                                                                rocblas_error);
+                                                                rocblas_error_out,
+                                                                rocblas_error_in);
     }
 }

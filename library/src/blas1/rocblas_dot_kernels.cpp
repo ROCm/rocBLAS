@@ -203,7 +203,8 @@ rocblas_dot_kernel(rocblas_int n,
     int inc = blockDim.x * gridDim.x;
     for(int j = 0; j < WIN && i < n; j++, i += inc)
     {
-        sum += V(y[i * incy]) * V(CONJ ? conj(x[i * incx]) : x[i * incx]);
+        sum += V(y[i * int64_t(incy)])
+               * V(CONJ ? conj(x[i * int64_t(incx)]) : x[i * int64_t(incx)]);
     }
     sum = rocblas_dot_block_reduce<NB>(sum);
 
@@ -236,7 +237,8 @@ rocblas_dot_kernel_magsq(rocblas_int n,
     int inc = blockDim.x * gridDim.x;
     for(int j = 0; j < WIN && i < n; j++, i += inc)
     {
-        sum += V(x[i * incx]) * V(CONJ ? conj(x[i * incx]) : x[i * incx]);
+        int64_t idx = i * int64_t(incx);
+        sum += V(x[idx]) * V(CONJ ? conj(x[idx]) : x[idx]);
     }
     sum = rocblas_dot_block_reduce<NB>(sum);
 
@@ -318,8 +320,8 @@ rocblas_status rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
     }
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
-    auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+    int64_t shiftx = incx < 0 ? offsetx - int64_t(incx) * (n - 1) : offsetx;
+    int64_t shifty = incy < 0 ? offsety - int64_t(incy) * (n - 1) : offsety;
 
     int single_block_threshold = 32768;
     if(std::is_same_v<T, float>)

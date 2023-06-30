@@ -490,9 +490,9 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
     rocblas_int symm_m = rocblas_side_left == side ? nb_diag : m; // diag block symm argument m
     rocblas_int symm_n = rocblas_side_left == side ? n : nb_diag; // diag block symm argument n
 
-    rocblas_int diag_a_stride = 1 + lda; // stride for diag blocks in a
-    rocblas_int diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
-    rocblas_int diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
+    int64_t diag_a_stride = 1 + lda; // stride for diag blocks in a
+    int64_t diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
+    int64_t diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
 
     rocblas_int i_diag; // index of diag block
 
@@ -518,8 +518,8 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
                  c, i_diag * diag_c_stride + offsetC, ldc, 0, 1)));
     }
 
-    rocblas_int stride, stride_rem, i_start;
-    rocblas_int nb; // size of sub-diagonal blocks of matrix a
+    int64_t stride, stride_rem, i_start;
+    int64_t nb; // size of sub-diagonal blocks of matrix a
 
     // calls to gemm for sub-diagonal square blocks in matrix a with size m = n = nb.
     // Start with nb = nb_diag. Each iteration of the outer loop nb doubles, and the
@@ -535,8 +535,8 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
             n_nb += 1;
         }
 
-        rocblas_int i1       = i_start;
-        rocblas_int i2       = i_start - nb;
+        int64_t i1       = i_start;
+        int64_t i2       = i_start - nb;
 
         if(rocblas_side_right == side)
         {
@@ -612,8 +612,8 @@ rocblas_status rocblas_symm_template_non_batched(rocblas_handle handle,
         // remainder gemm block of size nb_rem x nb where n_rem < nb
         if(stride_rem != 0)
         {
-            rocblas_int i1     = i_start + n_nb * stride;
-            rocblas_int i2     = i1 - nb;
+            int64_t i1     = i_start + n_nb * stride;
+            int64_t i2     = i1 - nb;
             rocblas_int nb_rem = ka - i1;
 
             if(rocblas_side_right == side)
@@ -826,9 +826,9 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
     rocblas_int symm_m = rocblas_side_left == side ? nb_diag : m; // diag block symm argument m
     rocblas_int symm_n = rocblas_side_left == side ? n : nb_diag; // diag block symm argument n
 
-    rocblas_int diag_a_stride = 1 + lda; // stride for diag blocks in a
-    rocblas_int diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
-    rocblas_int diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
+    int64_t     diag_a_stride = 1 + lda; // stride for diag blocks in a
+    int64_t     diag_b_stride = rocblas_side_left == side ? 1 : ldb; // stride of b panels
+    int64_t     diag_c_stride = rocblas_side_left == side ? 1 : ldc; // stride of c panels
 
     rocblas_int i_diag; // index of diag block
 
@@ -857,8 +857,8 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
                  c, i_diag * diag_c_stride + offsetC, ldc, strideC, batch_count)));
     }
 
-    rocblas_int stride, stride_rem, i_start;
-    rocblas_int nb; // size of sub-diagonal blocks of matrix a
+    int64_t stride, stride_rem, i_start;
+    int64_t nb; // size of sub-diagonal blocks of matrix a
     // calls to gemm for sub-diagonal square blocks in matrix a with size m = n = nb.
     // Start with nb = nb_diag. Each iteration of the outer loop nb doubles, and the
     // number of gemm calls halves.
@@ -873,8 +873,8 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
             n_nb += 1;
         }
 
-        rocblas_int i1       = i_start;
-        rocblas_int i2       = i_start - nb;
+        int64_t i1       = i_start;
+        int64_t i2       = i_start - nb;
 
         for(int i_nb = 0; i_nb < n_nb; i_nb++)
         {
@@ -952,8 +952,8 @@ rocblas_status rocblas_symm_template_batched(rocblas_handle handle,
         // remainder gemm block of size nb_rem x nb where n_rem < nb
         if(stride_rem != 0)
         {
-            rocblas_int i1     = i_start + n_nb * stride;
-            rocblas_int i2     = i1 - nb;
+            int64_t i1     = i_start + n_nb * stride;
+            int64_t i2     = i1 - nb;
             rocblas_int nb_rem = ka - i1;
 
             if(rocblas_side_right == side)
