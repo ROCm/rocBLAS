@@ -219,7 +219,7 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
                                                       N,
                                                       K,
                                                       alpha,
-                                                      nullptr,
+                                                      dA,
                                                       a_type,
                                                       lda,
                                                       dB,
@@ -237,6 +237,8 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
                                                       solution_index,
                                                       flags),
                                   rocblas_status_arch_mismatch);
+
+            return;
         }
 
         // check for invalid enum
