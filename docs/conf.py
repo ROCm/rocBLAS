@@ -4,9 +4,10 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import shutil
-
 from rocm_docs import ROCmDocs
+
+
+external_projects_current_project = "rocblas"
 
 docs_core = ROCmDocs("rocBLAS Documentation")
 docs_core.run_doxygen()
