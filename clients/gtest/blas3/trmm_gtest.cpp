@@ -115,6 +115,15 @@ namespace
             if(arg.api == FORTRAN)
                 name << "_F";
 
+            if(arg.c_noalias_d == true)
+            {
+                name << "_outofplace";
+            }
+            else
+            {
+                name << "_inplace";
+            }
+
             return std::move(name);
         }
     };

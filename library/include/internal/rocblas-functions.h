@@ -13004,8 +13004,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
     @param[in]
     ldc   [rocblas_int]
           ldc specifies the first dimension of C. ldc >= max( 1, m).
-          If B and C pointers are to the same matrix then ldc must equal ldb or
-          rocblas_status_invalid_size will be returned.
+          If B and C are pointers to the same matrix then ldc must equal ldb or
+          rocblas_status_invalid_value will be returned.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_strmm(rocblas_handle    handle,
@@ -13189,8 +13189,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle
     @param[in]
     ldc   [rocblas_int]
           ldc specifies the first dimension of C. ldc >= max( 1, m).
-          If B and C pointers are to the same matrix then ldc must equal ldb or
-          rocblas_status_invalid_size will be returned.
+          If B and C are pointers to the same array of pointers then ldc must
+          equal ldb or rocblas_status_invalid_value will be returned.
 
     @param[in]
     batch_count [rocblas_int]
@@ -13265,7 +13265,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
     \brief <b> BLAS Level 3 API </b>
 
     \details
-    trmm_batched performs one of the matrix-matrix operations:
+    trmm_strided_batched performs one of the matrix-matrix operations:
 
         C_i := alpha*op( A_i )*B_i,   or
         C_i := alpha*B_i*op( A_i )  for i = 0, 1, ... batch_count -1,
@@ -13395,6 +13395,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
     @param[in]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1).
+              If B == C and ldb == ldc then stride_C should equal stride_B or
+              behavior is undefined.
 
     @param[in]
     batch_count [rocblas_int]
