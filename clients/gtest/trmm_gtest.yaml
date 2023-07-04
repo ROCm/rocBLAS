@@ -163,7 +163,7 @@ Tests:
   api: [ C, FORTRAN ]
   c_noalias_d: [false, true] # test both inplace and outofplace
 
-- name: trmm_size_t
+- name: trmm_size_t_noalias
   category: nightly
   function:
     - trmm

@@ -397,6 +397,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same_v<T, float> || std::is_same
                 {"symm", testing_symm_hemm<T, false>},
                 {"symm_batched", testing_symm_hemm_batched<T, false>},
                 {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
+                {"trmm", testing_trmm<T>},
+                {"trmm_batched", testing_trmm_batched<T>},
+                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
                 {"syrk", testing_syrk<T>},
                 {"syrk_batched", testing_syrk_batched<T>},
                 {"syrk_strided_batched", testing_syrk_strided_batched<T>},
@@ -619,6 +622,9 @@ struct perf_blas<
                 {"symm", testing_symm_hemm<T, false>},
                 {"symm_batched", testing_symm_hemm_batched<T, false>},
                 {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
+                {"trmm", testing_trmm<T>},
+                {"trmm_batched", testing_trmm_batched<T>},
+                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
                 {"hemm", testing_symm_hemm<T, true>},
                 {"hemm_batched", testing_symm_hemm_batched<T, true>},
                 {"hemm_strided_batched", testing_symm_hemm_strided_batched<T, true>},
@@ -1541,7 +1547,7 @@ try
 
         ("c_noalias_d",
          bool_switch(&arg.c_noalias_d)->default_value(false),
-         "C and D are stored in separate memory")
+         "for gemm_ex C and D are stored in separate memory, for trmm B and C are stored in separate memory (outofplace)")
 
         ("fortran",
          bool_switch(&fortran)->default_value(false),
