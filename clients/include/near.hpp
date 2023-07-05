@@ -46,12 +46,12 @@ template <class T>
 static constexpr double sum_error_tolerance = 0.0;
 
 template <>
-ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_f8>
-    = 1 / 16.0; // computed epsilon_f8=0.0625, epsilon_bf8=0.125
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance<rocblas_f8> = 1 / 16.0; // computed epsilon_f8=0.0625, epsilon_bf8=0.125
 
 template <>
-ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_bf8>
-    = 1 / 8.0; // computed epsilon_f8=0.0625, epsilon_bf8=0.125
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance<rocblas_bf8> = 1 / 8.0; // computed epsilon_f8=0.0625, epsilon_bf8=0.125
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_bfloat16> = 1 / 100.0;
@@ -69,39 +69,36 @@ template <class Tc, class Ti, class To>
 static constexpr double sum_error_tolerance_for_gfx11 = 0.0;
 
 template <>
-ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance_for_gfx11<float, rocblas_bfloat16, float>
-    = 1 / 10.0;
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance_for_gfx11<float, rocblas_bfloat16, float> = 1 / 10.0;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr double
-    sum_error_tolerance_for_gfx11<float, rocblas_bfloat16, rocblas_bfloat16>
-    = 1 / 10.0;
-
-template <>
-ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance_for_gfx11<float, rocblas_half, float>
-    = 1 / 100.0;
+    sum_error_tolerance_for_gfx11<float, rocblas_bfloat16, rocblas_bfloat16> = 1 / 10.0;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr double
-    sum_error_tolerance_for_gfx11<float, rocblas_half, rocblas_half>
-    = 1 / 100.0;
+    sum_error_tolerance_for_gfx11<float, rocblas_half, float> = 1 / 100.0;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr double
-    sum_error_tolerance_for_gfx11<rocblas_half, rocblas_half, rocblas_half>
-    = 1 / 100.0;
+    sum_error_tolerance_for_gfx11<float, rocblas_half, rocblas_half> = 1 / 100.0;
 
 template <>
-ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance_for_gfx11<rocblas_float_complex,
-                                                                    rocblas_float_complex,
-                                                                    rocblas_float_complex>
-    = 1 / 10000.0;
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance_for_gfx11<rocblas_half, rocblas_half, rocblas_half> = 1 / 100.0;
 
 template <>
-ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance_for_gfx11<rocblas_double_complex,
-                                                                    rocblas_double_complex,
-                                                                    rocblas_double_complex>
-    = 1 / 1000000.0;
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance_for_gfx11<rocblas_float_complex,
+                                  rocblas_float_complex,
+                                  rocblas_float_complex> = 1 / 10000.0;
+
+template <>
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance_for_gfx11<rocblas_double_complex,
+                                  rocblas_double_complex,
+                                  rocblas_double_complex> = 1 / 1000000.0;
 
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, err, NEAR_ASSERT)

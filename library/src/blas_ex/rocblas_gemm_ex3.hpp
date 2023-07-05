@@ -213,8 +213,7 @@ template <
     std::enable_if_t<(std::is_same<float, Tacc>{}
                       && (std::is_same<rocblas_f8, TcA>{} || std::is_same<rocblas_bf8, TcA>{})
                       && (std::is_same<rocblas_f8, TcB>{} || std::is_same<rocblas_bf8, TcB>{})),
-                     int>
-    = 0>
+                     int> = 0>
 __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N)))
 ROCBLAS_KERNEL(DIM_M* DIM_N)
     gemm_batched_general_kernel(rocblas_int    M,
