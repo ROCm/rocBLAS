@@ -3,41 +3,64 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
-  - &uint32_t_m_n_lda_ldb
-    - { M: 4097,  N: 4097, lda: 1048600, ldb:    4097  }
-    - { M: 4097,  N: 4097, lda:    4097, ldb: 1048600  }
+  - &uint32_t_m_n_lda_ldb_inplace
+    - { M: 4097,  N: 4097, lda: 1048600, ldb:    4097, ldc:    4097  }
+    - { M: 4097,  N: 4097, lda:    4097, ldb: 1048600, ldc: 1048600  }
 
-  - &uint32_t_m_n_lda_ldb_ldc
+  - &uint32_t_m_n_lda_ldb_ldc_outofplace
     - { M: 4097,  N: 4097, lda: 1048600, ldb:    4097, ldc:    4097  }
     - { M: 4097,  N: 4097, lda:    4097, ldb: 1048600, ldc:    4097  }
     - { M: 4097,  N: 4097, lda:    4097, ldb:    4097, ldc: 1048600  }
 
-  - &int32_t_m_n_lda_ldb
-    - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049  }
-    - { M: 2049,  N: 2049, lda:    2049, ldb: 1048600  }
+  - &int32_t_m_n_lda_ldb_inplace
+  - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049, ldc:    2049  }
+  - { M: 2049,  N: 2049, lda:    2049, ldb: 1048600, ldc: 1048600  }
 
-  - &int32_t_m_n_lda_ldb_ldc
+  - &int32_t_m_n_lda_ldb_ldc_outofplace
     - { M: 2049,  N: 2049, lda: 1048600, ldb:    2049, ldc:    2049  }
     - { M: 2049,  N: 2049, lda:    2049, ldb: 1048600, ldc:    2049  }
     - { M: 2049,  N: 2049, lda:    2049, ldb:    2049, ldc: 1048600  }
 
-  - &small_matrix_size
+  - &small_matrix_size_inplace
+    - { M:    20, N:    30, lda:    40, ldb:   100 , ldc:  100}
+
+  - &small_matrix_size_outofplace
     - { M:    20, N:    30, lda:    40, ldb:   100, ldc: 60 }
 
-  - &small_matrix_size_range
+  - &small_matrix_size_range_inplace
+    - { M:    -1, N:    -1, lda:     1, ldb:     1, ldc: 1   }
+    - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 100 }
+    - { M:     5, N:     5, lda:     5, ldb:     5, ldc:   5 }
+    - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 100  }
+
+  - &small_matrix_size_range_outofplace
     - { M:    -1, N:    -1, lda:     1, ldb:     1, ldc: 1   }
     - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 200 }
     - { M:     5, N:     5, lda:     5, ldb:     5, ldc:   5 }
     - { M:    10, N:    10, lda:    20, ldb:   100, ldc: 50  }
 
-  - &medium_matrix_size_range
+  - &medium_matrix_size_range_inplace
+    - { M:   192, N:   192, lda:   192, ldb:   192, ldc:  192 }
+    - { M:   600, N:   500, lda:   600, ldb:   601, ldc:  601 }
+    - { M:   800, N:   900, lda:   801, ldb:   901, ldc:  901 }
+    - { M:   700, N:     2, lda:  1000, ldb:   700, ldc:  700 }
+    - { M:    10, M:   700, lda:   700, ldb:  1000, ldc: 1000 }
+
+  - &medium_matrix_size_range_outofplace
     - { M:   192, N:   192, lda:   192, ldb:   192, ldc: 192 }
     - { M:   600, N:   500, lda:   600, ldb:   601, ldc: 700 }
     - { M:   800, N:   900, lda:   801, ldb:   901, ldc: 902 }
     - { M:   700, N:     2, lda:  1000, ldb:   700, ldc: 800 }
     - { M:    10, M:   700, lda:   700, ldb:  1000, ldc: 800 }
 
-  - &large_matrix_size_range
+  - &large_matrix_size_range_inplace
+    - { M:   641, N:   640, lda:   961, ldb:   960, ldc: 960  }
+    - { M:  1000, N:  1001, lda:  1002, ldb:  1003, ldc: 1003 }
+#   - { M:  8000, N:  6000, lda: 10000, ldb:  9000, ldc: 9000 }
+#   - { M:  1024, N:  1024, lda:  1024, ldb:  1024, ldc: 1024 }
+#   - { M:  2000, N:  2000, lda:  2000, ldb:  2000, ldc: 2000 }
+
+  - &large_matrix_size_range_outofplace
     - { M:   641, N:   640, lda:   961, ldb:   960, ldc: 960  }
     - { M:  1000, N:  1001, lda:  1002, ldb:  1003, ldc: 1004 }
 #   - { M:  8000, N:  6000, lda: 10000, ldb:  9000, ldc: 8000 }
@@ -190,17 +213,17 @@ Tests:
   uplo: [   U]
   transA: [   T   ]
   diag: [   U]
-  matrix_size: *uint32_t_m_n_lda_ldb
+  matrix_size: *uint32_t_m_n_lda_ldb_inplace
   pointer_mode_device: false
   alpha: [ 2 ]
   stride_scale: [ 1         ]
   batch_count: [           1 ]
   gpu_arch: '90a'
   os_flags: LINUX
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
 # to prevent excessively long runtime only run one combination of side,uplo,transA,diag for uint32_t overflow
-- name: trmm_size_t_uint32
+- name: trmm_size_t_outofplace_uint32
   category: nightly
   function:
     - trmm
@@ -210,14 +233,14 @@ Tests:
   uplo: [L   ]
   transA: [N      ]
   diag: [N   ]
-  matrix_size: *uint32_t_m_n_lda_ldb_ldc
+  matrix_size: *uint32_t_m_n_lda_ldb_ldc_outofplace
   pointer_mode_device: false
   alpha: [ 2 ]
   stride_scale: [ 1         ]
   batch_count: [           1 ]
   gpu_arch: '90a'
   os_flags: LINUX
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [       true] # test outofplace
 
 # to prevent excessively long runtime only run one value of diag and batch_count=1
 - name: trmm_size_t_inplace_int32
@@ -230,7 +253,7 @@ Tests:
   uplo: [L, U]
   transA: [N, T   ]
   diag: [N   ]
-  matrix_size: *int32_t_m_n_lda_ldb
+  matrix_size: *int32_t_m_n_lda_ldb_inplace
   pointer_mode_device: false
   alpha: [ 2 ]
   stride_scale: [ 1         ]
@@ -250,7 +273,7 @@ Tests:
   uplo: [L, U]
   transA: [N, T   ]
   diag: [U   ]
-  matrix_size: *int32_t_m_n_lda_ldb_ldc
+  matrix_size: *int32_t_m_n_lda_ldb_ldc_outofplace
   pointer_mode_device: false
   alpha: [ 2 ]
   stride_scale: [ 1         ]
@@ -259,7 +282,7 @@ Tests:
   os_flags: LINUX
   c_noalias_d: [       true] # test outofplace
 
-- name: trmm_batched_small
+- name: trmm_batched_small_inplace
   category: quick
   function:
     - trmm_batched
@@ -268,13 +291,29 @@ Tests:
   uplo: [   U]
   transA: [N      ]
   diag: [   U]
-  matrix_size: *small_matrix_size_range
+  matrix_size: *small_matrix_size_range_inplace
   alpha_beta: *complex_alpha_range
   stride_scale: [ 1, 2       ]
   batch_count: [        1, 2  ]
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_fortran
+- name: trmm_batched_small_outofplace
+  category: quick
+  function:
+    - trmm_batched
+  precision: *single_double_precisions
+  side: [L   ]
+  uplo: [   U]
+  transA: [N      ]
+  diag: [   U]
+  matrix_size: *small_matrix_size_range_outofplace
+  alpha_beta: *complex_alpha_range
+  stride_scale: [ 1, 2       ]
+  batch_count: [        1, 2  ]
+  c_noalias_d: [       true] # test outofplace
+
+
+- name: trmm_fortran_inplace
   category: quick
   function:
     - trmm
@@ -283,12 +322,27 @@ Tests:
   uplo: [   U]
   transA: [   T   ]
   diag: [N   ]
-  matrix_size: *small_matrix_size_range
+  matrix_size: *small_matrix_size_range_inplace
   alpha: *alpha_range
   api: [ C, FORTRAN ]
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_batched_fortran
+- name: trmm_fortran_outofplace
+  category: quick
+  function:
+    - trmm
+  precision: *single_double_precisions
+  side: [L   ]
+  uplo: [   U]
+  transA: [   T   ]
+  diag: [N   ]
+  matrix_size: *small_matrix_size_range_outofplace
+  alpha: *alpha_range
+  api: [ C, FORTRAN ]
+  c_noalias_d: [       true] # test outofplace
+
+
+- name: trmm_batched_fortran_inplace
   category: quick
   function:
     - trmm_batched
@@ -297,14 +351,31 @@ Tests:
   uplo: [   U]
   transA: [   T, C]
   diag: [   U]
-  matrix_size: *small_matrix_size_range
+  matrix_size: *small_matrix_size_range_inplace
   alpha_beta: *complex_alpha
   stride_scale: [    2       ]
   batch_count: [           3  ]
   api: [ C, FORTRAN ]
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test both inplace and outofplace
 
-- name: trmm_strided_batched_fortran
+- name: trmm_batched_fortran_outofplace
+  category: quick
+  function:
+    - trmm_batched
+  precision: *single_double_precisions_complex
+  side: [   R]
+  uplo: [   U]
+  transA: [   T, C]
+  diag: [   U]
+  matrix_size: *small_matrix_size_range_outofplace
+  alpha_beta: *complex_alpha
+  stride_scale: [    2       ]
+  batch_count: [           3  ]
+  api: [ C, FORTRAN ]
+  c_noalias_d: [       true] # test outofplace
+
+
+- name: trmm_strided_batched_fortran_inplace
   category: quick
   function:
     - trmm_strided_batched
@@ -313,14 +384,31 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
-  matrix_size: *small_matrix_size_range
+  matrix_size: *small_matrix_size_range_inplace
   alpha_beta: *complex_alpha
   stride_scale: [ 1         ]
   batch_count: [         2 ]
   api: [ C, FORTRAN ]
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test both inplace and outofplace
 
-- name: trmm_strided_batched_small
+- name: trmm_strided_batched_fortran_outofplace
+  category: quick
+  function:
+    - trmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L]
+  uplo: [L]
+  transA: [N]
+  diag: [N]
+  matrix_size: *small_matrix_size_range_outofplace
+  alpha_beta: *complex_alpha
+  stride_scale: [ 1         ]
+  batch_count: [         2 ]
+  api: [ C, FORTRAN ]
+  c_noalias_d: [       true] # test outofplace
+
+
+- name: trmm_strided_batched_small_inplace
   category: quick
   function:
     - trmm_strided_batched
@@ -329,13 +417,29 @@ Tests:
   uplo: [L   ]
   transA: [   T, C]
   diag: [N   ]
-  matrix_size: *small_matrix_size_range
+  matrix_size: *small_matrix_size_range_inplace
   alpha_beta: *complex_alpha
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test both inplace and outofplace
 
-- name: trmm_batched_medium
+- name: trmm_strided_batched_small_outofplace
+  category: quick
+  function:
+    - trmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L   ]
+  uplo: [L   ]
+  transA: [   T, C]
+  diag: [N   ]
+  matrix_size: *small_matrix_size_range_outofplace
+  alpha_beta: *complex_alpha
+  stride_scale: [ 1, 2      ]
+  batch_count: [        1, 2 ]
+  c_noalias_d: [       true] # test both inplace and outofplace
+
+
+- name: trmm_batched_medium_inplace
   category: pre_checkin
   function:
     - trmm_batched
@@ -344,13 +448,29 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
-  matrix_size: *medium_matrix_size_range
+  matrix_size: *medium_matrix_size_range_inplace
   alpha_beta: *complex_alpha
   stride_scale: [ 2         ]
   batch_count: [           3 ]
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_strided_batched_medium
+- name: trmm_batched_medium_outofplace
+  category: pre_checkin
+  function:
+    - trmm_batched
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range_outofplace
+  alpha_beta: *complex_alpha
+  stride_scale: [ 2         ]
+  batch_count: [           3 ]
+  c_noalias_d: [false, true] # test outofplace
+
+
+- name: trmm_strided_batched_medium_inplace
   category: pre_checkin
   function:
     - trmm_strided_batched
@@ -359,13 +479,29 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
-  matrix_size: *medium_matrix_size_range
+  matrix_size: *medium_matrix_size_range_inplace
   alpha_beta: *complex_alpha
   stride_scale: [ 1         ]
   batch_count: [           2 ]
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_small
+- name: trmm_strided_batched_medium_outofplace
+  category: pre_checkin
+  function:
+    - trmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range_outofplace
+  alpha_beta: *complex_alpha
+  stride_scale: [ 1         ]
+  batch_count: [           2 ]
+  c_noalias_d: [false, true] # test outofplace
+
+
+- name: trmm_small_inplace
   category: quick
   function:
     - trmm
@@ -374,11 +510,24 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
-  matrix_size: *small_matrix_size
+  matrix_size: *small_matrix_size_inplace
   alpha_beta: *complex_alpha_range
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_small
+- name: trmm_small_outofplace
+  category: quick
+  function:
+    - trmm
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_outofplace
+  alpha_beta: *complex_alpha_range
+  c_noalias_d: [       true] # test outofplace
+
+- name: trmm_small_inplace
   category: quick
   function:
     - trmm
@@ -387,11 +536,25 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
-  matrix_size: *small_matrix_size_range
+  matrix_size: *small_matrix_size_range_inplace
   alpha: *alpha_range
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_medium
+- name: trmm_small_outofplace
+  category: quick
+  function:
+    - trmm
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range_outofplace
+  alpha: *alpha_range
+  c_noalias_d: [       true] # test outofplace
+
+
+- name: trmm_medium_inplace
   category: pre_checkin
   function:
     - trmm
@@ -400,11 +563,25 @@ Tests:
   uplo: [L, U]
   transA: [N, C]
   diag: [N, U]
-  matrix_size: *medium_matrix_size_range
+  matrix_size: *medium_matrix_size_range_inplace
   alpha: *alpha_range
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_medium
+- name: trmm_medium_outofplace
+  category: pre_checkin
+  function:
+    - trmm
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range_outofplace
+  alpha: *alpha_range
+  c_noalias_d: [       true] # test outofplace
+
+
+- name: trmm_medium_inplace
   category: pre_checkin
   function:
     - trmm
@@ -413,9 +590,23 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
-  matrix_size: *medium_matrix_size_range
+  matrix_size: *medium_matrix_size_range_inplace
   alpha_beta: *complex_alpha
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
+
+- name: trmm_medium_outofplace
+  category: pre_checkin
+  function:
+    - trmm
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range_outofplace
+  alpha_beta: *complex_alpha
+  c_noalias_d: [       true] # test outofplace
+
 
 - name: trmm_NaN
   category: pre_checkin
@@ -426,7 +617,7 @@ Tests:
   uplo: [L, U]
   transA: [N, C]
   diag: [N, U]
-  matrix_size: *small_matrix_size
+  matrix_size: *small_matrix_size_inplace
   alpha: [ 1.0, 2.0, .NaN ] # NaN is converted to 0.0 in test code
   c_noalias_d: [false, true] # test both inplace and outofplace
 
@@ -439,7 +630,7 @@ Tests:
   uplo: [L,  ]
   transA: [N,  ]
   diag: [N,  ]
-  matrix_size: *small_matrix_size
+  matrix_size: *small_matrix_size_inplace
   stride_scale: [ 1, 2      ]
   alpha: [ .NaN ] # NaN is converted to 0.0 in test code
   batch_count: [ 2  ]
@@ -472,7 +663,8 @@ Tests:
   alpha: [ 1 ]
   c_noalias_d: [false, true] # test both inplace and outofplace
 
-- name: trmm_large
+
+- name: trmm_large_inplace
   category: nightly
   function:
     - trmm
@@ -481,12 +673,27 @@ Tests:
     - { side: L, uplo: L, transA: N, diag: N }
     - { side: R, uplo: L, transA: N, diag: N }
     - { side: L, uplo: U, transA: C, diag: N }
-  matrix_size: *large_matrix_size_range
+  matrix_size: *large_matrix_size_range_inplace
   pointer_mode_host: false
   alpha: *alpha_range
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
 
-- name: trmm_large
+- name: trmm_large_outofplace
+  category: nightly
+  function:
+    - trmm
+  precision: *single_double_precisions
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  matrix_size: *large_matrix_size_range_outofplace
+  pointer_mode_host: false
+  alpha: *alpha_range
+  c_noalias_d: [       true] # test outofplace
+
+
+- name: trmm_large_inplace
   category: nightly
   function:
     - trmm
@@ -495,10 +702,25 @@ Tests:
     - { side: L, uplo: L, transA: N, diag: N }
     - { side: R, uplo: L, transA: T, diag: N }
     - { side: L, uplo: U, transA: C, diag: N }
-  matrix_size: *large_matrix_size_range
+  matrix_size: *large_matrix_size_range_inplace
   pointer_mode_device: false
   alpha_beta: *complex_alpha
-  c_noalias_d: [false, true] # test both inplace and outofplace
+  c_noalias_d: [false      ] # test inplace
+
+- name: trmm_large_outofplace
+  category: nightly
+  function:
+    - trmm
+  precision: *single_double_precisions_complex
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: T, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  matrix_size: *large_matrix_size_range_outofplace
+  pointer_mode_device: false
+  alpha_beta: *complex_alpha
+  c_noalias_d: [       true] # test outofplace
+
 
 - name: trmm_graph_test
   category: pre_checkin
