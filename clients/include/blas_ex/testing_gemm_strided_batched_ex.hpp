@@ -424,11 +424,6 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         d_type   = arg.c_type;
     }
 
-    const size_t size_a = A_col * size_t(lda) + size_t(batch_count - 1) * stride_a;
-    const size_t size_b = B_col * size_t(ldb) + size_t(batch_count - 1) * stride_b;
-    const size_t size_c = N * size_t(ldc) + size_t(batch_count - 1) * stride_c;
-    const size_t size_d = N * size_t(ldd) + size_t(batch_count - 1) * stride_d;
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     using To_hpa = std::conditional_t<std::is_same_v<To, rocblas_bfloat16>, float, To>;
@@ -631,8 +626,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
         if(std::is_same<Ti, float>{} && math_mode == rocblas_xf32_xdl_math_op)
         {
-            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), size_a);
-            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), size_b);
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), hA.nmemb());
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), hB.nmemb());
         }
 
         cpu_time_used = get_time_us_no_sync();

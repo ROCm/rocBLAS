@@ -246,10 +246,6 @@ void testing_gemm(const Arguments& arg)
     }
 #endif
 
-    const size_t size_a = size_t(lda) * size_t(A_col);
-    const size_t size_b = size_t(ldb) * size_t(B_col);
-    const size_t size_c = size_t(ldc) * size_t(N);
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(A_row, A_col, lda);
@@ -350,8 +346,8 @@ void testing_gemm(const Arguments& arg)
         // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
         if(std::is_same<T, float>{} && math_mode == rocblas_xf32_xdl_math_op)
         {
-            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), size_a);
-            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), size_b);
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), hA.size());
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), hB.size());
         }
 
         // now we can recycle gold matrix for reference purposes

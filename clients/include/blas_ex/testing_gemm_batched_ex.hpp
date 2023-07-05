@@ -406,17 +406,6 @@ void testing_gemm_batched_ex(const Arguments& arg)
         d_type = arg.c_type;
     }
 
-    const size_t size_one_a
-        = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
-    const size_t size_one_b
-        = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
-    const size_t size_one_c = N * ldc;
-    const size_t size_one_d = N * ldd;
-    const size_t size_a     = size_one_a;
-    const size_t size_b     = size_one_b;
-    const size_t size_c     = size_one_c;
-    const size_t size_d     = size_one_d;
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_batch_matrix<Ti> hA(A_row, A_col, lda, batch_count);
@@ -613,8 +602,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
         {
             for(int b = 0; b < batch_count; b++)
             {
-                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA[b], size_a);
-                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB[b], size_b);
+                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA[b], hA.nmemb());
+                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB[b], hB.nmemb());
             }
         }
 

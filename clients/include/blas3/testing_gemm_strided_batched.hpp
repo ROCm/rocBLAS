@@ -296,10 +296,6 @@ void testing_gemm_strided_batched(const Arguments& arg)
     }
 #endif
 
-    const size_t size_a = A_col * size_t(lda) + size_t(batch_count - 1) * stride_a;
-    const size_t size_b = B_col * size_t(ldb) + size_t(batch_count - 1) * stride_b;
-    const size_t size_c = N * size_t(ldc) + size_t(batch_count - 1) * stride_c;
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_strided_batch_matrix<T> hA(A_row, A_col, lda, stride_a, batch_count);
@@ -455,8 +451,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
         {
             if(arg.unit_check)
             {
-                if(std::is_same_v<T, rocblas_half>
-                   && (rocblas_handle(handle)->getArchMajor() == 11))
+                if(std::is_same_v<T,
+                                  rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
                 {
                     const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
                     near_check_general<T>(M, N, ldc, stride_c, hC_gold, hC, batch_count, tol);
@@ -488,8 +484,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                if(std::is_same_v<T, rocblas_half>
-                   && (rocblas_handle(handle)->getArchMajor() == 11))
+                if(std::is_same_v<T,
+                                  rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
                 {
                     const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
                     near_check_general<T>(M, N, ldc, stride_c, hC_gold, hC, batch_count, tol);

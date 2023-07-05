@@ -399,11 +399,6 @@ void testing_gemm_ex(const Arguments& arg)
         d_type = arg.c_type;
     }
 
-    const size_t size_a = size_t(lda) * size_t(A_col);
-    const size_t size_b = size_t(ldb) * size_t(B_col);
-    const size_t size_c = size_t(ldc) * size_t(N);
-    const size_t size_d = size_t(ldd) * size_t(N);
-
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<Ti> hA(A_row, A_col, lda);
@@ -595,8 +590,8 @@ void testing_gemm_ex(const Arguments& arg)
         // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
         if(std::is_same<Ti, float>{} && math_mode == rocblas_xf32_xdl_math_op)
         {
-            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), size_a);
-            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), size_b);
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), hA.size());
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), hB.size());
         }
 
         // CPU BLAS

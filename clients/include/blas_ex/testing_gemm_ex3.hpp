@@ -921,8 +921,7 @@ template <typename TiA,
                   && (std::is_same<TiA, TcA>{} && std::is_same<TiB, TcB>{})
                   && !(std::is_same<rocblas_f8, To>{} || std::is_same<rocblas_bf8, To>{}),
 #endif
-              int>
-          = 0>
+              int> = 0>
 void Trusted_gemm_f8(rocblas_operation transA,
                      rocblas_operation transB,
                      rocblas_int       M,
@@ -1042,8 +1041,7 @@ template <typename TiA,
                 && (std::is_same<TiA, TcA>{} && std::is_same<TiB, TcB>{})
                 && !(std::is_same<rocblas_f8, To>{} || std::is_same<rocblas_bf8, To>{})),
 #endif
-              int>
-          = 0>
+              int> = 0>
 void Trusted_gemm_f8(rocblas_operation transA,
                      rocblas_operation transB,
                      rocblas_int       M,
@@ -2039,11 +2037,6 @@ void testing_gemm_ex3(const Arguments& arg)
         ldd    = ldc;
         d_type = arg.c_type;
     }
-
-    const size_t size_A = size_t(lda) * size_t(A_col);
-    const size_t size_B = size_t(ldb) * size_t(B_col);
-    const size_t size_C = size_t(ldc) * size_t(N);
-    const size_t size_D = size_t(ldd) * size_t(N);
 
     // allocate memory on device
     device_matrix<TiA> dA(A_row, A_col, lda);
