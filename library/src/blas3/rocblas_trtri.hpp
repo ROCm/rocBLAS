@@ -67,6 +67,7 @@ ROCBLAS_KERNEL_ILF void rocblas_custom_trtri_device(rocblas_fill     uplo,
                                                     T*               invA,
                                                     rocblas_int      ldinvA)
 {
+    // n is always <= IB
     // quick return
     if(n <= 0)
         return;
@@ -256,6 +257,7 @@ ROCBLAS_KERNEL_ILF void rocblas_trtri_device(rocblas_fill     uplo,
                                              T*               invA,
                                              rocblas_int      ldinvA)
 {
+    // n is always <= NB
     // quick return
     if(n <= 0)
         return;
@@ -350,9 +352,9 @@ ROCBLAS_KERNEL_ILF void rocblas_trtri_device(rocblas_fill     uplo,
 }
 
 // return the number of elements in a NxN matrix that do not belong to the triangular region
-constexpr size_t rocblas_num_non_tri_elements(size_t n)
+constexpr size_t rocblas_num_non_tri_elements(int32_t n)
 {
-    return n * (n - 1) / 2;
+    return size_t(n) * (n - 1) / 2;
 }
 
 template <typename T>
@@ -364,10 +366,10 @@ ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_upper(rocblas_stride offset,
                                                   T              value,
                                                   T*             A)
 {
-    rocblas_int row = n - 2 - floor(sqrt(4 * n * (n - 1) - 7 - 8 * idx) / 2.0 - 0.5);
-    rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
+    size_t row = n - 2 - floor(sqrt(4 * size_t(n) * (n - 1) - 7 - 8 * idx) / 2.0 - 0.5);
+    size_t col = idx + row + 1 - size_t(n) * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
 
-    size_t final_offset = offset * sub_stride_A + (row * size_t(lda)) + col;
+    rocblas_stride final_offset = offset * sub_stride_A + (row * lda) + col;
 
     A[final_offset] = value;
 }
@@ -376,10 +378,10 @@ template <typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_lower(
     rocblas_stride offset, size_t idx, rocblas_int lda, rocblas_stride sub_stride_A, T value, T* A)
 {
-    rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);
-    rocblas_int col = idx - row * (row + 1) / 2;
+    size_t row = size_t((-1 + sqrt(8 * idx + 1)) / 2);
+    size_t col = idx - row * (row + 1) / 2;
 
-    size_t final_offset = offset * sub_stride_A + ((row + 1) * size_t(lda)) + col;
+    rocblas_stride final_offset = offset * sub_stride_A + ((row + 1) * lda) + col;
 
     A[final_offset] = value;
 }
@@ -593,9 +595,9 @@ rocblas_status rocblas_trtri_gemm_block(rocblas_handle handle,
                                         rocblas_int    batch_count,
                                         rocblas_int    sub_blocks,
                                         rocblas_stride offset_A       = 0,
-                                        rocblas_int    offset_invAg1  = 0,
-                                        rocblas_int    offset_invAg2a = 0,
-                                        rocblas_int    offset_invAg2c = 0,
+                                        rocblas_stride offset_invAg1  = 0,
+                                        rocblas_stride offset_invAg2a = 0,
+                                        rocblas_stride offset_invAg2c = 0,
                                         rocblas_stride offset_C       = 0)
 {
     std::unique_ptr<T*[]> host_A;
@@ -693,7 +695,7 @@ rocblas_status rocblas_trtri_gemm_block(rocblas_handle handle,
                                                        0,
                                                        ld_invA,
                                                        sub_stride_invA,
-                                                       cptr,
+                                                       (const T*)cptr,
                                                        0,
                                                        ld_C,
                                                        sub_stride_C,
@@ -754,7 +756,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                        stride_invA,
                        sub_stride_invAin);
 
-    rocblas_int remainder = n - (n / NB / 2) * 2 * NB;
+    int32_t remainder = n - (n / NB / 2) * 2 * NB;
     if(remainder > 0)
     {
         dim3 grid_remainder(sub_batch_count, batch_count);
@@ -790,8 +792,8 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         return rocblas_status_success;
     }
 
-    static constexpr size_t sub_block_size = 128;
-    size_t tri_elements_to_zero            = rocblas_num_non_tri_elements(n) * sub_batch_count;
+    static constexpr int32_t sub_block_size = 128;
+    size_t tri_elements_to_zero             = rocblas_num_non_tri_elements(n) * sub_batch_count;
     size_t num_sub_blocks = (tri_elements_to_zero + sub_block_size - 1) / sub_block_size;
 
     hipLaunchKernelGGL((rocblas_trtri_fill<sub_block_size, T>),
@@ -812,7 +814,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
 
     // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
     static constexpr auto IB = NB * 2;
-    rocblas_int           current_n;
+    int32_t               current_n;
 
     for(current_n = IB; current_n * 2 <= n; current_n *= 2)
     {
@@ -1023,6 +1025,22 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         offset_invA2 += offset_invAin;
         offset_invA3 += offset_invAin;
 
+        // If oddRemainder > IB and is not a power of 2, then there's
+        // still some leftover, so calculate new remainders.
+        int nextOddRem = 0;
+        if(!rocblas_is_po2(oddRemainder) && oddRemainder > IB)
+        {
+            nextOddRem = rocblas_previous_po2(oddRemainder);
+            nextOddRem = n - current_n - nextOddRem;
+        }
+        else
+        {
+            // We're done everything.
+            nextOddRem = 0;
+        }
+
+        oddRemainder -= nextOddRem;
+
         rocblas_trtri_gemm_block<BATCHED, T>(handle,
                                              uplo == rocblas_fill_lower ? oddRemainder : current_n,
                                              uplo == rocblas_fill_lower ? current_n : oddRemainder,
@@ -1048,18 +1066,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                                              offset_invA3,
                                              0);
 
-        // If oddRemainder > IB and is not a power of 2, then there's
-        // still some leftover, so calculate new remainders.
-        if(!rocblas_is_po2(oddRemainder) && oddRemainder > IB)
-        {
-            oddRemainder = rocblas_previous_po2(oddRemainder);
-            oddRemainder = n - current_n - oddRemainder;
-        }
-        else
-        {
-            // We're done everything.
-            oddRemainder = 0;
-        }
+        oddRemainder = nextOddRem;
     }
 
     return rocblas_status_success;

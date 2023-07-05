@@ -57,7 +57,7 @@ public:
     //! @param lda         The leading dimension of the Matrix.
     //! @param batch_count The batch count.
     //!
-    explicit host_batch_matrix(size_t m, size_t n, size_t lda, rocblas_int batch_count)
+    explicit host_batch_matrix(size_t m, size_t n, size_t lda, int64_t batch_count)
         : m_m(m)
         , m_n(n)
         , m_lda(lda)
@@ -105,7 +105,7 @@ public:
     //!
     //! @brief Returns the batch count.
     //!
-    rocblas_int batch_count() const
+    int64_t batch_count() const
     {
         return m_batch_count;
     }
@@ -115,7 +115,7 @@ public:
     //! @param batch_index the batch index.
     //! @return The mutable pointer.
     //!
-    T* operator[](rocblas_int batch_index)
+    T* operator[](int64_t batch_index)
     {
 
         return m_data[batch_index];
@@ -126,7 +126,7 @@ public:
     //! @param batch_index the batch index.
     //! @return The non-mutable pointer.
     //!
-    const T* operator[](rocblas_int batch_index) const
+    const T* operator[](int64_t batch_index) const
     {
 
         return m_data[batch_index];
@@ -205,19 +205,19 @@ public:
     }
 
 private:
-    size_t      m_m{};
-    size_t      m_n{};
-    size_t      m_lda{};
-    size_t      m_nmemb{};
-    rocblas_int m_batch_count{};
-    T**         m_data{};
+    size_t  m_m{};
+    size_t  m_n{};
+    size_t  m_lda{};
+    size_t  m_nmemb{};
+    int64_t m_batch_count{};
+    T**     m_data{};
 
     bool try_initialize_memory()
     {
         bool success = (nullptr != (m_data = (T**)host_calloc_throw(m_batch_count, sizeof(T*))));
         if(success)
         {
-            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+            for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
                 if(batch_index == 0)
                 {
@@ -242,7 +242,7 @@ private:
     {
         if(nullptr != m_data)
         {
-            for(rocblas_int batch_index = 0; batch_index < m_batch_count; ++batch_index)
+            for(int64_t batch_index = 0; batch_index < m_batch_count; ++batch_index)
             {
                 if(batch_index == 0 && nullptr != m_data[batch_index])
                 {
@@ -274,7 +274,7 @@ rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const host_ba
     auto lda         = that.lda();
     auto batch_count = that.batch_count();
 
-    for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
+    for(int64_t batch_index = 0; batch_index < batch_count; ++batch_index)
     {
         auto batch_data = that[batch_index];
         os << "[" << batch_index << "]" << std::endl;

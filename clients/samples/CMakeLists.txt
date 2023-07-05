@@ -54,9 +54,8 @@ endif( )
 
 if( BUILD_WITH_TENSILE )
   add_executable( rocblas-example-user-driven-tuning example_user_driven_tuning.cpp ${rocblas_samples_common} )
-  add_executable( rocblas-example-gemm-ext2 example_gemm_ext2.cpp ${rocblas_samples_common} )
 
-  set( sample_list_tensile rocblas-example-user-driven-tuning rocblas-example-gemm-ext2 )
+  set( sample_list_tensile rocblas-example-user-driven-tuning )
 endif()
 
 # L3 examples with or with tensile or source gemm builds

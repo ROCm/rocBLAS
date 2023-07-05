@@ -281,8 +281,7 @@ void testing_geam(const Arguments& arg)
     // Allocate host memory
     host_matrix<T> hA(A_row, A_col, lda), hA_copy(A_row, A_col, lda);
     host_matrix<T> hB(B_row, B_col, ldb), hB_copy(B_row, B_col, ldb);
-    host_matrix<T> hC_1(M, N, ldc);
-    host_matrix<T> hC_2(M, N, ldc);
+    host_matrix<T> hC(M, N, ldc);
     host_matrix<T> hC_gold(M, N, ldc);
     host_vector<T> h_alpha(1);
     host_vector<T> h_beta(1);
@@ -295,8 +294,7 @@ void testing_geam(const Arguments& arg)
     CHECK_HIP_ERROR(hA_copy.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
     CHECK_HIP_ERROR(hB_copy.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_2.memcheck());
+    CHECK_HIP_ERROR(hC.memcheck());
     CHECK_HIP_ERROR(hC_gold.memcheck());
 
     // Allocate device memory
@@ -322,24 +320,30 @@ void testing_geam(const Arguments& arg)
     hB_copy = hB;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
-    CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
+
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
 
     if(arg.unit_check || arg.norm_check)
     {
-        // ROCBLAS
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_geam_fn(
-            handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_geam_fn(
+                handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc));
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
+        }
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_geam_fn(
-            handle, transA, transB, M, N, d_alpha, dA, lda, d_beta, dB, ldb, dC, ldc));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
+            CHECK_ROCBLAS_ERROR(rocblas_geam_fn(
+                handle, transA, transB, M, N, d_alpha, dA, lda, d_beta, dB, ldb, dC, ldc));
+        }
 
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
@@ -359,22 +363,39 @@ void testing_geam(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // fetch GPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(M, N, ldc, hC_gold, hC);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_1 = norm_check_general<T>('F', M, N, ldc, hC_gold, hC);
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1);
-            rocblas_error_2 = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2);
+            // fetch GPU
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(M, N, ldc, hC_gold, hC);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_2 = norm_check_general<T>('F', M, N, ldc, hC_gold, hC);
+            }
         }
+
+        // extra host mode checks
 
         // inplace check for dC == dA
+        if(arg.pointer_mode_host)
         {
             dC_in_place = dA;
 
@@ -389,7 +410,7 @@ void testing_geam(const Arguments& arg)
             else
             {
                 CHECK_HIP_ERROR(
-                    hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+                    hipMemcpy(hC, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
                 // dA was clobbered by dC_in_place, so copy hA back to dA
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
@@ -409,17 +430,18 @@ void testing_geam(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC);
                 }
 
                 if(arg.norm_check)
                 {
-                    rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1);
+                    rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC);
                 }
             }
         }
 
         // inplace check for dC == dB
+        if(arg.pointer_mode_host)
         {
             dC_in_place = dB;
 
@@ -436,7 +458,7 @@ void testing_geam(const Arguments& arg)
                 CHECK_ROCBLAS_ERROR(status_h);
 
                 CHECK_HIP_ERROR(
-                    hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+                    hipMemcpy(hC, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
                 // reference calculation
                 cblas_geam(transA,
@@ -454,12 +476,12 @@ void testing_geam(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC);
                 }
 
                 if(arg.norm_check)
                 {
-                    rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1);
+                    rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC);
                 }
             }
         }

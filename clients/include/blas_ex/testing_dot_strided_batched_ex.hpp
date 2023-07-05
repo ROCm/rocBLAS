@@ -45,19 +45,17 @@ void testing_dot_strided_batched_ex_bad_arg(const Arguments& arg)
                       : rocblas_dot_strided_batched_ex_fortran)
               : (CONJ ? rocblas_dotc_strided_batched_ex : rocblas_dot_strided_batched_ex);
 
-    rocblas_datatype x_type         = rocblas_datatype_f32_r;
-    rocblas_datatype y_type         = rocblas_datatype_f32_r;
-    rocblas_datatype result_type    = rocblas_datatype_f32_r;
-    rocblas_datatype execution_type = rocblas_datatype_f32_r;
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
+    rocblas_datatype result_type    = rocblas_type2datatype<Tr>();
+    rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
 
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    rocblas_int incy        = 1;
-    rocblas_int stride_x    = incx * N;
-    rocblas_int stride_y    = incy * N;
-    rocblas_int batch_count = 2;
-    size_t      size_x      = stride_x * batch_count;
-    size_t      size_y      = stride_y * batch_count;
+    rocblas_int    N           = 100;
+    rocblas_int    incx        = 1;
+    rocblas_int    incy        = 1;
+    rocblas_stride stride_x    = incx * N;
+    rocblas_stride stride_y    = incy * N;
+    rocblas_int    batch_count = 2;
 
     rocblas_local_handle handle{arg};
 
@@ -262,41 +260,47 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS, rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_ex_fn)(handle,
-                                                                N,
-                                                                dx,
-                                                                x_type,
-                                                                incx,
-                                                                stride_x,
-                                                                dy_ptr,
-                                                                y_type,
-                                                                incy,
-                                                                stride_y,
-                                                                batch_count,
-                                                                rocblas_result_1,
-                                                                result_type,
-                                                                execution_type));
-        // GPU BLAS, rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_ex_fn)(handle,
-                                                                N,
-                                                                dx,
-                                                                x_type,
-                                                                incx,
-                                                                stride_x,
-                                                                dy_ptr,
-                                                                y_type,
-                                                                incy,
-                                                                stride_y,
-                                                                batch_count,
-                                                                d_rocblas_result_2,
-                                                                result_type,
-                                                                execution_type));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+        if(arg.pointer_mode_host)
+        {
+            // GPU BLAS, rocblas_pointer_mode_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_ex_fn)(handle,
+                                                                    N,
+                                                                    dx,
+                                                                    x_type,
+                                                                    incx,
+                                                                    stride_x,
+                                                                    dy_ptr,
+                                                                    y_type,
+                                                                    incy,
+                                                                    stride_y,
+                                                                    batch_count,
+                                                                    rocblas_result_1,
+                                                                    result_type,
+                                                                    execution_type));
+        }
+
+        if(arg.pointer_mode_device)
+        {
+            // GPU BLAS, rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_ex_fn)(handle,
+                                                                    N,
+                                                                    dx,
+                                                                    x_type,
+                                                                    incx,
+                                                                    stride_x,
+                                                                    dy_ptr,
+                                                                    y_type,
+                                                                    incy,
+                                                                    stride_y,
+                                                                    batch_count,
+                                                                    d_rocblas_result_2,
+                                                                    result_type,
+                                                                    execution_type));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -307,34 +311,61 @@ void testing_dot_strided_batched_ex(const Arguments& arg)
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+            if(arg.unit_check)
             {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = N * sum_error_tolerance<Tex>;
-
-                near_check_general<Tr>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count, tol);
-                near_check_general<Tr>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count, tol);
+                if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = N * sum_error_tolerance<Tex>;
+                    near_check_general<Tr>(
+                        1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<Tr>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count);
+                }
             }
-            else
+
+            if(arg.norm_check)
             {
-                unit_check_general<Tr>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count);
-                unit_check_general<Tr>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count);
+                for(int b = 0; b < batch_count; ++b)
+                {
+                    rocblas_error_1
+                        += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                }
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
-            for(int b = 0; b < batch_count; ++b)
+            CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
+
+            if(arg.unit_check)
             {
-                rocblas_error_1
-                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
-                rocblas_error_2
-                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = N * sum_error_tolerance<Tex>;
+                    near_check_general<Tr>(
+                        1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count, tol);
+                }
+                else
+                {
+                    unit_check_general<Tr>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                for(int b = 0; b < batch_count; ++b)
+                {
+                    rocblas_error_2
+                        += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                }
             }
         }
     }

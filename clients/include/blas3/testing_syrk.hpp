@@ -204,7 +204,8 @@ void testing_syrk(const Arguments& arg)
     T beta  = arg.get_beta<T>();
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error = 0.0;
+    double error_host   = 0.0;
+    double error_device = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
     bool invalid_size = N < 0 || K < 0 || ldc < N || (transA == rocblas_operation_none && lda < N)
@@ -226,8 +227,7 @@ void testing_syrk(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(rows, cols, lda);
-    host_matrix<T> hC_1(N, N, ldc);
-    host_matrix<T> hC_2(N, N, ldc);
+    host_matrix<T> hC(N, N, ldc);
     host_matrix<T> hC_gold(N, N, ldc);
     host_vector<T> h_alpha(1);
     host_vector<T> h_beta(1);
@@ -252,34 +252,39 @@ void testing_syrk(const Arguments& arg)
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true, true);
     rocblas_init_matrix(
-        hC_1, arg, rocblas_client_beta_sets_nan, rocblas_client_symmetric_matrix, false, true);
+        hC, arg, rocblas_client_beta_sets_nan, rocblas_client_symmetric_matrix, false, true);
 
-    hC_2    = hC_1;
-    hC_gold = hC_1;
+    hC_gold = hC;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
     if(arg.unit_check || arg.norm_check)
     {
-        // host alpha/beta
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_syrk_fn(handle, uplo, transA, N, K, &h_alpha[0], dA, lda, &h_beta[0], dC, ldc));
-        handle.post_test(arg);
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        if(arg.pointer_mode_host)
+        {
+            // host alpha/beta
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_HIP_ERROR(dC.transfer_from(hC));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
+                handle, uplo, transA, N, K, &h_alpha[0], dA, lda, &h_beta[0], dC, ldc));
+            handle.post_test(arg);
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
+        }
 
-        // device alpha/beta
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(dC.transfer_from(hC_2));
-        CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
-        CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
+        if(arg.pointer_mode_device)
+        {
+            // device alpha/beta
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+            CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
+            CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-        CHECK_ROCBLAS_ERROR(
-            rocblas_syrk_fn(handle, uplo, transA, N, K, d_alpha, dA, lda, d_beta, dC, ldc));
+            CHECK_ROCBLAS_ERROR(
+                rocblas_syrk_fn(handle, uplo, transA, N, K, d_alpha, dA, lda, d_beta, dC, ldc));
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
@@ -288,31 +293,58 @@ void testing_syrk(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            if(std::is_same_v<T,
-                              rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
+            if(arg.unit_check)
             {
-                const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(N, N, ldc, hC_gold, hC_1, tol);
-                near_check_general<T>(N, N, ldc, hC_gold, hC_2, tol);
+                if(std::is_same_v<
+                       T,
+                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
+                {
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(N, N, ldc, hC_gold, hC, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(N, N, ldc, hC_gold, hC);
+                }
             }
-            else
+
+            if(arg.norm_check)
             {
-                unit_check_general<T>(N, N, ldc, hC_gold, hC_1);
-                unit_check_general<T>(N, N, ldc, hC_gold, hC_2);
+                error_host = std::abs(norm_check_general<T>('F', N, N, ldc, hC_gold, hC));
             }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_host)
         {
-            auto err1     = std::abs(norm_check_general<T>('F', N, N, ldc, hC_gold, hC_1));
-            auto err2     = std::abs(norm_check_general<T>('F', N, N, ldc, hC_gold, hC_2));
-            rocblas_error = err1 > err2 ? err1 : err2;
+            // copy output from device to CPU
+            CHECK_HIP_ERROR(hC.transfer_from(dC));
+
+            if(arg.unit_check)
+            {
+                if(std::is_same_v<
+                       T,
+                       rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>)
+                {
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(N, N, ldc, hC_gold, hC, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(N, N, ldc, hC_gold, hC);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                error_device = std::abs(norm_check_general<T>('F', N, N, ldc, hC_gold, hC));
+            }
         }
+    }
+    else
+    {
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
     }
 
     if(arg.timing)
@@ -321,6 +353,7 @@ void testing_syrk(const Arguments& arg)
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_HIP_ERROR(dC.transfer_from(hC));
 
         for(int i = 0; i < number_cold_calls; i++)
         {
@@ -343,6 +376,7 @@ void testing_syrk(const Arguments& arg)
             syrk_gflop_count<T>(N, K),
             ArgumentLogging::NA_value,
             cpu_time_used,
-            rocblas_error);
+            error_host,
+            error_device);
     }
 }

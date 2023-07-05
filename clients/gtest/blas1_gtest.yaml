@@ -45,6 +45,10 @@ Definitions:
   - &size_t_pos_x_range
     - { N: 4,          incx: *c_pos_x2_overflow_int32 } # small operation count, should overflow x
 
+  - &size_t_pos_neg_x_range
+    - { N: 4,          incx: *c_pos_x2_overflow_int32 } # small operation count, should overflow x
+    - { N: 4,          incx: *c_neg_x2_overflow_int32 }
+
   - &size_t_pos_neg_xy_range
     - { N: 4,          incx: *c_pos_x2_overflow_int32, incy: 1 } # small operation count, should overflow x
     - { N: 4,          incx: 1, incy: *c_pos_x2_overflow_int32 } # small operation count, should overflow y
@@ -515,63 +519,91 @@ Tests:
       - scal_strided_batched_ex: *scal_ex_single_double_complex_real_alpha_complex_out
 
   - name: blas1_size_t
-    category: nightly #stress
+    category: nightly # stress_axpy
     matrix_size: *size_t_pos_neg_xy_range
     alpha: [ 2 ]
+    pointer_mode_host: false
     function:
       - axpy_ex:  *half_precision
-      #- swap: *single_precision
       # axpy shared kernels for axpy_ex so only testing size_t with axpy_ex and half
       # batched kernel only for batch_count > 8192, so large incx incy not practical
       # all other precisions optimized kernels only for incx == incy == 1
     pointer_mode_host: false
-
-  - name: blas1_size_t
-    category: pre_checkin
-    matrix_size: *size_t_pos_x_range
-    function:
-      - iamax:  *single_precision
-    pointer_mode_host: false
-    os_flags: ALL # default value so can be removed later
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
     category: nightly #stress
+    matrix_size: *size_t_pos_neg_xy_range
+    pointer_mode_host: false
+    function:
+      - dot_ex: *half_precision
+      - dotc_ex: *half_precision
+      # dot shared kernels for dot_ex so only testing size_t with dot_ex and half
+      # batched and strided_batched also shared code
+    algo: [0, 1] # algo 1 is x dot x
+    os_tags: LINUX
+    gpu_arch: '90a'
+
+  - name: blas1_size_t
+    category: nightly # stress
+    matrix_size: *size_t_pos_x_range
+    pointer_mode_host: false
+    function:
+      - iamax: *single_precision
+      - asum: *single_precision
+      - nrm2_ex: *hpa_half_precision
+    gpu_arch: '90a'
+    os_flags: LINUX
+
+  - name: blas1_size_t
+    category: stress
     matrix_size: *size_t_x_range
     pointer_mode_device: false
     alpha: [ 2 ]
     function:
       - scal_ex:  *hpa_half_precision
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: nightly #stress
+    category: nightly # stress_swap_copy
     matrix_size: *size_t_xy_range
     pointer_mode_device: false
     function:
       - swap: *single_precision
       - copy:  *single_precision
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: pre_checkin #stress
+    category: nightly # stress_rot_ex
     matrix_size: *size_t_xy_range
     pointer_mode_device: false
     function:
       - rot_ex:  *hpa_half_precision
       # real rot shared kernels with rot_ex so only testing size_t with rot_ex and half.
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: pre_checkin #stress
+    category: nightly # stress_rot_ex
     matrix_size: *size_t_xy_range
     pointer_mode_device: false
     function:
       - rot_ex:  *single_precision_complex
       # complex rot shared kernels with rot_ex so only testing size_t with rot_ex and single_precision_complex.
+    gpu_arch: '90a'
+    os_flags: LINUX
 
   - name: blas1_size_t
-    category: pre_checkin #stress
+    category: nightly # stress_rotm
     matrix_size: *size_t_xy_range
     function:
       - rotm:  *single_precision
       #all rotm functions use same templated source so it is only necessary to test single_precision.
+    gpu_arch: '90a'
+    os_flags: LINUX
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
@@ -677,6 +709,7 @@ Tests:
       - nrm2_batched_ex: *nrm2_ex_precisions_double
       - iamax_batched: *double_precision_complex_real
       - iamin_batched: *double_precision_complex_real
+    pointer_mode_host: false
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -689,6 +722,7 @@ Tests:
       - nrm2_strided_batched_ex: *nrm2_ex_precisions_double
       - iamax_strided_batched: *double_precision_complex_real
       - iamin_strided_batched: *double_precision_complex_real
+    pointer_mode_device: false
 
 # nightly
   - name: blas1
@@ -696,6 +730,7 @@ Tests:
     N: [ 300001 ]
     incx: *incx_range_small
     function:
+      - nrm2: *double_precision_complex
       - nrm2_ex:  *nrm2_ex_precisions_double
       - asum:  *double_precision_complex_real
       - iamax:  *double_precision_complex_real
@@ -706,6 +741,7 @@ Tests:
     N: [ 300001 ]
     incx: *incx_range_small
     batch_count: [ 65 ]
+    pointer_mode_host: false
     function:
       - asum_batched: *double_precision_complex_real
       - nrm2_batched_ex: *nrm2_ex_precisions_double
@@ -718,6 +754,7 @@ Tests:
     incx: *incx_range_small
     batch_count: [ 65 ]
     stride_scale: [ 1 ]
+    pointer_mode_device: false
     function:
       - asum_strided_batched: *double_precision_complex_real
       - nrm2_strided_batched_ex: *nrm2_ex_precisions_double

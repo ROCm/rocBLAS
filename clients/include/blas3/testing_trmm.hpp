@@ -238,8 +238,7 @@ void testing_trmm(const Arguments& arg)
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
     host_matrix<T> hA(K, K, lda);
-    host_matrix<T> hB_1(M, N, ldb);
-    host_matrix<T> hB_2(M, N, ldb);
+    host_matrix<T> hB(M, N, ldb);
     host_matrix<T> hB_gold(M, N, ldb);
 
     // Allocate device memory
@@ -256,76 +255,93 @@ void testing_trmm(const Arguments& arg)
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_triangular_matrix, true);
     rocblas_init_matrix(
-        hB_1, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
+        hB, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, false, true);
 
-    hB_1    = hB_1; // hXorB <- B
-    hB_2    = hB_1; // hXorB <- B
-    hB_gold = hB_1; // hB_gold <- B
+    hB_gold = hB; // hB_gold <- B
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
 
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used = 0.0;
-    double rocblas_error          = 0.0;
+    double err_host = 0.0, err_device = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
-        // calculate dB <- A^(-1) B   rocblas_device_pointer_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(dB.transfer_from(hB_1));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(
-            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hB_1.transfer_from(dB));
+        if(arg.pointer_mode_host)
+        {
+            // calculate dB <- A^(-1) B   rocblas_device_pointer_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(rocblas_trmm_fn(
+                handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb));
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hB.transfer_from(dB));
+        }
 
-        // calculate dB <- A^(-1) B   rocblas_device_pointer_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(dB.transfer_from(hB_2));
-        CHECK_HIP_ERROR(hipMemcpy(alpha_d, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
+        if(arg.pointer_mode_device)
+        {
+            // calculate dB <- A^(-1) B   rocblas_device_pointer_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            CHECK_HIP_ERROR(dB.transfer_from(hB_gold));
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(
-            rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb));
+            CHECK_ROCBLAS_ERROR(
+                rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb));
+        }
 
         // CPU BLAS
-        if(arg.timing)
-        {
-            cpu_time_used = get_time_us_no_sync();
-        }
-
+        cpu_time_used = get_time_us_no_sync();
         cblas_trmm<T>(side, uplo, transA, diag, M, N, h_alpha_T, hA, lda, hB_gold, ldb);
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.timing)
+        if(arg.pointer_mode_host)
         {
-            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        }
-
-        // fetch GPU
-        CHECK_HIP_ERROR(hB_2.transfer_from(dB));
-
-        if(arg.unit_check)
-        {
-            if(std::is_same_v<T, rocblas_half> && K > 10000)
+            if(arg.unit_check)
             {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, ldb, hB_gold, hB_1, tol);
-                near_check_general<T>(M, N, ldb, hB_gold, hB_2, tol);
+                if(std::is_same_v<T, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(M, N, ldb, hB_gold, hB, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(M, N, ldb, hB_gold, hB);
+                }
             }
-            else
+
+            if(arg.norm_check)
             {
-                unit_check_general<T>(M, N, ldb, hB_gold, hB_1);
-                unit_check_general<T>(M, N, ldb, hB_gold, hB_2);
+                err_host = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB));
             }
         }
-
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB_1));
-            auto err2     = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB_2));
-            rocblas_error = err1 > err2 ? err1 : err2;
+            // fetch GPU
+            CHECK_HIP_ERROR(hB.transfer_from(dB));
+
+            if(arg.unit_check)
+            {
+                if(std::is_same_v<T, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(M, N, ldb, hB_gold, hB, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(M, N, ldb, hB_gold, hB);
+                }
+            }
+
+            if(arg.norm_check)
+            {
+                err_device = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB));
+            }
         }
     }
 
@@ -358,7 +374,8 @@ void testing_trmm(const Arguments& arg)
                          trmm_gflop_count<T>(M, N, side),
                          ArgumentLogging::NA_value,
                          cpu_time_used,
-                         rocblas_error);
+                         err_host,
+                         err_device);
     }
 #endif // ROCBLAS_V3
 }

@@ -1025,8 +1025,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template
                                                                          TConstPtr* dB, rocblas_stride offset_b, rocblas_int ldb,
                                                                          TPtr*      dC, rocblas_stride offset_c, rocblas_int ldc)
 {
-
-
     // using template params to indicate transpose type
     // declaring constexpr here for easier use in gemm calls
     constexpr rocblas_operation transA = CONJ ? rocblas_operation_conjugate_transpose : TRANS ? rocblas_operation_transpose : rocblas_operation_none;
@@ -1097,7 +1095,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template
             gemm_batch_count += 1;
         }
 
-        offsetAin = offset_a + (UPPER ? k_sub * lda : k_sub);
+            offsetAin = offset_a + (UPPER ? k_sub * int64_t(lda) : k_sub);
         offsetBin = offset_b + (TRI_OFFSET ? k_sub * b_block_stride : 0);
         offsetCin = offset_c + (TRI_OFFSET ? 0 : k_sub * c_block_stride);
         rocblas_stride strideAgemm = k_stride * a_block_stride;
@@ -1122,7 +1120,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template
             rocblas_int n_rem = LEFT ? n : (TRI_OFFSET ? k_sub : rem);
             rocblas_int k_rem = TRI_OFFSET ? rem : k_sub;
 
-            offsetAin = offset_a + (UPPER ? i2 + i1 * lda : i1 + i2 * lda);
+            offsetAin = offset_a + (UPPER ? i2 + i1 * int64_t(lda) : i1 + i2 * int64_t(lda));
             offsetBin = offset_b + (TRI_OFFSET ? i1 * b_block_stride : i2 * b_block_stride);
             offsetCin = offset_c + (TRI_OFFSET ? i2 * c_block_stride : i1 * c_block_stride);
 
@@ -1511,28 +1509,32 @@ rocblas_status rocblas_internal_trmm_template(rocblas_handle    handle,
     rocblas_int k = side == rocblas_side_left ? m : n;
     if(!inplace)
     {
-        rocblas_set_matrix_zero_if_alpha_zero_template(handle, m, n, &alpha_0<T>, 0, dC, ldc, 0, 1);
-
-        return rocblas_internal_trmm_outofplace_template<ROCBLAS_TRMM_OUTOFPLACE_NB, BATCHED, T>(
-            handle,
-            side,
-            uplo,
-            trans_a,
-            diag,
-            m,
-            n,
-            alpha,
-            dA,
-            offset_a,
-            lda,
-            dB,
-            offset_b,
-            ldb,
-            dC,
-            offset_c,
-            ldc);
+        // always !BATCHED here so avoiding reference to uninstantiated code
+        if constexpr(!BATCHED)
+        {
+            rocblas_set_matrix_zero_if_alpha_zero_template(
+                handle, m, n, &alpha_0<T>, 0, dC, ldc, 0, 1);
+            return rocblas_internal_trmm_outofplace_template<ROCBLAS_TRMM_OUTOFPLACE_NB,
+                                                             BATCHED,
+                                                             T>(handle,
+                                                                side,
+                                                                uplo,
+                                                                trans_a,
+                                                                diag,
+                                                                m,
+                                                                n,
+                                                                alpha,
+                                                                dA,
+                                                                offset_a,
+                                                                lda,
+                                                                dB,
+                                                                offset_b,
+                                                                ldb,
+                                                                dC,
+                                                                offset_c,
+                                                                ldc);
+        }
     }
-
     else
     {
         return rocblas_internal_trmm_recursive_template<NB, BATCHED, T>(handle,

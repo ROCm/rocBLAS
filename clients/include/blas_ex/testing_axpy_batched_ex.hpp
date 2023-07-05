@@ -268,10 +268,10 @@ void testing_axpy_batched_ex(const Arguments& arg)
 
     for(rocblas_int b = 0; b < batch_count; b++)
     {
-        for(size_t i = 0; i < size_y; i++)
-            hy_ex[b][i] = (Tex)hy[b][i];
-        for(size_t i = 0; i < size_x; i++)
-            hx_ex[b][i] = (Tex)hx[b][i];
+        for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
+            hy_ex[b][idx] = (Tex)hy[b][idx];
+        for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incx)
+            hx_ex[b][idx] = (Tex)hx[b][idx];
     }
 
     // Device memory.
@@ -344,8 +344,8 @@ void testing_axpy_batched_ex(const Arguments& arg)
 
             for(rocblas_int b = 0; b < batch_count; b++)
             {
-                for(size_t i = 0; i < size_y; i++)
-                    hy[b][i] = (Ty)hy_ex[b][i];
+                for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
+                    hy[b][idx] = (Ty)hy_ex[b][idx];
             }
         }
 

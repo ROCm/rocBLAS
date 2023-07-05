@@ -29,7 +29,8 @@ Datatypes:
         rand_int: 111
         trig_float: 222
         hpl: 333
-        special: 444
+        denorm: 444
+        denorm2: 555
   - rocblas_arithmetic_check:
       bases: [ c_uint32 ]
       attr:
@@ -388,6 +389,11 @@ nrm2_ex precisions double: &nrm2_ex_precisions_double
   - *double_precision
   - *double_precision_complex_real_in_real_compute
 
+Definitions:
+  # scan extension applied by Arguments class
+  - &c_scan_value
+    - [-999]
+
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes
@@ -420,6 +426,7 @@ Arguments:
   - incx: c_int64
   - incy: c_int64
   - batch_count: c_int64
+  - scan: c_int64
   - iters: c_int32
   - cold_iters: c_int32
   - algo: c_uint32
@@ -509,6 +516,7 @@ Defaults:
   uplo: '*'
   diag: '*'
   batch_count: 1
+  scan: *c_scan_value
   HMM: false
   pad: 4096
   threads: 0

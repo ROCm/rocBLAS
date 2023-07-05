@@ -32,6 +32,14 @@ Definitions:
     - { M:  2000, lda:  2000, stride_a: 4000000 }
     - { M:  1000, lda:  4096, stride_a: 10000000 }
 
+  - &size_t_index
+    - { M:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341, incx: 1 }
+
+  # large enough to get overflow in inversion part of code
+  - &size_t_incx
+    - { M: 581, lda: 581, incx:  3896187 }
+    - { M: 581, lda: 581, incx: -3896187 }
+
   - &common_args
     precision: *single_double_precisions_complex_real
     uplo: [L, U]
@@ -61,6 +69,30 @@ Tests:
   diag: N
   matrix_size: *special_case_range
   api: [ C, FORTRAN ]
+
+- name: trsv_size_t_lda
+  category: nightly
+  function: trsv
+  precision: *single_precision
+  uplo: [ L, U ]
+  transA: [ N, T ]
+  diag: [ N, U ]
+  matrix_size: *size_t_index
+  pointer_mode_device: false
+  os_flags: LINUX
+  gpu_arch: [ '90a' ]
+
+- name: trsv_size_t_inc
+  category: nightly
+  function: trsv
+  precision: *single_precision
+  uplo: [ L, U ]
+  transA: [ N, T ]
+  diag: [ N, U ]
+  matrix_size: *size_t_incx
+  pointer_mode_device: false
+  os_flags: LINUX
+  gpu_arch: [ '90a' ]
 
 # Regular trsv
 - name: trsv_fortran

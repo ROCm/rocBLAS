@@ -135,7 +135,7 @@ with host-only compilers.
 
 <hip/hip_runtime.h> (and, sometimes due to bugs, <hip/hip_runtime_api.h>) are
 incompatible with C, so they should only be included in the rocBLAS internal
-C++ implemenation, not in the public headers, which must be compatible with C.
+C++ implementation, not in the public headers, which must be compatible with C.
 
 EOF
         exit 1
@@ -158,7 +158,7 @@ with GCC compilers.
 
 <hip/hip_runtime.h> (and, sometimes due to bugs, <hip/hip_runtime_api.h>) are
 incompatible with C, so they should only be included in the rocBLAS internal
-C++ implemenation, not in the public headers, which must be compatible with C.
+C++ implementation, not in the public headers, which must be compatible with C.
 
 EOF
         exit 1
@@ -179,7 +179,7 @@ rocBLAS public headers need to be compatible with C99.
 
 <hip/hip_runtime.h> and (sometimes due to bugs) <hip/hip_runtime_api.h> are
 incompatible with C, so they should only be included in the rocBLAS internal
-C++ implemenation, not in the public headers, which must be compatible with C.
+C++ implementation, not in the public headers, which must be compatible with C.
 
 EOF
         exit 1

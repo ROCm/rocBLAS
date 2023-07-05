@@ -115,13 +115,15 @@ Tests:
   alpha_beta: *alpha_range_small
 
 - name: syr_size_t
-  category: nightly
+  category: nightly # stress_syr
   function: syr
   precision: *single_precision
   uplo: [ U    ]
   matrix_size: *size_t_n_lda_incx_range
   pointer_mode_device: false
   alpha_beta: *alpha_range_small
+  gpu_arch: '90a'
+  os_flags: LINUX
 
 # batched
 - name: syr_batched_fortran

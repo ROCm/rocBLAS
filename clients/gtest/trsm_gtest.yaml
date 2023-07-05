@@ -11,7 +11,6 @@ Definitions:
     - { M:    24, N:    33, lda:    33, ldb:    33 }
     - { M:    32, N:    33, lda:    33, ldb:    33 }
     - { M:    33, N:    32, lda:    33, ldb:    33 }
-
     - { M:    64, N: 65, lda: 65, ldb: 65 }
     - { M:    65, N: 64, lda: 64, ldb: 65 }
 
@@ -104,6 +103,43 @@ Definitions:
 
   - &alpha_zero_matrix_size
     - { M: 64, N: 50, lda: 64, ldb: 128 }
+
+  - &left_overflow_sizes
+    # LHS "special" kernel
+    - { M: 128, N: 128, lda: 16777220, ldb: 128 }
+    - { M: 128, N: 128, lda: 128, ldb: 16777220 }
+    # LHS "left" kernel
+    - { M: 1000, N: 4, lda: 2147500, ldb: 1000 }
+    - { M: 1000, N: 4, lda: 1000, ldb: 2147500 }
+    # LHS "small" kernel
+    - { M: 16, N: 16, lda: 143165578, ldb: 16 }
+    - { M: 16, N: 16, lda: 16, ldb: 143165578 }
+    # LHS "subsitution" kernel
+    - { M: 33, N: 65, lda: 65075300, ldb: 128 }
+    - { M: 33, N: 65, lda: 128, ldb: 33554450 }
+
+  - &right_overflow_sizes
+    # RHS "special" kernel
+    - { M: 128, N: 128, lda: 16777220, ldb: 128 }
+    - { M: 128, N: 128, lda: 128, ldb: 16777220 }
+    # RHS "right" kernel
+    - { M: 4, N: 1000, lda: 2147500, ldb: 1000 }
+    - { M: 4, N: 1000, lda: 1000, ldb: 2147500 }
+    # RHS "small" kernel
+    - { M: 16, N: 16, lda: 143165578, ldb: 16 }
+    - { M: 16, N: 16, lda: 16, ldb: 143165578 }
+
+  - &internal_interface_sizes_left
+    - { M:  128, N: 128, lda:  128, ldb:  128, ldc: 4294967296, ldd: 4294967297 }
+    - { M: 1000, N:   4, lda: 1000, ldb: 1000, ldc: 4294967297, ldd: 4294967296 }
+    - { M:   16, N:  16, lda:   16, ldb:   16, ldc: 4294967296, ldd: 4294967297 }
+    - { M:   33, N:  65, lda:  128, ldb:  128, ldc: 4294967297, ldd: 4294967296 }
+
+  - &internal_interface_sizes_right
+    - { M:  128, N:  128, lda:  128, ldb:  128, ldc: 4294967297, ldd: 4294967296 }
+    - { M:    4, N: 1000, lda: 1000, ldb: 1000, ldc: 4294967296, ldd: 4294967297 }
+    - { M:   16, N:   16, lda:   16, ldb:   16, ldc: 4294967297, ldd: 4294967296 }
+
 
   - &alpha_range_sub
     - { alpha: 2.0 }
@@ -784,6 +820,85 @@ Tests:
   alpha_beta: *alpha_range_sub
   stride_scale: [ 1.5 ]
   batch_count: [ 1, 4 ]
+
+# 32-bit overflow tests
+# currently very slow so not feasable to add to nightly
+# also use a lot of memory
+# Only testing non-unit-diag as unit-diag should never
+# be indexing non-shared memory outside of what non-unit-diag does
+# TODO: reduce memory use before enabling
+# - name: trsm_left_size_t_overflow
+#   category: stress_trsm
+#   function:
+#     - trsm
+#     - trsm_batched
+#     # - trsm_strided_batched
+#   precision: *single_double_precisions_complex_real
+#   side: [L]
+#   uplo: [L, U]
+#   transA: [N, C]
+#   diag: [ N ] #, U]
+#   matrix_size: *left_overflow_sizes
+#   alpha_beta: *alpha_range_sub
+#   stride_scale: [ 1 ]
+#   batch_count: [ 1 ]
+#   pointer_mode_device: false
+#   gpu_arch: '90a'
+#   os_flags: LINUX
+
+# TODO: reduce memory use before enabling
+# - name: trsm_right_size_t_overflow
+#   category: stress_trsm
+#   function:
+#     - trsm
+#     - trsm_batched
+#     # - trsm_strided_batched
+#   precision: *single_double_precisions_complex_real
+#   side: [R]
+#   uplo: [L, U]
+#   transA: [N, C]
+#   diag: [ N ] #, U]
+#   matrix_size: *right_overflow_sizes
+#   alpha_beta: *alpha_range_sub
+#   stride_scale: [ 1 ]
+#   batch_count: [ 1 ]
+#   pointer_mode_device: false
+#   gpu_arch: '90a'
+#   os_flags: LINUX
+
+- name: trsm_left_internal_api
+  category: pre_checkin
+  function:
+    - trsm: *single_precision
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
+  side: [ L ]
+  uplo: [ L, U ]
+  transA: [ N, C ]
+  diag: [ N ]
+  matrix_size: *internal_interface_sizes_left
+  alpha_beta: *alpha_range_sub
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
+  pointer_mode_device: false
+  api: INTERNAL
+
+- name: trsm_right_internal_api
+  category: pre_checkin
+  function:
+    - trsm: *single_precision
+    - trsm_batched: *single_precision
+    - trsm_strided_batched: *single_precision
+  side: [ R ]
+  uplo: [ L, U ]
+  transA: [ N, C ]
+  diag: [ N ]
+  matrix_size: *internal_interface_sizes_right
+  alpha_beta: *alpha_range_sub
+  stride_scale: [ 1 ]
+  batch_count: [ 3 ]
+  pointer_mode_device: false
+  api: INTERNAL
 
 #############
 ## trsm_ex ##

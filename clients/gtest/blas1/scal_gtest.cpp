@@ -54,16 +54,16 @@ namespace
             }
             else
             {
-                bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
-                                || BLAS1 == blas1::scal_strided_batched);
-                bool is_batched = (BLAS1 == blas1::scal_batched);
-                bool is_strided = (BLAS1 == blas1::scal_strided_batched);
+                constexpr bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                                          || BLAS1 == blas1::scal_strided_batched);
+                constexpr bool is_batched = (BLAS1 == blas1::scal_batched);
+                constexpr bool is_strided = (BLAS1 == blas1::scal_strided_batched);
 
                 if((is_scal) && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
 
                 if(is_scal)
-                    name << '_' << arg.alpha << "_" << arg.alphai;
+                    name << '_' << arg.N << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
 

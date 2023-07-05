@@ -37,6 +37,8 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#include "blas3/Tensile/gemm.hpp"
+
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
 {
@@ -278,23 +280,64 @@ void testing_gemm(const Arguments& arg)
         hC_gold = hC_1;
 
         // ROCBLAS rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
-            handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        if(arg.pointer_mode_host)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        // gold has copy of hC1
-        CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+            handle.pre_test(arg);
+            if(arg.api != INTERNAL)
+            {
+                CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
+                    handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
+            }
+            else
+            {
+                // using arg.stride_x,y,d for offset testing
+                rocblas_stride           offsetA = arg.stride_x;
+                rocblas_stride           offsetB = arg.stride_y;
+                rocblas_stride           offsetC = arg.stride_d;
+                constexpr rocblas_stride strideA = 0, strideB = 0, strideC = 0;
+                constexpr rocblas_int    batch_count = 1;
 
-        // ROCBLAS rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+                CHECK_ROCBLAS_ERROR(rocblas_internal_gemm_template<T>(handle,
+                                                                      transA,
+                                                                      transB,
+                                                                      M,
+                                                                      N,
+                                                                      K,
+                                                                      &h_alpha,
+                                                                      (const T*)dA + offsetA,
+                                                                      -offsetA,
+                                                                      lda,
+                                                                      strideA,
+                                                                      (const T*)dB + offsetB,
+                                                                      -offsetB,
+                                                                      ldb,
+                                                                      strideB,
+                                                                      &h_beta,
+                                                                      (T*)dC + offsetC,
+                                                                      -offsetC,
+                                                                      ldc,
+                                                                      strideC,
+                                                                      batch_count));
+            }
+            handle.post_test(arg);
+            CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+        }
 
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
-            handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
+        if(arg.pointer_mode_device)
+        {
+            // gold has copy of hC1
+            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+            CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+
+            // ROCBLAS rocblas_pointer_mode_device
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
+                handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
+        }
 
         // now we can recycle gold matrix for reference purposes
         if(arg.timing)
@@ -314,7 +357,7 @@ void testing_gemm(const Arguments& arg)
         hB = host_matrix<T>();
 
         // check host error and norm
-        if(arg.unit_check)
+        if(arg.unit_check && arg.pointer_mode_host)
         {
             if(std::is_same_v<T, rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
             {
@@ -334,17 +377,17 @@ void testing_gemm(const Arguments& arg)
             }
         }
 
-        if(arg.norm_check)
+        if(arg.norm_check && arg.pointer_mode_host)
         {
             auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
             rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
         }
 
-        // fetch device mode GPU results
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
-
-        if(arg.unit_check)
+        if(arg.unit_check && arg.pointer_mode_device)
         {
+            // fetch device mode GPU results
+            CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+
             if(std::is_same_v<T, rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
             {
                 const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
@@ -363,7 +406,7 @@ void testing_gemm(const Arguments& arg)
             }
         }
 
-        if(arg.norm_check)
+        if(arg.norm_check && arg.pointer_mode_device)
         {
             auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
             rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
