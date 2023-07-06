@@ -1,3 +1,24 @@
+/* ************************************************************************
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell cop-
+ * ies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IM-
+ * PLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNE-
+ * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * ************************************************************************ */
 
 #ifndef ROCBLAS_HIP_FP8_IMPL_H
 #define ROCBLAS_HIP_FP8_IMPL_H
@@ -14,60 +35,6 @@ namespace rocblas_hip_f8_impl
         return __clz(x);
     }
 
-//It seems that we don't need this special treatment anymore. But still keep it
-//in case I am wrong.
-#if 0
-template <int wm, int we, typename T>
-HIP_HOST_DEVICE
-uint8_t cast_to_f8_no_range_reduce(T _x, bool stoch = false, uint32_t rng = 0) {
-  static_assert(we==5, "we==5");
-  static_assert(sizeof(T)==2, "no_range_reduce only works for float16");
-
-  uint32_t x = reinterpret_cast<uint16_t&>(_x);
-
-  uint32_t y, head, mantissa, exponent;
-  uint32_t sign;
-
-  const int mfmt = 10;
-  head = x & 0xFC00;
-  mantissa = x & 0x3FF;
-  exponent = (head>>10) & 0x1F;
-  sign = head >> 15;
-  uint32_t signed_inf = (sign<<7) + (((1<<we)-1)<<wm);
-
-  if((x & 0x7FFF)==0x7C00)
-    return signed_inf;
-  if((x & 0x7C00)==0x7C00)
-    return signed_inf+1;
-  if(x==0)
-    return 0;
-  if(x==0x8000)
-    return 0x80;
-
-  uint32_t drop_mask =  (1 << (mfmt-wm)) - 1;
-
-  int new_exponent = 0, new_mantissa = 0;
-  mantissa += (stoch ? rng : mantissa) & drop_mask;
-  if(exponent!=0)
-    mantissa += 1<<mfmt;
-  if(mantissa >= (2<<mfmt)) {
-    mantissa >>= 1;
-    exponent++;
-  }
-  else if(mantissa>=(1<<mfmt) && exponent==0) {
-    exponent++;
-  }
-  mantissa >>= (mfmt-wm);
-  mantissa &= (1<<wm) - 1;
-
-  if(exponent == 0 && mantissa == 0)
-    return 0;
-  if(exponent == 31)
-    return (sign << 7) | 0x7B;
-  return (sign << 7) | (exponent << wm) | mantissa;
-}
-#endif
-
     template <int wm, int we, typename T, bool negative_zero_nan, bool clip>
     HIP_HOST_DEVICE uint8_t cast_to_f8(T _x, bool stoch, uint32_t rng)
     {
@@ -75,9 +42,6 @@ uint8_t cast_to_f8_no_range_reduce(T _x, bool stoch = false, uint32_t rng = 0) {
         constexpr bool is_float = std::is_same<T, float>::value;
         static_assert(wm + we == 7, "wm+we==7");
         static_assert(is_half || is_float, "Only half and float can be cast to f8");
-
-        //if(sizeof(T)==2 && we==5 && !negative_zero_nan)
-        //return cast_to_f8_no_range_reduce<2, 5, _Float16>(_x, stoch, rng);
 
         const int mfmt = (sizeof(T) == 4) ? 23 : 10;
         uint32_t  x;
@@ -207,8 +171,7 @@ uint8_t cast_to_f8_no_range_reduce(T _x, bool stoch = false, uint32_t rng = 0) {
 
         //Now we have the exponent and mantissa adjusted
         uint32_t drop_mask = (1 << (mfmt - wm)) - 1;
-        //bool midpoint = (mantissa & drop_mask) == ( 1 << (mfmt-wm-1) );
-        bool odd = mantissa
+        bool     odd       = mantissa
                    & (1 << (mfmt - wm)); // if the least significant bit that is not truncated is 1
         mantissa
             += (stoch ? rng : (midpoint ? (odd ? mantissa : mantissa - 1) : mantissa)) & drop_mask;
@@ -219,7 +182,6 @@ uint8_t cast_to_f8_no_range_reduce(T _x, bool stoch = false, uint32_t rng = 0) {
             if((1 << mfmt) & mantissa)
             {
                 f8_exponent = 1; //denormal overflow to become normal, promote exponent
-                //mantissa &=  (1<<mfmt) -1 ; //No need to make 1 implicit now as it will be addressed later
             }
         }
         else
@@ -228,7 +190,6 @@ uint8_t cast_to_f8_no_range_reduce(T _x, bool stoch = false, uint32_t rng = 0) {
             {
                 mantissa >>= 1;
                 f8_exponent++;
-                //mantissa &=  (1<<mfmt) -1 ; // No need to make 1 implicit now as it will be addressed later
             }
         }
 
@@ -260,7 +221,6 @@ uint8_t cast_to_f8_no_range_reduce(T _x, bool stoch = false, uint32_t rng = 0) {
     {
         constexpr bool is_half  = std::is_same<T, _Float16>::value;
         constexpr bool is_float = std::is_same<T, float>::value;
-        //constexpr bool is_bf16 = std::is_same<T,hip_bfloat16>::value;
         static_assert(is_half || is_float, "only half and float are supported");
 
         constexpr int weo = is_half ? 5 : 8;
@@ -325,13 +285,6 @@ uint8_t cast_to_f8_no_range_reduce(T _x, bool stoch = false, uint32_t rng = 0) {
             int sh = 1 + clz(mantissa) - (32 - wm);
             mantissa <<= sh;
             exponent += 1 - sh;
-            /*
-    exponent++;
-    while(mantissa<(1<<wm)) {
-      mantissa <<= 1;
-      exponent--;
-    }
-    */
             mantissa &= ((1 << wm) - 1);
         }
         exponent += exp_low_cutoff - 1;
