@@ -409,6 +409,9 @@ void testing_trtri_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         for(int i = 0; i < total_calls; i++)
         {
+            if(i == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
             rocblas_trtri_batched_fn(handle,
                                      uplo,
                                      diag,
@@ -418,9 +421,6 @@ void testing_trtri_batched(const Arguments& arg)
                                      dinvA.ptr_on_device(),
                                      lda,
                                      batch_count);
-
-            if(i == number_cold_calls)
-                gpu_time_used = get_time_us_sync(stream);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

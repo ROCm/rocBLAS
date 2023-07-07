@@ -304,10 +304,10 @@ void testing_trtri(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         for(int i = 0; i < total_calls; i++)
         {
-            rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA);
-
             if(i == number_cold_calls)
                 gpu_time_used = get_time_us_sync(stream);
+
+            rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
