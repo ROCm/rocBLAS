@@ -222,6 +222,8 @@ public:
     // default check_numerics_mode is no numeric_check
     rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_no_check;
 
+    // default math_mode is default_math
+    rocblas_math_mode math_mode = rocblas_default_math;
     // used by hipBLAS to set int8 datatype to int8_t or rocblas_int8x4
     rocblas_int8_type_for_hipblas rocblas_int8_type = rocblas_int8_type_for_hipblas_default;
 
@@ -406,11 +408,11 @@ private:
             }
             else
             {
-    #if ROCBLAS_REALLOC_ON_DEMAND
+#if ROCBLAS_REALLOC_ON_DEMAND
                 success = handle->device_allocator(size);
-    #else
+#else
                 success = size <= handle->device_memory_size - handle->device_memory_in_use;
-    #endif
+#endif
                 // If allocation failed, return an array of nullptr's
                 // If total size is 0, return an array of nullptr's, but leave it marked as successful
                 if(!success || !size)
@@ -553,6 +555,9 @@ private:
                         rocblas_abort();
                     }
                 }
+
+                handle->gsu_workspace_size = 0;
+                handle->gsu_workspace      = nullptr;
             }
         }
 
@@ -581,6 +586,7 @@ private:
             return static_cast<T*>(pointers.at(1 - pointers.size()));
         }
     };
+
     // clang-format on
 
     // Allocate workspace for GSU based on the needs.
@@ -593,6 +599,12 @@ private:
         {
             handle->gsu_workspace_size = success ? size : 0;
             handle->gsu_workspace = static_cast<void*>(*this);
+        }
+
+        _gsu_malloc_by_size(rocblas_handle handle)
+        : _device_malloc(handle, 0)
+        {
+
         }
 
         ~_gsu_malloc_by_size()
@@ -619,6 +631,25 @@ public:
         return _device_malloc(this, size_t(sizes)...);
     }
 
+    template <typename... Ss,
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
+                               int> = 0>
+    auto device_malloc_with_GSU(Ss... sizes) //assume last size is gsu size
+    {
+        //have to assume it can be called to resize in following iteration (resize if > cur?)
+        //next request enough alloc, assign pointer
+
+        size_t i      = 0;
+        size_t mine[] = {(i++, size_t(sizes))...};
+
+        auto result = _device_malloc(this, size_t(sizes)...);
+
+        this->gsu_workspace_size = result ? mine[i - 1] : 0;
+        this->gsu_workspace      = result ? result[i - 1] : nullptr;
+
+        return result;
+    }
+
     // Allocate count pointers, reserving "size" total bytes
     auto device_malloc_count(size_t count, size_t size)
     {
@@ -631,6 +662,9 @@ public:
 
     auto gsu_malloc_by_size(size_t requested_Workspace_Size)
     {
+        if(this->gsu_workspace) // Added to accomodate quant, remove comment after testing
+            return _gsu_malloc_by_size(this);
+
         return _gsu_malloc_by_size(this, requested_Workspace_Size);
     };
 };

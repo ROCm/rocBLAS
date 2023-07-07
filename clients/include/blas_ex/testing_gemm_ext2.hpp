@@ -367,11 +367,10 @@ void testing_gemm_ext2(const Arguments& arg)
     double rocblas_error = 0.0;
 
     rocblas_local_handle handle{arg};
-
-    auto transA = char2rocblas_operation(arg.transA);
-    auto transB = char2rocblas_operation(arg.transB);
-    int  M = arg.M, N = arg.N, K = arg.K;
-    int  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    auto                 transA = char2rocblas_operation(arg.transA);
+    auto                 transB = char2rocblas_operation(arg.transB);
+    int                  M = arg.M, N = arg.N, K = arg.K;
+    int                  lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
 
     auto A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
     auto A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
@@ -379,6 +378,10 @@ void testing_gemm_ext2(const Arguments& arg)
     auto B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
 
     auto d_type = arg.d_type;
+
+    rocblas_math_mode math_mode = rocblas_math_mode(arg.math_mode);
+    CHECK_ROCBLAS_ERROR(rocblas_set_math_mode(handle, math_mode));
+    CHECK_ROCBLAS_ERROR(rocblas_get_math_mode(handle, &math_mode));
 
     // Row and column strides are based on transpose and leading dimensions
     rocblas_stride row_stride_a = transA == rocblas_operation_none ? 1 : lda;
@@ -480,11 +483,6 @@ void testing_gemm_ext2(const Arguments& arg)
         ldd          = ldc;
         d_type       = arg.c_type;
     }
-
-    const size_t size_A = size_t(col_stride_a) * size_t(A_col);
-    const size_t size_B = size_t(col_stride_b) * size_t(B_col);
-    const size_t size_C = size_t(col_stride_c) * size_t(N);
-    const size_t size_D = size_t(col_stride_d) * size_t(N);
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
@@ -671,6 +669,13 @@ void testing_gemm_ext2(const Arguments& arg)
                                                  flags));
 
         CHECK_HIP_ERROR(hD_2.transfer_from(dDref));
+
+        // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
+        if(std::is_same<Ti, float>{} && math_mode == rocblas_xf32_xdl_math_op)
+        {
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), hA.size());
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), hB.size());
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -120,6 +120,7 @@ set( rocblas_headers_public
   include/rocblas.h
   include/internal/rocblas-types.h
   include/internal/rocblas_bfloat16.h
+  include/internal/rocblas_float8.h
   include/internal/rocblas-auxiliary.h
   include/internal/rocblas-functions.h
   include/internal/rocblas-beta.h

@@ -162,11 +162,6 @@ void testing_gemm_strided_batched_ex_get_solutions(const Arguments& arg)
         d_type   = arg.c_type;
     }
 
-    const size_t size_a = A_col * size_t(lda) + size_t(batch_count - 1) * stride_a;
-    const size_t size_b = B_col * size_t(ldb) + size_t(batch_count - 1) * stride_b;
-    const size_t size_c = N * size_t(ldc) + size_t(batch_count - 1) * stride_c;
-    const size_t size_d = N * size_t(ldd) + size_t(batch_count - 1) * stride_d;
-
     // Allocate device memory
     device_strided_batch_matrix<Ti> dA(A_row, A_col, lda, stride_a, batch_count);
     device_strided_batch_matrix<Ti> dB(B_row, B_col, ldb, stride_b, batch_count);

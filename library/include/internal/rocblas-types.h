@@ -33,6 +33,7 @@
 
 #include "rocblas-export.h"
 #include "rocblas_bfloat16.h"
+#include "rocblas_float8.h"
 #include <float.h>
 #include <math.h>
 #include <stdbool.h>
@@ -193,8 +194,21 @@ typedef enum rocblas_datatype_
     rocblas_datatype_u32_c   = 167, /**< 32-bit unsigned integer, complex */
     rocblas_datatype_bf16_r  = 168, /**< 16-bit bfloat, real */
     rocblas_datatype_bf16_c  = 169, /**< 16-bit bfloat, complex */
+    rocblas_datatype_f8_r    = 170, /**< 8 bit floating point, real */
+    rocblas_datatype_bf8_r   = 171, /**< 8 bit bfloat, real */
     rocblas_datatype_invalid = 255, /**< Invalid datatype value, do not use */
 } rocblas_datatype;
+
+/*! \brief Indicates the compute precision mode. */
+typedef enum rocblas_computetype_
+{
+    rocblas_compute_type_f32         = 300,
+    rocblas_compute_type_f8_f8_f32   = 301,
+    rocblas_compute_type_f8_bf8_f32  = 302,
+    rocblas_compute_type_bf8_f8_f32  = 303,
+    rocblas_compute_type_bf8_bf8_f32 = 304,
+    rocblas_compute_type_invalid     = 455, /**< Invalid datatype value, do not use */
+} rocblas_computetype;
 
 /* ============================================================================================ */
 /**
@@ -219,6 +233,8 @@ typedef enum rocblas_status_
     = 13, /**< Will be set if the vector/matrix has a NaN/Infinity/denormal value */
     rocblas_status_excluded_from_build
     = 14, /**< Function is not available in build, likely a function requiring Tensile built without Tensile */
+    rocblas_status_arch_mismatch
+    = 15, /**< The function requires a feature absent from the device architecture */
 } rocblas_status;
 
 /*! \brief Indicates if scalar pointers are on host or device. This is used for
@@ -302,7 +318,8 @@ typedef enum rocblas_gemm_flags_
     * section for more details. */
     rocblas_gemm_flags_fp16_alt_impl        = 0x4,
     rocblas_gemm_flags_check_solution_index = 0x8,
-    rocblas_gemm_flags_fp16_alt_impl_rnz    = 0x10
+    rocblas_gemm_flags_fp16_alt_impl_rnz    = 0x10,
+    rocblas_gemm_flags_stochastic_rounding  = 0x20
 } rocblas_gemm_flags;
 
 // rocblas_int8_type_for_hipblas enum will be removed in a future release.
@@ -341,5 +358,15 @@ typedef enum rocblas_check_numerics_mode_
     rocblas_check_numerics_mode_fail = 0x4,
 
 } rocblas_check_numerics_mode;
+
+typedef enum rocblas_math_mode_
+{
+    //Default precision
+    rocblas_default_math = 0x0,
+
+    //Enable acceleration of single precision routines using XF32 xDL.
+    rocblas_xf32_xdl_math_op = 0x1,
+
+} rocblas_math_mode;
 
 #endif /* ROCBLAS_TYPES_H */

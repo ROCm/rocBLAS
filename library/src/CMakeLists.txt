@@ -125,6 +125,7 @@ if( BUILD_WITH_TENSILE )
 
   # gemm_ext2 requires tensile and doesn't need stub
   set( rocblas_ex_source
+    blas_ex/rocblas_gemm_ex3.cpp
     blas_ex/rocblas_gemm_ext2.cpp
     ${Tensile_SRC}
   )

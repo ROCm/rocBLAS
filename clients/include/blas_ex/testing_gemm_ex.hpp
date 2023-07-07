@@ -270,6 +270,10 @@ void testing_gemm_ex(const Arguments& arg)
     auto                 B_col  = transB == rocblas_operation_none ? N : std::max(K, 1);
     auto                 d_type = arg.d_type;
 
+    rocblas_math_mode math_mode = rocblas_math_mode(arg.math_mode);
+    CHECK_ROCBLAS_ERROR(rocblas_set_math_mode(handle, math_mode));
+    CHECK_ROCBLAS_ERROR(rocblas_get_math_mode(handle, &math_mode));
+
     // check for invalid sizes
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M;
 
@@ -582,6 +586,13 @@ void testing_gemm_ex(const Arguments& arg)
 
         // copy C matrix into D matrix
         copy_matrix_with_different_leading_dimensions(hC, hD_gold);
+
+        // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
+        if(std::is_same<Ti, float>{} && math_mode == rocblas_xf32_xdl_math_op)
+        {
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), hA.size());
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), hB.size());
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

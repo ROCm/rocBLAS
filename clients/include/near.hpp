@@ -46,6 +46,14 @@ template <class T>
 static constexpr double sum_error_tolerance = 0.0;
 
 template <>
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance<rocblas_f8> = 1 / 16.0; // computed epsilon_f8=0.0625, epsilon_bf8=0.125
+
+template <>
+ROCBLAS_CLANG_STATIC constexpr double
+    sum_error_tolerance<rocblas_bf8> = 1 / 8.0; // computed epsilon_f8=0.0625, epsilon_bf8=0.125
+
+template <>
 ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_bfloat16> = 1 / 100.0;
 
 template <>
@@ -151,6 +159,10 @@ ROCBLAS_CLANG_STATIC constexpr double
 
 #define NEAR_ASSERT_BF16(a, b, err) ASSERT_NEAR(double(rocblas_bfloat16(a)), double(b), err)
 
+#define NEAR_ASSERT_F8(a, b, err) ASSERT_NEAR(double(float(a)), double(float(b)), err)
+
+#define NEAR_ASSERT_BF8(a, b, err) ASSERT_NEAR(double(float(a)), double(float(b)), err)
+
 #define NEAR_ASSERT_COMPLEX(a, b, err)                  \
     do                                                  \
     {                                                   \
@@ -181,6 +193,28 @@ inline void near_check_general(rocblas_int         M,
                                double              abs_error)
 {
     NEAR_CHECK(M, N, lda, 0, hCPU, hGPU, 1, abs_error, NEAR_ASSERT_HALF);
+}
+
+template <>
+inline void near_check_general(rocblas_int       M,
+                               rocblas_int       N,
+                               rocblas_int       lda,
+                               const rocblas_f8* hCPU,
+                               const rocblas_f8* hGPU,
+                               double            abs_error)
+{
+    NEAR_CHECK(M, N, lda, 0, hCPU, hGPU, 1, abs_error, NEAR_ASSERT_F8);
+}
+
+template <>
+inline void near_check_general(rocblas_int        M,
+                               rocblas_int        N,
+                               rocblas_int        lda,
+                               const rocblas_bf8* hCPU,
+                               const rocblas_bf8* hGPU,
+                               double             abs_error)
+{
+    NEAR_CHECK(M, N, lda, 0, hCPU, hGPU, 1, abs_error, NEAR_ASSERT_BF8);
 }
 
 template <>

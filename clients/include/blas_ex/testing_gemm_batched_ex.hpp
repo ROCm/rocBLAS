@@ -271,6 +271,10 @@ void testing_gemm_batched_ex(const Arguments& arg)
     int                  batch_count = arg.batch_count;
     auto                 d_type      = arg.d_type;
 
+    rocblas_math_mode math_mode = rocblas_math_mode(arg.math_mode);
+    CHECK_ROCBLAS_ERROR(rocblas_set_math_mode(handle, math_mode));
+    CHECK_ROCBLAS_ERROR(rocblas_get_math_mode(handle, &math_mode));
+
     // Quick-return or error sizes
     // Note: K==0 is not an early exit, since we still must multiply C by beta
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
@@ -401,17 +405,6 @@ void testing_gemm_batched_ex(const Arguments& arg)
         ldd    = ldc;
         d_type = arg.c_type;
     }
-
-    const size_t size_one_a
-        = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
-    const size_t size_one_b
-        = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
-    const size_t size_one_c = N * ldc;
-    const size_t size_one_d = N * ldd;
-    const size_t size_a     = size_one_a;
-    const size_t size_b     = size_one_b;
-    const size_t size_c     = size_one_c;
-    const size_t size_d     = size_one_d;
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
@@ -603,6 +596,16 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
         // copy C matrix into D matrix
         copy_matrix_with_different_leading_dimensions(hC, hD_gold);
+
+        // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
+        if(std::is_same<Ti, float>{} && math_mode == rocblas_xf32_xdl_math_op)
+        {
+            for(int b = 0; b < batch_count; b++)
+            {
+                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA[b], hA.nmemb());
+                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB[b], hB.nmemb());
+            }
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
