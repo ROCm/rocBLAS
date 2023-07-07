@@ -370,11 +370,11 @@ void testing_trtri_strided_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         for(int i = 0; i < total_calls; i++)
         {
-            rocblas_trtri_strided_batched_fn(
-                handle, uplo, diag, N, dA, lda, stride_A, dinvA, lda, stride_A, batch_count);
-
             if(i == number_cold_calls)
                 gpu_time_used = get_time_us_sync(stream);
+
+            rocblas_trtri_strided_batched_fn(
+                handle, uplo, diag, N, dA, lda, stride_A, dinvA, lda, stride_A, batch_count);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
