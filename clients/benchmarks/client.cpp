@@ -38,6 +38,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+
 // aux
 #include "testing_set_get_matrix.hpp"
 #include "testing_set_get_matrix_async.hpp"
@@ -165,7 +166,7 @@
 #include "testing_trsv.hpp"
 #include "testing_trsv_batched.hpp"
 #include "testing_trsv_strided_batched.hpp"
-// blas3 with no tensile
+// blas3 with no tensile, some may use source gemm
 #include "testing_dgmm.hpp"
 #include "testing_dgmm_batched.hpp"
 #include "testing_dgmm_strided_batched.hpp"
@@ -188,10 +189,30 @@
 #include "testing_syrk.hpp"
 #include "testing_syrk_batched.hpp"
 #include "testing_syrk_strided_batched.hpp"
+#include "testing_trmm.hpp"
+#include "testing_trmm_batched.hpp"
+#include "testing_trmm_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include "utility.hpp"
-#include <algorithm>
 #undef I
+
+#if BUILD_WITH_TENSILE
+#include "testing_gemm.hpp"
+#include "testing_gemm_batched.hpp"
+#include "testing_gemm_batched_ex.hpp"
+#include "testing_gemm_ex.hpp"
+#include "testing_gemm_strided_batched.hpp"
+#include "testing_gemm_strided_batched_ex.hpp"
+#include "testing_trsm.hpp"
+#include "testing_trsm_batched.hpp"
+#include "testing_trsm_batched_ex.hpp"
+#include "testing_trsm_ex.hpp"
+#include "testing_trsm_strided_batched.hpp"
+#include "testing_trsm_strided_batched_ex.hpp"
+#include "testing_trtri.hpp"
+#include "testing_trtri_batched.hpp"
+#include "testing_trtri_strided_batched.hpp"
+#endif
 
 using namespace roc; // For emulated program_options
 using namespace std::literals; // For std::string literals of form "str"s
@@ -218,25 +239,6 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 }
 
 #if BUILD_WITH_TENSILE
-
-#include "testing_gemm.hpp"
-#include "testing_gemm_batched.hpp"
-#include "testing_gemm_batched_ex.hpp"
-#include "testing_gemm_ex.hpp"
-#include "testing_gemm_strided_batched.hpp"
-#include "testing_gemm_strided_batched_ex.hpp"
-#include "testing_trmm.hpp"
-#include "testing_trmm_batched.hpp"
-#include "testing_trmm_strided_batched.hpp"
-#include "testing_trsm.hpp"
-#include "testing_trsm_batched.hpp"
-#include "testing_trsm_batched_ex.hpp"
-#include "testing_trsm_ex.hpp"
-#include "testing_trsm_strided_batched.hpp"
-#include "testing_trsm_strided_batched_ex.hpp"
-#include "testing_trtri.hpp"
-#include "testing_trtri_batched.hpp"
-#include "testing_trtri_strided_batched.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
@@ -619,6 +621,9 @@ struct perf_blas<
                 {"syr2k", testing_syr2k<T>},
                 {"syr2k_batched", testing_syr2k_batched<T>},
                 {"syr2k_strided_batched", testing_syr2k_strided_batched<T>},
+                {"syrkx", testing_syr2k<T, false>},
+                {"syrkx_batched", testing_syr2k_batched<T, false>},
+                {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
                 {"symm", testing_symm_hemm<T, false>},
                 {"symm_batched", testing_symm_hemm_batched<T, false>},
                 {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
@@ -638,12 +643,6 @@ struct perf_blas<
                 {"herkx_batched", testing_her2k_batched<T, false>},
                 {"herkx_strided_batched", testing_her2k_strided_batched<T, false>},
 #if BUILD_WITH_TENSILE
-                {"syrkx", testing_syr2k<T, false>},
-                {"syrkx_batched", testing_syr2k_batched<T, false>},
-                {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
-                {"trtri", testing_trtri<T>},
-                {"trtri_batched", testing_trtri_batched<T>},
-                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
                 {"gemm_strided_batched", testing_gemm_strided_batched<T>},
@@ -653,6 +652,9 @@ struct perf_blas<
                 {"trsm_batched_ex", testing_trsm_batched_ex<T>},
                 {"trsm_strided_batched", testing_trsm_strided_batched<T>},
                 {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
+                {"trtri", testing_trtri<T>},
+                {"trtri_batched", testing_trtri_batched<T>},
+                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
 #endif
               };
         run_function(map, arg);
