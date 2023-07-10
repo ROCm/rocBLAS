@@ -157,6 +157,9 @@ extern "C" void rocblas_test_signal_handler(int sig)
         return;
     }
 
+    rocblas_cerr << "SIGNAL raised in: "
+                 << ::testing::UnitTest::GetInstance()->current_test_info()->name() << std::endl;
+
 #ifndef WIN32
     // If this is an alarm timeout, we abort
     if(sig == SIGALRM)
