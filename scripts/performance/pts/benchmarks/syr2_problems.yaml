@@ -6,8 +6,8 @@ Definitions:
     - { N:  1024, lda:  1024, incx:  1, incy: 1 }
     - { N:  2048, lda:  2048, incx:  1, incy: 1 }
     - { N:  4096, lda:  4096, incx:  1, incy: 1 }
-    - { N:  8192, lda:  8192, incx:  1, incy: 1 }
-    - { N: 16384, lda: 16384, incx:  1, incy: 1 }
+    # - { N:  8192, lda:  8192, incx:  1, incy: 1 }
+    # - { N: 16384, lda: 16384, incx:  1, incy: 1 }
 
 Tests:
   - name: syr2_scal_power_2

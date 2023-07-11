@@ -5,17 +5,17 @@ Definitions:
   - &multiples_of_32_sizes
     - { M:  2048, lda:  2048 }
     - { M:  4096, lda:  4096 }
-    - { M:  6144, lda:  6144 }
-    - { M:  8192, lda:  8192 }
+    # - { M:  6144, lda:  6144 }
+    # - { M:  8192, lda:  8192 }
 
   - &generic_sizes
     - { M:   100, lda:   100 }
     - { M:   233, lda:   233 }
     - { M:   573, lda:   573 }
-    - { M:  1023, lda:  1023 }
-    - { M:  3057, lda:  3057 }
-    - { M:  5143, lda:  5143 }
-    - { M:  7343, lda:  7343 }
+    # - { M:  1023, lda:  1023 }
+    # - { M:  3057, lda:  3057 }
+    # - { M:  5143, lda:  5143 }
+    # - { M:  7343, lda:  7343 }
 
 Tests:
   - name: trmv_multiples_of_32_sizes

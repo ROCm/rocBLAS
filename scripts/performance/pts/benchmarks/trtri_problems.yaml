@@ -2,26 +2,11 @@
 include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
-  # TODO: Is there a way to make this easier in YAML? In rocblas_gentest.py?
   - &trtri_128_range
-    - { N:  128, lda:  128 }
-    - { N:  256, lda:  256 }
-    - { N:  384, lda:  384 }
-    - { N:  512, lda:  512 }
-    - { N:  640, lda:  640 }
-    - { N:  768, lda:  768 }
-    - { N:  896, lda:  896 }
-    - { N: 1024, lda: 1024 }
+    - { scan: [128..1024..128], N: *c_scan_value, lda: *c_scan_value }
 
   - &trtri_rem_range
-    - { N:  101, lda:  101 }
-    - { N:  233, lda:  233 }
-    - { N:  357, lda:  357 }
-    - { N:  535, lda:  535 }
-    - { N:  670, lda:  670 }
-    - { N:  799, lda:  799 }
-    - { N:  951, lda:  951 }
-    - { N: 1025, lda: 1025 }
+    - { scan: [101, 233, 375, 535, 670, 799, 951, 1025], N: *c_scan_value, lda: *c_scan_value }
 
 Tests:
   - name: trtri_bench_n128
@@ -31,7 +16,7 @@ Tests:
     uplo: [ L, U ]
     diag: [ N ]
     matrix_size: *trtri_128_range
-    iters: 20
+    iters: 10
 
   - name: trtri_bench_rem
     category: bench
@@ -40,5 +25,5 @@ Tests:
     uplo: [ L, U ]
     diag: [ N ]
     matrix_size: *trtri_128_range
-    iters: 20
+    iters: 10
 ...

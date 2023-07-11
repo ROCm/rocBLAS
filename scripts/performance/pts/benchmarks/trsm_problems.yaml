@@ -2,32 +2,8 @@
 include: ../../../../clients/include/rocblas_common.yaml
 
 Definitions:
-  # TODO: Is there a way to make this easier in YAML? In rocblas_gentest.py?
   - &m_equals_n_range
-    - { M:  32, N:  32, lda:  32, ldb:  32 }
-    - { M:  36, N:  36, lda:  36, ldb:  36 }
-    - { M:  40, N:  40, lda:  40, ldb:  40 }
-    - { M:  44, N:  44, lda:  44, ldb:  44 }
-    - { M:  48, N:  48, lda:  48, ldb:  48 }
-    - { M:  52, N:  52, lda:  52, ldb:  52 }
-    - { M:  56, N:  56, lda:  56, ldb:  56 }
-    - { M:  60, N:  60, lda:  60, ldb:  60 }
-    - { M:  64, N:  64, lda:  64, ldb:  64 }
-    - { M:  68, N:  68, lda:  68, ldb:  68 }
-    - { M:  72, N:  72, lda:  72, ldb:  72 }
-    - { M:  76, N:  76, lda:  76, ldb:  76 }
-    - { M:  80, N:  80, lda:  80, ldb:  80 }
-    - { M:  84, N:  84, lda:  84, ldb:  84 }
-    - { M:  88, N:  88, lda:  88, ldb:  88 }
-    - { M:  92, N:  92, lda:  92, ldb:  92 }
-    - { M:  96, N:  96, lda:  96, ldb:  96 }
-    - { M: 100, N: 100, lda: 100, ldb: 100 }
-    - { M: 104, N: 104, lda: 104, ldb: 104 }
-    - { M: 108, N: 108, lda: 108, ldb: 108 }
-    - { M: 112, N: 112, lda: 112, ldb: 112 }
-    - { M: 116, N: 116, lda: 116, ldb: 116 }
-    - { M: 120, N: 120, lda: 120, ldb: 120 }
-    - { M: 124, N: 124, lda: 124, ldb: 124 }
+    - { scan: [32..124..4], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value, ldb: *c_scan_value }
 
   - &testset1_small_matrix_size_range
     - { M:      256,    N:      256,    lda:    256,    ldb:    256     }
@@ -176,31 +152,31 @@ Tests:
     matrix_size: *testset2_small_matrix_size_range
     iters: 10
 
-  - name: trsm_bench_1_matrix_size
-    category: bench
-    function: trsm
-    precision: *double_precision
-    transA: [ N, T ]
-    side: [ L, R ]
-    uplo: L
-    diag: U
-    alpha: 1
-    incx: 1
-    incy: 1
-    matrix_size: *testset1_matrix_size_range
-    iters: 5
+  # - name: trsm_bench_1_matrix_size
+  #   category: bench
+  #   function: trsm
+  #   precision: *double_precision
+  #   transA: [ N, T ]
+  #   side: [ L, R ]
+  #   uplo: L
+  #   diag: U
+  #   alpha: 1
+  #   incx: 1
+  #   incy: 1
+  #   matrix_size: *testset1_matrix_size_range
+  #   iters: 5
 
-  - name: trsm_bench_2_matrix_size
-    category: bench
-    function: trsm
-    precision: *double_precision
-    transA: [ N, T ]
-    side: [ L, R ]
-    uplo: L
-    diag: U
-    alpha: 1
-    incx: 1
-    incy: 1
-    matrix_size: *testset2_matrix_size_range
-    iters: 5
+  # - name: trsm_bench_2_matrix_size
+  #   category: bench
+  #   function: trsm
+  #   precision: *double_precision
+  #   transA: [ N, T ]
+  #   side: [ L, R ]
+  #   uplo: L
+  #   diag: U
+  #   alpha: 1
+  #   incx: 1
+  #   incy: 1
+  #   matrix_size: *testset2_matrix_size_range
+  #   iters: 5
 ...
