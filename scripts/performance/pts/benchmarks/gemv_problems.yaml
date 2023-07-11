@@ -77,7 +77,7 @@ Tests:
     incy: 1
     matrix_size: *qmcpack_matrix_size_range
     iters: 20
-    batch_count: [ 100, 1000 ]
+    batch_count: [ 100 ] #, 1000 ]
 
   - name: gemv_batched_and_strided_batched_sm_mn
     category: bench
@@ -94,20 +94,20 @@ Tests:
     iters: 20
     batch_count: [ 256 ]
 
-  - name: gemv_batched_and_strided_batched_large_matrix
-    category: bench
-    function:
-          - gemv_batched
-          - gemv_strided_batched
-    precision: *single_double_precisions_complex_real
-    transA: [ N, T ]
-    alpha: 1
-    beta: 1
-    incx: 1
-    incy: 1
-    matrix_size: *large_matrix_size_range
-    iters: 20
-    batch_count: [ 3 ]
+  # - name: gemv_batched_and_strided_batched_large_matrix
+  #   category: bench
+  #   function:
+  #         - gemv_batched
+  #         - gemv_strided_batched
+  #   precision: *single_double_precisions_complex_real
+  #   transA: [ N, T ]
+  #   alpha: 1
+  #   beta: 1
+  #   incx: 1
+  #   incy: 1
+  #   matrix_size: *large_matrix_size_range
+  #   iters: 20
+  #   batch_count: [ 3 ]
 
   # - name: gemv_batched_and_strided_batched_very_large_matrix
   #   category: bench
