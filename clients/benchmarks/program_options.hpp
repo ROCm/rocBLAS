@@ -438,7 +438,7 @@ namespace roc
                     const char* prefix = tok->length() == 1 ? "-" : "--";
                     left << delim << (first ? "" : "|") << prefix << tok->str();
 
-                    if(tok->str() == "help" || tok->str() == "h" || tok->str() == "c_noalias_d")
+                    if(tok->str() == "help" || tok->str() == "h" || tok->str() == "outofplace")
                         printvalue = false;
                 }
 

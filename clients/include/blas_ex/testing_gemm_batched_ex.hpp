@@ -343,7 +343,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
 #endif
 
     // update after invalid checks
-    if(!arg.c_noalias_d)
+    if(!arg.outofplace)
     {
         // c alias of d must be identical descriptors
         ldd    = ldc;
@@ -377,10 +377,10 @@ void testing_gemm_batched_ex(const Arguments& arg)
     device_batch_matrix<Ti> dB(B_row, B_col, ldb, batch_count);
     // if C!=D, allocate C and D normally
     // if C==D, allocate C big enough for the larger of C and D; D points to C
-    device_batch_matrix<To> dC(M, N, ldc, batch_count);
-    device_batch_matrix<To> dD = (arg.c_noalias_d) ? device_batch_matrix<To>(M, N, ldd, batch_count)
+    device_batch_matrix<To>  dC(M, N, ldc, batch_count);
+    device_batch_matrix<To>  dD = (arg.outofplace) ? device_batch_matrix<To>(M, N, ldd, batch_count)
                                                    : device_batch_matrix<To>(0, 1, 1, 1);
-    device_batch_matrix<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+    device_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
     device_vector<Tc>        d_alpha_Tc(1);
     device_vector<Tc>        d_beta_Tc(1);
 

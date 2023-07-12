@@ -43,8 +43,8 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
     auto rocblas_trmm_batched_fn
         = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
     // trmm has both inplace and outofplace versions.
-    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
-    bool inplace = !arg.c_noalias_d;
+    // inplace == true for inplace, inplace == false for outofplace
+    bool inplace = !arg.outofplace;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -458,8 +458,8 @@ void testing_trmm_batched(const Arguments& arg)
         = arg.api == FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
     // trmm has both inplace and outofplace versions.
-    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
-    bool inplace = !arg.c_noalias_d;
+    // inplace == true for inplace, inplace == false for outofplace
+    bool inplace = !arg.outofplace;
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same_v<

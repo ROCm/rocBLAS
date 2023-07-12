@@ -54,7 +54,7 @@ IGNORE_YAML_KEYS = [
         'category',
         'known_bug_platforms',
         'name',
-        'c_noalias_d',
+        'outofplace',
         'samples',
         'a_type',
         'b_type',

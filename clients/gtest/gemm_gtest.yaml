@@ -2448,7 +2448,7 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range_small
   api: FORTRAN
-  
+
 - name: gemm_internal
   category: quick
   function:
@@ -2493,7 +2493,7 @@ Tests:
   pointer_mode_device: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
-  
+
 - name: gemm_small_complex
   category: quick
   function:
@@ -2572,7 +2572,7 @@ Tests:
   pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
-  
+
 - name: gemm_medium_HMM_int8
   category: HMM
   function:
@@ -2584,7 +2584,7 @@ Tests:
   alpha: 1
   beta: 1
   HMM: true
-  
+
 - name: gemm_multi_gpu_int8
   category: multi_gpu
   function:
@@ -2597,7 +2597,7 @@ Tests:
   beta: 3
   threads_streams: *common_threads_streams
   devices: [0, 2, 4]
-  
+
 - name: gemm_multi_threads_streams_int8
   category: nightly
   function:
@@ -2609,7 +2609,7 @@ Tests:
   alpha: 1
   beta: 3
   threads_streams: *common_threads_streams
-  
+
 - name: gemm_medium_complex
   category: pre_checkin
   function:
@@ -2638,7 +2638,7 @@ Tests:
   pointer_mode_host: false
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
-  
+
 - name: gemm_large
   category: nightly
   function:
@@ -2701,7 +2701,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
-  
+
 - name: gemm_deepbench_int8
   category: nightly
   function:
@@ -2710,7 +2710,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
-  
+
 - name: gemm_deepbench_large_int8
   category: nightly
   function:
@@ -2720,7 +2720,7 @@ Tests:
   alpha_beta: *deepbench_alpha_beta_range
   transA: T
   transB: N
-  
+
 - name: resnet50_fwd
   category: nightly
   function:
@@ -2756,7 +2756,7 @@ Tests:
   pointer_mode_device: false
   alpha: 1
   beta: 0
-  
+
 - name: resnet50_bwdwrw
   category: nightly
   function:
@@ -2779,7 +2779,7 @@ Tests:
   pointer_mode_device: false
   alpha: 1
   beta: 1
-  
+
 - name: resnet50_bwddata
   category: nightly
   function:
@@ -2802,7 +2802,7 @@ Tests:
   pointer_mode_device: false
   alpha: 1
   beta: 0
-  
+
 - name: inception4_fwd
   category: nightly
   function:
@@ -3072,7 +3072,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  c_noalias_d: [false, true]
+  outofplace: [false, true]
 
 - name: gemm_96
   category: pre_checkin
@@ -3176,7 +3176,7 @@ Tests:
     gemm_ex: *nonint8_real_precisions
   matrix_size: *ldd_size_range
   pointer_mode_device: false
-  c_noalias_d: [false, true]
+  outofplace: [false, true]
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
 
@@ -3201,7 +3201,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_13_16_int8
   category: pre_checkin
   function:
@@ -3212,7 +3212,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_17_20_int8
   category: pre_checkin
   function:
@@ -3223,7 +3223,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_20_23_int8
   category: pre_checkin
   function:
@@ -3234,7 +3234,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_24_27_int8
   category: pre_checkin
   function:
@@ -3245,7 +3245,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_28_31_int8
   category: pre_checkin
   function:
@@ -3256,7 +3256,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_32_int8
   category: pre_checkin
   function:
@@ -3267,7 +3267,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_32_9_129_int8
   category: nightly
   function:
@@ -3278,7 +3278,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_48_int8
   category: pre_checkin
   function:
@@ -3289,7 +3289,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_48_9_129_int8
   category: nightly
   function:
@@ -3300,7 +3300,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_64_int8
   category: pre_checkin
   function:
@@ -3311,7 +3311,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_64_9_129_int8
   category: nightly
   function:
@@ -3322,7 +3322,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_64_1_4_5_8_int8
   category: quick
   function:
@@ -3333,7 +3333,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_5_8_64_1_4_int8
   category: quick
   function:
@@ -3344,7 +3344,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_1_4_5_8_64_int8
   category: quick
   function:
@@ -3355,7 +3355,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_96_int8
   category: pre_checkin
   function:
@@ -3366,7 +3366,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_128_int8
   category: pre_checkin
   function:
@@ -3377,7 +3377,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_256_int8
   category: pre_checkin
   function:
@@ -3388,7 +3388,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_256_9_12_13_16_int8
   category: pre_checkin
   function:
@@ -3399,7 +3399,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_13_16_256_9_12_int8
   category: pre_checkin
   function:
@@ -3410,7 +3410,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_9_12_13_16_256_int8
   category: pre_checkin
   function:
@@ -3421,7 +3421,7 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_512_int8
   category: pre_checkin
   function:
@@ -3432,7 +3432,7 @@ Tests:
   pointer_mode_host: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_1024_int8
   category: nightly
   function:
@@ -3443,17 +3443,17 @@ Tests:
   pointer_mode_device: false
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
-  
+
 - name: gemm_ldd_int8
   category: quick
   function:
     gemm_ex: *int8_precision
   matrix_size: *ldd_size_range
   pointer_mode_host: false
-  c_noalias_d: true
+  outofplace: true
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
-  
+
 - name: gemm_384
   category: nightly
   function: gemm
@@ -3569,7 +3569,7 @@ Tests:
 #     - TBD: *hpa_half_single_precisions
 #   matrix_size:
 #     - { M: 4096, N: 4096, K: 4096 }
-#   c_noalias_d: true
+#   outofplace: true
 #   alpha: [ 0.0, 0.5, 1.0 ]
 #   beta:  [ 0.0, 0.5, 1.0 ]
 #   api: [ C, FORTRAN ]
