@@ -115,7 +115,7 @@ namespace
             if(arg.api == FORTRAN)
                 name << "_F";
 
-            if(arg.c_noalias_d == true)
+            if(arg.outofplace == true)
             {
                 name << "_outofplace";
             }

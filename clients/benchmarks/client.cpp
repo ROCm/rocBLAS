@@ -1547,9 +1547,9 @@ try
          value<int32_t>(&parallel_devices)->default_value(0),
          "Set number of devices used for parallel runs (device 0 to parallel_devices-1)")
 
-        ("c_noalias_d",
-         bool_switch(&arg.c_noalias_d)->default_value(false),
-         "for gemm_ex C and D are stored in separate memory, for trmm B and C are stored in separate memory (outofplace)")
+        ("outofplace",
+         bool_switch(&arg.outofplace)->default_value(false),
+         "for gemm_ex C and D are stored in separate memory, for trmm B and C are stored in separate memory")
 
         ("fortran",
          bool_switch(&fortran)->default_value(false),

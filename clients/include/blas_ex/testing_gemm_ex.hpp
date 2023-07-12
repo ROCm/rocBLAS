@@ -337,7 +337,7 @@ void testing_gemm_ex(const Arguments& arg)
     }
 #endif
     // update after invalid checks
-    if(!arg.c_noalias_d)
+    if(!arg.outofplace)
     {
         ldd    = ldc;
         d_type = arg.c_type;
@@ -357,8 +357,8 @@ void testing_gemm_ex(const Arguments& arg)
     // if C==D, allocate C big enough for the larger of C and D; D points to C
     device_matrix<To> dC(M, N, ldc);
     device_matrix<To> dD
-        = (arg.c_noalias_d) ? device_matrix<To>(M, N, ldd) : device_matrix<To>(0, 1, 1);
-    device_matrix<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+        = (arg.outofplace) ? device_matrix<To>(M, N, ldd) : device_matrix<To>(0, 1, 1);
+    device_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
     device_vector<Tc>  d_alpha_Tc(1);
     device_vector<Tc>  d_beta_Tc(1);
 

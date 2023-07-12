@@ -44,8 +44,8 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
                                                ? rocblas_trmm_strided_batched<T, true>
                                                : rocblas_trmm_strided_batched<T, false>;
     // trmm has both inplace and outofplace versions.
-    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
-    bool inplace = !arg.c_noalias_d;
+    // inplace == true for inplace, inplace == false for outofplace
+    bool inplace = !arg.outofplace;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -524,8 +524,8 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                                ? rocblas_trmm_strided_batched<T, true>
                                                : rocblas_trmm_strided_batched<T, false>;
     // trmm has both inplace and outofplace versions.
-    // c_noalias_d == true for outofplaceplace, c_noalias_d == false for inplace
-    bool inplace = !arg.c_noalias_d;
+    // inplace == true for inplace, inplace == false for outofplace
+    bool inplace = !arg.outofplace;
 
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;

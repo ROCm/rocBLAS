@@ -147,7 +147,7 @@ void Arguments::init()
 
     pointer_mode_host   = true;
     pointer_mode_device = true;
-    c_noalias_d         = false;
+    outofplace          = false;
     HMM                 = false;
     graph_test          = false;
 }

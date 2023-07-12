@@ -471,7 +471,7 @@ Arguments:
   - diag: c_char
   - pointer_mode_host: c_bool
   - pointer_mode_device: c_bool
-  - c_noalias_d: c_bool
+  - outofplace: c_bool
   - HMM: c_bool
   - graph_test: c_bool
 
@@ -557,5 +557,5 @@ Defaults:
   name: rocblas-bench
   pointer_mode_host: true
   pointer_mode_device: true
-  c_noalias_d: false
+  outofplace: false
   user_allocated_workspace: 0

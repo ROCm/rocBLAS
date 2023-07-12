@@ -359,7 +359,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     }
 #endif
     // update after invalid checks
-    if(!arg.c_noalias_d)
+    if(!arg.outofplace)
     {
         ldd      = ldc;
         stride_d = stride_c;
@@ -396,9 +396,9 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     // if C==D, allocate C big enough for the larger of C and D; D points to C
     device_strided_batch_matrix<To> dC(M, N, ldc, stride_c, batch_count);
     device_strided_batch_matrix<To> dD
-        = (arg.c_noalias_d) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
-                            : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
-    device_strided_batch_matrix<To>& dDref = (arg.c_noalias_d) ? dD : dC;
+        = (arg.outofplace) ? device_strided_batch_matrix<To>(M, N, ldd, stride_d, batch_count)
+                           : device_strided_batch_matrix<To>(0, 1, 1, 1, 1);
+    device_strided_batch_matrix<To>& dDref = (arg.outofplace) ? dD : dC;
     device_vector<Tc>                d_alpha_Tc(1);
     device_vector<Tc>                d_beta_Tc(1);
 
