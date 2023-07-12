@@ -21,6 +21,11 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
+#ifdef WIN32
+#include <stdlib.h>
+#define setenv(A, B, C) _putenv_s(A, B)
+#endif
+
 /*
  *  Pseudo random number generator
  *      Works only when T is f32 or f16
@@ -1912,8 +1917,19 @@ void testing_gemm_ex3(const Arguments& arg)
         seedB = distribution(gen);
         seedC = distribution(gen);
 
-        setenv("SR_SEED_A", std::to_string(seedA).c_str(), 0);
-        setenv("SR_SEED_B", std::to_string(seedB).c_str(), 0);
+        int setenv_status;
+
+        setenv_status = setenv("SR_SEED_A", std::to_string(seedA).c_str(), false);
+
+#ifdef GOOGLE_TEST
+        ASSERT_EQ(setenv_status, 0);
+#endif
+
+        setenv_status = setenv("SR_SEED_B", std::to_string(seedB).c_str(), false);
+
+#ifdef GOOGLE_TEST
+        ASSERT_EQ(setenv_status, 0);
+#endif
     }
 
     bool alpha_isnan = arg.alpha_isnan<Tc>();
@@ -1946,12 +1962,6 @@ void testing_gemm_ex3(const Arguments& arg)
 
     // check for invalid sizes
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M;
-
-    // size checking is only needed for int8x4
-    bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
-    // bool int8_invalid   = (pack_to_int8x4 && std::is_same<Ti, int8_t>{}
-    //                      && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
-    //                          || (transB == rocblas_operation_none && ldb % 4 != 0)));
 
     // NOTE: for mixed of f8 bf8, we will consider it is_bf8 as true since bf8 has less precision than f8
     // TODO: we have not considered f8/b8 with other non-f8 types yet!!
