@@ -2341,7 +2341,14 @@ rocblas_trsm_small_64_right_device(rocblas_fill      uplo,
  *
  * Uses the substitution method to solve a small problem XA = B.
  */
-template <typename T, typename SCAL, typename ATYPE, typename BTYPE, const int NB>
+template <const int NB,
+          bool      CONJ,
+          bool      TRANSA,
+          bool      LOWER,
+          typename T,
+          typename SCAL,
+          typename ATYPE,
+          typename BTYPE>
 ROCBLAS_KERNEL(NB)
 rocblas_trsm_small_left_device(rocblas_fill      uplo,
                                rocblas_operation transA,
@@ -2363,10 +2370,13 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
     auto      B       = load_ptr_batch(Ba, batchid, offset_B, stride_B);
     auto      alpha   = load_scalar(alpha_dev_host);
 
-    bool      LOWER = uplo == rocblas_fill_lower;
-    bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
-    const int tx    = threadIdx.x;
-    const int bx    = blockIdx.x;
+    // bool      LOWER = uplo == rocblas_fill_lower;
+    // bool      CONJ  = transA == rocblas_operation_conjugate_transpose;
+    // bool      TRANSA = CONJ || transA == rocblas_operation_transpose;
+    // Load A into sA, handle conjugation if necessary
+    constexpr bool BACKWARDS_SUB = (LOWER && TRANSA) || (!LOWER && !TRANSA);
+    const int      tx            = threadIdx.x;
+    const int      bx            = blockIdx.x;
 
     // max A column to read from
     int maxColA = NB - 1 > m - 1 ? m - 1 : NB - 1;
@@ -2385,13 +2395,21 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
 
     if(tx <= maxColA)
     {
-        // Load A into sA, handle conjugation if necessary
+
         for(int i = 0; i <= maxColA; i++)
-            sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
+        {
+            if constexpr(BACKWARDS_SUB)
+                sA[i * NB + tx] = (CONJ) ? conj(A[tx * size_t(lda) + i]) : A[tx * size_t(lda) + i];
+            else
+                sA[i * NB + tx] = (CONJ) ? conj(A[i * size_t(lda) + tx]) : A[i * size_t(lda) + tx];
+        }
 
         // set unit diagonal if needed
         if(diag == rocblas_diagonal_unit)
             sA[sb_col + tx] = T(1.0);
+        else
+            sA[sb_col + tx]
+                = T(1.0) / sA[sb_col + tx]; // invert diagonal here so just have to multiply later
 
         // Load B into sB and multiply by alpha
         for(int i = 0; i < maxColB; i++)
@@ -2421,22 +2439,22 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
                 resB[3] -= sB_reg * sA[col_off + (i + 3)];
             }
 
-            resB[0] /= sA[(i + 0) * NB + (i + 0)];
+            resB[0] *= sA[(i + 0) * NB + (i + 0)];
             sB[sb_col + i + 0] = resB[0];
 
             resB[1] -= resB[0] * sA[(i + 0) * NB + (i + 1)];
-            resB[1] /= sA[(i + 1) * NB + (i + 1)];
+            resB[1] *= sA[(i + 1) * NB + (i + 1)];
             sB[sb_col + i + 1] = resB[1];
 
             resB[2] -= resB[0] * sA[(i + 0) * NB + (i + 2)];
             resB[2] -= resB[1] * sA[(i + 1) * NB + (i + 2)];
-            resB[2] /= sA[(i + 2) * NB + (i + 2)];
+            resB[2] *= sA[(i + 2) * NB + (i + 2)];
             sB[sb_col + i + 2] = resB[2];
 
             resB[3] -= resB[0] * sA[(i + 0) * NB + (i + 3)];
             resB[3] -= resB[1] * sA[(i + 1) * NB + (i + 3)];
             resB[3] -= resB[2] * sA[(i + 2) * NB + (i + 3)];
-            resB[3] /= sA[(i + 3) * NB + (i + 3)];
+            resB[3] *= sA[(i + 3) * NB + (i + 3)];
             sB[sb_col + i + 3] = resB[3];
         }
 
@@ -2448,7 +2466,7 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
             {
                 resB[0] -= sB[sb_col + j] * sA[j * NB + i];
             }
-            sB[sb_col + i] = resB[0] / sA[i * NB + i];
+            sB[sb_col + i] = resB[0] * sA[i * NB + i];
         }
     }
     else if(!LOWER && transA == rocblas_operation_none)
@@ -2463,30 +2481,30 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
 
             for(int j = maxColA; j > i; j--)
             {
-                rocblas_int col_off = j * NB;
+                rocblas_int col_off = j;
                 T           sB_reg  = sB[sb_col + j];
-                resB[0] -= sB_reg * sA[col_off + (i - 0)];
-                resB[1] -= sB_reg * sA[col_off + (i - 1)];
-                resB[2] -= sB_reg * sA[col_off + (i - 2)];
-                resB[3] -= sB_reg * sA[col_off + (i - 3)];
+                resB[0] -= sB_reg * sA[(col_off + (i - 0) * NB)];
+                resB[1] -= sB_reg * sA[(col_off + (i - 1) * NB)];
+                resB[2] -= sB_reg * sA[(col_off + (i - 2) * NB)];
+                resB[3] -= sB_reg * sA[(col_off + (i - 3) * NB)];
             }
 
-            resB[0] /= sA[(i - 0) * NB + (i - 0)];
+            resB[0] *= sA[(i - 0) * NB + (i - 0)];
             sB[sb_col + i - 0] = resB[0];
 
-            resB[1] -= resB[0] * sA[(i - 0) * NB + (i - 1)];
-            resB[1] /= sA[(i - 1) * NB + (i - 1)];
+            resB[1] -= resB[0] * sA[(i - 1) * NB + (i - 0)];
+            resB[1] *= sA[(i - 1) * NB + (i - 1)];
             sB[sb_col + i - 1] = resB[1];
 
-            resB[2] -= resB[0] * sA[(i - 0) * NB + (i - 2)];
-            resB[2] -= resB[1] * sA[(i - 1) * NB + (i - 2)];
-            resB[2] /= sA[(i - 2) * NB + (i - 2)];
+            resB[2] -= resB[0] * sA[(i - 2) * NB + (i - 0)];
+            resB[2] -= resB[1] * sA[(i - 2) * NB + (i - 1)];
+            resB[2] *= sA[(i - 2) * NB + (i - 2)];
             sB[sb_col + i - 2] = resB[2];
 
-            resB[3] -= resB[0] * sA[(i - 0) * NB + (i - 3)];
-            resB[3] -= resB[1] * sA[(i - 1) * NB + (i - 3)];
-            resB[3] -= resB[2] * sA[(i - 2) * NB + (i - 3)];
-            resB[3] /= sA[(i - 3) * NB + (i - 3)];
+            resB[3] -= resB[0] * sA[(i - 3) * NB + (i - 0)];
+            resB[3] -= resB[1] * sA[(i - 3) * NB + (i - 1)];
+            resB[3] -= resB[2] * sA[(i - 3) * NB + (i - 2)];
+            resB[3] *= sA[(i - 3) * NB + (i - 3)];
             sB[sb_col + i - 3] = resB[3];
         }
 
@@ -2495,9 +2513,9 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
             resB[0] = sB[sb_col + i];
             for(int j = maxColA; j > i; j--)
             {
-                resB[0] -= sB[sb_col + j] * sA[j * NB + i];
+                resB[0] -= sB[sb_col + j] * sA[i * NB + j];
             }
-            sB[sb_col + i] = resB[0] / sA[i * NB + i];
+            sB[sb_col + i] = resB[0] * sA[i * NB + i];
         }
     }
     else if(LOWER)
@@ -2513,28 +2531,28 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
             for(int j = maxColA; j > i; j--)
             {
                 T sB_reg = sB[sb_col + j];
-                resB[0] -= sB_reg * sA[(i - 0) * NB + j];
-                resB[1] -= sB_reg * sA[(i - 1) * NB + j];
-                resB[2] -= sB_reg * sA[(i - 2) * NB + j];
-                resB[3] -= sB_reg * sA[(i - 3) * NB + j];
+                resB[0] -= sB_reg * sA[(i - 0) + j * NB];
+                resB[1] -= sB_reg * sA[(i - 1) + j * NB];
+                resB[2] -= sB_reg * sA[(i - 2) + j * NB];
+                resB[3] -= sB_reg * sA[(i - 3) + j * NB];
             }
 
-            resB[0] /= sA[(i - 0) * NB + (i - 0)];
+            resB[0] *= sA[(i - 0) * NB + (i - 0)];
             sB[sb_col + i - 0] = resB[0];
 
-            resB[1] -= resB[0] * sA[(i - 1) * NB + (i - 0)];
-            resB[1] /= sA[(i - 1) * NB + (i - 1)];
+            resB[1] -= resB[0] * sA[(i - 0) * NB + (i - 1)];
+            resB[1] *= sA[(i - 1) * NB + (i - 1)];
             sB[sb_col + i - 1] = resB[1];
 
-            resB[2] -= resB[0] * sA[(i - 2) * NB + (i - 0)];
-            resB[2] -= resB[1] * sA[(i - 2) * NB + (i - 1)];
-            resB[2] /= sA[(i - 2) * NB + (i - 2)];
+            resB[2] -= resB[0] * sA[(i - 0) * NB + (i - 2)];
+            resB[2] -= resB[1] * sA[(i - 1) * NB + (i - 2)];
+            resB[2] *= sA[(i - 2) * NB + (i - 2)];
             sB[sb_col + i - 2] = resB[2];
 
-            resB[3] -= resB[0] * sA[(i - 3) * NB + (i - 0)];
-            resB[3] -= resB[1] * sA[(i - 3) * NB + (i - 1)];
-            resB[3] -= resB[2] * sA[(i - 3) * NB + (i - 2)];
-            resB[3] /= sA[(i - 3) * NB + (i - 3)];
+            resB[3] -= resB[0] * sA[(i - 0) * NB + (i - 3)];
+            resB[3] -= resB[1] * sA[(i - 1) * NB + (i - 3)];
+            resB[3] -= resB[2] * sA[(i - 2) * NB + (i - 3)];
+            resB[3] *= sA[(i - 3) * NB + (i - 3)];
             sB[sb_col + i - 3] = resB[3];
         }
 
@@ -2543,9 +2561,9 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
             resB[0] = sB[sb_col + i];
             for(int j = maxColA; j > i; j--)
             {
-                resB[0] -= sB[sb_col + j] * sA[i * NB + j];
+                resB[0] -= sB[sb_col + j] * sA[j * NB + i];
             }
-            sB[sb_col + i] = resB[0] / sA[i * NB + i];
+            sB[sb_col + i] = resB[0] * sA[i * NB + i];
         }
     }
     else if(!LOWER)
@@ -2568,22 +2586,22 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
                 resB[3] -= sB_reg * sA[(i + 3) * NB + j];
             }
 
-            resB[0] /= sA[(i + 0) * NB + (i + 0)];
+            resB[0] *= sA[(i + 0) * NB + (i + 0)];
             sB[sb_col + i + 0] = resB[0];
 
             resB[1] -= resB[0] * sA[(i + 1) * NB + (i + 0)];
-            resB[1] /= sA[(i + 1) * NB + (i + 1)];
+            resB[1] *= sA[(i + 1) * NB + (i + 1)];
             sB[sb_col + i + 1] = resB[1];
 
             resB[2] -= resB[0] * sA[(i + 2) * NB + (i + 0)];
             resB[2] -= resB[1] * sA[(i + 2) * NB + (i + 1)];
-            resB[2] /= sA[(i + 2) * NB + (i + 2)];
+            resB[2] *= sA[(i + 2) * NB + (i + 2)];
             sB[sb_col + i + 2] = resB[2];
 
             resB[3] -= resB[0] * sA[(i + 3) * NB + (i + 0)];
             resB[3] -= resB[1] * sA[(i + 3) * NB + (i + 1)];
             resB[3] -= resB[2] * sA[(i + 3) * NB + (i + 2)];
-            resB[3] /= sA[(i + 3) * NB + (i + 3)];
+            resB[3] *= sA[(i + 3) * NB + (i + 3)];
             sB[sb_col + i + 3] = resB[3];
         }
 
@@ -2595,7 +2613,7 @@ rocblas_trsm_small_left_device(rocblas_fill      uplo,
             {
                 resB[0] -= sB[sb_col + j] * sA[i * NB + j];
             }
-            sB[sb_col + i] = resB[0] / sA[i * NB + i];
+            sB[sb_col + i] = resB[0] * sA[i * NB + i];
         }
     }
 
@@ -2766,25 +2784,201 @@ void rocblas_trsm_small(rocblas_handle    handle,
     if(side == rocblas_side_left)
     {
         dim3 grid((n + NB - 1) / NB, batch_count);
-        hipLaunchKernelGGL((rocblas_trsm_small_left_device<T, SCAL, ATYPE, BTYPE, NB>),
-                           grid,
-                           threads,
-                           0,
-                           handle->get_stream(),
-                           uplo,
-                           transA,
-                           diag,
-                           m,
-                           n,
-                           alpha,
-                           dA,
-                           offset_A,
-                           lda,
-                           stride_A,
-                           dB,
-                           offset_B,
-                           ldb,
-                           stride_B);
+        if(transA == rocblas_operation_none)
+        {
+            constexpr bool TRANSA = false;
+            constexpr bool CONJ   = false;
+            if(uplo == rocblas_fill_upper)
+            {
+                constexpr bool LOWER = false;
+                hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
+                                                                   CONJ,
+                                                                   TRANSA,
+                                                                   LOWER,
+                                                                   T,
+                                                                   SCAL,
+                                                                   ATYPE,
+                                                                   BTYPE>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   uplo,
+                                   transA,
+                                   diag,
+                                   m,
+                                   n,
+                                   alpha,
+                                   dA,
+                                   offset_A,
+                                   lda,
+                                   stride_A,
+                                   dB,
+                                   offset_B,
+                                   ldb,
+                                   stride_B);
+            }
+            else
+            {
+                constexpr bool LOWER = true;
+                hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
+                                                                   CONJ,
+                                                                   TRANSA,
+                                                                   LOWER,
+                                                                   T,
+                                                                   SCAL,
+                                                                   ATYPE,
+                                                                   BTYPE>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   uplo,
+                                   transA,
+                                   diag,
+                                   m,
+                                   n,
+                                   alpha,
+                                   dA,
+                                   offset_A,
+                                   lda,
+                                   stride_A,
+                                   dB,
+                                   offset_B,
+                                   ldb,
+                                   stride_B);
+            }
+        }
+        else if(transA == rocblas_operation_transpose)
+        {
+            constexpr bool TRANSA = true;
+            constexpr bool CONJ   = false;
+            if(uplo == rocblas_fill_upper)
+            {
+                constexpr bool LOWER = false;
+                hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
+                                                                   CONJ,
+                                                                   TRANSA,
+                                                                   LOWER,
+                                                                   T,
+                                                                   SCAL,
+                                                                   ATYPE,
+                                                                   BTYPE>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   uplo,
+                                   transA,
+                                   diag,
+                                   m,
+                                   n,
+                                   alpha,
+                                   dA,
+                                   offset_A,
+                                   lda,
+                                   stride_A,
+                                   dB,
+                                   offset_B,
+                                   ldb,
+                                   stride_B);
+            }
+            else
+            {
+                constexpr bool LOWER = true;
+                hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
+                                                                   CONJ,
+                                                                   TRANSA,
+                                                                   LOWER,
+                                                                   T,
+                                                                   SCAL,
+                                                                   ATYPE,
+                                                                   BTYPE>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   uplo,
+                                   transA,
+                                   diag,
+                                   m,
+                                   n,
+                                   alpha,
+                                   dA,
+                                   offset_A,
+                                   lda,
+                                   stride_A,
+                                   dB,
+                                   offset_B,
+                                   ldb,
+                                   stride_B);
+            }
+        }
+        else if(transA == rocblas_operation_conjugate_transpose)
+        {
+            constexpr bool TRANSA = true;
+            constexpr bool CONJ   = true;
+            if(uplo == rocblas_fill_upper)
+            {
+                constexpr bool LOWER = false;
+                hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
+                                                                   CONJ,
+                                                                   TRANSA,
+                                                                   LOWER,
+                                                                   T,
+                                                                   SCAL,
+                                                                   ATYPE,
+                                                                   BTYPE>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   uplo,
+                                   transA,
+                                   diag,
+                                   m,
+                                   n,
+                                   alpha,
+                                   dA,
+                                   offset_A,
+                                   lda,
+                                   stride_A,
+                                   dB,
+                                   offset_B,
+                                   ldb,
+                                   stride_B);
+            }
+            else
+            {
+                constexpr bool LOWER = true;
+                hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
+                                                                   CONJ,
+                                                                   TRANSA,
+                                                                   LOWER,
+                                                                   T,
+                                                                   SCAL,
+                                                                   ATYPE,
+                                                                   BTYPE>),
+                                   grid,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   uplo,
+                                   transA,
+                                   diag,
+                                   m,
+                                   n,
+                                   alpha,
+                                   dA,
+                                   offset_A,
+                                   lda,
+                                   stride_A,
+                                   dB,
+                                   offset_B,
+                                   ldb,
+                                   stride_B);
+            }
+        }
     }
     else
     {
