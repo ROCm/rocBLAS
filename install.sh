@@ -118,24 +118,24 @@ install_packages( )
                                       "python3" "python3-yaml" "python3-venv" "python3-joblib" "python3*-pip" )
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "rpm-build"
-                                      "python34" "python3*-PyYAML" "python3-virtualenv"
+                                      "python34" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
                                       "gcc-c++" )
   local library_dependencies_centos_8=( "epel-release"
                                       "make" "rpm-build"
-                                      "python3" "python3*-PyYAML" "python3-virtualenv"
+                                      "python3" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
                                       "gcc-c++" )
   local library_dependencies_rhel_8=( "epel-release"
                                       "make" "rpm-build"
-                                      "python36" "python3*-PyYAML" "python3-virtualenv"
+                                      "python36" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
                                       "gcc-c++" )
   local library_dependencies_rhel_9=( "epel-release" "openssl-devel"
                                       "make" "rpm-build"
                                       "python39" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
                                       "gcc-c++" )
   local library_dependencies_fedora=( "make" "rpm-build"
-                                      "python34" "python3*-PyYAML" "python3-virtualenv"
+                                      "python34" "python3*-PyYAML" "python3-virtualenv" "python3-joblib"
                                       "gcc-c++" "libcxx-devel" )
-  local library_dependencies_sles=(   "make" "python3-PyYAML" "python3-virtualenv"
+  local library_dependencies_sles=(   "make" "python3-PyYAML" "python3-virtualenv" "python3-joblib"
                                       "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then

@@ -303,6 +303,10 @@ rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
 
     if(status != rocblas_status_success)
         throw std::runtime_error(rocblas_status_to_string(status));
+
+    status = rocblas_set_math_mode(m_handle, rocblas_math_mode(arg.math_mode));
+    if(status != rocblas_status_success)
+        throw std::runtime_error(rocblas_status_to_string(status));
 }
 
 rocblas_local_handle::~rocblas_local_handle()

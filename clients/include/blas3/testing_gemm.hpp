@@ -201,6 +201,10 @@ void testing_gemm(const Arguments& arg)
     bool                 HMM           = arg.HMM;
     rocblas_local_handle handle{arg};
 
+    rocblas_math_mode math_mode = rocblas_math_mode(arg.math_mode);
+    CHECK_ROCBLAS_ERROR(rocblas_set_math_mode(handle, math_mode));
+    CHECK_ROCBLAS_ERROR(rocblas_get_math_mode(handle, &math_mode));
+
     rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
     rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
     rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
@@ -337,6 +341,13 @@ void testing_gemm(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
                 handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
+        }
+
+        // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
+        if(std::is_same<T, float>{} && math_mode == rocblas_xf32_xdl_math_op)
+        {
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), hA.size());
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), hB.size());
         }
 
         // now we can recycle gold matrix for reference purposes

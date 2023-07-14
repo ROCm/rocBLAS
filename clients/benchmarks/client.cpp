@@ -19,7 +19,7 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-
+#define ROCBLAS_BETA_FEATURES_API
 #include "program_options.hpp"
 
 #include "rocblas.hpp"
@@ -201,6 +201,7 @@
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
 #include "testing_gemm_ex.hpp"
+#include "testing_gemm_ex3.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_trsm.hpp"
@@ -263,6 +264,36 @@ struct perf_gemm_ex<
         static const func_map map = {
             {"gemm_ex", testing_gemm_ex<Ti, To, Tc>},
             {"gemm_batched_ex", testing_gemm_batched_ex<Ti, To, Tc>},
+        };
+        run_function(map, arg);
+    }
+};
+
+// Template to dispatch testing_gemm_ex3 for performance tests
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
+template <typename TiA, typename TiB = TiA, typename To = TiA, typename Tc = To, typename = void>
+struct perf_gemm_ex3 : rocblas_test_invalid
+{
+};
+
+template <typename TiA, typename TiB, typename To, typename Tc>
+struct perf_gemm_ex3<
+    TiA,
+    TiB,
+    To,
+    Tc,
+    std::enable_if_t<(!std::is_same<TiA, void>{} && !std::is_same<TiB, void>{})
+                     && ((std::is_same<TiA, rocblas_f8>{} || std::is_same<TiA, rocblas_bf8>{}
+                          || std::is_same<TiA, rocblas_half>{} || std::is_same<TiA, float>{}
+                          || std::is_same<TiA, rocblas_bfloat16>{}))
+                     && (std::is_same<TiB, rocblas_f8>{} || std::is_same<TiB, rocblas_bf8>{}
+                         || std::is_same<TiB, rocblas_half>{} || std::is_same<TiB, float>{}
+                         || std::is_same<TiB, rocblas_bfloat16>{})>> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"gemm_ex3", testing_gemm_ex3<TiA, TiB, To, Tc>},
         };
         run_function(map, arg);
     }
@@ -1147,6 +1178,42 @@ int run_bench_test(bool               init,
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
     }
+    else if(!strcmp(function, "gemm_ex3"))
+    {
+        // adjust dimension for GEMM routines
+        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        rocblas_int min_ldc = arg.M;
+        rocblas_int min_ldd = arg.M;
+
+        if(arg.lda < min_lda)
+        {
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            arg.lda = min_lda;
+        }
+        if(arg.ldb < min_ldb)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            arg.ldb = min_ldb;
+        }
+        if(arg.ldc < min_ldc)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            arg.ldc = min_ldc;
+        }
+        if(arg.ldd < min_ldd)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            arg.ldd = min_ldd;
+        }
+        if(!strcmp(function, "gemm_ex3") && arg.batch_count > 1)
+        {
+            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm_ex3"
+                         << ", set batch_count = 1" << std::endl;
+            arg.batch_count = 1;
+        }
+        rocblas_gemm_dispatch<perf_gemm_ex3>(arg);
+    }
     else if(!strcmp(function, "gemm_strided_batched_ex"))
     {
         // adjust dimension for GEMM routines
@@ -1326,6 +1393,7 @@ try
     std::string c_type;
     std::string d_type;
     std::string compute_type;
+    std::string composite_compute_type;
     std::string initialization;
     std::string arithmetic_check;
     std::string filter;
@@ -1339,6 +1407,7 @@ try
     bool        log_function_name   = false;
     bool        log_datatype        = false;
     bool        any_stride          = false;
+    uint32_t    math_mode           = 0;
     bool        fortran             = false;
 
     arg.init(); // set all defaults
@@ -1447,7 +1516,7 @@ try
 
         ("precision,r",
          value<std::string>(&precision)->default_value("f32_r"), "Precision. "
-         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z,f8_r, bf8_r, f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("a_type",
          value<std::string>(&a_type), "Precision of matrix A. "
@@ -1468,6 +1537,10 @@ try
         ("compute_type",
          value<std::string>(&compute_type), "Precision of computation. "
          "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
+
+        ("composite_compute_type",
+         value<std::string>(&composite_compute_type), "Precision of computation. "
+         "Options: f32, f8_f8_f32, f8_bf8_f32, bf8_f8_f32, bf8_bf8_f32")
 
         ("initialization",
          value<std::string>(&initialization)->default_value("hpl"),
@@ -1570,6 +1643,10 @@ try
         ("function_filter",
          value<std::string>(&filter),
          "Simple strstr filter on function name only without wildcards")
+
+        ("math_mode",
+         value<uint32_t>(&arg.math_mode)->default_value(rocblas_default_math),
+         "extended precision gemm math mode")
 
         ("name_filter",
          value<std::string>(&name_filter),
@@ -1692,6 +1769,11 @@ try
     arg.compute_type = compute_type == "" ? prec : string2rocblas_datatype(compute_type);
     if(arg.compute_type == rocblas_datatype_invalid)
         throw std::invalid_argument("Invalid value for --compute_type " + compute_type);
+
+    arg.composite_compute_type = string2rocblas_computetype(composite_compute_type);
+    if(arg.composite_compute_type == static_cast<rocblas_computetype>(-1))
+        throw std::invalid_argument("Invalid value for --composite_compute_type "
+                                    + composite_compute_type);
 
     arg.initialization = string2rocblas_initialization(initialization);
     if(arg.initialization == static_cast<rocblas_initialization>(0)) // zero not in enum

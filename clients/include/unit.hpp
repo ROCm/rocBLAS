@@ -84,6 +84,7 @@
 
 #define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 #define ASSERT_BF16_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
+#define ASSERT_F8_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 
 // Compare float to rocblas_bfloat16
 // Allow the rocblas_bfloat16 to match the rounded or truncated value of float
@@ -124,6 +125,19 @@ void unit_check_general(rocblas_int                    M,
                         rocblas_int                    lda,
                         const std::remove_cv_t<T_hpa>* hCPU,
                         const T*                       hGPU);
+template <>
+inline void unit_check_general(
+    rocblas_int M, rocblas_int N, rocblas_int lda, const rocblas_f8* hCPU, const rocblas_f8* hGPU)
+{
+    UNIT_CHECK(M, N, lda, 0, hCPU, hGPU, 1, ASSERT_F8_EQ);
+}
+
+template <>
+inline void unit_check_general(
+    rocblas_int M, rocblas_int N, rocblas_int lda, const rocblas_bf8* hCPU, const rocblas_bf8* hGPU)
+{
+    UNIT_CHECK(M, N, lda, 0, hCPU, hGPU, 1, ASSERT_F8_EQ);
+}
 
 template <>
 inline void unit_check_general(rocblas_int             M,
@@ -212,6 +226,31 @@ inline void unit_check_general(rocblas_int             M,
                                rocblas_int             batch_count)
 {
     UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, ASSERT_BF16_EQ);
+}
+
+// ToDO: implement for all F8 types
+template <>
+inline void unit_check_general(rocblas_int       M,
+                               rocblas_int       N,
+                               rocblas_int       lda,
+                               rocblas_stride    strideA,
+                               const rocblas_f8* hCPU,
+                               const rocblas_f8* hGPU,
+                               rocblas_int       batch_count)
+{
+    UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, ASSERT_F8_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int        M,
+                               rocblas_int        N,
+                               rocblas_int        lda,
+                               rocblas_stride     strideA,
+                               const rocblas_bf8* hCPU,
+                               const rocblas_bf8* hGPU,
+                               rocblas_int        batch_count)
+{
+    UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, ASSERT_F8_EQ);
 }
 
 template <>
@@ -504,10 +543,29 @@ inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, 
     trsm_err_res_check(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
 }
 
-template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
+template <typename T,
+          std::enable_if_t<(!rocblas_is_complex<T> && !std::is_same<rocblas_f8, T>::value
+                            && !std::is_same<rocblas_bf8, T>::value),
+                           int> = 0>
 constexpr double get_epsilon()
 {
     return std::numeric_limits<T>::epsilon();
+}
+
+// epsilon is calculated by an iterative algorithm for non-standard types
+// f8 = 0.0625 bf8 = 0.125
+template <typename T, std::enable_if_t<std::is_same<rocblas_f8, T>::value, int> = 0>
+constexpr double get_epsilon()
+{
+    return 0.0625;
+}
+
+// epsilon is calculated by an iterative algorithm for non-standard types
+// f8 = 0.0625 bf8 = 0.125
+template <typename T, std::enable_if_t<std::is_same<rocblas_bf8, T>::value, int> = 0>
+constexpr double get_epsilon()
+{
+    return 0.125;
 }
 
 template <typename T, std::enable_if_t<+rocblas_is_complex<T>, int> = 0>
@@ -532,4 +590,52 @@ inline double trtri_tolerance(rocblas_int N)
 {
     return (get_epsilon<T>()
             * std::max(10000.0, double(N))); // allow one more decimal place for double
+}
+
+template <typename T>
+inline double to_double(T x)
+{
+    return (double)(x);
+}
+
+template <>
+inline double to_double(rocblas_f8 x)
+{
+    return (double)(float(x));
+}
+
+template <>
+inline double to_double(rocblas_bf8 x)
+{
+    return (double)(float(x));
+}
+
+// TODO: need to rewrite it with less redundant codes...
+template <typename T, typename T_hpa = T>
+inline void res_check(size_t                         M,
+                      size_t                         N,
+                      size_t                         ldd,
+                      const std::remove_cv_t<T_hpa>* D_gold,
+                      const T*                       D_computed,
+                      double                         tolerance)
+{
+    double max_relative_error = 0.0;
+
+    for(size_t j = 0; j < N; j++)
+    {
+        for(size_t i = 0; i < M; i++)
+        {
+            double gold     = to_double(D_gold[i + j * ldd]);
+            double computed = to_double(D_computed[i + j * ldd]); // using op overloading to convert
+
+            double relative_error = gold != 0.0 ? (gold - computed) / gold : computed;
+            relative_error        = relative_error >= 0 ? relative_error : -relative_error;
+            max_relative_error
+                = relative_error <= max_relative_error ? max_relative_error : relative_error;
+        }
+    }
+#ifdef GOOGLE_TEST
+    ASSERT_LE(max_relative_error, tolerance);
+#endif
+    // TODO: need less than assert when GOOOGLE_TEST is not defined
 }

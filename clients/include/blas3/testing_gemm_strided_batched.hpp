@@ -226,6 +226,10 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     rocblas_local_handle handle{arg};
 
+    rocblas_math_mode math_mode = rocblas_math_mode(arg.math_mode);
+    CHECK_ROCBLAS_ERROR(rocblas_set_math_mode(handle, math_mode));
+    CHECK_ROCBLAS_ERROR(rocblas_get_math_mode(handle, &math_mode));
+
     rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
     rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
     rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
@@ -425,6 +429,13 @@ void testing_gemm_strided_batched(const Arguments& arg)
                                                                 ldc,
                                                                 stride_c,
                                                                 batch_count));
+        }
+
+        // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
+        if(std::is_same<T, float>{} && math_mode == rocblas_xf32_xdl_math_op)
+        {
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA.data(), hA.nmemb());
+            type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB.data(), hB.nmemb());
         }
 
         // CPU BLAS

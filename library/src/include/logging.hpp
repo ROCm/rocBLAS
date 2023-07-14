@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -339,6 +339,40 @@ inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype          compute_
     return rocblas_status_success;
 }
 
+inline rocblas_status log_trace_alpha_beta_ex(rocblas_computetype       compute_type,
+                                              const void*               alpha,
+                                              const void*               beta,
+                                              rocblas_internal_ostream& alphass,
+                                              rocblas_internal_ostream& betass)
+{
+    switch(compute_type)
+    {
+    case rocblas_compute_type_f32:
+        alphass << log_trace_scalar_value(reinterpret_cast<const float*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_f8_f8_f32:
+        alphass << log_trace_scalar_value(reinterpret_cast<const float*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_f8_bf8_f32:
+        alphass << log_trace_scalar_value(reinterpret_cast<const float*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_bf8_f8_f32:
+        alphass << log_trace_scalar_value(reinterpret_cast<const float*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_bf8_bf8_f32:
+        alphass << log_trace_scalar_value(reinterpret_cast<const float*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const float*>(beta));
+        break;
+    default:
+        return rocblas_status_not_implemented;
+    }
+    return rocblas_status_success;
+}
+
 inline rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
                                               const void*      alpha,
                                               const void*      beta,
@@ -381,6 +415,40 @@ inline rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
     return rocblas_status_success;
 }
 
+inline rocblas_status log_bench_alpha_beta_ex(rocblas_computetype compute_type,
+                                              const void*         alpha,
+                                              const void*         beta,
+                                              std::string&        alphas,
+                                              std::string&        betas)
+{
+    switch(compute_type)
+    {
+    case rocblas_compute_type_f32:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const float*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_f8_f8_f32:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const float*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_f8_bf8_f32:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const float*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_bf8_f8_f32:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const float*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_compute_type_bf8_bf8_f32:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const float*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const float*>(beta));
+        break;
+    default:
+        return rocblas_status_not_implemented;
+    }
+    return rocblas_status_success;
+}
+
 template <typename T>
 auto value_category(const T* beta, rocblas_datatype compute_type)
 {
@@ -401,6 +469,26 @@ auto value_category(const T* beta, rocblas_datatype compute_type)
         return value_category(*reinterpret_cast<const rocblas_float_complex*>(beta));
     case rocblas_datatype_f64_c:
         return value_category(*reinterpret_cast<const rocblas_double_complex*>(beta));
+    default:
+        throw rocblas_status_internal_error;
+    }
+}
+
+template <typename T>
+auto value_category(const T* beta, rocblas_computetype compute_type)
+{
+    switch(compute_type)
+    {
+    case rocblas_compute_type_f32:
+        return value_category(*reinterpret_cast<const float*>(beta));
+    case rocblas_compute_type_f8_f8_f32:
+        return value_category(*reinterpret_cast<const float*>(beta));
+    case rocblas_compute_type_f8_bf8_f32:
+        return value_category(*reinterpret_cast<const float*>(beta));
+    case rocblas_compute_type_bf8_f8_f32:
+        return value_category(*reinterpret_cast<const float*>(beta));
+    case rocblas_compute_type_bf8_bf8_f32:
+        return value_category(*reinterpret_cast<const float*>(beta));
     default:
         throw rocblas_status_internal_error;
     }

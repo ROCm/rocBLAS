@@ -107,16 +107,26 @@ rocm_setup_version( VERSION ${VERSION_STRING} )
 # NOTE:  workaround until llvm & hip cmake modules fixes symlink logic in their config files; remove when fixed
 list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm /opt/rocm/hip )
 
-
 # gpu arch configuration
 set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
-set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1012 gfx1030 gfx1100 gfx1101 gfx1102 )
+set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS
+              all
+              gfx803
+              gfx900
+              gfx906 gfx906:xnack-
+              gfx908 gfx908:xnack-
+              gfx90a gfx90a:xnack+ gfx90a:xnack-
+              gfx940 gfx940:xnack+ gfx940:xnack-
+              gfx941 gfx941:xnack+ gfx941:xnack-
+              gfx942 gfx942:xnack+ gfx942:xnack-
+              gfx1010 gfx1012 gfx1030
+              gfx1100 gfx1101 gfx1102 )
 
 # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
 # Sets the AMDGPU_TARGETS with backward compatibility
 if (AMDGPU_TARGETS STREQUAL "all")
   rocm_check_target_ids(target_list
-      TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
+      TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
   )
 else()
   rocm_check_target_ids(target_list TARGETS "${AMDGPU_TARGETS}")

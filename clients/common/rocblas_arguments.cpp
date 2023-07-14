@@ -119,6 +119,8 @@ void Arguments::init()
 
     atomics_mode = rocblas_atomics_allowed;
 
+    math_mode = rocblas_default_math;
+
     os_flags = rocblas_client_os::ALL;
 
     gpu_arch[0] = 0; // 4 chars so 32bit

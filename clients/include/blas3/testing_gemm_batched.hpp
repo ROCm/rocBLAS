@@ -204,6 +204,10 @@ void testing_gemm_batched(const Arguments& arg)
     rocblas_int          B_row       = transB == rocblas_operation_none ? std::max(K, 1) : N;
     rocblas_int          B_col       = transB == rocblas_operation_none ? N : std::max(K, 1);
 
+    rocblas_math_mode math_mode = rocblas_math_mode(arg.math_mode);
+    CHECK_ROCBLAS_ERROR(rocblas_set_math_mode(handle, math_mode));
+    CHECK_ROCBLAS_ERROR(rocblas_get_math_mode(handle, &math_mode));
+
     // for internal interface testing
     // using arg.stride_x,y,d for offset testing
     rocblas_stride offsetA = arg.api == INTERNAL ? arg.stride_x : 0;
@@ -417,6 +421,16 @@ void testing_gemm_batched(const Arguments& arg)
                                                                               ldc,
                                                                               strideC,
                                                                               batch_count));
+            }
+        }
+
+        // For the xf32 xdl math op, cast type of A/B from float to xfloat32 .
+        if(std::is_same<T, float>{} && math_mode == rocblas_xf32_xdl_math_op)
+        {
+            for(int b = 0; b < batch_count; b++)
+            {
+                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hA[b], hA.nmemb());
+                type_to_xdl_math_op_type<rocblas_xfloat32, float>(hB[b], hB.nmemb());
             }
         }
 

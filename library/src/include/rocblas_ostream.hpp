@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2020-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -454,6 +454,13 @@ public:
 
     // rocblas_datatype output
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, rocblas_datatype d)
+    {
+        os.m_os << rocblas_datatype_string(d);
+        return os;
+    }
+
+    // rocblas_datatype output
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, rocblas_computetype d)
     {
         os.m_os << rocblas_datatype_string(d);
         return os;

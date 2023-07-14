@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 #pragma once
 
 #include "rocblas.h"
+#include "rocblas_xfloat32.h"
 #include <cmath>
 #include <hip/hip_runtime.h>
 #include <immintrin.h>
@@ -74,17 +75,47 @@ inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
     return x;
 }
 
+template <>
+inline rocblas_f8 negate(rocblas_f8 x)
+{
+    x.data ^= 0x80;
+    return x;
+}
+
+template <>
+inline rocblas_bf8 negate(rocblas_bf8 x)
+{
+    x.data ^= 0x80;
+    return x;
+}
+
 /* ============================================================================================ */
+// Helper function to reduce intermediate precision and the output type are the same as the input type.
+template <typename TxDLi, typename TxDLo, typename Ti>
+inline void type_to_xdl_math_op_type(Ti* in, size_t s)
+{
+    //To filter out the case that input type is not supported by xDL Math Op.
+    //Currently, xDL Math Op supports in:float -> intermediat:xf32 -> out:float
+    constexpr bool needCast = !std::is_same<TxDLi, Ti>() && std::is_same<TxDLo, Ti>();
+    if(!needCast)
+        return;
+
+    //Cast input type to xDl math op type, using type alians to avoid the casting error.
+    using castType = std::conditional_t<needCast, TxDLi, Ti>;
+    for(size_t i = 0; i < s; i++)
+        in[i] = static_cast<Ti>(static_cast<castType>(in[i]));
+}
+
 // Conjugate a value. For most types, simply return argument; for
 // rocblas_float_complex and rocblas_double_complex, return std::conj(z)
 template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0>
-__host__ inline T conjugate(const T& z)
+__device__ __host__ inline T conjugate(const T& z)
 {
     return z;
 }
 
 template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
-__host__ inline T conjugate(const T& z)
+__device__ __host__ inline T conjugate(const T& z)
 {
     return std::conj(z);
 }
