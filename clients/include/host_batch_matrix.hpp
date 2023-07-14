@@ -103,6 +103,14 @@ public:
     }
 
     //!
+    //! @brief Returns nmemb.
+    //!
+    size_t nmemb() const
+    {
+        return m_nmemb;
+    }
+
+    //!
     //! @brief Returns the batch count.
     //!
     int64_t batch_count() const

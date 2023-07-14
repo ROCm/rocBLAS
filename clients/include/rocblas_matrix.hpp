@@ -221,6 +221,13 @@ inline void rocblas_init_matrix(host_matrix<T>&           hA,
         else
             rocblas_init_matrix(matrix_type, arg.uplo, random_generator<T>, hA);
     }
+    else if(arg.initialization == rocblas_initialization::rand_int_zero_one)
+    {
+        if(alternating_sign)
+            rocblas_init_matrix_alternating_sign(matrix_type, arg.uplo, random_generator<T>, hA);
+        else
+            rocblas_init_matrix(matrix_type, arg.uplo, random_zero_one_generator<T>, hA);
+    }
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
         rocblas_init_matrix_trig<T>(matrix_type, arg.uplo, hA, seedReset);
