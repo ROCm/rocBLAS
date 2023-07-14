@@ -1459,11 +1459,12 @@ gtest_filter can also be used to run tests for a particular function, and a part
 
    ./rocblas-test --gtest_filter=*quick*axpy*f32_r*
 
-The number of lines of output can be reduced with:
+The default verbosity shows test category totals and specific test failure details, matching an implicit environment variable setting of GTEST_LISTENER=NO_PASS_LINE_IN_LOG.
+To get an output listing of each individual test that is run, use:
 
 .. code-block:: bash
 
-   GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_filter=*quick*
+   GTEST_LISTENER=PASS_LINE_IN_LOG ./rocblas-test --gtest_filter=*quick*
 
 ``rocblas-test`` can be driven by tests specified in a yaml file using the ``--yaml`` argument.
 As the test categories pre_checkin and nightly can require hours to run, a short smoke test set is provided in a yaml file.
