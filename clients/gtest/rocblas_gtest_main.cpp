@@ -167,6 +167,17 @@ static void rocblas_set_listener()
 
     if(gtest_listener && !strcmp(gtest_listener, "NO_PASS_LINE_IN_LOG"))
     {
+        rocblas_cout << "environment GTEST_LISTENER=NO_PASS_LINE_IN_LOG is now the default.\n"
+                        "To see pass lines use: GTEST_LISTENER=PASS_LINE_IN_LOG"
+                     << std::endl;
+    }
+
+    if(gtest_listener && !strcmp(gtest_listener, "PASS_LINE_IN_LOG"))
+    {
+    }
+    else
+    {
+        // default is now the same as GTEST_LISTENER=NO_PASS_LINE_IN_LOG
         listener->showTestNames      = false;
         listener->showSuccesses      = false;
         listener->showInlineFailures = true; // easier reading
