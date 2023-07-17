@@ -235,7 +235,8 @@ typedef enum rocblas_pointer_mode_
 } rocblas_pointer_mode;
 
 /*! \brief Indicates if atomics operations are allowed. Not allowing atomic operations
-*    may generally improve determinism and repeatability of results at a cost of performance */
+*    may generally improve determinism and repeatability of results at a cost of performance.
+*    Defaults to rocblas_atomics_allowed.  */
 typedef enum rocblas_atomics_mode_
 {
     /*! \brief Algorithms will refrain from atomics where applicable */

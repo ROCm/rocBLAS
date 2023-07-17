@@ -269,6 +269,15 @@ types to hip utility functions (e.g. hipMemcpy), so uploading memory from std::c
 regardless of complex data type API choice.
 
 
+Atomic Operations
+^^^^^^^^^^^^^^^^^
+
+Some functions within the rocBLAS library such as gemv, hemv, symv, trsv, trsm, and gemm may use atomic operations to increase performance.
+By using atomics, functions may not give bit-wise reproducible results. Differences between multiple runs should not be significant and will
+remain accurate, but if users require identical results across multiple runs, atomics should be turned off. See :ref:`rocblas_atomics_mode`,
+:ref:`rocblas_set_atomics_mode`, and :ref:`rocblas_get_atomics_mode`.
+
+
 MI100 (gfx908) Considerations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
