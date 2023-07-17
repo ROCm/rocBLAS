@@ -3218,6 +3218,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_strided_batched(rocblas_handle      
         where alpha and beta are scalars, x and y are vectors and A is an
         m by n matrix.
 
+    gemv has an implementation which uses atomic operations. See Atomic Operations
+    in the API Reference Guide for more information.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -3999,6 +4002,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_strided_batched(rocblas_handle      
         y := alpha*A*x + beta*y
         where alpha and beta are scalars, x and y are n element vectors and A is an
         n by n Hermitian matrix.
+
+    hemv has an implementation which uses atomic operations. See Atomic Operations
+    in the API Reference Guide for more information.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6901,6 +6907,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_strided_batched(rocblas_handle      
          where x and b are vectors and A is a triangular matrix.
          The vector x is overwritten on b.
 
+    Although not widespread, some gemm kernels used by trsv may use atomic operations.
+    See Atomic Operations in the API Reference Guide for more information.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -7496,6 +7505,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_strided_batched(rocblas_handle      
         y := alpha*A*x + beta*y
         where alpha and beta are scalars, x and y are n element vectors and
         A should contain an upper or lower triangular n by n symmetric matrix.
+
+    symv has an implementation which uses atomic operations. See Atomic Operations
+    in the API Reference Guide for more information.
 
     @param[in]
     handle    [rocblas_handle]
@@ -13764,6 +13776,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle     
     to the desired chunk of right hand sides to be used at a time
     (where k is m when rocblas_side_left and is n when rocblas_side_right).
 
+    Although not widespread, some gemm kernels used by trsm may use atomic operations.
+    See Atomic Operations in the API Reference Guide for more information.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -14182,6 +14197,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle      
 
         alpha and beta are scalars, and A, B and C are matrices, with
         op( A ) an m by k matrix, op( B ) a k by n matrix and C an m by n matrix.
+
+    Although not widespread, some gemm kernels may use atomic operations. See Atomic Operations
+    in the API Reference Guide for more information.
 
     @param[in]
     handle    [rocblas_handle]
@@ -15401,6 +15419,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
         - rocblas_datatype_f32_c  = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f64_c  = a_type = b_type = c_type = d_type = compute_type
 
+    Although not widespread, some gemm kernels used by gemm_ex may use atomic operations.
+    See Atomic Operations in the API Reference Guide for more information.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -16092,6 +16113,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_geam_ex(rocblas_handle            handle,
       - invA = invA + stride_invA * previous_batch_count
       - ldinvA = 128
       - batch_count = 1
+
+    Although not widespread, some gemm kernels used by trsm_ex may use atomic operations.
+    See Atomic Operations in the API Reference Guide for more information.
 
     @param[in]
     handle  [rocblas_handle]
