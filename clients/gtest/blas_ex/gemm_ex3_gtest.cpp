@@ -68,10 +68,12 @@ namespace
         {
             switch(GEMM_TYPE)
             {
+#if(BUILD_WITH_TENSILE)
 
             case GEMM_EX3:
                 return !strcmp(arg.function, "gemm_ex3")
                        || !strcmp(arg.function, "gemm_ex3_bad_arg");
+#endif
             }
 
             return false;
@@ -98,6 +100,7 @@ namespace
         }
     };
 
+#if(BUILD_WITH_TENSILE)
     // ----------------------------------------------------------------------------
     // gemm_ex3
     // ----------------------------------------------------------------------------
@@ -151,5 +154,6 @@ namespace
         RUN_TEST_ON_THREADS_STREAMS(rocblas_gemm_dispatch<gemm_ex3_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_ex3);
+#endif //  BUILD_WITH_TENSILE
 
 } // namespace
