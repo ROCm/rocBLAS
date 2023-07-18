@@ -104,14 +104,14 @@ rocblas_status rocblas_check_numerics_abnormal_struct(const char*               
     {
         if(is_input)
         {
-            rocblas_cerr << "Funtion name:\t" << function_name << " :- Input :\t"
+            rocblas_cerr << "Function name:\t" << function_name << " :- Input :\t"
                          << " has_NaN " << h_abnormal->has_NaN << " has_zero "
                          << h_abnormal->has_zero << " has_Inf " << h_abnormal->has_Inf
                          << " has_denorm " << h_abnormal->has_denorm << std::endl;
         }
         else
         {
-            rocblas_cerr << "Funtion name:\t" << function_name << " :- Output :\t"
+            rocblas_cerr << "Function name:\t" << function_name << " :- Output :\t"
                          << " has_NaN " << h_abnormal->has_NaN << " has_zero "
                          << h_abnormal->has_zero << " has_Inf " << h_abnormal->has_Inf
                          << " has_denorm " << h_abnormal->has_denorm << std::endl;
