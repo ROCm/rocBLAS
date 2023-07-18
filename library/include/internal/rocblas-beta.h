@@ -169,6 +169,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions(rocblas_handle    ha
                                                             rocblas_int*      list_array,
                                                             rocblas_int*      list_size);
 
+//! @}
+
 ROCBLAS_DEPRECATED_MSG("rocblas_gemm_ex_get_solutions_by_type is a beta feature and is subject to "
                        "change in future releases")
 /*! @{
@@ -218,6 +220,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex_get_solutions_by_type(rocblas_hand
                                                                     uint32_t         flags,
                                                                     rocblas_int*     list_array,
                                                                     rocblas_int*     list_size);
+
+//! @}
 
 ROCBLAS_DEPRECATED_MSG(
     "rocblas_gemm_batched_ex_get_solutions is a beta feature and is subject to change "
@@ -349,6 +353,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex_get_solutions(rocblas_hand
                                                                     rocblas_int*      list_array,
                                                                     rocblas_int*      list_size);
 
+//! @}
+
 ROCBLAS_DEPRECATED_MSG("rocblas_gemm_batched_ex_get_solutions_by_type is a beta feature and is "
                        "subject to change in future releases")
 /*! @{
@@ -399,6 +405,8 @@ ROCBLAS_EXPORT rocblas_status
                                                   uint32_t         flags,
                                                   rocblas_int*     list_array,
                                                   rocblas_int*     list_size);
+
+//! @}
 
 ROCBLAS_DEPRECATED_MSG(
     "rocblas_gemm_strided_batched_ex_get_solutions is a beta feature and is subject "
@@ -547,6 +555,8 @@ ROCBLAS_EXPORT rocblas_status
                                                   rocblas_int*      list_array,
                                                   rocblas_int*      list_size);
 
+//! @}
+
 ROCBLAS_DEPRECATED_MSG(
     "rocblas_gemm_ex3 is a beta feature and is subject to change in future releases."
     "Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch ")
@@ -686,7 +696,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex3(rocblas_handle      handle,
                                                rocblas_gemm_algo   algo,
                                                int32_t             solution_index,
                                                uint32_t            flags);
-
+//! @}
 #ifdef __cplusplus
 }
 #endif
