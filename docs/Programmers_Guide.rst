@@ -1410,12 +1410,14 @@ For more information on rocBLAS logging, see ``Logging in rocBLAS``, in the ``AP
 An example input file:
 
 .. code-block:: bash
+
     - {'rocblas_function': 'gemm_ex', 'transA': 'N', 'transB': 'N', 'M': 320, 'N': 588, 'K': 4096, 'alpha': 1, 'a_type': 'f32_r', 'lda': 320, 'b_type': 'f32_r', 'ldb': 6144, 'beta': 0, 'c_type': 'f32_r', 'ldc': 320, 'd_type': 'f32_r', 'ldd': 320, 'compute_type': 'f32_r', 'device': 0}
     - {'rocblas_function': 'gemm_ex', 'transA': 'N', 'transB': 'N', 'M': 320, 'N': 588, 'K': 4096, 'alpha': 1, 'a_type': 'f32_r', 'lda': 320, 'b_type': 'f32_r', 'ldb': 6144, 'beta': 0, 'c_type': 'f32_r', 'ldc': 320, 'd_type': 'f32_r', 'ldd': 320, 'compute_type': 'f32_r', 'device': 0}
 
 Expected output (note selected GEMM idx may differ):
 
 .. code-block:: bash
+
     transA,transB,M,N,batch_count,K,alpha,beta,lda,ldb,ldc,input_type,output_type,compute_type,solution_index
     N,N,320,588,1,4096,1,0,320,6144,320,f32_r,f32_r,f32_r,3788
     N,N,512,3096,1,512,1,0,512,512,512,f16_r,f16_r,f32_r,4546
@@ -1478,7 +1480,7 @@ This ``rocblas_smoke.yaml`` test set should only require a few minutes to test a
 
 Both rocblas-test and rocblas-bench can use an extension added to scan over multiple variables in lock step implemented by the Arguments class.  For this purpose set the Arugments member variable
 ``scan`` to the range to scan over and use ``*c_scan_value`` to retrieve the values. This can be used to avoid all combinations of yaml variable values that are normally generated.
-For example, `` - { scan: [32..256..32], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value } ``
+For example, ``- { scan: [32..256..32], M: *c_scan_value, N: *c_scan_value, lda: *c_scan_value }``
 
 * large memory tests (stress category)
 

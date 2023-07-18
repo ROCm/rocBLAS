@@ -274,8 +274,8 @@ Atomic Operations
 
 Some functions within the rocBLAS library such as gemv, hemv, symv, trsv, trsm, and gemm may use atomic operations to increase performance.
 By using atomics, functions may not give bit-wise reproducible results. Differences between multiple runs should not be significant and will
-remain accurate, but if users require identical results across multiple runs, atomics should be turned off. See :ref:`rocblas_atomics_mode`,
-:ref:`rocblas_set_atomics_mode`, and :ref:`rocblas_get_atomics_mode`.
+remain accurate, but if users require identical results across multiple runs, atomics should be turned off. See :any:`rocblas_atomics_mode`,
+:any:`rocblas_set_atomics_mode`, and :any:`rocblas_get_atomics_mode`.
 
 
 MI100 (gfx908) Considerations
@@ -473,13 +473,13 @@ The Legacy BLAS in-place trmm calculated
 
 ::
 
-B <- alpha * op(A) * B
+   B <- alpha * op(A) * B
 
 The in-place and out-of-place trmm API calculates
 
 ::
 
-C <- alpha * op(A) * B
+   C <- alpha * op(A) * B
 
 The in-place functionality is available by setting C the same as B and ldb = ldc. For out-of-place functionality C and B are different.
 
@@ -1951,7 +1951,7 @@ rocblas_Xdgmm + batched, strided_batched
    :outline:
 .. doxygenfunction:: rocblas_zdgmm_strided_batched
 
-.. _Device Memory Allocation Usage:
+
 
 ---------------------
 rocBLAS Beta Features
@@ -2014,6 +2014,8 @@ Functions Unsupported with Graph Capture
 HIP Graph Known Issues in rocBLAS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - On Windows platform, batched functions (Level-1, Level-2 and Level-3) produce incorrect results.
+
+.. _Device Memory Allocation Usage:
 
 -----------------------------------
 Device Memory Allocation in rocBLAS
