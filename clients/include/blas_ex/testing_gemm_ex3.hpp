@@ -890,187 +890,6 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
     }
 }
 
-/*=======================================================================================================================
-    Trusted GEMM
-    NOTE: The s/w simulated code for downcast with stochastic rounding is not exactly same as H/W intructions.
-    So, we have to use device kernel for any downcast
-
-*/
-// template specialization for f8 testing
-template <typename TiA,
-          typename TiB,
-          typename TiC,
-          typename To,
-          typename TcA,
-          typename TcB,
-          typename Tacc,
-          char TA,
-          char TB,
-          std::enable_if_t<
-#if 0
-              (std::is_same<rocblas_f8, TcA>{} || std::is_same<rocblas_bf8, TcA>{})
-                  && (std::is_same<rocblas_f8, TcB>{} || std::is_same<rocblas_bf8, TcB>{})
-                  && (std::is_same<rocblas_f8, TiA>{} || std::is_same<rocblas_bf8, TiA>{}
-                      || std::is_same<float, TiA>{} || std::is_same<rocblas_half, TiA>{}
-                      || std::is_same<rocblas_bfloat16, TiA>{})
-                  && (std::is_same<rocblas_f8, TiB>{} || std::is_same<rocblas_bf8, TiB>{}
-                      || std::is_same<float, TiB>{} || std::is_same<rocblas_half, TiB>{}
-                      || std::is_same<rocblas_bfloat16, TiB>{})
-                  && !(!std::is_same<TiA, TcA>{}
-                       && (std::is_same<TiA, rocblas_f8>{} || std::is_same<TiA, rocblas_bf8>{}))
-                  && !(!std::is_same<TiB, TcB>{}
-                       && (std::is_same<TiB, rocblas_f8>{} || std::is_same<TiB, rocblas_bf8>{})),
-#else
-              (std::is_same<rocblas_f8, TcA>{} || std::is_same<rocblas_bf8, TcA>{})
-                  && (std::is_same<rocblas_f8, TcB>{} || std::is_same<rocblas_bf8, TcB>{})
-                  && (std::is_same<TiA, TcA>{} && std::is_same<TiB, TcB>{})
-                  && !(std::is_same<rocblas_f8, To>{} || std::is_same<rocblas_bf8, To>{}),
-#endif
-              int> = 0>
-void Trusted_gemm_f8(rocblas_operation transA,
-                     rocblas_operation transB,
-                     rocblas_int       M,
-                     rocblas_int       N,
-                     rocblas_int       K,
-                     Tacc              alpha,
-                     const TiA*        A,
-                     rocblas_int       lda,
-                     const TiB*        B,
-                     rocblas_int       ldb,
-                     Tacc              beta,
-                     const TiC*        C, // C-type can be different than D type here
-                     rocblas_int       ldc,
-                     To*               D,
-                     rocblas_int       ldd)
-{
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    {
-        // NMK loop-order to optimized C access (column-major)
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-        for(rocblas_int j = 0; j < N; j++)
-        {
-            for(rocblas_int i = 0; i < M; i++)
-            {
-                Tacc acc = 0.0;
-
-                for(rocblas_int k = 0; k < K; k++)
-                {
-                    TcA rA;
-                    TcB rB;
-                    if(TA == 'N') // compiler will get rid of the branches
-                    {
-                        rA = (A[i + lda * k]); // = overloading to F8
-                        //rocblas_cout << "A[] = " << A[i+lda*k];
-                    }
-                    else
-                    {
-                        //rA = (TcA)(A[i * lda + k]);
-                        rA = (A[i * lda + k]);
-                        //rocblas_cout << "A[] = " << A[i*lda+k];
-                    }
-                    if(TB == 'N')
-                    {
-                        //rB = (TcB)(B[k + ldb * j]);
-                        rB = (B[k + ldb * j]);
-                        //rocblas_cout << " B[] = " << B[k+ldb*j] << std::endl;
-                    }
-                    else
-                    {
-                        //rB = (TcB)(B[k * ldb + j]);
-                        rB = (B[k * ldb + j]);
-                        //rocblas_cout << "B[] = " << B[k*ldb+j] << std::endl;
-                    }
-//#define INJECT_ERROR 1
-#ifdef INJECT_ERROR
-                    // NOTE: we should not inject error in trusted or gold kernel, should do it
-                    // in test kernel. We added it just to have more control on the output
-                    // skipping last K-iteration to see whether the tester can catch it
-                    if(k < K - 1)
-                        acc += rA * rB;
-#else
-                    acc += rA * rB;
-                    //acc = acc + rA * rB;
-#endif
-                    //rocblas_cout << "rA = " << rA  << " rB = " << rB << " acc = " << acc << std::endl;
-                }
-
-                // TODO: should not load C when beta=0
-                // NOTE: still using s/w simulated code for up-conversion (since no SR)
-
-                D[i + j * ldd] = (To)(alpha * acc + beta * C[i + j * ldc]);
-            }
-        }
-    }
-}
-
-/*
- *  TODO: we are using reference in subset combination now:
-            TiA = TcA
-            TiB = TcB
-            Tacc = f32,
-            To != f8
-    So, only test TcA and TcB as F8 types
- */
-
-template <typename TiA,
-          typename TiB,
-          typename TiC, // C-type can be different than D type here
-          typename To,
-          typename TcA,
-          typename TcB,
-          typename Tacc,
-          char TA,
-          char TB,
-          std::enable_if_t<
-#if 0
-              !((std::is_same<rocblas_f8, TcA>{} || std::is_same<rocblas_bf8, TcA>{})
-                && (std::is_same<rocblas_f8, TcB>{} || std::is_same<rocblas_bf8, TcB>{})
-                && (std::is_same<rocblas_f8, TiA>{} || std::is_same<rocblas_bf8, TiA>{}
-                    || std::is_same<float, TiA>{} || std::is_same<rocblas_half, TiA>{}
-                    || std::is_same<rocblas_bfloat16, TiA>{})
-                && (std::is_same<rocblas_f8, TiB>{} || std::is_same<rocblas_bf8, TiB>{}
-                    || std::is_same<float, TiB>{} || std::is_same<rocblas_half, TiB>{}
-                    || std::is_same<rocblas_bfloat16, TiB>{})
-                && !(!std::is_same<TiA, TcA>{}
-                     && (std::is_same<TiA, rocblas_f8>{} || std::is_same<TiA, rocblas_bf8>{}))
-                && !(!std::is_same<TiB, TcB>{}
-                     && (std::is_same<TiB, rocblas_f8>{} || std::is_same<TiB, rocblas_bf8>{}))
-                     ),
-#else
-              !((std::is_same<rocblas_f8, TcA>{} || std::is_same<rocblas_bf8, TcA>{})
-                && (std::is_same<rocblas_f8, TcB>{} || std::is_same<rocblas_bf8, TcB>{})
-                && (std::is_same<TiA, TcA>{} && std::is_same<TiB, TcB>{})
-                && !(std::is_same<rocblas_f8, To>{} || std::is_same<rocblas_bf8, To>{})),
-#endif
-              int> = 0>
-void Trusted_gemm_f8(rocblas_operation transA,
-                     rocblas_operation transB,
-                     rocblas_int       M,
-                     rocblas_int       N,
-                     rocblas_int       K,
-                     Tacc              alpha,
-                     const TiA*        A,
-                     rocblas_int       lda,
-                     const TiB*        B,
-                     rocblas_int       ldb,
-                     Tacc              beta,
-                     const TiC*        C,
-                     rocblas_int       ldc,
-                     To*               D,
-                     rocblas_int       ldd)
-{
-    rocblas_cout << "Unsupported types for trusted gemm" << std::endl;
-}
-
-/*
- *      NOTES:
- *
- */
-
 template <typename TiA, typename TiB, typename To, typename TcA, typename TcB, typename Tacc>
 void call_trusted_gemm_f8(rocblas_handle    handle,
                           rocblas_operation transA,
@@ -1080,17 +899,17 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
                           rocblas_int       K,
                           Tacc              alpha,
                           const void*       dA, // device_ptr to reuse in quantization if needed
-                          const TiA*        A,
-                          rocblas_int       lda,
-                          const void*       dB, // device_pte to reuse in quantization if needed
-                          const TiB*        B,
-                          rocblas_int       ldb,
-                          Tacc              beta,
-                          const To*         C,
-                          rocblas_int       ldc,
-                          To*               D, // host ptr
-                          rocblas_int       ldd,
-                          bool              stochastic_rounding)
+                          const host_matrix<TiA>& A,
+                          rocblas_int             lda,
+                          const void* dB, // device_pte to reuse in quantization if needed
+                          const host_matrix<TiB>& B,
+                          rocblas_int             ldb,
+                          Tacc                    beta,
+                          const host_matrix<To>&  C,
+                          rocblas_int             ldc,
+                          host_matrix<To>&        D, // host ptr
+                          rocblas_int             ldd,
+                          bool                    stochastic_rounding)
 {
     hipStream_t stream       = handle->get_stream();
     bool        TiA_is_final = std::is_same<TiA, TcA>{};
@@ -1110,17 +929,27 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
     size_b = K * N;
     size_d = M * N;
 
-    device_vector<TcA> dA_new(TiA_is_final ? 0 : size_a);
-    device_vector<TcB> dB_new(TiB_is_final ? 0 : size_b);
-
-    host_vector<TcA>  hA_new(TiA_is_final ? 0 : size_a);
-    host_vector<TcB>  hB_new(TiB_is_final ? 0 : size_b);
-    host_vector<Tacc> hD_new(To_is_final ? 0 : size_d);
-    host_vector<To>   hDo_new(To_is_final ? 0 : size_d); // temp to copyback from device
-
     rocblas_int lda_new = transA == rocblas_operation_none ? M : K;
     rocblas_int ldb_new = transB == rocblas_operation_none ? K : N;
     rocblas_int ldd_new = M;
+
+    device_matrix<TcA> dA_new(TiA_is_final ? 0 : A_row, TiA_is_final ? 0 : A_col, lda_new);
+    device_matrix<TcB> dB_new(TiB_is_final ? 0 : B_row, TiB_is_final ? 0 : B_col, ldb_new);
+
+    host_matrix<TcA>  hA_new(TiA_is_final ? 0 : A_row, TiA_is_final ? 0 : A_col, lda_new);
+    host_matrix<TcB>  hB_new(TiB_is_final ? 0 : B_row, TiB_is_final ? 0 : B_col, ldb_new);
+    host_matrix<Tacc> hD_new(To_is_final ? 0 : M, To_is_final ? 0 : N, ldd_new);
+    host_matrix<To>   hDo_new(
+        To_is_final ? 0 : M, To_is_final ? 0 : N, ldd_new); // temp to copyback from device
+
+    if(!To_is_final)
+    {
+        auto* D_ptr = hD_new[0];
+        auto* C_ptr = C[0];
+        for(int i = 0; i < M; i++)
+            for(int j = 0; j < N; j++)
+                D_ptr[i + j * ldd_new] = static_cast<float>(C_ptr[i + j * ldc]);
+    }
 
     const int dim_m = 16;
     const int dim_n = 16;
@@ -1476,340 +1305,63 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
     {
         if(!To_is_final)
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TcB, To, Tacc, TcA, TcB, Tacc, 'N', 'N'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TcB, To, Tacc, TcA, TcB, Tacc, 'T', 'N'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TcB, To, Tacc, TcA, TcB, Tacc, 'N', 'T'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TcB, To, Tacc, TcA, TcB, Tacc, 'T', 'T'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
+            f8_to_cblas_sgemm<TcA, TcB, Tacc, Tacc>(transA,
+                                                    transB,
+                                                    M,
+                                                    N,
+                                                    K,
+                                                    alpha,
+                                                    hA_new,
+                                                    lda_new,
+                                                    hB_new,
+                                                    ldb_new,
+                                                    beta,
+                                                    hD_new,
+                                                    ldd_new);
         }
         else // To_is_final
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TcB, To, To, TcA, TcB, Tacc, 'N', 'N'>(transA,
-                                                                            transB,
-                                                                            M,
-                                                                            N,
-                                                                            K,
-                                                                            alpha,
-                                                                            hA_new,
-                                                                            lda_new,
-                                                                            hB_new,
-                                                                            ldb_new,
-                                                                            beta,
-                                                                            C,
-                                                                            ldc,
-                                                                            D,
-                                                                            ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TcB, To, To, TcA, TcB, Tacc, 'T', 'N'>(transA,
-                                                                            transB,
-                                                                            M,
-                                                                            N,
-                                                                            K,
-                                                                            alpha,
-                                                                            hA_new,
-                                                                            lda_new,
-                                                                            hB_new,
-                                                                            ldb_new,
-                                                                            beta,
-                                                                            C,
-                                                                            ldc,
-                                                                            D,
-                                                                            ldd);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TcB, To, To, TcA, TcB, Tacc, 'N', 'T'>(transA,
-                                                                            transB,
-                                                                            M,
-                                                                            N,
-                                                                            K,
-                                                                            alpha,
-                                                                            hA_new,
-                                                                            lda_new,
-                                                                            hB_new,
-                                                                            ldb_new,
-                                                                            beta,
-                                                                            C,
-                                                                            ldc,
-                                                                            D,
-                                                                            ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TcB, To, To, TcA, TcB, Tacc, 'T', 'T'>(transA,
-                                                                            transB,
-                                                                            M,
-                                                                            N,
-                                                                            K,
-                                                                            alpha,
-                                                                            hA_new,
-                                                                            lda_new,
-                                                                            hB_new,
-                                                                            ldb_new,
-                                                                            beta,
-                                                                            C,
-                                                                            ldc,
-                                                                            D,
-                                                                            ldd);
+            f8_to_cblas_sgemm<TcA, TcB, To, Tacc>(
+                transA, transB, M, N, K, alpha, hA_new, lda_new, hB_new, ldb_new, beta, D, ldd);
         }
     }
     else if(!TiA_is_final && TiB_is_final)
     {
         if(!To_is_final)
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TiB, To, Tacc, TcA, TcB, Tacc, 'N', 'N'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              B,
-                                                                              ldb,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TiB, To, Tacc, TcA, TcB, Tacc, 'T', 'N'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              B,
-                                                                              ldb,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TiB, To, Tacc, TcA, TcB, Tacc, 'N', 'T'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              B,
-                                                                              ldb,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TiB, To, Tacc, TcA, TcB, Tacc, 'T', 'T'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              hA_new,
-                                                                              lda_new,
-                                                                              B,
-                                                                              ldb,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
+            f8_to_cblas_sgemm<TcA, TiB, Tacc, Tacc>(
+                transA, transB, M, N, K, alpha, hA_new, lda_new, B, ldb, beta, hD_new, ldd_new);
         }
         else // To_is_final
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TiB, To, To, TcA, TcB, Tacc, 'N', 'N'>(
-                    transA, transB, M, N, K, alpha, hA_new, lda_new, B, ldb, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TcA, TiB, To, To, TcA, TcB, Tacc, 'T', 'N'>(
-                    transA, transB, M, N, K, alpha, hA_new, lda_new, B, ldb, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TiB, To, To, TcA, TcB, Tacc, 'N', 'T'>(
-                    transA, transB, M, N, K, alpha, hA_new, lda_new, B, ldb, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TcA, TiB, To, To, TcA, TcB, Tacc, 'T', 'T'>(
-                    transA, transB, M, N, K, alpha, hA_new, lda_new, B, ldb, beta, C, ldc, D, ldd);
+            f8_to_cblas_sgemm<TcA, TiB, To, Tacc>(
+                transA, transB, M, N, K, alpha, hA_new, lda_new, B, ldb, beta, D, ldd);
         }
     }
     else if(TiA_is_final && !TiB_is_final)
     {
         if(!To_is_final)
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TcB, To, Tacc, TcA, TcB, Tacc, 'N', 'N'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              A,
-                                                                              lda,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TcB, To, Tacc, TcA, TcB, Tacc, 'T', 'N'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              A,
-                                                                              lda,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TcB, To, Tacc, TcA, TcB, Tacc, 'N', 'T'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              A,
-                                                                              lda,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TcB, To, Tacc, TcA, TcB, Tacc, 'T', 'T'>(transA,
-                                                                              transB,
-                                                                              M,
-                                                                              N,
-                                                                              K,
-                                                                              alpha,
-                                                                              A,
-                                                                              lda,
-                                                                              hB_new,
-                                                                              ldb_new,
-                                                                              beta,
-                                                                              C,
-                                                                              ldc,
-                                                                              hD_new,
-                                                                              ldd_new);
+            f8_to_cblas_sgemm<TiA, TcB, Tacc, Tacc>(
+                transA, transB, M, N, K, alpha, A, lda, hB_new, ldb_new, beta, hD_new, ldd_new);
         }
         else // To_is_final
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TcB, To, To, TcA, TcB, Tacc, 'N', 'N'>(
-                    transA, transB, M, N, K, alpha, A, lda, hB_new, ldb_new, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TcB, To, To, TcA, TcB, Tacc, 'T', 'N'>(
-                    transA, transB, M, N, K, alpha, A, lda, hB_new, ldb_new, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TcB, To, To, TcA, TcB, Tacc, 'N', 'T'>(
-                    transA, transB, M, N, K, alpha, A, lda, hB_new, ldb_new, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TcB, To, To, TcA, TcB, Tacc, 'T', 'T'>(
-                    transA, transB, M, N, K, alpha, A, lda, hB_new, ldb_new, beta, C, ldc, D, ldd);
+            f8_to_cblas_sgemm<TiA, TcB, To, Tacc>(
+                transA, transB, M, N, K, alpha, A, lda, hB_new, ldb_new, beta, D, ldd);
         }
     }
     else
     {
         if(!To_is_final)
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TiB, To, Tacc, TcA, TcB, Tacc, 'N', 'N'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, hD_new, ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TiB, To, Tacc, TcA, TcB, Tacc, 'T', 'N'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, hD_new, ldd_new);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TiB, To, Tacc, TcA, TcB, Tacc, 'N', 'T'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, hD_new, ldd_new);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TiB, To, Tacc, TcA, TcB, Tacc, 'T', 'T'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, hD_new, ldd_new);
+            f8_to_cblas_sgemm<TiA, TiB, Tacc, Tacc>(
+                transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, hD_new, ldd_new);
         }
         else // To_is_final
         {
-            if(transA == rocblas_operation_none && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TiB, To, To, TcA, TcB, Tacc, 'N', 'N'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
-                Trusted_gemm_f8<TiA, TiB, To, To, TcA, TcB, Tacc, 'T', 'N'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TiB, To, To, TcA, TcB, Tacc, 'N', 'T'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, D, ldd);
-            else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
-                Trusted_gemm_f8<TiA, TiB, To, To, TcA, TcB, Tacc, 'T', 'T'>(
-                    transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc, D, ldd);
+            f8_to_cblas_sgemm<TiA, TiB, To, Tacc>(
+                transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, D, ldd);
         }
     }
 
@@ -1884,12 +1436,17 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
         CHECK_HIP_ERROR(hipMemcpy(hDo_new, dD_Qo, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
         // copy hD0_new to D, both are in host
-        for(rocblas_int j = 0; j < N; j++)
+        for(rocblas_int batch_index = 0; batch_index < hDo_new.batch_count(); ++batch_index)
         {
-            // consecutive in M_dim
-            for(rocblas_int i = 0; i < M; i++)
+            auto* Do = hDo_new[batch_index];
+            auto* hD = D[batch_index];
+            for(rocblas_int j = 0; j < N; j++)
             {
-                D[i + j * ldd] = hDo_new[i + j * ldd_new];
+                // consecutive in M_dim
+                for(rocblas_int i = 0; i < M; i++)
+                {
+                    hD[i + j * ldd] = Do[i + j * ldd_new];
+                }
             }
         }
     }
@@ -2175,12 +1732,6 @@ void testing_gemm_ex3(const Arguments& arg)
         // CPU BLAS
         // copy C matrix into D matrix
         copy_matrix_with_different_leading_dimensions(hC, hD_gold);
-        // cpu_time_used = get_time_us_no_sync();
-
-        // cblas_gemm<Ti, To, Tc>(
-        //     transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd);
-
-        //rocblas_cout << "Line: " << __LINE__ << "Before: trusted gemm call " << std::endl;
 
         // Trusted implementation
         // NOTE: testing new design only for f8 type
