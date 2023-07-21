@@ -1400,15 +1400,15 @@ try
     std::string name_filter;
     int32_t     device_id;
     int32_t     parallel_devices;
-    int32_t     flags               = 0;
-    int32_t     geam_ex_op          = 0;
-    bool        datafile            = rocblas_parse_data(argc, argv);
-    bool        atomics_not_allowed = false;
-    bool        log_function_name   = false;
-    bool        log_datatype        = false;
-    bool        any_stride          = false;
-    uint32_t    math_mode           = 0;
-    bool        fortran             = false;
+    int32_t     flags             = 0;
+    int32_t     geam_ex_op        = 0;
+    bool        datafile          = rocblas_parse_data(argc, argv);
+    bool        atomics_allowed   = true;
+    bool        log_function_name = false;
+    bool        log_datatype      = false;
+    bool        any_stride        = false;
+    uint32_t    math_mode         = 0;
+    bool        fortran           = false;
 
     arg.init(); // set all defaults
 
@@ -1608,9 +1608,9 @@ try
          value<int32_t>(&flags)->default_value(rocblas_gemm_flags_none),
          "gemm_ex flags, 1: Use packed-i8, 0: (default) uses unpacked-i8, available on matrix-inst-supported device")
 
-        ("atomics_not_allowed",
-         bool_switch(&atomics_not_allowed)->default_value(false),
-         "Atomic operations with non-determinism in results are not allowed")
+        ("atomics_allowed",
+         bool_switch(&atomics_allowed)->default_value(true),
+         "Atomic operations with non-determinism in results are allowed")
 
         ("device",
          value<int32_t>(&device_id)->default_value(0),
@@ -1689,7 +1689,7 @@ try
 
     // transfer local variable state
 
-    arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
+    arg.atomics_mode = atomics_allowed ? rocblas_atomics_allowed : rocblas_atomics_not_allowed;
     if(fortran)
         arg.api = FORTRAN;
 

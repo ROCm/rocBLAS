@@ -139,6 +139,7 @@ Tests:
   matrix_size: *double_buffered_loads_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
+  atomics_mode: [0, 1]
 
 - name: symv_large
   category: nightly
@@ -173,6 +174,7 @@ Tests:
   pointer_mode_device: false
   os_flags: LINUX
   gpu_arch: ['90a']
+  atomics_mode: [0, 1]
 
 - name: symv_size_t_inc
   category: nightly # stress
@@ -233,6 +235,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
   batch_count: [ 25 ]
+  atomics_mode: [0, 1]
 
 - name: symv_batched_large
   category: nightly
@@ -293,6 +296,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
   batch_count: [ 26 ]
+  atomics_mode: [0, 1]
 
 - name: symv_strided_batched_large
   category: nightly
