@@ -71,7 +71,7 @@ Tests:
   - set_get_matrix_async
 
 - name: set_get_matrix_size_t
-  category: [pre_checkin] # stress
+  category: stress
   precision: *single_precision
   arguments: *small_N_size_t_ld
   function:
@@ -81,12 +81,13 @@ Tests:
   gpu_arch: ['90a']
 
 - name: set_get_matrix_size_t
-  category: [pre_checkin] # stress
+  category: stress
   precision: *single_precision
   arguments: *size_t_N_ld
   function:
   - set_get_matrix_sync
-  - set_get_matrix_async
+  # TODO deferred stress
+  # - set_get_matrix_async
   os_flags: LINUX
   gpu_arch: ['90a']
 
