@@ -344,8 +344,9 @@ void testing_gemv_strided_batched(const Arguments& arg)
     rocblas_int       batch_count = arg.batch_count;
 
     rocblas_local_handle handle{arg};
-    size_t               dim_x, row_A;
-    size_t               dim_y, col_A;
+
+    size_t dim_x, row_A;
+    size_t dim_y, col_A;
 
     if(transA == rocblas_operation_none)
     {
@@ -521,6 +522,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

@@ -434,7 +434,6 @@ void testing_symv_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         int number_cold_calls = arg.cold_iters;
