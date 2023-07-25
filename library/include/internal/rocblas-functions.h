@@ -4003,9 +4003,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_strided_batched(rocblas_handle      
         where alpha and beta are scalars, x and y are n element vectors and A is an
         n by n Hermitian matrix.
 
-    hemv has an implementation which uses atomic operations. See Atomic Operations
-    in the API Reference Guide for more information.
-
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
