@@ -149,7 +149,7 @@ stream and the non-default device, then call:
 
 For the library to use a non-default device within a host thread, the device must be set using hipSetDevice() before creating the handle.
 
-The device in the host thread should not be changed between hipStreamCreate and hipStreamDestroy. If the device in the host thread is changed between creating and destroying, then the stream the behavior is undefined.
+The device in the host thread should not be changed between hipStreamCreate and hipStreamDestroy. If the device in the host thread is changed between creating and destroying the stream, then the behavior is undefined.
 
 If the user created a non-default stream, it is the user's responsibility to synchronize the non-default stream before destroying it:
 
