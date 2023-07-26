@@ -9,6 +9,7 @@ include: hpmv_gtest.yaml
 include: hpr_gtest.yaml
 include: hpr2_gtest.yaml
 include: gemm_gtest.yaml
+include: gemmt_gtest.yaml
 include: gemm_batched_gtest.yaml
 include: gemm_strided_batched_gtest.yaml
 include: sbmv_gtest.yaml

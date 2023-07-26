@@ -557,19 +557,19 @@ template void cblas_dgmm<rocblas_complex_num<double>>(rocblas_side              
 
 // geam
 template <typename T>
-inline T geam_conj_helper(const T& x)
+inline T rocblas_conj(const T& x)
 {
     return x;
 }
 
 template <>
-inline rocblas_float_complex geam_conj_helper(const rocblas_float_complex& x)
+inline rocblas_float_complex rocblas_conj(const rocblas_float_complex& x)
 {
     return std::conj(x);
 }
 
 template <>
-inline rocblas_double_complex geam_conj_helper(const rocblas_double_complex& x)
+inline rocblas_double_complex rocblas_conj(const rocblas_double_complex& x)
 {
     return std::conj(x);
 }
@@ -603,9 +603,9 @@ void cblas_geam_helper(rocblas_operation transA,
             T a_val = alpha ? A[i * inc1_A + j * inc2_A] : 0;
             T b_val = beta ? B[i * inc1_B + j * inc2_B] : 0;
             if(transA == rocblas_operation_conjugate_transpose)
-                a_val = geam_conj_helper(a_val);
+                a_val = rocblas_conj(a_val);
             if(transB == rocblas_operation_conjugate_transpose)
-                b_val = geam_conj_helper(b_val);
+                b_val = rocblas_conj(b_val);
             C[i + j * ldc] = alpha * a_val + beta * b_val;
         }
     }
@@ -1005,6 +1005,133 @@ void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation                    t
     for(size_t i = 0; i < sizeC; i++)
         C[i] = static_cast<int32_t>(C_double[i]);
 }
+
+//GEMMT
+template <typename T>
+void cblas_gemmt(rocblas_fill      uplo,
+                 rocblas_operation transA,
+                 rocblas_operation transB,
+                 int64_t           N,
+                 int64_t           K,
+                 T                 alpha,
+                 T*                A,
+                 int64_t           lda,
+                 T*                B,
+                 int64_t           ldb,
+                 T                 beta,
+                 T*                C,
+                 int64_t           ldc)
+{
+    int64_t inc1_A = transA == rocblas_operation_none ? 1 : lda;
+    int64_t inc2_A = transA == rocblas_operation_none ? lda : 1;
+    int64_t inc1_B = transB == rocblas_operation_none ? 1 : ldb;
+    int64_t inc2_B = transB == rocblas_operation_none ? ldb : 1;
+
+    if(uplo == rocblas_fill_upper)
+    {
+        //upper
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(int row = 0; row < N; row++)
+        {
+            for(int col = row; col < N; col++)
+            {
+                T t = T(0.0);
+                for(int elem = 0; elem < K; elem++)
+                {
+                    T a_val = alpha ? A[row * inc1_A + elem * inc2_A] : 0;
+                    T b_val = alpha ? B[elem * inc1_B + col * inc2_B] : 0;
+                    if(transA == rocblas_operation_conjugate_transpose)
+                        a_val = rocblas_conj(a_val);
+                    if(transB == rocblas_operation_conjugate_transpose)
+                        b_val = rocblas_conj(b_val);
+                    t += a_val * b_val;
+                }
+                C[row + col * ldc] = beta ? beta * C[row + col * ldc] + alpha * t : alpha * t;
+            }
+        }
+    }
+    else
+    {
+        //lower
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+        for(int row = 0; row < N; row++)
+        {
+            for(int col = 0; col <= row; col++)
+            {
+                T t = T(0.0);
+                for(int elem = 0; elem < K; elem++)
+                {
+                    T a_val = alpha ? A[row * inc1_A + elem * inc2_A] : 0;
+                    T b_val = alpha ? B[elem * inc1_B + col * inc2_B] : 0;
+                    if(transA == rocblas_operation_conjugate_transpose)
+                        a_val = rocblas_conj(a_val);
+                    if(transB == rocblas_operation_conjugate_transpose)
+                        b_val = rocblas_conj(b_val);
+                    t += a_val * b_val;
+                }
+                C[row + col * ldc] = beta ? beta * C[row + col * ldc] + alpha * t : alpha * t;
+            }
+        }
+    }
+}
+
+//gemmt instantiations
+template void cblas_gemmt<float>(rocblas_fill      uplo,
+                                 rocblas_operation transA,
+                                 rocblas_operation transB,
+                                 int64_t           N,
+                                 int64_t           K,
+                                 float             alpha,
+                                 float*            A,
+                                 int64_t           lda,
+                                 float*            B,
+                                 int64_t           ldb,
+                                 float             beta,
+                                 float*            C,
+                                 int64_t           ldc);
+template void cblas_gemmt<double>(rocblas_fill      uplo,
+                                  rocblas_operation transA,
+                                  rocblas_operation transB,
+                                  int64_t           N,
+                                  int64_t           K,
+                                  double            alpha,
+                                  double*           A,
+                                  int64_t           lda,
+                                  double*           B,
+                                  int64_t           ldb,
+                                  double            beta,
+                                  double*           C,
+                                  int64_t           ldc);
+template void cblas_gemmt<rocblas_complex_num<float>>(rocblas_fill                uplo,
+                                                      rocblas_operation           transA,
+                                                      rocblas_operation           transB,
+                                                      int64_t                     N,
+                                                      int64_t                     K,
+                                                      rocblas_complex_num<float>  alpha,
+                                                      rocblas_complex_num<float>* A,
+                                                      int64_t                     lda,
+                                                      rocblas_complex_num<float>* B,
+                                                      int64_t                     ldb,
+                                                      rocblas_complex_num<float>  beta,
+                                                      rocblas_complex_num<float>* C,
+                                                      int64_t                     ldc);
+template void cblas_gemmt<rocblas_complex_num<double>>(rocblas_fill                 uplo,
+                                                       rocblas_operation            transA,
+                                                       rocblas_operation            transB,
+                                                       int64_t                      N,
+                                                       int64_t                      K,
+                                                       rocblas_complex_num<double>  alpha,
+                                                       rocblas_complex_num<double>* A,
+                                                       int64_t                      lda,
+                                                       rocblas_complex_num<double>* B,
+                                                       int64_t                      ldb,
+                                                       rocblas_complex_num<double>  beta,
+                                                       rocblas_complex_num<double>* C,
+                                                       int64_t                      ldc);
 
 template <typename T>
 void cblas_geam_min_plus(rocblas_operation transA,

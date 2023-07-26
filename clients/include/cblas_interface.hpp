@@ -2122,6 +2122,22 @@ inline void cblas_gemm(rocblas_operation                    transA,
                 ldc);
 }
 
+//GEMMT
+template <typename T>
+void cblas_gemmt(rocblas_fill      uplo,
+                 rocblas_operation transA,
+                 rocblas_operation transB,
+                 int64_t           N,
+                 int64_t           K,
+                 T                 alpha,
+                 T*                A,
+                 int64_t           lda,
+                 T*                B,
+                 int64_t           ldb,
+                 T                 beta,
+                 T*                C,
+                 int64_t           ldc);
+
 // symm
 template <typename T>
 void cblas_symm(rocblas_side side,
