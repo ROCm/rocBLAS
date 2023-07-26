@@ -85,7 +85,7 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: geam_size_t
-  category: nightly #stress
+  category: stress
   function: geam
   precision: *single_precision
   arguments:

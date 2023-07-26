@@ -49,7 +49,7 @@ Tests:
 # non batched
 
 - name: syrk_size_t_T
-  category: nightly #stress
+  category: stress
   function: syrk
   precision: *single_precision
   uplo: [ L, U ]

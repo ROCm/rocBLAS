@@ -152,7 +152,7 @@ Tests:
   pointer_mode_host: false
 
 - name: symv_size_t
-  category: nightly # stress
+  category: stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]
@@ -163,7 +163,7 @@ Tests:
   pointer_mode_device: false
 
 - name: symv_size_t_double_buffered
-  category: nightly # stress
+  category: stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]
@@ -177,7 +177,7 @@ Tests:
   atomics_mode: [0, 1]
 
 - name: symv_size_t_inc
-  category: nightly # stress
+  category: stress
   function: symv
   precision: *single_precision
   uplo: [ U, L ]

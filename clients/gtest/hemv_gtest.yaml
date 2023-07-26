@@ -139,7 +139,7 @@ Tests:
   pointer_mode_device: false
 
 - name: hemv_size_t
-  category: nightly # stress
+  category: stress
   function: hemv
   precision: *single_precision_complex
   uplo: [ U, L ]
@@ -150,7 +150,7 @@ Tests:
   pointer_mode_host: false
 
 - name: hemv_size_t_inc
-  category: nightly # stress
+  category: stress
   function: hemv
   precision: *single_precision_complex
   uplo: [ U, L ]

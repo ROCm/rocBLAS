@@ -52,7 +52,7 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: dgmm_size_t
-  category: nightly
+  category: stress
   function: dgmm
   precision: *single_precision
   side: [ L, R ]

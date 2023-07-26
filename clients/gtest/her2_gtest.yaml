@@ -81,7 +81,7 @@ Tests:
   matrix_size: *special_case_range
 
 - name: her2_size_t_M
-  category: nightly # stress_her2
+  category: stress
   function:
   - her2
   precision: *single_precision_complex

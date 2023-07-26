@@ -69,7 +69,7 @@ Tests:
   geam_op: [0, 1]
 
 - name: geam_ex_size_t
-  category: nightly
+  category: stress
   function: geam_ex
   precision: *single_precision
   transA: [ N ]
