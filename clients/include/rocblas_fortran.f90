@@ -9030,6 +9030,341 @@ contains
                                           A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count)
     end function rocblas_zgemm_strided_batched_fortran
 
+    ! gemmt
+    function rocblas_sgemmt_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                   A, lda, B, ldb, beta, C, ldc) &
+        bind(c, name='rocblas_sgemmt_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_sgemmt_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        rocblas_sgemmt_fortran = &
+            rocblas_sgemmt(handle, uplo, transA, transB, n, k, alpha, &
+                          A, lda, B, ldb, beta, C, ldc)
+    end function rocblas_sgemmt_fortran
+
+    function rocblas_dgemmt_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                   A, lda, B, ldb, beta, C, ldc) &
+        bind(c, name='rocblas_dgemmt_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dgemmt_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        rocblas_dgemmt_fortran = &
+            rocblas_dgemmt(handle, uplo, transA, transB, n, k, alpha, &
+                          A, lda, B, ldb, beta, C, ldc)
+    end function rocblas_dgemmt_fortran
+
+    function rocblas_cgemmt_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                   A, lda, B, ldb, beta, C, ldc) &
+        bind(c, name='rocblas_cgemmt_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_cgemmt_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        rocblas_cgemmt_fortran = &
+            rocblas_cgemmt(handle, uplo, transA, transB, n, k, alpha, &
+                          A, lda, B, ldb, beta, C, ldc)
+    end function rocblas_cgemmt_fortran
+
+    function rocblas_zgemmt_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                   A, lda, B, ldb, beta, C, ldc) &
+        bind(c, name='rocblas_zgemmt_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_zgemmt_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        rocblas_zgemmt_fortran = &
+            rocblas_zgemmt(handle, uplo, transA, transB, n, k, alpha, &
+                          A, lda, B, ldb, beta, C, ldc)
+    end function rocblas_zgemmt_fortran
+
+    ! gemmt_batched
+    function rocblas_sgemmt_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                           A, lda, B, ldb, beta, C, ldc, batch_count) &
+        bind(c, name='rocblas_sgemmt_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_sgemmt_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int), value :: batch_count
+        rocblas_sgemmt_batched_fortran = &
+            rocblas_sgemmt_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                  A, lda, B, ldb, beta, C, ldc, batch_count)
+    end function rocblas_sgemmt_batched_fortran
+
+    function rocblas_dgemmt_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                           A, lda, B, ldb, beta, C, ldc, batch_count) &
+        bind(c, name='rocblas_dgemmt_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dgemmt_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int), value :: batch_count
+        rocblas_dgemmt_batched_fortran = &
+            rocblas_dgemmt_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                  A, lda, B, ldb, beta, C, ldc, batch_count)
+    end function rocblas_dgemmt_batched_fortran
+
+    function rocblas_cgemmt_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                           A, lda, B, ldb, beta, C, ldc, batch_count) &
+        bind(c, name='rocblas_cgemmt_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_cgemmt_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int), value :: batch_count
+        rocblas_cgemmt_batched_fortran = &
+            rocblas_cgemmt_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                  A, lda, B, ldb, beta, C, ldc, batch_count)
+    end function rocblas_cgemmt_batched_fortran
+
+    function rocblas_zgemmt_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                           A, lda, B, ldb, beta, C, ldc, batch_count) &
+        bind(c, name='rocblas_zgemmt_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_zgemmt_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int), value :: batch_count
+        rocblas_zgemmt_batched_fortran = &
+            rocblas_zgemmt_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                  A, lda, B, ldb, beta, C, ldc, batch_count)
+    end function rocblas_zgemmt_batched_fortran
+
+    ! gemmt_strided_batched
+    function rocblas_sgemmt_strided_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                                   A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+        bind(c, name='rocblas_sgemmt_strided_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_sgemmt_strided_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        integer(c_int64_t), value :: stride_A
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        integer(c_int64_t), value :: stride_B
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int64_t), value :: stride_C
+        integer(c_int), value :: batch_count
+        rocblas_sgemmt_strided_batched_fortran = &
+            rocblas_sgemmt_strided_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count)
+    end function rocblas_sgemmt_strided_batched_fortran
+
+    function rocblas_dgemmt_strided_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                                   A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+        bind(c, name='rocblas_dgemmt_strided_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_dgemmt_strided_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        integer(c_int64_t), value :: stride_A
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        integer(c_int64_t), value :: stride_B
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int64_t), value :: stride_C
+        integer(c_int), value :: batch_count
+        rocblas_dgemmt_strided_batched_fortran = &
+            rocblas_dgemmt_strided_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count)
+    end function rocblas_dgemmt_strided_batched_fortran
+
+    function rocblas_cgemmt_strided_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                                   A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+        bind(c, name='rocblas_cgemmt_strided_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_cgemmt_strided_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        integer(c_int64_t), value :: stride_A
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        integer(c_int64_t), value :: stride_B
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int64_t), value :: stride_C
+        integer(c_int), value :: batch_count
+        rocblas_cgemmt_strided_batched_fortran = &
+            rocblas_cgemmt_strided_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count)
+    end function rocblas_cgemmt_strided_batched_fortran
+
+    function rocblas_zgemmt_strided_batched_fortran(handle, uplo, transA, transB, n, k, alpha, &
+                                                   A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count) &
+        bind(c, name='rocblas_zgemmt_strided_batched_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_zgemmt_strided_batched_fortran
+        type(c_ptr), value :: handle
+        integer(kind(rocblas_fill_upper)), value :: uplo
+        integer(kind(rocblas_operation_none)), value :: transA
+        integer(kind(rocblas_operation_none)), value :: transB
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: A
+        integer(c_int), value :: lda
+        integer(c_int64_t), value :: stride_A
+        type(c_ptr), value :: B
+        integer(c_int), value :: ldb
+        integer(c_int64_t), value :: stride_B
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: C
+        integer(c_int), value :: ldc
+        integer(c_int64_t), value :: stride_C
+        integer(c_int), value :: batch_count
+        rocblas_zgemmt_strided_batched_fortran = &
+            rocblas_zgemmt_strided_batched(handle, uplo, transA, transB, n, k, alpha, &
+                                          A, lda, stride_A, B, ldb, stride_B, beta, C, ldc, stride_C, batch_count)
+    end function rocblas_zgemmt_strided_batched_fortran
+
     ! syrkx
     function rocblas_ssyrkx_fortran(handle, uplo, transA, n, k, alpha, &
                                     A, lda, B, ldb, beta, C, ldc) &

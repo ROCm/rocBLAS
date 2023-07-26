@@ -174,6 +174,9 @@
 #include "testing_geam_batched.hpp"
 #include "testing_geam_ex.hpp"
 #include "testing_geam_strided_batched.hpp"
+#include "testing_gemmt.hpp"
+#include "testing_gemmt_batched.hpp"
+#include "testing_gemmt_strided_batched.hpp"
 #include "testing_her2k.hpp"
 #include "testing_her2k_batched.hpp"
 #include "testing_her2k_strided_batched.hpp"
@@ -427,6 +430,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same_v<T, float> || std::is_same
                 {"dgmm", testing_dgmm<T>},
                 {"dgmm_batched", testing_dgmm_batched<T>},
                 {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
+                {"gemmt", testing_gemmt<T>},
+                {"gemmt_batched", testing_gemmt_batched<T>},
+                {"gemmt_strided_batched", testing_gemmt_strided_batched<T>},
                 {"symm", testing_symm_hemm<T, false>},
                 {"symm_batched", testing_symm_hemm_batched<T, false>},
                 {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
@@ -643,6 +649,9 @@ struct perf_blas<
                 {"dgmm", testing_dgmm<T>},
                 {"dgmm_batched", testing_dgmm_batched<T>},
                 {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
+                {"gemmt", testing_gemmt<T>},
+                {"gemmt_batched", testing_gemmt_batched<T>},
+                {"gemmt_strided_batched", testing_gemmt_strided_batched<T>},
                 {"geam", testing_geam<T>},
                 {"geam_batched", testing_geam_batched<T>},
                 {"geam_strided_batched", testing_geam_strided_batched<T>},

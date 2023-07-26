@@ -2286,6 +2286,77 @@ MAP2CF(rocblas_gemm_strided_batched, rocblas_half, rocblas_hgemm_strided_batched
 MAP2CF(rocblas_gemm_strided_batched, rocblas_float_complex, rocblas_cgemm_strided_batched);
 MAP2CF(rocblas_gemm_strided_batched, rocblas_double_complex, rocblas_zgemm_strided_batched);
 
+// gemmt
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_gemmt)(rocblas_handle    handle,
+                                       rocblas_fill      uplo,
+                                       rocblas_operation transA,
+                                       rocblas_operation transB,
+                                       rocblas_int       n,
+                                       rocblas_int       k,
+                                       const T*          alpha,
+                                       const T*          A,
+                                       rocblas_int       lda,
+                                       const T*          B,
+                                       rocblas_int       ldb,
+                                       const T*          beta,
+                                       T*                C,
+                                       rocblas_int       ldc);
+
+MAP2CF(rocblas_gemmt, float, rocblas_sgemmt);
+MAP2CF(rocblas_gemmt, double, rocblas_dgemmt);
+MAP2CF(rocblas_gemmt, rocblas_float_complex, rocblas_cgemmt);
+MAP2CF(rocblas_gemmt, rocblas_double_complex, rocblas_zgemmt);
+
+// gemmt_batched
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_gemmt_batched)(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation transA,
+                                               rocblas_operation transB,
+                                               rocblas_int       n,
+                                               rocblas_int       k,
+                                               const T*          alpha,
+                                               const T* const    A[],
+                                               rocblas_int       lda,
+                                               const T* const    B[],
+                                               rocblas_int       ldb,
+                                               const T*          beta,
+                                               T* const          C[],
+                                               rocblas_int       ldc,
+                                               rocblas_int       batch_count);
+
+MAP2CF(rocblas_gemmt_batched, float, rocblas_sgemmt_batched);
+MAP2CF(rocblas_gemmt_batched, double, rocblas_dgemmt_batched);
+MAP2CF(rocblas_gemmt_batched, rocblas_float_complex, rocblas_cgemmt_batched);
+MAP2CF(rocblas_gemmt_batched, rocblas_double_complex, rocblas_zgemmt_batched);
+
+// gemmt_strided_batched
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_gemmt_strided_batched)(rocblas_handle    handle,
+                                                       rocblas_fill      uplo,
+                                                       rocblas_operation transA,
+                                                       rocblas_operation transB,
+                                                       rocblas_int       n,
+                                                       rocblas_int       k,
+                                                       const T*          alpha,
+                                                       const T*          A,
+                                                       rocblas_int       lda,
+                                                       rocblas_stride    bsa,
+                                                       const T*          B,
+                                                       rocblas_int       ldb,
+                                                       rocblas_int       bsb,
+                                                       const T*          beta,
+                                                       T*                C,
+                                                       rocblas_int       ldc,
+                                                       rocblas_stride    bsc,
+                                                       rocblas_int       batch_count);
+
+MAP2CF(rocblas_gemmt_strided_batched, float, rocblas_sgemmt_strided_batched);
+MAP2CF(rocblas_gemmt_strided_batched, double, rocblas_dgemmt_strided_batched);
+MAP2CF(rocblas_gemmt_strided_batched, rocblas_float_complex, rocblas_cgemmt_strided_batched);
+MAP2CF(rocblas_gemmt_strided_batched, rocblas_double_complex, rocblas_zgemmt_strided_batched);
+
 // hemm
 template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_hemm)(rocblas_handle handle,

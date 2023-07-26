@@ -46,6 +46,9 @@
 #define rocblas_gemm_ex3_fortran rocblas_gemm_ex3
 #define rocblas_gemm_batched_ex_fortran rocblas_gemm_batched_ex
 #define rocblas_gemm_strided_batched_ex_fortran rocblas_gemm_strided_batched_ex
+#define rocblas_gemmt_fortran rocblas_gemmt
+#define rocblas_gemmt_batched_fortran rocblas_gemmt_batched
+#define rocblas_gemmt_strided_batched_fortran rocblas_gemmt_strided_batched
 #define rocblas_geam_ex_fortram rocblas_geam_ex
 #define rocblas_trsm_ex_fortran rocblas_trsm_ex
 #define rocblas_trsm_batched_ex_fortran rocblas_trsm_batched_ex
