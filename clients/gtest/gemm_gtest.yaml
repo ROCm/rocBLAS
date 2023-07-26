@@ -3826,7 +3826,7 @@ Tests:
   graph_test: true
 
 - name: gemm_size_t
-  category: nightly
+  category: stress
   function:
     - gemm: *single_precision
   matrix_size:

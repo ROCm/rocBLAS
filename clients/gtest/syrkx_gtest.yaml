@@ -69,7 +69,7 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: syrkx_size_t
-  category: nightly #stress
+  category: stress
   function: syrkx
   precision: *single_precision
   uplo: [ U, L ] # op(A) and op(B) are NxK

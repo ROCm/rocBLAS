@@ -115,7 +115,7 @@ Tests:
   alpha_beta: *alpha_range_small
 
 - name: syr_size_t
-  category: nightly # stress_syr
+  category: stress
   function: syr
   precision: *single_precision
   uplo: [ U    ]

@@ -51,7 +51,7 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: symm_size_t_m_or_n_large
-  category: nightly
+  category: stress
   function: symm
   precision: *single_precision
   uplo: [ L ]
@@ -104,7 +104,7 @@ Tests:
   alpha_beta: *alpha_beta_range
 
 - name: symm_size_t
-  category: nightly
+  category: stress
   function: symm
   precision: *single_precision
   uplo: [ U, L ]
@@ -152,7 +152,7 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: symm_batched_large
-  category: nightly
+  category: stress
   function: symm_batched
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
@@ -163,7 +163,7 @@ Tests:
   batch_count: [ 2 ]
 
 - name: symm_batched_size_t
-  category: nightly
+  category: stress
   function: symm_batched
   precision: *single_precision
   uplo: [ U, L ]

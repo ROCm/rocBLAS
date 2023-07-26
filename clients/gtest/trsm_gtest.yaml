@@ -533,7 +533,7 @@ Tests:
   alpha: [ 1 ]
 
 - name: trsm_size_t_left
-  category: nightly
+  category: stress
   function: trsm
   precision: *single_precision
   arguments:
@@ -542,7 +542,7 @@ Tests:
   alpha: [2]
 
 - name: trsm_size_t_right
-  category: nightly
+  category: stress
   function: trsm
   precision: *single_precision
   arguments:
@@ -827,7 +827,7 @@ Tests:
 # Only testing non-unit-diag as unit-diag should never
 # be indexing non-shared memory outside of what non-unit-diag does
 - name: trsm_left_size_t_overflow
-  category: stress_trsm
+  category: stress
   function:
     - trsm
     - trsm_batched
@@ -846,7 +846,7 @@ Tests:
   os_flags: LINUX
 
 - name: trsm_right_size_t_overflow
-  category: stress_trsm
+  category: stress
   function:
     - trsm
     - trsm_batched

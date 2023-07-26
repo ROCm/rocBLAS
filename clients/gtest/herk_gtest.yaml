@@ -44,7 +44,7 @@ Tests:
   api: [ C, FORTRAN ]
 
 - name: herk_size_t
-  category: nightly #stress
+  category: stress
   function: herk
   precision: *single_precision_complex
   uplo: [ U, L ]

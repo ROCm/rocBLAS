@@ -90,7 +90,7 @@ Tests:
   alpha_beta: *alpha_beta_range
 
 - name: hemm_size_t
-  category: nightly
+  category: stress
   function: hemm
   precision: *single_precision_complex
   uplo: [ U, L ]
@@ -149,7 +149,7 @@ Tests:
   batch_count: [ 2 ]
 
 - name: hemm_batched_size_t
-  category: nightly
+  category: stress
   function: hemm_batched
   precision: *single_precision
   uplo: [ U, L ]

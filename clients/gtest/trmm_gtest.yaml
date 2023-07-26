@@ -187,7 +187,7 @@ Tests:
   outofplace: [false, true] # test both inplace and outofplace
 
 - name: trmm_size_t_noalias
-  category: nightly
+  category: stress
   function:
     - trmm
   precision: *single_precision
@@ -204,7 +204,7 @@ Tests:
 
 # to prevent excessively long runtime only run one combination of side,uplo,transA,diag for uint32_t overflow
 - name: trmm_size_t_inplace_uint32
-  category: nightly
+  category: stress
   function:
     - trmm
     - trmm_batched
@@ -224,7 +224,7 @@ Tests:
 
 # to prevent excessively long runtime only run one combination of side,uplo,transA,diag for uint32_t overflow
 - name: trmm_size_t_outofplace_uint32
-  category: nightly
+  category: stress
   function:
     - trmm
     - trmm_batched
@@ -244,7 +244,7 @@ Tests:
 
 # to prevent excessively long runtime only run one value of diag and batch_count=1
 - name: trmm_size_t_inplace_int32
-  category: nightly
+  category: stress
   function:
     - trmm
     - trmm_batched
@@ -264,7 +264,7 @@ Tests:
 
 # to prevent excessively long runtime only run one value of diag and batch_count=1
 - name: trmm_size_t_outofplace_int32
-  category: nightly
+  category: stress
   function:
     - trmm
     - trmm_batched
