@@ -87,7 +87,8 @@ _rocblas_handle::_rocblas_handle()
     : device(getActiveDevice()) // active device is handle device
     , arch(getActiveArch(device))
 {
-    archMajor = arch / 100; // this may need to switch to string handling in the future
+    archMajor      = arch / 100; // this may need to switch to string handling in the future
+    archMajorMinor = arch / 10;
 
     //ROCBLAS_STREAM_ORDER_ALLOC
     const char* stream_order_alloc_env = read_env("ROCBLAS_STREAM_ORDER_ALLOC");
