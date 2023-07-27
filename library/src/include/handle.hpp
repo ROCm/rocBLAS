@@ -203,6 +203,11 @@ public:
         return archMajor;
     }
 
+    int getArchMajorMinor()
+    {
+        return archMajorMinor;
+    }
+
     // hipEvent_t pointers (for internal use only)
     hipEvent_t startEvent = nullptr;
     hipEvent_t stopEvent  = nullptr;
@@ -356,6 +361,7 @@ private:
     // Arch ID is created at handle creation time and remains in effect for the life of the handle.
     const int arch;
     int       archMajor;
+    int       archMajorMinor;
 
     // Opaque smart allocator class to perform device memory allocations
     // clang-format off
