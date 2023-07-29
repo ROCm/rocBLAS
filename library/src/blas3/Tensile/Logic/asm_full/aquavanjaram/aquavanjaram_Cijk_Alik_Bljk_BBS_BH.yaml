@@ -3700,6 +3700,7 @@
     EnableMatrixInstructionStore: true
     ExpandPointerSwap: true
     Fp16AltImpl: false
+    Fp16AltImplRound: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -3836,6 +3837,7 @@
       DestDataType: 7
       F32XdlMathOp: 0
       Fp16AltImpl: false
+      Fp16AltImplRound: false
       Fp32toFp8SWClip: true
       Fp8NoPackUpConversion: false
       HighPrecisionAccumulate: true
@@ -3885,11 +3887,11 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 13
-    SolutionNameMin: Cijk_Alik_Bljk_BBS_BH_MT256x256x32_MI32x32x8x1_SN_1LDSB0_DTVA1_GLS0_LRVW8_NEPBS8_NLCA2_SU0_SUS0_SSO6_WGM18
+    SolutionNameMin: Cijk_Alik_Bljk_BBS_BH_MT256x256x32_MI32x32x8x1_SN_1LDSB0_DTVA1_GLS0_LRVW8_NEPBS8_NLCA2_SU32_SUS64_SSO6_WGM30
     SourceSwap: true
-    StaggerU: 0
+    StaggerU: 32
     StaggerUMapping: 0
-    StaggerUStride: 0
+    StaggerUStride: 64
     StoreCInUnroll: false
     StoreCInUnrollExact: false
     StoreCInUnrollInterval: 1
@@ -3926,7 +3928,7 @@
     WaveSeparateGlobalReadB: 0
     WavefrontSize: 64
     WorkGroup: [128, 2, 1]
-    WorkGroupMapping: 18
+    WorkGroupMapping: 30
     WorkGroupMappingType: B
     _DepthULds: 32
     _GlobalAccumulation: null
@@ -3977,6 +3979,7 @@
     EnableMatrixInstructionStore: true
     ExpandPointerSwap: true
     Fp16AltImpl: false
+    Fp16AltImplRound: false
     FractionalLoad: 0
     GlobalLoadVectorWidthA: 8
     GlobalLoadVectorWidthB: 8
@@ -4113,6 +4116,7 @@
       DestDataType: 7
       F32XdlMathOp: 0
       Fp16AltImpl: false
+      Fp16AltImplRound: false
       Fp32toFp8SWClip: true
       Fp8NoPackUpConversion: false
       HighPrecisionAccumulate: true
@@ -4162,11 +4166,11 @@
     ScheduleIterAlg: 3
     ScheduleLocalWrite: 1
     SolutionIndex: 14
-    SolutionNameMin: Cijk_Alik_Bljk_BBS_BH_MT256x256x32_MI32x32x8x1_SN_1LDSB1_DTVA0_GLS0_LRVW8_NEPBS0_NLCA1_SU32_SUS64_SSO6_WGM18
+    SolutionNameMin: Cijk_Alik_Bljk_BBS_BH_MT256x256x32_MI32x32x8x1_SN_1LDSB1_DTVA0_GLS0_LRVW8_NEPBS0_NLCA1_SU32_SUS128_SSO6_WGM18
     SourceSwap: true
     StaggerU: 32
     StaggerUMapping: 0
-    StaggerUStride: 64
+    StaggerUStride: 128
     StoreCInUnroll: false
     StoreCInUnrollExact: false
     StoreCInUnrollInterval: 1
@@ -4210,7 +4214,7 @@
     _UseSgprForGRO: 1
     _VectorStore: 1
     _WorkspaceSizePerElemC: 0
-    _staggerStrideShift: 0
+    _staggerStrideShift: 1
     allowLRVWBforTLUandMI: false
 - [2, 3, 0, 1]
 - - - [6144, 4864, 1, 4096]
@@ -4240,9 +4244,9 @@
   - - [4864, 3072, 1, 4096]
     - [11, 70.211]
   - - [12288, 9728, 1, 16416]
-    - [13, 89.16]
+    - [13, 94.333]
   - - [12320, 9728, 1, 16512]
-    - [14, 74.928]
+    - [14, 78.975]
 - null
 - null
 - DeviceEfficiency
