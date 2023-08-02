@@ -70,6 +70,31 @@ enum class rocblas_device_memory_ownership
     user_owned,
 };
 
+enum class Processor : int
+{
+    // matching enum used in hipGcnArch
+    // only including supported types
+    gfx803  = 803,
+    gfx900  = 900,
+    gfx906  = 906,
+    gfx908  = 908,
+    gfx90a  = 910,
+    gfx940  = 940,
+    gfx941  = 941,
+    gfx942  = 942,
+    gfx1010 = 1010,
+    gfx1011 = 1011,
+    gfx1012 = 1012,
+    gfx1030 = 1030,
+    gfx1031 = 1031,
+    gfx1032 = 1032,
+    gfx1034 = 1034,
+    gfx1035 = 1035,
+    gfx1100 = 1100,
+    gfx1101 = 1101,
+    gfx1102 = 1102
+};
+
 // helper function in handle.cpp
 static rocblas_status free_existing_device_memory(rocblas_handle);
 
