@@ -26,7 +26,6 @@
 #include "rocblas_xfloat32.h"
 #include <cmath>
 #include <hip/hip_runtime.h>
-#include <immintrin.h>
 #include <type_traits>
 
 /* ============================================================================================ */
