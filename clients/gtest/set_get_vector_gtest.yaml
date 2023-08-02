@@ -57,23 +57,24 @@ Tests:
   - set_get_vector_async
 
 - name: auxiliary_size_t
-  category: nightly # stress
+  category: stress
   precision: *single_precision
   incx_incy: *small_M_size_t_incx_incy
   ldd: [3, *c_pos_x2_overflow_int32]
   function:
   - set_get_vector_sync
-  # can add async after hipmemcpy2Dasync fixed
+  # TODO can add async after hipmemcpy2Dasync fixed
 
 - name: auxiliary_size_t
-  category: nightly # stress
+  category: stress
   precision: *single_precision
   incx_incy: *size_t_M_incx_incy
   ldd: [1]
   function:
   - set_get_vector_sync
-  - set_get_vector_async
-  # also avoid Navi hipmemcpy2DAsync issue
+  # TODO defer async for SWDEV-397455 resolution
+  # - set_get_vector_async
+  # also avoid gfx11?? hipmemcpy2DAsync issue
   os_flags: LINUX
   gpu_arch: ['908', '90a']
 
