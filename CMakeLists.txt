@@ -236,6 +236,15 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
         RPM "${OPENMP_RPM}"
     )
   endif()
+  if(BUILD_CLIENTS_SAMPLES)
+    rocm_package_setup_client_component(
+      samples
+      DEPENDS
+        COMPONENT clients-common
+        DEB "${OPENMP_DEB}"
+        RPM "${OPENMP_RPM}"
+    )
+  endif()
   if(BUILD_FORTRAN_CLIENTS)
     rocm_package_add_rpm_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_RPM}")
     rocm_package_add_deb_dependencies(COMPONENT tests DEPENDS "${GFORTRAN_DEB}")
