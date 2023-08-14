@@ -39,8 +39,9 @@ add_executable( rocblas-example-scal-template example_scal_template.cpp ${rocbla
 add_executable( rocblas-example-solver example_solver_rocblas.cpp ${rocblas_samples_common} )
 add_executable( rocblas-example-hip-complex-her2 example_hip_complex_her2.cpp )
 add_executable( rocblas-example-gemv-graph-capture example_gemv_graph_capture.cpp )
+add_executable( rocblas-example-header-check example_header_check.cpp)
 
-set( sample_list_base rocblas-example-sscal rocblas-example-scal-template rocblas-example-solver rocblas-example-hip-complex-her2 rocblas-example-gemv-graph-capture)
+set( sample_list_base rocblas-example-sscal rocblas-example-scal-template rocblas-example-solver rocblas-example-hip-complex-her2 rocblas-example-gemv-graph-capture rocblas-example-header-check)
 
 if ( BUILD_FORTRAN_CLIENTS )
   # Fortran examples
@@ -49,7 +50,7 @@ if ( BUILD_FORTRAN_CLIENTS )
   add_executable( rocblas-example-fortran-gemv example_fortran_gemv.f90 $<TARGET_OBJECTS:rocblas_fortran>)
 
   set( sample_list_fortran rocblas-example-fortran-axpy rocblas-example-fortran-scal rocblas-example-fortran-gemv )
-endif( )
+endif()
 
 if( BUILD_WITH_TENSILE )
   add_executable( rocblas-example-user-driven-tuning example_user_driven_tuning.cpp ${rocblas_samples_common} )
@@ -79,11 +80,21 @@ endforeach( )
 foreach( exe ${sample_list_all} )
   target_link_libraries( ${exe} PRIVATE roc::rocblas Threads::Threads )
 
-  set_target_properties( ${exe} PROPERTIES
+  if( NOT ${exe} STREQUAL "rocblas-example-header-check" )
+    set_target_properties( ${exe} PROPERTIES
     CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
-    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
+    )
+    rocm_install(TARGETS ${exe} COMPONENT samples)
+  else()
+    set_target_properties( ${exe} PROPERTIES
+    CXX_STANDARD 11
+    )
+  endif()
+
+  set_target_properties( ${exe} PROPERTIES
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
+  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
   )
 
   if (NOT ${exe} STREQUAL "rocblas-example-c-dgeam")
@@ -107,7 +118,6 @@ foreach( exe ${sample_list_all} )
     target_compile_definitions( ${exe} PRIVATE ROCBLAS_INTERNAL_API )
   endif( )
 
-  rocm_install(TARGETS ${exe} COMPONENT samples)
 endforeach( )
 
 foreach( exe ${sample_list_hip_device} )

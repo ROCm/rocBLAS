@@ -173,6 +173,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvn_double_buffered_kernel_calc(rocblas_int ro
         for(int k = 0; k < elements_per_thread; k++)
             res_2_ += areg_lower[k] * x[(ty_ * elements_per_thread + k) * int64_t(incx)];
 
+        //Should add int64_t(incx) and stress test if newer architecture uses this routine
         x += DIM_X * incx;
     }
 
@@ -781,7 +782,7 @@ ROCBLAS_KERNEL_ILF void rocblas_gemvt_sn_kernel_calc(rocblas_int m,
         {
             for(int j = 0; j < m_tail; j++)
             {
-                xvec[j] = x[(row + j) * int64_t(incx)];
+                xvec[j] = x[(row + j) * T_index(incx)];
             }
             for(int j = 0; j < m_tail; j++)
             {
