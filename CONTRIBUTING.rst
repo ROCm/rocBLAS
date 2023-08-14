@@ -705,7 +705,7 @@ Coding Guidelines
                 if(error__ != hipSuccess)                        \
                 {                                                \
                     if(error__ == hipErrorOutOfMemory)           \
-                        SUCCEED() << LIMITED_MEMORY_STRING;      \
+                        GTEST_SKIP() << LIMITED_VRAM_STRING;     \
                     else                                         \
                         FAIL() << hipGetErrorString(error__);    \
                     return;                                      \
