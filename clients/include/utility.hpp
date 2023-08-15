@@ -79,19 +79,11 @@
 #undef hipFree
 #endif
 
-#define LIMITED_RAM_STRING "Warning: Attempting to allocate more host memory than available."
-#define LIMITED_MEMORY_STRING "Warning: Attempting to allocate more gpu memory than available."
-#define TOO_MANY_DEVICES_STRING "Warning: Too many devices requested."
-#define HMM_NOT_SUPPORTED "Warning: HMM not supported."
-
-// TODO: This is dependent on internal gtest behaviour.
-// Comparing against result.message() when a test ended. With SUCCEED() that "Succeeded\n" is
-// added to the beginning of the message automatically by gtest, so this must be compared.
-// For GTEST_SKIP() "Skipped\n" is added at the beginning of the message.
-#define LIMITED_RAM_STRING_GTEST "Skipped\n" LIMITED_RAM_STRING
-#define LIMITED_MEMORY_STRING_GTEST "Skipped\n" LIMITED_MEMORY_STRING
-#define TOO_MANY_DEVICES_STRING_GTEST "Skipped\n" TOO_MANY_DEVICES_STRING
-#define HMM_NOT_SUPPORTED_GTEST "Skipped\n" HMM_NOT_SUPPORTED
+// For GTEST_SKIP() we search for these sub-strings in listener to determine skip category
+#define LIMITED_RAM_STRING "skip: RAM"
+#define LIMITED_VRAM_STRING "skip: VRAM"
+#define TOO_FEW_DEVICES_PRESENT_STRING "skip: device_count"
+#define HMM_NOT_SUPPORTED_STRING "skip: HMM"
 
 #define NOOP (void)0
 
