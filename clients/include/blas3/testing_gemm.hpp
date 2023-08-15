@@ -368,59 +368,67 @@ void testing_gemm(const Arguments& arg)
         hB = host_matrix<T>();
 
         // check host error and norm
-        if(arg.unit_check && arg.pointer_mode_host)
+        if(arg.pointer_mode_host)
         {
-            if(std::is_same_v<T, rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
+            if(arg.unit_check)
             {
-                const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
-                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                if(std::is_same_v<T,
+                                  rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
+                {
+                    const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                }
+                else if(std::is_same_v<T, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                }
             }
-            else if(std::is_same_v<T, rocblas_half> && K > 10000)
+
+            if(arg.norm_check)
             {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
-            }
-            else
-            {
-                unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                auto err1 = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
+                rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
             }
         }
 
-        if(arg.norm_check && arg.pointer_mode_host)
-        {
-            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
-            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
-        }
-
-        if(arg.unit_check && arg.pointer_mode_device)
+        if(arg.pointer_mode_device)
         {
             // fetch device mode GPU results
             CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
-            if(std::is_same_v<T, rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
+            if(arg.unit_check)
             {
-                const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
-                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                if(std::is_same_v<T,
+                                  rocblas_half> && (rocblas_handle(handle)->getArchMajor() == 11))
+                {
+                    const double tol = K * sum_error_tolerance_for_gfx11<T, T, T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                }
+                else if(std::is_same_v<T, rocblas_half> && K > 10000)
+                {
+                    // For large K, rocblas_half tends to diverge proportional to K
+                    // Tolerance is slightly greater than 1 / 1024.0
+                    const double tol = K * sum_error_tolerance<T>;
+                    near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                }
+                else
+                {
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                }
             }
-            else if(std::is_same_v<T, rocblas_half> && K > 10000)
-            {
-                // For large K, rocblas_half tends to diverge proportional to K
-                // Tolerance is slightly greater than 1 / 1024.0
-                const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
-            }
-            else
-            {
-                unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
-            }
-        }
 
-        if(arg.norm_check && arg.pointer_mode_device)
-        {
-            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
-            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
+            if(arg.norm_check)
+            {
+                auto err1 = std::abs(norm_check_general<T>('F', M, N, ldc, (T*)hC_gold, (T*)hC_1));
+                rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
+            }
         }
     }
 
