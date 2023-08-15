@@ -65,7 +65,7 @@ typedef long long ssize_t; /* x64 only supported */
         if(error__ != hipSuccess)                        \
         {                                                \
             if(error__ == hipErrorOutOfMemory)           \
-                GTEST_SKIP() << LIMITED_MEMORY_STRING;   \
+                GTEST_SKIP() << LIMITED_VRAM_STRING;     \
             else                                         \
                 FAIL() << hipGetErrorString(error__);    \
             return;                                      \
@@ -226,10 +226,10 @@ void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_
         size_t      devices      = arg.devices;                                              \
         int         availDevices = 0;                                                        \
         bool        HMM          = arg.HMM;                                                  \
-        hipGetDeviceCount(&availDevices);                                                    \
+        CHECK_HIP_ERROR(hipGetDeviceCount(&availDevices));                                   \
         if(devices > availDevices)                                                           \
         {                                                                                    \
-            GTEST_SKIP() << TOO_MANY_DEVICES_STRING;                                         \
+            GTEST_SKIP() << TOO_FEW_DEVICES_PRESENT_STRING;                                  \
             return;                                                                          \
         }                                                                                    \
         else if(HMM)                                                                         \
@@ -241,7 +241,7 @@ void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_
                     &flag, hipDeviceAttribute_t(hipDeviceAttributeManagedMemory), devices)); \
                 if(!flag)                                                                    \
                 {                                                                            \
-                    GTEST_SKIP() << HMM_NOT_SUPPORTED;                                       \
+                    GTEST_SKIP() << HMM_NOT_SUPPORTED_STRING;                                \
                     return;                                                                  \
                 }                                                                            \
             }                                                                                \
