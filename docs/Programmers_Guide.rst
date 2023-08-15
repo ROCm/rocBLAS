@@ -1491,6 +1491,24 @@ as running in a docker container, they may instead result in process termination
 
    ROCBLAS_CLIENT_RAM_GB_LIMIT=32 ./rocblas-test --gtest_filter=*stress*
 
+* long-running tests
+
+The rocblas-test process will be terminated if a single test takes longer than a timeout. Change the timeout with the environment variable ROCBLAS_TEST_TIMEOUT,
+whose value is in seconds (default is 600 seconds):
+
+  .. code-block:: bash
+
+   ROCBLAS_TEST_TIMEOUT=900 ./rocblas-test --gtest_filter=*stress*
+
+* debugging rocblas-test
+
+The rocblas-test process will catch signals internally which may interfere with debugger use.  To defeat this set the environment variable ROCBLAS_TEST_NO_SIGACTION:
+
+  .. code-block:: bash
+
+   ROCBLAS_TEST_NO_SIGACTION=1 rocgdb ./rocblas-test --gtest_filter=*stress*
+
+
 Add New rocBLAS Unit Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
