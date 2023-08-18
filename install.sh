@@ -281,7 +281,7 @@ rocBLAS dependency & installation helper script. Invokes rmake.py for build step
     $0 (build rocBLAS and put library files at e.g. <builddir>/release/rocblas-install)
     $0 <options> (modify default behavior according to the following flags)
 
-  Options:
+  General Build Options:
     --build_dir <builddir>           Specify the directory path to build and save library files, dependencies and executables.
                                      Relative paths are relative to the current directory. (Default is ./build)
 
@@ -302,6 +302,8 @@ rocBLAS dependency & installation helper script. Invokes rmake.py for build step
     -h, --help                       Print this help message
 
     -i, --install                    Generate and install library package after build.
+
+  Experimental Build Options:
 
     -k, --relwithdebinfo             Build-in release debug mode, equivalent to set CMAKE_BUILD_TYPE=RelWithDebInfo.
                                      (Default build type is Release)
