@@ -43,122 +43,124 @@ def parse_args():
     global OS_info
 
     parser = argparse.ArgumentParser(description="""Checks build arguments""")
+    general_opts = parser.add_argument_group('General Build Options')
+    experimental_opts = parser.add_argument_group('Experimental Build Options')
 
-    parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="all",
+    general_opts.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="all",
                         help='Set GPU architectures, e.g. all, auto, "gfx803;gfx906:xnack-", gfx1030, gfx1101 (optional, default: all)')
 
-    parser.add_argument(       '--address-sanitizer', dest='address_sanitizer', required=False, default=False, action='store_true',
+    experimental_opts.add_argument(       '--address-sanitizer', dest='address_sanitizer', required=False, default=False, action='store_true',
                         help='Build with address sanitizer enabled. (optional, default: False')
 
-    parser.add_argument('-b', '--branch', dest='tensile_tag', type=str, required=False, default="",
+    experimental_opts.add_argument('-b', '--branch', dest='tensile_tag', type=str, required=False, default="",
                         help='Specify the Tensile repository branch or tag to use. (eg. develop, mybranch or <commit hash> )')
 
-    parser.add_argument(      '--build_dir', type=str, required=False, default = "build",
+    general_opts.add_argument(      '--build_dir', type=str, required=False, default = "build",
                         help='Specify path to configure & build process output directory.(optional, default: ./build)')
 
-    parser.add_argument(      '--cleanup', required=False, default=False, action='store_true',
+    general_opts.add_argument(      '--cleanup', required=False, default=False, action='store_true',
                         help='Remove intermediary build files after build to reduce disk usage. (Linux only handled by install.sh)')
 
-    parser.add_argument('-c', '--clients', dest='build_clients', required=False, default=False, action='store_true',
+    general_opts.add_argument('-c', '--clients', dest='build_clients', required=False, default=False, action='store_true',
                         help='Build the library clients benchmark and gtest (optional, default: False, Generated binaries will be located at <build_dir>/clients/staging)')
 
-    parser.add_argument(     '--clients_no_fortran', required=False, default=False, action='store_true',
+    general_opts.add_argument(     '--clients_no_fortran', required=False, default=False, action='store_true',
                         help='When building clients, build them without Fortran API testing or Fortran examples. (optional, default:False')
 
-    parser.add_argument(     '--clients-only', dest='clients_only', required=False, default=False, action='store_true',
+    general_opts.add_argument(     '--clients-only', dest='clients_only', required=False, default=False, action='store_true',
                         help='Skip building the library and only build the clients with a pre-built library.')
 
-    parser.add_argument(      '--cmake-arg', dest='cmake_args', type=str, required=False, default="",
+    general_opts.add_argument(      '--cmake-arg', dest='cmake_args', type=str, required=False, default="",
                         help='Forward the given argument to CMake when configuring the build.')
 
-    parser.add_argument(      '--cmake-darg', dest='cmake_dargs', required=False, action='append', default=[],
+    general_opts.add_argument(      '--cmake-darg', dest='cmake_dargs', required=False, action='append', default=[],
                         help='List of additional cmake defines for builds (optional, e.g. CMAKE_)')
 
-    parser.add_argument(      '--cmake_install', required=False, default=False, action='store_true',
+    general_opts.add_argument(      '--cmake_install', required=False, default=False, action='store_true',
                         help='Linux only: Handled by install.sh')
 
-    parser.add_argument(      '--codecoverage', required=False, default=False, action='store_true',
+    experimental_opts.add_argument(      '--codecoverage', required=False, default=False, action='store_true',
                         help='Code coverage build. Requires Debug (-g|--debug) or RelWithDebInfo mode (-k|--relwithdebinfo), (optional, default: False)')
 
-    parser.add_argument( '-d', '--dependencies', required=False, default=False, action='store_true',
+    general_opts.add_argument( '-d', '--dependencies', required=False, default=False, action='store_true',
                         help='Build and install external dependencies. (Handled by install.sh and on Windows rdeps.py')
 
-    parser.add_argument('-f', '--fork', dest='tensile_fork', type=str, required=False, default="",
+    experimental_opts.add_argument('-f', '--fork', dest='tensile_fork', type=str, required=False, default="",
                         help='Specify the username to fork the Tensile GitHub repository (e.g., ROCmSoftwarePlatform or MyUserName)')
 
-    parser.add_argument('-g', '--debug', required=False, default=False,  action='store_true',
+    general_opts.add_argument('-g', '--debug', required=False, default=False,  action='store_true',
                         help='Build in Debug mode (optional, default: False)')
 
-    parser.add_argument('-i', '--install', required=False, default=False, dest='install', action='store_true',
+    general_opts.add_argument('-i', '--install', required=False, default=False, dest='install', action='store_true',
                         help='Generate and install library package after build. Windows only. Linux use install.sh (optional, default: False)')
 
-    parser.add_argument(     '--install_invoked', required=False, default=False, action='store_true',
+    experimental_opts.add_argument(     '--install_invoked', required=False, default=False, action='store_true',
                         help='rmake invoked from install.sh so do not do dependency or package installation (default: False)')
 
-    parser.add_argument('-j', '--jobs', type=int, required=False, default=0,
-                        help='Specify number of parallel jobs to launch, increases memory usage (default: heuristic around logical core count)')
+    general_opts.add_argument('-j', '--jobs', type=int, required=False, default=0,
+                        help='Specify number of parallel jobs to launch, affects memory usage (default: heuristic around logical core count)')
 
-    parser.add_argument('-k', '--relwithdebinfo', required=False, default=False, action='store_true',
+    experimental_opts.add_argument('-k', '--relwithdebinfo', required=False, default=False, action='store_true',
                         help='Build in Release with Debug Info (optional, default: False)')
 
-    parser.add_argument('-l', '--logic', dest='tensile_logic', type=str, required=False, default="asm_full",
+    experimental_opts.add_argument('-l', '--logic', dest='tensile_logic', type=str, required=False, default="asm_full",
                         help='Specify the Tensile logic target, e.g., asm_full, asm_lite, etc. (optional, default: asm_full)')
 
-    parser.add_argument(    '--lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=True, action='store_true',
+    experimental_opts.add_argument(    '--lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=True, action='store_true',
                         help='Enable on-demand loading of Tensile Library files, speeds up the rocblas initialization. (Default is enabled)')
 
-    parser.add_argument(    '--no-lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=True, action='store_false',
+    experimental_opts.add_argument(    '--no-lazy-library-loading', dest='tensile_lazy_library_loading', required=False, default=True, action='store_false',
                         help='Disable on-demand loading of Tensile Library files. (Default is enabled)')
 
-    parser.add_argument(     '--library-path', dest='library_dir_installed', type=str, required=False, default="",
+    experimental_opts.add_argument(     '--library-path', dest='library_dir_installed', type=str, required=False, default="",
                         help='Specify path to a pre-built rocBLAS library, when building clients only using --clients-only flag. (optional, default: /opt/rocm/rocblas)')
 
-    parser.add_argument('-n', '--no_tensile', dest='build_tensile', required=False, default=True, action='store_false',
+    experimental_opts.add_argument('-n', '--no_tensile', dest='build_tensile', required=False, default=True, action='store_false',
                         help='Build a subset of rocBLAS library which does not require Tensile.')
 
-    parser.add_argument(     '--merge-architectures', dest='merge_architectures', required=False, default=False, action='store_true',
+    experimental_opts.add_argument(     '--merge-architectures', dest='merge_architectures', required=False, default=False, action='store_true',
                         help='Merge TensileLibrary files for different architectures into single file (optional, was behavior in ROCm 5.1 and earlier)')
 
-    parser.add_argument(     '--no-merge-architectures', dest='merge_architectures', required=False, default=False, action='store_false',
+    experimental_opts.add_argument(     '--no-merge-architectures', dest='merge_architectures', required=False, default=False, action='store_false',
                         help='Keep TensileLibrary files separated by architecture (optional)')
 
-    parser.add_argument(     '--msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_true',
+    experimental_opts.add_argument(     '--msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_true',
                         help='Build Tensile backend to use MessagePack (optional, default: True)')
 
-    parser.add_argument(     '--no-msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_false',
+    experimental_opts.add_argument(     '--no-msgpack', dest='tensile_msgpack_backend', required=False, default=True, action='store_false',
                         help='Build Tensile backend not to use MessagePack and so use YAML (optional)')
 
-    parser.add_argument( '-r', '--relocatable', required=False, default=False, action='store_true',
+    general_opts.add_argument( '-r', '--relocatable', required=False, default=False, action='store_true',
                         help='Linux only: Add RUNPATH (based on ROCM_RPATH) and remove ldconf entry.')
 
-    parser.add_argument(      '--rm-legacy-include-dir', dest='rm_legacy_include_dir', required=False, default=False, action='store_true',
+    experimental_opts.add_argument(      '--rm-legacy-include-dir', dest='rm_legacy_include_dir', required=False, default=False, action='store_true',
                         help='Remove legacy include dir packaging added for file/folder backward compatibility. Linux only.')
 
-    parser.add_argument(      '--run_header_testing', required=False, default=False, action='store_true',
+    experimental_opts.add_argument(      '--run_header_testing', required=False, default=False, action='store_true',
                         help='Run post build header testing. (options, default: False')
 
-    parser.add_argument(      '--skipldconf', dest='skip_ld_conf_entry', required=False, default=False, action='store_true',
+    general_opts.add_argument(      '--skipldconf', dest='skip_ld_conf_entry', required=False, default=False, action='store_true',
                         help='Linux only: Skip ld.so.conf entry.')
 
-    parser.add_argument('-s', '--static', required=False, default=False, dest='static_lib', action='store_true',
+    general_opts.add_argument('-s', '--static', required=False, default=False, dest='static_lib', action='store_true',
                         help='Build rocblas as a static library. (optional, default: False)')
 
-    parser.add_argument(      '--src_path', type=str, required=False, default="",
+    experimental_opts.add_argument(      '--src_path', type=str, required=False, default="",
                         help='Source path. (optional, default: Current directory)')
 
-    parser.add_argument('-t', '--test_local_path', dest='tensile_test_local_path', type=str, required=False, default="",
+    experimental_opts.add_argument('-t', '--test_local_path', dest='tensile_test_local_path', type=str, required=False, default="",
                         help='Use a local path for Tensile instead of remote GIT repo (optional)')
 
-    parser.add_argument(      '--upgrade_tensile_venv_pip', required=False, default=False, action='store_true',
+    general_opts.add_argument(      '--upgrade_tensile_venv_pip', required=False, default=False, action='store_true',
                         help='Upgrade python pip version during Tensile installation (optional, default: False)')
 
-    parser.add_argument('-u', '--use-custom-version', dest='tensile_version', type=str, required=False, default="",
+    experimental_opts.add_argument('-u', '--use-custom-version', dest='tensile_version', type=str, required=False, default="",
                         help='Ignore Tensile version and just use the Tensile tag (optional)')
 
-    parser.add_argument('-v', '--verbose', required=False, default=False, action='store_true',
+    general_opts.add_argument('-v', '--verbose', required=False, default=False, action='store_true',
                         help='Verbose build (optional, default: False)')
 
-    parser.add_argument('-X', '--exclude-checks', dest='exclude_checks', required=False, default=False, action='store_true',
+    experimental_opts.add_argument('-X', '--exclude-checks', dest='exclude_checks', required=False, default=False, action='store_true',
                         help='Exclude compiler and configuration checks (optional, default: False)')
 
     return parser.parse_args()

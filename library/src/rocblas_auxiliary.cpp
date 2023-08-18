@@ -1164,13 +1164,13 @@ extern "C" rocblas_status rocblas_set_start_stop_events(rocblas_handle handle,
 template <typename...>
 using void_t = void;
 
-// By default, use gcnArch converted to a string prepended by gfx
+// If gcnArchName not present, return empty string
 template <typename PROP, typename = void>
 struct ArchName
 {
     std::string operator()(const PROP& prop) const
     {
-        return "gfx" + std::to_string(prop.gcnArch);
+        return "";
     }
 };
 
@@ -1229,7 +1229,10 @@ bool rocblas_internal_tensile_supports_xdl_math_op(rocblas_math_mode mode)
     hipGetDevice(&deviceId);
     hipDeviceProp_t deviceProperties;
     hipGetDeviceProperties(&deviceProperties, deviceId);
-    return deviceProperties.gcnArch >= 940 && deviceProperties.gcnArch < 1000;
+    std::string deviceString(deviceProperties.gcnArchName);
+    return ((deviceString.find("gfx940") != std::string::npos)
+            || (deviceString.find("gfx941") != std::string::npos)
+            || (deviceString.find("gfx942") != std::string::npos));
 }
 
 // exported. Get architecture name
