@@ -47,7 +47,7 @@ def parse_args():
     experimental_opts = parser.add_argument_group('Experimental Build Options')
 
     general_opts.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="all",
-                        help='Set GPU architectures, e.g. all, auto, "gfx803;gfx906:xnack-", gfx1030, gfx1101 (optional, default: all)')
+                        help='Set GPU architectures, e.g. all, auto, "gfx900;gfx906:xnack-", gfx1030, gfx1101 (optional, default: all)')
 
     experimental_opts.add_argument(       '--address-sanitizer', dest='address_sanitizer', required=False, default=False, action='store_true',
                         help='Build with address sanitizer enabled. (optional, default: False')
