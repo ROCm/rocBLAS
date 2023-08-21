@@ -72,7 +72,7 @@ struct ROCBLAS_EXPORT rocblas_f8
     // default constructor
     HIP_HOST_DEVICE rocblas_f8() = default;
 
-#if defined(__gfx940__)
+#if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
     // device specific optimized F8 down-conversion code
 
     template <bool stochastic_rounding = false>
@@ -112,7 +112,7 @@ struct ROCBLAS_EXPORT rocblas_f8
 #endif // __gfx940__
 
     // constructor from float
-#if defined(__gfx940__)
+#if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
 
     // NOTE: ON-DEVICE... always optimal bias
     explicit HIP_DEVICE rocblas_f8(float                        v,
@@ -182,7 +182,7 @@ struct ROCBLAS_EXPORT rocblas_f8
     }
 
     // convert to float
-#if defined(__gfx940__)
+#if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
     // upcast using device specific intrinsic
     explicit inline HIP_DEVICE operator float() const
     {
@@ -253,7 +253,7 @@ struct ROCBLAS_EXPORT rocblas_bf8
     // default constructor
     HIP_HOST_DEVICE rocblas_bf8() = default;
 
-#if defined(__gfx940__)
+#if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
     // device specific optimized F8 down-conversion code
 
     template <bool stochastic_rounding = false>
@@ -293,7 +293,7 @@ struct ROCBLAS_EXPORT rocblas_bf8
 #endif // __gfx940__
 
     // constructor from float
-#if defined(__gfx940__)
+#if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
 
     // NOTE: ON-DEVICE... always optimal bias
     explicit HIP_DEVICE rocblas_bf8(float                        v,
@@ -363,7 +363,7 @@ struct ROCBLAS_EXPORT rocblas_bf8
     }
 
     // convert to float
-#if defined(__gfx940__)
+#if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
     // upcast using device specific intrinsic
     explicit inline HIP_DEVICE operator float() const
     {
@@ -617,7 +617,7 @@ template <
     = 0>
 inline __host__ __device__ T explicit_downcast(Ta a, uint32_t rng)
 {
-#if defined(__gfx940__)
+#if defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
     // NOTE: we are directly calling cast_to_f8_from_f32 instead of constructor to optimize away one runtime branch
     T val;
     if(std::is_same<T, rocblas_f8>::value)
