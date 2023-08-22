@@ -16,6 +16,10 @@ Tests:
   M: 250
   N: 250
   K: 250
+  lda: 250
+  ldb: 250
+  ldc: 250
+  ldd: 250 
   alpha_beta: { alpha:  1, beta:  1 }
   transA_transB: *transA_transB_range
   precision : *real_precisions
@@ -26,6 +30,10 @@ Tests:
   M: 250
   N: 250
   K: 250
+  lda: 250
+  ldb: 250
+  ldc: 250
+  ldd: 250  
   alpha_beta: { alpha:  1, beta:  1 }
   transA_transB: *transA_transB_range
   precision : *complex_precisions
@@ -37,6 +45,10 @@ Tests:
   M: 250
   N: 250
   K: 250
+  lda: 250
+  ldb: 250
+  ldc: 250
+  ldd: 250
   alpha_beta: { alpha:  1, beta:  1 }
   transA_transB: *transA_transB_range
   precision : *single_double_precisions

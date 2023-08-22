@@ -163,6 +163,7 @@ try
                               "--c_type",
                               c_type_string,
                               "--ldc",
+                              ldc,
                               "--d_type",
                               d_type_string,
                               "--ldd",
