@@ -308,7 +308,8 @@ bool _rocblas_handle::device_allocator(size_t size)
         if(device_memory_in_use)
         {
             rocblas_cerr << "rocBLAS internal error: Cannot reallocate device memory while it is "
-                            "already in use.";
+                            "already in use."
+                         << std::endl;
             rocblas_abort();
         }
 
@@ -317,11 +318,16 @@ bool _rocblas_handle::device_allocator(size_t size)
         auto saved_device_id = push_device_id();
 
         device_memory_size = 0;
+
+        //Add an additional device memory on top of default size.
+        //This is to support kernels requiring large workspace with numerical checking enabled.
+        size_t total_size = size + DEFAULT_DEVICE_MEMORY_SIZE;
+
         if(!device_memory || (hipFree)(device_memory) == hipSuccess)
         {
-            success = (hipMalloc)(&device_memory, size) == hipSuccess;
+            success = (hipMalloc)(&device_memory, total_size) == hipSuccess;
             if(success)
-                device_memory_size = size;
+                device_memory_size = total_size;
             else
                 device_memory = nullptr;
         }
