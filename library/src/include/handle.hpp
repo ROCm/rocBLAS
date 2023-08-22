@@ -297,6 +297,11 @@ public:
         return solution_fitness_query;
     }
 
+    void set_stream_order_memory_allocation(bool flag)
+    {
+        stream_order_alloc = flag;
+    }
+
     // Sets the optimal size(s) of device memory for a kernel call
     // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged

@@ -318,12 +318,7 @@ rocblas_local_handle::~rocblas_local_handle()
 
 void rocblas_local_handle::rocblas_stream_begin_capture()
 {
-    int setenv_status;
-    setenv_status = setenv("ROCBLAS_STREAM_ORDER_ALLOC", "1", true);
-#ifdef GOOGLE_TEST
-    ASSERT_EQ(setenv_status, 0);
-#endif
-
+    m_handle->set_stream_order_memory_allocation(true);
     CHECK_HIP_ERROR(hipStreamCreate(&this->graph_stream));
     CHECK_ROCBLAS_ERROR(rocblas_get_stream(*this, &this->old_stream));
     CHECK_ROCBLAS_ERROR(rocblas_set_stream(*this, this->graph_stream));
@@ -350,10 +345,7 @@ void rocblas_local_handle::rocblas_stream_end_capture()
     CHECK_HIP_ERROR(hipStreamDestroy(this->graph_stream));
     this->graph_stream = nullptr;
 
-    int setenv_status = unsetenv("ROCBLAS_STREAM_ORDER_ALLOC");
-#ifdef GOOGLE_TEST
-    ASSERT_EQ(setenv_status, 0);
-#endif
+    m_handle->set_stream_order_memory_allocation(false);
 }
 
 void rocblas_parallel_initialize_thread(int id, size_t& memory_used)
