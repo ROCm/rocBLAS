@@ -648,6 +648,7 @@ void testing_geam_ex(const Arguments& arg)
     {
         // ROCBLAS
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_geam_ex_fn(handle,
                                                transA,
                                                transB,
@@ -670,7 +671,7 @@ void testing_geam_ex(const Arguments& arg)
                                                ldd,
                                                compute_type,
                                                geam_ex_op));
-
+        handle.post_test(arg);
         CHECK_HIP_ERROR(hD_1.transfer_from(dD));
         CHECK_HIP_ERROR(dD.transfer_from(hD_2));
 

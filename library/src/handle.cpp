@@ -269,11 +269,28 @@ _rocblas_handle::~_rocblas_handle()
 
             hipMemPool_t mem_pool;
             int          device;
-            hipGetDevice(&device);
-            hipDeviceGetDefaultMemPool(&mem_pool, device);
-
+            hipStatus = hipGetDevice(&device);
+            if(hipStatus != hipSuccess)
+            {
+                rocblas_cerr << "rocBLAS error retreiving the device (deviceID: " << device << ")"
+                             << std::endl;
+                rocblas_abort();
+            }
+            hipStatus = hipDeviceGetDefaultMemPool(&mem_pool, device);
+            if(hipStatus != hipSuccess)
+            {
+                rocblas_cerr << "rocBLAS error retreiving the device's memory pool (deviceID: "
+                             << device << ")" << std::endl;
+                rocblas_abort();
+            }
             //Releases device memory back to OS
-            hipMemPoolTrimTo(mem_pool, 0);
+            hipStatus = hipMemPoolTrimTo(mem_pool, 0);
+            if(hipStatus != hipSuccess)
+            {
+                rocblas_cerr << "rocBLAS error releasing the device's memory pool (deviceID: "
+                             << device << ")" << std::endl;
+                rocblas_abort();
+            }
 #endif
         }
     }
