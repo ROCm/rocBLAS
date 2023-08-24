@@ -12,4 +12,13 @@ Tests:
     N: 32..2016..32 # lower..upper..increment
     incx: 1
     incy: 1
+
+  - name: axpy_fma8_bench
+    category: bench
+    function: axpy
+    precision: *half_precision
+    alpha: [ 1, 2 ]
+    N: 1024..131072..1024
+    incx: 1
+    incy: 1
 ...

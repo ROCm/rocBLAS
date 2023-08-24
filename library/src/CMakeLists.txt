@@ -426,6 +426,8 @@ target_compile_options( rocblas PRIVATE -mf16c )
 # Do not allow Variable Length Arrays (use unique_ptr instead)
 target_compile_options( rocblas PRIVATE -Werror=vla )
 
+target_compile_definitions( rocblas PRIVATE __STDC_WANT_IEC_60559_TYPES_EXT__ )
+
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
           $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include/internal>

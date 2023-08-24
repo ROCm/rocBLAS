@@ -27,10 +27,6 @@
 #ifndef ROCBLAS_TYPES_H
 #define ROCBLAS_TYPES_H
 
-// Request _Float16 type extension
-// Note that this define will be removed in ROCm 6.0
-#define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
-
 #include "rocblas-export.h"
 #include "rocblas_bfloat16.h"
 #include "rocblas_float8.h"
