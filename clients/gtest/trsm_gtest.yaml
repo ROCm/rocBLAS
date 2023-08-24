@@ -27,15 +27,17 @@ Definitions:
     - { M:  2, N:  1, lda: 30, ldb: 30 }
     - { M:  1, N:  2, lda: 30, ldb: 30 }
 
-    - { M: 32, N:  3, lda: 32, ldb: 32 }
-    - { M: 32, N: 32, lda: 32, ldb: 32 }
-    - { M: 32, N: 31, lda: 32, ldb: 32 }
-    - { M: 31, N: 31, lda: 32, ldb: 32 }
+    - { M: 32, N:   3, lda: 32, ldb: 32 }
+    - { M: 32, N:  32, lda: 32, ldb: 32 }
+    - { M: 32, N:  31, lda: 32, ldb: 32 }
+    - { M: 31, N:  31, lda: 32, ldb: 32 }
+    - { M: 17, N: 800, lda: 20, ldb: 21 }
 
-    - { M: 33, N: 35, lda:  62, ldb:  61 }
-    - { M: 35, N: 33, lda:  61, ldb:  62 }
-    - { M:  7, N: 58, lda:  59, ldb: 130 }
-    - { M: 58, N:  7, lda: 130, ldb: 129 }
+    - { M: 33, N:   35, lda:  62, ldb:  61 }
+    - { M: 35, N:   33, lda:  61, ldb:  62 }
+    - { M:  7, N:   58, lda:  59, ldb: 130 }
+    - { M: 58, N:    7, lda: 130, ldb: 129 }
+    - { M: 49, N: 1004, lda: 130, ldb: 129 }
 
     # not small
     - { M: 8, N: 128, lda: 200, ldb: 200 }
