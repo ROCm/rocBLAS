@@ -483,6 +483,11 @@ The in-place and out-of-place trmm API calculates
 
 The in-place functionality is available by setting C the same as B and ldb = ldc. For out-of-place functionality C and B are different.
 
+Removal of __STDC_WANT_IEC_60559_TYPES_EXT__ define
+'''''''''''''''''''''''''''''''''''''''''''''''''''
+The #define __STDC_WANT_IEC_60559_TYPES_EXT__ has been removed from rocblas-types.h. Users who want ISO/IEC TS 18661-3:2015 functionality
+must define __STDC_WANT_IEC_60559_TYPES_EXT__ before including float.h, math.h, and rocblas.h.
+
 =================
 Using rocBLAS API
 =================
