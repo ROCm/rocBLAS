@@ -28,8 +28,6 @@
 #include "rocblas_gemm_ex.hpp"
 #include <random>
 
-// #define SR_DEBUG 1
-
 #define EX_TYPECASTING_PARM                                                                    \
     handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb,  \
         stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count, \
@@ -456,45 +454,6 @@ rocblas_status rocblas_internal_f16_conversion__mem(rocblas_handle              
 
     return memory_status;
 }
-
-#if defined(SR_DEBUG)
-#include <fstream>
-template <typename TiA, typename TiB = TiA, typename To = TiA>
-void storeSRToBin(rocblas_operation transA,
-                  rocblas_operation transB,
-                  rocblas_int       M,
-                  rocblas_int       N,
-                  rocblas_int       K,
-                  std::vector<TiA>& hA,
-                  rocblas_int       lda,
-                  std::string       ADataFile,
-                  std::vector<TiB>& hB,
-                  rocblas_int       ldb,
-                  std::string       BDataFile,
-                  // std::vector<To>&  hC,
-                  // rocblas_int       ldc,
-                  // std::string       CDataFile,
-                  rocblas_int batch_count)
-{
-    {
-        size_t sz = lda * (transA == rocblas_operation_none ? K : M) * sizeof(TiA) * batch_count;
-        std::ofstream FILE(ADataFile, std::ios::out | std::ofstream::binary);
-        FILE.write(reinterpret_cast<const char*>(&hA[0]), sz);
-    }
-
-    {
-        size_t sz = ldb * (transB == rocblas_operation_none ? N : K) * sizeof(TiB) * batch_count;
-        std::ofstream FILE(BDataFile, std::ios::out | std::ofstream::binary);
-        FILE.write(reinterpret_cast<const char*>(&hB[0]), sz);
-    }
-
-    // {
-    //     size_t        sz = ldc * N * sizeof(To) * batch_count;
-    //     std::ofstream FILE(CDataFile, std::ios::out | std::ofstream::binary);
-    //     FILE.write(reinterpret_cast<const char*>(&hC[0]), sz);
-    // }
-}
-#endif
 
 template <bool BATCHED,
           typename TiA,
@@ -1520,6 +1479,584 @@ template <bool BATCHED,
           typename To  = TiA,
           typename TcA,
           typename TcB,
+          typename Tacc>
+rocblas_status gemm_ex_special_f16(rocblas_handle     handle,
+                                   rocblas_operation  trans_a,
+                                   rocblas_operation  trans_b,
+                                   rocblas_int        m,
+                                   rocblas_int        n,
+                                   rocblas_int        k,
+                                   const void*        alpha,
+                                   const void*        a,
+                                   rocblas_int        offsetAin,
+                                   rocblas_int        lda,
+                                   rocblas_stride     stride_a,
+                                   const void*        b,
+                                   rocblas_int        offsetBin,
+                                   rocblas_int        ldb,
+                                   rocblas_stride     stride_b,
+                                   const void*        beta,
+                                   const void*        c,
+                                   rocblas_int        offsetCin,
+                                   rocblas_int        ldc,
+                                   rocblas_stride     stride_c,
+                                   void*              d,
+                                   rocblas_int        offsetDin,
+                                   rocblas_int        ldd,
+                                   rocblas_stride     stride_d,
+                                   rocblas_int        batch_count,
+                                   rocblas_gemm_flags flags)
+{
+    float alpha_h, beta_h;
+    RETURN_IF_ROCBLAS_ERROR(
+        rocblas_copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+
+    if(!isAligned(a, sizeof(TiA)) || !isAligned(b, sizeof(TiB)) || !isAligned(c, sizeof(To))
+       || !isAligned(d, sizeof(To)))
+        return rocblas_status_invalid_size;
+
+    bool stochastic_rounding = flags & rocblas_gemm_flags_stochastic_rounding;
+
+    rocblas_int lda_new = trans_a == rocblas_operation_none ? m : k;
+    rocblas_int ldb_new = trans_b == rocblas_operation_none ? k : n;
+    rocblas_int ldd_new = m;
+
+    //create new memory
+
+    auto  w_mem     = handle->device_malloc(0);
+    void* w_mem_dTA = nullptr;
+    void* w_mem_dTB = nullptr;
+
+    void*  w_mem_dTD   = nullptr;
+    bool   GSU_request = false;
+    size_t memsize;
+    bool   To_is_half  = std::is_same<rocblas_half, To>{};
+    bool   TiA_is_half = std::is_same<rocblas_half, TiA>{};
+    bool   TiB_is_half = std::is_same<rocblas_half, TiB>{};
+
+#if 1
+    {
+        // finding space for GSU
+        int32_t           solution_index = 0;
+        uint32_t          flag           = 0;
+        rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+
+        rocblas_start_device_memory_size_query(handle);
+
+        rocblas_stride stride_a{1}, stride_b{1}, stride_c{1}, stride_d{1};
+        rocblas_gemm_ex_template<false>(handle,
+                                        trans_a,
+                                        trans_b,
+                                        m,
+                                        n,
+                                        k,
+                                        alpha,
+                                        w_mem_dTA,
+                                        rocblas_datatype_f16_r,
+                                        0,
+                                        lda_new,
+                                        stride_a,
+                                        w_mem_dTB,
+                                        rocblas_datatype_f16_r,
+                                        0,
+                                        ldb_new,
+                                        stride_b,
+                                        beta,
+                                        To_is_half ? c : w_mem_dTD,
+                                        rocblas_datatype_f16_r,
+                                        0,
+                                        To_is_half ? ldc : ldd_new,
+                                        stride_c,
+                                        To_is_half ? d : w_mem_dTD,
+                                        rocblas_datatype_f16_r,
+                                        0,
+                                        To_is_half ? ldd : ldd_new,
+                                        stride_d,
+                                        batch_count,
+                                        rocblas_datatype_f32_r,
+                                        algo,
+                                        solution_index,
+                                        flags);
+
+        rocblas_stop_device_memory_size_query(handle, &memsize);
+        if(memsize)
+            GSU_request = true;
+    }
+
+#endif
+
+    rocblas_int size_a, size_b, size_c;
+
+    size_a           = m * k;
+    size_b           = k * n;
+    size_c           = m * n;
+    float local_beta = *(const float*)beta;
+
+    rocblas_status status = rocblas_internal_f16_conversion__mem(
+        handle,
+        std::pair<bool, rocblas_int>(!TiA_is_half, size_a * sizeof(rocblas_half)),
+        std::pair<bool, rocblas_int>(!TiB_is_half, size_b * sizeof(rocblas_half)),
+        std::pair<bool, rocblas_int>(!To_is_half, size_c * sizeof(rocblas_half)),
+        std::pair<bool, rocblas_int>(GSU_request, memsize),
+        w_mem,
+        w_mem_dTA,
+        w_mem_dTB,
+        w_mem_dTD);
+    if(status != rocblas_status_success)
+        return status;
+
+    //call conversion kernel
+
+    hipStream_t stream = handle->get_stream();
+    const int   dim_m  = 16;
+    const int   dim_n  = 16;
+
+    const int blk_m = 32;
+    const int blk_n = 32;
+    const int blk_k = 32;
+
+    uint32_t seedA = 0, seedB = 0;
+    if(stochastic_rounding)
+    {
+        std::random_device                      rd;
+        std::mt19937                            gen(rd());
+        std::uniform_int_distribution<uint32_t> distribution(0, 0xFFFFFFFF);
+        seedA = distribution(gen);
+        seedB = distribution(gen);
+    }
+
+    // A conversion
+    // clang-format off
+    if(!TiA_is_half)
+    {
+        dim3 dimBlock(dim_m, dim_n, 1);
+        int m_block = ((m - 1) / blk_m) + 1;
+        int k_block = ((k - 1) / blk_k) + 1;
+        dim3 dimGrid(rocblas_operation_none == trans_a ? m_block:k_block, rocblas_operation_none == trans_a ? k_block:m_block, batch_count);
+
+
+        if(rocblas_operation_none == trans_a)
+        {
+            if(stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                                                              TcA,
+                                                              rocblas_half,    // Tensile gemm's TiA
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_m,
+                                                              blk_k,
+                                                              'N',
+                                                              true>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              m,
+                                                              k,
+                                                              (const TiA*)a,
+                                                              (rocblas_half*)w_mem_dTA,
+                                                              lda,
+                                                              lda_new,
+                                                              stride_a,
+                                                              batch_count,
+                                                              seedA);
+            else if(!stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                                                              TcA,
+                                                              rocblas_half,    // Tensile gemm's TiA
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_m,
+                                                              blk_k,
+                                                              'N',
+                                                              false>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              m,
+                                                              k,
+                                                              (const TiA*)a,
+                                                              (rocblas_half*)w_mem_dTA,
+                                                              lda,
+                                                              lda_new,
+                                                              stride_a,
+                                                              batch_count,
+                                                              seedA);
+        }
+        else if(rocblas_operation_transpose == trans_a)
+        {
+            if(stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                                                              TcA,
+                                                              rocblas_half,    // Tensile gemm's TiA
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_m,
+                                                              blk_k,
+                                                              'T',
+                                                              true>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              m,
+                                                              k,
+                                                              (const TiA*)a,
+                                                              (rocblas_half*)w_mem_dTA,
+                                                              lda,
+                                                              lda_new,
+                                                              stride_a,
+                                                              batch_count,
+                                                              seedA);
+            else if(!stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                                                              TcA,
+                                                              rocblas_half,    // Tensile gemm's TiA
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_m,
+                                                              blk_k,
+                                                              'T',
+                                                              false>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              m,
+                                                              k,
+                                                              (const TiA*)a,
+                                                              (rocblas_half*)w_mem_dTA,
+                                                              lda,
+                                                              lda_new,
+                                                              stride_a,
+                                                              batch_count,
+                                                              seedA);
+
+        }
+        else if(rocblas_operation_conjugate_transpose == trans_a)
+        {
+            if(stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                                                              TcA,
+                                                              rocblas_half,    // Tensile gemm's TiA
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_m,
+                                                              blk_k,
+                                                              'C',
+                                                              true>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              m,
+                                                              k,
+                                                              (const TiA*)a,
+                                                              (rocblas_half*)w_mem_dTA,
+                                                              lda,
+                                                              lda_new,
+                                                              stride_a,
+                                                              batch_count,
+                                                              seedA);
+            else if(!stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                                                              TcA,
+                                                              rocblas_half,    // Tensile gemm's TiA
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_m,
+                                                              blk_k,
+                                                              'C',
+                                                              false>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              m,
+                                                              k,
+                                                              (const TiA*)a,
+                                                              (rocblas_half*)w_mem_dTA,
+                                                              lda,
+                                                              lda_new,
+                                                              stride_a,
+                                                              batch_count,
+                                                              seedA);
+        }
+    }
+
+    // *** B conversion
+    if(!TiB_is_half)
+    {
+        dim3 dimBlock(dim_m, dim_n, 1);
+        int k_block = ((k - 1) / blk_k) + 1;
+        int n_block = ((n - 1) / blk_n) + 1;
+        dim3 dimGrid(rocblas_operation_none == trans_b ? k_block:n_block, rocblas_operation_none == trans_b ? n_block:k_block, batch_count);
+
+        if(rocblas_operation_none == trans_b)
+        {
+            if(stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                                                              TcB,
+                                                              rocblas_half,    // Tensile gemm's TiB
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_k,
+                                                              blk_n,
+                                                              'N',
+                                                              true>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              k,
+                                                              n,
+                                                              (const TiB*)b,
+                                                              (rocblas_half*)w_mem_dTB,
+                                                              ldb,
+                                                              ldb_new,
+                                                              stride_b,
+                                                              batch_count,
+                                                              seedB);
+            else if(!stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                                                              TcB,
+                                                              rocblas_half,    // Tensile gemm's TiB
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_k,
+                                                              blk_n,
+                                                              'N',
+                                                              false>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              k,
+                                                              n,
+                                                              (const TiB*)b,
+                                                              (rocblas_half*)w_mem_dTB,
+                                                              ldb,
+                                                              ldb_new,
+                                                              stride_b,
+                                                              batch_count,
+                                                              seedB);
+        }
+        else if(rocblas_operation_transpose == trans_b)
+        {
+            if(stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                                                              TcB,
+                                                              rocblas_half,    // Tensile gemm's TiB
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_k,
+                                                              blk_n,
+                                                              'T',
+                                                              true>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              k,
+                                                              n,
+                                                              (const TiB*)b,
+                                                              (rocblas_half*)w_mem_dTB,
+                                                              ldb,
+                                                              ldb_new,
+                                                              stride_b,
+                                                              batch_count,
+                                                              seedB);
+            else if(!stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                                                              TcB,
+                                                              rocblas_half,    // Tensile gemm's TiB
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_k,
+                                                              blk_n,
+                                                              'T',
+                                                              false>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              k,
+                                                              n,
+                                                              (const TiB*)b,
+                                                              (rocblas_half*)w_mem_dTB,
+                                                              ldb,
+                                                              ldb_new,
+                                                              stride_b,
+                                                              batch_count,
+                                                              seedB);
+
+
+        }
+        else if(rocblas_operation_conjugate_transpose == trans_b)
+        {
+            if(stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                                                              TcB,
+                                                              rocblas_half,    // Tensile gemm's TiB
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_k,
+                                                              blk_n,
+                                                              'C',
+                                                              true>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              k,
+                                                              n,
+                                                              (const TiB*)b,
+                                                              (rocblas_half*)w_mem_dTB,
+                                                              ldb,
+                                                              ldb_new,
+                                                              stride_b,
+                                                              batch_count,
+                                                              seedB);
+            else if(!stochastic_rounding)
+                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                                                              TcB,
+                                                              rocblas_half,    // Tensile gemm's TiB
+                                                              dim_m,
+                                                              dim_n,
+                                                              blk_k,
+                                                              blk_n,
+                                                             'C',
+                                                              false>),
+                                                              dimGrid,
+                                                              dimBlock,
+                                                              0,
+                                                              stream,
+                                                              k,
+                                                              n,
+                                                              (const TiB*)b,
+                                                              (rocblas_half*)w_mem_dTB,
+                                                              ldb,
+                                                              ldb_new,
+                                                              stride_b,
+                                                              batch_count,
+                                                              seedB);
+        }
+    }
+    // clang-format on
+
+    // C conversion
+    // clang-format off
+    if(!To_is_half && local_beta!=0)
+    {
+        dim3 dimBlock(dim_m, dim_n, 1);
+        dim3 dimGrid(((m - 1) / blk_m) + 1, ((n - 1) / blk_n) + 1, batch_count);
+
+
+        hipLaunchKernelGGL((general_conversion_kernel<To,
+                                                        To,
+                                                        rocblas_half,    // Tensile gemm's TiA
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        'N',
+                                                        false>),
+                                                        dimGrid,
+                                                        dimBlock,
+                                                        0,
+                                                        stream,
+                                                        m,
+                                                        n,
+                                                        (const To*)c,
+                                                        (rocblas_half*)w_mem_dTD,
+                                                        ldc,
+                                                        ldd_new,
+                                                        stride_c,
+                                                        batch_count,
+                                                        seedA);
+
+    }
+
+    //call gemm
+
+    int32_t           solution_index = 0;
+    uint32_t          flag           = 0;
+    rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+
+    status = rocblas_gemm_ex_template<false>(handle,
+                                           trans_a,
+                                           trans_b,
+                                           m,
+                                           n,
+                                           k,
+                                           alpha,
+                                           TiA_is_half ? a : w_mem_dTA,
+                                           rocblas_datatype_f16_r,
+                                           0,
+                                           TiA_is_half ? lda : lda_new,
+                                           stride_a,
+                                           TiB_is_half ? b : w_mem_dTB,
+                                           rocblas_datatype_f16_r,
+                                           0,
+                                           TiB_is_half ? ldb :ldb_new,
+                                           stride_b,
+                                           beta,
+                                           (To_is_half || local_beta == 0) ? c : w_mem_dTD,
+                                           rocblas_datatype_f16_r,
+                                           0,
+                                           (To_is_half || local_beta == 0)  ? ldc : ldd_new,
+                                           stride_c,
+                                           To_is_half ? d : w_mem_dTD,
+                                           rocblas_datatype_f16_r,
+                                           0,
+                                           To_is_half ? ldd : ldd_new,
+                                           stride_d,
+                                           batch_count,
+                                           rocblas_datatype_f32_r,
+                                           algo,
+                                           solution_index,
+                                           flags);
+
+    if(!To_is_half)
+    {
+        dim3 dimBlock(dim_m, dim_n, 1);
+        dim3 dimGrid(((m - 1) / blk_m) + 1, ((n - 1) / blk_n) + 1, batch_count);
+
+
+        hipLaunchKernelGGL((general_conversion_kernel<rocblas_half,
+                                                        To,
+                                                        To,    // final output
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        'N',
+                                                        false>),
+                                                        dimGrid,
+                                                        dimBlock,
+                                                        0,
+                                                        stream,
+                                                        m,
+                                                        n,
+                                                        (const rocblas_half*)w_mem_dTD,
+                                                        (To*)d,
+                                                        ldd_new,
+                                                        ldd,
+                                                        stride_d,
+                                                        batch_count,
+                                                        seedA);
+    }
+
+        return status;
+}
+
+template <bool BATCHED,
+          typename TiA,
+          typename TiB = TiA,
+          typename To  = TiA,
+          typename TcA,
+          typename TcB,
           typename Tacc,
           typename To_expected = Tacc> // To_expected is type expected to return from Tensile kernel
 rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
@@ -2034,76 +2571,6 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
 
     }
 
-#if defined(SR_DEBUG)
-
-    std::vector<TcA> hTA(size_a);
-    std::vector<TcB> hTB(size_b);
-    std::vector<To_expected> hTC(size_c);
-    std::vector<To> hTC_og(ldc * n);
-    std::vector<To_expected> hTD(size_c);
-    if(!TiA_is_final)
-        hipMemcpy(hTA.data(), w_mem_dTA, sizeof(TcA) * size_a, hipMemcpyDeviceToHost);
-    if(!TiB_is_final)
-        hipMemcpy(hTB.data(), w_mem_dTB, sizeof(TcB) * size_b, hipMemcpyDeviceToHost);
-    if(!To_is_final && local_beta!=0)
-    {
-        hipMemcpy(hTC.data(), w_mem_dTD, sizeof(To_expected) * size_c, hipMemcpyDeviceToHost);
-        hipMemcpy(hTC_og.data(), c, sizeof(To) * ldc * n, hipMemcpyDeviceToHost);
-    }
-
-    auto                 A_row = trans_a == rocblas_operation_none ? m : k;
-    auto                 A_col = trans_a == rocblas_operation_none ? k : m;
-    auto                 B_row = trans_b == rocblas_operation_none ? k : n;
-    auto                 B_col = trans_b == rocblas_operation_none ? n : k;
-
-    if(!TiA_is_final)
-    {
-    rocblas_cout<<"matrix A"<<std::endl;
-
-    for(int i = 0; i < A_row; i++)
-    {
-        for(int j = 0; j < A_col; j++)
-            rocblas_cout << std::right << std::setw(4) << hTA[j * lda_new + i] << " (" << i<<","<<j<<") ";
-        rocblas_cout << std::endl;
-    }
-    }
-
-    if(!TiB_is_final)
-    {
-    rocblas_cout<<"matrix B"<<std::endl;
-
-    for(int i = 0; i < B_row; i++)
-    {
-        for(int j = 0; j < B_col; j++)
-            rocblas_cout << std::right << std::setw(4) << hTB[j * ldb_new + i] << " (" << i<<","<<j<<") ";
-        rocblas_cout << std::endl;
-    }
-    }
-
-    if(!To_is_final && local_beta!=0)
-    {
-
-        rocblas_cout<<"matrix C OG"<<std::endl;
-
-        for(int i = 0; i < m; i++)
-        {
-            for(int j = 0; j < n; j++)
-                rocblas_cout << std::right << std::setw(4) << hTC_og[j * ldc + i] << " ";
-            rocblas_cout << std::endl;
-        }
-
-        rocblas_cout<<"matrix C"<<std::endl;
-
-        for(int i = 0; i < m; i++)
-        {
-            for(int j = 0; j < n; j++)
-                rocblas_cout << std::right << std::setw(4) << hTC[j * ldd_new + i] << " ";
-            rocblas_cout << std::endl;
-        }
-    }
-
-#endif
-
     //call gemm
 
     int32_t           solution_index = 0;
@@ -2140,21 +2607,6 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                            batch_count,
                                            rocblas_compute_type_f32,
                                            flags);
-
-#if defined(SR_DEBUG)
-    if(!To_is_final)
-    {
-    hipMemcpy(hTD.data(), w_mem_dTD, sizeof(To_expected) * size_c, hipMemcpyDeviceToHost);
-    rocblas_cout<<"matrix D before optional quant"<<std::endl;
-
-    for(int i = 0; i < m; i++)
-    {
-        for(int j = 0; j < n; j++)
-            rocblas_cout << std::right << std::setw(4) << hTD[j * ldd_new + i];
-        rocblas_cout << std::endl;
-    }
-    }
-#endif
 
     if(!To_is_final)
     {
@@ -2436,332 +2888,450 @@ rocblas_status rocblas_gemm_ex3_template(rocblas_handle      handle,
 
     rocblas_status rb_status = rocblas_status_not_implemented;
 
+    // if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r
+    //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+    //    && compute_type == rocblas_compute_type_f32)
+    //     // rb_status = gemm_ex3_typecasting_tensile<BATCHED,
+    //     //                                         rocblas_f8,
+    //     //                                         rocblas_f8,
+    //     //                                         float,
+    //     //                                         rocblas_f8,
+    //     //                                         rocblas_f8,
+    //     //                                         float>(EX_TYPECASTING_PARM);
+    //     rb_status = gemm_ex_special_f16<BATCHED,
+    //                                             rocblas_f8,
+    //                                             rocblas_f8,
+    //                                             float,
+    //                                             rocblas_f8,
+    //                                             rocblas_f8,
+    //                                             float>(EX_TYPECASTING_PARM);
     if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r
-       && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
-       && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_f8,
-                                                rocblas_f8,
-                                                float,
-                                                rocblas_f8,
-                                                rocblas_f8,
-                                                float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
+        rb_status = gemm_ex_special_f16<BATCHED,
                                                 rocblas_f8,
                                                 rocblas_f8,
                                                 rocblas_half,
                                                 rocblas_f8,
                                                 rocblas_f8,
                                                 float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
-            && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
-            && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                float,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
+    else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f16_r
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
+        rb_status = gemm_ex_special_f16<BATCHED,
+                                                rocblas_f8,
                                                 rocblas_half,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r
-            && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
-            && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
+                                                rocblas_half,
                                                 rocblas_f8,
-                                                rocblas_bf8,
-                                                float,
-                                                rocblas_f8,
-                                                rocblas_bf8,
+                                                rocblas_half,
                                                 float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f8_r
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_f8,
-                                                rocblas_bf8,
+        rb_status = gemm_ex_special_f16<BATCHED,
                                                 rocblas_half,
                                                 rocblas_f8,
-                                                rocblas_bf8,
-                                                float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r
-            && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
-            && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_bf8,
-                                                rocblas_f8,
-                                                float,
-                                                rocblas_bf8,
-                                                rocblas_f8,
-                                                float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r
-            && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
-            && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_bf8,
-                                                rocblas_f8,
                                                 rocblas_half,
-                                                rocblas_bf8,
+                                                rocblas_half,
                                                 rocblas_f8,
                                                 float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r
-            && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r
-            && compute_type == rocblas_compute_type_f32)
-    {
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_f8,
-                                                rocblas_f8,
-                                                rocblas_f8,
-                                                rocblas_f8,
-                                                rocblas_f8,
-                                                float>(EX_TYPECASTING_PARM);
-    }
-    else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
-            && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r
-            && compute_type == rocblas_compute_type_f32)
-    {
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                float>(EX_TYPECASTING_PARM);
-    }
+    // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
+    //         && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+    //         && compute_type == rocblas_compute_type_f32)
+    //     // rb_status = gemm_ex3_typecasting_tensile<BATCHED,
+    //     //                                         rocblas_bf8,
+    //     //                                         rocblas_bf8,
+    //     //                                         float,
+    //     //                                         rocblas_bf8,
+    //     //                                         rocblas_bf8,
+    //     //                                         float>(EX_TYPECASTING_PARM);
+    //     rb_status = gemm_ex3_fallback<BATCHED,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             float,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
+    //         && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
+    //         && compute_type == rocblas_compute_type_f32)
+    //     // rb_status = gemm_ex3_typecasting_tensile<BATCHED,
+    //     //                                         rocblas_bf8,
+    //     //                                         rocblas_bf8,
+    //     //                                         rocblas_half,
+    //     //                                         rocblas_bf8,
+    //     //                                         rocblas_bf8,
+    //     //                                         float>(EX_TYPECASTING_PARM);
+    //     rb_status = gemm_ex3_fallback<BATCHED,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_half,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r
+    //         && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+    //         && compute_type == rocblas_compute_type_f32)
+    //     rb_status = gemm_ex_special_f16<BATCHED,
+    //                                             rocblas_f8,
+    //                                             rocblas_bf8,
+    //                                             float,
+    //                                             rocblas_f8,
+    //                                             rocblas_bf8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r
+    //         && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
+    //         && compute_type == rocblas_compute_type_f32)
+    //     rb_status = gemm_ex3_fallback<BATCHED,
+    //                                             rocblas_f8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_half,
+    //                                             rocblas_f8,
+    //                                             rocblas_bf8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r
+    //         && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+    //         && compute_type == rocblas_compute_type_f32)
+    //     // rb_status = gemm_ex3_typecasting_tensile<BATCHED,
+    //     //                                         rocblas_bf8,
+    //     //                                         rocblas_f8,
+    //     //                                         float,
+    //     //                                         rocblas_bf8,
+    //     //                                         rocblas_f8,
+    //     //                                         float>(EX_TYPECASTING_PARM);
+    //     rb_status = gemm_ex_special_f16<BATCHED,
+    //                                             rocblas_bf8,
+    //                                             rocblas_f8,
+    //                                             float,
+    //                                             rocblas_bf8,
+    //                                             rocblas_f8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r
+    //         && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
+    //         && compute_type == rocblas_compute_type_f32)
+    //     rb_status = gemm_ex3_fallback<BATCHED,
+    //                                             rocblas_bf8,
+    //                                             rocblas_f8,
+    //                                             rocblas_half,
+    //                                             rocblas_bf8,
+    //                                             rocblas_f8,
+    //                                             float>(EX_TYPECASTING_PARM);
     // else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r
+    //         && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r
+    //         && compute_type == rocblas_compute_type_f32)
+    // {
+    //     rb_status = gemm_ex_special_f16<BATCHED,
+    //                                             rocblas_f8,
+    //                                             rocblas_f8,
+    //                                             rocblas_f8,
+    //                                             rocblas_f8,
+    //                                             rocblas_f8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // }
+    // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
     //         && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r
     //         && compute_type == rocblas_compute_type_f32)
     // {
     //     rb_status = gemm_ex3_fallback<BATCHED,
-    //                                      rocblas_f8,
-    //                                      rocblas_f8,
-    //                                      rocblas_bf8,
-    //                                      rocblas_f8,
-    //                                      rocblas_f8,
-    //                                      float>(EX_TYPECASTING_PARM);
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             float>(EX_TYPECASTING_PARM);
     // }
-    // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
-    //         && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r
+    // // else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r
+    // //         && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r
+    // //         && compute_type == rocblas_compute_type_f32)
+    // // {
+    // //     rb_status = gemm_ex3_fallback<BATCHED,
+    // //                                      rocblas_f8,
+    // //                                      rocblas_f8,
+    // //                                      rocblas_bf8,
+    // //                                      rocblas_f8,
+    // //                                      rocblas_f8,
+    // //                                      float>(EX_TYPECASTING_PARM);
+    // // }
+    // // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r
+    // //         && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r
+    // //         && compute_type == rocblas_compute_type_f32)
+    // // {
+    // //     rb_status = gemm_ex3_fallback<BATCHED,
+    // //                                      rocblas_bf8,
+    // //                                      rocblas_bf8,
+    // //                                      rocblas_f8,
+    // //                                      rocblas_bf8,
+    // //                                      rocblas_bf8,
+    // //                                      float>(EX_TYPECASTING_PARM);
+    // // }
+    // else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r
+    //         && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r
     //         && compute_type == rocblas_compute_type_f32)
+    //     rb_status = gemm_ex_special_f16<BATCHED,
+    //                                             rocblas_f8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_f8,
+    //                                             rocblas_bf8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r
+    //         && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r
+    //         && compute_type == rocblas_compute_type_f32)
+    //     rb_status = gemm_ex_special_f16<BATCHED,
+    //                                             rocblas_bf8,
+    //                                             rocblas_f8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_bf8,
+    //                                             rocblas_f8,
+    //                                             float>(EX_TYPECASTING_PARM);
+    // else if(compute_type == rocblas_compute_type_f8_f8_f32)
     // {
-    //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
+    //     //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+    //     //     rb_status
+    //     //         = gemm_ex3_fallback<BATCHED, float, float, float, rocblas_f8, rocblas_f8, float>(
+    //     //             EX_TYPECASTING_PARM);
+    //     if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
+    //             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_f8,
+    //         //                              rocblas_f8,
+    //         //                              float,
+    //         //                              rocblas_half>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_f8,
+    //                                         rocblas_f8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    //     // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
+    //     //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+    //     //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_f8,
+    //     //                                      rocblas_f8,
+    //     //                                      float>(EX_TYPECASTING_PARM);
+    //     else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f32_r
+    //             && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              rocblas_f8,
+    //         //                              float,
+    //         //                              rocblas_f8,
+    //         //                              rocblas_f8,
+    //         //                              rocblas_f8,
+    //         //                              float,
+    //         //                              rocblas_f8>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         rocblas_f8,
+    //                                         float,
+    //                                         rocblas_f8,
+    //                                         rocblas_f8,
+    //                                         rocblas_f8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    //     // else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f8_r
+    //     //         && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r)
+    //     //     rb_status = gemm_ex3_quantize<BATCHED,
+    //     //                                  float,
+    //     //                                  rocblas_f8,
+    //     //                                  rocblas_f8,
+    //     //                                  rocblas_f8,
+    //     //                                  rocblas_f8,
+    //     //                                  float,
+    //     //                                  rocblas_f8>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         float,
+    //                                         rocblas_f8,
+    //                                         rocblas_f8,
+    //                                         rocblas_f8,
+    //                                         rocblas_f8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    // }
+    // else if(compute_type == rocblas_compute_type_f8_bf8_f32)
+    // {
+    //     // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
+    //     //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+    //     //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     //                                      float,
+    //     //                                      float,
+    //     //                                      float,
+    //     //                                      rocblas_f8,
+    //     //                                      rocblas_bf8,
+    //     //                                      float>(EX_TYPECASTING_PARM);
+    //     if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
+    //             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_f8,
+    //         //                              rocblas_bf8,
+    //         //                              float,
+    //         //                              rocblas_half>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_f8,
+    //                                         rocblas_bf8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    //     // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
+    //     //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+    //     //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_f8,
+    //     //                                      rocblas_bf8,
+    //     //                                      float>(EX_TYPECASTING_PARM);
+    //     if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_bf8_r
+    //             && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              float,
+    //         //                              rocblas_bf8,
+    //         //                              rocblas_bf8,
+    //         //                              rocblas_f8,
+    //         //                              rocblas_bf8,
+    //         //                              float,
+    //         //                              rocblas_bf8>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         float,
+    //                                         rocblas_bf8,
+    //                                         float,
+    //                                         rocblas_f8,
+    //                                         rocblas_bf8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    //     else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_bf8_r
+    //             && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              float,
+    //         //                              rocblas_bf8,
+    //         //                              float,
+    //         //                              rocblas_f8,
+    //         //                              rocblas_bf8,
+    //         //                              float>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                      float,
     //                                      rocblas_bf8,
-    //                                      rocblas_bf8,
+    //                                      float,
     //                                      rocblas_f8,
-    //                                      rocblas_bf8,
     //                                      rocblas_bf8,
     //                                      float>(EX_TYPECASTING_PARM);
     // }
-    else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r
-            && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r
-            && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_f8,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                rocblas_f8,
-                                                rocblas_bf8,
-                                                float>(EX_TYPECASTING_PARM);
-    else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r
-            && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r
-            && compute_type == rocblas_compute_type_f32)
-        rb_status = gemm_ex3_typecasting_tensile<BATCHED,
-                                                rocblas_bf8,
-                                                rocblas_f8,
-                                                rocblas_bf8,
-                                                rocblas_bf8,
-                                                rocblas_f8,
-                                                float>(EX_TYPECASTING_PARM);
-    else if(compute_type == rocblas_compute_type_f8_f8_f32)
-    {
-        // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
-        //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
-        //     rb_status
-        //         = gemm_ex3_fallback<BATCHED, float, float, float, rocblas_f8, rocblas_f8, float>(
-        //             EX_TYPECASTING_PARM);
-        if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-                && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_f8,
-                                         rocblas_f8,
-                                         float,
-                                         rocblas_half>(EX_TYPECASTING_PARM);
-        // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
-        //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
-        //     rb_status = gemm_ex3_fallback<BATCHED,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_f8,
-        //                                      rocblas_f8,
-        //                                      float>(EX_TYPECASTING_PARM);
-        else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f32_r
-                && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         rocblas_f8,
-                                         float,
-                                         rocblas_f8,
-                                         rocblas_f8,
-                                         rocblas_f8,
-                                         float,
-                                         rocblas_f8>(EX_TYPECASTING_PARM);
-        else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f8_r
-                && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         float,
-                                         rocblas_f8,
-                                         rocblas_f8,
-                                         rocblas_f8,
-                                         rocblas_f8,
-                                         float,
-                                         rocblas_f8>(EX_TYPECASTING_PARM);
-    }
-    else if(compute_type == rocblas_compute_type_f8_bf8_f32)
-    {
-        // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
-        //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
-        //     rb_status = gemm_ex3_fallback<BATCHED,
-        //                                      float,
-        //                                      float,
-        //                                      float,
-        //                                      rocblas_f8,
-        //                                      rocblas_bf8,
-        //                                      float>(EX_TYPECASTING_PARM);
-        if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-                && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_f8,
-                                         rocblas_bf8,
-                                         float,
-                                         rocblas_half>(EX_TYPECASTING_PARM);
-        // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
-        //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
-        //     rb_status = gemm_ex3_fallback<BATCHED,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_f8,
-        //                                      rocblas_bf8,
-        //                                      float>(EX_TYPECASTING_PARM);
-        if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_bf8_r
-                && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         float,
-                                         rocblas_bf8,
-                                         rocblas_bf8,
-                                         rocblas_f8,
-                                         rocblas_bf8,
-                                         float,
-                                         rocblas_bf8>(EX_TYPECASTING_PARM);
-        else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_bf8_r
-                && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         float,
-                                         rocblas_bf8,
-                                         float,
-                                         rocblas_f8,
-                                         rocblas_bf8,
-                                         float>(EX_TYPECASTING_PARM);
-    }
-    else if(compute_type == rocblas_compute_type_bf8_f8_f32)
-    {
-        // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
-        //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
-        //     rb_status = gemm_ex3_fallback<BATCHED,
-        //                                      float,
-        //                                      float,
-        //                                      float,
-        //                                      rocblas_bf8,
-        //                                      rocblas_f8,
-        //                                      float>(EX_TYPECASTING_PARM);
-        if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-                && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_bf8,
-                                         rocblas_f8,
-                                         float,
-                                         rocblas_half>(EX_TYPECASTING_PARM);
-        // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
-        //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
-        //     rb_status = gemm_ex3_fallback<BATCHED,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bf8,
-        //                                      rocblas_f8,
-        //                                      float>(EX_TYPECASTING_PARM);
-        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f32_r
-                && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         rocblas_bf8,
-                                         float,
-                                         float,
-                                         rocblas_bf8,
-                                         rocblas_f8,
-                                         float>(EX_TYPECASTING_PARM);
-    }
-    else if(compute_type == rocblas_compute_type_bf8_bf8_f32)
-    {
-        // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
-        //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
-        //     rb_status = gemm_ex3_fallback<BATCHED,
-        //                                      float,
-        //                                      float,
-        //                                      float,
-        //                                      rocblas_bf8,
-        //                                      rocblas_bf8,
-        //                                      float>(EX_TYPECASTING_PARM);
-        if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-                && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_half,
-                                         rocblas_bf8,
-                                         rocblas_bf8,
-                                         float,
-                                         rocblas_half>(EX_TYPECASTING_PARM);
-        // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
-        //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
-        //     rb_status = gemm_ex3_fallback<BATCHED,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bfloat16,
-        //                                      rocblas_bf8,
-        //                                      rocblas_bf8,
-        //                                      float>(EX_TYPECASTING_PARM);
-        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f32_r
-                && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r)
-            rb_status = gemm_ex3_quantize<BATCHED,
-                                         rocblas_bf8,
-                                         float,
-                                         rocblas_bf8,
-                                         rocblas_bf8,
-                                         rocblas_bf8,
-                                         float,
-                                         rocblas_bf8>(EX_TYPECASTING_PARM);
-    }
+    // else if(compute_type == rocblas_compute_type_bf8_f8_f32)
+    // {
+    //     // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
+    //     //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+    //     //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     //                                      float,
+    //     //                                      float,
+    //     //                                      float,
+    //     //                                      rocblas_bf8,
+    //     //                                      rocblas_f8,
+    //     //                                      float>(EX_TYPECASTING_PARM);
+    //     if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
+    //             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_bf8,
+    //         //                              rocblas_f8,
+    //         //                              float,
+    //         //                              rocblas_half>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_bf8,
+    //                                         rocblas_f8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    //     // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
+    //     //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+    //     //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bf8,
+    //     //                                      rocblas_f8,
+    //     //                                      float>(EX_TYPECASTING_PARM);
+    //     else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f32_r
+    //             && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              rocblas_bf8,
+    //         //                              float,
+    //         //                              float,
+    //         //                              rocblas_bf8,
+    //         //                              rocblas_f8,
+    //         //                              float>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                      rocblas_bf8,
+    //                                      float,
+    //                                      float,
+    //                                      rocblas_bf8,
+    //                                      rocblas_f8,
+    //                                      float>(EX_TYPECASTING_PARM);
+    // }
+    // else if(compute_type == rocblas_compute_type_bf8_bf8_f32)
+    // {
+    //     // if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
+    //     //    && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+    //     //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     //                                      float,
+    //     //                                      float,
+    //     //                                      float,
+    //     //                                      rocblas_bf8,
+    //     //                                      rocblas_bf8,
+    //     //                                      float>(EX_TYPECASTING_PARM);
+    //     if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
+    //             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_half,
+    //         //                              rocblas_bf8,
+    //         //                              rocblas_bf8,
+    //         //                              float,
+    //         //                              rocblas_half>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_half,
+    //                                         rocblas_bf8,
+    //                                         rocblas_bf8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    //     // else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
+    //     //         && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+    //     //     rb_status = gemm_ex3_fallback<BATCHED,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bfloat16,
+    //     //                                      rocblas_bf8,
+    //     //                                      rocblas_bf8,
+    //     //                                      float>(EX_TYPECASTING_PARM);
+    //     else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f32_r
+    //             && c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r)
+    //         // rb_status = gemm_ex3_quantize<BATCHED,
+    //         //                              rocblas_bf8,
+    //         //                              float,
+    //         //                              rocblas_bf8,
+    //         //                              rocblas_bf8,
+    //         //                              rocblas_bf8,
+    //         //                              float,
+    //         //                              rocblas_bf8>(EX_TYPECASTING_PARM);
+    //         rb_status = gemm_ex_special_f16<BATCHED,
+    //                                         rocblas_bf8,
+    //                                         float,
+    //                                         rocblas_bf8,
+    //                                         rocblas_bf8,
+    //                                         rocblas_bf8,
+    //                                         float>(EX_TYPECASTING_PARM);
+    // }
     else
     {
         rb_status = rocblas_status_not_implemented;
