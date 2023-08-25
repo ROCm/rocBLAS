@@ -1,5 +1,7 @@
 #include "definitions.hpp"
+#include "gemm.hpp"
 #include "handle.hpp"
+#include "rocblas_blas_ex_threshold.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_gemmt.hpp"
 #include "utility.hpp"
@@ -49,9 +51,9 @@ rocblas_internal_gemmt_kernel(rocblas_int    N,
     int thxB = idt % BLK_K; // thread's m position for loading B
     int thyB = idt / BLK_K; // thread's n position for loading B
 
-    auto* dA = load_ptr_batch(dA_array, blz, 0, stride_a);
-    auto* dB = load_ptr_batch(dB_array, blz, 0, stride_b);
-    auto* dC = load_ptr_batch(dC_array, blz, 0, stride_c);
+    auto* dA = load_ptr_batch(dA_array, blz, stride_a);
+    auto* dB = load_ptr_batch(dB_array, blz, stride_b);
+    auto* dC = load_ptr_batch(dC_array, blz, stride_c);
 
     __shared__ T sA[BLK_K][BLK_N]; // shared memory for A
     __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
@@ -131,28 +133,28 @@ rocblas_internal_gemmt_kernel(rocblas_int    N,
 }
 
 template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
-                                               rocblas_fill      uplo,
-                                               rocblas_operation transA,
-                                               rocblas_operation transB,
-                                               rocblas_int       n,
-                                               rocblas_int       k,
-                                               const TScal*      alpha,
-                                               TConstPtr         dA,
-                                               rocblas_int       lda,
-                                               rocblas_stride    stride_a,
-                                               TConstPtr         dB,
-                                               rocblas_int       ldb,
-                                               rocblas_stride    stride_b,
-                                               const TScal*      beta,
-                                               TPtr              dC,
-                                               rocblas_int       ldc,
-                                               rocblas_stride    stride_c,
-                                               rocblas_int       batch_count)
+rocblas_status rocblas_internal_gemmt_general_template(rocblas_handle    handle,
+                                                       rocblas_fill      uplo,
+                                                       rocblas_operation transA,
+                                                       rocblas_operation transB,
+                                                       rocblas_int       n,
+                                                       rocblas_int       k,
+                                                       const TScal*      alpha,
+                                                       TConstPtr         dA,
+                                                       rocblas_int       lda,
+                                                       rocblas_stride    stride_a,
+                                                       TConstPtr         dB,
+                                                       rocblas_int       ldb,
+                                                       rocblas_stride    stride_b,
+                                                       const TScal*      beta,
+                                                       TPtr              dC,
+                                                       rocblas_int       ldc,
+                                                       rocblas_stride    stride_c,
+                                                       rocblas_int       batch_count)
 {
     hipStream_t stream = handle->get_stream();
 
-    constexpr bool is_complex
+    constexpr bool rocblas_is_complex
         = std::is_same_v<TScal,
                          rocblas_float_complex> || std::is_same_v<TScal, rocblas_double_complex>;
 
@@ -162,7 +164,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
     dim3      dimBlock(dim_n, dim_n);
     dim3      dimGrid(((n - 1) / blk_n) + 1, ((n - 1) / blk_n) + 1, batch_count);
 
-#define ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha_, beta_)                                             \
+#define ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha_, beta_)                                     \
     dimGrid, dimBlock, 0, stream, n, k, alpha_, dA, lda, stride_a, dB, ldb, stride_b, beta_, dC, \
         ldc, stride_c, batch_count
     if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -179,7 +181,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -190,7 +192,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -200,9 +202,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'U',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -213,7 +215,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -224,7 +226,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -234,9 +236,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'U',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -245,10 +247,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'N',
                                                                   'U',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -257,10 +259,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'T',
                                                                   'U',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -269,10 +271,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'C',
                                                                   'U',
-                                                                  is_complex,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
         }
         else
         {
@@ -286,7 +288,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -297,7 +299,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -307,9 +309,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'L',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -320,7 +322,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -331,7 +333,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -341,9 +343,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'L',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -352,10 +354,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'N',
                                                                   'L',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -364,10 +366,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'T',
                                                                   'L',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -376,10 +378,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'C',
                                                                   'L',
-                                                                  is_complex,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(alpha, beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(alpha, beta));
         }
     }
     //pointer mode host
@@ -397,7 +399,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -408,7 +410,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -418,9 +420,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'U',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -431,7 +433,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -442,7 +444,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -452,9 +454,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'U',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -463,10 +465,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'N',
                                                                   'U',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -475,10 +477,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'T',
                                                                   'U',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -487,10 +489,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'C',
                                                                   'U',
-                                                                  is_complex,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
         }
         else
         {
@@ -504,7 +506,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -515,7 +517,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_none
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -525,9 +527,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'L',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -538,7 +540,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
                                                                   blk_n,
@@ -549,7 +551,7 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   false,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -559,9 +561,9 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'L',
                                                                   false,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_none)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -570,10 +572,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'N',
                                                                   'L',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -582,10 +584,10 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'T',
                                                                   'L',
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
                                                                   false,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
             else if(transA == rocblas_operation_conjugate_transpose
                     && transB == rocblas_operation_conjugate_transpose)
                 hipLaunchKernelGGL((rocblas_internal_gemmt_kernel<dim_n,
@@ -594,14 +596,412 @@ rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
                                                                   'C',
                                                                   'C',
                                                                   'L',
-                                                                  is_complex,
-                                                                  is_complex,
+                                                                  rocblas_is_complex,
+                                                                  rocblas_is_complex,
                                                                   TScal>),
-                                   ROCBLAS_INTERNAL_GEMMT_PARAMS(*alpha, *beta));
+                                   ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS(*alpha, *beta));
         }
     }
-#undef ROCBLAS_INTERNAL_GEMMT_PARAMS
+#undef ROCBLAS_INTERNAL_GEMMT_GENERAL_PARAMS
 
+    return rocblas_status_success;
+}
+
+#define OFFSET_A(i1) i1* rocblas_stride(a_s1)
+#define OFFSET_B(i1) i1* rocblas_stride(b_s1)
+#define OFFSET_C(i1, i2) i1* rocblas_stride(c_s1) + i2* rocblas_stride(c_s2)
+
+template <rocblas_int MIN_NB, bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_gemmt_non_batch_block_recursive_template(rocblas_handle    handle,
+                                                                         rocblas_fill      uplo,
+                                                                         rocblas_operation transA,
+                                                                         rocblas_operation transB,
+                                                                         rocblas_int       n,
+                                                                         rocblas_int       k,
+                                                                         const TScal*      alpha,
+                                                                         TConstPtr         dA,
+                                                                         rocblas_int       lda,
+                                                                         rocblas_stride    stride_a,
+                                                                         TConstPtr         dB,
+                                                                         rocblas_int       ldb,
+                                                                         rocblas_stride    stride_b,
+                                                                         const TScal*      beta,
+                                                                         TPtr              dC,
+                                                                         rocblas_int       ldc,
+                                                                         rocblas_stride    stride_c,
+                                                                         rocblas_int batch_count)
+{
+    // quick return
+    if(!n)
+        return rocblas_status_success;
+
+    rocblas_stride a_s1 = rocblas_operation_none == transA ? 1 : lda;
+    rocblas_stride b_s1 = rocblas_operation_none == transB ? ldb : 1;
+    rocblas_stride c_s1 = 1, c_s2 = ldc;
+
+    rocblas_int nb = MIN_NB;
+    rocblas_int i_diag, n_diag;
+
+    rocblas_int n_nb, rem, i_start = 0;
+
+    n_nb = n / nb; // number of diagonal blocks of size nb
+    rem  = n % nb; // size of remainder block when n is not multiple of nb
+
+    // call rocblas_internal_gemmt_general_template with batch_count = n_nb for n_nb diagonal blocks
+    // clang-format off
+    rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, nb, k, alpha,
+                         dA, lda, nb * a_s1,
+                         dB, ldb, nb * b_s1, beta,
+                         dC, ldc, nb * (c_s1 + c_s2), n_nb);
+    // clang-format on
+
+    // remainder diagonal block of size n_diag < nb
+    if(rem != 0)
+    {
+        i_diag = n_nb * nb; // diag block at c[i_diag, i_diag], size is n_diag
+        n_diag = n - i_diag;
+        // call rocblas_internal_gemmt_general_template for one remainder diagonal block of size n_diag
+        // clang-format off
+        rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, n_diag, k, alpha,
+                          dA + i_diag * a_s1, lda, stride_a,
+                          dB + i_diag * b_s1, ldb, stride_b, beta,
+                          dC + i_diag * (c_s1 + c_s2), ldc, stride_c, batch_count);
+        // clang-format on
+    }
+
+    // calls to gemm with m == n == nb.
+    // Start with nb == MIN_NB, then for each iteration of nb,i_start loop:
+    // - nb doubles
+    // - the number of gemm calls in the inner loop halves.
+    for(nb = MIN_NB, i_start = MIN_NB; i_start < n; i_start += nb, nb *= 2)
+    {
+        rocblas_int stride = nb * 2;
+        n_nb               = (n - i_start) / stride;
+        rem                = (n - i_start) % stride;
+        if(rem >= nb)
+        {
+            rem = 0;
+            n_nb += 1;
+        }
+
+        // call gemm with batch_count = n_nb for n_nb square blocks of size nb x nb
+        if(rocblas_fill_lower == uplo)
+        {
+            // clang-format off
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                 handle, transA, transB, nb, nb, k, alpha,
+                 dA, OFFSET_A(i_start),    lda, stride * a_s1,
+                 dB, OFFSET_B(0),          ldb, stride * b_s1, beta,
+                 dC, OFFSET_C(i_start, 0), ldc, stride * (c_s1 + c_s2), n_nb   )));
+            // clang-format on
+        }
+        else
+        {
+            // clang-format off
+            RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                 handle, transA, transB, nb, nb, k, alpha,
+                 dA, OFFSET_A(0),          lda, stride * a_s1,
+                 dB, OFFSET_B(i_start),    ldb, stride * b_s1, beta,
+                 dC, OFFSET_C(0, i_start), ldc, stride * (c_s1 + c_s2), n_nb)));
+            // clang-format on
+        }
+
+        // call gemm for remainder block of size n1 x nb where n1 < nb
+        if(rem != 0)
+        {
+            rocblas_stride i1 = i_start + n_nb * stride;
+            rocblas_stride i2 = i1 - nb;
+            rocblas_stride n1 = n - i1;
+
+            if(rocblas_fill_lower == uplo)
+            {
+                // clang-format off
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                     handle, transA, transB, n1, nb, k, alpha,
+                     dA, OFFSET_A(i1),     lda, stride_a,
+                     dB, OFFSET_B(i2),     ldb, stride_b, beta,
+                     dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
+                // clang-format on
+            }
+            else
+            {
+                // clang-format off
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED>(
+                     handle, transA, transB, nb, n1, k, alpha,
+                     dA, OFFSET_A(i2),     lda, stride_a,
+                     dB, OFFSET_B(i1),     ldb, stride_b, beta,
+                     dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
+                // clang-format on
+            }
+        }
+    }
+    return rocblas_status_success;
+}
+
+template <rocblas_int MIN_NB, bool BATCHED, typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_gemmt_batched_strided_batched_block_recursive_template(
+    rocblas_handle    handle,
+    rocblas_fill      uplo,
+    rocblas_operation transA,
+    rocblas_operation transB,
+    rocblas_int       n,
+    rocblas_int       k,
+    const TScal*      alpha,
+    TConstPtr         dA,
+    rocblas_int       lda,
+    rocblas_stride    stride_a,
+    TConstPtr         dB,
+    rocblas_int       ldb,
+    rocblas_stride    stride_b,
+    const TScal*      beta,
+    TPtr              dC,
+    rocblas_int       ldc,
+    rocblas_stride    stride_c,
+    rocblas_int       batch_count)
+{
+    if(k == 0)
+        return rocblas_status_success;
+
+    rocblas_int a_s1 = rocblas_operation_none == transA ? 1 : lda;
+    rocblas_int b_s1 = rocblas_operation_none == transB ? ldb : 1;
+    rocblas_int c_s1 = 1, c_s2 = ldc;
+
+    rocblas_int nb = MIN_NB;
+    rocblas_int i_diag, n_diag;
+
+    rocblas_int n_nb, rem, i_start = 0;
+
+    n_nb = n / nb; // number of diagonal blocks of size nb
+    rem  = n % nb; // size of remainder block when n is not multiple of nb
+
+    // n_nb diagonal blocks of size nb
+    for(int i_nb = 0; i_nb < n_nb; i_nb++)
+    {
+        i_diag = i_nb * nb; // diag block at c[i_diag, i_diag], size is nb
+
+        // clang-format off
+        if(BATCHED)
+            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, nb, k, alpha,
+                         dA, lda, OFFSET_A(i_diag),
+                         dB, ldb, OFFSET_B(i_diag), beta,
+                         dC, ldc, OFFSET_C(i_diag, i_diag), batch_count);
+        else
+            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, nb, k, alpha,
+                         dA + OFFSET_A(i_diag), lda, stride_a,
+                         dB + OFFSET_B(i_diag), ldb, stride_b, beta,
+                         dC + OFFSET_C(i_diag, i_diag), ldc, stride_c, batch_count);
+        // clang-format on
+    }
+
+    // remainder diagonal block of size n_diag < nb
+    if(rem != 0)
+    {
+        i_diag = n_nb * nb; // diag block at c[i_diag, i_diag], size is n_diag
+        n_diag = n - i_diag;
+
+        // clang-format off
+        if(BATCHED)
+            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, n_diag, k, alpha,
+                         dA, lda, OFFSET_A(i_diag),
+                         dB, ldb, OFFSET_B(i_diag), beta,
+                         dC, ldc, OFFSET_C(i_diag, i_diag), batch_count);
+        else
+            rocblas_internal_gemmt_general_template(handle, uplo, transA, transB, n_diag, k, alpha,
+                         dA + OFFSET_A(i_diag), lda, stride_a,
+                         dB + OFFSET_B(i_diag), ldb, stride_b, beta,
+                         dC + OFFSET_C(i_diag, i_diag), ldc, stride_c, batch_count);
+        // clang-format on
+    }
+
+    // calls to gemm with m == n == nb.
+    // Start with nb == MIN_NB, and each iteration of the outer loop:
+    // - nb doubles
+    // - the number of gemm calls in the inner loop halves.
+    for(nb = MIN_NB, i_start = MIN_NB; i_start < n; i_start += nb, nb *= 2)
+    {
+        rocblas_int stride = nb * 2;
+        n_nb               = (n - i_start) / stride;
+        rem                = (n - i_start) % stride;
+        if(rem >= nb)
+        {
+            rem = 0;
+            n_nb += 1;
+        }
+        // n_nb gemm blocks of size nb x nb
+        for(int i = 0; i < n_nb; i++)
+        {
+            rocblas_int i1 = i_start + (i * stride);
+            rocblas_int i2 = i1 - nb;
+
+            if(rocblas_fill_lower == uplo)
+            {
+                // clang-format off
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                     handle, transA, transB, nb, nb, k, alpha,
+                     dA, OFFSET_A(i1),     lda, stride_a,
+                     dB, OFFSET_B(i2),     ldb, stride_b, beta,
+                     dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
+                // clang-format on
+            }
+            else
+            {
+                // clang-format off
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                     handle, transA, transB, nb, nb, k, alpha,
+                     dA, OFFSET_A(i2),     lda, stride_a,
+                     dB, OFFSET_B(i1),     ldb, stride_b, beta,
+                     dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
+                // clang-format on
+            }
+        }
+
+        // remainder gemm block of size n1 x nb where n1 < nb
+        if(rem != 0)
+        {
+            rocblas_int i1 = i_start + n_nb * stride;
+            rocblas_int i2 = i1 - nb;
+            rocblas_int n1 = n - i1;
+
+            if(rocblas_fill_lower == uplo)
+            {
+                // clang-format off
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                     handle, transA, transB, n1, nb, k, alpha,
+                     dA, OFFSET_A(i1),     lda, stride_a,
+                     dB, OFFSET_B(i2),     ldb, stride_b, beta,
+                     dC, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
+                // clang-format on
+            }
+            else
+            {
+                // clang-format off
+                RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, TScal>(
+                     handle, transA, transB, nb, n1, k, alpha,
+                     dA, OFFSET_A(i2),     lda, stride_a,
+                     dB, OFFSET_B(i1),     ldb, stride_b, beta,
+                     dC, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
+                // clang-format on
+            }
+        }
+    }
+    return rocblas_status_success;
+}
+
+template <typename TScal, typename TConstPtr, typename TPtr>
+rocblas_status rocblas_internal_gemmt_template(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation transA,
+                                               rocblas_operation transB,
+                                               rocblas_int       n,
+                                               rocblas_int       k,
+                                               const TScal*      alpha_in,
+                                               TConstPtr         dA,
+                                               rocblas_int       lda,
+                                               rocblas_stride    stride_a,
+                                               TConstPtr         dB,
+                                               rocblas_int       ldb,
+                                               rocblas_stride    stride_b,
+                                               const TScal*      beta_in,
+                                               TPtr              dC,
+                                               rocblas_int       ldc,
+                                               rocblas_stride    stride_c,
+                                               rocblas_int       batch_count)
+{
+    //Identifying the precision to have an appropriate optimization
+    static constexpr bool is_float                  = std::is_same_v<TScal, float>;
+    static constexpr bool is_double                 = std::is_same_v<TScal, double>;
+    static constexpr bool rocblas_is_complex_float  = std::is_same_v<TScal, rocblas_float_complex>;
+    static constexpr bool rocblas_is_complex_double = std::is_same_v<TScal, rocblas_double_complex>;
+
+    // GEMM based block recursive algorithm
+    if((n >= n_zgemmt_threshold && k >= k_zgemmt_threshold && rocblas_is_complex_double)
+       || (n >= n_gemmt_threshold && k >= k_gemmt_threshold
+           && (is_float || is_double || rocblas_is_complex_float)))
+    {
+        // BATCHED is true for _batched and false for _strided_batched and non-batched
+        constexpr bool BATCHED
+            = std::is_same_v<
+                  TConstPtr,
+                  const float* const*> || std::is_same_v<TConstPtr, const double* const*> || std::is_same_v<TConstPtr, const rocblas_float_complex* const*> || std::is_same_v<TConstPtr, const rocblas_double_complex* const*>;
+
+        // Copy over alpha and beta
+        TScal alpha_h, beta_h;
+        RETURN_IF_ROCBLAS_ERROR(rocblas_copy_alpha_beta_to_host_if_on_device(
+            handle, alpha_in, beta_in, alpha_h, beta_h, k));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+        // Note: alpha and beta always copied over to host by now
+        if(*beta_in == 1 && (k == 0 || *alpha_in == 0))
+            return rocblas_status_success;
+
+        bool ab_calc_invalid = !alpha_in || (*alpha_in != 0 && (!dA || !dB));
+        if(!dC || (k && ab_calc_invalid))
+            return rocblas_status_invalid_pointer;
+
+        // upgrade to complex if needed
+        // TODO: Graph safety?
+        const TScal alpha_val = (TScal)(*alpha_in);
+        const TScal beta_val  = (TScal)(*beta_in);
+
+        const TScal* alpha = &alpha_val;
+        const TScal* beta  = &beta_val;
+
+#define ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS                                                \
+    handle, uplo, transA, transB, n, k, alpha, dA, lda, stride_a, dB, ldb, stride_b, beta, dC, \
+        ldc, stride_c, batch_count
+
+        if(!BATCHED && batch_count == 1)
+        {
+            //using similar number of blocks as that of syr2k
+            if constexpr(std::is_same_v<TScal, float>)
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_SSYR2K_NB,
+                                                                                 BATCHED>(
+                    ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+            else if constexpr(std::is_same_v<TScal, double>)
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_DSYR2K_NB,
+                                                                                 BATCHED>(
+                    ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+            else if constexpr(std::is_same_v<TScal, rocblas_float_complex>)
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_CSYR2K_NB,
+                                                                                 BATCHED>(
+                    ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+            else if constexpr(std::is_same_v<TScal, rocblas_double_complex>)
+                return rocblas_internal_gemmt_non_batch_block_recursive_template<ROCBLAS_ZSYR2K_NB,
+                                                                                 BATCHED>(
+                    ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+        }
+        else
+        {
+            //using similar number of blocks as that of syr2k
+            if constexpr(std::is_same_v<TScal, float>)
+                return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    ROCBLAS_SSYR2K_NB,
+                    BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+            else if constexpr(std::is_same_v<TScal, double>)
+                return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    ROCBLAS_DSYR2K_NB,
+                    BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+            else if constexpr(std::is_same_v<TScal, rocblas_float_complex>)
+                return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    ROCBLAS_CSYR2K_NB,
+                    BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+            else if constexpr(std::is_same_v<TScal, rocblas_double_complex>)
+                return rocblas_internal_gemmt_batched_strided_batched_block_recursive_template<
+                    ROCBLAS_ZSYR2K_NB,
+                    BATCHED>(ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS);
+#undef ROCBLAS_INTERNAL_GEMMT_RECURSIVE_PARAMS
+        }
+    }
+    else
+    {
+#define ROCBLAS_INTERNAL_GEMMT_PARAMS                                                            \
+    handle, uplo, transA, transB, n, k, alpha_in, dA, lda, stride_a, dB, ldb, stride_b, beta_in, \
+        dC, ldc, stride_c, batch_count
+
+        return rocblas_internal_gemmt_general_template(ROCBLAS_INTERNAL_GEMMT_PARAMS);
+
+#undef ROCBLAS_INTERNAL_GEMMT_PARAMS
+    }
     return rocblas_status_success;
 }
 

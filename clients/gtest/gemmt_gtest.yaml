@@ -23,8 +23,8 @@ Definitions:
     - { N:   199, K:  290,  lda:  290,  ldb: 290,  ldc: 200 }
 
   - &large_matrix_size_range
-    - { N:  2011, K:  253,  lda:  2011, ldb: 2011, ldc: 2048 }
-    - { N:  1024, K:  1200, lda:  1200, ldb: 1200, ldc: 1024 }
+    - { N:  2011, K:  1233,  lda:  2011, ldb: 2011, ldc: 2048 }
+    - { N:  3024, K:  3200, lda:  3300, ldb: 3300, ldc: 3300 }
 
   - &alpha_beta_range
     - { alpha:  1.5, alphai:  1.5, beta:  0.0, betai: 0.0 }
@@ -86,7 +86,6 @@ Tests:
   transB: [ N, C ]
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
-  pointer_mode_device: false
 
 - name: gemmt_size_t
   category: stress
@@ -144,7 +143,7 @@ Tests:
   transB: [ N ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 1, 2 ]
+  batch_count: [ 1, 4 ]
   api: [ C, FORTRAN ]
 
 - name: gemmt_batched_large
@@ -157,7 +156,6 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
-  pointer_mode_host: false
 
 # strided batched
 - name: gemmt_strided_batched_bad
@@ -199,7 +197,7 @@ Tests:
   transB: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 2 ]
+  batch_count: [ 3 ]
   api: [ C, FORTRAN ]
 
 - name: gemmt_strided_batched_large
@@ -212,7 +210,6 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *alpha_beta
   batch_count: [ 2 ]
-  pointer_mode_host: false
 
 - name: gemmt_graph_test
   category: pre_checkin
