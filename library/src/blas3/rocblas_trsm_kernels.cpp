@@ -2933,7 +2933,7 @@ void rocblas_trsm_small(rocblas_handle    handle,
             if(uplo == rocblas_fill_upper)
             {
                 constexpr bool LOWER = false;
-                if(n > 2 * NB && m > 16)
+                if(n > 2 * NB && m > 12)
                     hipLaunchKernelGGL((rocblas_trsm_small_left_device_sharedB<NB,
                                                                                STEP_SIZE,
                                                                                CONJ,
