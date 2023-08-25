@@ -7,7 +7,7 @@ Prerequisites
 -------------
 
 - A ROCm enabled platform. `ROCm Documentation <https://docs.amd.com/>`_ has more information on
-  supported GPUs, Linux distributions, and Windows SKU. It also has information on how to install ROCm.
+  supported GPUs, Linux distributions, and Windows SKUs. It also has information on how to install ROCm.
 
 
 ----------------------------
