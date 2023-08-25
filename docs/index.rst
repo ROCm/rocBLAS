@@ -24,7 +24,7 @@ Use of Tensile
 
 The rocBLAS library internally uses
 `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`__, which
-supplies the high-performance implementation of xGEMM. It requires no separate installation as it is installed as part of the rocBLAS package.
-If building rocBLAS library CMake downloads Tensile during library configuration and automatically
+supplies the high-performance implementation of GEMM. It requires no separate installation as it is installed as part of the rocBLAS package.
+rocBLAS uses CMake for build automation, and CMake downloads Tensile during library configuration and automatically
 configures it as part of the build, so no further action is required by the
 user to set it up.  No external facing API for Tensile is provided.

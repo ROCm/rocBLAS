@@ -6,13 +6,8 @@ Installation and Building for Linux
 Prerequisites
 -------------
 
-- A ROCm enabled platform. More information in `ROCm Documentation <https://docs.amd.com/>`_. To build ROCm from the source, follow the previous link and navigate to How to install ROCm. This page will provide steps to install ROCm for specific operating systems. After following these steps to download the installer amdgpu-install, use the below command to install ROCm.
-
-::
-
-   sudo amdgpu-install --usecase=rocm
-
-- rocBLAS is supported on the same Linux versions that are supported by ROCm
+- A ROCm enabled platform. `ROCm Documentation <https://docs.amd.com/>`_ has more information on
+  supported GPUs, Linux distributions, and Windows SKU. It also has information on how to install ROCm.
 
 
 ----------------------------
@@ -45,9 +40,8 @@ The rocblas.h header file must be included in the user code to make calls
 into rocBLAS, and the rocBLAS shared library will become link-time and run-time
 dependent for the user application.
 
-Once installed, find rocblas.h and rocblas_module.f90 in the /opt/rocm/include
-directory. Only use these two installed files when needed in user code.
-Find other rocBLAS files in /opt/rocm/include/internal, However, do not include these files directly.
+The header files rocblas.h and rocblas_module.f90 are installed in /opt/rocm/include/rocblas.
+The library file librocblas.so is installed in /opt/rocm/lib.
 
 
 -------------------------------
@@ -56,19 +50,15 @@ Building and Installing rocBLAS
 
 For most users, building from source is not necessary, as rocBLAS can be used after installing the prebuilt
 packages as described above. If desired, users can use following instructions to build rocBLAS from source.
-Note the change in the --usecase command argument below to install the base ROCm developer stack in-order to build rocBLAS from the source.
-
-::
-
-   sudo amdgpu-install --usecase=rocmdev
 
 
 Requirements
 ^^^^^^^^^^^^
 
-As a rule, 64GB of system memory is required for a full rocBLAS build. This value can be lower if
-rocBLAS is built with a different Tensile logic target (see the --logic command for ./install.sh). This value
-may also increase in the future as more functions are added to rocBLAS and dependencies such as Tensile grow.
+As a rule, 64GB of system memory is required for a full rocBLAS fat binary build. This value can be lower if
+rocBLAS is built for specific architectures using the -a option to install.sh. More information is available
+from ./install.sh --help.
+
 
 
 Download rocBLAS
