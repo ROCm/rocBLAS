@@ -139,57 +139,53 @@ rocblas_status rocblas_gemmt_check_numerics(const char*       function_name,
                                             const int         check_numerics,
                                             bool              is_input)
 {
-    bool HERM_A
-        = ((trans_a == rocblas_operation_conjugate_transpose)
-           && (std::is_same_v<T,
-                              rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>));
-    rocblas_status check_numerics_status = rocblas_internal_check_numerics_matrix_template(
-        function_name,
-        handle,
-        trans_a,
-        rocblas_fill_full,
-        HERM_A ? rocblas_client_hermitian_matrix : rocblas_client_general_matrix,
-        n,
-        k,
-        A,
-        0,
-        lda,
-        stride_a,
-        batch_count,
-        check_numerics,
-        is_input);
-    if(check_numerics_status != rocblas_status_success)
-        return check_numerics_status;
+    rocblas_status check_numerics_status = rocblas_status_success;
 
-    bool HERM_B
-        = ((trans_b == rocblas_operation_conjugate_transpose)
-           && (std::is_same_v<T,
-                              rocblas_float_complex> || std::is_same_v<T, rocblas_double_complex>));
+    if(is_input)
+    {
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              trans_a,
+                                                              rocblas_fill_full,
+                                                              rocblas_client_general_matrix,
+                                                              n,
+                                                              k,
+                                                              A,
+                                                              0,
+                                                              lda,
+                                                              stride_a,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
 
-    check_numerics_status = rocblas_internal_check_numerics_matrix_template(
-        function_name,
-        handle,
-        trans_b,
-        rocblas_fill_full,
-        HERM_B ? rocblas_client_hermitian_matrix : rocblas_client_general_matrix,
-        k,
-        n,
-        B,
-        0,
-        ldb,
-        stride_b,
-        batch_count,
-        check_numerics,
-        is_input);
-    if(check_numerics_status != rocblas_status_success)
-        return check_numerics_status;
+        check_numerics_status
+            = rocblas_internal_check_numerics_matrix_template(function_name,
+                                                              handle,
+                                                              trans_b,
+                                                              rocblas_fill_full,
+                                                              rocblas_client_general_matrix,
+                                                              k,
+                                                              n,
+                                                              B,
+                                                              0,
+                                                              ldb,
+                                                              stride_b,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
 
     check_numerics_status
         = rocblas_internal_check_numerics_matrix_template(function_name,
                                                           handle,
                                                           rocblas_operation_none,
                                                           uplo,
-                                                          rocblas_client_general_matrix,
+                                                          rocblas_client_triangular_matrix,
                                                           n,
                                                           n,
                                                           C,
