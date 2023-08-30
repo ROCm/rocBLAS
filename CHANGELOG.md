@@ -2,7 +2,7 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 3.1.0
+## rocBLAS 3.1.0 for ROCm 5.7.0
 ### Added
 - yaml lock step argument scanning for rocblas-bench and rocblas-test clients. See Programmers Guide for details.
 - rocblas-gemm-tune is used to find the best performing GEMM kernel for each of a given set of GEMM problems.
@@ -24,7 +24,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - optional use of AOCL BLIS 4.0 on Linux for clients
 - optional build tool only dependency on python psutil
 
-## (Unreleased) rocBLAS 3.0.0
+## rocBLAS 3.0.0 for ROCm 5.6.0
 ### Optimizations
 - Improved performance of Level 2 rocBLAS GEMV on gfx90a GPU for non-transposed problems having small matrices and larger batch counts. Performance enhanced for problem sizes when m and n <= 32 and batch_count >= 256.
 - Improved performance of rocBLAS syr2k for single, double, and double-complex precision, and her2k for double-complex precision. Slightly improved performance for general sizes on gfx90a.
