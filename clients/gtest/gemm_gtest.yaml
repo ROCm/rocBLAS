@@ -3554,6 +3554,55 @@ Tests:
 - name: sim_f16_case2
   category: quick
   function: gemm_ex3
+  a_type: f8_r
+  b_type: f16_r
+  c_type: f8_r
+  d_type: f8_r
+  composite_compute_type: f32
+  transA: [ N ]
+  transB: [ N ]
+  alpha_beta: *alpha_beta_range_f8
+  matrix_size:
+    - { M:  32, N:  32, K:  32 }
+    - { M:  32, N:  64, K:  96 }
+    - { M:  32, N:  64, K:  96, lda: 128, ldb: 128, ldc: 128, ldd: 128 }
+    - { M:  111, N:  777, K:  111 }
+    - { M:  555, N:  777, K:  111 }
+    - { M:  16,   N:  16, K:    1024 }
+    - { M:  16,   N:  16, K:    8192 }
+    - { M:  16,   N:  16, K:    65536 }
+    - { M:  16,   N:  2048, K:  1024 }
+    - { M:  16,   N:  2048, K:  8192 }
+    - { M:  16,   N:  2048, K:  65536 }
+    - { M:  16,   N:  8192, K:  1024 }
+    - { M:  16,   N:  8192, K:  8192 }
+    - { M:  16,   N:  8192, K:  65536 }
+    - { M:  2048, N:  16, K:    1024 }
+    - { M:  2048, N:  16, K:    8192 }
+    - { M:  2048, N:  16, K:    65536 }
+    - { M:  2048, N:  2048, K:  1024 }
+    - { M:  2048, N:  2048, K:  8192 }
+    - { M:  2048, N:  2048, K:  65536 }
+    - { M:  2048, N:  8192, K:  1024 }
+    - { M:  2048, N:  8192, K:  8192 }
+    - { M:  2048, N:  8192, K:  65536 }
+    - { M:  8192, N:  16, K:    1024 }
+    - { M:  8192, N:  16, K:    8192 }
+    - { M:  8192, N:  16, K:    65536 }
+    - { M:  8192, N:  2048, K:  1024 }
+    - { M:  8192, N:  2048, K:  8192 }
+    - { M:  8192, N:  2048, K:  65536 }
+    - { M:  8192, N:  8192, K:  1024 }
+    - { M:  8192, N:  8192, K:  8192 }
+    - { M:  8192, N:  8192, K:  65536 }
+  unit_check: 1
+  res_check: 0
+  norm_check: 0
+  initialization: rand_int_zero_one
+
+- name: sim_f16_case3
+  category: quick
+  function: gemm_ex3
   a_type: f16_r
   b_type: f8_r
   c_type: f16_r
@@ -3600,7 +3649,56 @@ Tests:
   norm_check: 0
   initialization: rand_int_zero_one
 
-- name: sim_f16_case3
+- name: sim_f16_case4
+  category: quick
+  function: gemm_ex3
+  a_type: f16_r
+  b_type: f8_r
+  c_type: f8_r
+  d_type: f8_r
+  composite_compute_type: f32
+  transA: [ N ]
+  transB: [ N ]
+  alpha_beta: *alpha_beta_range_f8
+  matrix_size:
+    - { M:  32, N:  32, K:  32 }
+    - { M:  32, N:  64, K:  96 }
+    - { M:  32, N:  64, K:  96, lda: 128, ldb: 128, ldc: 128, ldd: 128 }
+    - { M:  111, N:  777, K:  111 }
+    - { M:  555, N:  777, K:  111 }
+    - { M:  16,   N:  16, K:    1024 }
+    - { M:  16,   N:  16, K:    8192 }
+    - { M:  16,   N:  16, K:    65536 }
+    - { M:  16,   N:  2048, K:  1024 }
+    - { M:  16,   N:  2048, K:  8192 }
+    - { M:  16,   N:  2048, K:  65536 }
+    - { M:  16,   N:  8192, K:  1024 }
+    - { M:  16,   N:  8192, K:  8192 }
+    - { M:  16,   N:  8192, K:  65536 }
+    - { M:  2048, N:  16, K:    1024 }
+    - { M:  2048, N:  16, K:    8192 }
+    - { M:  2048, N:  16, K:    65536 }
+    - { M:  2048, N:  2048, K:  1024 }
+    - { M:  2048, N:  2048, K:  8192 }
+    - { M:  2048, N:  2048, K:  65536 }
+    - { M:  2048, N:  8192, K:  1024 }
+    - { M:  2048, N:  8192, K:  8192 }
+    - { M:  2048, N:  8192, K:  65536 }
+    - { M:  8192, N:  16, K:    1024 }
+    - { M:  8192, N:  16, K:    8192 }
+    - { M:  8192, N:  16, K:    65536 }
+    - { M:  8192, N:  2048, K:  1024 }
+    - { M:  8192, N:  2048, K:  8192 }
+    - { M:  8192, N:  2048, K:  65536 }
+    - { M:  8192, N:  8192, K:  1024 }
+    - { M:  8192, N:  8192, K:  8192 }
+    - { M:  8192, N:  8192, K:  65536 }
+  unit_check: 1
+  res_check: 0
+  norm_check: 0
+  initialization: rand_int_zero_one
+
+- name: sim_f16_case5
   category: quick
   function: gemm_ex3
   a_type: f8_r

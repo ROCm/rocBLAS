@@ -2925,6 +2925,16 @@ rocblas_status rocblas_gemm_ex3_template(rocblas_handle      handle,
                                                 rocblas_f8,
                                                 rocblas_half,
                                                 float>(EX_TYPECASTING_PARM);
+    else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f16_r
+            && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r
+            && compute_type == rocblas_compute_type_f32)
+        rb_status = gemm_ex_special_f16<BATCHED,
+                                                rocblas_f8,
+                                                rocblas_half,
+                                                rocblas_f8,
+                                                rocblas_f8,
+                                                rocblas_half,
+                                                float>(EX_TYPECASTING_PARM);
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f8_r
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_compute_type_f32)
@@ -2932,6 +2942,16 @@ rocblas_status rocblas_gemm_ex3_template(rocblas_handle      handle,
                                                 rocblas_half,
                                                 rocblas_f8,
                                                 rocblas_half,
+                                                rocblas_half,
+                                                rocblas_f8,
+                                                float>(EX_TYPECASTING_PARM);
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f8_r
+            && c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r
+            && compute_type == rocblas_compute_type_f32)
+        rb_status = gemm_ex_special_f16<BATCHED,
+                                                rocblas_half,
+                                                rocblas_f8,
+                                                rocblas_f8,
                                                 rocblas_half,
                                                 rocblas_f8,
                                                 float>(EX_TYPECASTING_PARM);

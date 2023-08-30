@@ -515,9 +515,15 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
         else if(arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_f16_r
                 && To == rocblas_datatype_f16_r)
             return TEST<rocblas_f8, rocblas_half, rocblas_half, float>{}(arg);
+        else if(arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_f16_r
+                && To == rocblas_datatype_f8_r)
+            return TEST<rocblas_f8, rocblas_half, rocblas_f8, float>{}(arg);
         else if(arg.a_type == rocblas_datatype_f16_r && arg.b_type == rocblas_datatype_f8_r
                 && To == rocblas_datatype_f16_r)
             return TEST<rocblas_half, rocblas_f8, rocblas_half, float>{}(arg);
+        else if(arg.a_type == rocblas_datatype_f16_r && arg.b_type == rocblas_datatype_f8_r
+                && To == rocblas_datatype_f8_r)
+            return TEST<rocblas_half, rocblas_f8, rocblas_f8, float>{}(arg);
     }
     else if(arg.d_type == To)
     {
