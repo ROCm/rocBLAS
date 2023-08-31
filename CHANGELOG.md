@@ -24,7 +24,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - optional use of AOCL BLIS 4.0 on Linux for clients
 - optional build tool only dependency on python psutil
 
-## (Unreleased) rocBLAS 3.0.0
+## rocBLAS 3.0.0 for ROCm 5.6
 ### Optimizations
 - Improved performance of Level 2 rocBLAS GEMV on gfx90a GPU for non-transposed problems having small matrices and larger batch counts. Performance enhanced for problem sizes when m and n <= 32 and batch_count >= 256.
 - Improved performance of rocBLAS syr2k for single, double, and double-complex precision, and her2k for double-complex precision. Slightly improved performance for general sizes on gfx90a.
