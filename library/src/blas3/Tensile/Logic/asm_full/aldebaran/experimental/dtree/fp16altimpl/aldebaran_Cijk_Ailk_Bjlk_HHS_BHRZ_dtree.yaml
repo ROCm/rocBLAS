@@ -2,6 +2,7 @@ ArchitectureName: gfx90a
 DeviceNames: [Device 0050, Device 0051, Device 0052, Device 0054, Device 0062, Device
     7400, Device 740c]
 Fp16AltImpl: true
+Fp16AltImplRound: true
 Library:
 - fallback: 86
   features:
@@ -221091,7 +221092,7 @@ ProblemType:
   DestDataType: 4
   F32XdlMathOp: 0
   Fp16AltImpl: true
-  Fp16AltImplRound: false
+  Fp16AltImplRound: true
   Fp32toFp8SWClip: true
   Fp8NoPackUpConversion: false
   HighPrecisionAccumulate: true
@@ -221179,6 +221180,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -221399,6 +221401,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -221619,6 +221622,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -221839,6 +221843,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -222059,6 +222064,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -222279,6 +222285,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 2
@@ -222499,6 +222506,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -222719,6 +222727,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -222939,6 +222948,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -223159,6 +223169,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -223379,6 +223390,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -223599,6 +223611,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -223819,6 +223832,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -224039,6 +224053,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -224259,6 +224274,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -224479,6 +224495,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -224699,6 +224716,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -224919,6 +224937,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 2
@@ -225139,6 +225158,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -225359,6 +225379,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -225579,6 +225600,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -225799,6 +225821,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -226019,6 +226042,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -226239,6 +226263,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -226459,6 +226484,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -226679,6 +226705,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -226899,6 +226926,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -227119,6 +227147,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -227339,6 +227368,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -227559,6 +227589,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -227779,6 +227810,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -227999,6 +228031,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -228219,6 +228252,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -228439,6 +228473,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -228659,6 +228694,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -228879,6 +228915,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -229099,6 +229136,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -229319,6 +229357,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -229539,6 +229578,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -229759,6 +229799,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -229979,6 +230020,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -230199,6 +230241,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -230419,6 +230462,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -230639,6 +230683,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -230859,6 +230904,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -231079,6 +231125,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -231299,6 +231346,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -231519,6 +231567,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -231739,6 +231788,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -231959,6 +232009,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -232179,6 +232230,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -232399,6 +232451,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -232619,6 +232672,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -232839,6 +232893,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -233059,6 +233114,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 8
@@ -233279,6 +233335,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -233499,6 +233556,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -233719,6 +233777,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -233939,6 +233998,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 4
@@ -234159,6 +234219,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -234379,6 +234440,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 2
   GlobalLoadVectorWidthB: 4
@@ -234599,6 +234661,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -234819,6 +234882,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 2
   GlobalLoadVectorWidthB: 8
@@ -235039,6 +235103,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 8
@@ -235259,6 +235324,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -235479,6 +235545,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 2
   GlobalLoadVectorWidthB: 4
@@ -235699,6 +235766,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -235919,6 +235987,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -236139,6 +236208,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -236359,6 +236429,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -236579,6 +236650,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -236799,6 +236871,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -237019,6 +237092,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -237239,6 +237313,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -237459,6 +237534,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -237679,6 +237755,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -237899,6 +237976,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -238119,6 +238197,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -238339,6 +238418,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -238559,6 +238639,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -238779,6 +238860,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -238999,6 +239081,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 2
   GlobalLoadVectorWidthB: 4
@@ -239219,6 +239302,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -239439,6 +239523,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 2
   GlobalLoadVectorWidthB: 4
@@ -239659,6 +239744,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 2
@@ -239879,6 +239965,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -240099,6 +240186,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -240319,6 +240407,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -240539,6 +240628,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -240759,6 +240849,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -240979,6 +241070,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -241199,6 +241291,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -241419,6 +241512,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -241639,6 +241733,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -241859,6 +241954,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -242079,6 +242175,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -242299,6 +242396,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -242519,6 +242617,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 8
@@ -242739,6 +242838,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -242959,6 +243059,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -243179,6 +243280,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -243399,6 +243501,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -243619,6 +243722,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -243839,6 +243943,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -244059,6 +244164,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -244279,6 +244385,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -244499,6 +244606,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -244719,6 +244827,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -244939,6 +245048,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -245159,6 +245269,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -245379,6 +245490,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 8
@@ -245599,6 +245711,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 4
@@ -245819,6 +245932,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 2
@@ -246039,6 +246153,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -246259,6 +246374,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -246479,6 +246595,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -246699,6 +246816,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -246919,6 +247037,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -247139,6 +247258,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -247359,6 +247479,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -247579,6 +247700,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -247799,6 +247921,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -248019,6 +248142,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -248239,6 +248363,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -248459,6 +248584,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -248679,6 +248805,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -248899,6 +249026,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -249119,6 +249247,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -249339,6 +249468,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 8
@@ -249559,6 +249689,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -249779,6 +249910,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -249999,6 +250131,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 2
   GlobalLoadVectorWidthB: 8
@@ -250219,6 +250352,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -250439,6 +250573,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -250659,6 +250794,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -250879,6 +251015,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -251099,6 +251236,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -251319,6 +251457,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 4
@@ -251539,6 +251678,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -251759,6 +251899,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -251979,6 +252120,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -252199,6 +252341,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 2
   GlobalLoadVectorWidthB: 4
@@ -252419,6 +252562,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -252639,6 +252783,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -252859,6 +253004,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -253079,6 +253225,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -253299,6 +253446,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 8
   GlobalLoadVectorWidthB: 8
@@ -253519,6 +253667,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -253739,6 +253888,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -253959,6 +254109,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -254179,6 +254330,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -254399,6 +254551,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
@@ -254619,6 +254772,7 @@ Solutions:
   EnableMatrixInstructionStore: true
   ExpandPointerSwap: 0
   Fp16AltImpl: true
+  Fp16AltImplRound: true
   FractionalLoad: 0
   GlobalLoadVectorWidthA: 4
   GlobalLoadVectorWidthB: 4
