@@ -1745,28 +1745,31 @@ void testing_gemm_ex3(const Arguments& arg)
         if((arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_f8_r
             && arg.c_type == arg.d_type
             && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                || arg.c_type == rocblas_datatype_f32_r)
+                || arg.c_type == rocblas_datatype_f32_r || arg.c_type == rocblas_datatype_f16_r)
             && arg.composite_compute_type == rocblas_compute_type_f32)
            || arg.composite_compute_type == rocblas_compute_type_f8_f8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_f8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_bf8_r && arg.b_type == rocblas_datatype_bf8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                     || arg.c_type == rocblas_datatype_f32_r)
+                     || arg.c_type == rocblas_datatype_f32_r
+                     || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_bf8_bf8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_bf8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_bf8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                     || arg.c_type == rocblas_datatype_f32_r)
+                     || arg.c_type == rocblas_datatype_f32_r
+                     || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_f8_bf8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_bf8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_bf8_r && arg.b_type == rocblas_datatype_f8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                     || arg.c_type == rocblas_datatype_f32_r)
+                     || arg.c_type == rocblas_datatype_f32_r
+                     || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_bf8_f8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_f8, float>(TEST_PARM);
