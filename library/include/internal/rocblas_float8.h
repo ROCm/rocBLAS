@@ -575,6 +575,120 @@ inline __host__ __device__ float operator*(rocblas_bf8 a, rocblas_f8 b)
     return float(a) * float(b);
 }
 
+// all - operator overloading with mixed types
+// mixed types, always converts to f32, does computation in f32, and returns float
+inline __host__ __device__ float operator-(const float fa, rocblas_f8 b)
+{
+    return (fa - float(b));
+}
+
+inline __host__ __device__ float operator-(const float fa, rocblas_bf8 b)
+{
+    return (fa - float(b));
+}
+
+inline __host__ __device__ float operator-(rocblas_f8 a, const float fb)
+{
+    return (float(a) - fb);
+}
+
+inline __host__ __device__ float operator-(rocblas_bf8 a, const float fb)
+{
+    return (float(a) - fb);
+}
+
+inline __host__ __device__ float operator-(rocblas_f8 a, rocblas_bf8 b)
+{
+    return (float(a) - float(b));
+}
+
+inline __host__ __device__ float operator-(rocblas_bf8 a, rocblas_f8 b)
+{
+    return (float(a) - float(b));
+}
+
+inline __host__ __device__ rocblas_f8 operator-(rocblas_f8 a, rocblas_f8 b)
+{
+    return rocblas_f8(float(a) - float(b));
+}
+
+inline __host__ __device__ rocblas_bf8 operator-(rocblas_bf8 a, rocblas_bf8 b)
+{
+    return rocblas_bf8(float(a) - float(b));
+}
+
+inline __host__ __device__ rocblas_f8& operator-=(rocblas_f8& a, rocblas_f8 b)
+{
+    return a = rocblas_f8(float(a) - float(b));
+}
+
+inline __host__ __device__ rocblas_bf8& operator-=(rocblas_bf8& a, rocblas_bf8 b)
+{
+    return a = rocblas_bf8(float(a) - float(b));
+}
+
+// overloading division, always returns float,
+inline __host__ __device__ float operator/(rocblas_f8 a, rocblas_f8 b)
+{
+    return float(a) / float(b);
+}
+
+inline __host__ __device__ float operator/(float a, rocblas_f8 b)
+{
+    return (a / float(b));
+}
+
+inline __host__ __device__ float operator/(rocblas_f8 a, float b)
+{
+    return (float(a) / b);
+}
+
+inline __host__ __device__ float operator/(int32_t a, rocblas_f8 b)
+{
+    return ((float)a / float(b));
+}
+
+inline __host__ __device__ float operator/(double a, rocblas_f8 b)
+{
+    return ((float)a / float(b));
+}
+
+inline __host__ __device__ float operator/(rocblas_bf8 a, rocblas_bf8 b)
+{
+    return float(a) / float(b);
+}
+
+inline __host__ __device__ float operator/(float a, rocblas_bf8 b)
+{
+    return (a / float(b));
+}
+
+inline __host__ __device__ float operator/(rocblas_bf8 a, float b)
+{
+    return (float(a) / b);
+}
+
+inline __host__ __device__ float operator/(int32_t a, rocblas_bf8 b)
+{
+    return ((float)a / float(b));
+}
+
+inline __host__ __device__ float operator/(double a, rocblas_bf8 b)
+{
+    return ((float)a / float(b));
+}
+
+// overloading for mixed f8 and bf8 types
+inline __host__ __device__ float operator/(rocblas_f8 a, rocblas_bf8 b)
+{
+    return float(a) / float(b);
+}
+
+inline __host__ __device__ float operator/(rocblas_bf8 a, rocblas_f8 b)
+{
+    return float(a) / float(b);
+}
+
 // overloading for compare
 inline __host__ __device__ bool operator==(rocblas_f8 a, rocblas_f8 b)
 {
@@ -587,6 +701,11 @@ inline __host__ __device__ bool operator==(rocblas_bf8 a, rocblas_bf8 b)
 }
 
 inline __host__ __device__ bool operator!=(rocblas_f8 a, rocblas_f8 b)
+{
+    return (a.data != b.data);
+}
+
+inline __host__ __device__ bool operator!=(rocblas_bf8 a, rocblas_bf8 b)
 {
     return (a.data != b.data);
 }
