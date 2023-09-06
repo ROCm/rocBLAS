@@ -108,6 +108,21 @@ auto rocblas_simple_dispatch(const Arguments& arg)
     }
 }
 
+// general gtest use only for now
+template <template <typename...> class TEST>
+auto rocblas_f8_dispatch(const Arguments& arg)
+{
+    switch(arg.a_type)
+    {
+    case rocblas_datatype_f8_r:
+        return TEST<rocblas_f8>{}(arg);
+    case rocblas_datatype_bf8_r:
+        return TEST<rocblas_bf8>{}(arg);
+    default:
+        return TEST<void>{}(arg);
+    }
+}
+
 // BLAS1 functions
 template <template <typename...> class TEST>
 auto rocblas_blas1_dispatch(const Arguments& arg)
