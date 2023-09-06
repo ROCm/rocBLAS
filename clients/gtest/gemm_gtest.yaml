@@ -3521,6 +3521,25 @@ Tests:
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
+- name: F8HS_family
+  category: quick
+  function: gemm_ex3
+  precision: *F8HS_family
+  transA: [ N, T ]
+  transB: [ N, T ]
+  alpha_beta: *alpha_beta_range_f8
+  matrix_size:
+    - { M:  32, N:  32, K:  32 }
+    - { M:  32, N:  64, K:  96 }
+    - { M:  32, N:  64, K:  96, lda: 128, ldb: 128, ldc: 128, ldd: 128 }
+    - { M:  111, N:  777, K:  111 }
+    - { M:  555, N:  777, K:  111 }
+  unit_check: 1
+  res_check: 0
+  norm_check: 0
+  initialization: rand_int_zero_one
+  gpu_arch: '94?'
+
 - name: F8F8S_family
   category: quick
   function: gemm_ex3
