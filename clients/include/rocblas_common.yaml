@@ -385,7 +385,7 @@ Hpa single double complex real: &half_single_double_complex_real_precisions
 #############################################
 #           Used for gemm_ex3      #
 #############################################
-F8SS family: &F8SS_family #a_type_b_type_compute_family
+F8SS family: &F8SS_family #in_type_out_type_compute_family
   - &float8_float8_single #a_type_b_type_out_type
     { a_type: f8_r, b_type: f8_r, c_type: f32_r, d_type: f32_r, composite_compute_type: f32 }
   - &bfloat8_bfloat8_single
@@ -395,7 +395,7 @@ F8SS family: &F8SS_family #a_type_b_type_compute_family
   - &bfloat8_float8_single
     { a_type: bf8_r, b_type: f8_r, c_type: f32_r, d_type: f32_r, composite_compute_type: f32 }
 
-F8F8S family: &F8F8S_family #a_type_b_type_compute_family
+F8F8S family: &F8F8S_family #in_type_out_type_compute_family
   - &float8_float8_float8   #a_type_b_type_out_type
     { a_type: f8_r, b_type: f8_r, c_type: f8_r, d_type: f8_r, composite_compute_type: f32 }
   - &bfloat8_bfloat8_bfloat8
@@ -404,6 +404,16 @@ F8F8S family: &F8F8S_family #a_type_b_type_compute_family
     { a_type: f8_r, b_type: bf8_r, c_type: bf8_r, d_type: bf8_r, composite_compute_type: f32 }
   - &bfloat8_float8_bfloat8
     { a_type: bf8_r, b_type: f8_r, c_type: bf8_r, d_type: bf8_r, composite_compute_type: f32 }
+
+F8HS family: &F8HS_family #in_type_out_type_compute_family
+  - &float8_float8_half   #a_type_b_type_out_type
+    { a_type: f8_r, b_type: f8_r, c_type: f16_r, d_type: f16_r, composite_compute_type: f32 }
+  - &bfloat8_bfloat8_half
+    { a_type: bf8_r, b_type: bf8_r, c_type: f16_r, d_type: f16_r, composite_compute_type: f32 }
+  - &float8_bfloat8_half
+    { a_type: f8_r, b_type: bf8_r, c_type: f16_r, d_type: f16_r, composite_compute_type: f32 }
+  - &bfloat8_float8_half
+    { a_type: bf8_r, b_type: f8_r, c_type: f16_r, d_type: f16_r, composite_compute_type: f32 }
 
 stage 1 family: &stage1_family
   - &half_f8_f8_f32 #in/out_composite_compute_type
