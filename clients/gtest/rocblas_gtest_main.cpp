@@ -91,31 +91,38 @@ public:
     void OnTestPartResult(const TestPartResult& result) override
     {
         if(result.type() == TestPartResult::kSkip)
+        {
             ++skipped_tests;
 
-        if(strstr(result.message(), LIMITED_RAM_STRING))
-        {
-            if(showInlineSkips)
-                rocblas_cout << "Skipped test due to limited RAM environment." << std::endl;
+            if(strstr(result.message(), LIMITED_RAM_STRING))
+            {
+                if(showInlineSkips)
+                    rocblas_cout << "Skipped test due to limited RAM environment." << std::endl;
+            }
+            else if(strstr(result.message(), LIMITED_VRAM_STRING))
+            {
+                if(showInlineSkips)
+                    rocblas_cout << "Skipped test due to limited GPU memory environment."
+                                 << std::endl;
+            }
+            else if(strstr(result.message(), HMM_NOT_SUPPORTED_STRING))
+            {
+                if(showInlineSkips)
+                    rocblas_cout << "Skipped test due to HMM not supported." << std::endl;
+            }
+            else if(strstr(result.message(), TOO_FEW_DEVICES_PRESENT_STRING))
+            {
+                if(showInlineSkipTooFewGPU) // specific default for gpu
+                    rocblas_cout << "Skipped test due to too few GPUs." << std::endl;
+            }
+            else if(showInlineSkips)
+            {
+                // this is more output than the simple sentences above
+                eventListener->OnTestPartResult(result);
+            }
         }
-        else if(strstr(result.message(), LIMITED_VRAM_STRING))
+        else
         {
-            if(showInlineSkips)
-                rocblas_cout << "Skipped test due to limited GPU memory environment." << std::endl;
-        }
-        else if(strstr(result.message(), HMM_NOT_SUPPORTED_STRING))
-        {
-            if(showInlineSkips)
-                rocblas_cout << "Skipped test due to HMM not supported." << std::endl;
-        }
-        else if(strstr(result.message(), TOO_FEW_DEVICES_PRESENT_STRING))
-        {
-            if(showInlineSkipTooFewGPU) // specific default for gpu
-                rocblas_cout << "Skipped test due to too few GPUs." << std::endl;
-        }
-        else if(showInlineSkips)
-        {
-            // this is more output than the simple sentences above
             eventListener->OnTestPartResult(result);
         }
     }
