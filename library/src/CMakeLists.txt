@@ -651,13 +651,15 @@ if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
   endif() #NOT WIN32
 endif()
 
-if(RUN_HEADER_TESTING)
-# Compilation tests to ensure that header files work independently,
-# and that public header files work across several languages
-add_custom_command(
-  TARGET rocblas
-  POST_BUILD
-  COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
- )
+if(NOT WIN32)
+  if(RUN_HEADER_TESTING)
+  # Compilation tests to ensure that header files work independently,
+  # and that public header files work across several languages
+  add_custom_command(
+    TARGET rocblas
+    POST_BUILD
+    COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  endif()
 endif()

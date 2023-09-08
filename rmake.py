@@ -140,7 +140,7 @@ def parse_args():
                         help='Deprecated, Linux only: Install with legacy include dir for file/folder backward compatibility.')
 
     experimental_opts.add_argument(      '--run_header_testing', required=False, default=False, action='store_true',
-                        help='Run post build header testing. (options, default: False')
+                        help='Linux only: Run post build header testing. (options, default: False')
 
     general_opts.add_argument(      '--skipldconf', dest='skip_ld_conf_entry', required=False, default=False, action='store_true',
                         help='Linux only: Skip ld.so.conf entry.')
