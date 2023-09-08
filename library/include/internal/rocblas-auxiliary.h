@@ -78,10 +78,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_pointer_mode(rocblas_handle        han
  *  By using atomic operations, results are not guaranteed to be identical between multiple runs.
  *  Results will be accurate with or without atomic operations, but if it is required to
  *  have bit-wise reproducible results, atomic operations should not be used.
- * 
+ *
  *  Atomic operations can be turned on or off for a handle by calling rocblas_set_atomics_mode.
  *  By default, this is set to `rocblas_atomics_allowed`.
  */
+ROCBLAS_DEPRECATED_MSG(
+    " Atomic operations in rocBLAS will be turned off by default in future releases."
+    "The default will be set to 'rocblas_atomics_not_allowed' and users can enable using "
+    "rocblas_set_atomics_mode(). ")
 ROCBLAS_EXPORT rocblas_status rocblas_set_atomics_mode(rocblas_handle       handle,
                                                        rocblas_atomics_mode atomics_mode);
 
