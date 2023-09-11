@@ -44,7 +44,7 @@ if ! [ -z ${ROCM_PATH+x} ]; then
     rocm_path=${ROCM_PATH}
 fi
 
-HIPCC=${rocm_path}/hip/bin/hipcc
+HIPCC=${rocm_path}/bin/hipcc
 
 HIPCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath $BUILD_DIR/include/rocblas) -I$(realpath $BUILD_DIR/include/rocblas/internal) -I$(realpath library/include) -I$(realpath library/src/include)  -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/include -isystem ${rocm_path}/HIPCC/include -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
 
