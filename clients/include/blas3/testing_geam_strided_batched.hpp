@@ -403,25 +403,25 @@ void testing_geam_strided_batched(const Arguments& arg)
     rocblas_int B_row = transB == rocblas_operation_none ? M : N;
     rocblas_int B_col = transB == rocblas_operation_none ? N : M;
 
-    if(stride_a < size_t(lda) * A_col)
+    if(stride_a < int64_t(lda) * A_col)
     {
         rocblas_cout << "WARNING: stride_a < lda * A_col, \n"
-                        "setting stride_a = size_t(lda) * A_col"
+                        "setting stride_a = int64_t(lda) * A_col"
                      << std::endl;
-        stride_a = size_t(lda) * A_col;
+        stride_a = int64_t(lda) * A_col;
     }
-    if(stride_b < size_t(ldb) * B_col)
+    if(stride_b < int64_t(ldb) * B_col)
     {
         rocblas_cout << "WARNING: stride_b < ldb * B_col, \n"
-                        "setting stride_b = size_t(ldb) * B_col"
+                        "setting stride_b = int64_t(ldb) * B_col"
                      << std::endl;
-        stride_b = size_t(ldb) * B_col;
+        stride_b = int64_t(ldb) * B_col;
     }
-    if(stride_c < size_t(ldc) * N)
+    if(stride_c < int64_t(ldc) * N)
     {
-        rocblas_cout << "WARNING: stride_c < ldc * N), setting stride_c = size_t(ldc) * N"
+        rocblas_cout << "WARNING: stride_c < ldc * N), setting stride_c = int64_t(ldc) * N"
                      << std::endl;
-        stride_c = size_t(ldc) * N;
+        stride_c = int64_t(ldc) * N;
     }
 
     // argument sanity check before allocating invalid memory

@@ -527,16 +527,16 @@ void testing_trmm_strided_batched(const Arguments& arg)
     // inplace == true for inplace, inplace == false for outofplace
     bool inplace = !arg.outofplace;
 
-    rocblas_int M           = arg.M;
-    rocblas_int N           = arg.N;
-    size_t      lda         = size_t(arg.lda);
-    size_t      ldb         = size_t(arg.ldb);
-    size_t      ldc         = size_t(arg.ldc);
-    size_t      ldOut       = inplace ? ldb : ldc;
-    rocblas_int stride_a    = arg.stride_a;
-    rocblas_int stride_b    = arg.stride_b;
-    rocblas_int stride_c    = arg.stride_c;
-    rocblas_int batch_count = arg.batch_count;
+    rocblas_int    M           = arg.M;
+    rocblas_int    N           = arg.N;
+    int64_t        lda         = arg.lda;
+    int64_t        ldb         = arg.ldb;
+    int64_t        ldc         = arg.ldc;
+    int64_t        ldOut       = inplace ? ldb : ldc;
+    rocblas_stride stride_a    = arg.stride_a;
+    rocblas_stride stride_b    = arg.stride_b;
+    rocblas_stride stride_c    = arg.stride_c;
+    rocblas_int    batch_count = arg.batch_count;
 
     char char_side   = arg.side;
     char char_uplo   = arg.uplo;

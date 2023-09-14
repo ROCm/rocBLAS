@@ -166,7 +166,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
-    rocblas_int K = rocblas_side_right == side ? size_t(N) : size_t(M);
+    rocblas_int K = rocblas_side_right == side ? N : M;
 
     rocblas_int lda  = arg.lda;
     rocblas_int incx = arg.incx;
@@ -185,22 +185,22 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
     double rocblas_error = std::numeric_limits<double>::max();
 
-    if((stride_a > 0) && (stride_a < size_t(lda) * N))
+    if((stride_a > 0) && (stride_a < int64_t(lda) * N))
     {
         rocblas_cout << "WARNING: stride_a < lda * N, setting stride_a = lda * N " << std::endl;
-        stride_a = N * size_t(lda);
+        stride_a = N * int64_t(lda);
     }
-    if((stride_c > 0) && (stride_c < size_t(ldc) * N))
+    if((stride_c > 0) && (stride_c < int64_t(ldc) * N))
     {
-        rocblas_cout << "WARNING: stride_c < ldc * N, setting stride_c = lda * N" << std::endl;
-        stride_c = N * size_t(ldc);
+        rocblas_cout << "WARNING: stride_c < ldc * N, setting stride_c = ldc * N" << std::endl;
+        stride_c = N * int64_t(ldc);
     }
-    if((stride_x > 0) && (stride_x < size_t(abs_incx) * K))
+    if((stride_x > 0) && (stride_x < int64_t(abs_incx) * K))
     {
         rocblas_cout << "WARNING: stride_x < incx * (rocblas_side_right == side ? N : M)),\n"
                         "setting stride_x = incx * (rocblas_side_right == side ? N : M))"
                      << std::endl;
-        stride_x = K * size_t(abs_incx);
+        stride_x = K * int64_t(abs_incx);
     }
 
     rocblas_local_handle handle{arg};
