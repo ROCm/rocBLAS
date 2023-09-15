@@ -38,7 +38,7 @@ def runCI =
     {
         platform, project->
 
-        def gfilter = "*stress*"
+        def gfilter = "*blas1/nightly*:*blas2/nightly*:*blas3/nightly*:*blas3_tensile/nightly*:*blas_ex/nightly*:*stress*"
 
         commonGroovy.runTestCommand(platform, project, gfilter)
     }
@@ -61,7 +61,7 @@ ci: {
     propertyList = auxiliary.appendPropertyList(propertyList)
 
     def jobNameList = ["main":([ubuntu20:['gfx90a']])]
-    
+
     jobNameList = auxiliary.appendJobNameList(jobNameList, 'rocBLAS')
 
     propertyList.each
