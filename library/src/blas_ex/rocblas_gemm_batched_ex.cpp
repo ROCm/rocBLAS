@@ -139,7 +139,7 @@ try
                    == rocblas_status_success)
                 {
                     log_bench(handle,
-                              "./rocblas-bench -f gemm_batched_ex",
+                              "./rocblas-bench -f gemm_batched_ex3",
                               "--transposeA",
                               trans_a_letter,
                               "--transposeB",

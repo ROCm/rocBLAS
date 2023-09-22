@@ -203,10 +203,12 @@
 #include "testing_gemm.hpp"
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
+#include "testing_gemm_batched_ex3.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_ex3.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
+#include "testing_gemm_strided_batched_ex3.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
@@ -287,16 +289,16 @@ struct perf_gemm_ex3<
     Tc,
     std::enable_if_t<(!std::is_same<TiA, void>{} && !std::is_same<TiB, void>{})
                      && ((std::is_same<TiA, rocblas_f8>{} || std::is_same<TiA, rocblas_bf8>{}
-                          || std::is_same<TiA, rocblas_half>{} || std::is_same<TiA, float>{}
-                          || std::is_same<TiA, rocblas_bfloat16>{}))
+                          || std::is_same<TiA, rocblas_half>{} || std::is_same<TiA, float>{}))
                      && (std::is_same<TiB, rocblas_f8>{} || std::is_same<TiB, rocblas_bf8>{}
-                         || std::is_same<TiB, rocblas_half>{} || std::is_same<TiB, float>{}
-                         || std::is_same<TiB, rocblas_bfloat16>{})>> : rocblas_test_valid
+                         || std::is_same<TiB, rocblas_half>{} || std::is_same<TiB, float>{})>>
+    : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
             {"gemm_ex3", testing_gemm_ex3<TiA, TiB, To, Tc>},
+            {"gemm_batched_ex3", testing_gemm_batched_ex3<TiA, TiB, To, Tc>},
         };
         run_function(map, arg);
     }
@@ -324,6 +326,35 @@ struct perf_gemm_strided_batched_ex<
     {
         static const func_map map = {
             {"gemm_strided_batched_ex", testing_gemm_strided_batched_ex<Ti, To, Tc>},
+        };
+        run_function(map, arg);
+    }
+};
+
+// Template to dispatch testing_gemm_ex3 for performance tests
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
+template <typename TiA, typename TiB = TiA, typename To = TiA, typename Tc = To, typename = void>
+struct perf_gemm_strided_batched_ex3 : rocblas_test_invalid
+{
+};
+
+template <typename TiA, typename TiB, typename To, typename Tc>
+struct perf_gemm_strided_batched_ex3<
+    TiA,
+    TiB,
+    To,
+    Tc,
+    std::enable_if_t<(!std::is_same<TiA, void>{} && !std::is_same<TiB, void>{})
+                     && ((std::is_same<TiA, rocblas_f8>{} || std::is_same<TiA, rocblas_bf8>{}
+                          || std::is_same<TiA, rocblas_half>{} || std::is_same<TiA, float>{}))
+                     && (std::is_same<TiB, rocblas_f8>{} || std::is_same<TiB, rocblas_bf8>{}
+                         || std::is_same<TiB, rocblas_half>{} || std::is_same<TiB, float>{})>>
+    : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"gemm_strided_batched_ex3", testing_gemm_strided_batched_ex3<TiA, TiB, To, Tc>},
         };
         run_function(map, arg);
     }
@@ -1187,7 +1218,7 @@ int run_bench_test(bool               init,
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
     }
-    else if(!strcmp(function, "gemm_ex3"))
+    else if(!strcmp(function, "gemm_ex3") || !strcmp(function, "gemm_batched_ex3"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
@@ -1266,6 +1297,50 @@ int run_bench_test(bool               init,
         }
 
         rocblas_gemm_dispatch<perf_gemm_strided_batched_ex>(arg);
+    }
+    else if(!strcmp(function, "gemm_strided_batched_ex3"))
+    {
+        // adjust dimension for GEMM routines
+        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        rocblas_int min_ldc = arg.M;
+        rocblas_int min_ldd = arg.M;
+        if(arg.lda < min_lda)
+        {
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            arg.lda = min_lda;
+        }
+        if(arg.ldb < min_ldb)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            arg.ldb = min_ldb;
+        }
+        if(arg.ldc < min_ldc)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            arg.ldc = min_ldc;
+        }
+        if(arg.ldd < min_ldd)
+        {
+            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            arg.ldd = min_ldd;
+        }
+        rocblas_int min_stride_c = arg.ldc * arg.N;
+        rocblas_int min_stride_d = arg.ldd * arg.N;
+        if(!any_stride && arg.stride_c < min_stride_c)
+        {
+            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                         << min_stride_c << std::endl;
+            arg.stride_c = min_stride_c;
+        }
+        if(!any_stride && arg.stride_d < min_stride_d)
+        {
+            rocblas_cout << "rocblas-bench INFO: stride_d < min_stride_d, set stride_d = "
+                         << min_stride_d << std::endl;
+            arg.stride_d = min_stride_d;
+        }
+
+        rocblas_gemm_dispatch<perf_gemm_strided_batched_ex3>(arg);
     }
     else
 #endif

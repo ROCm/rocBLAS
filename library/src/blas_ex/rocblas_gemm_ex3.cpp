@@ -58,12 +58,6 @@ namespace
 
         if(handle->getArch() >= 940 && handle->getArch() < 1000)
         {
-            const bool HPA = true; //compute_type == rocblas_datatype_f32_r
-                //&& (a_type == rocblas_datatype_f16_r || a_type == rocblas_datatype_bf16_r);
-
-            if(!HPA)
-                RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
             // Copy alpha and beta to host if on device
             rocblas_union_t alpha_h, beta_h;
             RETURN_IF_ROCBLAS_ERROR(rocblas_copy_alpha_beta_to_host_if_on_device(

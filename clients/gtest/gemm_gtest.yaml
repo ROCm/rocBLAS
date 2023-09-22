@@ -2386,7 +2386,6 @@ Definitions:
     - { alpha:  1, beta:  0 }
     - { alpha:  0, beta:  1 }
     - { alpha:  1, beta:  1 }
-    # - { alpha:  1, beta:  1 }
 
   - &alpha_beta_range_f8_nan1
     - { alpha:  1, beta:  0 }
@@ -3556,7 +3555,7 @@ Tests:
   unit_check: 1
   res_check: 0
   norm_check: 0
-  flags: [0 , 16]
+  # flags: [0 , stochastic_rounding] TODO
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3579,6 +3578,7 @@ Tests:
   norm_check: 0
   initialization: rand_int_zero_one
   gpu_arch: '94?'
+  api: [ C, FORTRAN ]
 
 - name: stage1_small
   category: quick
@@ -3612,7 +3612,7 @@ Tests:
   unit_check: 1
   res_check: 0
   norm_check: 0
-  flags: [16]
+  flags: [stochastic_rounding]
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3629,7 +3629,7 @@ Tests:
   unit_check: 1
   res_check: 0
   norm_check: 0
-  flags: [16]
+  flags: [stochastic_rounding]
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3668,7 +3668,7 @@ Tests:
   unit_check: 0
   res_check: 1
   norm_check: 0
-  flags: [16]
+  flags: [stochastic_rounding]
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3690,6 +3690,7 @@ Tests:
   norm_check: 0
   initialization: rand_int_zero_one
   gpu_arch: '94?'
+  api: [ C, FORTRAN ]
 
 - name: stage2_small
   category: quick

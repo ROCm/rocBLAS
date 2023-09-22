@@ -52,6 +52,11 @@ Datatypes:
       bases: [ c_uint32 ]
       attr:
         none: 0
+        use_cu_efficiency: 2
+        fp16_alt_impl: 4
+        check_solution_index: 8
+        fp16_alt_impl_rnz: 16
+        stochastic_rounding: 32
   - rocblas_geam_ex_operation:
       bases: [ c_uint32 ]
       attr:

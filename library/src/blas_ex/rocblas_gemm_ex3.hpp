@@ -28,12 +28,15 @@
 #include "rocblas_gemm_ex.hpp"
 #include <random>
 
-// #define SR_DEBUG 1
-
 #define EX_TYPECASTING_PARM                                                                    \
     handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb,  \
         stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count, \
         rocblas_gemm_flags(flags)
+
+#define EX_TEMPLATE_PARM                                                                           \
+    handle, trans_a, trans_b, m, n, k, alpha, a, a_type, offsetAin, lda, stride_a, b, b_type,      \
+        offsetBin, ldb, stride_b, beta, c, c_type, offsetCin, ldc, stride_c, d, d_type, offsetDin, \
+        ldd, stride_d, batch_count, compute_type, flags
 
 template <bool BATCHED>
 rocblas_status rocblas_gemm_ex3_template(rocblas_handle      handle,
@@ -415,15 +418,15 @@ ROCBLAS_KERNEL(DIM_M* DIM_N)
 
 /***************************************************************************************/
 
-rocblas_status rocblas_internal_f16_conversion__mem(rocblas_handle               handle,
-                                                    std::pair<bool, rocblas_int> a_mem,
-                                                    std::pair<bool, rocblas_int> b_mem,
-                                                    std::pair<bool, rocblas_int> c_mem,
-                                                    std::pair<bool, rocblas_int> gsu_mem,
-                                                    rocblas_device_malloc_base&  w_mem,
-                                                    void*&                       w_mem_TA,
-                                                    void*&                       w_mem_TB,
-                                                    void*&                       w_mem_TD)
+inline rocblas_status rocblas_internal_f16_conversion__mem(rocblas_handle              handle,
+                                                           std::pair<bool, size_t>     a_mem,
+                                                           std::pair<bool, size_t>     b_mem,
+                                                           std::pair<bool, size_t>     c_mem,
+                                                           std::pair<bool, size_t>     gsu_mem,
+                                                           rocblas_device_malloc_base& w_mem,
+                                                           void*&                      w_mem_TA,
+                                                           void*&                      w_mem_TB,
+                                                           void*&                      w_mem_TD)
 {
     auto& workspace = static_cast<decltype(handle->device_malloc(0))&>(w_mem);
 
@@ -456,45 +459,6 @@ rocblas_status rocblas_internal_f16_conversion__mem(rocblas_handle              
 
     return memory_status;
 }
-
-#if defined(SR_DEBUG)
-#include <fstream>
-template <typename TiA, typename TiB = TiA, typename To = TiA>
-void storeSRToBin(rocblas_operation transA,
-                  rocblas_operation transB,
-                  rocblas_int       M,
-                  rocblas_int       N,
-                  rocblas_int       K,
-                  std::vector<TiA>& hA,
-                  rocblas_int       lda,
-                  std::string       ADataFile,
-                  std::vector<TiB>& hB,
-                  rocblas_int       ldb,
-                  std::string       BDataFile,
-                  // std::vector<To>&  hC,
-                  // rocblas_int       ldc,
-                  // std::string       CDataFile,
-                  rocblas_int batch_count)
-{
-    {
-        size_t sz = lda * (transA == rocblas_operation_none ? K : M) * sizeof(TiA) * batch_count;
-        std::ofstream FILE(ADataFile, std::ios::out | std::ofstream::binary);
-        FILE.write(reinterpret_cast<const char*>(&hA[0]), sz);
-    }
-
-    {
-        size_t sz = ldb * (transB == rocblas_operation_none ? N : K) * sizeof(TiB) * batch_count;
-        std::ofstream FILE(BDataFile, std::ios::out | std::ofstream::binary);
-        FILE.write(reinterpret_cast<const char*>(&hB[0]), sz);
-    }
-
-    // {
-    //     size_t        sz = ldc * N * sizeof(To) * batch_count;
-    //     std::ofstream FILE(CDataFile, std::ios::out | std::ofstream::binary);
-    //     FILE.write(reinterpret_cast<const char*>(&hC[0]), sz);
-    // }
-}
-#endif
 
 template <bool BATCHED,
           typename TiA,
@@ -1629,20 +1593,20 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
             GSU_request = true;
     }
 
-    rocblas_int size_a, size_b, size_c;
+    size_t size_a, size_b, size_c;
 
-    size_a                 = m * k;
-    size_b                 = k * n;
-    size_c                 = m * n;
-    float       local_beta = *(const float*)beta;
-    rocblas_int num        = To_is_final ? 0 : 1;
+    size_a            = size_t(m) * k;
+    size_b            = size_t(k) * n;
+    size_c            = size_t(m) * n;
+    float local_beta  = *(const float*)beta;
+    float local_alpha = *(const float*)alpha;
 
     rocblas_status status = rocblas_internal_f16_conversion__mem(
         handle,
-        std::pair<bool, rocblas_int>(!TiA_is_final, size_a * sizeof(TcA)),
-        std::pair<bool, rocblas_int>(!TiB_is_final, size_b * sizeof(TcB)),
-        std::pair<bool, rocblas_int>(!To_is_final, size_c * sizeof(To_expected)),
-        std::pair<bool, rocblas_int>(GSU_request, memsize),
+        std::pair<bool, size_t>(!TiA_is_final, size_a * sizeof(TcA)),
+        std::pair<bool, size_t>(!TiB_is_final, size_b * sizeof(TcB)),
+        std::pair<bool, size_t>(!To_is_final, size_c * sizeof(To_expected)),
+        std::pair<bool, size_t>(GSU_request, memsize),
         w_mem,
         w_mem_dTA,
         w_mem_dTB,
@@ -1688,7 +1652,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
 
     // A conversion
     // clang-format off
-    if(!TiA_is_final)
+    if(!TiA_is_final && local_alpha)
     {
         dim3 dimBlock(dim_m, dim_n, 1);
         int m_block = ((m - 1) / blk_m) + 1;
@@ -1845,7 +1809,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
     }
 
     // *** B conversion
-    if(!TiB_is_final)
+    if(!TiB_is_final && local_alpha)
     {
         dim3 dimBlock(dim_m, dim_n, 1);
         int k_block = ((k - 1) / blk_k) + 1;
@@ -2034,76 +1998,6 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
 
     }
 
-#if defined(SR_DEBUG)
-
-    std::vector<TcA> hTA(size_a);
-    std::vector<TcB> hTB(size_b);
-    std::vector<To_expected> hTC(size_c);
-    std::vector<To> hTC_og(ldc * n);
-    std::vector<To_expected> hTD(size_c);
-    if(!TiA_is_final)
-        hipMemcpy(hTA.data(), w_mem_dTA, sizeof(TcA) * size_a, hipMemcpyDeviceToHost);
-    if(!TiB_is_final)
-        hipMemcpy(hTB.data(), w_mem_dTB, sizeof(TcB) * size_b, hipMemcpyDeviceToHost);
-    if(!To_is_final && local_beta!=0)
-    {
-        hipMemcpy(hTC.data(), w_mem_dTD, sizeof(To_expected) * size_c, hipMemcpyDeviceToHost);
-        hipMemcpy(hTC_og.data(), c, sizeof(To) * ldc * n, hipMemcpyDeviceToHost);
-    }
-
-    auto                 A_row = trans_a == rocblas_operation_none ? m : k;
-    auto                 A_col = trans_a == rocblas_operation_none ? k : m;
-    auto                 B_row = trans_b == rocblas_operation_none ? k : n;
-    auto                 B_col = trans_b == rocblas_operation_none ? n : k;
-
-    if(!TiA_is_final)
-    {
-    rocblas_cout<<"matrix A"<<std::endl;
-
-    for(int i = 0; i < A_row; i++)
-    {
-        for(int j = 0; j < A_col; j++)
-            rocblas_cout << std::right << std::setw(4) << hTA[j * lda_new + i] << " (" << i<<","<<j<<") ";
-        rocblas_cout << std::endl;
-    }
-    }
-
-    if(!TiB_is_final)
-    {
-    rocblas_cout<<"matrix B"<<std::endl;
-
-    for(int i = 0; i < B_row; i++)
-    {
-        for(int j = 0; j < B_col; j++)
-            rocblas_cout << std::right << std::setw(4) << hTB[j * ldb_new + i] << " (" << i<<","<<j<<") ";
-        rocblas_cout << std::endl;
-    }
-    }
-
-    if(!To_is_final && local_beta!=0)
-    {
-
-        rocblas_cout<<"matrix C OG"<<std::endl;
-
-        for(int i = 0; i < m; i++)
-        {
-            for(int j = 0; j < n; j++)
-                rocblas_cout << std::right << std::setw(4) << hTC_og[j * ldc + i] << " ";
-            rocblas_cout << std::endl;
-        }
-
-        rocblas_cout<<"matrix C"<<std::endl;
-
-        for(int i = 0; i < m; i++)
-        {
-            for(int j = 0; j < n; j++)
-                rocblas_cout << std::right << std::setw(4) << hTC[j * ldd_new + i] << " ";
-            rocblas_cout << std::endl;
-        }
-    }
-
-#endif
-
     //call gemm
 
     int32_t           solution_index = 0;
@@ -2140,21 +2034,6 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                            batch_count,
                                            rocblas_compute_type_f32,
                                            flags);
-
-#if defined(SR_DEBUG)
-    if(!To_is_final)
-    {
-    hipMemcpy(hTD.data(), w_mem_dTD, sizeof(To_expected) * size_c, hipMemcpyDeviceToHost);
-    rocblas_cout<<"matrix D before optional quant"<<std::endl;
-
-    for(int i = 0; i < m; i++)
-    {
-        for(int j = 0; j < n; j++)
-            rocblas_cout << std::right << std::setw(4) << hTD[j * ldd_new + i];
-        rocblas_cout << std::endl;
-    }
-    }
-#endif
 
     if(!To_is_final)
     {
@@ -2771,6 +2650,239 @@ rocblas_status rocblas_gemm_ex3_template(rocblas_handle      handle,
 }
 
 #undef EX_TYPECASTING_PARM
+
+template <bool BATCHED, typename TiA,  typename TiB, typename To>
+rocblas_status rocblas_gemm_batched_ex3_typecasting(rocblas_handle      handle,
+                                         rocblas_operation   trans_a,
+                                         rocblas_operation   trans_b,
+                                         rocblas_int         m,
+                                         rocblas_int         n,
+                                         rocblas_int         k,
+                                         const void*         alpha,
+                                         const void*         a,
+                                         rocblas_datatype    a_type,
+                                         rocblas_int         offsetAin,
+                                         rocblas_int         lda,
+                                         rocblas_stride      stride_a,
+                                         const void*         b,
+                                         rocblas_datatype    b_type,
+                                         rocblas_int         offsetBin,
+                                         rocblas_int         ldb,
+                                         rocblas_stride      stride_b,
+                                         const void*         beta,
+                                         const void*         c,
+                                         rocblas_datatype    c_type,
+                                         rocblas_int         offsetCin,
+                                         rocblas_int         ldc,
+                                         rocblas_stride      stride_c,
+                                         void*               d,
+                                         rocblas_datatype    d_type,
+                                         rocblas_int         offsetDin,
+                                         rocblas_int         ldd,
+                                         rocblas_stride      stride_d,
+                                         rocblas_int         batch_count,
+                                         rocblas_computetype compute_type,
+                                         uint32_t            flags)
+{
+    rocblas_status rb_status = rocblas_status_not_implemented;
+
+    if(BATCHED)
+    {
+        std::unique_ptr<TiA*[]> a_host = std::make_unique<TiA*[]>(batch_count);
+        std::unique_ptr<TiB*[]> b_host = std::make_unique<TiB*[]>(batch_count);
+        std::unique_ptr<To*[]> c_host = std::make_unique<To*[]>(batch_count);
+        std::unique_ptr<To*[]> d_host = std::make_unique<To*[]>(batch_count);
+
+        if(a!=nullptr)
+            RETURN_IF_HIP_ERROR(hipMemcpy(&a_host[0],
+                            a,
+                            sizeof(TiA*) * batch_count,
+                            hipMemcpyDeviceToHost));
+        if(b!=nullptr)
+            RETURN_IF_HIP_ERROR(hipMemcpy(&b_host[0],
+                            b,
+                            sizeof(TiB*) * batch_count,
+                            hipMemcpyDeviceToHost));
+        if(c!=nullptr)
+            RETURN_IF_HIP_ERROR(hipMemcpy(&c_host[0],
+                            c,
+                            sizeof(To*) * batch_count,
+                            hipMemcpyDeviceToHost));
+        if(d!=nullptr)
+            RETURN_IF_HIP_ERROR(hipMemcpy(&d_host[0],
+                            d,
+                            sizeof(To*) * batch_count,
+                            hipMemcpyDeviceToHost));
+
+        for(int i = 0; i<batch_count; i++)
+        {
+            rb_status = rocblas_gemm_ex3_template<false>(handle,
+                                                        trans_a,
+                                                        trans_b,
+                                                        m,
+                                                        n,
+                                                        k,
+                                                        alpha,
+                                                        a==nullptr ? a : a_host[i],
+                                                        a_type,
+                                                        offsetAin,
+                                                        lda,
+                                                        stride_a,
+                                                        b==nullptr ? b :  b_host[i],
+                                                        b_type,
+                                                        offsetBin,
+                                                        ldb,
+                                                        stride_b,
+                                                        beta,
+                                                        c==nullptr ? c :  c_host[i],
+                                                        c_type,
+                                                        offsetCin,
+                                                        ldc,
+                                                        stride_c,
+                                                        d==nullptr ? d :  d_host[i],
+                                                        d_type,
+                                                        offsetDin,
+                                                        ldd,
+                                                        stride_d,
+                                                        1,
+                                                        compute_type,
+                                                        flags);
+            if(rb_status!=rocblas_status_success)
+                return rb_status;
+        }
+    }
+    else
+    {
+        for(rocblas_int i = 0; i<batch_count; i++)
+        {
+            rb_status = rocblas_gemm_ex3_template<false>(handle,
+                                                        trans_a,
+                                                        trans_b,
+                                                        m,
+                                                        n,
+                                                        k,
+                                                        alpha,
+                                                        (const TiA *)a + i*stride_a,
+                                                        a_type,
+                                                        offsetAin,
+                                                        lda,
+                                                        stride_a,
+                                                        (const TiB *)b + i*stride_b,
+                                                        b_type,
+                                                        offsetBin,
+                                                        ldb,
+                                                        stride_b,
+                                                        beta,
+                                                        (const To *)c + i*stride_c,
+                                                        c_type,
+                                                        offsetCin,
+                                                        ldc,
+                                                        stride_c,
+                                                        (To *)d + i*stride_d,
+                                                        d_type,
+                                                        offsetDin,
+                                                        ldd,
+                                                        stride_d,
+                                                        1,
+                                                        compute_type,
+                                                        flags);
+            if(rb_status!=rocblas_status_success)
+                return rb_status;
+        }
+    }
+
+    return rb_status;
+
+}
+
+template <bool BATCHED>
+rocblas_status rocblas_gemm_batched_ex3_template(rocblas_handle      handle,
+                                         rocblas_operation   trans_a,
+                                         rocblas_operation   trans_b,
+                                         rocblas_int         m,
+                                         rocblas_int         n,
+                                         rocblas_int         k,
+                                         const void*         alpha,
+                                         const void*         a,
+                                         rocblas_datatype    a_type,
+                                         rocblas_int         offsetAin,
+                                         rocblas_int         lda,
+                                         rocblas_stride      stride_a,
+                                         const void*         b,
+                                         rocblas_datatype    b_type,
+                                         rocblas_int         offsetBin,
+                                         rocblas_int         ldb,
+                                         rocblas_stride      stride_b,
+                                         const void*         beta,
+                                         const void*         c,
+                                         rocblas_datatype    c_type,
+                                         rocblas_int         offsetCin,
+                                         rocblas_int         ldc,
+                                         rocblas_stride      stride_c,
+                                         void*               d,
+                                         rocblas_datatype    d_type,
+                                         rocblas_int         offsetDin,
+                                         rocblas_int         ldd,
+                                         rocblas_stride      stride_d,
+                                         rocblas_int         batch_count,
+                                         rocblas_computetype compute_type,
+                                         uint32_t            flags)
+{
+    if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+    {
+        if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_f8, rocblas_f8, float>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, rocblas_bf8, float>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_f8, rocblas_bf8, float>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, rocblas_f8, float>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, float, rocblas_bf8, float>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f32_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, float, float>(EX_TEMPLATE_PARM);
+    }
+    else if(c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+    {
+        if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_f8, rocblas_f8, rocblas_half>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, rocblas_bf8, rocblas_half>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_f8, rocblas_bf8, rocblas_half>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, rocblas_f8, rocblas_half>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_half, rocblas_half, rocblas_half>(EX_TEMPLATE_PARM);
+    }
+    else if(c_type == rocblas_datatype_f8_r && d_type == rocblas_datatype_f8_r)
+    {
+        if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_f8, rocblas_f8, rocblas_f8>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_f32_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_f8, float, rocblas_f8>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, float, rocblas_f8, rocblas_f8>(EX_TEMPLATE_PARM);
+    }
+    else if(c_type == rocblas_datatype_bf8_r && d_type == rocblas_datatype_bf8_r)
+    {
+        if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, rocblas_bf8, rocblas_bf8>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f8_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_f8, rocblas_bf8, rocblas_bf8>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, rocblas_f8, rocblas_bf8>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_bf8_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, float, rocblas_bf8, rocblas_bf8>(EX_TEMPLATE_PARM);
+        else if(a_type == rocblas_datatype_bf8_r && b_type == rocblas_datatype_f32_r)
+            return rocblas_gemm_batched_ex3_typecasting<BATCHED, rocblas_bf8, float, rocblas_bf8>(EX_TEMPLATE_PARM);
+    }
+
+    return rocblas_status_not_implemented;
+}
+
+#undef EX_TEMPLATE_PARM
 
 // Copy alpha and beta to host if on device
 template <typename T>
