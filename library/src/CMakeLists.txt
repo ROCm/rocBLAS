@@ -125,6 +125,8 @@ if( BUILD_WITH_TENSILE )
 
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex3.cpp
+    blas_ex/rocblas_gemm_strided_batched_ex3.cpp
+    blas_ex/rocblas_gemm_batched_ex3.cpp
     ${Tensile_SRC}
   )
 
