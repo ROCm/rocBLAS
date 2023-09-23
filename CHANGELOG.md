@@ -2,7 +2,16 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 3.1.0
+## (Unreleased) rocBLAS 4.0.0
+### Deprecated
+- Atomic operations will be disabled by default in a future release of rocBLAS.
+### Removed
+- rocblas_gemm_ext2 API function is removed.
+- in-place trmm API from Legacy BLAS is removed. It is replaced by an API that supports both in-place and out-of-place trmm.
+- int8x4 support is removed. int8 support is unchanged.
+- The #define __STDC_WANT_IEC_60559_TYPES_EXT__ has been removed from rocblas-types.h. Users who want ISO/IEC TS 18661-3:2015 functionality must define __STDC_WANT_IEC_60559_TYPES_EXT__ before including float.h, math.h, and rocblas.h.
+
+## rocBLAS 3.1.0 for ROCm 5.7
 ### Added
 - yaml lock step argument scanning for rocblas-bench and rocblas-test clients. See Programmers Guide for details.
 - rocblas-gemm-tune is used to find the best performing GEMM kernel for each of a given set of GEMM problems.
