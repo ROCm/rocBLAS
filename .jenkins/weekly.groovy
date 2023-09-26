@@ -38,7 +38,7 @@ def runCI =
     {
         platform, project->
 
-        def gfilter = "*blas1/nightly*:*blas2/nightly*:*blas3/nightly*:*blas3_tensile/nightly*:*blas_ex/nightly*:*stress*"
+        def gfilter = "*blas1/nightly*:*blas2/nightly*:*blas3/nightly*:*blas3_tensile/nightly*:*blas_ex/nightly*:*stress*:*HMM*"
 
         commonGroovy.runTestCommand(platform, project, gfilter)
     }

@@ -38,7 +38,7 @@ def runCI =
     {
         platform, project->
 
-        def gfilter = "*quick*:*pre_checkin*:*HMM*"
+        def gfilter = "*quick*:*pre_checkin*"
 
         def testFilter = ""
 
