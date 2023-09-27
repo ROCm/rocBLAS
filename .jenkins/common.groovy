@@ -56,10 +56,25 @@ def runTestCommand (platform, project, gfilter)
     if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
     {
         hmmTestCommand = """
-                            HSA_XNACK=1 GTEST_LISTENER=NO_PASS_LINE_IN_LOG ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
+                            HSA_XNACK=1 ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
                          """
     }
 
+    def rocBLASTestCommand = ''
+
+    // Enable check numerics only for weekly tests
+    if (project.buildName.contains('weekly'))
+    {
+            rocBLASTestCommand = """
+                                    ROCBLAS_CHECK_NUMERICS=2 ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                 """
+    }
+    else
+    {
+            rocBLASTestCommand = """
+                                    ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                 """
+    }
 
     if (platform.jenkinsLabel.contains('ubuntu'))
     {
@@ -67,7 +82,7 @@ def runTestCommand (platform, project, gfilter)
                     pushd ${project.paths.project_build_prefix}
                     mv build build_BAK
                     ROCBLAS_TEST=/opt/rocm/bin/rocblas-test
-                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    ${rocBLASTestCommand}
                     if (( \$? != 0 )); then
                         exit 1
                     fi
@@ -79,12 +94,13 @@ def runTestCommand (platform, project, gfilter)
                     popd
                    """
         testXMLPath = "${project.paths.project_build_prefix}/test_detail*.xml"
-    } else
+    }
+    else
     {
         runTests = """
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
                     ROCBLAS_TEST=./rocblas-test
-                    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                    ${rocBLASTestCommand}
                     if (( \$? != 0 )); then
                         exit 1
                     fi
@@ -94,7 +110,6 @@ def runTestCommand (platform, project, gfilter)
                     fi
                    """
     }
-
 
     def command = """#!/usr/bin/env bash
                     set -x

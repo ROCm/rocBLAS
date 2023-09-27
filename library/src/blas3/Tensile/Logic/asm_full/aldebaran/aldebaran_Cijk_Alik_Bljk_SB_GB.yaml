@@ -211,7 +211,7 @@
       UseInitialStridesCD: false
       ZeroPadA: []
       ZeroPadB: []
-    ReplacementKernel: true
+    ReplacementKernel: false
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
@@ -407,7 +407,7 @@
       UseInitialStridesCD: false
       ZeroPadA: []
       ZeroPadB: []
-    ReplacementKernel: true
+    ReplacementKernel: false
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
@@ -611,7 +611,7 @@
       UseInitialStridesCD: false
       ZeroPadA: []
       ZeroPadB: []
-    ReplacementKernel: true
+    ReplacementKernel: false
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1
@@ -821,7 +821,7 @@
       UseInitialStridesCD: false
       ZeroPadA: []
       ZeroPadB: []
-    ReplacementKernel: true
+    ReplacementKernel: false
     ScheduleGlobalRead: 1
     ScheduleIterAlg: 1
     ScheduleLocalWrite: 1

@@ -85,6 +85,7 @@
 #define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 #define ASSERT_BF16_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 #define ASSERT_F8_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
+#define ASSERT_BF8_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 
 // Compare float to rocblas_bfloat16
 // Allow the rocblas_bfloat16 to match the rounded or truncated value of float
@@ -136,7 +137,7 @@ template <>
 inline void unit_check_general(
     rocblas_int M, rocblas_int N, rocblas_int lda, const rocblas_bf8* hCPU, const rocblas_bf8* hGPU)
 {
-    UNIT_CHECK(M, N, lda, 0, hCPU, hGPU, 1, ASSERT_F8_EQ);
+    UNIT_CHECK(M, N, lda, 0, hCPU, hGPU, 1, ASSERT_BF8_EQ);
 }
 
 template <>
@@ -250,7 +251,7 @@ inline void unit_check_general(rocblas_int        M,
                                const rocblas_bf8* hGPU,
                                rocblas_int        batch_count)
 {
-    UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, ASSERT_F8_EQ);
+    UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, ASSERT_BF8_EQ);
 }
 
 template <>
@@ -472,6 +473,28 @@ inline void unit_check_general(rocblas_int               M,
                                rocblas_int               batch_count)
 {
     UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, ASSERT_HALF_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int             M,
+                               rocblas_int             N,
+                               rocblas_int             lda,
+                               const rocblas_f8* const hCPU[],
+                               const rocblas_f8* const hGPU[],
+                               rocblas_int             batch_count)
+{
+    UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, ASSERT_F8_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int              M,
+                               rocblas_int              N,
+                               rocblas_int              lda,
+                               const rocblas_bf8* const hCPU[],
+                               const rocblas_bf8* const hGPU[],
+                               rocblas_int              batch_count)
+{
+    UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, ASSERT_BF8_EQ);
 }
 
 template <>
