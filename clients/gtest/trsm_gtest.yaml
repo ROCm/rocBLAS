@@ -98,6 +98,12 @@ Definitions:
   - &substitution_size_range_skinny_left
     - { M: 31, N: 4000, lda: 4000, ldb: 4000 }
     - { M:  2, N:  256, lda:  256, ldb:  256 }
+    - { M:  8, N: 4000, lda: 4000, ldb: 4000 }
+    - { M: 15, N: 2000, lda: 2000, ldb: 2000 }
+    - { M: 16, N:  999, lda: 1000, ldb: 1001 }
+    - { M: 17, N: 8000, lda: 8000, ldb: 8000 }
+    - { M: 24, N: 1001, lda: 1001, ldb: 1001 }
+    - { M: 32, N:   80, lda:   81, ldb:  100 }
 
   - &substitution_size_range_skinny_right
     - { M: 4000, N: 31, lda: 4000, ldb: 4000 }

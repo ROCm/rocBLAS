@@ -99,10 +99,14 @@ The client contains the test and benchmark code.
 Library Dependencies
 ^^^^^^^^^^^^^^^^^^^^
 
-Dependencies are listed in the script install.sh. The -d flag to install.sh installs dependencies.
-
 CMake has a minimum version requirement listed in the file install.sh. See --cmake_install flag in install.sh to upgrade automatically.
 
+Dependencies are listed in the script install.sh. Passing the -d flag to install.sh installs the dependencies.
+
+However, for the test and benchmark clients' host reference BLAS, it is recommended that you manually download and install AMD's ILP64 version of AOCL-BLAS 4.1 or 4.0 from https://www.amd.com/en/developer/aocl.html.
+If you download and install the full AOCL packages into their default locations, or only download the BLIS archive files and extract into the build directory deps subfolder, then this reference BLAS should be found
+by the clients CMakeLists.txt.  Note, if you only use the `install.sh -d` dependency script based BLIS download and install, you may experience `rocblas-test` stress test failures due to 32-bit integer overflow
+on the host unless you exclude the stress tests via command line argument `--gtest_filter=-*stress*`.
 
 Build Library dependencies + Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

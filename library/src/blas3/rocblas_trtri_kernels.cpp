@@ -194,29 +194,7 @@ rocblas_status rocblas_trtri_check_numerics(const char*    function_name,
                                             const int      check_numerics,
                                             bool           is_input)
 {
-    rocblas_status check_numerics_status = rocblas_status_success;
-    if(is_input)
-    {
-        check_numerics_status
-            = rocblas_internal_check_numerics_matrix_template(function_name,
-                                                              handle,
-                                                              rocblas_operation_none,
-                                                              uplo,
-                                                              rocblas_client_triangular_matrix,
-                                                              n,
-                                                              n,
-                                                              A,
-                                                              0,
-                                                              lda,
-                                                              stride_a,
-                                                              batch_count,
-                                                              check_numerics,
-                                                              is_input);
-        if(check_numerics_status != rocblas_status_success)
-            return check_numerics_status;
-    }
-
-    check_numerics_status
+    rocblas_status check_numerics_status
         = rocblas_internal_check_numerics_matrix_template(function_name,
                                                           handle,
                                                           rocblas_operation_none,
@@ -224,10 +202,10 @@ rocblas_status rocblas_trtri_check_numerics(const char*    function_name,
                                                           rocblas_client_triangular_matrix,
                                                           n,
                                                           n,
-                                                          invA,
+                                                          is_input ? A : invA,
                                                           0,
-                                                          ldinvA,
-                                                          stride_invA,
+                                                          is_input ? lda : ldinvA,
+                                                          is_input ? stride_a : stride_invA,
                                                           batch_count,
                                                           check_numerics,
                                                           is_input);

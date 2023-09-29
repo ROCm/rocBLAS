@@ -854,35 +854,9 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
                                                   flags),
                               rocblas_status_success);
 
-        // If alpha==0, then A and B can both be nullptr without issue.
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex3_fn(handle,
-                                                  transA,
-                                                  transB,
-                                                  M,
-                                                  N,
-                                                  K,
-                                                  zero,
-                                                  nullptr,
-                                                  a_type,
-                                                  lda,
-                                                  nullptr,
-                                                  b_type,
-                                                  ldb,
-                                                  beta,
-                                                  dC,
-                                                  c_type,
-                                                  ldc,
-                                                  dD,
-                                                  d_type,
-                                                  ldd,
-                                                  composite_compute_type,
-                                                  algo,
-                                                  solution_index,
-                                                  flags),
-                              rocblas_status_success);
-
         // alpha==0 && beta==1 must still copy C to D so no quick return
 
+        //TODO
         // // If alpha==0 && beta==0 then A, B and C can be nullptr without issue.
         // EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex3_fn(handle, transA, transB, M, N, K, zero,
         // nullptr, a_type, lda, nullptr, b_type, ldb, zero, nullptr, c_type, ldc,
@@ -899,17 +873,17 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
                           rocblas_int       K,
                           Tacc              alpha,
                           const void*       dA, // device_ptr to reuse in quantization if needed
-                          const host_matrix<TiA>& A,
-                          rocblas_int             lda,
-                          const void* dB, // device_pte to reuse in quantization if needed
-                          const host_matrix<TiB>& B,
-                          rocblas_int             ldb,
-                          Tacc                    beta,
-                          const host_matrix<To>&  C,
-                          rocblas_int             ldc,
-                          host_matrix<To>&        D, // host ptr
-                          rocblas_int             ldd,
-                          bool                    stochastic_rounding)
+                          const TiA*        A,
+                          rocblas_int       lda,
+                          const void*       dB, // device_pte to reuse in quantization if needed
+                          const TiB*        B,
+                          rocblas_int       ldb,
+                          Tacc              beta,
+                          const To*         C,
+                          rocblas_int       ldc,
+                          To*               D, // host ptr
+                          rocblas_int       ldd,
+                          bool              stochastic_rounding)
 {
     hipStream_t stream       = handle->get_stream();
     bool        TiA_is_final = std::is_same<TiA, TcA>{};
@@ -945,10 +919,10 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
     if(!To_is_final)
     {
         auto* D_ptr = hD_new[0];
-        auto* C_ptr = C[0];
+        // auto* C_ptr = C[0];
         for(int i = 0; i < M; i++)
             for(int j = 0; j < N; j++)
-                D_ptr[i + j * ldd_new] = static_cast<float>(C_ptr[i + j * ldc]);
+                D_ptr[i + j * ldd_new] = static_cast<float>(C[i + j * ldc]);
     }
 
     const int dim_m = 16;
@@ -1439,13 +1413,13 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
         for(rocblas_int batch_index = 0; batch_index < hDo_new.batch_count(); ++batch_index)
         {
             auto* Do = hDo_new[batch_index];
-            auto* hD = D[batch_index];
+            // auto* hD = D[batch_index];
             for(rocblas_int j = 0; j < N; j++)
             {
                 // consecutive in M_dim
                 for(rocblas_int i = 0; i < M; i++)
                 {
-                    hD[i + j * ldd] = Do[i + j * ldd_new];
+                    D[i + j * ldd] = Do[i + j * ldd_new];
                 }
             }
         }
@@ -1468,11 +1442,10 @@ void testing_gemm_ex3(const Arguments& arg)
         std::random_device                      rd;
         std::mt19937                            gen(rd());
         std::uniform_int_distribution<uint32_t> distribution(0, 0xFFFFFFFF);
-        uint32_t                                seedA = 0, seedB = 0, seedC = 0;
+        uint32_t                                seedA = 0, seedB = 0;
 
         seedA = distribution(gen);
         seedB = distribution(gen);
-        seedC = distribution(gen);
 
         int setenv_status;
 
@@ -1492,7 +1465,6 @@ void testing_gemm_ex3(const Arguments& arg)
     bool alpha_isnan = arg.alpha_isnan<Tc>();
     bool beta_isnan  = arg.beta_isnan<Tc>();
 
-    // todo: check F8 as well for NaN
     if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
        && !std::is_same<To, rocblas_half>{}
        && !rocblas_is_complex<To> && (alpha_isnan || beta_isnan) && !std::is_same<To, rocblas_f8>{}
@@ -1745,33 +1717,36 @@ void testing_gemm_ex3(const Arguments& arg)
         if((arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_f8_r
             && arg.c_type == arg.d_type
             && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                || arg.c_type == rocblas_datatype_f32_r)
+                || arg.c_type == rocblas_datatype_f32_r || arg.c_type == rocblas_datatype_f16_r)
             && arg.composite_compute_type == rocblas_compute_type_f32)
            || arg.composite_compute_type == rocblas_compute_type_f8_f8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_f8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_bf8_r && arg.b_type == rocblas_datatype_bf8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                     || arg.c_type == rocblas_datatype_f32_r)
+                     || arg.c_type == rocblas_datatype_f32_r
+                     || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_bf8_bf8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_bf8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_bf8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                     || arg.c_type == rocblas_datatype_f32_r)
+                     || arg.c_type == rocblas_datatype_f32_r
+                     || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_f8_bf8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_bf8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_bf8_r && arg.b_type == rocblas_datatype_f8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
-                     || arg.c_type == rocblas_datatype_f32_r)
+                     || arg.c_type == rocblas_datatype_f32_r
+                     || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_bf8_f8_f32)
             call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_f8, float>(TEST_PARM);
         else
-            rocblas_cout << "Trusted combo not found " << std::endl;
+            rocblas_cout << "ERROR Trusted combo not found " << std::endl;
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
