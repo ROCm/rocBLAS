@@ -448,6 +448,16 @@ Removal of __STDC_WANT_IEC_60559_TYPES_EXT__ define
 Prior to rocBLAS 4.0, __STDC_WANT_IEC_60559_TYPES_EXT__ was defined in rocblas.h, or more specifically rocblas-types.h, before including float.h. From rocBLAS 4.0, this
 define will be removed. Users who want ISO/IEC TS 18661-3:2015 functionality must define __STDC_WANT_IEC_60559_TYPES_EXT__ before including float.h and rocblas.h.
 
+Announced in rocBLAS 4.0
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Atomic operations will be disabled by default
+'''''''''''''''''''''''''''''''''''''''''''''
+
+The default :any:`rocblas_atomics_mode` in :any:`rocblas_handle` will change in the future to :any:`rocblas_atomics_not_allowed` from the current :any:`rocblas_atomics_allowed`.
+Thus the default will allow for improved determinism over performance.
+Users can add explicit control and not be affected by this change by calling the function :any:`rocblas_set_atomics_mode`.
+
 Removed in rocBLAS 4.0
 ^^^^^^^^^^^^^^^^^^^^^^
 

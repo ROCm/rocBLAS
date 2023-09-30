@@ -67073,7 +67073,7 @@
     ThreadTile1: 2
     ThreadTileA: 64
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
     UnrollMajorLDSA: 0
     UnrollMajorLDSB: 0

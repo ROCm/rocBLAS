@@ -210,15 +210,13 @@ def get_arguments(doc):
 
 def setkey_product(test, key, vals):
     """Helper for setdefaults. Tests that all values in vals is present
-    in test, if so then sets test[key] to product of all test[vals]."""
+    in test, if so then sets test[key] to positive product of all test[vals].
+    This will require changes if negative strides need to be computed."""
     if all(x in test for x in vals):
         result = 1
         for x in vals:
-            if x in ('incx', 'incy'):
-                result *= abs(test[x])
-            else:
-                result *= test[x]
-        test[key] = int(result)
+            result *= test[x]
+        test[key] = int(abs(result))
 
 
 def setdefaults(test):

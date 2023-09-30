@@ -107,28 +107,41 @@ rocm_setup_version( VERSION ${VERSION_STRING} )
 # NOTE:  workaround until llvm & hip cmake modules fixes symlink logic in their config files; remove when fixed
 list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm /opt/rocm/hip )
 
+# setting target list based on ROCm version
+set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+
+if(ROCM_PLATFORM_VERSION)
+  if(${ROCM_PLATFORM_VERSION} VERSION_LESS 5.7.0)
+    set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_5.6}")
+  elseif(${ROCM_PLATFORM_VERSION} VERSION_LESS 6.0.0)
+    set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_5.7}")
+  else()
+    set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.0}")
+  endif()
+else()
+  message(STATUS "ROCM Platform Version: ${ROCM_PLATFORM_VERSION} is not set, using default supported list")
+  set(SUPPORTED_TARGETS "${TARGET_LIST_ROCM_6.0}")
+endif()
+
 # gpu arch configuration
 set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
-set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS
-              all
-              gfx900
-              gfx906 gfx906:xnack-
-              gfx908 gfx908:xnack-
-              gfx90a gfx90a:xnack+ gfx90a:xnack-
-              gfx940 gfx940:xnack+ gfx940:xnack-
-              gfx941 gfx941:xnack+ gfx941:xnack-
-              gfx942 gfx942:xnack+ gfx942:xnack-
-              gfx1010 gfx1012 gfx1030
-              gfx1100 gfx1101 gfx1102 )
+set_property(CACHE AMDGPU_TARGETS PROPERTY STRINGS
+  all
+  ${SUPPORTED_TARGETS})
 
 # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
 # Sets the AMDGPU_TARGETS with backward compatibility
 if (AMDGPU_TARGETS STREQUAL "all")
-  rocm_check_target_ids(target_list
-      TARGETS "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
-  )
+  rocm_check_target_ids(target_list TARGETS "${SUPPORTED_TARGETS}")
 else()
   rocm_check_target_ids(target_list TARGETS "${AMDGPU_TARGETS}")
+endif()
+
+# if 'target_list' is empty, then compile does not support the gpu arch passed as an argument.
+if(target_list STREQUAL "")
+  message(FATAL_ERROR "Unsupported target ${AMDGPU_TARGETS} by compiler, List of supported targets:  ${SUPPORTED_TARGETS}")
 endif()
 
 # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
@@ -140,7 +153,7 @@ if(NOT SKIP_LIBRARY)
   if( BUILD_WITH_TENSILE )
     # we will have expanded "all" for tensile to ensure consistency as we have local rules
     set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
-    set( TENSILE_VERSION 4.38.0 CACHE STRING "The version of Tensile to be used")
+    set( TENSILE_VERSION 4.39.0 CACHE STRING "The version of Tensile to be used")
 
     if(BUILD_WITH_PIP)
       if (WIN32)
@@ -169,12 +182,13 @@ if(NOT SKIP_LIBRARY)
   endif()
 endif()
 
+message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
+
 # Find HIP dependencies
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
   find_package( hip REQUIRED CONFIG PATHS ${HIP_DIR} ${ROCM_PATH} /opt/rocm )
 endif( )
 
-message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
 
 # setup rocblas defines used for both the library and clients
 if( BUILD_WITH_TENSILE )

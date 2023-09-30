@@ -2386,7 +2386,6 @@ Definitions:
     - { alpha:  1, beta:  0 }
     - { alpha:  0, beta:  1 }
     - { alpha:  1, beta:  1 }
-    # - { alpha:  1, beta:  1 }
 
   - &alpha_beta_range_f8_nan1
     - { alpha:  1, beta:  0 }
@@ -3521,6 +3520,25 @@ Tests:
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
+- name: F8HS_family
+  category: quick
+  function: gemm_ex3
+  precision: *F8HS_family
+  transA: [ N, T ]
+  transB: [ N, T ]
+  alpha_beta: *alpha_beta_range_f8
+  matrix_size:
+    - { M:  32, N:  32, K:  32 }
+    - { M:  32, N:  64, K:  96 }
+    - { M:  32, N:  64, K:  96, lda: 128, ldb: 128, ldc: 128, ldd: 128 }
+    - { M:  111, N:  777, K:  111 }
+    - { M:  555, N:  777, K:  111 }
+  unit_check: 1
+  res_check: 0
+  norm_check: 0
+  initialization: rand_int_zero_one
+  gpu_arch: '94?'
+
 - name: F8F8S_family
   category: quick
   function: gemm_ex3
@@ -3537,7 +3555,7 @@ Tests:
   unit_check: 1
   res_check: 0
   norm_check: 0
-  flags: [0 , 16]
+  # flags: [0 , stochastic_rounding] TODO
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3560,6 +3578,7 @@ Tests:
   norm_check: 0
   initialization: rand_int_zero_one
   gpu_arch: '94?'
+  api: [ C, FORTRAN ]
 
 - name: stage1_small
   category: quick
@@ -3593,7 +3612,7 @@ Tests:
   unit_check: 1
   res_check: 0
   norm_check: 0
-  flags: [16]
+  flags: [stochastic_rounding]
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3610,7 +3629,7 @@ Tests:
   unit_check: 1
   res_check: 0
   norm_check: 0
-  flags: [16]
+  flags: [stochastic_rounding]
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3649,7 +3668,7 @@ Tests:
   unit_check: 0
   res_check: 1
   norm_check: 0
-  flags: [16]
+  flags: [stochastic_rounding]
   initialization: rand_int_zero_one
   gpu_arch: '94?'
 
@@ -3671,6 +3690,7 @@ Tests:
   norm_check: 0
   initialization: rand_int_zero_one
   gpu_arch: '94?'
+  api: [ C, FORTRAN ]
 
 - name: stage2_small
   category: quick

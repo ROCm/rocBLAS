@@ -176,6 +176,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     //Allocating memory for device structure
     auto d_abnormal = handle->device_malloc(sizeof(rocblas_check_numerics_t));
+    if(!d_abnormal)
+    {
+        rocblas_cerr << "rocBLAS internal error: No workspace memory available to allocate the "
+                        "struct d_abnormal in "
+                        "rocblas_check_numerics"
+                     << std::endl;
+        return rocblas_status_memory_error;
+    }
 
     //Transferring the rocblas_check_numerics_t structure from host to the device
     RETURN_IF_HIP_ERROR(hipMemcpy((rocblas_check_numerics_t*)d_abnormal,

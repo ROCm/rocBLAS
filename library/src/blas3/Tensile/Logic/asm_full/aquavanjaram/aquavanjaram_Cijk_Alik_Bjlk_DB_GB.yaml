@@ -3381,9 +3381,9 @@
     ThreadTile1: 2
     ThreadTileA: 16
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -3939,9 +3939,9 @@
     ThreadTile1: 2
     ThreadTileA: 16
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -4218,9 +4218,9 @@
     ThreadTile1: 2
     ThreadTileA: 16
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -6171,9 +6171,9 @@
     ThreadTile1: 1
     ThreadTileA: 8
     ThreadTileB: 1
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -7845,9 +7845,9 @@
     ThreadTile1: 2
     ThreadTileA: 16
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -12030,9 +12030,9 @@
     ThreadTile1: 2
     ThreadTileA: 16
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -12309,9 +12309,9 @@
     ThreadTile1: 2
     ThreadTileA: 16
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -12867,9 +12867,9 @@
     ThreadTile1: 2
     ThreadTileA: 16
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
@@ -13704,9 +13704,9 @@
     ThreadTile1: 2
     ThreadTileA: 32
     ThreadTileB: 2
-    TransposeLDS: 0
+    TransposeLDS: 1
     UnrollIncIsDepthU: 0
-    UnrollMajorLDSA: false
+    UnrollMajorLDSA: true
     UnrollMajorLDSB: false
     UnrollMemFence: false
     Use64bShadowLimit: 1
