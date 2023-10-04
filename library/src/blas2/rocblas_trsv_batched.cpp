@@ -43,7 +43,7 @@ namespace
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
                                              rocblas_diagonal  diag,
-                                             rocblas_int       m,
+                                             rocblas_int       n,
                                              const T* const    A[],
                                              rocblas_int       lda,
                                              T* const          B[],
@@ -64,7 +64,7 @@ namespace
                           uplo,
                           transA,
                           diag,
-                          m,
+                          n,
                           A,
                           lda,
                           B,
@@ -89,8 +89,8 @@ namespace
                                   transA_letter,
                                   "--diag",
                                   diag_letter,
-                                  "-m",
-                                  m,
+                                  "-n",
+                                  n,
                                   "--lda",
                                   lda,
                                   "--incx",
@@ -108,8 +108,8 @@ namespace
                                 transA_letter,
                                 "diag",
                                 diag_letter,
-                                "M",
-                                m,
+                                "N",
+                                n,
                                 "lda",
                                 lda,
                                 "incx",
@@ -121,7 +121,7 @@ namespace
 
         size_t         dev_bytes;
         rocblas_status arg_status = rocblas_trsv_arg_check(
-            handle, uplo, transA, diag, m, A, lda, B, incx, batch_count, dev_bytes);
+            handle, uplo, transA, diag, n, A, lda, B, incx, batch_count, dev_bytes);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
@@ -140,7 +140,7 @@ namespace
                 = rocblas_internal_trsv_check_numerics(rocblas_trsv_batched_name<T>,
                                                        handle,
                                                        uplo,
-                                                       m,
+                                                       n,
                                                        A,
                                                        0,
                                                        lda,
@@ -161,7 +161,7 @@ namespace
                                                      uplo,
                                                      transA,
                                                      diag,
-                                                     m,
+                                                     n,
                                                      A,
                                                      0,
                                                      lda,
@@ -183,7 +183,7 @@ namespace
                 = rocblas_internal_trsv_check_numerics(rocblas_trsv_batched_name<T>,
                                                        handle,
                                                        uplo,
-                                                       m,
+                                                       n,
                                                        A,
                                                        0,
                                                        lda,
@@ -215,7 +215,7 @@ rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
                                      rocblas_fill       uplo,
                                      rocblas_operation  transA,
                                      rocblas_diagonal   diag,
-                                     rocblas_int        m,
+                                     rocblas_int        n,
                                      const float* const A[],
                                      rocblas_int        lda,
                                      float* const       x[],
@@ -224,7 +224,7 @@ rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
                                      rocblas_int batch_count)
 try
 {
-    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, n, A, lda, x, incx, batch_count);
 }
 catch(...)
 {
@@ -235,7 +235,7 @@ rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
                                      rocblas_fill        uplo,
                                      rocblas_operation   transA,
                                      rocblas_diagonal    diag,
-                                     rocblas_int         m,
+                                     rocblas_int         n,
                                      const double* const A[],
                                      rocblas_int         lda,
                                      double* const       x[],
@@ -243,7 +243,7 @@ rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 try
 {
-    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, n, A, lda, x, incx, batch_count);
 }
 catch(...)
 {
@@ -254,7 +254,7 @@ rocblas_status rocblas_ctrsv_batched(rocblas_handle                     handle,
                                      rocblas_fill                       uplo,
                                      rocblas_operation                  transA,
                                      rocblas_diagonal                   diag,
-                                     rocblas_int                        m,
+                                     rocblas_int                        n,
                                      const rocblas_float_complex* const A[],
                                      rocblas_int                        lda,
                                      rocblas_float_complex* const       x[],
@@ -263,7 +263,7 @@ rocblas_status rocblas_ctrsv_batched(rocblas_handle                     handle,
                                      rocblas_int batch_count)
 try
 {
-    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, n, A, lda, x, incx, batch_count);
 }
 catch(...)
 {
@@ -274,7 +274,7 @@ rocblas_status rocblas_ztrsv_batched(rocblas_handle                      handle,
                                      rocblas_fill                        uplo,
                                      rocblas_operation                   transA,
                                      rocblas_diagonal                    diag,
-                                     rocblas_int                         m,
+                                     rocblas_int                         n,
                                      const rocblas_double_complex* const A[],
                                      rocblas_int                         lda,
                                      rocblas_double_complex* const       x[],
@@ -282,7 +282,7 @@ rocblas_status rocblas_ztrsv_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 try
 {
-    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+    return rocblas_trsv_batched_impl(handle, uplo, transA, diag, n, A, lda, x, incx, batch_count);
 }
 catch(...)
 {

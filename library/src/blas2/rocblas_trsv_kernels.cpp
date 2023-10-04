@@ -483,7 +483,7 @@ template <rocblas_int DIM_X,
           typename ATYPE,
           typename XTYPE>
 ROCBLAS_KERNEL(DIM_X* DIM_Y)
-rocblas_trsv_device(rocblas_int    m,
+rocblas_trsv_device(rocblas_int    n,
                     ATYPE          dA,
                     rocblas_stride offset_A,
                     rocblas_int    lda,
@@ -527,8 +527,8 @@ rocblas_trsv_device(rocblas_int    m,
 
     // If problem is not divisible into DIM_X sized sections, the last block row
     // will be smaller and must be handled differently
-    const rocblas_int remainder        = m % DIM_X;
-    const bool        row_is_remainder = ((m - 1) / DIM_X == block_row && remainder != 0);
+    const rocblas_int remainder        = n % DIM_X;
+    const bool        row_is_remainder = ((n - 1) / DIM_X == block_row && remainder != 0);
 
     // Store square block of A beside triangular part (if not first row)
     const bool first_row = backwards_sub ? block_row == num_blocks - 1 : block_row == 0;
@@ -544,7 +544,7 @@ rocblas_trsv_device(rocblas_int    m,
             const size_t i_idx = TRANS ? i : i * size_t(lda);
 
             __syncthreads();
-            if(TRANS ? (local_row + i < m && local_col < m) : (local_row < m && local_col + i < m))
+            if(TRANS ? (local_row + i < n && local_col < n) : (local_row < n && local_col + i < n))
                 sAoff[i / DIM_Y] = A[A_idx + i_idx];
             else
                 sAoff[i / DIM_Y] = 0.0;
@@ -672,7 +672,7 @@ rocblas_trsv_device(rocblas_int    m,
         // Store x val (of previous block) into shared memory
         if(tid < DIM_X)
         {
-            if(block_col * DIM_X + tid >= m)
+            if(block_col * DIM_X + tid >= n)
                 sx[tid] = 0.0;
             else
             {
@@ -692,7 +692,7 @@ rocblas_trsv_device(rocblas_int    m,
                 = !first_row
                   && (backwards_sub ? block_col == block_row + 1 : block_col == block_row - 1);
 
-            if(TRANS ? (local_row + i < m && local_col < m) : (local_row < m && local_col + i < m))
+            if(TRANS ? (local_row + i < n && local_col < n) : (local_row < n && local_col + i < n))
             {
                 auto A_val = cached ? sAoff[i / DIM_Y] : A[A_idx + i_idx];
                 if(CONJ)
@@ -781,7 +781,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
                                                            rocblas_fill      uplo,
                                                            rocblas_operation transA,
                                                            rocblas_diagonal  diag,
-                                                           rocblas_int       m,
+                                                           rocblas_int       n,
                                                            ATYPE             dA,
                                                            rocblas_stride    offset_A,
                                                            rocblas_int       lda,
@@ -801,10 +801,10 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
     // cppcheck-suppress unreadVariable
     auto saved_device_id = handle->push_device_id();
 
-    offset_x = incx < 0 ? offset_x + int64_t(incx) * (1 - m) : offset_x;
+    offset_x = incx < 0 ? offset_x + int64_t(incx) * (1 - n) : offset_x;
 
     constexpr rocblas_int DIM_Y  = 16;
-    rocblas_int           blocks = (m + DIM_X - 1) / DIM_X;
+    rocblas_int           blocks = (n + DIM_X - 1) / DIM_X;
     dim3                  threads(DIM_X, DIM_Y, 1);
     dim3                  grid(blocks, batch_count);
 
@@ -824,7 +824,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
     }
 
 #define TRSV_TEMPLATE_PARAMS(alpha_)                                                              \
-    grid, threads, 0, handle->get_stream(), m, dA, offset_A, lda, stride_A, alpha_, dx, offset_x, \
+    grid, threads, 0, handle->get_stream(), n, dA, offset_A, lda, stride_A, alpha_, dx, offset_x, \
         incx, stride_x, w_completed_sec
 
     if(handle->pointer_mode == rocblas_pointer_mode_device && alpha_exists)
@@ -977,7 +977,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
 }
 
 #define TRSV_TEMPLATE_PARAMS                                                                 \
-    handle, uplo, transA, diag, m, dA, offset_A, lda, stride_A, nullptr, dx, offset_x, incx, \
+    handle, uplo, transA, diag, n, dA, offset_A, lda, stride_A, nullptr, dx, offset_x, incx, \
         stride_x, batch_count, w_completed_sec
 template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -985,7 +985,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_fill      uplo,
                                    rocblas_operation transA,
                                    rocblas_diagonal  diag,
-                                   rocblas_int       m,
+                                   rocblas_int       n,
                                    const T*          dA,
                                    rocblas_stride    offset_A,
                                    rocblas_int       lda,
@@ -1019,7 +1019,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_fill      uplo,
                                            rocblas_operation transA,
                                            rocblas_diagonal  diag,
-                                           rocblas_int       m,
+                                           rocblas_int       n,
                                            const T* const*   dA,
                                            rocblas_stride    offset_A,
                                            rocblas_int       lda,
@@ -1053,7 +1053,7 @@ template <typename T, typename U>
 rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_name,
                                                     rocblas_handle    handle,
                                                     rocblas_fill      uplo,
-                                                    rocblas_int       m,
+                                                    rocblas_int       n,
                                                     T                 A,
                                                     rocblas_stride    offset_a,
                                                     rocblas_int       lda,
@@ -1076,8 +1076,8 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
                                                               rocblas_operation_none,
                                                               uplo,
                                                               rocblas_client_triangular_matrix,
-                                                              m,
-                                                              m,
+                                                              n,
+                                                              n,
                                                               A,
                                                               offset_a,
                                                               lda,
@@ -1092,7 +1092,7 @@ rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_n
 
     check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
                                                                             handle,
-                                                                            m,
+                                                                            n,
                                                                             x,
                                                                             offset_x,
                                                                             inc_x,
@@ -1118,7 +1118,7 @@ template rocblas_status rocblas_internal_trsv_check_numerics <T_, U_>           
                                                    (const char*       function_name,  \
                                                     rocblas_handle    handle,         \
                                                     rocblas_fill      uplo,           \
-                                                    rocblas_int       m,              \
+                                                    rocblas_int       n,              \
                                                     T_                A,              \
                                                     rocblas_stride    offset_a,       \
                                                     rocblas_int       lda,            \
@@ -1152,7 +1152,7 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_t
                                                 rocblas_fill      uplo,                     \
                                                 rocblas_operation transA,                   \
                                                 rocblas_diagonal  diag,                     \
-                                                rocblas_int       m,                        \
+                                                rocblas_int       n,                        \
                                                 const T_*         dA,                       \
                                                 rocblas_stride    offset_A,                 \
                                                 rocblas_int       lda,                      \
@@ -1183,7 +1183,7 @@ template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trsv_b
                                                 rocblas_fill      uplo,                             \
                                                 rocblas_operation transA,                           \
                                                 rocblas_diagonal  diag,                             \
-                                                rocblas_int       m,                                \
+                                                rocblas_int       n,                                \
                                                 const T_* const*  dA,                               \
                                                 rocblas_stride    offset_A,                         \
                                                 rocblas_int       lda,                              \

@@ -5583,15 +5583,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr2_strided_batched(rocblas_handle      
             - rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of A. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of A. n >= 0.
 
     @param[in]
-    A         device pointer storing matrix A, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A, otherwise the lower triangular part of the leading m-by-m array contains the matrix A.
+    A         device pointer storing matrix A, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A, otherwise the lower triangular part of the leading n-by-n array contains the matrix A.
 
     @param[in]
     lda       [rocblas_int]
-              specifies the leading dimension of A. lda must be at least max( 1, m ).
+              specifies the leading dimension of A. lda must be at least max( 1, n ).
 
     @param[in, out]
     x         device pointer storing vector x. On exit, x is overwritten with the transformed vector x.
@@ -5605,7 +5605,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmv(rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation transA,
                                             rocblas_diagonal  diag,
-                                            rocblas_int       m,
+                                            rocblas_int       n,
                                             const float*      A,
                                             rocblas_int       lda,
                                             float*            x,
@@ -5615,7 +5615,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmv(rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation transA,
                                             rocblas_diagonal  diag,
-                                            rocblas_int       m,
+                                            rocblas_int       n,
                                             const double*     A,
                                             rocblas_int       lda,
                                             double*           x,
@@ -5625,7 +5625,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmv(rocblas_handle               handle,
                                             rocblas_fill                 uplo,
                                             rocblas_operation            transA,
                                             rocblas_diagonal             diag,
-                                            rocblas_int                  m,
+                                            rocblas_int                  n,
                                             const rocblas_float_complex* A,
                                             rocblas_int                  lda,
                                             rocblas_float_complex*       x,
@@ -5635,7 +5635,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv(rocblas_handle                handle
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
                                             rocblas_diagonal              diag,
-                                            rocblas_int                   m,
+                                            rocblas_int                   n,
                                             const rocblas_double_complex* A,
                                             rocblas_int                   lda,
                                             rocblas_double_complex*       x,
@@ -5675,15 +5675,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv(rocblas_handle                handle
             - rocblas_diagonal_non_unit:  A_i is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of matrices A_i. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of matrices A_i. n >= 0.
 
     @param[in]
-    A         device pointer to an array of device pointers to the A_i matrices, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A_i, otherwise the lower triangular part of the leading m-by-m array contains the matrix A_i.
+    A         device pointer to an array of device pointers to the A_i matrices, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A_i, otherwise the lower triangular part of the leading n-by-n array contains the matrix A_i.
 
     @param[in]
     lda       [rocblas_int]
-              specifies the leading dimension of A_i. lda must be at least max( 1, m ).
+              specifies the leading dimension of A_i. lda must be at least max( 1, n ).
 
     @param[in, out]
     x         device pointer to an array of device pointers to the x_i vectors. On exit, each x_i is overwritten with the transformed vector x_i.
@@ -5702,7 +5702,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmv_batched(rocblas_handle      handle,
                                                     rocblas_fill        uplo,
                                                     rocblas_operation   transA,
                                                     rocblas_diagonal    diag,
-                                                    rocblas_int         m,
+                                                    rocblas_int         n,
                                                     const float* const* A,
                                                     rocblas_int         lda,
                                                     float* const*       x,
@@ -5713,7 +5713,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_batched(rocblas_handle       handle,
                                                     rocblas_fill         uplo,
                                                     rocblas_operation    transA,
                                                     rocblas_diagonal     diag,
-                                                    rocblas_int          m,
+                                                    rocblas_int          n,
                                                     const double* const* A,
                                                     rocblas_int          lda,
                                                     double* const*       x,
@@ -5724,7 +5724,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_batched(rocblas_handle              
                                                     rocblas_fill                        uplo,
                                                     rocblas_operation                   transA,
                                                     rocblas_diagonal                    diag,
-                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
                                                     const rocblas_float_complex* const* A,
                                                     rocblas_int                         lda,
                                                     rocblas_float_complex* const*       x,
@@ -5735,7 +5735,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_batched(rocblas_handle              
                                                     rocblas_fill                         uplo,
                                                     rocblas_operation                    transA,
                                                     rocblas_diagonal                     diag,
-                                                    rocblas_int                          m,
+                                                    rocblas_int                          n,
                                                     const rocblas_double_complex* const* A,
                                                     rocblas_int                          lda,
                                                     rocblas_double_complex* const*       x,
@@ -5778,15 +5778,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_batched(rocblas_handle              
             - rocblas_diagonal_non_unit:  A_i is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of matrices A_i. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of matrices A_i. n >= 0.
 
     @param[in]
-    A         device pointer to the matrix A_1 of the batch, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A_i, otherwise the lower triangular part of the leading m-by-m array contains the matrix A_i.
+    A         device pointer to the matrix A_1 of the batch, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A_i, otherwise the lower triangular part of the leading n-by-n array contains the matrix A_i.
 
     @param[in]
     lda       [rocblas_int]
-              specifies the leading dimension of A_i. lda must be at least max( 1, m ).
+              specifies the leading dimension of A_i. lda must be at least max( 1, n ).
 
     @param[in]
     stride_A  [rocblas_stride]
@@ -5813,7 +5813,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strmv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation transA,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             const float*      A,
                                                             rocblas_int       lda,
                                                             rocblas_stride    stride_A,
@@ -5826,7 +5826,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation transA,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             const double*     A,
                                                             rocblas_int       lda,
                                                             rocblas_stride    stride_A,
@@ -5839,7 +5839,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_strided_batched(rocblas_handle      
                                                             rocblas_fill                 uplo,
                                                             rocblas_operation            transA,
                                                             rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
                                                             const rocblas_float_complex* A,
                                                             rocblas_int                  lda,
                                                             rocblas_stride               stride_A,
@@ -5852,7 +5852,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle      
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
                                                             rocblas_diagonal              diag,
-                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
                                                             const rocblas_double_complex* A,
                                                             rocblas_int                   lda,
                                                             rocblas_stride                stride_A,
@@ -5896,12 +5896,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle      
             - rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m       [rocblas_int]
-            m specifies the number of rows of A. m >= 0.
+    n       [rocblas_int]
+            n specifies the number of rows of A. n >= 0.
 
     @param[in]
     A       device pointer storing matrix A,
-            of dimension at leat ( m * ( m + 1 ) / 2 ).
+            of dimension at leat ( n * ( n + 1 ) / 2 ).
         - Before entry with uplo = rocblas_fill_upper, the array A
             must contain the upper triangular matrix packed sequentially,
             column by column, so that
@@ -5929,7 +5929,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_stpmv(rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation transA,
                                             rocblas_diagonal  diag,
-                                            rocblas_int       m,
+                                            rocblas_int       n,
                                             const float*      A,
                                             float*            x,
                                             rocblas_int       incx);
@@ -5938,7 +5938,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtpmv(rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation transA,
                                             rocblas_diagonal  diag,
-                                            rocblas_int       m,
+                                            rocblas_int       n,
                                             const double*     A,
                                             double*           x,
                                             rocblas_int       incx);
@@ -5947,7 +5947,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctpmv(rocblas_handle               handle,
                                             rocblas_fill                 uplo,
                                             rocblas_operation            transA,
                                             rocblas_diagonal             diag,
-                                            rocblas_int                  m,
+                                            rocblas_int                  n,
                                             const rocblas_float_complex* A,
                                             rocblas_float_complex*       x,
                                             rocblas_int                  incx);
@@ -5956,7 +5956,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv(rocblas_handle                handle
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
                                             rocblas_diagonal              diag,
-                                            rocblas_int                   m,
+                                            rocblas_int                   n,
                                             const rocblas_double_complex* A,
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
@@ -5995,11 +5995,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv(rocblas_handle                handle
             - rocblas_diagonal_non_unit:  A_i is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of matrices A_i. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of matrices A_i. n >= 0.
 
     @param[in]
-    A         device pointer to an array of device pointers to the A_i matrices, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A_i, otherwise the lower triangular part of the leading m-by-m array contains the matrix A_i.
+    A         device pointer to an array of device pointers to the A_i matrices, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A_i, otherwise the lower triangular part of the leading n-by-n array contains the matrix A_i.
 
     @param[in, out]
     x         device pointer to an array of device pointers to the x_i vectors. On exit, each x_i is overwritten with the transformed vector x_i.
@@ -6018,7 +6018,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_stpmv_batched(rocblas_handle      handle,
                                                     rocblas_fill        uplo,
                                                     rocblas_operation   transA,
                                                     rocblas_diagonal    diag,
-                                                    rocblas_int         m,
+                                                    rocblas_int         n,
                                                     const float* const* A,
                                                     float* const*       x,
                                                     rocblas_int         incx,
@@ -6028,7 +6028,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_batched(rocblas_handle       handle,
                                                     rocblas_fill         uplo,
                                                     rocblas_operation    transA,
                                                     rocblas_diagonal     diag,
-                                                    rocblas_int          m,
+                                                    rocblas_int          n,
                                                     const double* const* A,
                                                     double* const*       x,
                                                     rocblas_int          incx,
@@ -6038,7 +6038,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_batched(rocblas_handle              
                                                     rocblas_fill                        uplo,
                                                     rocblas_operation                   transA,
                                                     rocblas_diagonal                    diag,
-                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
                                                     const rocblas_float_complex* const* A,
                                                     rocblas_float_complex* const*       x,
                                                     rocblas_int                         incx,
@@ -6048,7 +6048,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_batched(rocblas_handle              
                                                     rocblas_fill                         uplo,
                                                     rocblas_operation                    transA,
                                                     rocblas_diagonal                     diag,
-                                                    rocblas_int                          m,
+                                                    rocblas_int                          n,
                                                     const rocblas_double_complex* const* A,
                                                     rocblas_double_complex* const*       x,
                                                     rocblas_int                          incx,
@@ -6089,11 +6089,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_batched(rocblas_handle              
             - rocblas_diagonal_non_unit:  A_i is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-            m specifies the number of rows of matrices A_i. m >= 0.
+    n         [rocblas_int]
+            n specifies the number of rows of matrices A_i. n >= 0.
 
     @param[in]
-    A       device pointer to the matrix A_1 of the batch, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A_i, otherwise the lower triangular part of the leading m-by-m array contains the matrix A_i.
+    A       device pointer to the matrix A_1 of the batch, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A_i, otherwise the lower triangular part of the leading n-by-n array contains the matrix A_i.
 
     @param[in]
     stride_A  [rocblas_stride]
@@ -6120,7 +6120,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_stpmv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation transA,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             const float*      A,
                                                             rocblas_stride    stride_A,
                                                             float*            x,
@@ -6132,7 +6132,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation transA,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             const double*     A,
                                                             rocblas_stride    stride_A,
                                                             double*           x,
@@ -6144,7 +6144,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_strided_batched(rocblas_handle      
                                                             rocblas_fill                 uplo,
                                                             rocblas_operation            transA,
                                                             rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
                                                             const rocblas_float_complex* A,
                                                             rocblas_stride               stride_A,
                                                             rocblas_float_complex*       x,
@@ -6156,7 +6156,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_strided_batched(rocblas_handle      
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
                                                             rocblas_diagonal              diag,
-                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
                                                             const rocblas_double_complex* A,
                                                             rocblas_stride                stride_A,
                                                             rocblas_double_complex*       x,
@@ -6297,7 +6297,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
         x_i := A_i**T*x_i   or
         x_i := A_i**H*x_i,
         where (A_i, x_i) is the i-th instance of the batch.
-        x_i is a vector and A_i is an m by m matrix, for i = 1, ..., batch_count.
+        x_i is a vector and A_i is an n by n matrix, for i = 1, ..., batch_count.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6315,7 +6315,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
                                      1's and is not referenced.
             - rocblas_diagonal_non_unit: No assumptions are made of each A_i's main diagonal.
     @param[in]
-    m         [rocblas_int]
+    n         [rocblas_int]
               the number of rows and columns of the matrix represented by each A_i.
     @param[in]
     k         [rocblas_int]
@@ -6336,7 +6336,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
                 The matrix is compacted so that the main diagonal resides on the k'th
                 row, the first super diagonal resides on the RHS of the k-1'th row, etc,
                 with the k'th diagonal on the RHS of the 0'th row.
-                   Ex: (rocblas_fill_upper; m = 5; k = 2)
+                   Ex: (rocblas_fill_upper; n = 5; k = 2)
                       1 6 9 0 0              0 0 9 8 7
                       0 2 7 8 0              0 6 7 8 9
                       0 0 3 8 7     ---->    1 2 3 4 5
@@ -6349,7 +6349,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
                 assumed to be 0.
                 The matrix is compacted so that the main diagonal resides on the 0'th row,
                 working up to the k'th diagonal residing on the LHS of the k'th row.
-                   Ex: (rocblas_fill_lower; m = 5; k = 2)
+                   Ex: (rocblas_fill_lower; n = 5; k = 2)
                       1 0 0 0 0              1 2 3 4 5
                       6 2 0 0 0              6 7 8 9 0
                       9 7 3 0 0     ---->    9 8 7 0 0
@@ -6372,7 +6372,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_stbmv_batched(rocblas_handle     handle,
                                                     rocblas_fill       uplo,
                                                     rocblas_operation  trans,
                                                     rocblas_diagonal   diag,
-                                                    rocblas_int        m,
+                                                    rocblas_int        n,
                                                     rocblas_int        k,
                                                     const float* const A[],
                                                     rocblas_int        lda,
@@ -6384,7 +6384,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtbmv_batched(rocblas_handle      handle,
                                                     rocblas_fill        uplo,
                                                     rocblas_operation   trans,
                                                     rocblas_diagonal    diag,
-                                                    rocblas_int         m,
+                                                    rocblas_int         n,
                                                     rocblas_int         k,
                                                     const double* const A[],
                                                     rocblas_int         lda,
@@ -6396,7 +6396,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_batched(rocblas_handle              
                                                     rocblas_fill                       uplo,
                                                     rocblas_operation                  trans,
                                                     rocblas_diagonal                   diag,
-                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
                                                     rocblas_int                        k,
                                                     const rocblas_float_complex* const A[],
                                                     rocblas_int                        lda,
@@ -6408,7 +6408,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
                                                     rocblas_fill                        uplo,
                                                     rocblas_operation                   trans,
                                                     rocblas_diagonal                    diag,
-                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
                                                     rocblas_int                         k,
                                                     const rocblas_double_complex* const A[],
                                                     rocblas_int                         lda,
@@ -6427,7 +6427,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
         x_i := A_i**T*x_i   or
         x_i := A_i**H*x_i,
         where (A_i, x_i) is the i-th instance of the batch.
-        x_i is a vector and A_i is an m by m matrix, for i = 1, ..., batch_count.
+        x_i is a vector and A_i is an n by n matrix, for i = 1, ..., batch_count.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6445,7 +6445,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
                                      1's and is not referenced.
             - rocblas_diagonal_non_unit: No assumptions are made of each A_i's main diagonal.
     @param[in]
-    m         [rocblas_int]
+    n         [rocblas_int]
               the number of rows and columns of the matrix represented by each A_i.
     @param[in]
     k         [rocblas_int]
@@ -6466,7 +6466,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
                 The matrix is compacted so that the main diagonal resides on the k'th
                 row, the first super diagonal resides on the RHS of the k-1'th row, etc,
                 with the k'th diagonal on the RHS of the 0'th row.
-                   Ex: (rocblas_fill_upper; m = 5; k = 2)
+                   Ex: (rocblas_fill_upper; n = 5; k = 2)
                       1 6 9 0 0              0 0 9 8 7
                       0 2 7 8 0              0 6 7 8 9
                       0 0 3 8 7     ---->    1 2 3 4 5
@@ -6479,7 +6479,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
                 assumed to be 0.
                 The matrix is compacted so that the main diagonal resides on the 0'th row,
                 working up to the k'th diagonal residing on the LHS of the k'th row.
-                   Ex: (rocblas_fill_lower; m = 5; k = 2)
+                   Ex: (rocblas_fill_lower; n = 5; k = 2)
                       1 0 0 0 0              1 2 3 4 5
                       6 2 0 0 0              6 7 8 9 0
                       9 7 3 0 0     ---->    9 8 7 0 0
@@ -6508,7 +6508,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_stbmv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation trans,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             rocblas_int       k,
                                                             const float*      A,
                                                             rocblas_int       lda,
@@ -6522,7 +6522,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtbmv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation trans,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             rocblas_int       k,
                                                             const double*     A,
                                                             rocblas_int       lda,
@@ -6536,7 +6536,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_strided_batched(rocblas_handle      
                                                             rocblas_fill                 uplo,
                                                             rocblas_operation            trans,
                                                             rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
                                                             rocblas_int                  k,
                                                             const rocblas_float_complex* A,
                                                             rocblas_int                  lda,
@@ -6550,7 +6550,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle      
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             trans,
                                                             rocblas_diagonal              diag,
-                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
                                                             rocblas_int                   k,
                                                             const rocblas_double_complex* A,
                                                             rocblas_int                   lda,
@@ -6945,15 +6945,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_strided_batched(rocblas_handle      
             - rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of b. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of b. n >= 0.
 
     @param[in]
-    A         device pointer storing matrix A, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A, otherwise the lower triangular part of the leading m-by-m array contains the matrix A.
+    A         device pointer storing matrix A, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A, otherwise the lower triangular part of the leading n-by-n array contains the matrix A.
 
     @param[in]
     lda       [rocblas_int]
-              specifies the leading dimension of A. lda must be at least max( 1, m ).
+              specifies the leading dimension of A. lda must be at least max( 1, n ).
 
     @param[in, out]
     x         device pointer storing vector x. On exit, x is overwritten with the transformed vector x.
@@ -6967,7 +6967,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strsv(rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation transA,
                                             rocblas_diagonal  diag,
-                                            rocblas_int       m,
+                                            rocblas_int       n,
                                             const float*      A,
                                             rocblas_int       lda,
                                             float*            x,
@@ -6977,7 +6977,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation transA,
                                             rocblas_diagonal  diag,
-                                            rocblas_int       m,
+                                            rocblas_int       n,
                                             const double*     A,
                                             rocblas_int       lda,
                                             double*           x,
@@ -6987,7 +6987,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrsv(rocblas_handle               handle,
                                             rocblas_fill                 uplo,
                                             rocblas_operation            transA,
                                             rocblas_diagonal             diag,
-                                            rocblas_int                  m,
+                                            rocblas_int                  n,
                                             const rocblas_float_complex* A,
                                             rocblas_int                  lda,
                                             rocblas_float_complex*       x,
@@ -6997,7 +6997,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv(rocblas_handle                handle
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
                                             rocblas_diagonal              diag,
-                                            rocblas_int                   m,
+                                            rocblas_int                   n,
                                             const rocblas_double_complex* A,
                                             rocblas_int                   lda,
                                             rocblas_double_complex*       x,
@@ -7015,7 +7015,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv(rocblas_handle                handle
          A_i**H*x_i = b_i,
         where (A_i, x_i, b_i) is the i-th instance of the batch.
         x_i and b_i are vectors and A_i is an
-        m by m triangular matrix.
+        n by n triangular matrix.
 
     The vector x is overwritten on b.
 
@@ -7040,15 +7040,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv(rocblas_handle                handle
             - rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of b. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of b. n >= 0.
 
     @param[in]
-    A         device pointer to an array of device pointers to the A_i matrices, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A_i, otherwise the lower triangular part of the leading m-by-m array contains the matrix A_i.
+    A         device pointer to an array of device pointers to the A_i matrices, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A_i, otherwise the lower triangular part of the leading n-by-n array contains the matrix A_i.
 
     @param[in]
     lda       [rocblas_int]
-              specifies the leading dimension of A_i. lda must be at least max( 1, m ).
+              specifies the leading dimension of A_i. lda must be at least max( 1, n ).
 
     @param[in, out]
     x         device pointer to an array of device pointers to the x_i vectors. On exit, each x_i is overwritten with the transformed vector x_i.
@@ -7066,7 +7066,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
                                                     rocblas_fill       uplo,
                                                     rocblas_operation  transA,
                                                     rocblas_diagonal   diag,
-                                                    rocblas_int        m,
+                                                    rocblas_int        n,
                                                     const float* const A[],
                                                     rocblas_int        lda,
                                                     float* const       x[],
@@ -7077,7 +7077,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
                                                     rocblas_fill        uplo,
                                                     rocblas_operation   transA,
                                                     rocblas_diagonal    diag,
-                                                    rocblas_int         m,
+                                                    rocblas_int         n,
                                                     const double* const A[],
                                                     rocblas_int         lda,
                                                     double* const       x[],
@@ -7088,7 +7088,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrsv_batched(rocblas_handle              
                                                     rocblas_fill                       uplo,
                                                     rocblas_operation                  transA,
                                                     rocblas_diagonal                   diag,
-                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
                                                     const rocblas_float_complex* const A[],
                                                     rocblas_int                        lda,
                                                     rocblas_float_complex* const       x[],
@@ -7099,7 +7099,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_batched(rocblas_handle              
                                                     rocblas_fill                        uplo,
                                                     rocblas_operation                   transA,
                                                     rocblas_diagonal                    diag,
-                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
                                                     const rocblas_double_complex* const A[],
                                                     rocblas_int                         lda,
                                                     rocblas_double_complex* const       x[],
@@ -7117,7 +7117,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_batched(rocblas_handle              
          A_i**T*x_i = b_i or
          A_i**H*x_i = b_i,
          where (A_i, x_i, b_i) is the i-th instance of the batch.
-         x_i and b_i are vectors and A_i is an m by m triangular matrix, for i = 1, ..., batch_count.
+         x_i and b_i are vectors and A_i is an n by n triangular matrix, for i = 1, ..., batch_count.
 
     The vector x is overwritten on b.
 
@@ -7142,11 +7142,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_batched(rocblas_handle              
             - rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of each b_i. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of each b_i. n >= 0.
 
     @param[in]
-    A         device pointer to the matrix A_1 of the batch, of dimension ( lda, m ). If uplo == rocblas_fill_upper, the upper triangular part of the leading m-by-m array contains the matrix A_i, otherwise the lower triangular part of the leading m-by-m array contains the matrix A_i.
+    A         device pointer to the matrix A_1 of the batch, of dimension ( lda, n ). If uplo == rocblas_fill_upper, the upper triangular part of the leading n-by-n array contains the matrix A_i, otherwise the lower triangular part of the leading n-by-n array contains the matrix A_i.
 
     @param[in]
     stride_A  [rocblas_stride]
@@ -7154,7 +7154,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_batched(rocblas_handle              
 
     @param[in]
     lda       [rocblas_int]
-              specifies the leading dimension of A_i. lda must be at least max( 1, m ).
+              specifies the leading dimension of A_i. lda must be at least max( 1, n ).
 
     @param[in, out]
     x         device pointer to the vector x_1 of the batch. On exit, each x_i is overwritten with the transformed vector x_i.
@@ -7176,7 +7176,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strsv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation transA,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             const float*      A,
                                                             rocblas_int       lda,
                                                             rocblas_stride    stride_A,
@@ -7189,7 +7189,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_strided_batched(rocblas_handle    ha
                                                             rocblas_fill      uplo,
                                                             rocblas_operation transA,
                                                             rocblas_diagonal  diag,
-                                                            rocblas_int       m,
+                                                            rocblas_int       n,
                                                             const double*     A,
                                                             rocblas_int       lda,
                                                             rocblas_stride    stride_A,
@@ -7202,7 +7202,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrsv_strided_batched(rocblas_handle      
                                                             rocblas_fill                 uplo,
                                                             rocblas_operation            transA,
                                                             rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
                                                             const rocblas_float_complex* A,
                                                             rocblas_int                  lda,
                                                             rocblas_stride               stride_A,
@@ -7215,7 +7215,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle      
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
                                                             rocblas_diagonal              diag,
-                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
                                                             const rocblas_double_complex* A,
                                                             rocblas_int                   lda,
                                                             rocblas_stride                stride_A,

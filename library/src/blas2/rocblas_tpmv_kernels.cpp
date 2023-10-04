@@ -34,12 +34,12 @@
 #ifdef tmpv_calc_lowerat
 #error tmpv_calc_lowerat is already defined
 #endif
-#define tmpv_calc_lowerat(_i, _j) (size_t(_j) * m + ((_i) - (_j)) - ((size_t(_j) - 1) * (_j)) / 2)
+#define tmpv_calc_lowerat(_i, _j) (size_t(_j) * n + ((_i) - (_j)) - ((size_t(_j) - 1) * (_j)) / 2)
 
 template <rocblas_int NB, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
                                                   bool        is_unit_diag,
-                                                  rocblas_int m,
+                                                  rocblas_int n,
                                                   const T*    A,
                                                   const T*    x,
                                                   rocblas_int incx,
@@ -47,7 +47,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
 {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(tid < m)
+    if(tid < n)
     {
         T res = x[tid * int64_t(incx)];
         if(is_upper)
@@ -56,7 +56,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
             {
                 res *= A[tmpv_calc_upperat(tid, tid)];
             }
-            for(rocblas_int col = tid + 1; col < m; ++col)
+            for(rocblas_int col = tid + 1; col < n; ++col)
             {
                 res += A[tmpv_calc_upperat(tid, col)] * x[col * int64_t(incx)];
             }
@@ -81,7 +81,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvn_kernel_calc(bool        is_upper,
 template <rocblas_int NB, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
                                                   bool        is_unit_diag,
-                                                  rocblas_int m,
+                                                  rocblas_int n,
                                                   const T*    A,
                                                   const T*    x,
                                                   rocblas_int incx,
@@ -89,7 +89,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
 {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if(tid < m)
+    if(tid < n)
     {
         T res = x[tid * int64_t(incx)];
         if(is_upper)
@@ -110,7 +110,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
                 //cppcheck-suppress duplicateExpression
                 res *= conj(A[tmpv_calc_lowerat(tid, tid)]);
             }
-            for(rocblas_int row = tid + 1; row < m; ++row)
+            for(rocblas_int row = tid + 1; row < n; ++row)
             {
                 res += conj(A[tmpv_calc_lowerat(row, tid)]) * x[row * int64_t(incx)];
             }
@@ -122,7 +122,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvc_kernel_calc(bool        is_upper,
 template <rocblas_int NB, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(bool        is_upper,
                                                   bool        is_unit_diag,
-                                                  rocblas_int m,
+                                                  rocblas_int n,
                                                   const T*    A,
                                                   const T*    x,
                                                   rocblas_int incx,
@@ -133,7 +133,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(bool        is_upper,
     T           res;
     rocblas_int row;
 
-    if(tid < m)
+    if(tid < n)
     {
         res = x[tid * int64_t(incx)];
         if(is_upper)
@@ -156,7 +156,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tpmvt_kernel_calc(bool        is_upper,
                 res *= A[tmpv_calc_lowerat(tid, tid)];
             }
 
-            for(row = tid + 1; row < m; ++row)
+            for(row = tid + 1; row < n; ++row)
             {
                 res += A[tmpv_calc_lowerat(row, tid)] * x[row * int64_t(incx)];
             }
@@ -169,7 +169,7 @@ template <rocblas_int NB, typename A, typename X, typename W>
 ROCBLAS_KERNEL(NB)
 rocblas_tpmvn_kernel(bool           is_upper,
                      bool           is_unit_diag,
-                     rocblas_int    m,
+                     rocblas_int    n,
                      A              a,
                      rocblas_stride shifta,
                      rocblas_stride stridea,
@@ -183,7 +183,7 @@ rocblas_tpmvn_kernel(bool           is_upper,
     static constexpr ptrdiff_t shiftw = 0;
     rocblas_tpmvn_kernel_calc<NB>(is_upper,
                                   is_unit_diag,
-                                  m,
+                                  n,
                                   load_ptr_batch(a, blockIdx.y, shifta, stridea),
                                   load_ptr_batch(x, blockIdx.y, shiftx, stridex),
                                   incx,
@@ -194,7 +194,7 @@ template <rocblas_int NB, typename A, typename X, typename W>
 ROCBLAS_KERNEL(NB)
 rocblas_tpmvt_kernel(bool           is_upper,
                      bool           is_unit_diag,
-                     rocblas_int    m,
+                     rocblas_int    n,
                      A              a,
                      rocblas_stride shifta,
                      rocblas_stride stridea,
@@ -208,7 +208,7 @@ rocblas_tpmvt_kernel(bool           is_upper,
     static constexpr ptrdiff_t shiftw = 0;
     rocblas_tpmvt_kernel_calc<NB>(is_upper,
                                   is_unit_diag,
-                                  m,
+                                  n,
                                   load_ptr_batch(a, blockIdx.y, shifta, stridea),
                                   load_ptr_batch(x, blockIdx.y, shiftx, stridex),
                                   incx,
@@ -219,7 +219,7 @@ template <rocblas_int NB, typename A, typename X, typename W>
 ROCBLAS_KERNEL(NB)
 rocblas_tpmvc_kernel(bool           is_upper,
                      bool           is_unit_diag,
-                     rocblas_int    m,
+                     rocblas_int    n,
                      A              a,
                      rocblas_stride shifta,
                      rocblas_stride stridea,
@@ -233,7 +233,7 @@ rocblas_tpmvc_kernel(bool           is_upper,
     static constexpr ptrdiff_t shiftw = 0;
     rocblas_tpmvc_kernel_calc<NB>(is_upper,
                                   is_unit_diag,
-                                  m,
+                                  n,
                                   load_ptr_batch(a, blockIdx.y, shifta, stridea),
                                   load_ptr_batch(x, blockIdx.y, shiftx, stridex),
                                   incx,
@@ -248,7 +248,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transa,
                                      rocblas_diagonal  diag,
-                                     rocblas_int       m,
+                                     rocblas_int       n,
                                      A                 a,
                                      rocblas_stride    offseta,
                                      rocblas_stride    stridea,
@@ -263,16 +263,16 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
     //
     // quick return
     //
-    if(!m || !batch_count)
+    if(!n || !batch_count)
     {
         return rocblas_status_success;
     }
 
     hipStream_t rocblas_stream = handle->get_stream();
 
-    int64_t shiftx = incx < 0 ? offsetx + int64_t(incx) * (1 - m) : offsetx;
+    int64_t shiftx = incx < 0 ? offsetx + int64_t(incx) * (1 - n) : offsetx;
 
-    dim3 tpmv_grid((m - 1) / NB + 1, batch_count);
+    dim3 tpmv_grid((n - 1) / NB + 1, batch_count);
     dim3 tpmv_threads(NB);
 
     switch(transa)
@@ -286,7 +286,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                            rocblas_stream,
                            uplo == rocblas_fill_upper,
                            diag == rocblas_diagonal_unit,
-                           m,
+                           n,
                            a,
                            offseta,
                            stridea,
@@ -308,7 +308,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                            rocblas_stream,
                            uplo == rocblas_fill_upper,
                            diag == rocblas_diagonal_unit,
-                           m,
+                           n,
                            a,
                            offseta,
                            stridea,
@@ -330,7 +330,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                            rocblas_stream,
                            uplo == rocblas_fill_upper,
                            diag == rocblas_diagonal_unit,
-                           m,
+                           n,
                            a,
                            offseta,
                            stridea,
@@ -352,7 +352,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
         static constexpr rocblas_int offsetw = 0;
         static constexpr rocblas_int incw    = 1;
         return rocblas_copy_template<NB>(
-            handle, m, workspace, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
+            handle, n, workspace, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
     }
 }
 
@@ -360,7 +360,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
 template <typename T, typename U>
 rocblas_status rocblas_tpmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    m,
+                                           rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,
                                            rocblas_stride stride_a,
@@ -375,7 +375,7 @@ rocblas_status rocblas_tpmv_check_numerics(const char*    function_name,
     rocblas_status check_numerics_status
         = rocblas_internal_check_numerics_vector_template(function_name,
                                                           handle,
-                                                          m,
+                                                          n,
                                                           x,
                                                           offset_x,
                                                           inc_x,
@@ -400,7 +400,7 @@ rocblas_status rocblas_tpmv_check_numerics(const char*    function_name,
 template rocblas_status rocblas_tpmv_check_numerics<T_, U_>               \
                                           (const char*    function_name,  \
                                            rocblas_handle handle,         \
-                                           rocblas_int    m,              \
+                                           rocblas_int    n,              \
                                            T_             A,              \
                                            rocblas_stride    offset_a,       \
                                            rocblas_stride stride_a,       \
@@ -435,7 +435,7 @@ template rocblas_status rocblas_tpmv_template                \
                              rocblas_fill      uplo,         \
                              rocblas_operation transa,       \
                              rocblas_diagonal  diag,         \
-                             rocblas_int       m,            \
+                             rocblas_int       n,            \
                              A_                a,            \
                              rocblas_stride    offseta,      \
                              rocblas_stride    stridea,      \

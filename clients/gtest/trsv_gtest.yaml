@@ -4,41 +4,41 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { M:     4, lda:     4, stride_a: 16 }
-    - { M:    10, lda:    20, stride_a: 300 }
-    - { M:   10, lda:   10, stride_a: 100 }
-    - { M:   33, lda:   33, stride_a: 1100}
-    - { M:   128, lda:   128, stride_a: 32768 }
+    - { N:     4, lda:     4, stride_a: 16 }
+    - { N:    10, lda:    20, stride_a: 300 }
+    - { N:   10, lda:   10, stride_a: 100 }
+    - { N:   33, lda:   33, stride_a: 1100}
+    - { N:   128, lda:   128, stride_a: 32768 }
 
   - &special_case_range
-    - { M: 0, lda: 1, incx: 1, batch_count: 1 }
-    - { M: 1, lda: 1, incx: 1, batch_count: 0 }
+    - { N: 0, lda: 1, incx: 1, batch_count: 1 }
+    - { N: 1, lda: 1, incx: 1, batch_count: 0 }
 
-    - { M: -1, lda: 1, incx: 1, batch_count:  0 }
-    - { M:  0, lda: 0, incx: 1, batch_count:  0 }
-    - { M:  2, lda: 1, incx: 1, batch_count:  0 }
-    - { M:  0, lda: 1, incx: 0, batch_count:  0 }
-    - { M:  0, lda: 1, incx: 1, batch_count: -1 }
+    - { N: -1, lda: 1, incx: 1, batch_count:  0 }
+    - { N:  0, lda: 0, incx: 1, batch_count:  0 }
+    - { N:  2, lda: 1, incx: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 0, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
-    - { M:   192, lda:   192, stride_a: 36864 }
-    - { M:   256, lda:   256, stride_a: 65536 }
-    - { M:   511, lda:   613, stride_a: 413243 }
-    - { M:   800, lda:   801, stride_a: 640800 }
+    - { N:   192, lda:   192, stride_a: 36864 }
+    - { N:   256, lda:   256, stride_a: 65536 }
+    - { N:   511, lda:   613, stride_a: 413243 }
+    - { N:   800, lda:   801, stride_a: 640800 }
 
   - &large_matrix_size_range
-    - { M:  1000, lda:  1000, stride_a: 1000000 }
-    - { M:  1024, lda:  1024, stride_a: 1048576 }
-    - { M:  2000, lda:  2000, stride_a: 4000000 }
-    - { M:  1000, lda:  4096, stride_a: 10000000 }
+    - { N:  1000, lda:  1000, stride_a: 1000000 }
+    - { N:  1024, lda:  1024, stride_a: 1048576 }
+    - { N:  2000, lda:  2000, stride_a: 4000000 }
+    - { N:  1000, lda:  4096, stride_a: 10000000 }
 
   - &size_t_index
-    - { M:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341, incx: 1 }
+    - { N:  46341, lda: 46341, stride_a:  2147488281, stride_x: 46341, incx: 1 }
 
   # large enough to get overflow in inversion part of code
   - &size_t_incx
-    - { M: 581, lda: 581, incx:  3896187 }
-    - { M: 581, lda: 581, incx: -3896187 }
+    - { N: 581, lda: 581, incx:  3896187 }
+    - { N: 581, lda: 581, incx: -3896187 }
 
   - &common_args
     precision: *single_double_precisions_complex_real
@@ -204,7 +204,7 @@ Tests:
         - trsv_strided_batched
   arguments: *common_args
   matrix_size:
-    - { M:   192, lda:   192, stride_a: 36864 }
+    - { N:   192, lda:   192, stride_a: 36864 }
   incx: [ 1 ]
   stride_scale: [ 1 ]
   batch_count: [ 3 ]

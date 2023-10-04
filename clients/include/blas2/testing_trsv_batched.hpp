@@ -41,7 +41,7 @@ void testing_trsv_batched_bad_arg(const Arguments& arg)
     auto rocblas_trsv_batched_fn
         = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
-    const rocblas_int       M           = 100;
+    const rocblas_int       N           = 100;
     const rocblas_int       lda         = 100;
     const rocblas_int       incx        = 1;
     const rocblas_int       batch_count = 1;
@@ -53,16 +53,16 @@ void testing_trsv_batched_bad_arg(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_batch_matrix<T> hA(M, M, lda, batch_count);
-    host_batch_vector<T> hx(M, incx, batch_count);
+    host_batch_matrix<T> hA(N, N, lda, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Allocate device memory
-    device_batch_matrix<T> dA(M, M, lda, batch_count);
-    device_batch_vector<T> dx(M, incx, batch_count);
+    device_batch_matrix<T> dA(N, N, lda, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -73,7 +73,7 @@ void testing_trsv_batched_bad_arg(const Arguments& arg)
                                                   rocblas_fill_full,
                                                   transA,
                                                   diag,
-                                                  M,
+                                                  N,
                                                   dA.ptr_on_device(),
                                                   lda,
                                                   dx.ptr_on_device(),
@@ -84,19 +84,19 @@ void testing_trsv_batched_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsv_batched_fn(
-            handle, uplo, transA, diag, M, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
+            handle, uplo, transA, diag, N, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsv_batched_fn(
-            handle, uplo, transA, diag, M, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
+            handle, uplo, transA, diag, N, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_trsv_batched_fn(nullptr,
                                                   uplo,
                                                   transA,
                                                   diag,
-                                                  M,
+                                                  N,
                                                   dA.ptr_on_device(),
                                                   lda,
                                                   dx.ptr_on_device(),
@@ -114,7 +114,7 @@ void testing_trsv_batched(const Arguments& arg)
     auto rocblas_trsv_batched_fn
         = arg.api == FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
-    rocblas_int M           = arg.M;
+    rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;
     rocblas_int incx        = arg.incx;
     char        char_uplo   = arg.uplo;
@@ -130,25 +130,25 @@ void testing_trsv_batched(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
-    bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
-    if(invalid_size || !M || !batch_count)
+    bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_trsv_batched_fn(
-                handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx, batch_count),
+                handle, uplo, transA, diag, N, nullptr, lda, nullptr, incx, batch_count),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_batch_matrix<T> hA(M, M, lda, batch_count);
-    host_batch_matrix<T> hAAT(M, M, lda, batch_count);
-    host_batch_vector<T> hb(M, incx, batch_count);
-    host_batch_vector<T> hx(M, incx, batch_count);
-    host_batch_vector<T> hx_or_b(M, incx, batch_count);
-    host_batch_vector<T> cpu_x_or_b(M, incx, batch_count);
+    host_batch_matrix<T> hA(N, N, lda, batch_count);
+    host_batch_matrix<T> hAAT(N, N, lda, batch_count);
+    host_batch_vector<T> hb(N, incx, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hx_or_b(N, incx, batch_count);
+    host_batch_vector<T> cpu_x_or_b(N, incx, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
@@ -159,8 +159,8 @@ void testing_trsv_batched(const Arguments& arg)
     CHECK_HIP_ERROR(cpu_x_or_b.memcheck());
 
     // Allocate device memory
-    device_batch_matrix<T> dA(M, M, lda, batch_count);
-    device_batch_vector<T> dx_or_b(M, incx, batch_count);
+    device_batch_matrix<T> dA(N, N, lda, batch_count);
+    device_batch_vector<T> dx_or_b(N, incx, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -185,7 +185,7 @@ void testing_trsv_batched(const Arguments& arg)
     for(int b = 0; b < batch_count; b++)
     {
         // Calculate hb = hA*hx;
-        cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hb[b], incx);
+        cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hb[b], incx);
     }
 
     cpu_x_or_b.copy_from(hb);
@@ -210,7 +210,7 @@ void testing_trsv_batched(const Arguments& arg)
                                                   uplo,
                                                   transA,
                                                   diag,
-                                                  M,
+                                                  N,
                                                   dA.ptr_on_device(),
                                                   lda,
                                                   dx_or_b.ptr_on_device(),
@@ -236,7 +236,7 @@ void testing_trsv_batched(const Arguments& arg)
                                                         uplo,
                                                         transA,
                                                         diag,
-                                                        M,
+                                                        N,
                                                         dA.ptr_on_device(),
                                                         lda,
                                                         dx_or_b.ptr_on_device(),
@@ -259,7 +259,7 @@ void testing_trsv_batched(const Arguments& arg)
                                                         uplo,
                                                         transA,
                                                         diag,
-                                                        M,
+                                                        N,
                                                         dA.ptr_on_device(),
                                                         lda,
                                                         dx_or_b.ptr_on_device(),
@@ -272,37 +272,37 @@ void testing_trsv_batched(const Arguments& arg)
         {
             //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
             // calculate norm 1 of vector E
-            error_host = vector_norm_1(M, incx, hx, hx_or_b);
+            error_host = vector_norm_1(N, incx, hx, hx_or_b);
 
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_host, N, error_eps_multiplier, eps);
 
             // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
             for(int b = 0; b < batch_count; b++)
-                cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b[b], incx);
+                cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
 
-            auto error_host_res = vector_norm_1(M, incx, hx_or_b, hb);
+            auto error_host_res = vector_norm_1(N, incx, hx_or_b, hb);
 
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_host_res, M, residual_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_host_res, N, residual_eps_multiplier, eps);
             error_host = std::max(error_host, error_host_res);
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
-            error_device = vector_norm_1(M, incx, hx, hx_or_b);
+            error_device = vector_norm_1(N, incx, hx, hx_or_b);
 
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_device, M, error_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_device, N, error_eps_multiplier, eps);
 
             for(int b = 0; b < batch_count; b++)
-                cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b[b], incx);
+                cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
 
-            auto error_device_res = vector_norm_1(M, incx, hx_or_b, hb);
+            auto error_device_res = vector_norm_1(N, incx, hx_or_b, hb);
 
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_device_res, M, residual_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_device_res, N, residual_eps_multiplier, eps);
             error_device = std::max(error_device, error_device_res);
         }
     }
@@ -322,7 +322,7 @@ void testing_trsv_batched(const Arguments& arg)
                                     uplo,
                                     transA,
                                     diag,
-                                    M,
+                                    N,
                                     dA.ptr_on_device(),
                                     lda,
                                     dx_or_b.ptr_on_device(),
@@ -338,7 +338,7 @@ void testing_trsv_batched(const Arguments& arg)
                                     uplo,
                                     transA,
                                     diag,
-                                    M,
+                                    N,
                                     dA.ptr_on_device(),
                                     lda,
                                     dx_or_b.ptr_on_device(),
@@ -352,15 +352,15 @@ void testing_trsv_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_trsv<T>(uplo, transA, diag, M, hA[b], lda, cpu_x_or_b[b], incx);
+                cblas_trsv<T>(uplo, transA, diag, N, hA[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        ArgumentModel<e_uplo, e_transA, e_diag, e_M, e_lda, e_incx, e_batch_count>{}.log_args<T>(
+        ArgumentModel<e_uplo, e_transA, e_diag, e_N, e_lda, e_incx, e_batch_count>{}.log_args<T>(
             rocblas_cout,
             arg,
             gpu_time_used,
-            trsv_gflop_count<T>(M),
+            trsv_gflop_count<T>(N),
             ArgumentLogging::NA_value,
             cpu_time_used,
             error_host,

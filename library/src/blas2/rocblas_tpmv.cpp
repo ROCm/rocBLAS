@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ namespace
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
                                      rocblas_diagonal  diag,
-                                     rocblas_int       m,
+                                     rocblas_int       n,
                                      const T*          A,
                                      T*                x,
                                      rocblas_int       incx)
@@ -64,7 +64,7 @@ namespace
                 auto diag_letter   = rocblas_diag_letter(diag);
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    log_trace(handle, rocblas_tpmv_name<T>, uplo, transA, diag, m, A, x, incx);
+                    log_trace(handle, rocblas_tpmv_name<T>, uplo, transA, diag, n, A, x, incx);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
@@ -81,8 +81,8 @@ namespace
                               transA_letter,
                               "--diag",
                               diag_letter,
-                              "-m",
-                              m,
+                              "-n",
+                              n,
                               "--incx",
                               incx);
                 }
@@ -97,8 +97,8 @@ namespace
                                 transA_letter,
                                 "diag",
                                 diag_letter,
-                                "M",
-                                m,
+                                "N",
+                                n,
                                 "incx",
                                 incx);
                 }
@@ -107,7 +107,7 @@ namespace
 
         size_t         dev_bytes;
         rocblas_status arg_status
-            = rocblas_tpmv_arg_check<T>(handle, uplo, transA, diag, m, A, x, incx, 1, dev_bytes);
+            = rocblas_tpmv_arg_check<T>(handle, uplo, transA, diag, n, A, x, incx, 1, dev_bytes);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
@@ -122,7 +122,7 @@ namespace
             rocblas_status tpmv_check_numerics_status
                 = rocblas_tpmv_check_numerics(rocblas_tpmv_name<T>,
                                               handle,
-                                              m,
+                                              n,
                                               A,
                                               0,
                                               0,
@@ -149,7 +149,7 @@ namespace
                                                           uplo,
                                                           transA,
                                                           diag,
-                                                          m,
+                                                          n,
                                                           A,
                                                           offset_a,
                                                           stride_a,
@@ -170,7 +170,7 @@ namespace
             rocblas_status tpmv_check_numerics_status
                 = rocblas_tpmv_check_numerics(rocblas_tpmv_name<T>,
                                               handle,
-                                              m,
+                                              n,
                                               A,
                                               0,
                                               0,
@@ -206,13 +206,13 @@ extern "C" {
                                  rocblas_fill      uplo,                     \
                                  rocblas_operation transA,                   \
                                  rocblas_diagonal  diag,                     \
-                                 rocblas_int       m,                        \
+                                 rocblas_int       n,                        \
                                  const T_*         A,                        \
                                  T_*               x,                        \
                                  rocblas_int       incx)                     \
     try                                                                      \
     {                                                                        \
-        return rocblas_tpmv_impl(handle, uplo, transA, diag, m, A, x, incx); \
+        return rocblas_tpmv_impl(handle, uplo, transA, diag, n, A, x, incx); \
     }                                                                        \
     catch(...)                                                               \
     {                                                                        \

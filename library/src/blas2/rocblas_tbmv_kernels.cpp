@@ -34,7 +34,7 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
                                          rocblas_int ind,
                                          bool        is_upper,
                                          bool        is_unit_diag,
-                                         rocblas_int m,
+                                         rocblas_int n,
                                          rocblas_int k,
                                          const T*    A,
                                          rocblas_int lda,
@@ -45,12 +45,12 @@ __device__ T rocblas_tbmvn_kernel_helper(rocblas_int ty,
 
     // Since the column is consistent, we can iterate up the diagonal
     // ty defines the column of banded & regular matrix
-    for(col = ty; col < m; col += DIM_Y)
+    for(col = ty; col < n; col += DIM_Y)
     {
         // We have to convert ind to banded matrix row
         rocblas_int row = is_upper ? ind + (k - col) : ind - col;
 
-        if(ind < m)
+        if(ind < n)
         {
             // Regular case, simply multiply
             if(row < k && row > 0)
@@ -91,7 +91,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
                                          rocblas_int ind,
                                          bool        is_upper,
                                          bool        is_unit_diag,
-                                         rocblas_int m,
+                                         rocblas_int n,
                                          rocblas_int k,
                                          const T*    A,
                                          rocblas_int lda,
@@ -106,7 +106,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
         // We have to convert ind to banded matrix row
         rocblas_int col = ind;
 
-        if(col < m)
+        if(col < n)
         {
             if(is_upper)
             {
@@ -133,7 +133,7 @@ __device__ T rocblas_tbmvt_kernel_helper(bool        CONJ,
             }
             else
             {
-                if(row <= k && row <= m - 1 - col && row > 0)
+                if(row <= k && row <= n - 1 - col && row > 0)
                 {
                     res_A += ((CONJ ? conj(A[row + col * size_t(lda)]) : A[row + col * size_t(lda)])
                               * w_x_copy[row + col]);
@@ -162,7 +162,7 @@ template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
                                                   bool              is_upper,
                                                   bool              is_unit_diag,
-                                                  rocblas_int       m,
+                                                  rocblas_int       n,
                                                   rocblas_int       k,
                                                   const T*          A,
                                                   rocblas_int       lda,
@@ -190,13 +190,13 @@ ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
     if(transA == rocblas_operation_none)
     {
         res_A = rocblas_tbmvn_kernel_helper<DIM_Y>(
-            ty, ind, is_upper, is_unit_diag, m, k, A, lda, w_x_copy);
+            ty, ind, is_upper, is_unit_diag, n, k, A, lda, w_x_copy);
     }
     else
     {
         bool CONJ = transA == rocblas_operation_conjugate_transpose;
         res_A     = rocblas_tbmvt_kernel_helper<DIM_Y>(
-            CONJ, ty, ind, is_upper, is_unit_diag, m, k, A, lda, w_x_copy);
+            CONJ, ty, ind, is_upper, is_unit_diag, n, k, A, lda, w_x_copy);
     }
     // Store partial sums for the diagonal
     sdata[tx + ty * DIM_X] = res_A;
@@ -204,7 +204,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
 
     thread_id = threadIdx.x + threadIdx.y * blockDim.x;
     ind       = blockIdx.x * DIM_X + thread_id;
-    if(thread_id < DIM_X && ind < m)
+    if(thread_id < DIM_X && ind < n)
     {
         // Add the partial sums of each diagonal and store
         for(rocblas_int i = 1; i < DIM_Y; i++)
@@ -229,7 +229,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
   *  the k'th super-diagonal resides on the right-hand side of the first row, k-1th on the second,
   *  etc, with the main diagonal on the k'th row.
   *
-  *  Ex: (upper; m = 5; k = 2)
+  *  Ex: (upper; n = 5; k = 2)
   *
   *  1 6 9 0 0              0 0 9 8 7
   *  0 2 7 8 0              0 6 7 8 9
@@ -240,7 +240,7 @@ ROCBLAS_KERNEL_ILF void rocblas_tbmvx_kernel_calc(rocblas_operation transA,
   *  For lower-triangular, the main diagonal resides on the 0'th row, working up to the k'th
   *  sub-diagonal residing on the left-hand side of the k'th row.
   *
-  *  Ex: (lower; m = 5; k = 2)
+  *  Ex: (lower; n = 5; k = 2)
   *
   *  1 0 0 0 0              1 2 3 4 5
   *  6 2 0 0 0              6 7 8 9 0
@@ -257,7 +257,7 @@ ROCBLAS_KERNEL(DIM_X* DIM_Y)
 rocblas_tbmvx_kernel(rocblas_operation transA,
                      bool              is_upper,
                      bool              is_unit_diag,
-                     rocblas_int       m,
+                     rocblas_int       n,
                      rocblas_int       k,
                      U                 Aa,
                      rocblas_stride    shifta,
@@ -274,17 +274,17 @@ rocblas_tbmvx_kernel(rocblas_operation transA,
         return; // need to launch exactly the same number of threads as template parameters indicate
 
     const auto* A        = load_ptr_batch(Aa, blockIdx.y, shifta, strideA);
-    const auto* w_x_copy = load_ptr_batch(w_xa_copy, blockIdx.y, 0, m);
+    const auto* w_x_copy = load_ptr_batch(w_xa_copy, blockIdx.y, 0, n);
     auto*       x        = load_ptr_batch(xa, blockIdx.y, shiftx, stridex);
 
     rocblas_tbmvx_kernel_calc<DIM_X, DIM_Y>(
-        transA, is_upper, is_unit_diag, m, k, A, lda, w_x_copy, x, incx);
+        transA, is_upper, is_unit_diag, n, k, A, lda, w_x_copy, x, incx);
 }
 
 /**
   *  First, makes a copy of 'x', then uses a modified gemv algorithm
   *  to perform x := transA(A) * w_x_copy
-  *  w_x_copy is workspace memory and should be of size sizeof(T) * m bytes * batch_count.
+  *  w_x_copy is workspace memory and should be of size sizeof(T) * n bytes * batch_count.
   *
   *  Here, U is either a `const T* const*` or a `const T*`
   *  V is either a `T*` or a `T* const*`
@@ -294,7 +294,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
                                      rocblas_diagonal  diag,
-                                     rocblas_int       m,
+                                     rocblas_int       n,
                                      rocblas_int       k,
                                      U                 A,
                                      rocblas_stride    offseta,
@@ -308,27 +308,27 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      V                 w_x_copy)
 {
     // quick return
-    if(!m || !batch_count)
+    if(!n || !batch_count)
         return rocblas_status_success;
 
     // First we make a copy of x so we can avoid RAW race conditions in the kernel
-    int  copy_blocks = (m - 1) / 256 + 1;
+    int  copy_blocks = (n - 1) / 256 + 1;
     dim3 copy_grid(copy_blocks, batch_count);
     dim3 copy_threads(256);
 
     rocblas_status status = rocblas_copy_template<256>(
-        handle, m, x, offsetx, incx, stridex, w_x_copy, 0, 1, m, batch_count);
+        handle, n, x, offsetx, incx, stridex, w_x_copy, 0, 1, n, batch_count);
 
     if(status != rocblas_status_success)
         return status;
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
+    ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
 
     // (gemv) TBMVX_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
     static constexpr int TBMVX_DIM_X = 64;
     static constexpr int TBMVX_DIM_Y = 16;
-    rocblas_int          blocks      = (m - 1) / (TBMVX_DIM_X) + 1;
+    rocblas_int          blocks      = (n - 1) / (TBMVX_DIM_X) + 1;
     dim3                 tbmvx_grid(blocks, batch_count);
     dim3                 tbmvx_threads(TBMVX_DIM_X, TBMVX_DIM_Y);
 
@@ -342,7 +342,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                        transA,
                        uplo == rocblas_fill_upper,
                        diag == rocblas_diagonal_unit,
-                       m,
+                       n,
                        k,
                        A,
                        offseta,
@@ -361,7 +361,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
 template <typename T, typename U>
 rocblas_status rocblas_tbmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    m,
+                                           rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,
                                            rocblas_int    lda,
@@ -377,7 +377,7 @@ rocblas_status rocblas_tbmv_check_numerics(const char*    function_name,
     rocblas_status check_numerics_status
         = rocblas_internal_check_numerics_vector_template(function_name,
                                                           handle,
-                                                          m,
+                                                          n,
                                                           x,
                                                           offset_x,
                                                           inc_x,
@@ -404,7 +404,7 @@ template rocblas_status rocblas_tbmv_template<U_, V_>               \
                                      rocblas_fill      uplo,        \
                                      rocblas_operation transA,      \
                                      rocblas_diagonal  diag,        \
-                                     rocblas_int       m,           \
+                                     rocblas_int       n,           \
                                      rocblas_int       k,           \
                                      U_                 A,          \
                                      rocblas_stride    offseta,     \
@@ -432,7 +432,7 @@ INSTANTIATE_TBMV_TEMPLATE(rocblas_double_complex const* const*, rocblas_double_c
 template rocblas_status rocblas_tbmv_check_numerics<T, U_>                \
                                           (const char*    function_name,  \
                                            rocblas_handle handle,         \
-                                           rocblas_int    m,              \
+                                           rocblas_int    n,              \
                                            T              A,              \
                                            rocblas_stride    offset_a,       \
                                            rocblas_int    lda,            \

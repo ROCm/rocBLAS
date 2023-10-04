@@ -43,12 +43,12 @@ void testing_trsv_strided_batched_bad_arg(const Arguments& arg)
                                                ? rocblas_trsv_strided_batched<T, true>
                                                : rocblas_trsv_strided_batched<T, false>;
 
-    const rocblas_int       M           = 100;
+    const rocblas_int       N           = 100;
     const rocblas_int       lda         = 100;
     const rocblas_int       incx        = 1;
     const rocblas_int       batch_count = 1;
-    const rocblas_stride    stride_a    = M * lda;
-    const rocblas_stride    stride_x    = M;
+    const rocblas_stride    stride_a    = N * lda;
+    const rocblas_stride    stride_x    = N;
     const rocblas_operation transA      = rocblas_operation_none;
     const rocblas_fill      uplo        = rocblas_fill_lower;
     const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
@@ -57,16 +57,16 @@ void testing_trsv_strided_batched_bad_arg(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_strided_batch_matrix<T> hA(M, M, lda, stride_a, batch_count);
-    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
+    host_strided_batch_matrix<T> hA(N, N, lda, stride_a, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
 
     // Check host memory allocation
     CHECK_DEVICE_ALLOCATION(hA.memcheck());
     CHECK_DEVICE_ALLOCATION(hx.memcheck());
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(M, M, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+    device_strided_batch_matrix<T> dA(N, N, lda, stride_a, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -77,7 +77,7 @@ void testing_trsv_strided_batched_bad_arg(const Arguments& arg)
                                                           rocblas_fill_full,
                                                           transA,
                                                           diag,
-                                                          M,
+                                                          N,
                                                           dA,
                                                           lda,
                                                           stride_a,
@@ -90,17 +90,17 @@ void testing_trsv_strided_batched_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsv_strided_batched_fn(
-            handle, uplo, transA, diag, M, nullptr, lda, stride_a, dx, incx, stride_x, batch_count),
+            handle, uplo, transA, diag, N, nullptr, lda, stride_a, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsv_strided_batched_fn(
-            handle, uplo, transA, diag, M, dA, lda, stride_a, nullptr, incx, stride_x, batch_count),
+            handle, uplo, transA, diag, N, dA, lda, stride_a, nullptr, incx, stride_x, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_trsv_strided_batched_fn(
-            nullptr, uplo, transA, diag, M, dA, lda, stride_a, dx, incx, stride_x, batch_count),
+            nullptr, uplo, transA, diag, N, dA, lda, stride_a, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_handle);
 }
 
@@ -114,7 +114,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                ? rocblas_trsv_strided_batched<T, true>
                                                : rocblas_trsv_strided_batched<T, false>;
 
-    rocblas_int M           = arg.M;
+    rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;
     rocblas_int incx        = arg.incx;
     char        char_uplo   = arg.uplo;
@@ -132,15 +132,15 @@ void testing_trsv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
-    bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
-    if(invalid_size || !M || !batch_count)
+    bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(rocblas_trsv_strided_batched_fn(handle,
                                                               uplo,
                                                               transA,
                                                               diag,
-                                                              M,
+                                                              N,
                                                               nullptr,
                                                               lda,
                                                               stride_a,
@@ -154,12 +154,12 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
     // Allocate host memory
-    host_strided_batch_matrix<T> hA(M, M, lda, stride_a, batch_count);
-    host_strided_batch_matrix<T> hAAT(M, M, lda, stride_a, batch_count);
-    host_strided_batch_vector<T> hb(M, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> hx_or_b(M, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> cpu_x_or_b(M, incx, stride_x, batch_count);
+    host_strided_batch_matrix<T> hA(N, N, lda, stride_a, batch_count);
+    host_strided_batch_matrix<T> hAAT(N, N, lda, stride_a, batch_count);
+    host_strided_batch_vector<T> hb(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx_or_b(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> cpu_x_or_b(N, incx, stride_x, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hA.memcheck());
@@ -170,8 +170,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(cpu_x_or_b.memcheck());
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dA(M, M, lda, stride_a, batch_count);
-    device_strided_batch_vector<T> dx_or_b(M, incx, stride_x, batch_count);
+    device_strided_batch_matrix<T> dA(N, N, lda, stride_a, batch_count);
+    device_strided_batch_vector<T> dx_or_b(N, incx, stride_x, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -196,7 +196,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
     // Calculate hb = hA*hx;
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hb + stride_x * b, incx);
+        cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hb + stride_x * b, incx);
     }
 
     cpu_x_or_b.copy_from(hb);
@@ -222,7 +222,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                           uplo,
                                                           transA,
                                                           diag,
-                                                          M,
+                                                          N,
                                                           dA,
                                                           lda,
                                                           stride_a,
@@ -249,7 +249,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                                 uplo,
                                                                 transA,
                                                                 diag,
-                                                                M,
+                                                                N,
                                                                 dA,
                                                                 lda,
                                                                 stride_a,
@@ -270,7 +270,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                                 uplo,
                                                                 transA,
                                                                 diag,
-                                                                M,
+                                                                N,
                                                                 dA,
                                                                 lda,
                                                                 stride_a,
@@ -284,34 +284,34 @@ void testing_trsv_strided_batched(const Arguments& arg)
         {
             //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
             // calculate norm 1 of vector E
-            error_host = vector_norm_1(M, incx, hx, hx_or_b);
+            error_host = vector_norm_1(N, incx, hx, hx_or_b);
 
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_host, N, error_eps_multiplier, eps);
 
             for(int b = 0; b < batch_count; b++)
-                cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b[b], incx);
+                cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
 
-            auto error_host_res = vector_norm_1(M, incx, hx_or_b, hb);
+            auto error_host_res = vector_norm_1(N, incx, hx_or_b, hb);
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_host_res, M, error_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_host_res, N, error_eps_multiplier, eps);
             error_host = std::max(error_host, error_host_res);
         }
 
         if(arg.pointer_mode_device)
         {
             CHECK_HIP_ERROR(hx_or_b.transfer_from(dx_or_b));
-            error_device = vector_norm_1(M, incx, hx, hx_or_b);
+            error_device = vector_norm_1(N, incx, hx, hx_or_b);
 
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_host, N, error_eps_multiplier, eps);
 
             for(int b = 0; b < batch_count; b++)
-                cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b[b], incx);
+                cblas_trmv<T>(uplo, transA, diag, N, hA[b], lda, hx_or_b[b], incx);
 
-            auto error_device_res = vector_norm_1(M, incx, hx_or_b, hb);
+            auto error_device_res = vector_norm_1(N, incx, hx_or_b, hb);
             if(arg.unit_check)
-                trsm_err_res_check<T>(error_device_res, M, error_eps_multiplier, eps);
+                trsm_err_res_check<T>(error_device_res, N, error_eps_multiplier, eps);
             error_device = std::max(error_device, error_device_res);
         }
     }
@@ -331,7 +331,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                             uplo,
                                             transA,
                                             diag,
-                                            M,
+                                            N,
                                             dA,
                                             lda,
                                             stride_a,
@@ -349,7 +349,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                             uplo,
                                             transA,
                                             diag,
-                                            M,
+                                            N,
                                             dA,
                                             lda,
                                             stride_a,
@@ -365,14 +365,14 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_trsv<T>(uplo, transA, diag, M, hA[b], lda, cpu_x_or_b[b], incx);
+                cblas_trsv<T>(uplo, transA, diag, N, hA[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         ArgumentModel<e_uplo,
                       e_transA,
                       e_diag,
-                      e_M,
+                      e_N,
                       e_lda,
                       e_stride_a,
                       e_incx,
@@ -381,7 +381,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
             .log_args<T>(rocblas_cout,
                          arg,
                          gpu_time_used,
-                         trsv_gflop_count<T>(M),
+                         trsv_gflop_count<T>(N),
                          ArgumentLogging::NA_value,
                          cpu_time_used,
                          error_host,

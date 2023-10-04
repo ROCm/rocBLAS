@@ -242,19 +242,23 @@ def setdefaults(test):
             test.setdefault('stride_c', int(test['stride_scale']) * 5)
 
     elif test['function'] in ('tpmv_strided_batched'):
-        setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
-# Let's use M * M (> (M * (M+1)) / 2) as a 'stride' size for the packed format.
-        setkey_product(test, 'stride_a', ['M', 'M', 'stride_scale'])
+        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+        # Let's use N * N (> (N * (N+1)) / 2) as a 'stride' size for the packed format.
+        setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
 
     elif test['function'] in ('trmv_strided_batched'):
-        setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
-        setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
+        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+        setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
+    elif test['function'] in ('trsv_strided_batched'):
+        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+        setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
 
     elif test['function'] in ('gemv_strided_batched', 'gbmv_strided_batched',
                               'ger_strided_batched', 'geru_strided_batched',
-                              'gerc_strided_batched', 'trsv_strided_batched'):
+                              'gerc_strided_batched'):
         if test['function'] in ('ger_strided_batched', 'geru_strided_batched',
-                                'gerc_strided_batched', 'trsv_strided_batched'
+                                'gerc_strided_batched',
                                 ) or test['transA'] in ('T', 'C'):
             setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
@@ -263,8 +267,6 @@ def setdefaults(test):
             setkey_product(test, 'stride_y', ['M', 'incy', 'stride_scale'])
         if test['function'] in ('gbmv_strided_batched'):
             setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
-        if test['function'] in ('trsv_strided_batched'):
-            setkey_product(test, 'stride_a', ['lda', 'M', 'stride_scale'])
 
     elif test['function'] in ('hemv_strided_batched', 'hbmv_strided_batched',
                               'sbmv_strided_batched'):
@@ -353,11 +355,11 @@ def setdefaults(test):
             setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
 
     elif test['function'] in ('tbmv_strided_batched'):
-        if all([x in test for x in ('M', 'lda', 'stride_scale')]):
-            ldM = int(test['M'] * test['lda'] * test['stride_scale'])
-            test.setdefault('stride_a', ldM)
-        if all([x in test for x in ('M', 'incx', 'stride_scale')]):
-            ldx = int(test['M'] * abs(test['incx']) * test['stride_scale'])
+        if all([x in test for x in ('N', 'lda', 'stride_scale')]):
+            ldN = int(test['N'] * test['lda'] * test['stride_scale'])
+            test.setdefault('stride_a', ldN)
+        if all([x in test for x in ('N', 'incx', 'stride_scale')]):
+            ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
             test.setdefault('stride_x', ldx)
 
     elif test['function'] in ('tbsv_strided_batched'):
