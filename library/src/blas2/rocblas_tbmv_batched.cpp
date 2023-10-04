@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ namespace
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
                                              rocblas_diagonal  diag,
-                                             rocblas_int       m,
+                                             rocblas_int       n,
                                              rocblas_int       k,
                                              const T* const    A[],
                                              rocblas_int       lda,
@@ -68,7 +68,7 @@ namespace
                               uplo,
                               transA,
                               diag,
-                              m,
+                              n,
                               k,
                               A,
                               lda,
@@ -87,8 +87,8 @@ namespace
                               transA_letter,
                               "--diag",
                               diag_letter,
-                              "-m",
-                              m,
+                              "-n",
+                              n,
                               "-k",
                               k,
                               "--lda",
@@ -108,8 +108,8 @@ namespace
                                 transA_letter,
                                 "diag",
                                 diag_letter,
-                                "M",
-                                m,
+                                "N",
+                                n,
                                 "k",
                                 k,
                                 "lda",
@@ -122,7 +122,7 @@ namespace
         }
 
         rocblas_status arg_status = rocblas_tbmv_arg_check<T>(
-            handle, uplo, transA, diag, m, k, A, lda, x, incx, batch_count);
+            handle, uplo, transA, diag, n, k, A, lda, x, incx, batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
@@ -130,9 +130,9 @@ namespace
             return rocblas_status_invalid_pointer;
 
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(T) * m * batch_count,
+            return handle->set_optimal_device_memory_size(sizeof(T) * n * batch_count,
                                                           sizeof(T*) * batch_count);
-        auto w_mem = handle->device_malloc(sizeof(T) * m * batch_count, sizeof(T*) * batch_count);
+        auto w_mem = handle->device_malloc(sizeof(T) * n * batch_count, sizeof(T*) * batch_count);
         if(!w_mem)
             return rocblas_status_memory_error;
 
@@ -140,7 +140,7 @@ namespace
         void* w_mem_x_copy_arr = w_mem[1];
 
         setup_batched_array<256>(
-            handle->get_stream(), (T*)w_mem_x_copy, m, (T**)w_mem_x_copy_arr, batch_count);
+            handle->get_stream(), (T*)w_mem_x_copy, n, (T**)w_mem_x_copy_arr, batch_count);
 
         auto check_numerics = handle->check_numerics;
         if(check_numerics)
@@ -149,7 +149,7 @@ namespace
             rocblas_status tbmv_check_numerics_status
                 = rocblas_tbmv_check_numerics(rocblas_tbmv_name<T>,
                                               handle,
-                                              m,
+                                              n,
                                               A,
                                               0,
                                               lda,
@@ -169,7 +169,7 @@ namespace
                                                       uplo,
                                                       transA,
                                                       diag,
-                                                      m,
+                                                      n,
                                                       k,
                                                       A,
                                                       0,
@@ -190,7 +190,7 @@ namespace
             rocblas_status tbmv_check_numerics_status
                 = rocblas_tbmv_check_numerics(rocblas_tbmv_name<T>,
                                               handle,
-                                              m,
+                                              n,
                                               A,
                                               0,
                                               lda,
@@ -222,7 +222,7 @@ rocblas_status rocblas_stbmv_batched(rocblas_handle     handle,
                                      rocblas_fill       uplo,
                                      rocblas_operation  transA,
                                      rocblas_diagonal   diag,
-                                     rocblas_int        m,
+                                     rocblas_int        n,
                                      rocblas_int        k,
                                      const float* const A[],
                                      rocblas_int        lda,
@@ -231,14 +231,14 @@ rocblas_status rocblas_stbmv_batched(rocblas_handle     handle,
                                      rocblas_int        batch_count)
 {
     return rocblas_tbmv_batched_impl(
-        handle, uplo, transA, diag, m, k, A, lda, x, incx, batch_count);
+        handle, uplo, transA, diag, n, k, A, lda, x, incx, batch_count);
 }
 
 rocblas_status rocblas_dtbmv_batched(rocblas_handle      handle,
                                      rocblas_fill        uplo,
                                      rocblas_operation   transA,
                                      rocblas_diagonal    diag,
-                                     rocblas_int         m,
+                                     rocblas_int         n,
                                      rocblas_int         k,
                                      const double* const A[],
                                      rocblas_int         lda,
@@ -247,14 +247,14 @@ rocblas_status rocblas_dtbmv_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 {
     return rocblas_tbmv_batched_impl(
-        handle, uplo, transA, diag, m, k, A, lda, x, incx, batch_count);
+        handle, uplo, transA, diag, n, k, A, lda, x, incx, batch_count);
 }
 
 rocblas_status rocblas_ctbmv_batched(rocblas_handle                     handle,
                                      rocblas_fill                       uplo,
                                      rocblas_operation                  transA,
                                      rocblas_diagonal                   diag,
-                                     rocblas_int                        m,
+                                     rocblas_int                        n,
                                      rocblas_int                        k,
                                      const rocblas_float_complex* const A[],
                                      rocblas_int                        lda,
@@ -263,14 +263,14 @@ rocblas_status rocblas_ctbmv_batched(rocblas_handle                     handle,
                                      rocblas_int                        batch_count)
 {
     return rocblas_tbmv_batched_impl(
-        handle, uplo, transA, diag, m, k, A, lda, x, incx, batch_count);
+        handle, uplo, transA, diag, n, k, A, lda, x, incx, batch_count);
 }
 
 rocblas_status rocblas_ztbmv_batched(rocblas_handle                      handle,
                                      rocblas_fill                        uplo,
                                      rocblas_operation                   transA,
                                      rocblas_diagonal                    diag,
-                                     rocblas_int                         m,
+                                     rocblas_int                         n,
                                      rocblas_int                         k,
                                      const rocblas_double_complex* const A[],
                                      rocblas_int                         lda,
@@ -279,7 +279,7 @@ rocblas_status rocblas_ztbmv_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 {
     return rocblas_tbmv_batched_impl(
-        handle, uplo, transA, diag, m, k, A, lda, x, incx, batch_count);
+        handle, uplo, transA, diag, n, k, A, lda, x, incx, batch_count);
 }
 
 } // extern "C"

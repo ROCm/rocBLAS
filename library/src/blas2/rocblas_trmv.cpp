@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ namespace
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
                                      rocblas_diagonal  diag,
-                                     rocblas_int       m,
+                                     rocblas_int       n,
                                      const T*          A,
                                      rocblas_int       lda,
                                      T*                x,
@@ -64,7 +64,7 @@ namespace
                 auto diag_letter   = rocblas_diag_letter(diag);
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    log_trace(handle, rocblas_trmv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
+                    log_trace(handle, rocblas_trmv_name<T>, uplo, transA, diag, n, A, lda, x, incx);
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
@@ -81,8 +81,8 @@ namespace
                               transA_letter,
                               "--diag",
                               diag_letter,
-                              "-m",
-                              m,
+                              "-n",
+                              n,
                               "--lda",
                               lda,
                               "--incx",
@@ -99,8 +99,8 @@ namespace
                                 transA_letter,
                                 "diag",
                                 diag_letter,
-                                "M",
-                                m,
+                                "N",
+                                n,
                                 "lda",
                                 lda,
                                 "incx",
@@ -111,7 +111,7 @@ namespace
 
         size_t         dev_bytes;
         rocblas_status arg_status = rocblas_trmv_arg_check<T>(
-            handle, uplo, transA, diag, m, A, lda, x, incx, 1, dev_bytes);
+            handle, uplo, transA, diag, n, A, lda, x, incx, 1, dev_bytes);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
@@ -128,7 +128,7 @@ namespace
                 = rocblas_trmv_check_numerics(rocblas_trmv_name<T>,
                                               handle,
                                               uplo,
-                                              m,
+                                              n,
                                               A,
                                               0,
                                               lda,
@@ -151,7 +151,7 @@ namespace
                                                                uplo,
                                                                transA,
                                                                diag,
-                                                               m,
+                                                               n,
                                                                A,
                                                                offset_a,
                                                                lda,
@@ -174,7 +174,7 @@ namespace
                 = rocblas_trmv_check_numerics(rocblas_trmv_name<T>,
                                               handle,
                                               uplo,
-                                              m,
+                                              n,
                                               A,
                                               0,
                                               lda,
@@ -211,14 +211,14 @@ extern "C" {
                                  rocblas_fill      uplo,                          \
                                  rocblas_operation transA,                        \
                                  rocblas_diagonal  diag,                          \
-                                 rocblas_int       m,                             \
+                                 rocblas_int       n,                             \
                                  const T_*         A,                             \
                                  rocblas_int       lda,                           \
                                  T_*               x,                             \
                                  rocblas_int       incx)                          \
     try                                                                           \
     {                                                                             \
-        return rocblas_trmv_impl(handle, uplo, transA, diag, m, A, lda, x, incx); \
+        return rocblas_trmv_impl(handle, uplo, transA, diag, n, A, lda, x, incx); \
     }                                                                             \
     catch(...)                                                                    \
     {                                                                             \

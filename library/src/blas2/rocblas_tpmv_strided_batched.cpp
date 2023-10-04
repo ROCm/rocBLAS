@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ namespace
                                                      rocblas_fill      uplo,
                                                      rocblas_operation transa,
                                                      rocblas_diagonal  diag,
-                                                     rocblas_int       m,
+                                                     rocblas_int       n,
                                                      const T*          a,
                                                      rocblas_stride    stridea,
                                                      T*                x,
@@ -77,7 +77,7 @@ namespace
                               uplo,
                               transa,
                               diag,
-                              m,
+                              n,
                               a,
                               x,
                               incx,
@@ -101,8 +101,8 @@ namespace
                               transa_letter,
                               "--diag",
                               diag_letter,
-                              "-m",
-                              m,
+                              "-n",
+                              n,
                               "--stride_a",
                               stridea,
                               "--incx",
@@ -123,8 +123,8 @@ namespace
                                 transa_letter,
                                 "diag",
                                 diag_letter,
-                                "M",
-                                m,
+                                "N",
+                                n,
                                 "stride_a",
                                 stridea,
                                 "incx",
@@ -139,7 +139,7 @@ namespace
 
         size_t         dev_bytes;
         rocblas_status arg_status = rocblas_tpmv_arg_check<T>(
-            handle, uplo, transa, diag, m, a, x, incx, batch_count, dev_bytes);
+            handle, uplo, transa, diag, n, a, x, incx, batch_count, dev_bytes);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
@@ -153,7 +153,7 @@ namespace
             rocblas_status tpmv_check_numerics_status
                 = rocblas_tpmv_check_numerics(rocblas_tpmv_strided_batched_name<T>,
                                               handle,
-                                              m,
+                                              n,
                                               a,
                                               0,
                                               stridea,
@@ -168,7 +168,7 @@ namespace
                 return tpmv_check_numerics_status;
         }
 
-        rocblas_stride                  stridew = m;
+        rocblas_stride                  stridew = n;
         static constexpr rocblas_int    NB      = ROCBLAS_TPMV_NB;
         static constexpr rocblas_stride offseta = 0;
         static constexpr rocblas_stride offsetx = 0;
@@ -176,7 +176,7 @@ namespace
                                                           uplo,
                                                           transa,
                                                           diag,
-                                                          m,
+                                                          n,
                                                           a,
                                                           offseta,
                                                           stridea,
@@ -197,7 +197,7 @@ namespace
             rocblas_status tpmv_check_numerics_status
                 = rocblas_tpmv_check_numerics(rocblas_tpmv_strided_batched_name<T>,
                                               handle,
-                                              m,
+                                              n,
                                               a,
                                               0,
                                               stridea,
@@ -233,7 +233,7 @@ extern "C" {
                                  rocblas_fill      uplo,                               \
                                  rocblas_operation transA,                             \
                                  rocblas_diagonal  diag,                               \
-                                 rocblas_int       m,                                  \
+                                 rocblas_int       n,                                  \
                                  const T_*         A,                                  \
                                  rocblas_stride    stridea,                            \
                                  T_*               x,                                  \
@@ -243,7 +243,7 @@ extern "C" {
     try                                                                                \
     {                                                                                  \
         return rocblas_tpmv_strided_batched_impl(                                      \
-            handle, uplo, transA, diag, m, A, stridea, x, incx, stridex, batch_count); \
+            handle, uplo, transA, diag, n, A, stridea, x, incx, stridex, batch_count); \
     }                                                                                  \
     catch(...)                                                                         \
     {                                                                                  \

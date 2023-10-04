@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2019-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ inline rocblas_status rocblas_tbmv_arg_check(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
                                              rocblas_diagonal  diag,
-                                             rocblas_int       m,
+                                             rocblas_int       n,
                                              rocblas_int       k,
                                              U                 A,
                                              rocblas_int       lda,
@@ -49,11 +49,11 @@ inline rocblas_status rocblas_tbmv_arg_check(rocblas_handle    handle,
     if(diag != rocblas_diagonal_unit && diag != rocblas_diagonal_non_unit)
         return rocblas_status_invalid_value;
 
-    if(m < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
+    if(n < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
         return rocblas_status_invalid_size;
 
     // quick return if possible.
-    if(!m || !batch_count)
+    if(!n || !batch_count)
     {
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
         return rocblas_status_success;
@@ -67,7 +67,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
                                      rocblas_diagonal  diag,
-                                     rocblas_int       m,
+                                     rocblas_int       n,
                                      rocblas_int       k,
                                      U                 A,
                                      rocblas_stride    offseta,
@@ -83,7 +83,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
 template <typename T, typename U>
 rocblas_status rocblas_tbmv_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    m,
+                                           rocblas_int    n,
                                            T              A,
                                            rocblas_stride offset_a,
                                            rocblas_int    lda,

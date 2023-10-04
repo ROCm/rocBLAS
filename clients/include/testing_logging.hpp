@@ -750,12 +750,12 @@ void testing_logging(const Arguments& arg)
     // TBMV
     //
     trace_ofs2 << replaceX<T>("rocblas_Xtbmv") << "," << uplo << "," << transA << "," << diag << ","
-               << m << "," << k << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+               << n << "," << k << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
                << ",atomics_allowed\n";
 
     bench_ofs2 << "./rocblas-bench -f tbmv -r " << rocblas_precision_string<T> << " --uplo "
                << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
-               << " -m " << m << " -k " << k << " --lda " << lda << " --incx " << incx << "\n";
+               << " -n " << n << " -k " << k << " --lda " << lda << " --incx " << incx << "\n";
 
     //
     // TBSV
@@ -772,22 +772,22 @@ void testing_logging(const Arguments& arg)
     // TRMV
     //
     trace_ofs2 << replaceX<T>("rocblas_Xtrmv") << "," << uplo << "," << transA << "," << diag << ","
-               << m << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+               << n << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
                << ",atomics_allowed\n";
 
     bench_ofs2 << "./rocblas-bench -f trmv -r " << rocblas_precision_string<T> << " --uplo "
                << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
-               << " -m " << m << " --lda " << lda << " --incx " << incx << "\n";
+               << " -n " << n << " --lda " << lda << " --incx " << incx << "\n";
 
     //
     // TPMV
     //
     trace_ofs2 << replaceX<T>("rocblas_Xtpmv") << "," << uplo << "," << transA << "," << diag << ","
-               << m << "," << (void*)da << "," << (void*)dx << "," << incx << ",atomics_allowed\n";
+               << n << "," << (void*)da << "," << (void*)dx << "," << incx << ",atomics_allowed\n";
 
     bench_ofs2 << "./rocblas-bench -f tpmv -r " << rocblas_precision_string<T> << " --uplo "
                << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
-               << " -m " << m << " --incx " << incx << "\n";
+               << " -n " << n << " --incx " << incx << "\n";
 
     //
     // TPSV
@@ -803,23 +803,23 @@ void testing_logging(const Arguments& arg)
     // TRMV
     //
     trace_ofs2 << replaceX<T>("rocblas_Xtrmv") << "," << uplo << "," << transA << "," << diag << ","
-               << m << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+               << n << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
                << ",atomics_allowed\n";
 
     bench_ofs2 << "./rocblas-bench -f trmv -r " << rocblas_precision_string<T> << " --uplo "
                << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
-               << " -m " << m << " --lda " << lda << " --incx " << incx << "\n";
+               << " -n " << n << " --lda " << lda << " --incx " << incx << "\n";
 
     //
     // TRSV
     //
     trace_ofs2 << replaceX<T>("rocblas_Xtrsv") << "," << uplo << "," << transA << "," << diag << ","
-               << m << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+               << n << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
                << ",atomics_allowed\n";
 
     bench_ofs2 << "./rocblas-bench -f trsv -r " << rocblas_precision_string<T> << " --uplo "
                << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
-               << " -m " << m << " --lda " << lda << " --incx " << incx << "\n";
+               << " -n " << n << " --lda " << lda << " --incx " << incx << "\n";
 
     if(BUILD_WITH_TENSILE)
     {

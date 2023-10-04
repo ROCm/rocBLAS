@@ -31,7 +31,7 @@ inline rocblas_status rocblas_trsv_arg_check(rocblas_handle    handle,
                                              rocblas_fill      uplo,
                                              rocblas_operation transA,
                                              rocblas_diagonal  diag,
-                                             rocblas_int       m,
+                                             rocblas_int       n,
                                              U                 A,
                                              rocblas_int       lda,
                                              V                 B,
@@ -49,11 +49,11 @@ inline rocblas_status rocblas_trsv_arg_check(rocblas_handle    handle,
     if(diag != rocblas_diagonal_unit && diag != rocblas_diagonal_non_unit)
         return rocblas_status_invalid_value;
 
-    if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)
+    if(n < 0 || lda < n || lda < 1 || !incx || batch_count < 0)
         return rocblas_status_invalid_size;
 
     // quick return if possible.
-    if(!m || !batch_count)
+    if(!n || !batch_count)
     {
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
         return rocblas_status_success;
@@ -77,7 +77,7 @@ template <typename T, typename U>
 rocblas_status rocblas_internal_trsv_check_numerics(const char*       function_name,
                                                     rocblas_handle    handle,
                                                     rocblas_fill      uplo,
-                                                    rocblas_int       m,
+                                                    rocblas_int       n,
                                                     T                 A,
                                                     rocblas_stride    offset_a,
                                                     rocblas_int       lda,
@@ -96,7 +96,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
                                                            rocblas_fill      uplo,
                                                            rocblas_operation transA,
                                                            rocblas_diagonal  diag,
-                                                           rocblas_int       m,
+                                                           rocblas_int       n,
                                                            ATYPE             dA,
                                                            rocblas_stride    offset_A,
                                                            rocblas_int       lda,
@@ -115,7 +115,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_fill      uplo,
                                    rocblas_operation transA,
                                    rocblas_diagonal  diag,
-                                   rocblas_int       m,
+                                   rocblas_int       n,
                                    const T*          dA,
                                    rocblas_stride    offset_A,
                                    rocblas_int       lda,
@@ -133,7 +133,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_fill      uplo,
                                            rocblas_operation transA,
                                            rocblas_diagonal  diag,
-                                           rocblas_int       m,
+                                           rocblas_int       n,
                                            const T* const*   dA,
                                            rocblas_stride    offset_A,
                                            rocblas_int       lda,

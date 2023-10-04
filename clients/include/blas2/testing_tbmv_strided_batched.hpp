@@ -45,7 +45,7 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
                                                ? rocblas_tbmv_strided_batched<T, true>
                                                : rocblas_tbmv_strided_batched<T, false>;
 
-    const rocblas_int       M                 = 100;
+    const rocblas_int       N                 = 100;
     const rocblas_int       K                 = 5;
     const rocblas_int       lda               = 100;
     const rocblas_int       incx              = 1;
@@ -60,8 +60,8 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dAb(banded_matrix_row, M, lda, stride_A, batch_count);
-    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+    device_strided_batch_matrix<T> dAb(banded_matrix_row, N, lda, stride_A, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -71,7 +71,7 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           rocblas_fill_full,
                                                           transA,
                                                           diag,
-                                                          M,
+                                                          N,
                                                           K,
                                                           dAb,
                                                           lda,
@@ -87,7 +87,7 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           uplo,
                                                           transA,
                                                           diag,
-                                                          M,
+                                                          N,
                                                           K,
                                                           nullptr,
                                                           lda,
@@ -102,7 +102,7 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           uplo,
                                                           transA,
                                                           diag,
-                                                          M,
+                                                          N,
                                                           K,
                                                           dAb,
                                                           lda,
@@ -115,12 +115,12 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbmv_strided_batched_fn(
-            nullptr, uplo, transA, diag, M, K, dAb, lda, stride_A, dx, incx, stride_x, batch_count),
+            nullptr, uplo, transA, diag, N, K, dAb, lda, stride_A, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_handle);
 
     // Adding test to check that if batch_count == 0 we can pass in nullptrs and get a success.
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tbmv_batched<T>(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx, 0),
+        rocblas_tbmv_batched<T>(handle, uplo, transA, diag, N, K, nullptr, lda, nullptr, incx, 0),
         rocblas_status_success);
 }
 
@@ -131,7 +131,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                                ? rocblas_tbmv_strided_batched<T, true>
                                                : rocblas_tbmv_strided_batched<T, false>;
 
-    rocblas_int       M                 = arg.M;
+    rocblas_int       N                 = arg.N;
     rocblas_int       K                 = arg.K;
     rocblas_int       lda               = arg.lda;
     rocblas_int       incx              = arg.incx;
@@ -148,14 +148,14 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || K < 0 || lda < banded_matrix_row || !incx || batch_count < 0;
-    if(invalid_size || !M || !batch_count)
+    bool invalid_size = N < 0 || K < 0 || lda < banded_matrix_row || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched_fn(handle,
                                                               uplo,
                                                               transA,
                                                               diag,
-                                                              M,
+                                                              N,
                                                               K,
                                                               nullptr,
                                                               lda,
@@ -171,9 +171,9 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
     // Naming: `h` is in CPU (host) memory(eg hAb), `d` is in GPU (device) memory (eg dAb).
     // Allocate host memory
-    host_strided_batch_matrix<T> hAb(banded_matrix_row, M, lda, stride_A, batch_count);
-    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
-    host_strided_batch_vector<T> hx_gold(M, incx, stride_x, batch_count);
+    host_strided_batch_matrix<T> hAb(banded_matrix_row, N, lda, stride_A, batch_count);
+    host_strided_batch_vector<T> hx(N, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx_gold(N, incx, stride_x, batch_count);
 
     // Check host memory allocation
     CHECK_HIP_ERROR(hAb.memcheck());
@@ -181,8 +181,8 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hx_gold.memcheck());
 
     // Allocate device memory
-    device_strided_batch_matrix<T> dAb(banded_matrix_row, M, lda, stride_A, batch_count);
-    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
+    device_strided_batch_matrix<T> dAb(banded_matrix_row, N, lda, stride_A, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dAb.memcheck());
@@ -212,14 +212,14 @@ void testing_tbmv_strided_batched(const Arguments& arg)
         // pointer mode shouldn't matter here
         handle.pre_test(arg);
         CHECK_ROCBLAS_ERROR(rocblas_tbmv_strided_batched_fn(
-            handle, uplo, transA, diag, M, K, dAb, lda, stride_A, dx, incx, stride_x, batch_count));
+            handle, uplo, transA, diag, N, K, dAb, lda, stride_A, dx, incx, stride_x, batch_count));
         handle.post_test(arg);
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
         for(int b = 0; b < batch_count; b++)
-            cblas_tbmv<T>(uplo, transA, diag, M, K, hAb[b], lda, hx_gold[b], incx);
+            cblas_tbmv<T>(uplo, transA, diag, N, K, hAb[b], lda, hx_gold[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -228,13 +228,13 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, incx, stride_x, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, incx, stride_x, hx_gold, hx, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', 1, M, incx, stride_x, hx_gold, hx, batch_count);
+                = norm_check_general<T>('F', 1, N, incx, stride_x, hx_gold, hx, batch_count);
         }
     }
 
@@ -249,7 +249,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             uplo,
                                             transA,
                                             diag,
-                                            M,
+                                            N,
                                             K,
                                             dAb,
                                             lda,
@@ -270,7 +270,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             uplo,
                                             transA,
                                             diag,
-                                            M,
+                                            N,
                                             K,
                                             dAb,
                                             lda,
@@ -286,7 +286,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
         ArgumentModel<e_uplo,
                       e_transA,
                       e_diag,
-                      e_M,
+                      e_N,
                       e_K,
                       e_lda,
                       e_stride_a,
@@ -296,8 +296,8 @@ void testing_tbmv_strided_batched(const Arguments& arg)
             .log_args<T>(rocblas_cout,
                          arg,
                          gpu_time_used,
-                         tbmv_gflop_count<T>(M, K),
-                         tbmv_gbyte_count<T>(M, K),
+                         tbmv_gflop_count<T>(N, K),
+                         tbmv_gbyte_count<T>(N, K),
                          cpu_time_used,
                          rocblas_error);
     }
