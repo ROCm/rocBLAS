@@ -10,7 +10,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Optimized
 - Trsm performance for small sizes m < 32 && n < 32
 ### Deprecated
-- Atomic operations will be disabled by default in a future release of rocBLAS
+- In a future release atomic operations will be disabled by default so results will be repeatable. Atomic operations can always be enabled or disabled using the function rocblas_set_atomics_mode. Enabling atomic operations can improve performance.
 ### Removed
 - rocblas_gemm_ext2 API function is removed
 - in-place trmm API from Legacy BLAS is removed. It is replaced by an API that supports both in-place and out-of-place trmm
