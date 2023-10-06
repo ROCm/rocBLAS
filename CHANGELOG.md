@@ -2,14 +2,27 @@
 
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
-## (Unreleased) rocBLAS 4.0.0
+## rocBLAS 4.0.0 for ROCm 6.0
+### Added
+- Addition of beta API rocblas_gemm_batched_ex3 and rocblas_gemm_strided_batched_ex3
+- Added input/output type f16_r/bf16_r and execution type f32_r support for Level 2 gemv_batched and gemv_strided_batched
+- Added rocblas_status_excluded_from_build to be used when calling functions which require Tensile when using rocBLAS built without Tensile
+### Optimized
+- Trsm performance for small sizes m < 32 && n < 32
 ### Deprecated
-- Atomic operations will be disabled by default in a future release of rocBLAS.
+- In a future release atomic operations will be disabled by default so results will be repeatable. Atomic operations can always be enabled or disabled using the function rocblas_set_atomics_mode. Enabling atomic operations can improve performance.
 ### Removed
-- rocblas_gemm_ext2 API function is removed.
-- in-place trmm API from Legacy BLAS is removed. It is replaced by an API that supports both in-place and out-of-place trmm.
-- int8x4 support is removed. int8 support is unchanged.
-- The #define __STDC_WANT_IEC_60559_TYPES_EXT__ has been removed from rocblas-types.h. Users who want ISO/IEC TS 18661-3:2015 functionality must define __STDC_WANT_IEC_60559_TYPES_EXT__ before including float.h, math.h, and rocblas.h.
+- rocblas_gemm_ext2 API function is removed
+- in-place trmm API from Legacy BLAS is removed. It is replaced by an API that supports both in-place and out-of-place trmm
+- int8x4 support is removed. int8 support is unchanged
+- The #define STDC_WANT_IEC_60559_TYPES_EXT has been removed from rocblas-types.h. Users who want ISO/IEC TS 18661-3:2015 functionality must define STDC_WANT_IEC_60559_TYPES_EXT before including float.h, math.h, and rocblas.h
+- The default build removes device code for gfx803 architecture from the fat binary
+### Fixed
+- Make offset calculations for rocBLAS functions 64 bit safe. Fixes for very large leading dimension or increment potentially causing overflow:
+  - Level2: gbmv, gemv, hbmv, sbmv, spmv, tbmv, tpmv, tbsv, tpsv
+- Lazy loading to support heterogeneous architecture setup and load appropriate tensile library files based on the device's architecture
+### Changed
+- Default verbosity of rocblas-test reduced. To see all tests set environment variable GTEST_LISTENER=PASS_LINE_IN_LOG
 
 ## rocBLAS 3.1.0 for ROCm 5.7
 ### Added
