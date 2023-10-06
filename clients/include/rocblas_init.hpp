@@ -158,7 +158,7 @@ void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, rocblas_int N, roc
 
 /* ============================================================================================ */
 /*! \brief  matrix initialization: */
-// Initialize matrix with rand_int/hpl/NaN values
+// Initialize matrix according to the matrix_types
 
 template <typename T>
 void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
@@ -1020,7 +1020,7 @@ inline void rocblas_init_alt_impl_big(
 template <typename T, typename U>
 void rocblas_init_alt_impl_small(U& hA)
 {
-    //using a rocblas_half sunormal value
+    //using a rocblas_half subnormal value
     const rocblas_half ieee_half_small(0.0000607967376708984375);
     for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
