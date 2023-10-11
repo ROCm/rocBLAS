@@ -287,6 +287,11 @@ rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
     // Set the atomics mode
     auto status = rocblas_set_atomics_mode(m_handle, arg.atomics_mode);
 
+    // The check_numerics mode is set to "rocblas_check_numerics_mode_no_check" when the arg.initalization == rocblas_initialization::denorm.
+    //This explicit setting, is only applicable when testing the gemm_ex and gemm_strided_batched_ex functions with denorm initialization.
+    if(arg.initialization == rocblas_initialization::denorm)
+        m_handle->check_numerics = rocblas_check_numerics_mode_no_check;
+
     if(status == rocblas_status_success)
     {
         // If the test specifies user allocated workspace, allocate and use it
