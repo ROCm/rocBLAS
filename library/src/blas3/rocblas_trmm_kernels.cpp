@@ -112,31 +112,33 @@ rocblas_status rocblas_set_matrix_zero_if_alpha_zero_template(rocblas_handle han
     dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL((rocblas_set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           m,
-                           n,
-                           alpha,
-                           stride_alpha,
-                           A,
-                           lda,
-                           a_st_or_of);
+        ROCBLAS_LAUNCH_KERNEL(
+            (rocblas_set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
+            grid,
+            threads,
+            0,
+            rocblas_stream,
+            m,
+            n,
+            alpha,
+            stride_alpha,
+            A,
+            lda,
+            a_st_or_of);
     else
-        hipLaunchKernelGGL((rocblas_set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           m,
-                           n,
-                           *alpha,
-                           stride_alpha,
-                           A,
-                           lda,
-                           a_st_or_of);
+        ROCBLAS_LAUNCH_KERNEL(
+            (rocblas_set_matrix_zero_if_alpha_zero_kernel<GEMV_DIM_X, GEMV_DIM_Y>),
+            grid,
+            threads,
+            0,
+            rocblas_stream,
+            m,
+            n,
+            *alpha,
+            stride_alpha,
+            A,
+            lda,
+            a_st_or_of);
     return rocblas_status_success;
 }
 
@@ -361,7 +363,8 @@ rocblas_status rocblas_trmm_outofplace_dispatch(rocblas_handle   handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL(
+        ROCBLAS_LAUNCH_KERNEL_GRID(
+            grid,
             (rocblas_trmm_outofplace_kernel<T, NB, THR_DIM, LEFT, UPPER, TRANSPOSE, CONJ>),
             grid,
             threads,
@@ -388,7 +391,8 @@ rocblas_status rocblas_trmm_outofplace_dispatch(rocblas_handle   handle,
     }
     else
     {
-        hipLaunchKernelGGL(
+        ROCBLAS_LAUNCH_KERNEL_GRID(
+            grid,
             (rocblas_trmm_outofplace_kernel<T, NB, THR_DIM, LEFT, UPPER, TRANSPOSE, CONJ>),
             grid,
             threads,
@@ -770,14 +774,14 @@ rocblas_status rocblas_trmm_template_lNx(rocblas_handle   handle,
     dim3 grid((n + NB - 1) / NB, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL((rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
                            dC, ldc, c_st_or_of);
     else
-        hipLaunchKernelGGL((rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
@@ -807,14 +811,14 @@ rocblas_status trmm_template_lTx(rocblas_handle   handle,
     dim3 grid((n + NB - 1) / NB, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL((rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
                            dC, ldc, c_st_or_of);
     else
-        hipLaunchKernelGGL((rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
@@ -844,14 +848,14 @@ rocblas_status rocblas_trmm_template_rNx(rocblas_handle   handle,
     dim3 grid((m + NB - 1) / NB, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL((rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
                            dC, ldc, c_st_or_of);
     else
-        hipLaunchKernelGGL((rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
@@ -881,14 +885,14 @@ rocblas_status rocblas_trmm_template_rTx(rocblas_handle   handle,
     dim3 grid((m + NB - 1) / NB, 1, batch_count);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL((rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, alpha, stride_alpha,
                            dA, lda, a_st_or_of,
                            dB, ldb, b_st_or_of,
                            dC, ldc, c_st_or_of);
     else
-        hipLaunchKernelGGL((rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid, (rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
                            uplo, diag,
                            m, n, *alpha, stride_alpha,
                            dA, lda, a_st_or_of,
@@ -1056,10 +1060,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template
     // trmm full blocks on the diagonal
     rocblas_int trmm_batch_count = k / NB;
 
-    rocblas_trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>(handle, diag, m_sub, n_sub, alpha, 0,
+    RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>)(handle, diag, m_sub, n_sub, alpha, 0,
                                                                 dA, offset_a, lda, NB * a_block_stride,
                                                                 dB, offset_b, ldb, NB * b_block_stride,
-                                                                dC, offset_c, ldc, NB * c_block_stride, trmm_batch_count);
+                                                                dC, offset_c, ldc, NB * c_block_stride, trmm_batch_count));
 
     rocblas_stride offsetAin, offsetBin, offsetCin;
 
@@ -1073,10 +1077,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template
         offsetBin = offset_b + k_norem * b_block_stride;
         offsetCin = offset_c + k_norem * c_block_stride;
 
-        rocblas_trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>(handle, diag, LEFT ? rem : m, LEFT ? n : rem, alpha, 0,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_outofplace_dispatch<T, 32, LEFT, UPPER, TRANS, CONJ>)(handle, diag, LEFT ? rem : m, LEFT ? n : rem, alpha, 0,
                                                              dA, offsetAin, lda, 0,
                                                              dB, offsetBin, ldb, 0,
-                                                             dC, offsetCin, ldc, 0, 1);
+                                                             dC, offsetCin, ldc, 0, 1));
     }
 
     for(rocblas_int k_sub = NB; k_sub < k; k_sub *= 2)
@@ -1103,13 +1107,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template
         rocblas_stride strideCgemm = k_stride * c_block_stride;
 
         // already zeroed out C, so set beta to 1
-        rocblas_internal_gemm_template<false>(handle,
+        RETURN_IF_ROCBLAS_ERROR(rocblas_internal_gemm_template<false>(handle,
                                               LEFT ? transA : rocblas_operation_none,
                                               LEFT ? rocblas_operation_none : transA,
                                               m_sub, n_sub, k_sub, alpha,
                                               LEFT ? dA : dB, LEFT ? offsetAin : offsetBin, LEFT ? lda : ldb, LEFT ? strideAgemm : strideBgemm,
                                               LEFT ? dB : dA, LEFT ? offsetBin : offsetAin, LEFT ? ldb : lda, LEFT ? strideBgemm : strideAgemm, &beta_1<T>,
-                                              dC, offsetCin, ldc, strideCgemm, gemm_batch_count);
+                                              dC, offsetCin, ldc, strideCgemm, gemm_batch_count));
 
         if(rem)
         {
@@ -1124,13 +1128,13 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_trmm_outofplace_template
             offsetBin = offset_b + (TRI_OFFSET ? i1 * b_block_stride : i2 * b_block_stride);
             offsetCin = offset_c + (TRI_OFFSET ? i2 * c_block_stride : i1 * c_block_stride);
 
-            rocblas_internal_gemm_template<false>(handle,
+            RETURN_IF_ROCBLAS_ERROR(rocblas_internal_gemm_template<false>(handle,
                                                   LEFT ? transA : rocblas_operation_none,
                                                   LEFT ? rocblas_operation_none : transA,
                                                   m_rem, n_rem, k_rem, alpha,
                                                   LEFT ? dA : dB, LEFT ? offsetAin : offsetBin, LEFT ? lda : ldb, 0,
                                                   LEFT ? dB : dA, LEFT ? offsetBin : offsetAin, LEFT ? ldb : lda, 0, &beta_1<T>,
-                                                  dC, offsetCin, ldc, 0, 1);
+                                                  dC, offsetCin, ldc, 0, 1));
         }
     }
 

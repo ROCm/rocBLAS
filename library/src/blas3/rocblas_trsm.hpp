@@ -71,15 +71,15 @@ inline rocblas_status rocblas_trsm_arg_check(rocblas_handle    handle,
 }
 
 template <typename T, typename U>
-void set_block_unit(rocblas_handle handle,
-                    rocblas_int    m,
-                    rocblas_int    n,
-                    U              src,
-                    rocblas_int    src_ld,
-                    rocblas_stride src_stride,
-                    rocblas_int    batch_count,
-                    T              val        = 0.0,
-                    rocblas_stride offset_src = 0);
+rocblas_status set_block_unit(rocblas_handle handle,
+                              rocblas_int    m,
+                              rocblas_int    n,
+                              U              src,
+                              rocblas_int    src_ld,
+                              rocblas_stride src_stride,
+                              rocblas_int    batch_count,
+                              T              val        = 0.0,
+                              rocblas_stride offset_src = 0);
 
 template <rocblas_int BLOCK, bool BATCHED, typename T>
 rocblas_status rocblas_internal_trsm_workspace_size(rocblas_side      side,

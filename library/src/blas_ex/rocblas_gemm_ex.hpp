@@ -97,22 +97,22 @@ rocblas_status rocblas_gemm_ex_scale_template(rocblas_handle handle,
     dim3 gemm_grid(blocksX, blocksY, batch_count);
     dim3 gemm_threads(GEMM_DIM_X, GEMM_DIM_Y);
 
-    hipLaunchKernelGGL((gemm_ex_scale_kernel<GEMM_DIM_X, GEMM_DIM_Y>),
-                       gemm_grid,
-                       gemm_threads,
-                       0,
-                       rocblas_stream,
-                       m,
-                       n,
-                       beta,
-                       C,
-                       offset_c,
-                       ldc,
-                       stride_c,
-                       D,
-                       offset_d,
-                       ldd,
-                       stride_d);
+    ROCBLAS_LAUNCH_KERNEL((gemm_ex_scale_kernel<GEMM_DIM_X, GEMM_DIM_Y>),
+                          gemm_grid,
+                          gemm_threads,
+                          0,
+                          rocblas_stream,
+                          m,
+                          n,
+                          beta,
+                          C,
+                          offset_c,
+                          ldc,
+                          stride_c,
+                          D,
+                          offset_d,
+                          ldd,
+                          stride_d);
 
     return rocblas_status_success;
 }

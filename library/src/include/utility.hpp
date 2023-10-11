@@ -23,7 +23,6 @@
 #pragma once
 
 #include "definitions.hpp"
-#include "macros.hpp"
 #include "rocblas.h"
 #include <cmath>
 #include <complex>
@@ -184,6 +183,15 @@ __forceinline__ __device__ __host__ T*
 }
 // clang-format on
 
+/*******************************************************************************
+ * \brief convert hipError_t to rocblas_status
+ ******************************************************************************/
+ROCBLAS_INTERNAL_EXPORT rocblas_status
+    rocblas_internal_convert_hip_to_rocblas_status(hipError_t status);
+
+ROCBLAS_INTERNAL_EXPORT rocblas_status
+    rocblas_internal_convert_hip_to_rocblas_status_and_log(hipError_t status);
+
 #ifndef GOOGLE_TEST
 
 // Helper for batched functions with temporary memory, currently just trsm and trsv.
@@ -196,14 +204,16 @@ setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
 }
 
 template <rocblas_int BLOCK, typename T>
-void setup_batched_array(
+rocblas_status setup_batched_array(
     hipStream_t stream, T* src, rocblas_stride src_stride, T* dst[], rocblas_int batch_count)
 {
     dim3 grid(batch_count);
     dim3 threads(BLOCK);
 
-    hipLaunchKernelGGL(
+    ROCBLAS_LAUNCH_KERNEL(
         (setup_batched_array_kernel<BLOCK, T>), grid, threads, 0, stream, src, src_stride, dst);
+
+    return rocblas_status_success;
 }
 
 template <rocblas_int NB, typename T>
@@ -219,21 +229,23 @@ setup_device_pointer_array_kernel(T*             src,
 }
 
 template <typename T>
-void setup_device_pointer_array(
+rocblas_status setup_device_pointer_array(
     hipStream_t stream, T* src, rocblas_stride src_stride, T* dst[], rocblas_int batch_count)
 {
     int  NB = 256;
     dim3 grid((batch_count - 1) / NB + 1);
     dim3 threads(NB);
-    hipLaunchKernelGGL((setup_device_pointer_array_kernel<NB, T>),
-                       grid,
-                       threads,
-                       0,
-                       stream,
-                       src,
-                       src_stride,
-                       dst,
-                       batch_count);
+    ROCBLAS_LAUNCH_KERNEL((setup_device_pointer_array_kernel<NB, T>),
+                          grid,
+                          threads,
+                          0,
+                          stream,
+                          src,
+                          src_stride,
+                          dst,
+                          batch_count);
+
+    return rocblas_status_success;
 }
 
 #endif // GOOGLE_TEST
@@ -421,44 +433,6 @@ template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas
 #endif
 
 // clang-format on
-
-/*******************************************************************************
- * \brief convert hipError_t to rocblas_status
- * TODO - enumerate library calls to hip runtime, enumerate possible errors from those calls
- ******************************************************************************/
-constexpr rocblas_status get_rocblas_status_for_hip_status(hipError_t status)
-{
-    switch(status)
-    {
-    // success
-    case hipSuccess:
-        return rocblas_status_success;
-
-    // internal hip memory allocation
-    case hipErrorMemoryAllocation:
-    case hipErrorLaunchOutOfResources:
-        return rocblas_status_memory_error;
-
-    // user-allocated hip memory
-    case hipErrorInvalidDevicePointer: // hip memory
-        return rocblas_status_invalid_pointer;
-
-    // user-allocated device, stream, event
-    case hipErrorInvalidDevice:
-    case hipErrorInvalidResourceHandle:
-        return rocblas_status_invalid_handle;
-
-    // library using hip incorrectly
-    case hipErrorInvalidValue:
-        return rocblas_status_internal_error;
-
-    // hip runtime failing
-    case hipErrorNoDevice: // no hip devices
-    case hipErrorUnknown:
-    default:
-        return rocblas_status_internal_error;
-    }
-}
 
 /*************************************************************************************************************************
  * \brief The main structure for Numerical checking to detect numerical abnormalities such as NaN/zero/Inf/denormal values

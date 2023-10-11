@@ -107,8 +107,8 @@ namespace
 
             // kernel to copy strided_batched array to batched format
             constexpr int ARRAY_NB = 128;
-            setup_batched_array<ARRAY_NB>(
-                handle->get_stream(), (T*)w_C_tmp, els, (T**)w_C_tmp_arr, batch_count);
+            RETURN_IF_ROCBLAS_ERROR(setup_batched_array<ARRAY_NB>(
+                handle->get_stream(), (T*)w_C_tmp, els, (T**)w_C_tmp_arr, batch_count));
         }
 
         if(check_numerics)

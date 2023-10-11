@@ -865,25 +865,25 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
 }
 
 template <typename TiA, typename TiB, typename To, typename TcA, typename TcB, typename Tacc>
-void call_trusted_gemm_f8(rocblas_handle    handle,
-                          rocblas_operation transA,
-                          rocblas_operation transB,
-                          rocblas_int       M,
-                          rocblas_int       N,
-                          rocblas_int       K,
-                          Tacc              alpha,
-                          const void*       dA, // device_ptr to reuse in quantization if needed
-                          const TiA*        A,
-                          rocblas_int       lda,
-                          const void*       dB, // device_pte to reuse in quantization if needed
-                          const TiB*        B,
-                          rocblas_int       ldb,
-                          Tacc              beta,
-                          const To*         C,
-                          rocblas_int       ldc,
-                          To*               D, // host ptr
-                          rocblas_int       ldd,
-                          bool              stochastic_rounding)
+rocblas_status call_trusted_gemm_f8(rocblas_handle    handle,
+                                    rocblas_operation transA,
+                                    rocblas_operation transB,
+                                    rocblas_int       M,
+                                    rocblas_int       N,
+                                    rocblas_int       K,
+                                    Tacc              alpha,
+                                    const void* dA, // device_ptr to reuse in quantization if needed
+                                    const TiA*  A,
+                                    rocblas_int lda,
+                                    const void* dB, // device_pte to reuse in quantization if needed
+                                    const TiB*  B,
+                                    rocblas_int ldb,
+                                    Tacc        beta,
+                                    const To*   C,
+                                    rocblas_int ldc,
+                                    To*         D, // host ptr
+                                    rocblas_int ldd,
+                                    bool        stochastic_rounding)
 {
     hipStream_t stream       = handle->get_stream();
     bool        TiA_is_final = std::is_same<TiA, TcA>{};
@@ -962,152 +962,152 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
         if(rocblas_operation_none == transA)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiA,
-                                                                   TcA,
-                                                                   TcA, // Tensile gemm's TiA
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_m,
-                                                                   blk_k,
-                                                                   'N',
-                                                                   true>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   M,
-                                   K,
-                                   (const TiA*)dA,
-                                   dA_new,
-                                   lda,
-                                   lda_new,
-                                   1,
-                                   1,
-                                   seedA);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiA,
+                                                                      TcA,
+                                                                      TcA, // Tensile gemm's TiA
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_m,
+                                                                      blk_k,
+                                                                      'N',
+                                                                      true>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      M,
+                                      K,
+                                      (const TiA*)dA,
+                                      dA_new,
+                                      lda,
+                                      lda_new,
+                                      1,
+                                      1,
+                                      seedA);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiA,
-                                                                   TcA,
-                                                                   TcA, // Tensile gemm's TiA
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_m,
-                                                                   blk_k,
-                                                                   'N',
-                                                                   false>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   M,
-                                   K,
-                                   (const TiA*)dA,
-                                   dA_new,
-                                   lda,
-                                   lda_new,
-                                   1,
-                                   1,
-                                   seedA);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiA,
+                                                                      TcA,
+                                                                      TcA, // Tensile gemm's TiA
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_m,
+                                                                      blk_k,
+                                                                      'N',
+                                                                      false>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      M,
+                                      K,
+                                      (const TiA*)dA,
+                                      dA_new,
+                                      lda,
+                                      lda_new,
+                                      1,
+                                      1,
+                                      seedA);
         }
         else if(rocblas_operation_transpose == transA)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiA,
-                                                                   TcA,
-                                                                   TcA, // Tensile gemm's TiA
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_m,
-                                                                   blk_k,
-                                                                   'T',
-                                                                   true>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   M,
-                                   K,
-                                   (const TiA*)dA,
-                                   dA_new,
-                                   lda,
-                                   lda_new,
-                                   1,
-                                   1,
-                                   seedA);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiA,
+                                                                      TcA,
+                                                                      TcA, // Tensile gemm's TiA
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_m,
+                                                                      blk_k,
+                                                                      'T',
+                                                                      true>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      M,
+                                      K,
+                                      (const TiA*)dA,
+                                      dA_new,
+                                      lda,
+                                      lda_new,
+                                      1,
+                                      1,
+                                      seedA);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiA,
-                                                                   TcA,
-                                                                   TcA, // Tensile gemm's TiA
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_m,
-                                                                   blk_k,
-                                                                   'T',
-                                                                   false>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   M,
-                                   K,
-                                   (const TiA*)dA,
-                                   dA_new,
-                                   lda,
-                                   lda_new,
-                                   1,
-                                   1,
-                                   seedA);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiA,
+                                                                      TcA,
+                                                                      TcA, // Tensile gemm's TiA
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_m,
+                                                                      blk_k,
+                                                                      'T',
+                                                                      false>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      M,
+                                      K,
+                                      (const TiA*)dA,
+                                      dA_new,
+                                      lda,
+                                      lda_new,
+                                      1,
+                                      1,
+                                      seedA);
         }
         else if(rocblas_operation_conjugate_transpose == transA)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiA,
-                                                                   TcA,
-                                                                   TcA, // Tensile gemm's TiA
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_m,
-                                                                   blk_k,
-                                                                   'C',
-                                                                   true>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   M,
-                                   K,
-                                   (const TiA*)dA,
-                                   dA_new,
-                                   lda,
-                                   lda_new,
-                                   1,
-                                   1,
-                                   seedA);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiA,
+                                                                      TcA,
+                                                                      TcA, // Tensile gemm's TiA
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_m,
+                                                                      blk_k,
+                                                                      'C',
+                                                                      true>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      M,
+                                      K,
+                                      (const TiA*)dA,
+                                      dA_new,
+                                      lda,
+                                      lda_new,
+                                      1,
+                                      1,
+                                      seedA);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiA,
-                                                                   TcA,
-                                                                   TcA, // Tensile gemm's TiA
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_m,
-                                                                   blk_k,
-                                                                   'C',
-                                                                   false>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   M,
-                                   K,
-                                   (const TiA*)dA,
-                                   dA_new,
-                                   lda,
-                                   lda_new,
-                                   1,
-                                   1,
-                                   seedA);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiA,
+                                                                      TcA,
+                                                                      TcA, // Tensile gemm's TiA
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_m,
+                                                                      blk_k,
+                                                                      'C',
+                                                                      false>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      M,
+                                      K,
+                                      (const TiA*)dA,
+                                      dA_new,
+                                      lda,
+                                      lda_new,
+                                      1,
+                                      1,
+                                      seedA);
         }
 
-        CHECK_HIP_ERROR(hA_new.transfer_from(dA_new));
+        RETURN_IF_HIP_ERROR(hA_new.transfer_from(dA_new));
     }
 
     if(!TiB_is_final)
@@ -1120,152 +1120,152 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
         if(rocblas_operation_none == transB)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiB,
-                                                                   TcB,
-                                                                   TcB, // Tensile gemm's TiB
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_k,
-                                                                   blk_n,
-                                                                   'N',
-                                                                   true>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   K,
-                                   N,
-                                   (const TiB*)dB,
-                                   dB_new,
-                                   ldb,
-                                   ldb_new,
-                                   1,
-                                   1,
-                                   seedB);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiB,
+                                                                      TcB,
+                                                                      TcB, // Tensile gemm's TiB
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_k,
+                                                                      blk_n,
+                                                                      'N',
+                                                                      true>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      K,
+                                      N,
+                                      (const TiB*)dB,
+                                      dB_new,
+                                      ldb,
+                                      ldb_new,
+                                      1,
+                                      1,
+                                      seedB);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiB,
-                                                                   TcB,
-                                                                   TcB, // Tensile gemm's TiB
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_k,
-                                                                   blk_n,
-                                                                   'N',
-                                                                   false>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   K,
-                                   N,
-                                   (const TiB*)dB,
-                                   dB_new,
-                                   ldb,
-                                   ldb_new,
-                                   1,
-                                   1,
-                                   seedB);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiB,
+                                                                      TcB,
+                                                                      TcB, // Tensile gemm's TiB
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_k,
+                                                                      blk_n,
+                                                                      'N',
+                                                                      false>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      K,
+                                      N,
+                                      (const TiB*)dB,
+                                      dB_new,
+                                      ldb,
+                                      ldb_new,
+                                      1,
+                                      1,
+                                      seedB);
         }
         else if(rocblas_operation_transpose == transB)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiB,
-                                                                   TcB,
-                                                                   TcB, // Tensile gemm's TiB
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_k,
-                                                                   blk_n,
-                                                                   'T',
-                                                                   true>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   K,
-                                   N,
-                                   (const TiB*)dB,
-                                   dB_new,
-                                   ldb,
-                                   ldb_new,
-                                   1,
-                                   1,
-                                   seedB);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiB,
+                                                                      TcB,
+                                                                      TcB, // Tensile gemm's TiB
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_k,
+                                                                      blk_n,
+                                                                      'T',
+                                                                      true>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      K,
+                                      N,
+                                      (const TiB*)dB,
+                                      dB_new,
+                                      ldb,
+                                      ldb_new,
+                                      1,
+                                      1,
+                                      seedB);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiB,
-                                                                   TcB,
-                                                                   TcB, // Tensile gemm's TiB
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_k,
-                                                                   blk_n,
-                                                                   'T',
-                                                                   false>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   K,
-                                   N,
-                                   (const TiB*)dB,
-                                   dB_new,
-                                   ldb,
-                                   ldb_new,
-                                   1,
-                                   1,
-                                   seedB);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiB,
+                                                                      TcB,
+                                                                      TcB, // Tensile gemm's TiB
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_k,
+                                                                      blk_n,
+                                                                      'T',
+                                                                      false>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      K,
+                                      N,
+                                      (const TiB*)dB,
+                                      dB_new,
+                                      ldb,
+                                      ldb_new,
+                                      1,
+                                      1,
+                                      seedB);
         }
         else if(rocblas_operation_conjugate_transpose == transB)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiB,
-                                                                   TcB,
-                                                                   TcB, // Tensile gemm's TiB
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_k,
-                                                                   blk_n,
-                                                                   'C',
-                                                                   true>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   K,
-                                   N,
-                                   (const TiB*)dB,
-                                   dB_new,
-                                   ldb,
-                                   ldb_new,
-                                   1,
-                                   1,
-                                   seedB);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiB,
+                                                                      TcB,
+                                                                      TcB, // Tensile gemm's TiB
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_k,
+                                                                      blk_n,
+                                                                      'C',
+                                                                      true>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      K,
+                                      N,
+                                      (const TiB*)dB,
+                                      dB_new,
+                                      ldb,
+                                      ldb_new,
+                                      1,
+                                      1,
+                                      seedB);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel_test<TiB,
-                                                                   TcB,
-                                                                   TcB, // Tensile gemm's TiB
-                                                                   dim_m,
-                                                                   dim_n,
-                                                                   blk_k,
-                                                                   blk_n,
-                                                                   'C',
-                                                                   false>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   K,
-                                   N,
-                                   (const TiB*)dB,
-                                   dB_new,
-                                   ldb,
-                                   ldb_new,
-                                   1,
-                                   1,
-                                   seedB);
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<TiB,
+                                                                      TcB,
+                                                                      TcB, // Tensile gemm's TiB
+                                                                      dim_m,
+                                                                      dim_n,
+                                                                      blk_k,
+                                                                      blk_n,
+                                                                      'C',
+                                                                      false>),
+                                      dimGrid,
+                                      dimBlock,
+                                      0,
+                                      stream,
+                                      K,
+                                      N,
+                                      (const TiB*)dB,
+                                      dB_new,
+                                      ldb,
+                                      ldb_new,
+                                      1,
+                                      1,
+                                      seedB);
         }
 
-        CHECK_HIP_ERROR(hB_new.transfer_from(dB_new));
+        RETURN_IF_HIP_ERROR(hB_new.transfer_from(dB_new));
     }
 
     /*
@@ -1350,7 +1350,7 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
 
         // from hD_new to dD_Qi
         // CHECK_HIP_ERROR(dD_Qi.transfer_from(hD_new));
-        CHECK_HIP_ERROR(hipMemcpy(dD_Qi, hD_new, sizeof(Tacc) * size_d, hipMemcpyHostToDevice));
+        RETURN_IF_HIP_ERROR(hipMemcpy(dD_Qi, hD_new, sizeof(Tacc) * size_d, hipMemcpyHostToDevice));
 
         const int dim_m = 16;
         const int dim_n = 16;
@@ -1360,54 +1360,54 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
         dim3      dimGrid(((M - 1) / blk_m) + 1, ((N - 1) / blk_n) + 1, 1);
 
         if(stochastic_rounding)
-            hipLaunchKernelGGL((general_conversion_kernel_test<Tacc,
-                                                               To,
-                                                               To,
-                                                               dim_m,
-                                                               dim_n,
-                                                               blk_m,
-                                                               blk_n,
-                                                               'N',
-                                                               true>),
-                               dimGrid,
-                               dimBlock,
-                               0,
-                               stream,
-                               M,
-                               N,
-                               (const Tacc*)dD_Qi,
-                               dD_Qo,
-                               ldd_new,
-                               ldd_new,
-                               1,
-                               1,
-                               seedD);
+            ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<Tacc,
+                                                                  To,
+                                                                  To,
+                                                                  dim_m,
+                                                                  dim_n,
+                                                                  blk_m,
+                                                                  blk_n,
+                                                                  'N',
+                                                                  true>),
+                                  dimGrid,
+                                  dimBlock,
+                                  0,
+                                  stream,
+                                  M,
+                                  N,
+                                  (const Tacc*)dD_Qi,
+                                  dD_Qo,
+                                  ldd_new,
+                                  ldd_new,
+                                  1,
+                                  1,
+                                  seedD);
         else
-            hipLaunchKernelGGL((general_conversion_kernel_test<Tacc,
-                                                               To,
-                                                               To,
-                                                               dim_m,
-                                                               dim_n,
-                                                               blk_m,
-                                                               blk_n,
-                                                               'N',
-                                                               false>),
-                               dimGrid,
-                               dimBlock,
-                               0,
-                               stream,
-                               M,
-                               N,
-                               (const Tacc*)dD_Qi,
-                               dD_Qo,
-                               ldd_new,
-                               ldd_new,
-                               1,
-                               1,
-                               seedD);
+            ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel_test<Tacc,
+                                                                  To,
+                                                                  To,
+                                                                  dim_m,
+                                                                  dim_n,
+                                                                  blk_m,
+                                                                  blk_n,
+                                                                  'N',
+                                                                  false>),
+                                  dimGrid,
+                                  dimBlock,
+                                  0,
+                                  stream,
+                                  M,
+                                  N,
+                                  (const Tacc*)dD_Qi,
+                                  dD_Qo,
+                                  ldd_new,
+                                  ldd_new,
+                                  1,
+                                  1,
+                                  seedD);
 
         // hD0_new and dD_qo is same size vector
-        CHECK_HIP_ERROR(hipMemcpy(hDo_new, dD_Qo, sizeof(To) * size_d, hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(hDo_new, dD_Qo, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
         // copy hD0_new to D, both are in host
         for(rocblas_int batch_index = 0; batch_index < hDo_new.batch_count(); ++batch_index)
@@ -1424,6 +1424,8 @@ void call_trusted_gemm_f8(rocblas_handle    handle,
             }
         }
     }
+
+    return rocblas_status_success;
 }
 
 template <typename TiA, typename TiB, typename To, typename Tc>
@@ -1714,13 +1716,14 @@ void testing_gemm_ex3(const Arguments& arg)
     handle, transA, transB, M, N, K, h_alpha_Tc, dA, hA, lda, dB, hB, ldb, h_beta_Tc, hC, ldc, \
         hD_gold, ldd, stochastic_rounding
 
+        // note ignoring return status of call_trusted_gemm_f8 as reference only
         if((arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_f8_r
             && arg.c_type == arg.d_type
             && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
                 || arg.c_type == rocblas_datatype_f32_r || arg.c_type == rocblas_datatype_f16_r)
             && arg.composite_compute_type == rocblas_compute_type_f32)
            || arg.composite_compute_type == rocblas_compute_type_f8_f8_f32)
-            call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_f8, float>(TEST_PARM);
+            (void)call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_f8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_bf8_r && arg.b_type == rocblas_datatype_bf8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
@@ -1728,7 +1731,7 @@ void testing_gemm_ex3(const Arguments& arg)
                      || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_bf8_bf8_f32)
-            call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_bf8, float>(TEST_PARM);
+            (void)call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_bf8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_f8_r && arg.b_type == rocblas_datatype_bf8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
@@ -1736,7 +1739,7 @@ void testing_gemm_ex3(const Arguments& arg)
                      || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_f8_bf8_f32)
-            call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_bf8, float>(TEST_PARM);
+            (void)call_trusted_gemm_f8<TiA, TiB, To, rocblas_f8, rocblas_bf8, float>(TEST_PARM);
         else if((arg.a_type == rocblas_datatype_bf8_r && arg.b_type == rocblas_datatype_f8_r
                  && arg.c_type == arg.d_type
                  && (arg.c_type == rocblas_datatype_f8_r || arg.c_type == rocblas_datatype_bf8_r
@@ -1744,7 +1747,7 @@ void testing_gemm_ex3(const Arguments& arg)
                      || arg.c_type == rocblas_datatype_f16_r)
                  && arg.composite_compute_type == rocblas_compute_type_f32)
                 || arg.composite_compute_type == rocblas_compute_type_bf8_f8_f32)
-            call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_f8, float>(TEST_PARM);
+            (void)call_trusted_gemm_f8<TiA, TiB, To, rocblas_bf8, rocblas_f8, float>(TEST_PARM);
         else
             rocblas_cout << "ERROR Trusted combo not found " << std::endl;
 

@@ -443,17 +443,21 @@ void testing_trsm_ex(const Arguments& arg)
                                                                  blocks));
 
         if(K % TRSM_BLOCK != 0 || blocks == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
-                                                                 uplo,
-                                                                 diag,
-                                                                 K - TRSM_BLOCK * blocks,
-                                                                 dA + stride_A * blocks,
-                                                                 lda,
-                                                                 stride_A,
-                                                                 dinvA + stride_invA * blocks,
-                                                                 TRSM_BLOCK,
-                                                                 stride_invA,
-                                                                 1));
+        {
+            int remainder = K - TRSM_BLOCK * blocks;
+            if(remainder)
+                CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
+                                                                     uplo,
+                                                                     diag,
+                                                                     remainder,
+                                                                     dA + stride_A * blocks,
+                                                                     lda,
+                                                                     stride_A,
+                                                                     dinvA + stride_invA * blocks,
+                                                                     TRSM_BLOCK,
+                                                                     stride_invA,
+                                                                     1));
+        }
 
         CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_fn(handle,
                                                side,

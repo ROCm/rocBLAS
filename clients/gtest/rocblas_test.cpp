@@ -270,6 +270,15 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
 #endif
     // Restore the previous handler
     t_handler = old_handler;
+
+    if(hipPeekAtLastError() != hipSuccess)
+    {
+        rocblas_cerr << "hipGetLastError at end of test: "
+                     << ::testing::UnitTest::GetInstance()->current_test_info()->name()
+                     << std::endl;
+        (void)rocblas_internal_convert_hip_to_rocblas_status_and_log(
+            hipGetLastError()); // clear last error
+    }
 }
 
 void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_t numDevices)

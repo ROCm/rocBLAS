@@ -334,6 +334,7 @@ set( rocblas_auxiliary_source
   rocblas_ostream.cpp
   check_numerics_vector.cpp
   check_numerics_matrix.cpp
+  utility.cpp
 )
 
 set( rocblas_blas1_source

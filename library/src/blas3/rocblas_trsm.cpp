@@ -151,8 +151,7 @@ namespace
 
         if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
         {
-            set_block_unit<T>(handle, m, n, B, ldb, 0, 1, 0, 0);
-            return rocblas_status_success;
+            return set_block_unit<T>(handle, m, n, B, ldb, 0, 1, 0, 0);
         }
 
         if(check_numerics)

@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "../blas2/rocblas_trsv.hpp"
+#include "definitions.hpp"
 #ifdef BUILD_WITH_TENSILE
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #endif
@@ -161,40 +162,42 @@ copy_matrix_trsm(rocblas_int    rows,
 
 /* ===============copy helper============================================= */
 template <typename T, typename U, typename V>
-void copy_block_unit(rocblas_handle handle,
-                     rocblas_int    m,
-                     rocblas_int    n,
-                     U              src,
-                     rocblas_int    src_ld,
-                     rocblas_stride src_stride,
-                     V              dst,
-                     rocblas_int    dst_ld,
-                     rocblas_stride dst_stride,
-                     rocblas_int    batch_count,
-                     rocblas_stride offset_src = 0,
-                     rocblas_stride offset_dst = 0)
+rocblas_status copy_block_unit(rocblas_handle handle,
+                               rocblas_int    m,
+                               rocblas_int    n,
+                               U              src,
+                               rocblas_int    src_ld,
+                               rocblas_stride src_stride,
+                               V              dst,
+                               rocblas_int    dst_ld,
+                               rocblas_stride dst_stride,
+                               rocblas_int    batch_count,
+                               rocblas_stride offset_src = 0,
+                               rocblas_stride offset_dst = 0)
 {
     rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
     rocblas_int blocksY = (n - 1) / 8 + 1;
     dim3        grid(blocksX, blocksY, batch_count);
     dim3        threads(128, 8);
 
-    hipLaunchKernelGGL((copy_matrix_trsm<128, 8, T>),
-                       grid,
-                       threads,
-                       0,
-                       handle->get_stream(),
-                       m,
-                       n,
-                       sizeof(T),
-                       src,
-                       src_ld,
-                       src_stride,
-                       dst,
-                       dst_ld,
-                       dst_stride,
-                       offset_src,
-                       offset_dst);
+    ROCBLAS_LAUNCH_KERNEL((copy_matrix_trsm<128, 8, T>),
+                          grid,
+                          threads,
+                          0,
+                          handle->get_stream(),
+                          m,
+                          n,
+                          sizeof(T),
+                          src,
+                          src_ld,
+                          src_stride,
+                          dst,
+                          dst_ld,
+                          dst_stride,
+                          offset_src,
+                          offset_dst);
+
+    return rocblas_status_success;
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
@@ -219,34 +222,36 @@ set_matrix_trsm(rocblas_int    rows,
 
 /* ===============set helper============================================= */
 template <typename T, typename U>
-void set_block_unit(rocblas_handle handle,
-                    rocblas_int    m,
-                    rocblas_int    n,
-                    U              src,
-                    rocblas_int    src_ld,
-                    rocblas_stride src_stride,
-                    rocblas_int    batch_count,
-                    T              val,
-                    rocblas_stride offset_src)
+rocblas_status set_block_unit(rocblas_handle handle,
+                              rocblas_int    m,
+                              rocblas_int    n,
+                              U              src,
+                              rocblas_int    src_ld,
+                              rocblas_stride src_stride,
+                              rocblas_int    batch_count,
+                              T              val,
+                              rocblas_stride offset_src)
 {
     rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
     rocblas_int blocksY = (n - 1) / 8 + 1;
     dim3        grid(blocksX, blocksY, batch_count);
     dim3        threads(128, 8);
 
-    hipLaunchKernelGGL((set_matrix_trsm<128, 8, T>),
-                       grid,
-                       threads,
-                       0,
-                       handle->get_stream(),
-                       m,
-                       n,
-                       sizeof(T),
-                       src,
-                       src_ld,
-                       src_stride,
-                       val,
-                       offset_src);
+    ROCBLAS_LAUNCH_KERNEL((set_matrix_trsm<128, 8, T>),
+                          grid,
+                          threads,
+                          0,
+                          handle->get_stream(),
+                          m,
+                          n,
+                          sizeof(T),
+                          src,
+                          src_ld,
+                          src_stride,
+                          val,
+                          offset_src);
+
+    return rocblas_status_success;
 }
 
 /* ===============left==================================================== */
@@ -2897,23 +2902,23 @@ template <typename T,
           typename BTYPE,
           const int NB,
           const int STEP_SIZE>
-void rocblas_trsm_small(rocblas_handle    handle,
-                        rocblas_side      side,
-                        rocblas_fill      uplo,
-                        rocblas_operation transA,
-                        rocblas_diagonal  diag,
-                        rocblas_int       m,
-                        rocblas_int       n,
-                        SCAL              alpha,
-                        ATYPE             dA,
-                        rocblas_stride    offset_A,
-                        rocblas_int       lda,
-                        rocblas_stride    stride_A,
-                        BTYPE             dB,
-                        rocblas_stride    offset_B,
-                        rocblas_int       ldb,
-                        rocblas_stride    stride_B,
-                        rocblas_int       batch_count)
+rocblas_status rocblas_trsm_small(rocblas_handle    handle,
+                                  rocblas_side      side,
+                                  rocblas_fill      uplo,
+                                  rocblas_operation transA,
+                                  rocblas_diagonal  diag,
+                                  rocblas_int       m,
+                                  rocblas_int       n,
+                                  SCAL              alpha,
+                                  ATYPE             dA,
+                                  rocblas_stride    offset_A,
+                                  rocblas_int       lda,
+                                  rocblas_stride    stride_A,
+                                  BTYPE             dB,
+                                  rocblas_stride    offset_B,
+                                  rocblas_int       ldb,
+                                  rocblas_stride    stride_B,
+                                  rocblas_int       batch_count)
 {
     // threadIdx.x = NB >= m
     dim3 threads(NB, 1, 1);
@@ -2934,7 +2939,20 @@ void rocblas_trsm_small(rocblas_handle    handle,
             {
                 constexpr bool LOWER = false;
                 if(n > 2 * NB && m > 12)
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device_sharedB<NB,
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device_sharedB<NB,
+                                                                                       STEP_SIZE,
+                                                                                       CONJ,
+                                                                                       TRANSA,
+                                                                                       LOWER,
+                                                                                       T,
+                                                                                       SCAL,
+                                                                                       ATYPE,
+                                                                                       BTYPE>),
+                                               TRSM_SMALL_KERNEL_PARAM);
+                else
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device<NB,
                                                                                STEP_SIZE,
                                                                                CONJ,
                                                                                TRANSA,
@@ -2943,24 +2961,26 @@ void rocblas_trsm_small(rocblas_handle    handle,
                                                                                SCAL,
                                                                                ATYPE,
                                                                                BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
-                else
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
-                                                                       STEP_SIZE,
-                                                                       CONJ,
-                                                                       TRANSA,
-                                                                       LOWER,
-                                                                       T,
-                                                                       SCAL,
-                                                                       ATYPE,
-                                                                       BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
+                                               TRSM_SMALL_KERNEL_PARAM);
             }
             else
             {
                 constexpr bool LOWER = true;
                 if(n > 2 * NB && m > 16)
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device_sharedB<NB,
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device_sharedB<NB,
+                                                                                       STEP_SIZE,
+                                                                                       CONJ,
+                                                                                       TRANSA,
+                                                                                       LOWER,
+                                                                                       T,
+                                                                                       SCAL,
+                                                                                       ATYPE,
+                                                                                       BTYPE>),
+                                               TRSM_SMALL_KERNEL_PARAM);
+                else
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device<NB,
                                                                                STEP_SIZE,
                                                                                CONJ,
                                                                                TRANSA,
@@ -2969,18 +2989,7 @@ void rocblas_trsm_small(rocblas_handle    handle,
                                                                                SCAL,
                                                                                ATYPE,
                                                                                BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
-                else
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
-                                                                       STEP_SIZE,
-                                                                       CONJ,
-                                                                       TRANSA,
-                                                                       LOWER,
-                                                                       T,
-                                                                       SCAL,
-                                                                       ATYPE,
-                                                                       BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
+                                               TRSM_SMALL_KERNEL_PARAM);
             }
         }
         else if(transA == rocblas_operation_transpose)
@@ -2991,7 +3000,20 @@ void rocblas_trsm_small(rocblas_handle    handle,
             {
                 constexpr bool LOWER = false;
                 if(n > 2 * NB && m > 16)
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device_sharedB<NB,
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device_sharedB<NB,
+                                                                                       STEP_SIZE,
+                                                                                       CONJ,
+                                                                                       TRANSA,
+                                                                                       LOWER,
+                                                                                       T,
+                                                                                       SCAL,
+                                                                                       ATYPE,
+                                                                                       BTYPE>),
+                                               TRSM_SMALL_KERNEL_PARAM);
+                else
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device<NB,
                                                                                STEP_SIZE,
                                                                                CONJ,
                                                                                TRANSA,
@@ -3000,24 +3022,26 @@ void rocblas_trsm_small(rocblas_handle    handle,
                                                                                SCAL,
                                                                                ATYPE,
                                                                                BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
-                else
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
-                                                                       STEP_SIZE,
-                                                                       CONJ,
-                                                                       TRANSA,
-                                                                       LOWER,
-                                                                       T,
-                                                                       SCAL,
-                                                                       ATYPE,
-                                                                       BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
+                                               TRSM_SMALL_KERNEL_PARAM);
             }
             else
             {
                 constexpr bool LOWER = true;
                 if(n > 2 * NB && m > 8)
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device_sharedB<NB,
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device_sharedB<NB,
+                                                                                       STEP_SIZE,
+                                                                                       CONJ,
+                                                                                       TRANSA,
+                                                                                       LOWER,
+                                                                                       T,
+                                                                                       SCAL,
+                                                                                       ATYPE,
+                                                                                       BTYPE>),
+                                               TRSM_SMALL_KERNEL_PARAM);
+                else
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device<NB,
                                                                                STEP_SIZE,
                                                                                CONJ,
                                                                                TRANSA,
@@ -3026,18 +3050,7 @@ void rocblas_trsm_small(rocblas_handle    handle,
                                                                                SCAL,
                                                                                ATYPE,
                                                                                BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
-                else
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
-                                                                       STEP_SIZE,
-                                                                       CONJ,
-                                                                       TRANSA,
-                                                                       LOWER,
-                                                                       T,
-                                                                       SCAL,
-                                                                       ATYPE,
-                                                                       BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
+                                               TRSM_SMALL_KERNEL_PARAM);
             }
         }
         else if(transA == rocblas_operation_conjugate_transpose)
@@ -3048,7 +3061,20 @@ void rocblas_trsm_small(rocblas_handle    handle,
             {
                 constexpr bool LOWER = false;
                 if(n > 2 * NB && m > 16)
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device_sharedB<NB,
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device_sharedB<NB,
+                                                                                       STEP_SIZE,
+                                                                                       CONJ,
+                                                                                       TRANSA,
+                                                                                       LOWER,
+                                                                                       T,
+                                                                                       SCAL,
+                                                                                       ATYPE,
+                                                                                       BTYPE>),
+                                               TRSM_SMALL_KERNEL_PARAM);
+                else
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device<NB,
                                                                                STEP_SIZE,
                                                                                CONJ,
                                                                                TRANSA,
@@ -3057,24 +3083,26 @@ void rocblas_trsm_small(rocblas_handle    handle,
                                                                                SCAL,
                                                                                ATYPE,
                                                                                BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
-                else
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
-                                                                       STEP_SIZE,
-                                                                       CONJ,
-                                                                       TRANSA,
-                                                                       LOWER,
-                                                                       T,
-                                                                       SCAL,
-                                                                       ATYPE,
-                                                                       BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
+                                               TRSM_SMALL_KERNEL_PARAM);
             }
             else
             {
                 constexpr bool LOWER = true;
                 if(n > 2 * NB && m > 8)
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device_sharedB<NB,
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device_sharedB<NB,
+                                                                                       STEP_SIZE,
+                                                                                       CONJ,
+                                                                                       TRANSA,
+                                                                                       LOWER,
+                                                                                       T,
+                                                                                       SCAL,
+                                                                                       ATYPE,
+                                                                                       BTYPE>),
+                                               TRSM_SMALL_KERNEL_PARAM);
+                else
+                    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                               (rocblas_trsm_small_left_device<NB,
                                                                                STEP_SIZE,
                                                                                CONJ,
                                                                                TRANSA,
@@ -3083,28 +3111,20 @@ void rocblas_trsm_small(rocblas_handle    handle,
                                                                                SCAL,
                                                                                ATYPE,
                                                                                BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
-                else
-                    hipLaunchKernelGGL((rocblas_trsm_small_left_device<NB,
-                                                                       STEP_SIZE,
-                                                                       CONJ,
-                                                                       TRANSA,
-                                                                       LOWER,
-                                                                       T,
-                                                                       SCAL,
-                                                                       ATYPE,
-                                                                       BTYPE>),
-                                       TRSM_SMALL_KERNEL_PARAM);
+                                               TRSM_SMALL_KERNEL_PARAM);
             }
         }
     }
     else
     {
         dim3 grid((m + NB - 1) / NB, batch_count);
-        hipLaunchKernelGGL((rocblas_trsm_small_right_device<T, SCAL, ATYPE, BTYPE, NB>),
-                           TRSM_SMALL_KERNEL_PARAM);
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                                   (rocblas_trsm_small_right_device<T, SCAL, ATYPE, BTYPE, NB>),
+                                   TRSM_SMALL_KERNEL_PARAM);
     }
 #undef TRSM_SMALL_KERNEL_PARAM
+
+    return rocblas_status_success;
 }
 
 template <typename T,
@@ -3254,20 +3274,20 @@ template <typename T,
           bool CONJ,
           bool UNIT,
           bool BATCHED>
-void rocblas_trsm_small_substitution(rocblas_handle handle,
-                                     rocblas_int    m,
-                                     rocblas_int    n,
-                                     SCAL           alpha,
-                                     ATYPE          dA,
-                                     rocblas_stride offset_A,
-                                     rocblas_int    lda,
-                                     rocblas_stride stride_A,
-                                     BTYPE          dB,
-                                     rocblas_stride offset_B,
-                                     rocblas_int    ldb,
-                                     rocblas_stride stride_B,
-                                     rocblas_int    batch_count,
-                                     rocblas_int    blk_size)
+rocblas_status rocblas_trsm_small_substitution(rocblas_handle handle,
+                                               rocblas_int    m,
+                                               rocblas_int    n,
+                                               SCAL           alpha,
+                                               ATYPE          dA,
+                                               rocblas_stride offset_A,
+                                               rocblas_int    lda,
+                                               rocblas_stride stride_A,
+                                               BTYPE          dB,
+                                               rocblas_stride offset_B,
+                                               rocblas_int    ldb,
+                                               rocblas_stride stride_B,
+                                               rocblas_int    batch_count,
+                                               rocblas_int    blk_size)
 {
     constexpr bool    TRANSB = (!UPPER && TRANSA) || (UPPER && !TRANSA);
     const rocblas_int k      = LEFT ? n : m;
@@ -3310,29 +3330,29 @@ void rocblas_trsm_small_substitution(rocblas_handle handle,
         {
             offA_sub = j * size_t(lda) + j;
             offB_sub = LEFT ? j : j * size_t(ldb);
-            hipLaunchKernelGGL((rocblas_trsm_block_forward_substitution<T,
-                                                                        SCAL,
-                                                                        ATYPE,
-                                                                        BTYPE,
-                                                                        UPPER,
-                                                                        TRANSB,
-                                                                        CONJ,
-                                                                        UNIT>),
-                               grid,
-                               threads,
-                               smem_size,
-                               handle->get_stream(),
-                               NBX,
-                               k,
-                               j == 0 ? alpha : 1,
-                               dA,
-                               offset_A + offA_sub,
-                               lda,
-                               stride_A,
-                               dB,
-                               offset_B + offB_sub,
-                               ldb,
-                               stride_B);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_block_forward_substitution<T,
+                                                                           SCAL,
+                                                                           ATYPE,
+                                                                           BTYPE,
+                                                                           UPPER,
+                                                                           TRANSB,
+                                                                           CONJ,
+                                                                           UNIT>),
+                                  grid,
+                                  threads,
+                                  smem_size,
+                                  handle->get_stream(),
+                                  NBX,
+                                  k,
+                                  j == 0 ? alpha : 1,
+                                  dA,
+                                  offset_A + offA_sub,
+                                  lda,
+                                  stride_A,
+                                  dB,
+                                  offset_B + offB_sub,
+                                  ldb,
+                                  stride_B);
         }
         else
         {
@@ -3343,29 +3363,29 @@ void rocblas_trsm_small_substitution(rocblas_handle handle,
                              : (!TRANSA ? n - j_next : (n - j_next) * size_t(lda));
             offB_gemm = LEFT ? m - j_next : (n - j_next) * size_t(ldb);
             offC_gemm = 0;
-            hipLaunchKernelGGL((rocblas_trsm_block_backward_substitution<T,
-                                                                         SCAL,
-                                                                         ATYPE,
-                                                                         BTYPE,
-                                                                         UPPER,
-                                                                         TRANSB,
-                                                                         CONJ,
-                                                                         UNIT>),
-                               grid,
-                               threads,
-                               smem_size,
-                               handle->get_stream(),
-                               NBX,
-                               k,
-                               j == 0 ? alpha : 1,
-                               dA,
-                               offset_A + offA_sub,
-                               lda,
-                               stride_A,
-                               dB,
-                               offset_B + offB_sub,
-                               ldb,
-                               stride_B);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_block_backward_substitution<T,
+                                                                            SCAL,
+                                                                            ATYPE,
+                                                                            BTYPE,
+                                                                            UPPER,
+                                                                            TRANSB,
+                                                                            CONJ,
+                                                                            UNIT>),
+                                  grid,
+                                  threads,
+                                  smem_size,
+                                  handle->get_stream(),
+                                  NBX,
+                                  k,
+                                  j == 0 ? alpha : 1,
+                                  dA,
+                                  offset_A + offA_sub,
+                                  lda,
+                                  stride_A,
+                                  dB,
+                                  offset_B + offB_sub,
+                                  ldb,
+                                  stride_B);
         }
 
         // 2. call gemm to update B matrix
@@ -3403,58 +3423,60 @@ void rocblas_trsm_small_substitution(rocblas_handle handle,
     {
         offA_sub = j * size_t(lda) + j;
         offB_sub = LEFT ? j : j * size_t(ldb);
-        hipLaunchKernelGGL((rocblas_trsm_block_forward_substitution<T,
-                                                                    SCAL,
-                                                                    ATYPE,
-                                                                    BTYPE,
-                                                                    UPPER,
-                                                                    TRANSB,
-                                                                    CONJ,
-                                                                    UNIT>),
-                           grid,
-                           threads,
-                           smem_size,
-                           handle->get_stream(),
-                           k2 - j,
-                           k,
-                           j == 0 ? alpha : 1,
-                           dA,
-                           offset_A + offA_sub,
-                           lda,
-                           stride_A,
-                           dB,
-                           offset_B + offB_sub,
-                           ldb,
-                           stride_B);
+        ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_block_forward_substitution<T,
+                                                                       SCAL,
+                                                                       ATYPE,
+                                                                       BTYPE,
+                                                                       UPPER,
+                                                                       TRANSB,
+                                                                       CONJ,
+                                                                       UNIT>),
+                              grid,
+                              threads,
+                              smem_size,
+                              handle->get_stream(),
+                              k2 - j,
+                              k,
+                              j == 0 ? alpha : 1,
+                              dA,
+                              offset_A + offA_sub,
+                              lda,
+                              stride_A,
+                              dB,
+                              offset_B + offB_sub,
+                              ldb,
+                              stride_B);
     }
     else
     {
         offA_sub = LEFT ? 0 : 0;
         offB_sub = LEFT ? 0 : 0;
-        hipLaunchKernelGGL((rocblas_trsm_block_backward_substitution<T,
-                                                                     SCAL,
-                                                                     ATYPE,
-                                                                     BTYPE,
-                                                                     UPPER,
-                                                                     TRANSB,
-                                                                     CONJ,
-                                                                     UNIT>),
-                           grid,
-                           threads,
-                           smem_size,
-                           handle->get_stream(),
-                           k2 - j,
-                           k,
-                           j == 0 ? alpha : 1,
-                           dA,
-                           offset_A + offA_sub,
-                           lda,
-                           stride_A,
-                           dB,
-                           offset_B + offB_sub,
-                           ldb,
-                           stride_B);
+        ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_block_backward_substitution<T,
+                                                                        SCAL,
+                                                                        ATYPE,
+                                                                        BTYPE,
+                                                                        UPPER,
+                                                                        TRANSB,
+                                                                        CONJ,
+                                                                        UNIT>),
+                              grid,
+                              threads,
+                              smem_size,
+                              handle->get_stream(),
+                              k2 - j,
+                              k,
+                              j == 0 ? alpha : 1,
+                              dA,
+                              offset_A + offA_sub,
+                              lda,
+                              stride_A,
+                              dB,
+                              offset_B + offB_sub,
+                              ldb,
+                              stride_B);
     }
+
+    return rocblas_status_success;
 }
 
 //////////////////////////////
@@ -3532,34 +3554,49 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
 
         if(alpha_h == T(0.0))
         {
-            set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, 0.0, offset_B);
-            return rocblas_status_success;
+            return set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, 0.0, offset_B);
         }
 
         // These small substitution kernels still seem faster than full substitution method below
         bool is_small = (k <= 32) || (m <= 64 && n <= 64);
         if(is_small)
         {
-#define ROCBLAS_TRSM_SMALL_PARAM                                                                   \
-    handle, side, uplo, transA, diag, m, n, alpha_h, A, offset_A, lda, stride_A, B, offset_B, ldb, \
-        stride_B, batch_count
+#define ROCBLAS_TRSM_SMALL(DIM_)                         \
+    rocblas_trsm_small<T, T, U, V, DIM_, DIM_>(handle,   \
+                                               side,     \
+                                               uplo,     \
+                                               transA,   \
+                                               diag,     \
+                                               m,        \
+                                               n,        \
+                                               alpha_h,  \
+                                               A,        \
+                                               offset_A, \
+                                               lda,      \
+                                               stride_A, \
+                                               B,        \
+                                               offset_B, \
+                                               ldb,      \
+                                               stride_B, \
+                                               batch_count)
+
             if(k <= 4)
-                rocblas_trsm_small<T, T, U, V, 4, 4>(ROCBLAS_TRSM_SMALL_PARAM);
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(4));
             else if(k <= 8)
-                rocblas_trsm_small<T, T, U, V, 8, 8>(ROCBLAS_TRSM_SMALL_PARAM);
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(8));
             else if(k <= 12)
-                rocblas_trsm_small<T, T, U, V, 12, 12>(ROCBLAS_TRSM_SMALL_PARAM);
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(12));
             else if(k <= 16)
-                rocblas_trsm_small<T, T, U, V, 16, 16>(ROCBLAS_TRSM_SMALL_PARAM);
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(16));
             else if(k <= 20)
-                rocblas_trsm_small<T, T, U, V, 20, 20>(ROCBLAS_TRSM_SMALL_PARAM);
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(20));
             else if(k <= 24)
-                rocblas_trsm_small<T, T, U, V, 24, 24>(ROCBLAS_TRSM_SMALL_PARAM);
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(24));
             else if(k <= 28)
-                rocblas_trsm_small<T, T, U, V, 28, 28>(ROCBLAS_TRSM_SMALL_PARAM);
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(28));
             else if(k <= 32)
-                rocblas_trsm_small<T, T, U, V, 32, 32>(ROCBLAS_TRSM_SMALL_PARAM);
-#undef ROCBLAS_TRSM_SMALL_PARAM
+                RETURN_IF_ROCBLAS_ERROR(ROCBLAS_TRSM_SMALL(32));
+#undef ROCBLAS_TRSM_SMALL
             else if(k <= 64)
             {
                 if constexpr(std::is_same<T, rocblas_double_complex>{})
@@ -3574,48 +3611,48 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
                     if(side == rocblas_side_left)
                     {
                         dim3 grid((n + 64 - 1) / 64, batch_count);
-                        hipLaunchKernelGGL((rocblas_trsm_small_64_left_device<T, T, U, V, 64>),
-                                           grid,
-                                           threads,
-                                           0,
-                                           handle->get_stream(),
-                                           uplo,
-                                           transA,
-                                           diag,
-                                           m,
-                                           n,
-                                           alpha_h,
-                                           A,
-                                           offset_A,
-                                           lda,
-                                           stride_A,
-                                           B,
-                                           offset_B,
-                                           ldb,
-                                           stride_B);
+                        ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_small_64_left_device<T, T, U, V, 64>),
+                                              grid,
+                                              threads,
+                                              0,
+                                              handle->get_stream(),
+                                              uplo,
+                                              transA,
+                                              diag,
+                                              m,
+                                              n,
+                                              alpha_h,
+                                              A,
+                                              offset_A,
+                                              lda,
+                                              stride_A,
+                                              B,
+                                              offset_B,
+                                              ldb,
+                                              stride_B);
                     }
                     else
                     {
                         dim3 grid((m + 64 - 1) / 64, batch_count);
-                        hipLaunchKernelGGL((rocblas_trsm_small_64_right_device<T, T, U, V, 64>),
-                                           grid,
-                                           threads,
-                                           0,
-                                           handle->get_stream(),
-                                           uplo,
-                                           transA,
-                                           diag,
-                                           m,
-                                           n,
-                                           alpha_h,
-                                           A,
-                                           offset_A,
-                                           lda,
-                                           stride_A,
-                                           B,
-                                           offset_B,
-                                           ldb,
-                                           stride_B);
+                        ROCBLAS_LAUNCH_KERNEL((rocblas_trsm_small_64_right_device<T, T, U, V, 64>),
+                                              grid,
+                                              threads,
+                                              0,
+                                              handle->get_stream(),
+                                              uplo,
+                                              transA,
+                                              diag,
+                                              m,
+                                              n,
+                                              alpha_h,
+                                              A,
+                                              offset_A,
+                                              lda,
+                                              stride_A,
+                                              B,
+                                              offset_B,
+                                              ldb,
+                                              stride_B);
                     }
                 }
                 else
@@ -3657,21 +3694,23 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
 
             if(use_sub && blksize)
             {
-#define TRSM_SUBSTITUTION_LAUNCH(T, LEFT, UPPER, TRANS, CONJ, DIAG, BATCHED)              \
-    rocblas_trsm_small_substitution<T, T, U, V, LEFT, UPPER, TRANS, CONJ, DIAG, BATCHED>( \
-        handle,                                                                           \
-        m,                                                                                \
-        n,                                                                                \
-        alpha_h,                                                                          \
-        A,                                                                                \
-        offset_A,                                                                         \
-        lda,                                                                              \
-        stride_A,                                                                         \
-        B,                                                                                \
-        offset_B,                                                                         \
-        ldb,                                                                              \
-        stride_B,                                                                         \
-        batch_count,                                                                      \
+                rocblas_status status = rocblas_status_success;
+
+#define TRSM_SUBSTITUTION_LAUNCH(T, LEFT, UPPER, TRANS, CONJ, DIAG, BATCHED)                       \
+    status = rocblas_trsm_small_substitution<T, T, U, V, LEFT, UPPER, TRANS, CONJ, DIAG, BATCHED>( \
+        handle,                                                                                    \
+        m,                                                                                         \
+        n,                                                                                         \
+        alpha_h,                                                                                   \
+        A,                                                                                         \
+        offset_A,                                                                                  \
+        lda,                                                                                       \
+        stride_A,                                                                                  \
+        B,                                                                                         \
+        offset_B,                                                                                  \
+        ldb,                                                                                       \
+        stride_B,                                                                                  \
+        batch_count,                                                                               \
         blksize)
 
                 // A mess of if/else statements to get the template parameters
@@ -3764,7 +3803,7 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
 
 #undef TRSM_SUBSTITUTION_LAUNCH
 
-                return rocblas_status_success;
+                return status;
             }
 
             // perf_status indicates whether optimal performance is obtainable with available memory
@@ -3792,10 +3831,10 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
                 {
                     // for w_c_temp, we currently can use the same memory from each batch since
                     // trtri_batched is naive (since gemm_batched is naive)
-                    setup_batched_array<BLOCK>(
-                        handle->get_stream(), (T*)w_c_temp, 0, (T**)w_x_temparr, batch_count);
-                    setup_batched_array<BLOCK>(
-                        handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count);
+                    RETURN_IF_ROCBLAS_ERROR(setup_batched_array<BLOCK>(
+                        handle->get_stream(), (T*)w_c_temp, 0, (T**)w_x_temparr, batch_count));
+                    RETURN_IF_ROCBLAS_ERROR(setup_batched_array<BLOCK>(
+                        handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count));
                 }
 
                 status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(
@@ -3823,8 +3862,8 @@ rocblas_status rocblas_internal_trsm_template(rocblas_handle    handle,
             size_t x_temp_els   = use_special ? BLOCK * B_chunk_size : size_t(m) * n;
             if(BATCHED)
             {
-                setup_batched_array<BLOCK>(
-                    handle->get_stream(), (T*)w_x_temp, x_temp_els, (T**)w_x_temparr, batch_count);
+                RETURN_IF_ROCBLAS_ERROR(setup_batched_array<BLOCK>(
+                    handle->get_stream(), (T*)w_x_temp, x_temp_els, (T**)w_x_temparr, batch_count));
             }
 
 #ifdef BUILD_WITH_TENSILE

@@ -182,29 +182,29 @@ rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
         dim3    threads(NB);
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
-            hipLaunchKernelGGL((rocblas_sscal_2_kernel<NB, T, Tex>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               alpha,
-                               stride_alpha,
-                               x,
-                               offset_x,
-                               stride_x);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_sscal_2_kernel<NB, T, Tex>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  alpha,
+                                  stride_alpha,
+                                  x,
+                                  offset_x,
+                                  stride_x);
         else // single alpha is on host
-            hipLaunchKernelGGL((rocblas_sscal_2_kernel<NB, T, Tex>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               x,
-                               offset_x,
-                               stride_x);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_sscal_2_kernel<NB, T, Tex>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  *alpha,
+                                  stride_alpha,
+                                  x,
+                                  offset_x,
+                                  stride_x);
     }
     else if(using_rocblas_half && incx == 1)
     {
@@ -218,33 +218,33 @@ rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
         if constexpr(using_rocblas_half)
         {
             if(rocblas_pointer_mode_device == handle->pointer_mode)
-                hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
-                                   grid,
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   n,
-                                   n_mod_4,
-                                   n_mlt_4,
-                                   (const rocblas_half*)alpha,
-                                   stride_alpha,
-                                   x,
-                                   offset_x,
-                                   stride_x);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_hscal_mlt_4_kernel<NB>),
+                                      grid,
+                                      threads,
+                                      0,
+                                      handle->get_stream(),
+                                      n,
+                                      n_mod_4,
+                                      n_mlt_4,
+                                      (const rocblas_half*)alpha,
+                                      stride_alpha,
+                                      x,
+                                      offset_x,
+                                      stride_x);
             else // single alpha is on host
-                hipLaunchKernelGGL((rocblas_hscal_mlt_4_kernel<NB>),
-                                   grid,
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   n,
-                                   n_mod_4,
-                                   n_mlt_4,
-                                   load_scalar((const rocblas_half*)alpha),
-                                   stride_alpha,
-                                   x,
-                                   offset_x,
-                                   stride_x);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_hscal_mlt_4_kernel<NB>),
+                                      grid,
+                                      threads,
+                                      0,
+                                      handle->get_stream(),
+                                      n,
+                                      n_mod_4,
+                                      n_mlt_4,
+                                      load_scalar((const rocblas_half*)alpha),
+                                      stride_alpha,
+                                      x,
+                                      offset_x,
+                                      stride_x);
         }
     }
     else
@@ -254,31 +254,31 @@ rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
         dim3 threads(NB);
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
-            hipLaunchKernelGGL((rocblas_scal_kernel<NB, T, Tex>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               alpha,
-                               stride_alpha,
-                               x,
-                               offset_x,
-                               incx,
-                               stride_x);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_scal_kernel<NB, T, Tex>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  alpha,
+                                  stride_alpha,
+                                  x,
+                                  offset_x,
+                                  incx,
+                                  stride_x);
         else // single alpha is on host
-            hipLaunchKernelGGL((rocblas_scal_kernel<NB, T, Tex>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               x,
-                               offset_x,
-                               incx,
-                               stride_x);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_scal_kernel<NB, T, Tex>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  *alpha,
+                                  stride_alpha,
+                                  x,
+                                  offset_x,
+                                  incx,
+                                  stride_x);
     }
     return rocblas_status_success;
 }

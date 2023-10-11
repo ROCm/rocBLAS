@@ -59,30 +59,32 @@ rocblas_internal_flip_vector_kernel(U* __restrict__ data,
 }
 
 template <rocblas_int NB_X, typename T, typename U>
-void rocblas_internal_flip_vector(rocblas_handle handle,
-                                  U*             data,
-                                  rocblas_int    m,
-                                  rocblas_int    abs_incx,
-                                  rocblas_stride stride,
-                                  rocblas_int    batch_count,
-                                  rocblas_stride offset = 0)
+rocblas_status rocblas_internal_flip_vector(rocblas_handle handle,
+                                            U*             data,
+                                            rocblas_int    m,
+                                            rocblas_int    abs_incx,
+                                            rocblas_stride stride,
+                                            rocblas_int    batch_count,
+                                            rocblas_stride offset = 0)
 {
     rocblas_int size    = (m + 1) / 2;
     rocblas_int blocksX = (size - 1) / NB_X + 1;
     dim3        grid(blocksX, batch_count, 1);
     dim3        threads(NB_X, 1, 1);
 
-    hipLaunchKernelGGL((rocblas_internal_flip_vector_kernel<NB_X, T>),
-                       grid,
-                       threads,
-                       0,
-                       handle->get_stream(),
-                       data,
-                       m,
-                       size,
-                       abs_incx,
-                       offset,
-                       stride);
+    ROCBLAS_LAUNCH_KERNEL((rocblas_internal_flip_vector_kernel<NB_X, T>),
+                          grid,
+                          threads,
+                          0,
+                          handle->get_stream(),
+                          data,
+                          m,
+                          size,
+                          abs_incx,
+                          offset,
+                          stride);
+
+    return rocblas_status_success;
 }
 
 template <rocblas_int NB, typename T, typename U, typename V>
@@ -107,36 +109,38 @@ rocblas_internal_strided_vector_copy_kernel(U __restrict__ dst,
 }
 
 template <rocblas_int NB_X, typename T, typename U, typename V>
-void rocblas_internal_strided_vector_copy(rocblas_handle handle,
-                                          U              dst,
-                                          rocblas_int    dst_incx,
-                                          rocblas_stride dst_stride,
-                                          V              src,
-                                          rocblas_int    src_incx,
-                                          rocblas_stride src_stride,
-                                          rocblas_int    size,
-                                          rocblas_int    batch_count,
-                                          rocblas_stride offset_dst = 0,
-                                          rocblas_stride offset_src = 0)
+rocblas_status rocblas_internal_strided_vector_copy(rocblas_handle handle,
+                                                    U              dst,
+                                                    rocblas_int    dst_incx,
+                                                    rocblas_stride dst_stride,
+                                                    V              src,
+                                                    rocblas_int    src_incx,
+                                                    rocblas_stride src_stride,
+                                                    rocblas_int    size,
+                                                    rocblas_int    batch_count,
+                                                    rocblas_stride offset_dst = 0,
+                                                    rocblas_stride offset_src = 0)
 {
     rocblas_int blocksX = (size - 1) / NB_X + 1;
     dim3        grid(blocksX, batch_count, 1);
     dim3        threads(NB_X, 1, 1);
 
-    hipLaunchKernelGGL((rocblas_internal_strided_vector_copy_kernel<NB_X, T>),
-                       grid,
-                       threads,
-                       0,
-                       handle->get_stream(),
-                       dst,
-                       dst_incx,
-                       dst_stride,
-                       src,
-                       src_incx,
-                       src_stride,
-                       size,
-                       offset_dst,
-                       offset_src);
+    ROCBLAS_LAUNCH_KERNEL((rocblas_internal_strided_vector_copy_kernel<NB_X, T>),
+                          grid,
+                          threads,
+                          0,
+                          handle->get_stream(),
+                          dst,
+                          dst_incx,
+                          dst_stride,
+                          src,
+                          src_incx,
+                          src_stride,
+                          size,
+                          offset_dst,
+                          offset_src);
+
+    return rocblas_status_success;
 }
 
 template <rocblas_int BLOCK, typename T, typename U, typename V>
@@ -818,10 +822,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         stride_invA = BLOCK * m;
         if(BATCHED)
         {
-            setup_batched_array<BLOCK>(
-                handle->get_stream(), (T*)c_temp, 0, (T**)x_temparr, batch_count);
-            setup_batched_array<BLOCK>(
-                handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count);
+            RETURN_IF_ROCBLAS_ERROR(setup_batched_array<BLOCK>(
+                handle->get_stream(), (T*)c_temp, 0, (T**)x_temparr, batch_count));
+            RETURN_IF_ROCBLAS_ERROR(setup_batched_array<BLOCK>(
+                handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count));
         }
 
         status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(handle,
@@ -849,8 +853,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     if(BATCHED)
     {
-        setup_batched_array<BLOCK>(
-            handle->get_stream(), (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
+        RETURN_IF_ROCBLAS_ERROR(setup_batched_array<BLOCK>(
+            handle->get_stream(), (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count));
     }
 
     if(exact_blocks)

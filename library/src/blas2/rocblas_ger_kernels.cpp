@@ -306,7 +306,7 @@ rocblas_status rocblas_internal_ger_template(rocblas_handle handle,
         bool host_ptr_mode = handle->pointer_mode == rocblas_pointer_mode_host;
         rocblas_internal_val_ptr<V> alpha_device_host(host_ptr_mode, alpha);
 
-        hipLaunchKernelGGL(
+        ROCBLAS_LAUNCH_KERNEL(
             (rocblas_ger_double_buffered_kernel<CONJ, DIM_X, DIM_Y, elements_per_thread, T>),
             ger_grid,
             ger_threads,
@@ -338,11 +338,11 @@ rocblas_status rocblas_internal_ger_template(rocblas_handle handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(alpha));
+            ROCBLAS_LAUNCH_KERNEL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(alpha));
         }
         else
         {
-            hipLaunchKernelGGL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(*alpha));
+            ROCBLAS_LAUNCH_KERNEL((rocblas_sger_kernel<DIM_X, T>), ger_KARGS(*alpha));
         }
     }
     else
@@ -358,11 +358,13 @@ rocblas_status rocblas_internal_ger_template(rocblas_handle handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((rocblas_ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(alpha));
+            ROCBLAS_LAUNCH_KERNEL((rocblas_ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>),
+                                  ger_KARGS(alpha));
         }
         else
         {
-            hipLaunchKernelGGL((rocblas_ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>), ger_KARGS(*alpha));
+            ROCBLAS_LAUNCH_KERNEL((rocblas_ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>),
+                                  ger_KARGS(*alpha));
         }
     }
 #undef ger_KARGS

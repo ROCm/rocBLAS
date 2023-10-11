@@ -32,27 +32,46 @@ template <typename T>
 static const T beta_1 = T(1);
 
 template <bool TWOK, bool HERK, typename T, typename TConstPtr, typename TPtr>
-void rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
-                                  rocblas_operation trans,
-                                  rocblas_int       n,
-                                  rocblas_int       k,
-                                  const T           alpha,
-                                  TConstPtr*        dA,
-                                  rocblas_int       lda,
-                                  rocblas_stride    stride_a,
-                                  TConstPtr*        dB,
-                                  rocblas_int       ldb,
-                                  rocblas_stride    stride_b,
-                                  const T           beta,
-                                  TPtr*             dC,
-                                  rocblas_int       ldc,
-                                  rocblas_stride    stride_c,
-                                  rocblas_int       batch_count,
-                                  hipStream_t       stream)
+rocblas_status rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
+                                            rocblas_operation trans,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const T           alpha,
+                                            TConstPtr*        dA,
+                                            rocblas_int       lda,
+                                            rocblas_stride    stride_a,
+                                            TConstPtr*        dB,
+                                            rocblas_int       ldb,
+                                            rocblas_stride    stride_b,
+                                            const T           beta,
+                                            TPtr*             dC,
+                                            rocblas_int       ldc,
+                                            rocblas_stride    stride_c,
+                                            rocblas_int       batch_count,
+                                            hipStream_t       stream)
 {
     if(TWOK)
     {
-        rocblas_syr2k_her2k_dispatch<TWOK, HERK, 32>(uplo,
+        return rocblas_syr2k_her2k_dispatch<TWOK, HERK, 32>(uplo,
+                                                            trans,
+                                                            n,
+                                                            k,
+                                                            alpha,
+                                                            dA,
+                                                            lda,
+                                                            stride_a,
+                                                            dB,
+                                                            ldb,
+                                                            stride_b,
+                                                            dC,
+                                                            ldc,
+                                                            stride_c,
+                                                            batch_count,
+                                                            stream);
+    }
+    else
+    {
+        return rocblas_syrkx_herkx_dispatch<HERK, T>(uplo,
                                                      trans,
                                                      n,
                                                      k,
@@ -63,31 +82,12 @@ void rocblas_syrkx_syr2k_dispatch(rocblas_fill      uplo,
                                                      dB,
                                                      ldb,
                                                      stride_b,
+                                                     beta,
                                                      dC,
                                                      ldc,
                                                      stride_c,
                                                      batch_count,
                                                      stream);
-    }
-    else
-    {
-        rocblas_syrkx_herkx_dispatch<HERK, T>(uplo,
-                                              trans,
-                                              n,
-                                              k,
-                                              alpha,
-                                              dA,
-                                              lda,
-                                              stride_a,
-                                              dB,
-                                              ldb,
-                                              stride_b,
-                                              beta,
-                                              dC,
-                                              ldc,
-                                              stride_c,
-                                              batch_count,
-                                              stream);
     }
 }
 
@@ -164,27 +164,29 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         dim3                 syr2k_scale_threads(syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y);
 
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((rocblas_syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
-                           syr2k_scale_grid,
-                           syr2k_scale_threads,
-                           0,
-                           handle->get_stream(),
-                           uplo == rocblas_fill_upper,
-                           n,
-                           k,
-                           *alpha,
-                           *beta,
-                           dc,
-                           ldc,
-                           0);
+        ROCBLAS_LAUNCH_KERNEL_GRID(
+            syr2k_scale_grid,
+            (rocblas_syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
+            syr2k_scale_grid,
+            syr2k_scale_threads,
+            0,
+            handle->get_stream(),
+            uplo == rocblas_fill_upper,
+            n,
+            k,
+            *alpha,
+            *beta,
+            dc,
+            ldc,
+            0);
     }
 
     // call rocblas_syrkx_syr2k_dispatch with batch_count = n_nb for n_nb diagonal blocks
     // clang-format off
-    rocblas_syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, nb, k, *alpha,
+    RETURN_IF_ROCBLAS_ERROR( (rocblas_syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, nb, k, *alpha,
                          da, lda, nb * a_s1,
                          db, ldb, nb * b_s1, *beta,
-                         dc, ldc, nb * (c_s1 + c_s2), n_nb, stream);
+                         dc, ldc, nb * (c_s1 + c_s2), n_nb, stream)));
     // clang-format on
 
     // remainder diagonal block of size n_diag < nb
@@ -194,10 +196,10 @@ rocblas_status rocblas_internal_syr2k_syrkx_block_recursive_template(rocblas_han
         n_diag = n - i_diag;
         // call rocblas_syrkx_syr2k_dispatch for one remainder diagonal block of size n_diag
         // clang-format off
-        rocblas_syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, n_diag, k, *alpha,
+        RETURN_IF_ROCBLAS_ERROR( (rocblas_syrkx_syr2k_dispatch<TWOK, HERK, T>(uplo, trans, n_diag, k, *alpha,
                           da + i_diag * a_s1, lda, stride_a,
                           db + i_diag * b_s1, ldb, stride_b, *beta,
-                          dc + i_diag * (c_s1 + c_s2), ldc, stride_c, batch_count, stream);
+                          dc + i_diag * (c_s1 + c_s2), ldc, stride_c, batch_count, stream)));
         // clang-format on
     }
 
@@ -385,90 +387,96 @@ rocblas_status rocblas_internal_syr2k_her2k_non_recursive_template(rocblas_handl
     {
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
-                               syr2k_grid,
-                               syr2k_threads,
-                               0,
-                               handle->get_stream(),
-                               uplo == rocblas_fill_upper,
-                               n,
-                               k,
-                               alpha,
-                               AP_krn,
-                               lda,
-                               a_st_or_of,
-                               BP_krn,
-                               ldb,
-                               b_st_or_of,
-                               CP_krn,
-                               ldc,
-                               c_st_or_of);
+            ROCBLAS_LAUNCH_KERNEL_GRID(
+                syr2k_grid,
+                (rocblas_syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
+                syr2k_grid,
+                syr2k_threads,
+                0,
+                handle->get_stream(),
+                uplo == rocblas_fill_upper,
+                n,
+                k,
+                alpha,
+                AP_krn,
+                lda,
+                a_st_or_of,
+                BP_krn,
+                ldb,
+                b_st_or_of,
+                CP_krn,
+                ldc,
+                c_st_or_of);
         }
         else
         {
-            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
-                               syr2k_grid,
-                               syr2k_threads,
-                               0,
-                               handle->get_stream(),
-                               uplo == rocblas_fill_upper,
-                               n,
-                               k,
-                               alpha,
-                               AP_krn,
-                               lda,
-                               a_st_or_of,
-                               BP_krn,
-                               ldb,
-                               b_st_or_of,
-                               CP_krn,
-                               ldc,
-                               c_st_or_of);
+            ROCBLAS_LAUNCH_KERNEL_GRID(syr2k_grid,
+                                       (rocblas_syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
+                                       syr2k_grid,
+                                       syr2k_threads,
+                                       0,
+                                       handle->get_stream(),
+                                       uplo == rocblas_fill_upper,
+                                       n,
+                                       k,
+                                       alpha,
+                                       AP_krn,
+                                       lda,
+                                       a_st_or_of,
+                                       BP_krn,
+                                       ldb,
+                                       b_st_or_of,
+                                       CP_krn,
+                                       ldc,
+                                       c_st_or_of);
         }
     }
     else
     {
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
-                               syr2k_grid,
-                               syr2k_threads,
-                               0,
-                               handle->get_stream(),
-                               uplo == rocblas_fill_upper,
-                               n,
-                               k,
-                               *alpha,
-                               AP_krn,
-                               lda,
-                               a_st_or_of,
-                               BP_krn,
-                               ldb,
-                               b_st_or_of,
-                               CP_krn,
-                               ldc,
-                               c_st_or_of);
+            ROCBLAS_LAUNCH_KERNEL_GRID(
+                syr2k_grid,
+                (rocblas_syr2k_her2k_kernel<TWOK, HERK, false, syr2k_DIM_XY>),
+                syr2k_grid,
+                syr2k_threads,
+                0,
+                handle->get_stream(),
+                uplo == rocblas_fill_upper,
+                n,
+                k,
+                *alpha,
+                AP_krn,
+                lda,
+                a_st_or_of,
+                BP_krn,
+                ldb,
+                b_st_or_of,
+                CP_krn,
+                ldc,
+                c_st_or_of);
         }
         else
         {
-            hipLaunchKernelGGL((rocblas_syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
-                               syr2k_grid,
-                               syr2k_threads,
-                               0,
-                               handle->get_stream(),
-                               uplo == rocblas_fill_upper,
-                               n,
-                               k,
-                               *alpha,
-                               AP_krn,
-                               lda,
-                               a_st_or_of,
-                               BP_krn,
-                               ldb,
-                               b_st_or_of,
-                               CP_krn,
-                               ldc,
-                               c_st_or_of);
+            ROCBLAS_LAUNCH_KERNEL_GRID(syr2k_grid,
+                                       (rocblas_syr2k_her2k_kernel<TWOK, HERK, true, syr2k_DIM_XY>),
+                                       syr2k_grid,
+                                       syr2k_threads,
+                                       0,
+                                       handle->get_stream(),
+                                       uplo == rocblas_fill_upper,
+                                       n,
+                                       k,
+                                       *alpha,
+                                       AP_krn,
+                                       lda,
+                                       a_st_or_of,
+                                       BP_krn,
+                                       ldb,
+                                       b_st_or_of,
+                                       CP_krn,
+                                       ldc,
+                                       c_st_or_of);
         }
     }
 
@@ -581,19 +589,19 @@ rocblas_status rocblas_internal_syr2k_her2k_template(rocblas_handle    handle,
     dim3                 syr2k_scale_threads(syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y);
 
     // first scale C so we can use directly for output without work buffer
-    hipLaunchKernelGGL((rocblas_syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
-                       syr2k_scale_grid,
-                       syr2k_scale_threads,
-                       0,
-                       handle->get_stream(),
-                       uplo == rocblas_fill_upper,
-                       n,
-                       k,
-                       *alpha,
-                       *beta,
-                       dC,
-                       ldc,
-                       BATCHED ? offset_c : stride_c);
+    ROCBLAS_LAUNCH_KERNEL((rocblas_syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y, HERK>),
+                          syr2k_scale_grid,
+                          syr2k_scale_threads,
+                          0,
+                          handle->get_stream(),
+                          uplo == rocblas_fill_upper,
+                          n,
+                          k,
+                          *alpha,
+                          *beta,
+                          dC,
+                          ldc,
+                          BATCHED ? offset_c : stride_c);
 
     if(k == 0)
         return rocblas_status_success;

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "macros.hpp"
+#include "definitions.hpp"
 #include "rocblas.h"
 #include "rocblas_ostream.hpp"
 #include "utility.hpp"
