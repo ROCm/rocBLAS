@@ -545,7 +545,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                 <TiA,
                                 TiB,
                                 To,
@@ -590,7 +590,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             seedA, seedB, seedC);
 
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                 <TiA,
                                 TiB,
                                 To,
@@ -638,7 +638,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -661,7 +661,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             seedA, seedB, seedC);
 
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -688,7 +688,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -710,7 +710,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -736,7 +736,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -758,7 +758,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -785,7 +785,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -807,7 +807,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -833,7 +833,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -855,7 +855,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -881,7 +881,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -903,7 +903,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // no SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -929,7 +929,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -951,7 +951,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -977,7 +977,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -999,7 +999,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1029,7 +1029,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     if(rocblas_operation_none == trans_a && rocblas_operation_none == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1060,7 +1060,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
                     batch_count,
                     seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1094,7 +1094,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_transpose == trans_a && rocblas_operation_none == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1116,7 +1116,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1142,7 +1142,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_none == trans_a && rocblas_operation_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1164,7 +1164,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1190,7 +1190,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_transpose == trans_a && rocblas_operation_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1212,7 +1212,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1238,7 +1238,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1260,7 +1260,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1285,7 +1285,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_none == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1307,7 +1307,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1332,7 +1332,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_conjugate_transpose == trans_a && rocblas_operation_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1354,7 +1354,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1379,7 +1379,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_none == trans_a && rocblas_operation_conjugate_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1401,7 +1401,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1427,7 +1427,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
     else if(rocblas_operation_transpose == trans_a && rocblas_operation_conjugate_transpose == trans_b)
     {
         if (stochastic_rounding)
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1449,7 +1449,7 @@ rocblas_status gemm_ex3_fallback(rocblas_handle     handle,
             batch_count,
             seedA, seedB, seedC);
         else // non SR
-            hipLaunchKernelGGL((gemm_batched_general_kernel
+            ROCBLAS_LAUNCH_KERNEL((gemm_batched_general_kernel
                                     <TiA,
                                     TiB,
                                     To,
@@ -1662,7 +1662,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         if(rocblas_operation_none == trans_a)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiA,
                                                               TcA,
                                                               TcA,    // Tensile gemm's TiA
                                                               dim_m,
@@ -1685,7 +1685,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                                               batch_count,
                                                               seedA);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiA,
                                                               TcA,
                                                               TcA,    // Tensile gemm's TiA
                                                               dim_m,
@@ -1711,7 +1711,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         else if(rocblas_operation_transpose == trans_a)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiA,
                                                               TcA,
                                                               TcA,    // Tensile gemm's TiA
                                                               dim_m,
@@ -1734,7 +1734,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                                               batch_count,
                                                               seedA);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiA,
                                                               TcA,
                                                               TcA,    // Tensile gemm's TiA
                                                               dim_m,
@@ -1760,7 +1760,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         else if(rocblas_operation_conjugate_transpose == trans_a)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiA,
                                                               TcA,
                                                               TcA,    // Tensile gemm's TiA
                                                               dim_m,
@@ -1783,7 +1783,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                                               batch_count,
                                                               seedA);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiA,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiA,
                                                               TcA,
                                                               TcA,    // Tensile gemm's TiA
                                                               dim_m,
@@ -1819,7 +1819,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         if(rocblas_operation_none == trans_b)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiB,
                                                               TcB,
                                                               TcB,    // Tensile gemm's TiB
                                                               dim_m,
@@ -1842,7 +1842,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                                               batch_count,
                                                               seedB);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiB,
                                                               TcB,
                                                               TcB,    // Tensile gemm's TiB
                                                               dim_m,
@@ -1868,7 +1868,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         else if(rocblas_operation_transpose == trans_b)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiB,
                                                               TcB,
                                                               TcB,    // Tensile gemm's TiB
                                                               dim_m,
@@ -1891,7 +1891,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                                               batch_count,
                                                               seedB);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiB,
                                                               TcB,
                                                               TcB,    // Tensile gemm's TiB
                                                               dim_m,
@@ -1917,7 +1917,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         else if(rocblas_operation_conjugate_transpose == trans_b)
         {
             if(stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiB,
                                                               TcB,
                                                               TcB,    // Tensile gemm's TiB
                                                               dim_m,
@@ -1940,7 +1940,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
                                                               batch_count,
                                                               seedB);
             else if(!stochastic_rounding)
-                hipLaunchKernelGGL((general_conversion_kernel<TiB,
+                ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<TiB,
                                                               TcB,
                                                               TcB,    // Tensile gemm's TiB
                                                               dim_m,
@@ -1973,7 +1973,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         dim3 dimBlock(dim_m, dim_n, 1);
         dim3 dimGrid(((m - 1) / blk_m) + 1, ((n - 1) / blk_n) + 1, batch_count);
 
-        hipLaunchKernelGGL((general_conversion_kernel<To,
+        ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<To,
                                                         To,
                                                         To_expected,    // Tensile gemm's To
                                                         dim_m,
@@ -2041,7 +2041,7 @@ rocblas_status gemm_ex3_quantize(rocblas_handle     handle,
         dim3 dimGrid(((m - 1) / blk_m) + 1, ((n - 1) / blk_n) + 1, batch_count);
 
 
-        hipLaunchKernelGGL((general_conversion_kernel<To_expected,
+        ROCBLAS_LAUNCH_KERNEL((general_conversion_kernel<To_expected,
                                                         To,
                                                         To,    // final output
                                                         dim_m,

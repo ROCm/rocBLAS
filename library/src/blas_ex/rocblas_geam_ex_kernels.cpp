@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,34 +55,32 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                       rocblas_int               batch_count,
                                       rocblas_geam_ex_operation geam_ex_op)
 {
-    geam_ex_source_solution<false, T>(handle,
-                                      trans_A,
-                                      trans_B,
-                                      m,
-                                      n,
-                                      k,
-                                      alpha,
-                                      A,
-                                      offset_A,
-                                      lda,
-                                      stride_A,
-                                      B,
-                                      offset_B,
-                                      ldb,
-                                      stride_B,
-                                      beta,
-                                      C,
-                                      offset_C,
-                                      ldc,
-                                      stride_C,
-                                      D,
-                                      offset_D,
-                                      ldd,
-                                      stride_D,
-                                      batch_count,
-                                      geam_ex_op);
-
-    return rocblas_status_success;
+    return geam_ex_source_solution<false, T>(handle,
+                                             trans_A,
+                                             trans_B,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             offset_A,
+                                             lda,
+                                             stride_A,
+                                             B,
+                                             offset_B,
+                                             ldb,
+                                             stride_B,
+                                             beta,
+                                             C,
+                                             offset_C,
+                                             ldc,
+                                             stride_C,
+                                             D,
+                                             offset_D,
+                                             ldd,
+                                             stride_D,
+                                             batch_count,
+                                             geam_ex_op);
 }
 
 template <bool BATCHED, typename T>

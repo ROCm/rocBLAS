@@ -794,7 +794,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
                                                            rocblas_int       batch_count,
                                                            rocblas_int*      w_completed_sec)
 {
-    if(batch_count == 0)
+    if(!n || !batch_count)
         return rocblas_status_success;
 
     // Temporarily change the thread's default device ID to the handle's device ID
@@ -809,7 +809,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
     dim3                  grid(blocks, batch_count);
 
     // Initialize global variables
-    hipLaunchKernelGGL(
+    ROCBLAS_LAUNCH_KERNEL(
         rocblas_trsv_init, dim3(batch_count), dim3(1), 0, handle->get_stream(), w_completed_sec);
 
     // trsv doesn't need alpha, but trsm using this kernel and does.
@@ -835,16 +835,16 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
             if(diag == rocblas_diagonal_unit)
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_conjugate_transpose)
                 {
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 }
@@ -852,15 +852,15 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
             else
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_conjugate_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
             }
@@ -870,30 +870,30 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
             if(diag == rocblas_diagonal_unit)
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_conjugate_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
             }
             else
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
                 else if(transA == rocblas_operation_conjugate_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha));
             }
@@ -907,16 +907,16 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
             if(diag == rocblas_diagonal_unit)
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_conjugate_transpose)
                 {
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 }
@@ -924,15 +924,15 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
             else
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, false, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_conjugate_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, false, true, true, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
             }
@@ -942,30 +942,30 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
             if(diag == rocblas_diagonal_unit)
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_conjugate_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, true, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
             }
             else
             {
                 if(transA == rocblas_operation_none)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, false, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, false, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
                 else if(transA == rocblas_operation_conjugate_transpose)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_trsv_device<DIM_X, DIM_Y, true, true, true, false, T>),
                         TRSV_TEMPLATE_PARAMS(alpha_local));
             }

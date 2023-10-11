@@ -196,17 +196,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     dim3                  blocks((n - 1) / NB + 1, batch_count);
     dim3                  threads(NB);
 
-    hipLaunchKernelGGL((rocblas_check_numerics_vector_kernel<NB>),
-                       blocks,
-                       threads,
-                       0,
-                       rocblas_stream,
-                       n,
-                       x,
-                       offset_x,
-                       inc_x,
-                       stride_x,
-                       (rocblas_check_numerics_t*)d_abnormal);
+    ROCBLAS_LAUNCH_KERNEL((rocblas_check_numerics_vector_kernel<NB>),
+                          blocks,
+                          threads,
+                          0,
+                          rocblas_stream,
+                          n,
+                          x,
+                          offset_x,
+                          inc_x,
+                          stride_x,
+                          (rocblas_check_numerics_t*)d_abnormal);
 
     //Transferring the rocblas_check_numerics_t structure from device to the host
     RETURN_IF_HIP_ERROR(hipMemcpy(&h_abnormal,

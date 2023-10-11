@@ -246,7 +246,8 @@ _rocblas_handle::~_rocblas_handle()
             {
                 rocblas_cerr
                     << "rocBLAS error during freeing of allocated memory in handle destructor: "
-                    << rocblas_status_to_string(get_rocblas_status_for_hip_status(hipStatus))
+                    << rocblas_status_to_string(
+                           rocblas_internal_convert_hip_to_rocblas_status(hipStatus))
                     << std::endl;
                 rocblas_abort();
             };
@@ -262,7 +263,7 @@ _rocblas_handle::~_rocblas_handle()
                 rocblas_cerr << "rocBLAS error during freeing of allocated memory in handle "
                                 "destructor (stream order allocation): "
                              << rocblas_status_to_string(
-                                    get_rocblas_status_for_hip_status(hipStatus))
+                                    rocblas_internal_convert_hip_to_rocblas_status(hipStatus))
                              << std::endl;
                 rocblas_abort();
             };
@@ -468,7 +469,7 @@ try
         // If allocation fails, nullify device memory address and return error
         // Leave the memory under rocBLAS management for future calls
         handle->device_memory = nullptr;
-        return get_rocblas_status_for_hip_status(hipStatus);
+        return rocblas_internal_convert_hip_to_rocblas_status(hipStatus);
     }
     else
     {

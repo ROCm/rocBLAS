@@ -266,9 +266,9 @@ Coding Guidelines
     .. code:: cpp
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
-            hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, alpha, x, incx, y, incy);
+            ROCBLAS_LAUNCH_KERNEL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, alpha, x, incx, y, incy);
         else if(*alpha) // alpha is on host
-            hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, *alpha, x, incx, y, incy);
+            ROCBLAS_LAUNCH_KERNEL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, *alpha, x, incx, y, incy);
 
     When the pointer mode indicates ``alpha`` is on the host, the
     ``alpha`` pointer is dereferenced on the host and the numeric value

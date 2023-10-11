@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <hip/hip_runtime.h>
+
 /*******************************************************************************
  * Macros
  ******************************************************************************/
@@ -40,3 +42,27 @@
 #define ROCBLAS_KERNEL_INSTANTIATE __global__
 
 #define ROCBLAS_KERNEL_ILF __device__ __attribute__((always_inline))
+
+// we ignore pre-existing hipGetLastError as all internal hip calls should be guarded and so an external error
+#define ROCBLAS_LAUNCH_KERNEL(...)                                                 \
+    do                                                                             \
+    {                                                                              \
+        hipError_t pre_status = hipPeekAtLastError();                              \
+        hipLaunchKernelGGL(__VA_ARGS__);                                           \
+        hipError_t status = hipPeekAtLastError();                                  \
+        if(status != hipSuccess && status != pre_status)                           \
+            return rocblas_internal_convert_hip_to_rocblas_status_and_log(status); \
+    } while(0)
+
+#define ROCBLAS_LAUNCH_KERNEL_GRID(grid_, ...)                                         \
+    do                                                                                 \
+    {                                                                                  \
+        if(grid_.x != 0 && grid_.y != 0 && grid_.z != 0)                               \
+        {                                                                              \
+            hipError_t pre_status = hipPeekAtLastError();                              \
+            hipLaunchKernelGGL(__VA_ARGS__);                                           \
+            hipError_t status = hipPeekAtLastError();                                  \
+            if(status != hipSuccess && status != pre_status)                           \
+                return rocblas_internal_convert_hip_to_rocblas_status_and_log(status); \
+        }                                                                              \
+    } while(0)
