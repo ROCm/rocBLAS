@@ -536,18 +536,20 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
 
             if(K % TRSM_BLOCK != 0 || blocks == 0)
             {
-                CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
-                    handle,
-                    uplo,
-                    diag,
-                    K - TRSM_BLOCK * blocks,
-                    (T*)dA + sub_stride_A * blocks + b * stride_A,
-                    lda,
-                    sub_stride_A,
-                    (T*)dinvA + sub_stride_invA * blocks + b * stride_invA,
-                    TRSM_BLOCK,
-                    sub_stride_invA,
-                    1));
+                int remainder = K - TRSM_BLOCK * blocks;
+                if(remainder)
+                    CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
+                        handle,
+                        uplo,
+                        diag,
+                        remainder,
+                        (T*)dA + sub_stride_A * blocks + b * stride_A,
+                        lda,
+                        sub_stride_A,
+                        (T*)dinvA + sub_stride_invA * blocks + b * stride_invA,
+                        TRSM_BLOCK,
+                        sub_stride_invA,
+                        1));
             }
         }
 

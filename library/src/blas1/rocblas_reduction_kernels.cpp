@@ -189,29 +189,29 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
 
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-    hipLaunchKernelGGL((rocblas_reduction_kernel_part1<NB, FETCH>),
-                       dim3(blocks, batch_count),
-                       NB,
-                       0,
-                       handle->get_stream(),
-                       n,
-                       blocks,
-                       x,
-                       shiftx,
-                       incx,
-                       stridex,
-                       workspace);
+    ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part1<NB, FETCH>),
+                          dim3(blocks, batch_count),
+                          NB,
+                          0,
+                          handle->get_stream(),
+                          n,
+                          blocks,
+                          x,
+                          shiftx,
+                          incx,
+                          stridex,
+                          workspace);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
-                           dim3(1, batch_count),
-                           NB,
-                           0,
-                           handle->get_stream(),
-                           blocks,
-                           workspace,
-                           result);
+        ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
+                              dim3(1, batch_count),
+                              NB,
+                              0,
+                              handle->get_stream(),
+                              blocks,
+                              workspace,
+                              result);
     }
     else
     {
@@ -223,14 +223,14 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
         bool reduceKernel = blocks > 1 || batch_count > 1;
         if(reduceKernel)
         {
-            hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
-                               dim3(1, batch_count),
-                               NB,
-                               0,
-                               handle->get_stream(),
-                               blocks,
-                               workspace,
-                               (Tr*)(workspace + size_t(batch_count) * blocks));
+            ROCBLAS_LAUNCH_KERNEL((rocblas_reduction_kernel_part2<NB, FINALIZE>),
+                                  dim3(1, batch_count),
+                                  NB,
+                                  0,
+                                  handle->get_stream(),
+                                  blocks,
+                                  workspace,
+                                  (Tr*)(workspace + size_t(batch_count) * blocks));
         }
 
         if(std::is_same_v<FINALIZE, rocblas_finalize_identity> || reduceKernel)

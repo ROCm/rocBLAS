@@ -143,11 +143,11 @@ rocblas_status rocblas_her_template(rocblas_handle handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X>), her_KARGS(alpha));
+        ROCBLAS_LAUNCH_KERNEL((rocblas_her_kernel<HER_DIM_X>), her_KARGS(alpha));
     }
     else
     {
-        hipLaunchKernelGGL((rocblas_her_kernel<HER_DIM_X>), her_KARGS(*alpha));
+        ROCBLAS_LAUNCH_KERNEL((rocblas_her_kernel<HER_DIM_X>), her_KARGS(*alpha));
     }
 #undef her_KARGS
     return rocblas_status_success;

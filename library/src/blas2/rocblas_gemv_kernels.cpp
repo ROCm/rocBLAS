@@ -201,7 +201,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL(
+                ROCBLAS_LAUNCH_KERNEL(
                     (rocblas_gemvn_sm_mn_batched_kernel<GEMVN_SM_MN_BATCHED_DIM_X,
                                                         GEMVN_SM_MN_BATCHED_DIM_NBATCH>),
                     gemvn_sm_mn_batched_KARGS(alpha, beta));
@@ -211,7 +211,7 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL(
+                ROCBLAS_LAUNCH_KERNEL(
                     (rocblas_gemvn_sm_mn_batched_kernel<GEMVN_SM_MN_BATCHED_DIM_X,
                                                         GEMVN_SM_MN_BATCHED_DIM_NBATCH>),
                     gemvn_sm_mn_batched_KARGS(*alpha, *beta));
@@ -233,12 +233,12 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 if(!i64_indices)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
-                                       gemvn_KARGS(alpha, beta));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
+                                          gemvn_KARGS(alpha, beta));
             }
             else
             {
@@ -246,12 +246,12 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     return rocblas_status_success;
 
                 if(!i64_indices)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
-                                       gemvn_KARGS(*alpha, *beta));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
+                                          gemvn_KARGS(*alpha, *beta));
             }
         }
         //optimized gemvn kernel with double buffered loads for gfx90a.
@@ -267,34 +267,34 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                 dim3                 threads(NB);
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
-                    hipLaunchKernelGGL((rocblas_gemv_scal_kernel<NB>),
-                                       grid,
-                                       threads,
-                                       0,
-                                       rocblas_stream,
-                                       m,
-                                       beta,
-                                       stride_beta,
-                                       y,
-                                       shifty,
-                                       incy,
-                                       stridey);
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemv_scal_kernel<NB>),
+                                          grid,
+                                          threads,
+                                          0,
+                                          rocblas_stream,
+                                          m,
+                                          beta,
+                                          stride_beta,
+                                          y,
+                                          shifty,
+                                          incy,
+                                          stridey);
                 }
                 else
                 {
                     if(*beta != 1)
-                        hipLaunchKernelGGL((rocblas_gemv_scal_kernel<NB>),
-                                           grid,
-                                           threads,
-                                           0,
-                                           rocblas_stream,
-                                           m,
-                                           *beta,
-                                           stride_beta,
-                                           y,
-                                           shifty,
-                                           incy,
-                                           stridey);
+                        ROCBLAS_LAUNCH_KERNEL((rocblas_gemv_scal_kernel<NB>),
+                                              grid,
+                                              threads,
+                                              0,
+                                              rocblas_stream,
+                                              m,
+                                              *beta,
+                                              stride_beta,
+                                              y,
+                                              shifty,
+                                              incy,
+                                              stridey);
                 }
 
 #define gemvn_double_buffered_KARGS(alpha_)                                                    \
@@ -313,20 +313,22 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
-                    hipLaunchKernelGGL((rocblas_gemvn_double_buffered_kernel<thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread>),
-                                       gemvn_double_buffered_KARGS(alpha));
+                    ROCBLAS_LAUNCH_KERNEL(
+                        (rocblas_gemvn_double_buffered_kernel<thread_x,
+                                                              thread_y,
+                                                              elements_per_thread>),
+                        gemvn_double_buffered_KARGS(alpha));
                 }
                 else
                 {
                     if(!*alpha)
                         return rocblas_status_success;
 
-                    hipLaunchKernelGGL((rocblas_gemvn_double_buffered_kernel<thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread>),
-                                       gemvn_double_buffered_KARGS(*alpha));
+                    ROCBLAS_LAUNCH_KERNEL(
+                        (rocblas_gemvn_double_buffered_kernel<thread_x,
+                                                              thread_y,
+                                                              elements_per_thread>),
+                        gemvn_double_buffered_KARGS(*alpha));
                 }
             }
 #undef gemvn_double_buffered_KARGS
@@ -359,12 +361,12 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 if(!i64_indices)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
-                                       gemvn_KARGS(alpha, beta));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
+                                          gemvn_KARGS(alpha, beta));
             }
             else
             {
@@ -372,12 +374,12 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     return rocblas_status_success;
 
                 if(!i64_indices)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
-                                       gemvn_KARGS(*alpha, *beta));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
+                                          gemvn_KARGS(*alpha, *beta));
             }
         }
         else // non-skinny
@@ -394,12 +396,12 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 if(!i64_indices)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(alpha, beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
-                                       gemvn_KARGS(alpha, beta));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
+                                          gemvn_KARGS(alpha, beta));
             }
             else
             {
@@ -407,12 +409,12 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     return rocblas_status_success;
 
                 if(!i64_indices)
-                    hipLaunchKernelGGL(
+                    ROCBLAS_LAUNCH_KERNEL(
                         (rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int>),
                         gemvn_KARGS(*alpha, *beta));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
-                                       gemvn_KARGS(*alpha, *beta));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, int64_t>),
+                                          gemvn_KARGS(*alpha, *beta));
             }
         }
 #undef gemvn_KARGS
@@ -430,58 +432,58 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             dim3                 gemvtsm_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((rocblas_gemvtsm_kernel<CONJ, NB>),
-                                   gemvtsm_grid,
-                                   gemvtsm_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvtsm_kernel<CONJ, NB>),
+                                      gemvtsm_grid,
+                                      gemvtsm_threads,
+                                      0,
+                                      rocblas_stream,
+                                      m,
+                                      n,
+                                      alpha,
+                                      stride_alpha,
+                                      A,
+                                      offseta,
+                                      lda,
+                                      strideA,
+                                      x,
+                                      shiftx,
+                                      incx,
+                                      stridex,
+                                      beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey);
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((rocblas_gemvtsm_kernel<CONJ, NB>),
-                                   gemvtsm_grid,
-                                   gemvtsm_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvtsm_kernel<CONJ, NB>),
+                                      gemvtsm_grid,
+                                      gemvtsm_threads,
+                                      0,
+                                      rocblas_stream,
+                                      m,
+                                      n,
+                                      *alpha,
+                                      stride_alpha,
+                                      A,
+                                      offseta,
+                                      lda,
+                                      strideA,
+                                      x,
+                                      shiftx,
+                                      incx,
+                                      stridex,
+                                      *beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey);
             }
         }
         else if(workspace && rocblas_gemvt_skinny_n<Ti>(transA, m, n))
@@ -499,25 +501,25 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 if(!i64_indices)
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
-                                       gemvt_sn_KARGS(alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
+                                          gemvt_sn_KARGS(alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
-                                       gemvt_sn_KARGS(alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
+                                          gemvt_sn_KARGS(alpha));
 
-                hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                   dim3(1, n, batch_count),
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   blocks,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey,
-                                   (Tex*)workspace);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
+                                      dim3(1, n, batch_count),
+                                      gemvt_threads,
+                                      0,
+                                      rocblas_stream,
+                                      blocks,
+                                      beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey,
+                                      (Tex*)workspace);
             }
             else
             {
@@ -525,25 +527,25 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     return rocblas_status_success;
 
                 if(!i64_indices)
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
-                                       gemvt_sn_KARGS(*alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
+                                          gemvt_sn_KARGS(*alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
-                                       gemvt_sn_KARGS(*alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
+                                          gemvt_sn_KARGS(*alpha));
 
-                hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                   dim3(1, n, batch_count),
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   blocks,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey,
-                                   workspace);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
+                                      dim3(1, n, batch_count),
+                                      gemvt_threads,
+                                      0,
+                                      rocblas_stream,
+                                      blocks,
+                                      *beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey,
+                                      workspace);
             }
 
 #undef gemvt_sn_KARGS
@@ -563,34 +565,34 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                 dim3                 threads(NB);
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
-                    hipLaunchKernelGGL((rocblas_gemv_scal_kernel<NB>),
-                                       grid,
-                                       threads,
-                                       0,
-                                       rocblas_stream,
-                                       n,
-                                       beta,
-                                       stride_beta,
-                                       y,
-                                       shifty,
-                                       incy,
-                                       stridey);
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemv_scal_kernel<NB>),
+                                          grid,
+                                          threads,
+                                          0,
+                                          rocblas_stream,
+                                          n,
+                                          beta,
+                                          stride_beta,
+                                          y,
+                                          shifty,
+                                          incy,
+                                          stridey);
                 }
                 else
                 {
                     if(*beta != 1)
-                        hipLaunchKernelGGL((rocblas_gemv_scal_kernel<NB>),
-                                           grid,
-                                           threads,
-                                           0,
-                                           rocblas_stream,
-                                           n,
-                                           *beta,
-                                           stride_beta,
-                                           y,
-                                           shifty,
-                                           incy,
-                                           stridey);
+                        ROCBLAS_LAUNCH_KERNEL((rocblas_gemv_scal_kernel<NB>),
+                                              grid,
+                                              threads,
+                                              0,
+                                              rocblas_stream,
+                                              n,
+                                              *beta,
+                                              stride_beta,
+                                              y,
+                                              shifty,
+                                              incy,
+                                              stridey);
                 }
                 // The following kernel does the `y += A * x` computation
                 static constexpr int thread_x            = rocblas_gemv_bx();
@@ -608,22 +610,24 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
-                    hipLaunchKernelGGL((rocblas_gemvt_double_buffered_kernel<CONJ,
-                                                                             thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread>),
-                                       gemvt_double_buffered_KARGS(alpha));
+                    ROCBLAS_LAUNCH_KERNEL(
+                        (rocblas_gemvt_double_buffered_kernel<CONJ,
+                                                              thread_x,
+                                                              thread_y,
+                                                              elements_per_thread>),
+                        gemvt_double_buffered_KARGS(alpha));
                 }
                 else
                 {
                     if(!*alpha)
                         return rocblas_status_success;
 
-                    hipLaunchKernelGGL((rocblas_gemvt_double_buffered_kernel<CONJ,
-                                                                             thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread>),
-                                       gemvt_double_buffered_KARGS(*alpha));
+                    ROCBLAS_LAUNCH_KERNEL(
+                        (rocblas_gemvt_double_buffered_kernel<CONJ,
+                                                              thread_x,
+                                                              thread_y,
+                                                              elements_per_thread>),
+                        gemvt_double_buffered_KARGS(*alpha));
                 }
             }
 #undef gemvt_double_buffered_KARGS
@@ -647,16 +651,16 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                   gemvt_KARGS(alpha, beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
+                                      gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                   gemvt_KARGS(*alpha, *beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
+                                      gemvt_KARGS(*alpha, *beta));
             }
         }
         //Using kernel code with shared memory reduction for single precision as well as for other precisions when m or n is less than 6000 and for complex double in gfx1030.
@@ -670,14 +674,14 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(alpha, beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(*alpha, *beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(*alpha, *beta));
             }
         }
 
@@ -692,16 +696,16 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                   gemvt_KARGS(alpha, beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
+                                      gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                   gemvt_KARGS(*alpha, *beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
+                                      gemvt_KARGS(*alpha, *beta));
             }
         }
 #undef gemvt_KARGS
@@ -719,58 +723,58 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             dim3                 gemvtsm_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((rocblas_gemvtsm_kernel<CONJ, NB>),
-                                   gemvtsm_grid,
-                                   gemvtsm_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvtsm_kernel<CONJ, NB>),
+                                      gemvtsm_grid,
+                                      gemvtsm_threads,
+                                      0,
+                                      rocblas_stream,
+                                      m,
+                                      n,
+                                      alpha,
+                                      stride_alpha,
+                                      A,
+                                      offseta,
+                                      lda,
+                                      strideA,
+                                      x,
+                                      shiftx,
+                                      incx,
+                                      stridex,
+                                      beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey);
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((rocblas_gemvtsm_kernel<CONJ, NB>),
-                                   gemvtsm_grid,
-                                   gemvtsm_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvtsm_kernel<CONJ, NB>),
+                                      gemvtsm_grid,
+                                      gemvtsm_threads,
+                                      0,
+                                      rocblas_stream,
+                                      m,
+                                      n,
+                                      *alpha,
+                                      stride_alpha,
+                                      A,
+                                      offseta,
+                                      lda,
+                                      strideA,
+                                      x,
+                                      shiftx,
+                                      incx,
+                                      stridex,
+                                      *beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey);
             }
         }
         else if(workspace && rocblas_gemvt_skinny_n<Ti>(transA, m, n))
@@ -788,25 +792,25 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 if(!i64_indices)
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
-                                       gemvt_sn_KARGS(alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
+                                          gemvt_sn_KARGS(alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
-                                       gemvt_sn_KARGS(alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
+                                          gemvt_sn_KARGS(alpha));
 
-                hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                   dim3(1, n, batch_count),
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   blocks,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey,
-                                   (Tex*)workspace);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
+                                      dim3(1, n, batch_count),
+                                      gemvt_threads,
+                                      0,
+                                      rocblas_stream,
+                                      blocks,
+                                      beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey,
+                                      (Tex*)workspace);
             }
             else
             {
@@ -814,25 +818,25 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                     return rocblas_status_success;
 
                 if(!i64_indices)
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
-                                       gemvt_sn_KARGS(*alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, rocblas_int>),
+                                          gemvt_sn_KARGS(*alpha));
                 else
-                    hipLaunchKernelGGL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
-                                       gemvt_sn_KARGS(*alpha));
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_kernel<CONJ, NB, WIN, int64_t>),
+                                          gemvt_sn_KARGS(*alpha));
 
-                hipLaunchKernelGGL((rocblas_gemvt_sn_reduce<NB, 8>),
-                                   dim3(1, n, batch_count),
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   blocks,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey,
-                                   workspace);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_sn_reduce<NB, 8>),
+                                      dim3(1, n, batch_count),
+                                      gemvt_threads,
+                                      0,
+                                      rocblas_stream,
+                                      blocks,
+                                      *beta,
+                                      stride_beta,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey,
+                                      workspace);
             }
 
 #undef gemvt_sn_KARGS
@@ -852,34 +856,34 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
                 dim3                 threads(NB);
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
-                    hipLaunchKernelGGL((rocblas_gemv_scal_kernel<NB>),
-                                       grid,
-                                       threads,
-                                       0,
-                                       rocblas_stream,
-                                       n,
-                                       beta,
-                                       stride_beta,
-                                       y,
-                                       shifty,
-                                       incy,
-                                       stridey);
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_gemv_scal_kernel<NB>),
+                                          grid,
+                                          threads,
+                                          0,
+                                          rocblas_stream,
+                                          n,
+                                          beta,
+                                          stride_beta,
+                                          y,
+                                          shifty,
+                                          incy,
+                                          stridey);
                 }
                 else
                 {
                     if(*beta != 1)
-                        hipLaunchKernelGGL((rocblas_gemv_scal_kernel<NB>),
-                                           grid,
-                                           threads,
-                                           0,
-                                           rocblas_stream,
-                                           n,
-                                           *beta,
-                                           stride_beta,
-                                           y,
-                                           shifty,
-                                           incy,
-                                           stridey);
+                        ROCBLAS_LAUNCH_KERNEL((rocblas_gemv_scal_kernel<NB>),
+                                              grid,
+                                              threads,
+                                              0,
+                                              rocblas_stream,
+                                              n,
+                                              *beta,
+                                              stride_beta,
+                                              y,
+                                              shifty,
+                                              incy,
+                                              stridey);
                 }
                 // The following kernel does the `y += A * x` computation
                 static constexpr int thread_x            = rocblas_gemv_bx();
@@ -897,22 +901,24 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
 
                 if(handle->pointer_mode == rocblas_pointer_mode_device)
                 {
-                    hipLaunchKernelGGL((rocblas_gemvt_double_buffered_kernel<CONJ,
-                                                                             thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread>),
-                                       gemvt_double_buffered_KARGS(alpha));
+                    ROCBLAS_LAUNCH_KERNEL(
+                        (rocblas_gemvt_double_buffered_kernel<CONJ,
+                                                              thread_x,
+                                                              thread_y,
+                                                              elements_per_thread>),
+                        gemvt_double_buffered_KARGS(alpha));
                 }
                 else
                 {
                     if(!*alpha)
                         return rocblas_status_success;
 
-                    hipLaunchKernelGGL((rocblas_gemvt_double_buffered_kernel<CONJ,
-                                                                             thread_x,
-                                                                             thread_y,
-                                                                             elements_per_thread>),
-                                       gemvt_double_buffered_KARGS(*alpha));
+                    ROCBLAS_LAUNCH_KERNEL(
+                        (rocblas_gemvt_double_buffered_kernel<CONJ,
+                                                              thread_x,
+                                                              thread_y,
+                                                              elements_per_thread>),
+                        gemvt_double_buffered_KARGS(*alpha));
                 }
             }
 #undef gemvt_double_buffered_KARGS
@@ -930,14 +936,14 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(alpha, beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(*alpha, *beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_kernel<CONJ, NB>), gemvt_KARGS(*alpha, *beta));
             }
         }
         //Using kernel code with warp reduction.
@@ -950,16 +956,16 @@ rocblas_status rocblas_internal_gemv_template(rocblas_handle    handle,
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                   gemvt_KARGS(alpha, beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
+                                      gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
-                                   gemvt_KARGS(*alpha, *beta));
+                ROCBLAS_LAUNCH_KERNEL((rocblas_gemvt_warp_reduce_kernel<CONJ, NB>),
+                                      gemvt_KARGS(*alpha, *beta));
             }
         }
 #undef gemvt_KARGS

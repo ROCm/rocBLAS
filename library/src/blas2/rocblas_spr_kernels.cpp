@@ -99,22 +99,22 @@ rocblas_status rocblas_spr_template(rocblas_handle handle,
     bool                            host_mode = handle->pointer_mode == rocblas_pointer_mode_host;
     rocblas_internal_val_ptr<TScal> alpha_device_host(host_mode, alpha);
 
-    hipLaunchKernelGGL((rocblas_spr_kernel<SPR_DIM_X, SPR_DIM_Y>),
-                       spr_grid,
-                       spr_threads,
-                       0,
-                       handle->get_stream(),
-                       host_mode,
-                       uplo == rocblas_fill_upper,
-                       n,
-                       alpha_device_host,
-                       x,
-                       shift_x,
-                       incx,
-                       stride_x,
-                       AP,
-                       offset_A,
-                       stride_A);
+    ROCBLAS_LAUNCH_KERNEL((rocblas_spr_kernel<SPR_DIM_X, SPR_DIM_Y>),
+                          spr_grid,
+                          spr_threads,
+                          0,
+                          handle->get_stream(),
+                          host_mode,
+                          uplo == rocblas_fill_upper,
+                          n,
+                          alpha_device_host,
+                          x,
+                          shift_x,
+                          incx,
+                          stride_x,
+                          AP,
+                          offset_A,
+                          stride_A);
 
     return rocblas_status_success;
 }

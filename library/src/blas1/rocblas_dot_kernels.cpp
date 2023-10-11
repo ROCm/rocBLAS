@@ -358,55 +358,56 @@ rocblas_status rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
         {
             if(incx == 1 && incy == 1)
             {
-                hipLaunchKernelGGL((rocblas_dot_kernel_inc1by2<ONE_BLOCK, NB_OB, WIN_OB, CONJ, T>),
-                                   grid,
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   n,
-                                   x,
-                                   shiftx,
-                                   stridex,
-                                   y,
-                                   shifty,
-                                   stridey,
-                                   workspace,
-                                   output);
+                ROCBLAS_LAUNCH_KERNEL(
+                    (rocblas_dot_kernel_inc1by2<ONE_BLOCK, NB_OB, WIN_OB, CONJ, T>),
+                    grid,
+                    threads,
+                    0,
+                    handle->get_stream(),
+                    n,
+                    x,
+                    shiftx,
+                    stridex,
+                    y,
+                    shifty,
+                    stridey,
+                    workspace,
+                    output);
             }
             else
             {
-                hipLaunchKernelGGL((rocblas_dot_kernel<ONE_BLOCK, NB_OB, WIN_OB, CONJ, T>),
-                                   grid,
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   n,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey,
-                                   workspace,
-                                   output);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel<ONE_BLOCK, NB_OB, WIN_OB, CONJ, T>),
+                                      grid,
+                                      threads,
+                                      0,
+                                      handle->get_stream(),
+                                      n,
+                                      x,
+                                      shiftx,
+                                      incx,
+                                      stridex,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey,
+                                      workspace,
+                                      output);
             }
         }
         else // x dot x
         {
-            hipLaunchKernelGGL((rocblas_dot_kernel_magsq<ONE_BLOCK, NB_OB, WIN_OB, CONJ, T>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               workspace,
-                               output);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_magsq<ONE_BLOCK, NB_OB, WIN_OB, CONJ, T>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  x,
+                                  shiftx,
+                                  incx,
+                                  stridex,
+                                  workspace,
+                                  output);
         }
 
         if(handle->pointer_mode != rocblas_pointer_mode_device)
@@ -433,80 +434,80 @@ rocblas_status rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
         {
             if(incx == 1 && incy == 1)
             {
-                hipLaunchKernelGGL((rocblas_dot_kernel_inc1<ONE_BLOCK, NB, WIN, CONJ, T>),
-                                   grid,
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   n,
-                                   x,
-                                   shiftx,
-                                   stridex,
-                                   y,
-                                   shifty,
-                                   stridey,
-                                   workspace,
-                                   output);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_inc1<ONE_BLOCK, NB, WIN, CONJ, T>),
+                                      grid,
+                                      threads,
+                                      0,
+                                      handle->get_stream(),
+                                      n,
+                                      x,
+                                      shiftx,
+                                      stridex,
+                                      y,
+                                      shifty,
+                                      stridey,
+                                      workspace,
+                                      output);
             }
             else
             {
-                hipLaunchKernelGGL((rocblas_dot_kernel<ONE_BLOCK, NB, WIN, CONJ, T>),
-                                   grid,
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   n,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey,
-                                   workspace,
-                                   output);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel<ONE_BLOCK, NB, WIN, CONJ, T>),
+                                      grid,
+                                      threads,
+                                      0,
+                                      handle->get_stream(),
+                                      n,
+                                      x,
+                                      shiftx,
+                                      incx,
+                                      stridex,
+                                      y,
+                                      shifty,
+                                      incy,
+                                      stridey,
+                                      workspace,
+                                      output);
             }
         }
         else // x dot x
         {
-            hipLaunchKernelGGL((rocblas_dot_kernel_magsq<ONE_BLOCK, NB, WIN, CONJ, T>),
-                               grid,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               workspace,
-                               output);
+            ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_magsq<ONE_BLOCK, NB, WIN, CONJ, T>),
+                                  grid,
+                                  threads,
+                                  0,
+                                  handle->get_stream(),
+                                  n,
+                                  x,
+                                  shiftx,
+                                  incx,
+                                  stridex,
+                                  workspace,
+                                  output);
         }
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
             if(blocks > 1) // if single block first kernel did all work
-                hipLaunchKernelGGL((rocblas_dot_kernel_reduce<NB, WIN>),
-                                   dim3(1, batch_count),
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   blocks,
-                                   workspace,
-                                   results);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_reduce<NB, WIN>),
+                                      dim3(1, batch_count),
+                                      threads,
+                                      0,
+                                      handle->get_stream(),
+                                      blocks,
+                                      workspace,
+                                      results);
         }
         else
         {
             if(blocks > 1) // if single block first kernel did all work
-                hipLaunchKernelGGL((rocblas_dot_kernel_reduce<NB, WIN>),
-                                   dim3(1, batch_count),
-                                   threads,
-                                   0,
-                                   handle->get_stream(),
-                                   blocks,
-                                   workspace,
-                                   output);
+                ROCBLAS_LAUNCH_KERNEL((rocblas_dot_kernel_reduce<NB, WIN>),
+                                      dim3(1, batch_count),
+                                      threads,
+                                      0,
+                                      handle->get_stream(),
+                                      blocks,
+                                      workspace,
+                                      output);
             // Changed to hipMemcpy for pointer mode host to match legacy BLAS.
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(&results[0], output, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
