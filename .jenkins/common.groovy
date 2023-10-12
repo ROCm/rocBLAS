@@ -66,7 +66,7 @@ def runTestCommand (platform, project, gfilter)
     if (project.buildName.contains('weekly'))
     {
             rocBLASTestCommand = """
-                                    ROCBLAS_CHECK_NUMERICS=2 ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ROCBLAS_CHECK_NUMERICS=4 ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                                  """
     }
     else
