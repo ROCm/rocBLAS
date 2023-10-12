@@ -173,7 +173,7 @@ inline rocblas_status rocblas_reduction_setup(rocblas_handle handle,
         return rocblas_status_invalid_handle;
     }
 
-    size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, Tw>(n, batch_count);
+    size_t dev_bytes = rocblas_reduction_kernel_workspace_size<rocblas_int, NB, Tw>(n, batch_count);
 
     if(handle->is_device_memory_size_query())
     {

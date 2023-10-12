@@ -319,7 +319,7 @@ namespace
         // just want to ensure 64 bit math
 
         uint32_t block  = 8;
-        int64_t  stride = 1LL << 33; // int32 overflow
+        int64_t  stride = int64_t(1) << 33; // int32 overflow
         int64_t  offset = stride + 2;
 
         T        val(42);

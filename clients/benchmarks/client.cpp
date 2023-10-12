@@ -1482,10 +1482,11 @@ try
     std::string arithmetic_check;
     std::string filter;
     std::string name_filter;
-    int32_t     device_id;
-    int32_t     parallel_devices;
+    int32_t     device_id         = 0;
+    int32_t     parallel_devices  = 0;
     int32_t     flags             = 0;
     int32_t     geam_ex_op        = 0;
+    int32_t     api               = 0;
     bool        datafile          = rocblas_parse_data(argc, argv);
     bool        atomics_allowed   = true;
     bool        log_function_name = false;
@@ -1684,13 +1685,13 @@ try
          value<int32_t>(&arg.solution_index)->default_value(0),
          "extended precision gemm solution index")
 
+        ("flags",
+         value<int32_t>(&flags)->default_value(rocblas_gemm_flags_none),
+         "gemm_ex flags, see rocblas_gemm_flags enum in documentation")
+
         ("geam_ex_op",
          value<int32_t>(&geam_ex_op)->default_value(rocblas_geam_ex_operation_min_plus),
          "geam_ex_operation, 0: min_plus operation, 1: plus_min operation")
-
-        ("flags",
-         value<int32_t>(&flags)->default_value(rocblas_gemm_flags_none),
-         "gemm_ex flags, 1: Use packed-i8, 0: (default) uses unpacked-i8, available on matrix-inst-supported device")
 
         ("atomics_allowed",
          bool_switch(&atomics_allowed)->default_value(true),
@@ -1711,6 +1712,10 @@ try
         ("fortran",
          bool_switch(&fortran)->default_value(false),
          "Run using Fortran interface")
+
+        ("api",
+         value<int32_t>(&api)->default_value(0),
+         "Use API, supercedes fortran flag (0==C, 1==C_64, ...)")
 
         ("workspace",
          value<size_t>(&arg.user_allocated_workspace)->default_value(0),
@@ -1774,7 +1779,9 @@ try
     // transfer local variable state
 
     arg.atomics_mode = atomics_allowed ? rocblas_atomics_allowed : rocblas_atomics_not_allowed;
-    if(fortran)
+    if(api)
+        arg.api = rocblas_client_api(api);
+    else if(fortran)
         arg.api = FORTRAN;
 
     static const char* fp16AltImplEnvStr = std::getenv("ROCBLAS_INTERNAL_FP16_ALT_IMPL");

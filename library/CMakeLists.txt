@@ -26,41 +26,74 @@
 # HELPER FUNCTIONS
 # ########################################################################
 
+
 # ########################################################################
-# target_compile_features() override for CUDA
+# A helper function to prefix a source list of files with a common path into a new list (non-destructive)
 # ########################################################################
-function( target_compile_features target_name )
-  # With Cmake v3.5, hipcc (with nvcc backend) does not work with target_compile_features
-  # Turn on -std=c++17 manually
-  if( CUDA_FOUND AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER MATCHES ".*/nvcc$" ) )
-    set_target_properties( ${target_name} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON )
-  else( )
-    _target_compile_features( ${target_name} ${ARGN} )
-  endif( )
+function( prepend_path prefix source_list_of_files return_list_of_files )
+  foreach( file ${${source_list_of_files}} )
+    if(IS_ABSOLUTE ${file} )
+      list( APPEND new_list ${file} )
+    else( )
+      list( APPEND new_list ${prefix}/${file} )
+    endif( )
+  endforeach( )
+  set( ${return_list_of_files} ${new_list} PARENT_SCOPE )
 endfunction( )
 
 # ########################################################################
-# target_link_libraries() override for CUDA
+# standardized library settings
 # ########################################################################
-function( target_link_libraries target_name )
-  # hipcc takes care of finding hip library dependencies internally; remove
-  # explicit mentions of them so cmake doesn't complain on nvcc path
-  if( CUDA_FOUND AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER MATCHES ".*/nvcc$" ) )
-    foreach( link_library ${ARGN} )
-      if( (link_library MATCHES "^hip::") )
-      else( )
-        if( TARGET ${link_library} )
-          list( APPEND new_list -Xlinker ${link_library} )
-        else( )
-          list( APPEND new_list ${link_library} )
-        endif( )
-      endif( )
-    endforeach( )
-    _target_link_libraries( ${target_name} ${new_list} )
-  else( )
-    _target_link_libraries( ${target_name} ${ARGN} )
-  endif( )
-endfunction( )
+function( rocblas_library_settings lib_target_ )
+
+  message(STATUS "***** rocblas_library_settings: ${lib_target_}")
+
+  target_include_directories( ${lib_target_} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/src>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include/internal>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas/internal>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/rocblas>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+    $<BUILD_INTERFACE:${Tensile_INC}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  )
+
+  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
+  target_compile_options( ${lib_target_} PRIVATE -mf16c )
+
+  # Do not allow Variable Length Arrays (use unique_ptr instead)
+  target_compile_options( ${lib_target_} PRIVATE -Werror=vla )
+
+  target_compile_definitions( ${lib_target_} PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_BETA_FEATURES_API )
+
+  # both libraries will use rocblas_EXPORTS
+  target_compile_definitions( ${lib_target_} PRIVATE rocblas_EXPORTS )
+
+  set_target_properties( ${lib_target_} PROPERTIES CXX_EXTENSIONS NO )
+  set_target_properties( ${lib_target_} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+
+  target_link_libraries( ${lib_target_} INTERFACE hip::host )
+  if (WIN32)
+    target_link_libraries( ${lib_target_} PRIVATE hip::device )
+  else()
+    target_link_libraries( ${lib_target_} PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc )
+  endif()
+    target_link_libraries( ${lib_target_} PRIVATE Threads::Threads )
+
+  #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
+
+  set_target_properties( ${lib_target_} PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
+
+  if( NOT BUILD_SHARED_LIBS )
+    # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
+    set_target_properties( ${lib_target_} PROPERTIES PREFIX "lib" )
+  endif()
+
+  rocm_set_soversion( ${lib_target_} ${rocblas_SOVERSION} )
+
+endfunction()
 
 # ########################################################################
 # Main
@@ -123,6 +156,7 @@ set( rocblas_headers_public
   include/internal/rocblas_float8.h
   include/internal/rocblas-auxiliary.h
   include/internal/rocblas-functions.h
+  include/internal/rocblas-macros.h
   include/internal/rocblas-beta.h
   ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
 )
@@ -130,4 +164,86 @@ set( rocblas_headers_public
 source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )
 
 # Build into subdirectories
+
+# src contains original rocblas with Tensile and core functionality
 add_subdirectory( src )
+
+
+############################################################
+# Installation
+
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/library/include ${PROJECT_BINARY_DIR}/include/rocblas)
+
+# Force installation of .f90 module file
+rocm_install(FILES "include/rocblas_module.f90"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/rocblas/"
+)
+
+if(BUILD_FILE_REORG_BACKWARD_COMPATIBILITY AND NOT WIN32)
+  rocm_wrap_header_dir(
+    ${CMAKE_SOURCE_DIR}/library/include
+    PATTERNS "*.h"
+    GUARDS SYMLINK WRAPPER
+    WRAPPER_LOCATIONS ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+  rocm_wrap_header_file(
+    internal/rocblas-version.h internal/rocblas-export.h internal/rocblas-exported-proto.hpp internal/rocblas_device_malloc.hpp
+    GUARDS SYMLINK WRAPPER
+    WRAPPER_LOCATIONS ${CMAKE_INSTALL_INCLUDEDIR} rocblas/${CMAKE_INSTALL_INCLUDEDIR}
+    ORIGINAL_FILES ${PROJECT_BINARY_DIR}/include/rocblas/internal/rocblas-version.h
+  )
+
+  rocm_install(
+    DIRECTORY
+       "${PROJECT_BINARY_DIR}/rocblas"
+        DESTINATION "." )
+
+    #Create SymLink for Fortran Object Module for backward compatibility
+    rocm_install(
+      CODE "
+        set(PREFIX \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})
+        set(INPUT_FILE \${PREFIX}/include/rocblas/rocblas_module.f90)
+        set(SYMLINK_LOCATIONS \${PREFIX}/rocblas/include \${PREFIX}/include)
+        foreach(LOCATION IN LISTS SYMLINK_LOCATIONS)
+          file(MAKE_DIRECTORY \${LOCATION})
+          execute_process(COMMAND ln -sfr \${INPUT_FILE} \${LOCATION})
+          message(STATUS \"Created symlink in \${LOCATION} to \${INPUT_FILE}.\")
+        endforeach()
+        "
+    )
+endif()
+
+############################################################
+# Packaging
+
+#         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
+
+if( BUILD_SHARED_LIBS )
+  rocm_export_targets(
+    TARGETS roc::rocblas
+    DEPENDS PACKAGE hip
+    NAMESPACE roc::
+    )
+else()
+  # static
+  if (NOT BUILD_WITH_TENSILE OR (Tensile_LIBRARY_FORMAT MATCHES "msgpack"))
+    # header only tensile usage of msgpack
+    rocm_export_targets(
+      TARGETS roc::rocblas
+      DEPENDS PACKAGE hip
+      NAMESPACE roc::
+      )
+  else()
+    # yaml based Tensile uses LLVM
+    rocm_export_targets(
+      TARGETS roc::rocblas
+      DEPENDS PACKAGE hip
+      STATIC_DEPENDS PACKAGE LLVM
+      NAMESPACE roc::
+      )
+  endif()
+endif()
+
+
+
+

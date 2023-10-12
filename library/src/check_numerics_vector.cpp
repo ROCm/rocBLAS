@@ -21,6 +21,7 @@
  * ************************************************************************ */
 
 #include "check_numerics_vector.hpp"
+#include "int64_helpers.hpp"
 #include "utility.hpp"
 
 /**
@@ -156,17 +157,17 @@ template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_check_numerics_vector_template(const char*    function_name,
                                                     rocblas_handle handle,
-                                                    rocblas_int    n,
+                                                    int64_t        n_64,
                                                     T              x,
                                                     rocblas_stride offset_x,
                                                     int64_t        inc_x,
                                                     rocblas_stride stride_x,
-                                                    rocblas_int    batch_count,
+                                                    int64_t        batch_count_64,
                                                     const int      check_numerics,
                                                     bool           is_input)
 {
     //Quick return if possible. Not Argument error
-    if(n <= 0 || inc_x <= 0 || batch_count <= 0 || !x)
+    if(n_64 <= 0 || inc_x <= 0 || batch_count_64 <= 0 || !x)
     {
         return rocblas_status_success;
     }
@@ -193,20 +194,33 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     hipStream_t           rocblas_stream = handle->get_stream();
     constexpr rocblas_int NB             = 256;
-    dim3                  blocks((n - 1) / NB + 1, batch_count);
-    dim3                  threads(NB);
 
-    ROCBLAS_LAUNCH_KERNEL((rocblas_check_numerics_vector_kernel<NB>),
-                          blocks,
-                          threads,
-                          0,
-                          rocblas_stream,
-                          n,
-                          x,
-                          offset_x,
-                          inc_x,
-                          stride_x,
-                          (rocblas_check_numerics_t*)d_abnormal);
+    size_t abs_inc = inc_x < 0 ? -inc_x : inc_x;
+
+    for(int64_t b_base = 0; b_base < batch_count_64; b_base += c_i64_grid_YZ_chunk)
+    {
+        auto    x_ptr       = adjust_ptr_batch(x, b_base, stride_x);
+        int32_t batch_count = int32_t(std::min(batch_count_64 - b_base, c_i64_grid_YZ_chunk));
+        for(int64_t n_base = 0; n_base < n_64; n_base += c_i64_grid_X_chunk)
+        {
+            int32_t n = int32_t(std::min(n_64 - n_base, c_i64_grid_X_chunk));
+
+            dim3 blocks((n - 1) / NB + 1, batch_count);
+            dim3 threads(NB);
+
+            ROCBLAS_LAUNCH_KERNEL((rocblas_check_numerics_vector_kernel<NB>),
+                                  blocks,
+                                  threads,
+                                  0,
+                                  rocblas_stream,
+                                  n,
+                                  x_ptr,
+                                  offset_x + abs_inc * n_base,
+                                  abs_inc,
+                                  stride_x,
+                                  (rocblas_check_numerics_t*)d_abnormal);
+        }
+    }
 
     //Transferring the rocblas_check_numerics_t structure from device to the host
     RETURN_IF_HIP_ERROR(hipMemcpy(&h_abnormal,
@@ -227,12 +241,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                           \
         rocblas_internal_check_numerics_vector_template(const char*    function_name,  \
                                                         rocblas_handle handle,         \
-                                                        rocblas_int    n,              \
+                                                        int64_t        n,              \
                                                         typet_         x,              \
                                                         rocblas_stride offset_x,       \
                                                         int64_t        incx,           \
                                                         rocblas_stride stride_x,       \
-                                                        rocblas_int    batch_count,    \
+                                                        int64_t        batch_count,    \
                                                         const int      check_numerics, \
                                                         bool           is_input)
 INST(float*);

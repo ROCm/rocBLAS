@@ -35,11 +35,11 @@ template <typename T>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_check_numerics_vector_template(const char*    function_name,
                                                     rocblas_handle handle,
-                                                    rocblas_int    n,
+                                                    int64_t        n,
                                                     T              x,
                                                     rocblas_stride offset_x,
                                                     int64_t        inc_x,
                                                     rocblas_stride stride_x,
-                                                    rocblas_int    batch_count,
+                                                    int64_t        batch_count,
                                                     const int      check_numerics,
                                                     bool           is_input);

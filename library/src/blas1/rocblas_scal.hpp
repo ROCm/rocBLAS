@@ -23,18 +23,20 @@
 #pragma once
 
 #include "handle.hpp"
+#include "int64_helpers.hpp"
 #include "rocblas.h"
 
-template <rocblas_int NB, typename T, typename Tex = T, typename Ta, typename Tx>
-rocblas_status rocblas_internal_scal_template(rocblas_handle handle,
-                                              rocblas_int    n,
-                                              const Ta*      alpha,
-                                              rocblas_stride stride_alpha,
-                                              Tx             x,
-                                              rocblas_stride offset_x,
-                                              rocblas_int    incx,
-                                              rocblas_stride stride_x,
-                                              rocblas_int    batch_count);
+template <typename API_INT, int NB, typename T, typename Tex, typename Ta, typename Tx>
+ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE
+    rocblas_status ROCBLAS_API(rocblas_internal_scal_launcher)(rocblas_handle handle,
+                                                               API_INT        n,
+                                                               const Ta*      alpha,
+                                                               rocblas_stride stride_alpha,
+                                                               Tx             x,
+                                                               rocblas_stride offset_x,
+                                                               API_INT        incx,
+                                                               rocblas_stride stride_x,
+                                                               API_INT        batch_count);
 
 /**
  * @brief internal scal template, to be used for regular scal and scal_strided_batched.

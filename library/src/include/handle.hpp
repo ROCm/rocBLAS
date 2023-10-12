@@ -382,7 +382,7 @@ private:
 
 #if ROCBLAS_REALLOC_ON_DEMAND
     // Helper for device memory allocator
-    bool device_allocator(size_t size);
+    bool ROCBLAS_EXPORT device_allocator(size_t size);
 #endif
 
     // Device ID is created at handle creation time and remains in effect for the life of the handle.

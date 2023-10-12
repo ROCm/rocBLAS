@@ -35,14 +35,20 @@
 // Predeclare enumerator
 enum rocblas_argument : int;
 
+// bit mask rocblas_client_api_
+const uint32_t c_API_64       = 1;
+const uint32_t c_API_FORTRAN  = 2;
+const uint32_t c_API_INTERNAL = 4;
+
+// last bit set for _64 API
 typedef enum rocblas_client_api_
 {
-    C,
-    FORTRAN,
-    C_64,
-    FORTRAN_64,
-    INTERNAL,
-    INTERNAL_64
+    C           = 0,
+    C_64        = 1,
+    FORTRAN     = 2,
+    FORTRAN_64  = 3,
+    INTERNAL    = 4,
+    INTERNAL_64 = 5
 } rocblas_client_api;
 
 // bitmask
