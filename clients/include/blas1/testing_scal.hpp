@@ -22,30 +22,21 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
-#include "blas1/rocblas_scal.hpp"
+#include "blas1/rocblas_scal.hpp" // internal API
 
 template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
     auto rocblas_scal_fn
         = arg.api == FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+    auto rocblas_scal_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_scal_64<T, U, true> : rocblas_scal_64<T, U, false>;
 
-    rocblas_int N     = 100;
-    rocblas_int incx  = 1;
-    U           alpha = (U)0.6;
+    int64_t N     = 100;
+    int64_t incx  = 1;
+    U       alpha = (U)0.6;
 
     rocblas_local_handle handle{arg};
 
@@ -55,12 +46,10 @@ void testing_scal_bad_arg(const Arguments& arg)
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(nullptr, N, &alpha, dx, incx)),
-                          rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, nullptr, dx, incx)),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, &alpha, nullptr, incx)),
-                          rocblas_status_invalid_pointer);
+    DAPI_EXPECT(rocblas_status_invalid_handle, rocblas_scal_fn, (nullptr, N, &alpha, dx, incx));
+    DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_scal_fn, (handle, N, nullptr, dx, incx));
+    DAPI_EXPECT(
+        rocblas_status_invalid_pointer, rocblas_scal_fn, (handle, N, &alpha, nullptr, incx));
 }
 
 template <typename T, typename U = T>
@@ -68,10 +57,12 @@ void testing_scal(const Arguments& arg)
 {
     auto rocblas_scal_fn
         = arg.api == FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+    auto rocblas_scal_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_scal_64<T, U, true> : rocblas_scal_64<T, U, false>;
 
-    rocblas_int N       = arg.N;
-    rocblas_int incx    = arg.incx;
-    U           h_alpha = arg.get_alpha<U>();
+    int64_t N       = arg.N;
+    int64_t incx    = arg.incx;
+    U       h_alpha = arg.get_alpha<U>();
 
     rocblas_local_handle handle{arg};
 
@@ -79,7 +70,7 @@ void testing_scal(const Arguments& arg)
     if(N <= 0 || incx <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, nullptr, nullptr, incx)));
+        DAPI_CHECK(rocblas_scal_fn, (handle, N, nullptr, nullptr, incx));
         return;
     }
 
@@ -108,8 +99,8 @@ void testing_scal(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error_1 = 0.0;
-    double rocblas_error_2 = 0.0;
+    double rocblas_error_host   = 0.0;
+    double rocblas_error_device = 0.0;
     if(arg.unit_check || arg.norm_check)
     {
         if(arg.pointer_mode_host)
@@ -120,7 +111,7 @@ void testing_scal(const Arguments& arg)
             handle.pre_test(arg);
             if(arg.api != INTERNAL)
             {
-                CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, &h_alpha, dx, incx)));
+                DAPI_CHECK(rocblas_scal_fn, (handle, N, &h_alpha, dx, incx));
             }
             else
             {
@@ -143,7 +134,7 @@ void testing_scal(const Arguments& arg)
             // GPU BLAS, rocblas_pointer_mode_device
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, d_alpha, dx, incx)));
+            DAPI_CHECK(rocblas_scal_fn, (handle, N, d_alpha, dx, incx));
             handle.post_test(arg);
         }
 
@@ -161,7 +152,7 @@ void testing_scal(const Arguments& arg)
 
             if(arg.norm_check)
             {
-                rocblas_error_1 = norm_check_general<T>('F', 1, N, incx, hx_gold, hx);
+                rocblas_error_host = norm_check_general<T>('F', 1, N, incx, hx_gold, hx);
             }
         }
 
@@ -177,30 +168,26 @@ void testing_scal(const Arguments& arg)
 
             if(arg.norm_check)
             {
-                rocblas_error_2 = norm_check_general<T>('F', 1, N, incx, hx_gold, hx);
+                rocblas_error_device = norm_check_general<T>('F', 1, N, incx, hx_gold, hx);
             }
         }
     } // end of if unit/norm check
 
     if(arg.timing)
     {
-
         int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        int total_calls       = number_cold_calls + arg.iters;
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_scal_fn(handle, N, &h_alpha, dx, incx);
-        }
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_scal_fn(handle, N, &h_alpha, dx, incx);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_scal_fn, (handle, N, &h_alpha, dx, incx));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
@@ -211,7 +198,7 @@ void testing_scal(const Arguments& arg)
                                                           scal_gflop_count<T, U>(N),
                                                           scal_gbyte_count<T>(N),
                                                           cpu_time_used,
-                                                          rocblas_error_1,
-                                                          rocblas_error_2);
+                                                          rocblas_error_host,
+                                                          rocblas_error_device);
     }
 }

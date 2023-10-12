@@ -74,12 +74,13 @@ Datatypes:
         LINUX: 1
         WINDOWS: 2
         ALL: 3
+  # match client argument_model.hpp enum values
   - rocblas_api:
       bases: [ c_uint32 ]
       attr:
         C: 0
-        FORTRAN: 1
-        C_64: 2
+        C_64: 1
+        FORTRAN: 2
         FORTRAN_64: 3
         INTERNAL: 4
         INTERNAL_64: 5

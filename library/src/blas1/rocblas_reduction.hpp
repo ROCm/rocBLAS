@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "int64_helpers.hpp"
 #include "utility.hpp"
 #include <hip/hip_runtime.h>
 
@@ -117,7 +118,7 @@ __inline__ __device__ rocblas_half rocblas_wavefront_reduce(rocblas_half val)
     return val;
 }
 
-template <rocblas_int NB, typename T>
+template <int NB, typename T>
 __inline__ __device__ T rocblas_dot_block_reduce(T val)
 {
     __shared__ T psums[warpSize];
@@ -144,15 +145,25 @@ __inline__ __device__ T rocblas_dot_block_reduce(T val)
     return val;
 }
 
-inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
+template <typename API_INT>
+inline size_t rocblas_reduction_kernel_block_count(API_INT n, int NB)
 {
     if(n <= 0)
         n = 1; // avoid sign loss issues
     return size_t(n - 1) / NB + 1;
 }
 
+inline size_t rocblas_reduction_kernel_pass_count(int64_t n)
+{
+    if(n <= 0)
+        n = 0;
+    int64_t passes = (n - 1) / c_i64_grid_X_chunk + 1;
+    return size_t(passes);
+}
+
 /*! \brief rocblas_reduction_batched_kernel_workspace_size
-    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
+    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count.
+    Additional passes add to workspace requirement for ILP64 subdivisions
 
     @param[in]
     outputType To*
@@ -161,15 +172,28 @@ inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB
     batch_count rocblas_int
         Number of batches
     ********************************************************************/
-template <rocblas_int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
+template <typename API_INT, int NB, typename To>
+size_t rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count = 1)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
     if(batch_count <= 0)
         batch_count = 1;
-    auto blocks = rocblas_reduction_kernel_block_count(n, NB);
-    return sizeof(To) * (blocks + 1) * batch_count;
+
+    auto blocks = rocblas_reduction_kernel_block_count<API_INT>(n, NB);
+
+    if constexpr(std::is_same_v<API_INT, int64_t>)
+    {
+        auto    passes  = rocblas_reduction_kernel_pass_count(n);
+        int64_t batches = std::min(batch_count, c_i64_grid_YZ_chunk);
+
+        return sizeof(To) * (blocks + 1 + passes) * batches;
+    }
+    else
+    {
+        // original API
+        return sizeof(To) * (blocks + 1) * batch_count;
+    }
 }
 
 /*! \brief rocblas_reduction_batched_kernel_workspace_size
@@ -182,32 +206,33 @@ size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_
     batch_count rocblas_int
         Number of batches
     ********************************************************************/
-template <rocblas_int NB, typename To>
-size_t
-    rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count, To* output_type)
+template <typename API_INT, int NB, typename To>
+size_t rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count, To* output_type)
 {
-    return rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
+    return rocblas_reduction_kernel_workspace_size<API_INT, NB, To>(n, batch_count);
 }
 
-template <rocblas_int NB>
-size_t rocblas_reduction_kernel_workspace_size(rocblas_int      n,
-                                               rocblas_int      batch_count,
-                                               rocblas_datatype type)
+template <typename API_INT, int NB>
+size_t
+    rocblas_reduction_kernel_workspace_size(API_INT n, API_INT batch_count, rocblas_datatype type)
 {
     switch(type)
     {
     case rocblas_datatype_f16_r:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_half>(n, batch_count);
+        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_half>(n, batch_count);
     case rocblas_datatype_bf16_r:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_bfloat16>(n, batch_count);
+        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_bfloat16>(n,
+                                                                                      batch_count);
     case rocblas_datatype_f32_r:
-        return rocblas_reduction_kernel_workspace_size<NB, float>(n, batch_count);
+        return rocblas_reduction_kernel_workspace_size<API_INT, NB, float>(n, batch_count);
     case rocblas_datatype_f64_r:
-        return rocblas_reduction_kernel_workspace_size<NB, double>(n, batch_count);
+        return rocblas_reduction_kernel_workspace_size<API_INT, NB, double>(n, batch_count);
     case rocblas_datatype_f32_c:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_float_complex>(n, batch_count);
+        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_float_complex>(
+            n, batch_count);
     case rocblas_datatype_f64_c:
-        return rocblas_reduction_kernel_workspace_size<NB, rocblas_double_complex>(n, batch_count);
+        return rocblas_reduction_kernel_workspace_size<API_INT, NB, rocblas_double_complex>(
+            n, batch_count);
     default:
         return 0;
     }

@@ -42,6 +42,9 @@ Definitions:
   - &c_neg_x2_overflow_int32
    - [-1073741825]
 
+  - &c_grid_yz_require_passes
+   - [666666] # force looping over y/z chunks
+
   - &size_t_pos_x_range
     - { N: 4,          incx: *c_pos_x2_overflow_int32 } # small operation count, should overflow x
 
@@ -90,6 +93,9 @@ Definitions:
     - { alphai: 0.0 }
     - { alphai: 1.0}
     - { alphai: 2.0 }
+
+  - &alpha_beta_range_small
+    - { alpha:  0.5, beta:  0.5 }
 
   - &complex_alpha_range_small
     - { alpha: 4.0, alphai:  0.0 }
@@ -342,6 +348,87 @@ Tests:
 
 # All functions with alpha and incx but no incy
 
+# 64
+
+  # quick tests will fallback to original kernels at launcher level
+  - name: scal_64
+    category: nightly
+    N: [ 64 ]
+    incx: *incx_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    api: [ C_64, FORTRAN_64 ]
+    function:
+      - scal:  *single_precision
+      - scal:  *single_precision
+      - scal_batched:  *single_precision
+      - scal_batched:  *single_precision
+      - scal_strided_batched:  *single_precision
+      - scal_strided_batched:  *single_precision
+
+  # quick tests will fallback to original kernels at launcher level
+  - name: scal_ex_64
+    category: nightly
+    N: [ 64 ]
+    incx: *incx_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    api: [ FORTRAN_64 ]
+    function:
+      - scal_ex:  *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_ex:  *scal_ex_bfloat_half_single_double_complex_real_precisions
+      - scal_batched_ex:  *half_precision
+      - scal_batched_ex:  *half_precision
+      - scal_strided_batched_ex:  *half_precision
+      - scal_strided_batched_ex:  *half_precision
+
+  - name: scal_64
+    category: stress
+    arguments:
+      - { N: 2147483649, incx: 1, batch_count: 1 }
+      - { N: 2, incx: 2147483649, batch_count: 1 }
+      - { N: 2, incx: 1, stride_x: 2, batch_count: *c_grid_yz_require_passes }
+    alpha_beta: *alpha_beta_range_small
+    api: [ C_64 ]
+    function:
+      - scal:  *single_precision
+      - scal_batched:  *single_precision
+      - scal_strided_batched:  *single_precision
+      - scal_ex:  *half_precision
+      - scal_batched_ex:  *half_precision
+      - scal_strided_batched_ex:  *half_precision
+
+  - name: dot_64
+    category: nightly
+    N: [ 64 ]
+    arguments:
+      - { incx: 1, incy: 1, batch_count: 1 }
+    api: [ FORTRAN_64 ]
+    function:
+      - dot:  *half_bfloat_single_double_complex_real_precisions
+      - dot_ex:  *half_bfloat_single_double_complex_real_precisions
+      - dot_batched:  *single_precision
+      - dot_batched_ex:  *single_precision
+      - dot_strided_batched:  *single_precision
+      - dot_strided_batched_ex:  *single_precision
+
+  - name: dot_64
+    category: stress
+    arguments:
+      - { N: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+      - { N: 2, incx: 2147483649, incy: 1, batch_count: 1 }
+      - { N: 2, incx: 1, incy: 2147483649, batch_count: 1 }
+      - { N: 3, incx: 1, incy: 1, stride_x: 3, stride_y: 3, batch_count: *c_grid_yz_require_passes }
+    api: [ C_64 ]
+    function:
+      - dot: *half_precision
+      - dot_ex: *half_precision
+      - dot_batched: *half_precision
+      - dot_batched_ex: *half_precision
+      - dot_strided_batched: *half_precision
+      - dot_strided_batched_ex: *half_precision
+
+
 # fortran
   - name: scal_blas1_with_alpha
     category: quick
@@ -355,7 +442,6 @@ Tests:
       - scal:  *scal_single_double_complex_real_alpha_complex_out
       - scal_ex: *scal_ex_bfloat_half_single_double_complex_real_precisions
       - scal_ex: *scal_ex_single_double_complex_real_alpha_complex_out
-#
 
   - name: blas1_batched_with_alpha
     category: quick
@@ -767,7 +853,7 @@ Tests:
     category: quick
     N: [ -1, 0, 1025]
     incx_incy: *incx_incy_range_small
-    api: FORTRAN
+    api: [FORTRAN, C_64]
     function:
       - copy: *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions

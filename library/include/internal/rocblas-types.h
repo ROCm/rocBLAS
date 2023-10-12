@@ -45,7 +45,12 @@
 #endif
 
 #define ROCBLAS_INTERNAL_EXPORT ROCBLAS_EXPORT ROCBLAS_INTERNAL_DEPRECATION
+
 #define ROCBLAS_INTERNAL_EXPORT_NOINLINE \
+    ROCBLAS_EXPORT __attribute__((noinline)) ROCBLAS_INTERNAL_DEPRECATION
+
+// not processed into rocblas-exported-proto.hpp
+#define ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE \
     ROCBLAS_EXPORT __attribute__((noinline)) ROCBLAS_INTERNAL_DEPRECATION
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
@@ -66,7 +71,8 @@ typedef struct ihipEvent_t* hipEvent_t;
 struct rocblas_device_malloc_base;
 
 // integer types
-/*! \brief To specify whether int32 is used for LP64 or int64 is used for ILP64 */
+/*! \brief To specify whether int32 is used for LP64 or int64 is used for ILP64.
+ * This define should be considered deprecated as being supplanted by additional interfaces and was never tested */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_int;
 #else
@@ -74,11 +80,7 @@ typedef int32_t rocblas_int;
 #endif
 
 /*! \brief Stride between matrices or vectors in strided_batched functions */
-#if defined(rocblas_ILP64)
 typedef int64_t rocblas_stride;
-#else
-typedef int64_t rocblas_stride;
-#endif
 
 /*! \brief Single precision floating point type */
 typedef float rocblas_float;
