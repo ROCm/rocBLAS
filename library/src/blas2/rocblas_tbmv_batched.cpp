@@ -140,7 +140,7 @@ namespace
         void* w_mem_x_copy_arr = w_mem[1];
 
         RETURN_IF_ROCBLAS_ERROR(setup_batched_array<256>(
-            handle->get_stream(), (T*)w_mem_x_copy, n, (T**)w_mem_x_copy_arr, batch_count));
+            handle->get_stream(), (T*)w_mem_x_copy, m, (T**)w_mem_x_copy_arr, batch_count));
 
         auto check_numerics = handle->check_numerics;
         if(check_numerics)

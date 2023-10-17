@@ -794,7 +794,7 @@ rocblas_status rocblas_internal_trsv_substitution_template(rocblas_handle    han
                                                            rocblas_int       batch_count,
                                                            rocblas_int*      w_completed_sec)
 {
-    if(!n || !batch_count)
+    if(!m || !batch_count)
         return rocblas_status_success;
 
     // Temporarily change the thread's default device ID to the handle's device ID
