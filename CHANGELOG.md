@@ -7,6 +7,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Addition of beta API rocblas_gemm_batched_ex3 and rocblas_gemm_strided_batched_ex3
 - Added input/output type f16_r/bf16_r and execution type f32_r support for Level 2 gemv_batched and gemv_strided_batched
 - Added rocblas_status_excluded_from_build to be used when calling functions which require Tensile when using rocBLAS built without Tensile
+- Added system for async kernel launches setting a failure rocblas_status based on hipPeekAtLastError discrepancy
 ### Optimized
 - Trsm performance for small sizes m < 32 && n < 32
 ### Deprecated
@@ -21,6 +22,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Make offset calculations for rocBLAS functions 64 bit safe. Fixes for very large leading dimension or increment potentially causing overflow:
   - Level2: gbmv, gemv, hbmv, sbmv, spmv, tbmv, tpmv, tbsv, tpsv
 - Lazy loading to support heterogeneous architecture setup and load appropriate tensile library files based on the device's architecture
+- Guard against no-op kernel launches resulting in potential hipGetLastError
 ### Changed
 - Default verbosity of rocblas-test reduced. To see all tests set environment variable GTEST_LISTENER=PASS_LINE_IN_LOG
 
