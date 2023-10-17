@@ -94,31 +94,31 @@ rocblas_status rocblas_internal_scal_launcher_64(rocblas_handle handle,
                 int64_t shiftx = offset_x + n_base * incx_64;
 
                 if(rocblas_pointer_mode_device == handle->pointer_mode)
-                    hipLaunchKernelGGL((rocblas_scal_kernel<int64_t, NB, T, Tex>),
-                                       grid,
-                                       threads,
-                                       0,
-                                       handle->get_stream(),
-                                       n,
-                                       alpha + n_base * stride_alpha,
-                                       stride_alpha,
-                                       x_ptr,
-                                       shiftx,
-                                       incx_64,
-                                       stride_x);
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_scal_kernel<int64_t, NB, T, Tex>),
+                                          grid,
+                                          threads,
+                                          0,
+                                          handle->get_stream(),
+                                          n,
+                                          alpha + n_base * stride_alpha,
+                                          stride_alpha,
+                                          x_ptr,
+                                          shiftx,
+                                          incx_64,
+                                          stride_x);
                 else // single alpha is on host
-                    hipLaunchKernelGGL((rocblas_scal_kernel<int64_t, NB, T, Tex>),
-                                       grid,
-                                       threads,
-                                       0,
-                                       handle->get_stream(),
-                                       n,
-                                       *alpha,
-                                       stride_alpha,
-                                       x_ptr,
-                                       shiftx,
-                                       incx_64,
-                                       stride_x);
+                    ROCBLAS_LAUNCH_KERNEL((rocblas_scal_kernel<int64_t, NB, T, Tex>),
+                                          grid,
+                                          threads,
+                                          0,
+                                          handle->get_stream(),
+                                          n,
+                                          *alpha,
+                                          stride_alpha,
+                                          x_ptr,
+                                          shiftx,
+                                          incx_64,
+                                          stride_x);
             }
         }
     }
