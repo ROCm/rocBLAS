@@ -14,12 +14,9 @@ def runCompileCommand(platform, project, jobName)
     }
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
-        pullRequest.labels.each
+        if (pullRequest.labels.contains("noTensile"))
         {
-            if (it == "noTensile")
-            {
-                project.paths.build_command = project.paths.build_command.replaceAll(' -c', ' -cn')
-            }
+            project.paths.build_command = project.paths.build_command.replaceAll(' -c', ' -cn')
         }
     }
 
@@ -52,11 +49,20 @@ def runTestCommand (platform, project, gfilter)
     String gtestArgs = ""
     String xnackVar = ""
 
+    String gtestCommonEnv = "ROCBLAS_CLIENT_RAM_GB_LIMIT=95"
+    if (env.BRANCH_NAME ==~ /PR-\d+/)
+    {
+        if (pullRequest.labels.contains("help wanted"))
+        {
+            gtestCommonEnv += " GTEST_LISTENER=PASS_LINE_IN_LOG"
+        }
+    }
+
     def hmmTestCommand= ''
     if (platform.jenkinsLabel.contains('gfx90a') && gfilter.contains('nightly'))
     {
         hmmTestCommand = """
-                            HSA_XNACK=1 ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
+                            ${gtestCommonEnv} HSA_XNACK=1 \$ROCBLAS_TEST --gtest_output=xml:test_detail_hmm.xml --gtest_color=yes --gtest_filter=*HMM*-*known_bug*
                          """
     }
 
@@ -66,13 +72,13 @@ def runTestCommand (platform, project, gfilter)
     if (project.buildName.contains('weekly'))
     {
             rocBLASTestCommand = """
-                                    ROCBLAS_CHECK_NUMERICS=4 ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} ROCBLAS_CHECK_NUMERICS=4 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                                  """
     }
     else
     {
             rocBLASTestCommand = """
-                                    ROCBLAS_CLIENT_RAM_GB_LIMIT=95 \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
+                                    ${gtestCommonEnv} \$ROCBLAS_TEST --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                                  """
     }
 
