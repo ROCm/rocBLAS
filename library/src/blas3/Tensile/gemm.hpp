@@ -214,7 +214,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                            rocblas_stride    stride_c,
                                            rocblas_int       batch_count);
 
-template <typename TConstPtr, typename TPtr>
+template <typename TConstPtrA, typename TConstPtrB, typename TPtr>
 rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
                                            rocblas_handle    handle,
                                            rocblas_operation trans_a,
@@ -222,10 +222,10 @@ rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
                                            rocblas_int       m,
                                            rocblas_int       n,
                                            rocblas_int       k,
-                                           TConstPtr         A,
+                                           TConstPtrA        A,
                                            rocblas_int       lda,
                                            rocblas_stride    stride_a,
-                                           TConstPtr         B,
+                                           TConstPtrB        B,
                                            rocblas_int       ldb,
                                            rocblas_stride    stride_b,
                                            TPtr              C,
@@ -235,7 +235,6 @@ rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
                                            const int         check_numerics,
                                            bool              is_input)
 {
-
     rocblas_status check_numerics_status
         = rocblas_internal_check_numerics_matrix_template(function_name,
                                                           handle,

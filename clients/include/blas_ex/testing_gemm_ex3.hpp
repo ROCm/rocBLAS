@@ -166,12 +166,12 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
-        const rocblas_int K = 100;
+        const rocblas_int K = 101;
 
-        const rocblas_int lda = 100;
-        const rocblas_int ldb = 100;
-        const rocblas_int ldc = 100;
-        const rocblas_int ldd = 100;
+        const rocblas_int lda = 101;
+        const rocblas_int ldb = 101;
+        const rocblas_int ldc = 101;
+        const rocblas_int ldd = 101;
 
         const rocblas_datatype    a_type                 = arg.a_type;
         const rocblas_datatype    b_type                 = arg.b_type;
@@ -195,8 +195,12 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
             zero = zero_d;
         }
 
-        const rocblas_gemm_algo algo      = rocblas_gemm_algo_standard;
-        static const size_t     safe_size = 100;
+        const rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+
+        rocblas_int A_row = transA == rocblas_operation_none ? M : std::max(K, 1);
+        rocblas_int A_col = transA == rocblas_operation_none ? std::max(K, 1) : M;
+        rocblas_int B_row = transB == rocblas_operation_none ? std::max(K, 1) : N;
+        rocblas_int B_col = transB == rocblas_operation_none ? N : std::max(K, 1);
 
         int32_t     solution_index = 0;
         rocblas_int flags          = 0;
@@ -205,14 +209,20 @@ void testing_gemm_ex3_bad_arg(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         // allocate memory on device
-        device_vector<float> dA(safe_size);
-        device_vector<float> dB(safe_size);
-        device_vector<float> dC(safe_size);
-        device_vector<float> dD(safe_size);
+        device_matrix<TiA> dA(A_row, A_col, lda);
+        device_matrix<TiB> dB(B_row, B_col, ldb);
+        device_matrix<To>  dC(M, N, ldc);
+        device_matrix<To>  dD(M, N, ldd);
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
         CHECK_DEVICE_ALLOCATION(dD.memcheck());
+
+        // host
+        host_matrix<To> hC(M, N, ldc);
+        rocblas_seedrand();
+        rocblas_init_matrix(hC, arg, rocblas_client_beta_sets_nan, rocblas_client_general_matrix);
+        dC.transfer_from(hC);
 
         if(rocblas_handle(handle)->getArch() < 940 || rocblas_handle(handle)->getArch() >= 1000)
         {

@@ -548,6 +548,16 @@ __host__ __device__ inline bool rocblas_isinf(rocblas_half arg)
     return (~x.data & 0x7c00) == 0 && (x.data & 0x3ff) == 0;
 }
 
+__host__ __device__ inline bool rocblas_isinf(rocblas_f8 arg)
+{
+    return arg.is_inf();
+}
+
+__host__ __device__ inline bool rocblas_isinf(rocblas_bf8 arg)
+{
+    return arg.is_inf();
+}
+
 /*******************************************************************************
 * \brief  returns max value for type
 ********************************************************************************/
@@ -571,6 +581,16 @@ template <typename T>
 __host__ __device__ inline bool rocblas_iszero(T arg)
 {
     return arg == 0;
+}
+
+__host__ __device__ inline bool rocblas_iszero(rocblas_f8 arg)
+{
+    return arg.is_zero();
+}
+
+__host__ __device__ inline bool rocblas_iszero(rocblas_bf8 arg)
+{
+    return arg.is_zero();
 }
 
 // Absolute value
@@ -673,6 +693,32 @@ __host__ __device__ inline bool rocblas_isdenorm(rocblas_bfloat16 arg)
         (x.data >= 0x0001)
         && (x.data
             < 0x0080)); //0x0001 is the smallest positive subnormal number and 0x0080 is the smallest positive normal number represented by rocblas_bfloat16
+}
+
+__host__ __device__ inline bool rocblas_isdenorm(rocblas_f8 arg)
+{
+    union
+    {
+        rocblas_f8 fp;
+        uint8_t    data;
+    } x = {rocblas_abs(arg)};
+    return (
+        (x.data >= 0x01)
+        && (x.data
+            < 0x08)); //0x01 is the smallest positive subnormal number and 0x08 is the smallest positive normal number represented by rocblas_f8
+}
+
+__host__ __device__ inline bool rocblas_isdenorm(rocblas_bf8 arg)
+{
+    union
+    {
+        rocblas_bf8 fp;
+        uint8_t     data;
+    } x = {rocblas_abs(arg)};
+    return (
+        (x.data >= 0x01)
+        && (x.data
+            < 0x04)); //0x01 is the smallest positive subnormal number and 0x04 is the smallest positive normal number represented by rocblas_bf8
 }
 
 // Is power of two

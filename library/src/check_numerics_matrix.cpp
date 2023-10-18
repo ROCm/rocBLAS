@@ -203,4 +203,14 @@ INST(rocblas_bfloat16* const*);
 INST(rocblas_bfloat16 const*);
 INST(rocblas_bfloat16 const* const*);
 
+INST(rocblas_f8*);
+INST(rocblas_f8* const*);
+INST(rocblas_f8 const*);
+INST(rocblas_f8 const* const*);
+
+INST(rocblas_bf8*);
+INST(rocblas_bf8* const*);
+INST(rocblas_bf8 const*);
+INST(rocblas_bf8 const* const*);
+
 #undef INST

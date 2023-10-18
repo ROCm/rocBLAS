@@ -25,8 +25,6 @@
 #ifdef BUILD_WITH_TENSILE
 
 #include "logging.hpp"
-// #include "rocblas_gemm_ex.hpp"
-// #include "rocblas_gemm_ex_get_solutions.hpp"
 #include "rocblas_gemm_ex3.hpp"
 #include "utility.hpp"
 
