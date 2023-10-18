@@ -313,7 +313,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
             // clang-format off
-            hipLaunchKernelGGL((rocblas_haxpy_mlt_8_kernel<NB>), grid, threads, 0, handle->get_stream(), n_mlt_8,
+            ROCBLAS_LAUNCH_KERNEL((rocblas_haxpy_mlt_8_kernel<NB>), grid, threads, 0, handle->get_stream(), n_mlt_8,
                                (const rocblas_half*)alpha, stride_alpha, x, offset_x, stride_x, y, offset_y, stride_y);
             // clang-format on
             if(n_mod_8)
@@ -322,7 +322,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                 // cleanup non-multiple of 8
                 //
                 // clang-format off
-                hipLaunchKernelGGL((rocblas_haxpy_mod_8_kernel<NB>), dim3(1, batch_count), n_mod_8, 0, handle->get_stream(), n_mod_8,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_haxpy_mod_8_kernel<NB>), dim3(1, batch_count), n_mod_8, 0, handle->get_stream(), n_mod_8,
                                     alpha, stride_alpha, x, n_mlt_8 + offset_x, stride_x, y, n_mlt_8 + offset_y, stride_y);
                 // clang-format on
             }
@@ -331,14 +331,14 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         {
             // Note: We do not support batched alpha on host.
             // clang-format off
-            hipLaunchKernelGGL((rocblas_haxpy_mlt_8_kernel<NB>), grid, threads, 0, handle->get_stream(),
+            ROCBLAS_LAUNCH_KERNEL((rocblas_haxpy_mlt_8_kernel<NB>), grid, threads, 0, handle->get_stream(),
                                 n_mlt_8,load_scalar((const rocblas_half*)alpha), stride_0, x, offset_x, stride_x, y, offset_y, stride_y);
             // clang-format on
 
             if(n_mod_8)
             {
                 // clang-format off
-                hipLaunchKernelGGL((rocblas_haxpy_mod_8_kernel<NB>), dim3(1, batch_count), n_mod_8, 0, handle->get_stream(), n_mod_8,
+                ROCBLAS_LAUNCH_KERNEL((rocblas_haxpy_mod_8_kernel<NB>), dim3(1, batch_count), n_mod_8, 0, handle->get_stream(), n_mod_8,
                                    *alpha, stride_0, x, n_mlt_8 + offset_x, stride_x, y, n_mlt_8 + offset_y, stride_y);
                 // clang-format on
             }
@@ -354,7 +354,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         if(rocblas_pointer_mode_device == handle->pointer_mode)
         {
             // clang-format off
-            hipLaunchKernelGGL((rocblas_saxpy_2_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, alpha,
+            ROCBLAS_LAUNCH_KERNEL((rocblas_saxpy_2_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, alpha,
                                stride_alpha, x, offset_x, stride_x, y, offset_y, stride_y);
             // clang-format on
         }
@@ -363,7 +363,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         {
             // Note: We do not support batched alpha on host.
             // clang-format off
-            hipLaunchKernelGGL((rocblas_saxpy_2_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, *alpha,
+            ROCBLAS_LAUNCH_KERNEL((rocblas_saxpy_2_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, *alpha,
                                stride_0, x, offset_x, stride_x, y, offset_y, stride_y);
             // clang-format on
         }
@@ -384,7 +384,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
             // clang-format off
-            hipLaunchKernelGGL((rocblas_axpy_kernel_batched<DIM_X, DIM_Y, Tex>), blocks, threads, 0, handle->get_stream(), n, alpha,
+            ROCBLAS_LAUNCH_KERNEL((rocblas_axpy_kernel_batched<DIM_X, DIM_Y, Tex>), blocks, threads, 0, handle->get_stream(), n, alpha,
                                stride_alpha, x, shift_x, incx, stride_x, y, shift_y, incy, stride_y, batch_count);
             // clang-format on
         }
@@ -392,7 +392,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         {
             // Note: We do not support batched alpha on host.
             // clang-format off
-            hipLaunchKernelGGL((rocblas_axpy_kernel_batched<DIM_X, DIM_Y, Tex>), blocks, threads, 0, handle->get_stream(), n, *alpha,
+            ROCBLAS_LAUNCH_KERNEL((rocblas_axpy_kernel_batched<DIM_X, DIM_Y, Tex>), blocks, threads, 0, handle->get_stream(), n, *alpha,
                                stride_0, x, shift_x, incx, stride_x, y, shift_y, incy, stride_y, batch_count);
             // clang-format on
         }
@@ -409,7 +409,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
             // clang-format off
-            hipLaunchKernelGGL((rocblas_axpy_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, alpha,
+            ROCBLAS_LAUNCH_KERNEL((rocblas_axpy_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, alpha,
                                stride_alpha, x, shift_x, incx, stride_x, y,shift_y, incy, stride_y);
             // clang-format on
         }
@@ -417,7 +417,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         {
             // Note: We do not support batched alpha on host.
             // clang-format off
-            hipLaunchKernelGGL((rocblas_axpy_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, *alpha,
+            ROCBLAS_LAUNCH_KERNEL((rocblas_axpy_kernel<NB, Tex>), blocks, threads, 0, handle->get_stream(), n, *alpha,
                                stride_0, x, shift_x, incx, stride_x, y, shift_y, incy, stride_y);
             // clang-format on
         }

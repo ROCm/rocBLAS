@@ -498,43 +498,46 @@ rocblas_status rocblas_trtri_small(rocblas_handle   handle,
     size_t tri_elements_to_zero       = rocblas_num_non_tri_elements(n) * sub_batch_count;
     size_t numBlocks                  = (tri_elements_to_zero + blockSize - 1) / blockSize;
 
-    hipLaunchKernelGGL((rocblas_trtri_fill<blockSize, T>),
-                       dim3(numBlocks, batch_count, 1),
-                       dim3(blockSize),
-                       0,
-                       handle->get_stream(),
-                       handle,
-                       uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
-                       n,
-                       rocblas_num_non_tri_elements(n),
-                       ldinvA,
-                       n * size_t(ldinvA),
-                       invA,
-                       offset_invA,
-                       0,
-                       sub_batch_count);
+    dim3 fillGrid(numBlocks, batch_count, 1);
+    ROCBLAS_LAUNCH_KERNEL_GRID(fillGrid,
+                               (rocblas_trtri_fill<blockSize, T>),
+                               fillGrid,
+                               dim3(blockSize),
+                               0,
+                               handle->get_stream(),
+                               handle,
+                               uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
+                               n,
+                               rocblas_num_non_tri_elements(n),
+                               ldinvA,
+                               n * size_t(ldinvA),
+                               invA,
+                               offset_invA,
+                               0,
+                               sub_batch_count);
 
     dim3 grid(sub_batch_count, batch_count);
     dim3 threads(NB);
 
-    hipLaunchKernelGGL((rocblas_trtri_small_kernel<NB, T>),
-                       grid,
-                       threads,
-                       0,
-                       handle->get_stream(),
-                       uplo,
-                       diag,
-                       n,
-                       A,
-                       offset_A,
-                       lda,
-                       stride_A,
-                       sub_stride_A,
-                       invA,
-                       offset_invA,
-                       ldinvA,
-                       stride_invA,
-                       sub_stride_invA);
+    ROCBLAS_LAUNCH_KERNEL_GRID(grid,
+                               (rocblas_trtri_small_kernel<NB, T>),
+                               grid,
+                               threads,
+                               0,
+                               handle->get_stream(),
+                               uplo,
+                               diag,
+                               n,
+                               A,
+                               offset_A,
+                               lda,
+                               stride_A,
+                               sub_stride_A,
+                               invA,
+                               offset_invA,
+                               ldinvA,
+                               stride_invA,
+                               sub_stride_invA);
 
     return rocblas_status_success;
 }
@@ -737,24 +740,25 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
     // first stage: invert NB * NB diagonal blocks of A and write the result of invA11 and invA22 in
     // invA - Only deals with maximum even and complete NBxNB diagonals
 
-    hipLaunchKernelGGL((rocblas_trtri_diagonal_kernel<NB, T>),
-                       grid_trtri,
-                       threads,
-                       0,
-                       handle->get_stream(),
-                       uplo,
-                       diag,
-                       n,
-                       A,
-                       offset_Ain,
-                       lda,
-                       stride_A,
-                       sub_stride_Ain,
-                       invA,
-                       offset_invAin,
-                       ldinvA,
-                       stride_invA,
-                       sub_stride_invAin);
+    ROCBLAS_LAUNCH_KERNEL_GRID(grid_trtri,
+                               (rocblas_trtri_diagonal_kernel<NB, T>),
+                               grid_trtri,
+                               threads,
+                               0,
+                               handle->get_stream(),
+                               uplo,
+                               diag,
+                               n,
+                               A,
+                               offset_Ain,
+                               lda,
+                               stride_A,
+                               sub_stride_Ain,
+                               invA,
+                               offset_invAin,
+                               ldinvA,
+                               stride_invA,
+                               sub_stride_invAin);
 
     int32_t remainder = n - (n / NB / 2) * 2 * NB;
     if(remainder > 0)
@@ -766,24 +770,25 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         rocblas_stride offset_invA2
             = (n - remainder) + (n - remainder) * size_t(ldinvA) + offset_invAin;
 
-        hipLaunchKernelGGL((rocblas_trtri_remainder_kernel<NB, T>),
-                           grid_remainder,
-                           threads_remainder,
-                           0,
-                           handle->get_stream(),
-                           uplo,
-                           diag,
-                           remainder,
-                           A,
-                           offset_A2,
-                           lda,
-                           stride_A,
-                           sub_stride_Ain,
-                           invA,
-                           offset_invA2,
-                           ldinvA,
-                           stride_invA,
-                           sub_stride_invAin);
+        ROCBLAS_LAUNCH_KERNEL_GRID(grid_remainder,
+                                   (rocblas_trtri_remainder_kernel<NB, T>),
+                                   grid_remainder,
+                                   threads_remainder,
+                                   0,
+                                   handle->get_stream(),
+                                   uplo,
+                                   diag,
+                                   remainder,
+                                   A,
+                                   offset_A2,
+                                   lda,
+                                   stride_A,
+                                   sub_stride_Ain,
+                                   invA,
+                                   offset_invA2,
+                                   ldinvA,
+                                   stride_invA,
+                                   sub_stride_invAin);
     }
 
     if(n <= 2 * NB)
@@ -796,21 +801,23 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
     size_t tri_elements_to_zero             = rocblas_num_non_tri_elements(n) * sub_batch_count;
     size_t num_sub_blocks = (tri_elements_to_zero + sub_block_size - 1) / sub_block_size;
 
-    hipLaunchKernelGGL((rocblas_trtri_fill<sub_block_size, T>),
-                       dim3(num_sub_blocks, batch_count, 1),
-                       dim3(sub_block_size),
-                       0,
-                       handle->get_stream(),
-                       handle,
-                       uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
-                       n,
-                       rocblas_num_non_tri_elements(n),
-                       ldinvA,
-                       n * size_t(ldinvA),
-                       invA,
-                       offset_invAin,
-                       stride_invA,
-                       sub_batch_count);
+    dim3 sub_grid(num_sub_blocks, batch_count, 1);
+    ROCBLAS_LAUNCH_KERNEL_GRID(sub_grid,
+                               (rocblas_trtri_fill<sub_block_size, T>),
+                               sub_grid,
+                               dim3(sub_block_size),
+                               0,
+                               handle->get_stream(),
+                               handle,
+                               uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
+                               n,
+                               rocblas_num_non_tri_elements(n),
+                               ldinvA,
+                               n * size_t(ldinvA),
+                               invA,
+                               offset_invAin,
+                               stride_invA,
+                               sub_batch_count);
 
     // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
     static constexpr auto IB = NB * 2;
@@ -939,21 +946,23 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
         }
     }
 
-    hipLaunchKernelGGL((rocblas_trtri_fill<sub_block_size, T>),
-                       dim3(num_sub_blocks, batch_count, 1),
-                       dim3(sub_block_size),
-                       0,
-                       handle->get_stream(),
-                       handle,
-                       (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
-                       n,
-                       rocblas_num_non_tri_elements(n),
-                       ldinvA,
-                       n * size_t(ldinvA),
-                       invA,
-                       offset_invAin,
-                       stride_invA,
-                       sub_batch_count);
+    ROCBLAS_LAUNCH_KERNEL_GRID(sub_grid,
+                               (rocblas_trtri_fill<sub_block_size, T>),
+                               sub_grid,
+                               dim3(sub_block_size),
+                               0,
+                               handle->get_stream(),
+                               handle,
+                               (uplo == rocblas_fill_lower) ? rocblas_fill_upper
+                                                            : rocblas_fill_lower,
+                               n,
+                               rocblas_num_non_tri_elements(n),
+                               ldinvA,
+                               n * size_t(ldinvA),
+                               invA,
+                               offset_invAin,
+                               stride_invA,
+                               sub_batch_count);
 
     // Set remainder to the closest power of 2 <= to the leftover block size
     // Odd remainder will handle the rest, including any parts missed

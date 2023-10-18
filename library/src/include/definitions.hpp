@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,53 +23,55 @@
 
 #pragma once
 
+#include "macros.hpp"
+
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define RETURN_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                         \
-    do                                                                      \
-    {                                                                       \
-        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;           \
-        if(TMP_STATUS_FOR_CHECK != hipSuccess)                              \
-        {                                                                   \
-            return get_rocblas_status_for_hip_status(TMP_STATUS_FOR_CHECK); \
-        }                                                                   \
+#define RETURN_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                                      \
+    do                                                                                   \
+    {                                                                                    \
+        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;                        \
+        if(TMP_STATUS_FOR_CHECK != hipSuccess)                                           \
+        {                                                                                \
+            return rocblas_internal_convert_hip_to_rocblas_status(TMP_STATUS_FOR_CHECK); \
+        }                                                                                \
     } while(0)
 
-#define RETURN_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)               \
-    do                                                                \
-    {                                                                 \
-        rocblas_status TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)            \
-        {                                                             \
-            return TMP_STATUS_FOR_CHECK;                              \
-        }                                                             \
+#define RETURN_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)                 \
+    do                                                                  \
+    {                                                                   \
+        rocblas_status TMP_STATUS_FOR_CHECK = (INPUT_STATUS_FOR_CHECK); \
+        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)              \
+        {                                                               \
+            return TMP_STATUS_FOR_CHECK;                                \
+        }                                                               \
     } while(0)
 
-#define THROW_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                         \
-    do                                                                     \
-    {                                                                      \
-        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;          \
-        if(TMP_STATUS_FOR_CHECK != hipSuccess)                             \
-        {                                                                  \
-            throw get_rocblas_status_for_hip_status(TMP_STATUS_FOR_CHECK); \
-        }                                                                  \
+#define THROW_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                                      \
+    do                                                                                  \
+    {                                                                                   \
+        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;                       \
+        if(TMP_STATUS_FOR_CHECK != hipSuccess)                                          \
+        {                                                                               \
+            throw rocblas_internal_convert_hip_to_rocblas_status(TMP_STATUS_FOR_CHECK); \
+        }                                                                               \
     } while(0)
 
-#define THROW_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)                \
-    do                                                                \
-    {                                                                 \
-        rocblas_status TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)            \
-        {                                                             \
-            throw TMP_STATUS_FOR_CHECK;                               \
-        }                                                             \
+#define THROW_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)                  \
+    do                                                                  \
+    {                                                                   \
+        rocblas_status TMP_STATUS_FOR_CHECK = (INPUT_STATUS_FOR_CHECK); \
+        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)              \
+        {                                                               \
+            throw TMP_STATUS_FOR_CHECK;                                 \
+        }                                                               \
     } while(0)
 
 #define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                                                \
     do                                                                                            \
     {                                                                                             \
-        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;                                 \
+        hipError_t TMP_STATUS_FOR_CHECK = (INPUT_STATUS_FOR_CHECK);                               \
         if(TMP_STATUS_FOR_CHECK != hipSuccess)                                                    \
         {                                                                                         \
             rocblas_cerr << "hip error code: '" << hipGetErrorName(TMP_STATUS_FOR_CHECK)          \

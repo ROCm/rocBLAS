@@ -104,20 +104,20 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         dim3 grid(blocks, batch_count);
         dim3 threads(NB);
 
-        hipLaunchKernelGGL(rocblas_copy_kernel,
-                           grid,
-                           threads,
-                           0,
-                           handle->get_stream(),
-                           n,
-                           x,
-                           shiftx,
-                           incx,
-                           stridex,
-                           y,
-                           shifty,
-                           incy,
-                           stridey);
+        ROCBLAS_LAUNCH_KERNEL(rocblas_copy_kernel,
+                              grid,
+                              threads,
+                              0,
+                              handle->get_stream(),
+                              n,
+                              x,
+                              shiftx,
+                              incx,
+                              stridex,
+                              y,
+                              shifty,
+                              incy,
+                              stridey);
     }
     else
     {
@@ -132,18 +132,18 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         dim3        threads(NB);
         hipStream_t scopy_stream = handle->get_stream();
 
-        hipLaunchKernelGGL(rocblas_scopy_2_kernel<NB>,
-                           grid,
-                           threads,
-                           0,
-                           scopy_stream,
-                           n,
-                           x,
-                           shiftx,
-                           stridex,
-                           y,
-                           shifty,
-                           stridey);
+        ROCBLAS_LAUNCH_KERNEL(rocblas_scopy_2_kernel<NB>,
+                              grid,
+                              threads,
+                              0,
+                              scopy_stream,
+                              n,
+                              x,
+                              shiftx,
+                              stridex,
+                              y,
+                              shifty,
+                              stridey);
     }
     return rocblas_status_success;
 }

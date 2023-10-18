@@ -106,35 +106,35 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     if(matrix_type == rocblas_client_general_matrix)
     {
-        hipLaunchKernelGGL((rocblas_check_numerics_ge_matrix_kernel<DIM_X, DIM_Y>),
-                           blocks,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           num_rows_a,
-                           num_cols_a,
-                           A,
-                           offset_a,
-                           lda,
-                           stride_a,
-                           (rocblas_check_numerics_t*)d_abnormal);
+        ROCBLAS_LAUNCH_KERNEL((rocblas_check_numerics_ge_matrix_kernel<DIM_X, DIM_Y>),
+                              blocks,
+                              threads,
+                              0,
+                              rocblas_stream,
+                              num_rows_a,
+                              num_cols_a,
+                              A,
+                              offset_a,
+                              lda,
+                              stride_a,
+                              (rocblas_check_numerics_t*)d_abnormal);
     }
     else if(matrix_type == rocblas_client_symmetric_matrix
             || matrix_type == rocblas_client_hermitian_matrix
             || matrix_type == rocblas_client_triangular_matrix)
     {
-        hipLaunchKernelGGL((rocblas_check_numerics_sym_herm_tri_matrix_kernel<DIM_X, DIM_Y>),
-                           blocks,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           uplo == rocblas_fill_upper,
-                           n,
-                           A,
-                           offset_a,
-                           lda,
-                           stride_a,
-                           (rocblas_check_numerics_t*)d_abnormal);
+        ROCBLAS_LAUNCH_KERNEL((rocblas_check_numerics_sym_herm_tri_matrix_kernel<DIM_X, DIM_Y>),
+                              blocks,
+                              threads,
+                              0,
+                              rocblas_stream,
+                              uplo == rocblas_fill_upper,
+                              n,
+                              A,
+                              offset_a,
+                              lda,
+                              stride_a,
+                              (rocblas_check_numerics_t*)d_abnormal);
     }
 
     //Transferring the rocblas_check_numerics_t structure from device to the host
