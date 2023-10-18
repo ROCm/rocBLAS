@@ -599,6 +599,11 @@ ROCBLAS_DEPRECATED_MSG(
     | fp32 | bfp8 | bfp8 or fp32 | bfp8 or fp32 | f8_bf8_f32
     | bfp8 | fp32 | fp32 | fp32 | bf8_f8_f32
 
+    Note: When using rocBLAS numerical checking with the flag ROCBLAS_CHECK_NUMERICS,
+    gemm_ex3 will check the input data after the quantization stage. Consequently,
+    when rocblas_compute_type_f32 is not used, only the post processed input will be checked. Numerical checking
+    will always take place on f8/bf8 data.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -746,6 +751,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex3(rocblas_handle      handle,
     | fp8 or fp32 | fp8 or fp32 | fp16 | fp16 | f8_f8_f32
     | fp32 | bfp8 | bfp8 or fp32 | bfp8 or fp32 | f8_bf8_f32
     | bfp8 | fp32 | fp32 | fp32 | bf8_f8_f32
+
+    Note: When using rocBLAS numerical checking with the flag ROCBLAS_CHECK_NUMERICS,
+    gemm_strided_batched_ex3 will check the input data after the quantization stage. Consequently,
+    when rocblas_compute_type_f32 is not used, only the post processed input will be checked. Numerical checking
+    will always take place on f8/bf8 data.
 
     @param[in]
     handle    [rocblas_handle]
@@ -913,6 +923,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex3(rocblas_handle   
     | fp8 or fp32 | fp8 or fp32 | fp16 | fp16 | f8_f8_f32
     | fp32 | bfp8 | bfp8 or fp32 | bfp8 or fp32 | f8_bf8_f32
     | bfp8 | fp32 | fp32 | fp32 | bf8_f8_f32
+
+    Note: When using rocBLAS numerical checking with the flag ROCBLAS_CHECK_NUMERICS,
+    gemm_batched_ex3 will check the input data after the quantization stage. Consequently,
+    when rocblas_compute_type_f32 is not used, only the post processed input will be checked. Numerical checking
+    will always take place on f8/bf8 data.
 
     @param[in]
     handle    [rocblas_handle]
