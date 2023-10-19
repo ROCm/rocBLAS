@@ -1,12 +1,16 @@
 // This file is for AMD Continuous Integration use.
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
 
+
 def runCompileCommand(platform, project, jobName)
 {
     project.paths.construct_build_prefix()
 
     String centos7 = platform.jenkinsLabel.contains('centos7') ? 'source scl_source enable devtoolset-7' : ':'
     String hipccCompileFlags = ""
+    String dynamicBuildCommand = project.paths.build_command
+    String dynamicOptions = ""
+
     if (jobName.contains('hipclang'))
     {
         //default in the hipclang docker containers. May change later on
@@ -16,7 +20,14 @@ def runCompileCommand(platform, project, jobName)
     {
         if (pullRequest.labels.contains("noTensile"))
         {
-            project.paths.build_command = project.paths.build_command.replaceAll(' -c', ' -cn')
+            dynamicBuildCommand = dynamicBuildCommand + ' -n'
+        }
+
+        // in PR if we are targeting develop branch build ONLY what CI pipeline will test, unless bug label
+        if (env.CHANGE_TARGET == "develop" && !pullRequest.labels.contains("bug"))
+        {
+            // requires at command execution time ${auxiliary.gfxTargetParser()} to set gfx_var variable
+            dynamicOptions = ' -a \$gfx_arch'
         }
     }
 
@@ -26,7 +37,8 @@ def runCompileCommand(platform, project, jobName)
                 ${centos7}
                 echo Original HIPCC_COMPILE_FLAGS_APPEND: \$HIPCC_COMPILE_FLAGS_APPEND
                 ${hipccCompileFlags}
-                CXX=/opt/rocm/bin/hipcc ${project.paths.build_command}
+                ${auxiliary.gfxTargetParser()}
+                CXX=/opt/rocm/bin/hipcc ${dynamicBuildCommand} ${dynamicOptions}
                 """
     platform.runCommand(this, command)
 }
