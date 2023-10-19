@@ -1102,7 +1102,7 @@ rocblas_status
             else if(handle->is_device_memory_size_query())
             {
                 status = handle->set_optimal_device_memory_size(
-                    ((solution->requiredWorkspaceSize(tensile_prob)
+                    ((solution->requiredWorkspaceSize(tensile_prob, *hardware)
                       + HPA_GSU_WORKSPACE_SIZE_GRANULARITY - 1)
                      / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
                     * HPA_GSU_WORKSPACE_SIZE_GRANULARITY);
@@ -1110,7 +1110,7 @@ rocblas_status
             else
             {
                 // check if the solution requires workspace for GSU and allocate it.
-                size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob);
+                size_t WorkspaceSize = solution->requiredWorkspaceSize(tensile_prob, *hardware);
                 auto   gsu_malloc    = prob.handle->gsu_malloc_by_size(WorkspaceSize);
 
                 if(solution->canSolve(tensile_prob, *hardware))
