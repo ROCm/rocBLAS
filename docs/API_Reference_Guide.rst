@@ -253,6 +253,18 @@ result is as in the figure below:
    Code blocks in synchronous function call
 
 
+Kernel launch status error checking
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The function ``hipPeekAtLastError()`` is called before and after rocblas kernel launches. This will detect if launch parameters are incorrect, for example
+invalid work-group or thread block sizes. It will also detect if the kernel code can not run on the current GPU device (returns ``rocblas_status_arch_mismatch``).
+Note that ``hipPeekAtLastError()`` does not flush the last error. Reporting only a change in ``hipPeekAtLastError()`` as a detection system has the disadvantage
+that if the previous last error from another kernel launch or hip call is the same as the error from the current kernel, then no error is reported.
+Only the first error would be reported in this case.  You can avoid this behaviour by flushing any previous hip error before calling a rocBLAS function
+by calling ``hipGetLastError()``. Note that both ``hipPeekAtLastError()`` and ``hipGetLastError()`` run synchronously on the CPU and they only check the kernel
+launch, not the asynchronous work done by the kernel.  We do not clear the last error in case the caller was relying on it for detecting errors in
+a batch of hip and rocBLAS function calls.
+
+
 Complex Number Data Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
