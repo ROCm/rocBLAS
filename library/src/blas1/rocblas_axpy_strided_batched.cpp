@@ -96,7 +96,7 @@ namespace
                       incy,
                       "--stride_y",
                       stridey,
-                      "--batch",
+                      "--batch_count",
                       batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
@@ -112,7 +112,7 @@ namespace
                         incy,
                         "stride_y",
                         stridey,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         static constexpr rocblas_stride stride_0 = 0;

@@ -19,10 +19,9 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "check_numerics_vector.hpp"
+#include "logging.hpp"
+#include "rocblas_asum_nrm2.hpp"
 #include "rocblas_block_sizes.h"
-#include "rocblas_nrm2.hpp"
-#include "rocblas_reduction_setup.hpp"
 
 namespace
 {
@@ -46,30 +45,64 @@ namespace
                                              const Ti* const x[],
                                              rocblas_int     incx,
                                              rocblas_int     batch_count,
-                                             To*             results)
+                                             To*             result)
     {
-        static constexpr bool           isbatched = true;
-        static constexpr rocblas_stride shiftx_0  = 0;
-        static constexpr rocblas_stride stridex_0 = 0;
+        if(!handle)
+            return rocblas_status_invalid_handle;
 
-        size_t         dev_bytes = 0;
-        rocblas_status checks_status
-            = rocblas_reduction_setup<NB, isbatched, To>(handle,
-                                                         n,
-                                                         x,
-                                                         incx,
-                                                         stridex_0,
-                                                         batch_count,
-                                                         results,
-                                                         rocblas_nrm2_batched_name<Ti>,
-                                                         "nrm2_batched",
-                                                         dev_bytes);
-        if(checks_status != rocblas_status_continue)
+        size_t dev_bytes
+            = rocblas_reduction_kernel_workspace_size<rocblas_int, NB, To>(n, batch_count);
+
+        if(handle->is_device_memory_size_query())
         {
-            return checks_status;
+            if(n <= 0 || incx <= 0 || batch_count <= 0)
+                return rocblas_status_size_unchanged;
+            else
+                return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
+        auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
+
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_nrm2_batched_name<Ti>, n, x, incx, batch_count);
+
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench -f nrm2_batched",
+                      "-r",
+                      rocblas_precision_string<Ti>,
+                      "-n",
+                      n,
+                      "--incx",
+                      incx,
+                      "--batch_count",
+                      batch_count);
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle,
+                        rocblas_nrm2_batched_name<Ti>,
+                        "N",
+                        n,
+                        "incx",
+                        incx,
+                        "batch_count",
+                        batch_count);
+
+        static constexpr rocblas_stride stridex_0 = 0;
+        static constexpr rocblas_stride shiftx_0  = 0;
+
+        rocblas_status arg_status
+            = rocblas_asum_nrm2_arg_check(handle, n, x, incx, stridex_0, batch_count, result);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
+
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
+        {
+            return rocblas_status_memory_error;
+        }
+
         if(check_numerics)
         {
             bool           is_input = true;
@@ -78,7 +111,7 @@ namespace
                                                                   handle,
                                                                   n,
                                                                   x,
-                                                                  0,
+                                                                  shiftx_0,
                                                                   incx,
                                                                   stridex_0,
                                                                   batch_count,
@@ -88,34 +121,8 @@ namespace
                 return check_numerics_status;
         }
 
-        auto w_mem = handle->device_malloc(dev_bytes);
-        if(!w_mem)
-        {
-            return rocblas_status_memory_error;
-        }
-        rocblas_status status = rocblas_internal_nrm2_template<NB>(
-            handle, n, x, shiftx_0, incx, stridex_0, batch_count, (To*)w_mem, results);
-        if(status != rocblas_status_success)
-            return status;
-
-        if(check_numerics)
-        {
-            bool           is_input = false;
-            rocblas_status check_numerics_status
-                = rocblas_internal_check_numerics_vector_template(rocblas_nrm2_batched_name<Ti>,
-                                                                  handle,
-                                                                  n,
-                                                                  x,
-                                                                  0,
-                                                                  incx,
-                                                                  stridex_0,
-                                                                  batch_count,
-                                                                  check_numerics,
-                                                                  is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-        }
-        return status;
+        return rocblas_reduction_template<NB, rocblas_fetch_nrm2<To>, rocblas_finalize_nrm2>(
+            handle, n, x, shiftx_0, incx, stridex_0, batch_count, (To*)w_mem, result);
     }
 }
 /*

@@ -20,8 +20,7 @@
  *
  * ************************************************************************ */
 
-#include "../blas1/rocblas_asum.hpp"
-#include "../blas1/rocblas_nrm2.hpp"
+#include "../blas1/rocblas_asum_nrm2.hpp"
 #include "../blas1/rocblas_reduction.hpp"
 #include "rocblas_block_sizes.h"
 
@@ -298,11 +297,11 @@ INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, rocblas_double_complex const*, double, double)
 INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<double>, rocblas_finalize_nrm2, rocblas_double_complex const* const*, double, double)
 
-INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const*, float, _Float16)
-INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<_Float16>, rocblas_finalize_nrm2, _Float16 const* const*, float, _Float16)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, _Float16 const*, float, _Float16)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, _Float16 const* const*, float, _Float16)
 
-INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<rocblas_bfloat16>, rocblas_finalize_nrm2, rocblas_bfloat16 const*, float, rocblas_bfloat16)
-INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<rocblas_bfloat16>, rocblas_finalize_nrm2, rocblas_bfloat16 const* const*, float, rocblas_bfloat16)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, rocblas_bfloat16 const*, float, rocblas_bfloat16)
+INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE(ROCBLAS_NRM2_NB, rocblas_fetch_nrm2<float>, rocblas_finalize_nrm2, rocblas_bfloat16 const* const*, float, rocblas_bfloat16)
 
 #undef INSTANTIATE_ROCBLAS_REDUCTION_TEMPLATE
 

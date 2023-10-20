@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "../blas1/rocblas_nrm2.hpp"
+#include "../blas1/rocblas_asum_nrm2.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
@@ -61,15 +61,17 @@ rocblas_status rocblas_nrm2_ex_typecasting(rocblas_handle handle,
                 return nrm2_ex_check_numerics_status;
         }
 
-        status = rocblas_internal_nrm2_template<NB>(handle,
-                                                    n,
-                                                    (const Tx* const*)x,
-                                                    shiftx,
-                                                    incx,
-                                                    stridex,
-                                                    batch_count,
-                                                    (Tex*)workspace,
-                                                    (Tr*)results);
+        status = rocblas_reduction_template<NB, rocblas_fetch_nrm2<Tex>, rocblas_finalize_nrm2>(
+            handle,
+            n,
+            (const Tx* const*)x,
+            shiftx,
+            incx,
+            stridex,
+            batch_count,
+            (Tex*)workspace,
+            (Tr*)results);
+
         if(status != rocblas_status_success)
             return status;
 
@@ -111,16 +113,17 @@ rocblas_status rocblas_nrm2_ex_typecasting(rocblas_handle handle,
             if(nrm2_ex_check_numerics_status != rocblas_status_success)
                 return nrm2_ex_check_numerics_status;
         }
+        status = rocblas_reduction_template<NB, rocblas_fetch_nrm2<Tex>, rocblas_finalize_nrm2>(
+            handle,
+            n,
+            (const Tx*)x,
+            shiftx,
+            incx,
+            stridex,
+            batch_count,
+            (Tex*)workspace,
+            (Tr*)results);
 
-        status = rocblas_internal_nrm2_template<NB>(handle,
-                                                    n,
-                                                    (const Tx*)x,
-                                                    shiftx,
-                                                    incx,
-                                                    stridex,
-                                                    batch_count,
-                                                    (Tex*)workspace,
-                                                    (Tr*)results);
         if(status != rocblas_status_success)
             return status;
 

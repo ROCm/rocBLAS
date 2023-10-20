@@ -85,11 +85,12 @@ namespace
                       incx,
                       "--incy",
                       incy,
-                      "--batch",
+                      "--batch_count",
                       batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, name, "N", n, "incx", incx, "incy", incy, "batch", batch_count);
+            log_profile(
+                handle, name, "N", n, "incx", incx, "incy", incy, "batch_count", batch_count);
 
         static constexpr rocblas_stride stride_0 = 0;
         static constexpr rocblas_stride offset_0 = 0;
