@@ -22,10 +22,13 @@
 
 #pragma once
 
+#include "check_numerics_vector.hpp"
 #include "fetch_template.hpp"
 #include "handle.hpp"
+#include "logging.hpp"
 #include "reduction.hpp"
 #include "rocblas.h"
+#include "rocblas_reduction.hpp"
 #include "utility.hpp"
 #include <type_traits>
 #include <utility>
@@ -107,6 +110,45 @@ struct rocblas_reduce_amin
         }
     }
 };
+
+template <typename T, typename Tr>
+rocblas_status rocblas_iamax_iamin_arg_check(rocblas_handle handle,
+                                             rocblas_int    n,
+                                             T              x,
+                                             rocblas_int    incx,
+                                             rocblas_stride stridex,
+                                             rocblas_int    batch_count,
+                                             Tr*            result)
+{
+    if(!result)
+    {
+        return rocblas_status_invalid_pointer;
+    }
+
+    // Quick return if possible.
+    if(n <= 0 || incx <= 0 || batch_count <= 0)
+    {
+        if(rocblas_pointer_mode_device == handle->pointer_mode)
+        {
+            if(batch_count > 0)
+                RETURN_IF_HIP_ERROR(
+                    hipMemsetAsync(result, 0, batch_count * sizeof(Tr), handle->get_stream()));
+        }
+        else
+        {
+            if(batch_count > 0)
+                memset(result, 0, batch_count * sizeof(Tr));
+        }
+        return rocblas_status_success;
+    }
+
+    if(!x)
+    {
+        return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
+}
 
 /**
  * @brief internal iamax template. Can be used with regular iamax or iamax_strided_batched.

@@ -20,10 +20,8 @@
  *
  * ************************************************************************ */
 
-#include "check_numerics_vector.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_iamax_iamin.hpp"
-#include "rocblas_reduction_setup.hpp"
 
 namespace
 {
@@ -43,31 +41,57 @@ namespace
     rocblas_status rocblas_iamin_impl(
         rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result)
     {
-        static constexpr bool           isbatched     = false;
-        static constexpr rocblas_stride shiftx_0      = 0;
-        static constexpr rocblas_stride stridex_0     = 0;
-        static constexpr rocblas_int    batch_count_1 = 1;
-        static constexpr int            NB            = ROCBLAS_IAMAX_NB;
+        if(!handle)
+            return rocblas_status_invalid_handle;
 
-        size_t         dev_bytes = 0;
-        rocblas_status checks_status
-            = rocblas_reduction_setup<NB, isbatched, rocblas_index_value_t<S>>(
-                handle,
-                n,
-                x,
-                incx,
-                stridex_0,
-                batch_count_1,
-                result,
-                rocblas_iamin_name<T>,
-                "iamin",
-                dev_bytes);
-        if(checks_status != rocblas_status_continue)
+        static constexpr rocblas_int batch_count_1 = 1;
+
+        size_t dev_bytes
+            = rocblas_reduction_kernel_workspace_size<rocblas_int,
+                                                      ROCBLAS_IAMAX_NB,
+                                                      rocblas_index_value_t<S>>(n, batch_count_1);
+
+        if(handle->is_device_memory_size_query())
         {
-            return checks_status;
+            if(n <= 0 || incx <= 0)
+                return rocblas_status_size_unchanged;
+            else
+                return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
+        auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
+
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_iamin_name<T>, n, x, incx);
+
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench -f iamin",
+                      "-r",
+                      rocblas_precision_string<T>,
+                      "-n",
+                      n,
+                      "--incx",
+                      incx);
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle, rocblas_iamin_name<T>, "N", n, "incx", incx);
+
+        static constexpr rocblas_stride shiftx_0  = 0;
+        static constexpr rocblas_stride stridex_0 = 0;
+
+        rocblas_status arg_status
+            = rocblas_iamax_iamin_arg_check(handle, n, x, incx, stridex_0, batch_count_1, result);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
+
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
+        {
+            return rocblas_status_memory_error;
+        }
+
         if(check_numerics)
         {
             bool           is_input = true;
@@ -76,7 +100,7 @@ namespace
                                                                   handle,
                                                                   n,
                                                                   x,
-                                                                  0,
+                                                                  shiftx_0,
                                                                   incx,
                                                                   stridex_0,
                                                                   batch_count_1,
@@ -86,42 +110,15 @@ namespace
                 return check_numerics_status;
         }
 
-        auto w_mem = handle->device_malloc(dev_bytes);
-        if(!w_mem)
-        {
-            return rocblas_status_memory_error;
-        }
-        rocblas_status status = rocblas_internal_iamin_template(handle,
-                                                                n,
-                                                                x,
-                                                                shiftx_0,
-                                                                incx,
-                                                                stridex_0,
-                                                                batch_count_1,
-                                                                result,
-                                                                (rocblas_index_value_t<S>*)w_mem);
-        if(status != rocblas_status_success)
-            return status;
-
-        if(check_numerics)
-        {
-            bool           is_input = false;
-            rocblas_status check_numerics_status
-                = rocblas_internal_check_numerics_vector_template(rocblas_iamin_name<T>,
-                                                                  handle,
-                                                                  n,
-                                                                  x,
-                                                                  0,
-                                                                  incx,
-                                                                  stridex_0,
-                                                                  batch_count_1,
-                                                                  check_numerics,
-                                                                  is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-        }
-
-        return status;
+        return rocblas_internal_iamin_template(handle,
+                                               n,
+                                               x,
+                                               shiftx_0,
+                                               incx,
+                                               stridex_0,
+                                               batch_count_1,
+                                               result,
+                                               (rocblas_index_value_t<S>*)w_mem);
     }
 
 }
@@ -138,19 +135,19 @@ extern "C" {
 #error IMPL IS ALREADY DEFINED
 #endif
 
-#define IMPL(name_, typei_, typew_)                                     \
-    rocblas_status name_(rocblas_handle handle,                         \
-                         rocblas_int    n,                              \
-                         const typei_*  x,                              \
-                         rocblas_int    incx,                           \
-                         rocblas_int*   results)                        \
-    try                                                                 \
-    {                                                                   \
-        return rocblas_iamin_impl<typew_>(handle, n, x, incx, results); \
-    }                                                                   \
-    catch(...)                                                          \
-    {                                                                   \
-        return exception_to_rocblas_status();                           \
+#define IMPL(name_, typei_, typew_)                                    \
+    rocblas_status name_(rocblas_handle handle,                        \
+                         rocblas_int    n,                             \
+                         const typei_*  x,                             \
+                         rocblas_int    incx,                          \
+                         rocblas_int*   result)                        \
+    try                                                                \
+    {                                                                  \
+        return rocblas_iamin_impl<typew_>(handle, n, x, incx, result); \
+    }                                                                  \
+    catch(...)                                                         \
+    {                                                                  \
+        return exception_to_rocblas_status();                          \
     }
 
 IMPL(rocblas_isamin, float, float);

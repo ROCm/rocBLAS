@@ -20,7 +20,6 @@
  *
  * ************************************************************************ */
 
-#include "../blas1/rocblas_reduction_setup.hpp"
 #include "rocblas_block_sizes.h"
 #include "rocblas_nrm2_ex.hpp"
 

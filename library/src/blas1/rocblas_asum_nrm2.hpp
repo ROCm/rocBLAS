@@ -22,7 +22,20 @@
 
 #pragma once
 
+#include "check_numerics_vector.hpp"
 #include "fetch_template.hpp"
+#include "reduction.hpp"
+#include "rocblas_reduction.hpp"
+
+template <class To>
+struct rocblas_fetch_asum
+{
+    template <typename Ti>
+    __forceinline__ __device__ To operator()(Ti x) const
+    {
+        return {fetch_asum(x)};
+    }
+};
 
 template <class To>
 struct rocblas_fetch_nrm2
@@ -59,18 +72,44 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
                                           To*            workspace,
                                           Tr*            result);
 
-template <rocblas_int NB, typename Ti, typename To, typename Tex = To>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_nrm2_template(rocblas_handle handle,
-                                   rocblas_int    n,
-                                   const Ti*      x,
-                                   rocblas_stride shiftx,
-                                   rocblas_int    incx,
-                                   rocblas_stride stridex,
-                                   rocblas_int    batch_count,
-                                   Tex*           workspace,
-                                   To*            results)
+template <typename T, typename Tr>
+rocblas_status rocblas_asum_nrm2_arg_check(rocblas_handle handle,
+                                           rocblas_int    n,
+                                           T              x,
+                                           rocblas_int    incx,
+                                           rocblas_stride stridex,
+                                           rocblas_int    batch_count,
+                                           Tr*            result)
 {
-    return rocblas_reduction_template<NB, rocblas_fetch_nrm2<To>, rocblas_finalize_nrm2>(
-        handle, n, x, shiftx, incx, stridex, batch_count, workspace, results);
+
+    if(!result)
+    {
+        return rocblas_status_invalid_pointer;
+    }
+
+    // Quick return if possible.
+    if(n <= 0 || incx <= 0 || batch_count <= 0)
+    {
+        if(rocblas_pointer_mode_device == handle->pointer_mode)
+        {
+            if(batch_count > 0)
+            {
+                RETURN_IF_HIP_ERROR(
+                    hipMemsetAsync(result, 0, batch_count * sizeof(Tr), handle->get_stream()));
+            }
+        }
+        else
+        {
+            if(batch_count > 0)
+                memset(result, 0, batch_count * sizeof(Tr));
+        }
+        return rocblas_status_success;
+    }
+
+    if(!x)
+    {
+        return rocblas_status_invalid_pointer;
+    }
+
+    return rocblas_status_continue;
 }
