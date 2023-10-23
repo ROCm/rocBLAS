@@ -61,15 +61,14 @@ template <
     std::enable_if_t<!rocblas_is_complex<
                          T> && !(std::is_same<T, rocblas_f8>{} || std::is_same<T, rocblas_bf8>{}),
                      int> = 0>
-double norm_check_general(
-    char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
+double norm_check_general(char norm_type, int64_t M, int64_t N, int64_t lda, T* hCPU, T* hGPU)
 {
     // norm type can be 'O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
 
-    host_vector<double> work(std::max(1, M));
+    host_vector<double> work(std::max(int64_t(1), M));
     int64_t             incx  = 1;
     double              alpha = -1.0;
 
@@ -78,11 +77,11 @@ double norm_check_general(
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
-    for(rocblas_int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
         int64_t src_col = i * int64_t(lda);
         int64_t dst_col = i * int64_t(M);
-        for(rocblas_int j = 0; j < M; j++)
+        for(int64_t j = 0; j < M; j++)
         {
             hCPU_double[size_t(dst_col + j)] = double(hCPU[src_col + j]);
             hGPU_double[size_t(dst_col + j)] = double(hGPU[src_col + j]);
@@ -99,8 +98,7 @@ double norm_check_general(
 template <
     typename T,
     std::enable_if_t<(std::is_same<T, rocblas_f8>{} || std::is_same<T, rocblas_bf8>{}), int> = 0>
-double norm_check_general(
-    char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
+double norm_check_general(char norm_type, int64_t M, int64_t N, int64_t lda, T* hCPU, T* hGPU)
 {
     // norm type can be 'O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -111,18 +109,18 @@ double norm_check_general(
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
-    for(rocblas_int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
         int64_t src_col = i * int64_t(lda);
         int64_t dst_col = i * int64_t(M);
-        for(rocblas_int j = 0; j < M; j++)
+        for(int64_t j = 0; j < M; j++)
         {
             hCPU_double[size_t(dst_col + j)] = double(float(hCPU[src_col + j]));
             hGPU_double[size_t(dst_col + j)] = double(float(hGPU[src_col + j]));
         }
     }
 
-    host_vector<double> work(std::max(1, M));
+    host_vector<double> work(std::max(int64_t(1), M));
     int64_t             incx  = 1;
     double              alpha = -1.0;
 
@@ -134,15 +132,14 @@ double norm_check_general(
 
 // Complex
 template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0>
-double norm_check_general(
-    char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
+double norm_check_general(char norm_type, int64_t M, int64_t N, int64_t lda, T* hCPU, T* hGPU)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
 
-    host_vector<double> work(std::max(1, M));
+    host_vector<double> work(std::max(int64_t(1), M));
     int64_t             incx  = 1;
     T                   alpha = -1.0;
     int64_t             size  = N * (int64_t)lda;
@@ -159,16 +156,15 @@ template <typename T,
           typename VEC,
           std::enable_if_t<std::is_same_v<T, rocblas_half> || std::is_same_v<T, rocblas_bfloat16>,
                            int> = 0>
-double norm_check_general(
-    char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, VEC&& hCPU, T* hGPU)
+double norm_check_general(char norm_type, int64_t M, int64_t N, int64_t lda, VEC&& hCPU, T* hGPU)
 {
     size_t              size = N * (size_t)lda;
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
-    for(rocblas_int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
-        for(rocblas_int j = 0; j < M; j++)
+        for(int64_t j = 0; j < M; j++)
         {
             size_t idx       = j + i * (size_t)lda;
             hCPU_double[idx] = hCPU[idx];
@@ -182,13 +178,13 @@ double norm_check_general(
 /* ============== Norm Check for strided_batched case ============= */
 template <typename T, template <typename> class VEC, typename T_hpa>
 double norm_check_general(char           norm_type,
-                          rocblas_int    M,
-                          rocblas_int    N,
-                          rocblas_int    lda,
+                          int64_t        M,
+                          int64_t        N,
+                          int64_t        lda,
                           rocblas_stride stride_a,
                           VEC<T_hpa>&    hCPU,
                           T*             hGPU,
-                          rocblas_int    batch_count)
+                          int64_t        batch_count)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -229,13 +225,13 @@ double norm_check_general(char norm_type, T& hCPU, U& hGPU)
     //
     // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
     // of strided batched matrix
-    rocblas_int M                = hCPU.m();
-    rocblas_int N                = hCPU.n();
-    size_t      lda              = hCPU.lda();
-    rocblas_int batch_count      = hCPU.batch_count();
-    double      cumulative_error = 0.0;
+    int64_t M                = hCPU.m();
+    int64_t N                = hCPU.n();
+    size_t  lda              = hCPU.lda();
+    int64_t batch_count      = hCPU.batch_count();
+    double  cumulative_error = 0.0;
 
-    for(rocblas_int b = 0; b < batch_count; b++)
+    for(int64_t b = 0; b < batch_count; b++)
     {
         auto* CPU   = hCPU[b];
         auto* GPU   = hGPU[b];
@@ -258,12 +254,12 @@ double norm_check_general(char norm_type, T& hCPU, U& hGPU)
 
 template <typename T, typename T_hpa>
 double norm_check_general(char                      norm_type,
-                          rocblas_int               M,
-                          rocblas_int               N,
-                          rocblas_int               lda,
+                          int64_t                   M,
+                          int64_t                   N,
+                          int64_t                   lda,
                           host_batch_vector<T_hpa>& hCPU,
                           host_batch_vector<T>&     hGPU,
-                          rocblas_int               batch_count)
+                          int64_t                   batch_count)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -275,7 +271,7 @@ double norm_check_general(char                      norm_type,
 
     double cumulative_error = 0.0;
 
-    for(rocblas_int i = 0; i < batch_count; i++)
+    for(int64_t i = 0; i < batch_count; i++)
     {
         auto index = i;
 
@@ -295,13 +291,8 @@ double norm_check_general(char                      norm_type,
 }
 
 template <typename T>
-double norm_check_general(char        norm_type,
-                          rocblas_int M,
-                          rocblas_int N,
-                          rocblas_int lda,
-                          T*          hCPU[],
-                          T*          hGPU[],
-                          rocblas_int batch_count)
+double norm_check_general(
+    char norm_type, int64_t M, int64_t N, int64_t lda, T* hCPU[], T* hGPU[], int64_t batch_count)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -313,7 +304,7 @@ double norm_check_general(char        norm_type,
 
     double cumulative_error = 0.0;
 
-    for(rocblas_int i = 0; i < batch_count; i++)
+    for(int64_t i = 0; i < batch_count; i++)
     {
         auto index = i;
 
@@ -335,22 +326,21 @@ double norm_check_general(char        norm_type,
 /* ============== Norm Check for Symmetric Matrix ============= */
 /*! \brief compare the norm error of two Hermitian/symmetric matrices hCPU & hGPU */
 template <typename T, std::enable_if_t<!rocblas_is_complex<T>, int> = 0, bool HERM = false>
-double norm_check_symmetric(
-    char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
+double norm_check_symmetric(char norm_type, char uplo, int64_t N, int64_t lda, T* hCPU, T* hGPU)
 {
     // norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
 
-    host_vector<double> work(std::max(1, N));
-    rocblas_int         incx  = 1;
+    host_vector<double> work(std::max(int64_t(1), N));
+    int64_t             incx  = 1;
     double              alpha = -1.0;
     size_t              size  = N * (size_t)lda;
 
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
-    for(rocblas_int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
-        for(rocblas_int j = 0; j < N; j++)
+        for(int64_t j = 0; j < N; j++)
         {
             size_t idx       = j + i * (size_t)lda;
             hCPU_double[idx] = double(hCPU[idx]);
@@ -367,12 +357,11 @@ double norm_check_symmetric(
 }
 
 template <typename T, std::enable_if_t<rocblas_is_complex<T>, int> = 0, bool HERM = false>
-double norm_check_symmetric(
-    char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
+double norm_check_symmetric(char norm_type, char uplo, int64_t N, int64_t lda, T* hCPU, T* hGPU)
 {
     // norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
-    host_vector<double> work(std::max(1, N));
-    rocblas_int         incx  = 1;
+    host_vector<double> work(std::max(int64_t(1), N));
+    int64_t             incx  = 1;
     T                   alpha = -1.0;
     size_t              size  = (size_t)lda * N;
 
@@ -384,20 +373,16 @@ double norm_check_symmetric(
 }
 
 template <>
-inline double norm_check_symmetric(char          norm_type,
-                                   char          uplo,
-                                   rocblas_int   N,
-                                   rocblas_int   lda,
-                                   rocblas_half* hCPU,
-                                   rocblas_half* hGPU)
+inline double norm_check_symmetric(
+    char norm_type, char uplo, int64_t N, int64_t lda, rocblas_half* hCPU, rocblas_half* hGPU)
 {
     size_t              size = N * (size_t)lda;
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
-    for(rocblas_int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
-        for(rocblas_int j = 0; j < N; j++)
+        for(int64_t j = 0; j < N; j++)
         {
             size_t idx       = j + i * (size_t)lda;
             hCPU_double[idx] = hCPU[idx];
@@ -409,17 +394,12 @@ inline double norm_check_symmetric(char          norm_type,
 }
 
 template <typename T, bool HERM = false>
-double norm_check_symmetric(char        norm_type,
-                            char        uplo,
-                            rocblas_int N,
-                            rocblas_int lda,
-                            T*          hCPU[],
-                            T*          hGPU[],
-                            rocblas_int batch_count)
+double norm_check_symmetric(
+    char norm_type, char uplo, int64_t N, int64_t lda, T* hCPU[], T* hGPU[], int64_t batch_count)
 {
     double cumulative_error = 0.0;
 
-    for(rocblas_int b = 0; b < batch_count; b++)
+    for(int64_t b = 0; b < batch_count; b++)
     {
         auto error = norm_check_symmetric<T, HERM>(norm_type, uplo, N, lda, hCPU[b], hGPU[b]);
 
@@ -439,16 +419,16 @@ double norm_check_symmetric(char        norm_type,
 template <typename T, bool HERM = false>
 double norm_check_symmetric(char           norm_type,
                             char           uplo,
-                            rocblas_int    N,
-                            rocblas_int    lda,
+                            int64_t        N,
+                            int64_t        lda,
                             rocblas_stride stridea,
                             T*             hCPU,
                             T*             hGPU,
-                            rocblas_int    batch_count)
+                            int64_t        batch_count)
 {
     double cumulative_error = 0.0;
 
-    for(rocblas_int b = 0; b < batch_count; b++)
+    for(int64_t b = 0; b < batch_count; b++)
     {
         auto error = norm_check_symmetric<T, HERM>(
             norm_type, uplo, N, lda, hCPU + b * stridea, hGPU + b * stridea);
@@ -467,15 +447,15 @@ double norm_check_symmetric(char           norm_type,
 }
 
 template <typename T>
-double matrix_norm_1(rocblas_int M, rocblas_int N, rocblas_int lda, T* hA_gold, T* hA)
+double matrix_norm_1(int64_t M, int64_t N, int64_t lda, T* hA_gold, T* hA)
 {
     double max_err_scal = 0.0;
     double max_err      = 0.0;
     double err          = 0.0;
     double err_scal     = 0.0;
-    for(int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
-        for(int j = 0; j < M; j++)
+        for(int64_t j = 0; j < M; j++)
         {
             size_t idx = j + i * (size_t)lda;
             err += rocblas_abs((hA_gold[idx] - hA[idx]));
@@ -490,16 +470,15 @@ double matrix_norm_1(rocblas_int M, rocblas_int N, rocblas_int lda, T* hA_gold, 
 
 // overload with different leading dimensions
 template <typename T>
-double matrix_norm_1(
-    rocblas_int M, rocblas_int N, T* hA_gold, rocblas_int lda_gold, T* hA, rocblas_int lda)
+double matrix_norm_1(int64_t M, int64_t N, T* hA_gold, int64_t lda_gold, T* hA, int64_t lda)
 {
     double max_err_scal = 0.0;
     double max_err      = 0.0;
     double err          = 0.0;
     double err_scal     = 0.0;
-    for(int i = 0; i < N; i++)
+    for(int64_t i = 0; i < N; i++)
     {
-        for(int j = 0; j < M; j++)
+        for(int64_t j = 0; j < M; j++)
         {
             size_t idxAg = j + i * (size_t)lda_gold;
             size_t idxA  = j + i * (size_t)lda;
@@ -514,7 +493,7 @@ double matrix_norm_1(
 }
 
 template <typename T>
-double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
+double vector_norm_1(int64_t M, int64_t incx, T* hx_gold, T* hx)
 {
     double  max_err_scal = 0.0;
     double  max_err      = 0.0;
@@ -530,14 +509,14 @@ double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
 }
 
 template <typename T>
-double vector_norm_1(rocblas_int                 M,
-                     rocblas_int                 incx,
+double vector_norm_1(int64_t                     M,
+                     int64_t                     incx,
                      const host_batch_vector<T>& hx_gold,
                      const host_batch_vector<T>& hx)
 {
     double max_err = 0.0;
 
-    for(int b = 0; b < hx_gold.batch_count(); b++)
+    for(size_t b = 0; b < hx_gold.batch_count(); b++)
     {
         max_err = std::max(max_err, vector_norm_1(M, incx, hx_gold[b], hx[b]));
     }
@@ -546,14 +525,14 @@ double vector_norm_1(rocblas_int                 M,
 }
 
 template <typename T>
-double vector_norm_1(rocblas_int                         M,
-                     rocblas_int                         incx,
+double vector_norm_1(int64_t                             M,
+                     int64_t                             incx,
                      const host_strided_batch_vector<T>& hx_gold,
                      const host_strided_batch_vector<T>& hx)
 {
     double max_err = 0.0;
 
-    for(int b = 0; b < hx_gold.batch_count(); b++)
+    for(size_t b = 0; b < hx_gold.batch_count(); b++)
     {
         max_err = std::max(
             max_err, vector_norm_1(M, incx, hx_gold + b * hx_gold.stride(), hx + b * hx.stride()));

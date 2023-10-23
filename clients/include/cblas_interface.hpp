@@ -596,16 +596,16 @@ inline void cblas_gbmv(rocblas_operation       transA,
 // gemv
 template <typename Ti, typename To, typename Ta>
 void cblas_gemv(rocblas_operation transA,
-                rocblas_int       m,
-                rocblas_int       n,
+                int64_t           m,
+                int64_t           n,
                 Ta                alpha,
                 Ti*               A,
-                rocblas_int       lda,
+                int64_t           lda,
                 Ti*               x,
-                rocblas_int       incx,
+                int64_t           incx,
                 Ta                beta,
                 To*               y,
-                rocblas_int       incy);
+                int64_t           incy);
 
 // tbmv
 template <typename T>

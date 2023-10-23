@@ -322,7 +322,7 @@ void cblas_rot<rocblas_bfloat16>(int64_t                 n,
 
 /**
   *
-  * cblas_gemv(rocblas_operation transA, rocblas_int m, rocblas_int n, float  alpha, Ti* A, rocblas_int lda, Ti* x, rocblas_int incx, float beta, To* y, rocblas_int incy)
+  * cblas_gemv(rocblas_operation transA, int64_t m, int64_t n, float  alpha, Ti* A, int64_t lda, Ti* x, int64_t incx, float beta, To* y, int64_t incy)
   *
   * Info about cblas_gemv function:
   *
@@ -343,40 +343,40 @@ void cblas_rot<rocblas_bfloat16>(int64_t                 n,
 
 template <typename Ti, typename To, typename Ta>
 void cblas_gemv(rocblas_operation transA,
-                rocblas_int       m,
-                rocblas_int       n,
+                int64_t           m,
+                int64_t           n,
                 Ta                alpha,
                 Ti*               A,
-                rocblas_int       lda,
+                int64_t           lda,
                 Ti*               x,
-                rocblas_int       incx,
+                int64_t           incx,
                 Ta                beta,
                 To*               y,
-                rocblas_int       incy)
+                int64_t           incy)
 {
     if constexpr(std::is_same_v<Ti, rocblas_half> || std::is_same_v<Ti, rocblas_bfloat16>)
     {
         // Ti == fp16/bf16
         // To == Ti/float
         // Ta == float
-        rocblas_int dim_x    = transA == rocblas_operation_none ? n : m;
-        rocblas_int dim_y    = transA == rocblas_operation_none ? m : n;
-        size_t      abs_incx = incx >= 0 ? incx : -incx;
-        size_t      abs_incy = incy >= 0 ? incy : -incy;
+        int64_t dim_x    = transA == rocblas_operation_none ? n : m;
+        int64_t dim_y    = transA == rocblas_operation_none ? m : n;
+        size_t  abs_incx = incx >= 0 ? incx : -incx;
+        size_t  abs_incy = incy >= 0 ? incy : -incy;
 
         host_vector<float> A_float(size_t(lda) * n), X_float(dim_x * abs_incx);
 
         for(size_t i = 0; i < size_t(lda) * n; i++)
             A_float[i] = static_cast<float>(A[i]);
 
-        for(int i = 0; i < dim_x; i++)
+        for(int64_t i = 0; i < dim_x; i++)
             X_float[i * abs_incx] = static_cast<float>(x[i * abs_incx]);
 
         if constexpr(std::is_same_v<To, rocblas_half> || std::is_same_v<To, rocblas_bfloat16>)
         {
             host_vector<float> Y_float(dim_y * abs_incy);
 
-            for(int i = 0; i < dim_y; i++)
+            for(int64_t i = 0; i < dim_y; i++)
                 Y_float[i * abs_incy] = static_cast<float>(y[i * abs_incy]);
 
             cblas_sgemv(CblasColMajor,
@@ -392,7 +392,7 @@ void cblas_gemv(rocblas_operation transA,
                         Y_float,
                         incy);
 
-            for(int i = 0; i < dim_y; i++)
+            for(int64_t i = 0; i < dim_y; i++)
                 y[i * abs_incy] = (To)Y_float[i * abs_incy];
         }
         else
@@ -436,16 +436,16 @@ void cblas_gemv(rocblas_operation transA,
 
 #define INSTANTIATE_CBLAS_GEMV_TEMPLATE(Ti_, To_, Ta_)                \
     template void cblas_gemv<Ti_, To_, Ta_>(rocblas_operation transA, \
-                                            rocblas_int       m,      \
-                                            rocblas_int       n,      \
+                                            int64_t           m,      \
+                                            int64_t           n,      \
                                             Ta_               alpha,  \
                                             Ti_ * A,                  \
-                                            rocblas_int lda,          \
+                                            int64_t lda,              \
                                             Ti_ * x,                  \
-                                            rocblas_int incx,         \
-                                            Ta_         beta,         \
+                                            int64_t incx,             \
+                                            Ta_     beta,             \
                                             To_ * y,                  \
-                                            rocblas_int incy);
+                                            int64_t incy);
 
 INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_half, rocblas_half, float)
 INSTANTIATE_CBLAS_GEMV_TEMPLATE(rocblas_half, float, float)
