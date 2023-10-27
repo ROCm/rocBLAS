@@ -23,21 +23,103 @@
 #pragma once
 
 #include "handle.hpp"
+#include "int64_helpers.hpp"
 #include "rocblas.h"
+#include "rocblas_block_sizes.h"
+
+template <typename API_INT, rocblas_int NB, typename Tex, typename Ta, typename Tx, typename Ty>
+ROCBLAS_INTERNAL_ONLY_EXPORT_NOINLINE
+    rocblas_status ROCBLAS_API(rocblas_internal_axpy_launcher)(rocblas_handle handle,
+                                                               API_INT        n,
+                                                               Ta             alpha,
+                                                               rocblas_stride stride_alpha,
+                                                               Tx             x,
+                                                               rocblas_stride offset_x,
+                                                               API_INT        incx,
+                                                               rocblas_stride stride_x,
+                                                               Ty             y,
+                                                               rocblas_stride offset_y,
+                                                               API_INT        incy,
+                                                               rocblas_stride stride_y,
+                                                               API_INT        batch_count);
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_axpy_template(rocblas_handle handle,
+                                   rocblas_int    n,
+                                   const T*       alpha,
+                                   rocblas_stride stride_alpha,
+                                   const T*       x,
+                                   rocblas_stride offset_x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stride_x,
+                                   T*             y,
+                                   rocblas_stride offset_y,
+                                   rocblas_int    incy,
+                                   rocblas_stride stride_y,
+                                   rocblas_int    batch_count)
+{
+    return ROCBLAS_API(rocblas_internal_axpy_launcher)<rocblas_int, ROCBLAS_AXPY_NB, T>(
+        handle,
+        n,
+        alpha,
+        stride_alpha,
+        x,
+        offset_x,
+        incx,
+        stride_x,
+        y,
+        offset_y,
+        incy,
+        stride_y,
+        batch_count);
+}
+
+template <typename T>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_axpy_batched_template(rocblas_handle  handle,
+                                           rocblas_int     n,
+                                           const T*        alpha,
+                                           rocblas_stride  stride_alpha,
+                                           const T* const* x,
+                                           rocblas_stride  offset_x,
+                                           rocblas_int     incx,
+                                           rocblas_stride  stride_x,
+                                           T* const*       y,
+                                           rocblas_stride  offset_y,
+                                           rocblas_int     incy,
+                                           rocblas_stride  stride_y,
+                                           rocblas_int     batch_count)
+{
+    return ROCBLAS_API(rocblas_internal_axpy_launcher)<rocblas_int, ROCBLAS_AXPY_NB, T>(
+        handle,
+        n,
+        alpha,
+        stride_alpha,
+        x,
+        offset_x,
+        incx,
+        stride_x,
+        y,
+        offset_y,
+        incy,
+        stride_y,
+        batch_count);
+}
 
 template <typename Ta, typename Tx, typename Ty>
 inline rocblas_status rocblas_axpy_arg_check(rocblas_handle handle,
-                                             rocblas_int    n,
+                                             int64_t        n,
                                              const Ta*      alpha,
                                              Tx             x,
                                              rocblas_stride offset_x,
-                                             rocblas_int    incx,
+                                             int64_t        incx,
                                              rocblas_stride stride_x,
                                              Ty             y,
                                              rocblas_stride offset_y,
-                                             rocblas_int    incy,
+                                             int64_t        incy,
                                              rocblas_stride stride_y,
-                                             rocblas_int    batch_count)
+                                             int64_t        batch_count)
 {
     if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
@@ -61,72 +143,15 @@ inline rocblas_status rocblas_axpy_arg_check(rocblas_handle handle,
 template <typename T, typename U>
 rocblas_status rocblas_axpy_check_numerics(const char*    function_name,
                                            rocblas_handle handle,
-                                           rocblas_int    n,
+                                           int64_t        n,
                                            T              x,
                                            rocblas_stride offset_x,
-                                           rocblas_int    inc_x,
+                                           int64_t        inc_x,
                                            rocblas_stride stride_x,
                                            U              y,
                                            rocblas_stride offset_y,
-                                           rocblas_int    inc_y,
+                                           int64_t        inc_y,
                                            rocblas_stride stride_y,
-                                           rocblas_int    batch_count,
+                                           int64_t        batch_count,
                                            const int      check_numerics,
                                            bool           is_input);
-//!
-//! @brief General template to compute y = a * x + y.
-//!
-template <int NB, typename Tex, typename Ta, typename Tx, typename Ty>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_axpy_ex_template(rocblas_handle handle,
-                                      rocblas_int    n,
-                                      const Ta*      alpha,
-                                      rocblas_stride stride_alpha,
-                                      Tx             x,
-                                      rocblas_stride offset_x,
-                                      rocblas_int    incx,
-                                      rocblas_stride stride_x,
-                                      Ty             y,
-                                      rocblas_stride offset_y,
-                                      rocblas_int    incy,
-                                      rocblas_stride stride_y,
-                                      rocblas_int    batch_count);
-
-/**
- * @brief internal axpy template, to be used for regular axpy and axpy_strided_batched.
- *        Used by rocSOLVER, includes offset params for alpha/arrays.
- */
-template <typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_axpy_template(rocblas_handle handle,
-                                   rocblas_int    n,
-                                   const T*       alpha,
-                                   rocblas_stride stride_alpha,
-                                   const T*       x,
-                                   rocblas_stride offset_x,
-                                   rocblas_int    incx,
-                                   rocblas_stride stride_x,
-                                   T*             y,
-                                   rocblas_stride offset_y,
-                                   rocblas_int    incy,
-                                   rocblas_stride stride_y,
-                                   rocblas_int    batch_count);
-
-/**
- * @brief internal axpy_batched template. Used by rocSOLVER, include soffset params for alpha/arrays.
- */
-template <typename T>
-ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
-    rocblas_internal_axpy_batched_template(rocblas_handle  handle,
-                                           rocblas_int     n,
-                                           const T*        alpha,
-                                           rocblas_stride  stride_alpha,
-                                           const T* const* x,
-                                           rocblas_stride  offset_x,
-                                           rocblas_int     incx,
-                                           rocblas_stride  stride_x,
-                                           T* const*       y,
-                                           rocblas_stride  offset_y,
-                                           rocblas_int     incy,
-                                           rocblas_stride  stride_y,
-                                           rocblas_int     batch_count);

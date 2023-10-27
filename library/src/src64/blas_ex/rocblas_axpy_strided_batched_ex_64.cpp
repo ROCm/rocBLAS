@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,7 +19,7 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "blas1/rocblas_axpy.hpp"
-#include "blas1/rocblas_axpy_imp.hpp"
+#include "blas_ex/rocblas_axpy_ex_template.hpp"
+#include "blas_ex/rocblas_axpy_strided_batched_ex_imp.hpp"
 
-INST_AXPY_C_API(rocblas_int)
+INST_AXPY_STRIDED_BATCHED_EX_C_API(int64_t)

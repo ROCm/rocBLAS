@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2016-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,22 @@
 #pragma once
 
 #include "../blas1/rocblas_axpy.hpp"
-#include "handle.hpp"
-#include "logging.hpp"
 
-template <int NB, bool BATCHED = false>
-rocblas_status rocblas_axpy_ex_template(const char*      name,
-                                        rocblas_handle   handle,
-                                        rocblas_int      n,
+template <typename API_INT, int NB, bool BATCHED>
+rocblas_status rocblas_axpy_ex_template(rocblas_handle   handle,
+                                        API_INT          n,
                                         const void*      alpha,
                                         rocblas_datatype alpha_type,
                                         rocblas_stride   stride_alpha,
                                         const void*      x,
                                         rocblas_datatype x_type,
                                         rocblas_stride   offset_x,
-                                        rocblas_int      incx,
+                                        API_INT          incx,
                                         rocblas_stride   stride_x,
                                         void*            y,
                                         rocblas_datatype y_type,
                                         rocblas_stride   offset_y,
-                                        rocblas_int      incy,
+                                        API_INT          incy,
                                         rocblas_stride   stride_y,
-                                        rocblas_int      batch_count,
+                                        API_INT          batch_count,
                                         rocblas_datatype execution_type);
