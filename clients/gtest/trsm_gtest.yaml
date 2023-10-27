@@ -19,9 +19,10 @@ Definitions:
     - { M:  1024, N:    1, lda: 2000, ldb: 1024 }
 
   - &medium_matrix_size_range
-    - { M:   192, N:   192, lda:   192, ldb:   192 }
-    - { M:   600, N:   500, lda:   600, ldb:   600 }
-    - { M:   800, N:   700, lda:   801, ldb:   701 }
+    - { M: 129, N: 129, lda: 129, ldb: 129 }
+    - { M: 192, N: 192, lda: 192, ldb: 192 }
+    - { M: 600, N: 500, lda: 600, ldb: 600 }
+    - { M: 800, N: 700, lda: 801, ldb: 701 }
 
   # - &small_substitution_size_range
     - { M:  2, N:  1, lda: 30, ldb: 30 }
