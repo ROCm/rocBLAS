@@ -22,18 +22,7 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 #include "blas1/rocblas_axpy.hpp"
 
@@ -42,15 +31,17 @@ template <typename T>
 void testing_axpy_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_fn = arg.api == FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_axpy_64<T, true> : rocblas_axpy_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        rocblas_int N    = 100;
-        rocblas_int incx = 1;
-        rocblas_int incy = 1;
+        int64_t N    = 100;
+        int64_t incx = 1;
+        int64_t incy = 1;
 
         device_vector<T> alpha_d(1), zero_d(1);
 
@@ -75,27 +66,33 @@ void testing_axpy_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(nullptr, N, alpha, dx, incx, dy, incy),
-                              rocblas_status_invalid_handle);
+        DAPI_EXPECT(rocblas_status_invalid_handle,
+                    rocblas_axpy_fn,
+                    (nullptr, N, alpha, dx, incx, dy, incy));
 
-        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, nullptr, dx, incx, dy, incy),
-                              rocblas_status_invalid_pointer);
+        DAPI_EXPECT(rocblas_status_invalid_pointer,
+                    rocblas_axpy_fn,
+                    (handle, N, nullptr, dx, incx, dy, incy));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, alpha, nullptr, incx, dy, incy),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_axpy_fn,
+                        (handle, N, alpha, nullptr, incx, dy, incy));
 
-            EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, alpha, dx, incx, nullptr, incy),
-                                  rocblas_status_invalid_pointer);
+            DAPI_EXPECT(rocblas_status_invalid_pointer,
+                        rocblas_axpy_fn,
+                        (handle, N, alpha, dx, incx, nullptr, incy));
         }
 
         // If N == 0, then alpha, X and Y can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_axpy_fn,
+                    (handle, 0, nullptr, nullptr, incx, nullptr, incy));
         // If alpha == 0, then X and Y can be nullptr without error
-        EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, zero, nullptr, incx, nullptr, incy),
-                              rocblas_status_success);
+        DAPI_EXPECT(rocblas_status_success,
+                    rocblas_axpy_fn,
+                    (handle, N, zero, nullptr, incx, nullptr, incy));
     }
 }
 
@@ -103,10 +100,12 @@ template <typename T>
 void testing_axpy(const Arguments& arg)
 {
     auto rocblas_axpy_fn = arg.api == FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_axpy_64<T, true> : rocblas_axpy_64<T, false>;
 
-    rocblas_int          N       = arg.N;
-    rocblas_int          incx    = arg.incx;
-    rocblas_int          incy    = arg.incy;
+    int64_t              N       = arg.N;
+    int64_t              incx    = arg.incx;
+    int64_t              incy    = arg.incy;
     T                    h_alpha = arg.get_alpha<T>();
     bool                 HMM     = arg.HMM;
     rocblas_local_handle handle{arg};
@@ -115,7 +114,7 @@ void testing_axpy(const Arguments& arg)
     if(N <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, nullptr, nullptr, incx, nullptr, incy));
+        DAPI_CHECK(rocblas_axpy_fn, (handle, N, nullptr, nullptr, incx, nullptr, incy));
         return;
     }
 
@@ -147,7 +146,7 @@ void testing_axpy(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -163,7 +162,7 @@ void testing_axpy(const Arguments& arg)
             handle.pre_test(arg);
             if(arg.api != INTERNAL)
             {
-                CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy));
+                DAPI_CHECK(rocblas_axpy_fn, (handle, N, &h_alpha, dx, incx, dy, incy));
             }
             else
             {
@@ -199,7 +198,7 @@ void testing_axpy(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
             handle.pre_test(arg);
-            CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, d_alpha, dx, incx, dy, incy));
+            DAPI_CHECK(rocblas_axpy_fn, (handle, N, d_alpha, dx, incx, dy, incy));
             handle.post_test(arg);
         }
 
@@ -244,22 +243,20 @@ void testing_axpy(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy);
-        }
-
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy, incy);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_axpy_fn, (handle, N, &h_alpha, dx, incx, dy, incy));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

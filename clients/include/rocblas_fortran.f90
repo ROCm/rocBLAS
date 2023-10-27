@@ -2123,6 +2123,97 @@ contains
         return
     end function rocblas_zaxpy_fortran
 
+    ! axpy_64
+    function rocblas_haxpy_64_fortran(handle, n, alpha, x, incx, y, incy) &
+        bind(c, name='rocblas_haxpy_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_haxpy_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        rocblas_haxpy_64_fortran = &
+            rocblas_haxpy_64(handle, n, alpha, x, incx, y, incy)
+        return
+    end function rocblas_haxpy_64_fortran
+
+    function rocblas_saxpy_64_fortran(handle, n, alpha, x, incx, y, incy) &
+        bind(c, name='rocblas_saxpy_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_saxpy_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        rocblas_saxpy_64_fortran = &
+            rocblas_saxpy_64(handle, n, alpha, x, incx, y, incy)
+        return
+    end function rocblas_saxpy_64_fortran
+
+    function rocblas_daxpy_64_fortran(handle, n, alpha, x, incx, y, incy) &
+        bind(c, name='rocblas_daxpy_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_daxpy_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        rocblas_daxpy_64_fortran = &
+            rocblas_daxpy_64(handle, n, alpha, x, incx, y, incy)
+        return
+    end function rocblas_daxpy_64_fortran
+
+    function rocblas_caxpy_64_fortran(handle, n, alpha, x, incx, y, incy) &
+        bind(c, name='rocblas_caxpy_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_caxpy_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        rocblas_caxpy_64_fortran = &
+            rocblas_caxpy_64(handle, n, alpha, x, incx, y, incy)
+        return
+    end function rocblas_caxpy_64_fortran
+
+    function rocblas_zaxpy_64_fortran(handle, n, alpha, x, incx, y, incy) &
+        bind(c, name='rocblas_zaxpy_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_zaxpy_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        rocblas_zaxpy_64_fortran = &
+            rocblas_zaxpy_64(handle, n, alpha, x, incx, y, incy)
+        return
+    end function rocblas_zaxpy_64_fortran
+
     ! axpy_batched
     function rocblas_haxpy_batched_fortran(handle, n, alpha, x, incx, y, incy, batch_count) &
         bind(c, name='rocblas_haxpy_batched_fortran')
@@ -2218,6 +2309,102 @@ contains
             rocblas_zaxpy_batched(handle, n, alpha, x, incx, y, incy, batch_count)
         return
     end function rocblas_zaxpy_batched_fortran
+
+    ! axpy_batched_64
+    function rocblas_haxpy_batched_64_fortran(handle, n, alpha, x, incx, y, incy, batch_count) &
+        bind(c, name='rocblas_haxpy_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_haxpy_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+        rocblas_haxpy_batched_64_fortran = &
+            rocblas_haxpy_batched_64(handle, n, alpha, x, incx, y, incy, batch_count)
+        return
+    end function rocblas_haxpy_batched_64_fortran
+
+    function rocblas_saxpy_batched_64_fortran(handle, n, alpha, x, incx, y, incy, batch_count) &
+        bind(c, name='rocblas_saxpy_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_saxpy_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+        rocblas_saxpy_batched_64_fortran = &
+            rocblas_saxpy_batched_64(handle, n, alpha, x, incx, y, incy, batch_count)
+        return
+    end function rocblas_saxpy_batched_64_fortran
+
+    function rocblas_daxpy_batched_64_fortran(handle, n, alpha, x, incx, y, incy, batch_count) &
+        bind(c, name='rocblas_daxpy_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_daxpy_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+        rocblas_daxpy_batched_64_fortran = &
+            rocblas_daxpy_batched_64(handle, n, alpha, x, incx, y, incy, batch_count)
+        return
+    end function rocblas_daxpy_batched_64_fortran
+
+    function rocblas_caxpy_batched_64_fortran(handle, n, alpha, x, incx, y, incy, batch_count) &
+        bind(c, name='rocblas_caxpy_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_caxpy_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+        rocblas_caxpy_batched_64_fortran = &
+            rocblas_caxpy_batched_64(handle, n, alpha, x, incx, y, incy, batch_count)
+        return
+    end function rocblas_caxpy_batched_64_fortran
+
+    function rocblas_zaxpy_batched_64_fortran(handle, n, alpha, x, incx, y, incy, batch_count) &
+        bind(c, name='rocblas_zaxpy_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_zaxpy_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+        rocblas_zaxpy_batched_64_fortran = &
+            rocblas_zaxpy_batched_64(handle, n, alpha, x, incx, y, incy, batch_count)
+        return
+    end function rocblas_zaxpy_batched_64_fortran
 
     ! axpy_strided_batched
     function rocblas_haxpy_strided_batched_fortran(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
@@ -2324,6 +2511,112 @@ contains
             rocblas_zaxpy_strided_batched(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count)
         return
     end function rocblas_zaxpy_strided_batched_fortran
+
+    ! axpy_strided_batched_64
+    function rocblas_haxpy_strided_batched_64_fortran(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
+        bind(c, name='rocblas_haxpy_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_haxpy_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: stride_y
+        integer(c_int64_t), value :: batch_count
+        rocblas_haxpy_strided_batched_64_fortran = &
+            rocblas_haxpy_strided_batched_64(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count)
+        return
+    end function rocblas_haxpy_strided_batched_64_fortran
+
+    function rocblas_saxpy_strided_batched_64_fortran(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
+        bind(c, name='rocblas_saxpy_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_saxpy_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: stride_y
+        integer(c_int64_t), value :: batch_count
+        rocblas_saxpy_strided_batched_64_fortran = &
+            rocblas_saxpy_strided_batched_64(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count)
+        return
+    end function rocblas_saxpy_strided_batched_64_fortran
+
+    function rocblas_daxpy_strided_batched_64_fortran(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
+        bind(c, name='rocblas_daxpy_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_daxpy_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: stride_y
+        integer(c_int64_t), value :: batch_count
+        rocblas_daxpy_strided_batched_64_fortran = &
+            rocblas_daxpy_strided_batched_64(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count)
+        return
+    end function rocblas_daxpy_strided_batched_64_fortran
+
+    function rocblas_caxpy_strided_batched_64_fortran(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
+        bind(c, name='rocblas_caxpy_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_caxpy_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: stride_y
+        integer(c_int64_t), value :: batch_count
+        rocblas_caxpy_strided_batched_64_fortran = &
+            rocblas_caxpy_strided_batched_64(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count)
+        return
+    end function rocblas_caxpy_strided_batched_64_fortran
+
+    function rocblas_zaxpy_strided_batched_64_fortran(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count) &
+        bind(c, name='rocblas_zaxpy_strided_batched_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_zaxpy_strided_batched_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: x
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stride_x
+        type(c_ptr), value :: y
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: stride_y
+        integer(c_int64_t), value :: batch_count
+        rocblas_zaxpy_strided_batched_64_fortran = &
+            rocblas_zaxpy_strided_batched_64(handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count)
+        return
+    end function rocblas_zaxpy_strided_batched_64_fortran
 
     ! asum
     function rocblas_sasum_fortran(handle, n, x, incx, result) &
@@ -13671,6 +13964,82 @@ contains
                                             y, y_type, incy, stridey, batch_count, execution_type)
         return
     end function rocblas_axpy_strided_batched_ex_fortran
+
+    ! axpy_ex_64
+    function rocblas_axpy_ex_64_fortran(handle, n, alpha, alpha_type, x, x_type, incx, &
+                                     y, y_type, incy, execution_type) &
+        bind(c, name='rocblas_axpy_ex_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_axpy_ex_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+        type(c_ptr), value :: x
+        integer(kind(rocblas_datatype_f16_r)), value :: x_type
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(kind(rocblas_datatype_f16_r)), value :: y_type
+        integer(c_int64_t), value :: incy
+        integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        rocblas_axpy_ex_64_fortran = &
+            rocblas_axpy_ex_64(handle, n, alpha, alpha_type, x, x_type, incx, y, y_type, incy, execution_type)
+        return
+    end function rocblas_axpy_ex_64_fortran
+
+    function rocblas_axpy_batched_ex_64_fortran(handle, n, alpha, alpha_type, x, x_type, incx, &
+                                             y, y_type, incy, batch_count, execution_type) &
+        bind(c, name='rocblas_axpy_batched_ex_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_axpy_batched_ex_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+        type(c_ptr), value :: x
+        integer(kind(rocblas_datatype_f16_r)), value :: x_type
+        integer(c_int64_t), value :: incx
+        type(c_ptr), value :: y
+        integer(kind(rocblas_datatype_f16_r)), value :: y_type
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: batch_count
+        integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        rocblas_axpy_batched_ex_64_fortran = &
+            rocblas_axpy_batched_ex_64(handle, n, alpha, alpha_type, x, x_type, incx, &
+                                    y, y_type, incy, batch_count, execution_type)
+        return
+    end function rocblas_axpy_batched_ex_64_fortran
+
+    function rocblas_axpy_strided_batched_ex_64_fortran(handle, n, alpha, alpha_type, x, x_type, incx, stridex, &
+                                                     y, y_type, incy, stridey, batch_count, execution_type) &
+        bind(c, name='rocblas_axpy_strided_batched_ex_64_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        integer(kind(rocblas_status_success)) :: rocblas_axpy_strided_batched_ex_64_fortran
+        type(c_ptr), value :: handle
+        integer(c_int64_t), value :: n
+        type(c_ptr), value :: alpha
+        integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+        type(c_ptr), value :: x
+        integer(kind(rocblas_datatype_f16_r)), value :: x_type
+        integer(c_int64_t), value :: incx
+        integer(c_int64_t), value :: stridex
+        type(c_ptr), value :: y
+        integer(kind(rocblas_datatype_f16_r)), value :: y_type
+        integer(c_int64_t), value :: incy
+        integer(c_int64_t), value :: stridey
+        integer(c_int64_t), value :: batch_count
+        integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        rocblas_axpy_strided_batched_ex_64_fortran = &
+            rocblas_axpy_strided_batched_ex_64(handle, n, alpha, alpha_type, x, x_type, incx, stridex, &
+                                            y, y_type, incy, stridey, batch_count, execution_type)
+        return
+    end function rocblas_axpy_strided_batched_ex_64_fortran
 
     ! dot_ex
     function rocblas_dot_ex_fortran(handle, n, x, x_type, incx, &
