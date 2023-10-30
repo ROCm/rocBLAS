@@ -692,15 +692,11 @@ static rocblas_status (*rocblas_axpy)(rocblas_handle handle,
                                       T*             y,
                                       rocblas_int    incy);
 
-template <typename T, bool FORTRAN = false>
-static rocblas_status (*rocblas_axpy_64)(
-    rocblas_handle handle, int64_t n, const T* alpha, const T* x, int64_t incx, T* y, int64_t incy);
-
-MAP2CF_D64(rocblas_axpy, float, rocblas_saxpy);
-MAP2CF_D64(rocblas_axpy, double, rocblas_daxpy);
-MAP2CF_D64(rocblas_axpy, rocblas_half, rocblas_haxpy);
-MAP2CF_D64(rocblas_axpy, rocblas_float_complex, rocblas_caxpy);
-MAP2CF_D64(rocblas_axpy, rocblas_double_complex, rocblas_zaxpy);
+MAP2CF(rocblas_axpy, float, rocblas_saxpy);
+MAP2CF(rocblas_axpy, double, rocblas_daxpy);
+MAP2CF(rocblas_axpy, rocblas_half, rocblas_haxpy);
+MAP2CF(rocblas_axpy, rocblas_float_complex, rocblas_caxpy);
+MAP2CF(rocblas_axpy, rocblas_double_complex, rocblas_zaxpy);
 
 // axpy batched
 template <typename T, bool FORTRAN = false>
@@ -713,21 +709,11 @@ static rocblas_status (*rocblas_axpy_batched)(rocblas_handle handle,
                                               rocblas_int    incy,
                                               rocblas_int    batch_count);
 
-template <typename T, bool FORTRAN = false>
-static rocblas_status (*rocblas_axpy_batched_64)(rocblas_handle handle,
-                                                 int64_t        n,
-                                                 const T*       alpha,
-                                                 const T* const x[],
-                                                 int64_t        incx,
-                                                 T* const       y[],
-                                                 int64_t        incy,
-                                                 int64_t        batch_count);
-
-MAP2CF_D64(rocblas_axpy_batched, float, rocblas_saxpy_batched);
-MAP2CF_D64(rocblas_axpy_batched, double, rocblas_daxpy_batched);
-MAP2CF_D64(rocblas_axpy_batched, rocblas_half, rocblas_haxpy_batched);
-MAP2CF_D64(rocblas_axpy_batched, rocblas_float_complex, rocblas_caxpy_batched);
-MAP2CF_D64(rocblas_axpy_batched, rocblas_double_complex, rocblas_zaxpy_batched);
+MAP2CF(rocblas_axpy_batched, float, rocblas_saxpy_batched);
+MAP2CF(rocblas_axpy_batched, double, rocblas_daxpy_batched);
+MAP2CF(rocblas_axpy_batched, rocblas_half, rocblas_haxpy_batched);
+MAP2CF(rocblas_axpy_batched, rocblas_float_complex, rocblas_caxpy_batched);
+MAP2CF(rocblas_axpy_batched, rocblas_double_complex, rocblas_zaxpy_batched);
 
 // axpy strided batched
 template <typename T, bool FORTRAN = false>
@@ -742,23 +728,11 @@ static rocblas_status (*rocblas_axpy_strided_batched)(rocblas_handle handle,
                                                       rocblas_stride stridey,
                                                       rocblas_int    batch_count);
 
-template <typename T, bool FORTRAN = false>
-static rocblas_status (*rocblas_axpy_strided_batched_64)(rocblas_handle handle,
-                                                         int64_t        n,
-                                                         const T*       alpha,
-                                                         const T*       x,
-                                                         int64_t        incx,
-                                                         rocblas_stride stridex,
-                                                         T*             y,
-                                                         int64_t        incy,
-                                                         rocblas_stride stridey,
-                                                         int64_t        batch_count);
-
-MAP2CF_D64(rocblas_axpy_strided_batched, float, rocblas_saxpy_strided_batched);
-MAP2CF_D64(rocblas_axpy_strided_batched, double, rocblas_daxpy_strided_batched);
-MAP2CF_D64(rocblas_axpy_strided_batched, rocblas_half, rocblas_haxpy_strided_batched);
-MAP2CF_D64(rocblas_axpy_strided_batched, rocblas_float_complex, rocblas_caxpy_strided_batched);
-MAP2CF_D64(rocblas_axpy_strided_batched, rocblas_double_complex, rocblas_zaxpy_strided_batched);
+MAP2CF(rocblas_axpy_strided_batched, float, rocblas_saxpy_strided_batched);
+MAP2CF(rocblas_axpy_strided_batched, double, rocblas_daxpy_strided_batched);
+MAP2CF(rocblas_axpy_strided_batched, rocblas_half, rocblas_haxpy_strided_batched);
+MAP2CF(rocblas_axpy_strided_batched, rocblas_float_complex, rocblas_caxpy_strided_batched);
+MAP2CF(rocblas_axpy_strided_batched, rocblas_double_complex, rocblas_zaxpy_strided_batched);
 
 // rot
 template <typename T, typename U = T, typename V = T, bool FORTRAN = false>

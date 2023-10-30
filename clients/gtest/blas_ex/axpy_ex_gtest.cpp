@@ -80,14 +80,8 @@ namespace
                     name << '_' << arg.batch_count;
             }
 
-            if(arg.api & c_API_64)
-            {
-                name << "_I64";
-            }
-            if(arg.api & c_API_FORTRAN)
-            {
+            if(arg.api == FORTRAN)
                 name << "_F";
-            }
 
             return std::move(name);
         }
