@@ -722,6 +722,10 @@ namespace
                     path += "/../../Tensile/library";
                 else if(TestPath(path + "/library"))
                     path += "/library";
+                else if(TestPath(path + "/../rocblas/library"))
+                    // For ASAN packaging, library file directory will be lib/asan
+                    // so need to prefix ../ to set search path to lib/rocblas/library
+                    path += "/../rocblas/library";
                 else
                     path += "/rocblas/library";
 
