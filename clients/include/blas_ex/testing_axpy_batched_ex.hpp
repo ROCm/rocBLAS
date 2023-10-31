@@ -22,7 +22,19 @@
 
 #pragma once
 
-#include "testing_common.hpp"
+#include "bytes.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
+#include "type_dispatch.hpp"
+#include "unit.hpp"
+#include "utility.hpp"
 
 /* ============================================================================================ */
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
@@ -30,8 +42,6 @@ void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_batched_ex_fn
         = arg.api == FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
-    auto rocblas_axpy_batched_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_axpy_batched_ex_64_fortran : rocblas_axpy_batched_ex_64;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
@@ -43,7 +53,7 @@ void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
         rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
         rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
 
-        int64_t N = 100, incx = 1, incy = 1, batch_count = 2;
+        rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
         device_vector<Ta> alpha_d(1), zero_d(1);
 
@@ -68,116 +78,116 @@ void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-        DAPI_EXPECT(rocblas_status_invalid_handle,
-                    rocblas_axpy_batched_ex_fn,
-                    (nullptr,
-                     N,
-                     &alpha,
-                     alpha_type,
-                     dx.ptr_on_device(),
-                     x_type,
-                     incx,
-                     dy.ptr_on_device(),
-                     y_type,
-                     incy,
-                     batch_count,
-                     execution_type));
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched_ex_fn(nullptr,
+                                                         N,
+                                                         &alpha,
+                                                         alpha_type,
+                                                         dx.ptr_on_device(),
+                                                         x_type,
+                                                         incx,
+                                                         dy.ptr_on_device(),
+                                                         y_type,
+                                                         incy,
+                                                         batch_count,
+                                                         execution_type),
+                              rocblas_status_invalid_handle);
 
-        DAPI_EXPECT(rocblas_status_invalid_pointer,
-                    rocblas_axpy_batched_ex_fn,
-                    (handle,
-                     N,
-                     nullptr,
-                     alpha_type,
-                     dx.ptr_on_device(),
-                     x_type,
-                     incx,
-                     dy.ptr_on_device(),
-                     y_type,
-                     incy,
-                     batch_count,
-                     execution_type));
+#ifdef GOOGLE_TEST
+        rocblas_status status;
+
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            N,
+                                            nullptr,
+                                            alpha_type,
+                                            dx.ptr_on_device(),
+                                            x_type,
+                                            incx,
+                                            dy.ptr_on_device(),
+                                            y_type,
+                                            incy,
+                                            batch_count,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                    || status == rocblas_status_not_implemented);
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            DAPI_EXPECT(rocblas_status_invalid_pointer,
-                        rocblas_axpy_batched_ex_fn,
-                        (handle,
-                         N,
-                         alpha,
-                         alpha_type,
-                         nullptr,
-                         x_type,
-                         incx,
-                         dy.ptr_on_device(),
-                         y_type,
-                         incy,
-                         batch_count,
-                         execution_type));
+            status = rocblas_axpy_batched_ex_fn(handle,
+                                                N,
+                                                alpha,
+                                                alpha_type,
+                                                nullptr,
+                                                x_type,
+                                                incx,
+                                                dy.ptr_on_device(),
+                                                y_type,
+                                                incy,
+                                                batch_count,
+                                                execution_type);
+            EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                        || status == rocblas_status_not_implemented);
 
-            DAPI_EXPECT(rocblas_status_invalid_pointer,
-                        rocblas_axpy_batched_ex_fn,
-                        (handle,
-                         N,
-                         alpha,
-                         alpha_type,
-                         dx.ptr_on_device(),
-                         x_type,
-                         incx,
-                         nullptr,
-                         y_type,
-                         incy,
-                         batch_count,
-                         execution_type));
+            status = rocblas_axpy_batched_ex_fn(handle,
+                                                N,
+                                                alpha,
+                                                alpha_type,
+                                                dx.ptr_on_device(),
+                                                x_type,
+                                                incx,
+                                                nullptr,
+                                                y_type,
+                                                incy,
+                                                batch_count,
+                                                execution_type);
+            EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                        || status == rocblas_status_not_implemented);
         }
 
         // If N == 0, then X and Y can be nullptr without error
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_ex_fn,
-                    (handle,
-                     0,
-                     nullptr,
-                     alpha_type,
-                     nullptr,
-                     x_type,
-                     incx,
-                     nullptr,
-                     y_type,
-                     incy,
-                     batch_count,
-                     execution_type));
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            0,
+                                            nullptr,
+                                            alpha_type,
+                                            nullptr,
+                                            x_type,
+                                            incx,
+                                            nullptr,
+                                            y_type,
+                                            incy,
+                                            batch_count,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_success || status == rocblas_status_not_implemented);
 
         // If alpha == 0, then X and Y can be nullptr without error
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_ex_fn,
-                    (handle,
-                     N,
-                     zero,
-                     alpha_type,
-                     nullptr,
-                     x_type,
-                     incx,
-                     nullptr,
-                     y_type,
-                     incy,
-                     batch_count,
-                     execution_type));
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            N,
+                                            zero,
+                                            alpha_type,
+                                            nullptr,
+                                            x_type,
+                                            incx,
+                                            nullptr,
+                                            y_type,
+                                            incy,
+                                            batch_count,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_success || status == rocblas_status_not_implemented);
 
         // If batch_count == 0, then X and Y can be nullptr without error
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_ex_fn,
-                    (handle,
-                     N,
-                     nullptr,
-                     alpha_type,
-                     nullptr,
-                     x_type,
-                     incx,
-                     nullptr,
-                     y_type,
-                     incy,
-                     0,
-                     execution_type));
+        status = rocblas_axpy_batched_ex_fn(handle,
+                                            N,
+                                            nullptr,
+                                            alpha_type,
+                                            nullptr,
+                                            x_type,
+                                            incx,
+                                            nullptr,
+                                            y_type,
+                                            incy,
+                                            0,
+                                            execution_type);
+        EXPECT_TRUE(status == rocblas_status_success || status == rocblas_status_not_implemented);
+#endif
     }
 }
 
@@ -186,8 +196,6 @@ void testing_axpy_batched_ex(const Arguments& arg)
 {
     auto rocblas_axpy_batched_ex_fn
         = arg.api == FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
-    auto rocblas_axpy_batched_ex_fn_64
-        = arg.api == FORTRAN_64 ? rocblas_axpy_batched_ex_64_fortran : rocblas_axpy_batched_ex_64;
 
     rocblas_datatype alpha_type     = arg.a_type;
     rocblas_datatype x_type         = arg.b_type;
@@ -195,7 +203,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
     rocblas_datatype execution_type = arg.compute_type;
 
     rocblas_local_handle handle{arg};
-    int64_t              N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
+    rocblas_int          N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
     Ta  h_alpha    = arg.get_alpha<Ta>();
     Tex h_alpha_ex = (Tex)h_alpha;
@@ -204,20 +212,19 @@ void testing_axpy_batched_ex(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_ex_fn,
-                    (handle,
-                     N,
-                     nullptr,
-                     alpha_type,
-                     nullptr,
-                     x_type,
-                     incx,
-                     nullptr,
-                     y_type,
-                     incy,
-                     batch_count,
-                     execution_type));
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched_ex_fn(handle,
+                                                         N,
+                                                         nullptr,
+                                                         alpha_type,
+                                                         nullptr,
+                                                         x_type,
+                                                         incx,
+                                                         nullptr,
+                                                         y_type,
+                                                         incy,
+                                                         batch_count,
+                                                         execution_type),
+                              rocblas_status_success);
         return;
     }
 
@@ -259,7 +266,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
     rocblas_init_vector(hx, arg, rocblas_client_alpha_sets_nan, true);
     rocblas_init_vector(hy, arg, rocblas_client_alpha_sets_nan, false);
 
-    for(int64_t b = 0; b < batch_count; b++)
+    for(rocblas_int b = 0; b < batch_count; b++)
     {
         for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
             hy_ex[b][idx] = (Tex)hy[b][idx];
@@ -268,7 +275,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
     }
 
     // Device memory.
-    double cpu_time_used;
+    double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -285,19 +292,18 @@ void testing_axpy_batched_ex(const Arguments& arg)
         // Call routine.
         CHECK_HIP_ERROR(dy.transfer_from(hy));
         handle.pre_test(arg);
-        DAPI_CHECK(rocblas_axpy_batched_ex_fn,
-                   (handle,
-                    N,
-                    halpha,
-                    alpha_type,
-                    dx.ptr_on_device(),
-                    x_type,
-                    incx,
-                    dy.ptr_on_device(),
-                    y_type,
-                    incy,
-                    batch_count,
-                    execution_type));
+        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_ex_fn(handle,
+                                                       N,
+                                                       halpha,
+                                                       alpha_type,
+                                                       dx.ptr_on_device(),
+                                                       x_type,
+                                                       incx,
+                                                       dy.ptr_on_device(),
+                                                       y_type,
+                                                       incy,
+                                                       batch_count,
+                                                       execution_type));
         handle.post_test(arg);
         // Transfer from device to host.
         CHECK_HIP_ERROR(hy1.transfer_from(dy));
@@ -309,19 +315,18 @@ void testing_axpy_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
         CHECK_HIP_ERROR(dy.transfer_from(hy));
         handle.pre_test(arg);
-        DAPI_CHECK(rocblas_axpy_batched_ex_fn,
-                   (handle,
-                    N,
-                    dalpha,
-                    alpha_type,
-                    dx.ptr_on_device(),
-                    x_type,
-                    incx,
-                    dy.ptr_on_device(),
-                    y_type,
-                    incy,
-                    batch_count,
-                    execution_type));
+        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_ex_fn(handle,
+                                                       N,
+                                                       dalpha,
+                                                       alpha_type,
+                                                       dx.ptr_on_device(),
+                                                       x_type,
+                                                       incx,
+                                                       dy.ptr_on_device(),
+                                                       y_type,
+                                                       incy,
+                                                       batch_count,
+                                                       execution_type));
         handle.post_test(arg);
         // Transfer from device to host.
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
@@ -331,13 +336,13 @@ void testing_axpy_batched_ex(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
 
             // Compute the host solution.
-            for(int64_t b = 0; b < batch_count; ++b)
+            for(rocblas_int b = 0; b < batch_count; ++b)
             {
                 cblas_axpy<Tex>(N, h_alpha_ex, hx_ex[b], incx, hy_ex[b], incy);
             }
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-            for(int64_t b = 0; b < batch_count; b++)
+            for(rocblas_int b = 0; b < batch_count; b++)
             {
                 for(size_t i = 0, idx = 0; i < N; i++, idx += abs_incy)
                     hy[b][idx] = (Ty)hy_ex[b][idx];
@@ -361,36 +366,51 @@ void testing_axpy_batched_ex(const Arguments& arg)
 
     if(arg.timing)
     {
-        double gpu_time_used;
-        int    number_cold_calls = arg.cold_iters;
-        int    total_calls       = number_cold_calls + arg.iters;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        hipStream_t stream;
-        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
 
         // Transfer from host to device.
         CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-        for(int iter = 0; iter < total_calls; iter++)
+        // Cold.
+        for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            if(iter == number_cold_calls)
-                gpu_time_used = get_time_us_sync(stream);
-
-            DAPI_DISPATCH(rocblas_axpy_batched_ex_fn,
-                          (handle,
-                           N,
-                           &h_alpha,
-                           alpha_type,
-                           dx.ptr_on_device(),
-                           x_type,
-                           incx,
-                           dy.ptr_on_device(),
-                           y_type,
-                           incy,
-                           batch_count,
-                           execution_type));
+            rocblas_axpy_batched_ex_fn(handle,
+                                       N,
+                                       &h_alpha,
+                                       alpha_type,
+                                       dx.ptr_on_device(),
+                                       x_type,
+                                       incx,
+                                       dy.ptr_on_device(),
+                                       y_type,
+                                       incy,
+                                       batch_count,
+                                       execution_type);
         }
 
+        // Transfer from host to device.
+        CHECK_HIP_ERROR(dy.transfer_from(hy));
+
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_axpy_batched_ex_fn(handle,
+                                       N,
+                                       &h_alpha,
+                                       alpha_type,
+                                       dx.ptr_on_device(),
+                                       x_type,
+                                       incx,
+                                       dy.ptr_on_device(),
+                                       y_type,
+                                       incy,
+                                       batch_count,
+                                       execution_type);
+        }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_alpha, e_incx, e_incy, e_batch_count>{}.log_args<Ta>(
