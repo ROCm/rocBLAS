@@ -41,15 +41,13 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_batched_fn
         = arg.api == FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
-    auto rocblas_axpy_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_axpy_batched_64<T, true>
-                                                            : rocblas_axpy_batched_64<T, false>;
 
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
         rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-        int64_t N = 100, incx = 1, incy = 1, batch_count = 2;
+        rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
         device_vector<T> alpha_d(1), zero_d(1);
 
@@ -74,41 +72,48 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-        DAPI_EXPECT(
-            rocblas_status_invalid_handle,
-            rocblas_axpy_batched_fn,
-            (nullptr, N, alpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(
+                nullptr, N, alpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
+            rocblas_status_invalid_handle);
 
-        DAPI_EXPECT(
-            rocblas_status_invalid_pointer,
-            rocblas_axpy_batched_fn,
-            (handle, N, nullptr, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
+        EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched_fn(handle,
+                                                      N,
+                                                      nullptr,
+                                                      dx.ptr_on_device(),
+                                                      incx,
+                                                      dy.ptr_on_device(),
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_pointer);
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
-            DAPI_EXPECT(rocblas_status_invalid_pointer,
-                        rocblas_axpy_batched_fn,
-                        (handle, N, alpha, nullptr, incx, dy.ptr_on_device(), incy, batch_count));
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_axpy_batched_fn(
+                    handle, N, alpha, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
+                rocblas_status_invalid_pointer);
 
-            DAPI_EXPECT(rocblas_status_invalid_pointer,
-                        rocblas_axpy_batched_fn,
-                        (handle, N, alpha, dx.ptr_on_device(), incx, nullptr, incy, batch_count));
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_axpy_batched_fn(
+                    handle, N, alpha, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
+                rocblas_status_invalid_pointer);
         }
 
         // When N==0, alpha, X and Y can be nullptr without error
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_fn,
-                    (handle, 0, nullptr, nullptr, incx, nullptr, incy, batch_count));
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_status_success);
 
         // When alpha==0, X and Y can be nullptr without error
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_fn,
-                    (handle, N, zero, nullptr, incx, nullptr, incy, batch_count));
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(handle, N, zero, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_status_success);
 
         // When batch_count==0, alpha, X and Y can be nullptr without error
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_fn,
-                    (handle, N, nullptr, nullptr, incx, nullptr, incy, 0));
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(handle, N, nullptr, nullptr, incx, nullptr, incy, 0),
+            rocblas_status_success);
     }
 }
 
@@ -117,11 +122,9 @@ void testing_axpy_batched(const Arguments& arg)
 {
     auto rocblas_axpy_batched_fn
         = arg.api == FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
-    auto rocblas_axpy_batched_fn_64 = arg.api == FORTRAN_64 ? rocblas_axpy_batched_64<T, true>
-                                                            : rocblas_axpy_batched_64<T, false>;
 
     rocblas_local_handle handle{arg};
-    int64_t              N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
+    rocblas_int          N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
     T h_alpha = arg.get_alpha<T>();
 
@@ -129,9 +132,9 @@ void testing_axpy_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        DAPI_EXPECT(rocblas_status_success,
-                    rocblas_axpy_batched_fn,
-                    (handle, N, nullptr, nullptr, incx, nullptr, incy, batch_count));
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched_fn(handle, N, nullptr, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_status_success);
         return;
     }
 
@@ -169,7 +172,7 @@ void testing_axpy_batched(const Arguments& arg)
     hy_gold.copy_from(hy_1);
     hy_2.copy_from(hy_1);
 
-    double cpu_time_used;
+    double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -185,9 +188,8 @@ void testing_axpy_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dy.transfer_from(hy_1));
 
         handle.pre_test(arg);
-        DAPI_CHECK(
-            rocblas_axpy_batched_fn,
-            (handle, N, halpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_fn(
+            handle, N, halpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
         handle.post_test(arg);
 
         // Transfer from device to host.
@@ -200,9 +202,8 @@ void testing_axpy_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
         CHECK_HIP_ERROR(dy.transfer_from(hy_2));
         handle.pre_test(arg);
-        DAPI_CHECK(
-            rocblas_axpy_batched_fn,
-            (handle, N, dalpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_fn(
+            handle, N, dalpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
         handle.post_test(arg);
 
         // Transfer from device to host.
@@ -213,7 +214,7 @@ void testing_axpy_batched(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
 
             // Compute the host solution.
-            for(int64_t batch_index = 0; batch_index < batch_count; ++batch_index)
+            for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
             {
                 cblas_axpy<T>(N, h_alpha, hx[batch_index], incx, hy_gold[batch_index], incy);
             }
@@ -239,31 +240,42 @@ void testing_axpy_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        double gpu_time_used;
-        int    number_cold_calls = arg.cold_iters;
-        int    total_calls       = number_cold_calls + arg.iters;
-
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        hipStream_t stream;
-        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
 
         // Transfer from host to device.
         CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
 
-        for(int iter = 0; iter < total_calls; iter++)
+        // Cold.
+        for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            if(iter == number_cold_calls)
-                gpu_time_used = get_time_us_sync(stream);
+            rocblas_axpy_batched_fn(handle,
+                                    N,
+                                    &h_alpha,
+                                    dx.ptr_on_device(),
+                                    incx,
+                                    dy.ptr_on_device(),
+                                    incy,
+                                    batch_count);
+        }
 
-            DAPI_DISPATCH(rocblas_axpy_batched_fn,
-                          (handle,
-                           N,
-                           &h_alpha,
-                           dx.ptr_on_device(),
-                           incx,
-                           dy.ptr_on_device(),
-                           incy,
-                           batch_count));
+        // Transfer from host to device.
+        CHECK_HIP_ERROR(dy.transfer_from(hy_gold));
+
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_axpy_batched_fn(handle,
+                                    N,
+                                    &h_alpha,
+                                    dx.ptr_on_device(),
+                                    incx,
+                                    dy.ptr_on_device(),
+                                    incy,
+                                    batch_count);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
