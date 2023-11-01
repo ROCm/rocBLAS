@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright (C) 2018-2022 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2018-2023 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,11 +50,11 @@ inline void rocblas_init_vector(host_strided_batch_vector<T>& hx,
                                 bool                          seedReset        = false,
                                 bool                          alternating_sign = false)
 {
-    for(rocblas_int batch_index = 0; batch_index < hx.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hx.batch_count(); ++batch_index)
     {
-        auto*       x    = hx[batch_index];
-        rocblas_int incx = hx.inc();
-        rocblas_int N    = hx.n();
+        auto*   x    = hx[batch_index];
+        int64_t incx = hx.inc();
+        int64_t N    = hx.n();
         if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
         {
             rocblas_init_vector(random_nan_generator<T>, x, N, incx);
@@ -99,11 +99,11 @@ inline void rocblas_init_vector(host_batch_vector<T>&  hx,
                                 bool                   seedReset        = false,
                                 bool                   alternating_sign = false)
 {
-    for(rocblas_int batch_index = 0; batch_index < hx.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hx.batch_count(); ++batch_index)
     {
-        auto*       x    = hx[batch_index];
-        rocblas_int incx = hx.inc();
-        rocblas_int N    = hx.n();
+        auto*   x    = hx[batch_index];
+        int64_t incx = hx.inc();
+        int64_t N    = hx.n();
         if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
         {
             rocblas_init_vector(random_nan_generator<T>, x, N, incx);
@@ -151,8 +151,8 @@ inline void rocblas_init_vector(host_vector<T>&        hx,
     if(seedReset)
         rocblas_seedrand();
 
-    rocblas_int N    = hx.n();
-    rocblas_int incx = hx.inc();
+    int64_t N    = hx.n();
+    int64_t incx = hx.inc();
 
     if(nan_init == rocblas_client_alpha_sets_nan && rocblas_isnan(arg.alpha))
     {
