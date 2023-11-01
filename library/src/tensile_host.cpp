@@ -899,11 +899,12 @@ namespace
                                                                            tensileDeviceSet.end()});
                     return 0;
                 }();
-
-                adapter.initializeLazyLoading(processor, path);
             }
 
             {
+                // initialize adapter for lazy loading or experimental code objects
+                adapter.initializeLazyLoading(processor, path);
+
                 static int once = [&] {
                     auto lib = ftr_lib.get();
                     if(!lib)
