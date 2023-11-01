@@ -67,7 +67,7 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
                                           size_t                    N,
                                           size_t                    lda,
                                           rocblas_stride            stride      = 0,
-                                          rocblas_int               batch_count = 1)
+                                          int64_t                   batch_count = 1)
 {
     if(matrix_type == rocblas_client_general_matrix)
     {
@@ -104,7 +104,7 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
                                           T                         rand_gen(),
                                           U&                        hA)
 {
-    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
         auto* A   = hA[batch_index];
         auto  M   = hA.m();
@@ -141,7 +141,7 @@ void rocblas_init_matrix_alternating_sign(rocblas_check_matrix_type matrix_type,
 
 // Initialize vector so adjacent entries have alternating sign.
 template <typename T>
-void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, rocblas_int N, rocblas_stride incx)
+void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, int64_t N, int64_t incx)
 {
     if(incx < 0)
         x -= (N - 1) * incx;
@@ -149,7 +149,7 @@ void rocblas_init_vector_alternating_sign(T rand_gen(), T* x, rocblas_int N, roc
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for(rocblas_int j = 0; j < N; ++j)
+    for(int64_t j = 0; j < N; ++j)
     {
         auto value  = rand_gen();
         x[j * incx] = j & 1 ? T(value) : T(negate(value));
@@ -169,7 +169,7 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                          size_t                    N,
                          size_t                    lda,
                          rocblas_stride            stride      = 0,
-                         rocblas_int               batch_count = 1)
+                         int64_t                   batch_count = 1)
 {
     if(matrix_type == rocblas_client_general_matrix)
     {
@@ -280,16 +280,16 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-            for(int i = 0; i < N; i++)
+            for(size_t i = 0; i < N; i++)
             {
                 T abs_sum_off_diagonal_row
                     = T(0); //store absolute sum of entire row of the particular diagonal element
                 T abs_sum_off_diagonal_col
                     = T(0); //store absolute sum of entire column of the particular diagonal element
 
-                for(int j = i + 1; j < N; j++)
+                for(size_t j = i + 1; j < N; j++)
                     abs_sum_off_diagonal_row += rocblas_abs(A[i + j * lda]);
-                for(int j = 0; j < i; j++)
+                for(size_t j = 0; j < i; j++)
                     abs_sum_off_diagonal_col += rocblas_abs(A[j + i * lda]);
 
                 A[i + i * lda]
@@ -303,17 +303,17 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-            for(int j = 0; j < N; j++)
+            for(size_t j = 0; j < N; j++)
             {
                 T abs_sum_off_diagonal_row
                     = T(0); //store absolute sum of entire row of the particular diagonal element
                 T abs_sum_off_diagonal_col
                     = T(0); //store absolute sum of entire column of the particular diagonal element
 
-                for(int i = j + 1; i < N; i++)
+                for(size_t i = j + 1; i < N; i++)
                     abs_sum_off_diagonal_col += rocblas_abs(A[i + j * lda]);
 
-                for(int i = 0; i < j; i++)
+                for(size_t i = 0; i < j; i++)
                     abs_sum_off_diagonal_row += rocblas_abs(A[j + i * lda]);
 
                 A[j + j * lda]
@@ -331,7 +331,7 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
                          T                         rand_gen(),
                          U&                        hA)
 {
-    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
         auto* A   = hA[batch_index];
         auto  M   = hA.m();
@@ -442,16 +442,16 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-                for(int i = 0; i < N; i++)
+                for(size_t i = 0; i < N; i++)
                 {
                     T abs_sum_off_diagonal_row = T(
                         0); //store absolute sum of entire row of the particular diagonal element
                     T abs_sum_off_diagonal_col = T(
                         0); //store absolute sum of entire column of the particular diagonal element
 
-                    for(int j = i + 1; j < N; j++)
+                    for(size_t j = i + 1; j < N; j++)
                         abs_sum_off_diagonal_row += rocblas_abs(A[i + j * lda]);
-                    for(int j = 0; j < i; j++)
+                    for(size_t j = 0; j < i; j++)
                         abs_sum_off_diagonal_col += rocblas_abs(A[j + i * lda]);
 
                     A[i + i * lda] = (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) == T(0)
@@ -465,17 +465,17 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-                for(int j = 0; j < N; j++)
+                for(size_t j = 0; j < N; j++)
                 {
                     T abs_sum_off_diagonal_row = T(
                         0); //store absolute sum of entire row of the particular diagonal element
                     T abs_sum_off_diagonal_col = T(
                         0); //store absolute sum of entire column of the particular diagonal element
 
-                    for(int i = j + 1; i < N; i++)
+                    for(size_t i = j + 1; i < N; i++)
                         abs_sum_off_diagonal_col += rocblas_abs(A[i + j * lda]);
 
-                    for(int i = 0; i < j; i++)
+                    for(size_t i = 0; i < j; i++)
                         abs_sum_off_diagonal_row += rocblas_abs(A[j + i * lda]);
 
                     A[j + j * lda] = (abs_sum_off_diagonal_row + abs_sum_off_diagonal_col) == T(0)
@@ -492,7 +492,7 @@ void rocblas_init_matrix(rocblas_check_matrix_type matrix_type,
 // Initialize vectors with rand_int/hpl/NaN values
 
 template <typename T>
-void rocblas_init_vector(T rand_gen(), T* x, rocblas_int N, rocblas_stride incx)
+void rocblas_init_vector(T rand_gen(), T* x, int64_t N, int64_t incx)
 {
     if(incx < 0)
         x -= (N - 1) * incx;
@@ -500,7 +500,7 @@ void rocblas_init_vector(T rand_gen(), T* x, rocblas_int N, rocblas_stride incx)
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for(rocblas_int j = 0; j < N; ++j)
+    for(int64_t j = 0; j < N; ++j)
         x[j * incx] = rand_gen();
 }
 
@@ -516,7 +516,7 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
                               size_t                    N,
                               size_t                    lda,
                               rocblas_stride            stride      = 0,
-                              rocblas_int               batch_count = 1,
+                              int64_t                   batch_count = 1,
                               bool                      seedReset   = false)
 {
     if(matrix_type == rocblas_client_general_matrix)
@@ -618,7 +618,7 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
                               U&                        hA,
                               bool                      seedReset = false)
 {
-    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
         auto* A   = hA[batch_index];
         auto  M   = hA.m();
@@ -714,7 +714,7 @@ void rocblas_init_matrix_trig(rocblas_check_matrix_type matrix_type,
 // Initialize vector with rand_int/hpl/NaN values
 
 template <typename T>
-void rocblas_init_vector_trig(T* x, rocblas_int N, rocblas_stride incx, bool seedReset = false)
+void rocblas_init_vector_trig(T* x, int64_t N, rocblas_stride incx, bool seedReset = false)
 {
     if(incx < 0)
         x -= (N - 1) * incx;
@@ -722,7 +722,7 @@ void rocblas_init_vector_trig(T* x, rocblas_int N, rocblas_stride incx, bool see
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for(rocblas_int j = 0; j < N; ++j)
+    for(int64_t j = 0; j < N; ++j)
         x[j * incx] = T(seedReset ? cos(j * incx) : sin(j * incx));
 }
 
@@ -885,7 +885,7 @@ void rocblas_init_denorm(T* A, size_t start_offset, size_t end_offset)
 template <typename T, typename U>
 void rocblas_init_identity(U& hA)
 {
-    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
         auto* A   = hA[batch_index];
         auto  M   = hA.m();
@@ -908,7 +908,7 @@ template <typename T, typename U>
 void rocblas_init_non_rep_bf16_vals(U& hA)
 {
     const rocblas_half ieee_half_vals[4] = {2028, 2034, 2036, 2038};
-    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
         auto* A   = hA[batch_index];
         auto  M   = hA.m();
@@ -928,7 +928,7 @@ template <typename T, typename U>
 void rocblas_init_alt_impl_big(U& hA)
 {
     const rocblas_half ieee_half_large(65280.0);
-    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
         auto* A   = hA[batch_index];
         auto  M   = hA.m();
@@ -1022,7 +1022,7 @@ void rocblas_init_alt_impl_small(U& hA)
 {
     //using a rocblas_half subnormal value
     const rocblas_half ieee_half_small(0.0000607967376708984375);
-    for(rocblas_int batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
+    for(int64_t batch_index = 0; batch_index < hA.batch_count(); ++batch_index)
     {
         auto* A   = hA[batch_index];
         auto  M   = hA.m();
