@@ -577,15 +577,15 @@ ROCBLAS_DEPRECATED_MSG(
     alpha and beta are scalars, and A, B, C, and D are matrices, with
     op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
 
-    gemm_ex3 is a temporary API to support float8 computation
-    Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch
+    gemm_ex3 is a temporary API to support float8 computation. Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch.
 
-    Computetypes are as follows:
-    rocblas_compute_type_f32         = 300,
-    rocblas_compute_type_f8_f8_f32   = 301, <--- internalAType_internalBType_AccumulatorType
-    rocblas_compute_type_f8_bf8_f32  = 302,
-    rocblas_compute_type_bf8_f8_f32  = 303,
-    rocblas_compute_type_bf8_bf8_f32 = 304,
+    Supported compute-types are as follows:
+
+        rocblas_compute_type_f32         = 300 or
+        rocblas_compute_type_f8_f8_f32   = 301 or (internalAType_internalBType_AccumulatorType)
+        rocblas_compute_type_f8_bf8_f32  = 302 or
+        rocblas_compute_type_bf8_f8_f32  = 303 or
+        rocblas_compute_type_bf8_bf8_f32 = 304
 
     Supported types are as follows:  alpha/beta always float
     | A type | B type | C type | D type | Compute type
@@ -725,15 +725,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex3(rocblas_handle      handle,
     The strided_batched matrices are multiple matrices separated by a constant stride.
     The number of matrices is batch_count.
 
-    gemm_strided_batched_ex3 is a temporary API to support float8 computation
-    Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch
+    gemm_ex3 is a temporary API to support float8 computation. Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch.
 
-    Computetypes are as follows:
-    rocblas_compute_type_f32         = 300,
-    rocblas_compute_type_f8_f8_f32   = 301, <--- internalAType_internalBType_AccumulatorType
-    rocblas_compute_type_f8_bf8_f32  = 302,
-    rocblas_compute_type_bf8_f8_f32  = 303,
-    rocblas_compute_type_bf8_bf8_f32 = 304,
+    Supported compute-types are as follows:
+
+        rocblas_compute_type_f32         = 300 or
+        rocblas_compute_type_f8_f8_f32   = 301 or (internalAType_internalBType_AccumulatorType)
+        rocblas_compute_type_f8_bf8_f32  = 302 or
+        rocblas_compute_type_bf8_f8_f32  = 303 or
+        rocblas_compute_type_bf8_bf8_f32 = 304
 
     Supported types are as follows:  alpha/beta always float
     | A type | B type | C type | D type | Compute type
@@ -879,11 +879,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex3(rocblas_handle   
 
     \details
     gemm_batched_ex3 performs one of the batched matrix-matrix operations:
+
         D_i = alpha*op(A_i)*op(B_i) + beta*C_i, for i = 1, ..., batch_count.
+
     where op( X ) is one of
+
         op( X ) = X      or
         op( X ) = X**T   or
         op( X ) = X**H,
+
     alpha and beta are scalars, and A, B, C, and D are batched pointers to matrices, with
     op( A ) an m by k by batch_count batched matrix,
     op( B ) a k by n by batch_count batched matrix and
@@ -892,15 +896,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex3(rocblas_handle   
     The number of pointers to matrices is batch_count.
     C and D may point to the same matrices if their parameters are identical.
 
-    gemm_batched_ex3 is a temporary API to support float8 computation
-    Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch
+    gemm_ex3 is a temporary API to support float8 computation. Trying to run this API on unsupported hardware will return rocblas_status_arch_mismatch.
 
-    Computetypes are as follows:
-    rocblas_compute_type_f32         = 300,
-    rocblas_compute_type_f8_f8_f32   = 301, <--- internalAType_internalBType_AccumulatorType
-    rocblas_compute_type_f8_bf8_f32  = 302,
-    rocblas_compute_type_bf8_f8_f32  = 303,
-    rocblas_compute_type_bf8_bf8_f32 = 304,
+    Supported compute-types are as follows:
+
+        rocblas_compute_type_f32         = 300 or
+        rocblas_compute_type_f8_f8_f32   = 301 or (internalAType_internalBType_AccumulatorType)
+        rocblas_compute_type_f8_bf8_f32  = 302 or
+        rocblas_compute_type_bf8_f8_f32  = 303 or
+        rocblas_compute_type_bf8_bf8_f32 = 304
 
     Supported types are as follows:  alpha/beta always float
     | A type | B type | C type | D type | Compute type
