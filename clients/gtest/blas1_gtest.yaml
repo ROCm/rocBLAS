@@ -416,9 +416,25 @@ Tests:
     category: stress
     arguments:
       - { N: 2147483649, incx: 1, incy: 1, batch_count: 1 }
+      - { N: 2147483649, incx: 1, incy: -1, batch_count: 1 }
+    api: [ C_64 ]
+    initialization: hpl
+    pointer_mode_host: false
+    function:
+      - dot: *single_precision
+      - dot_ex: *single_precision
+      - dot_batched: *single_precision
+      - dot_batched_ex: *single_precision
+      - dot_strided_batched: *single_precision
+      - dot_strided_batched_ex: *single_precision
+
+  - name: dot_64
+    category: stress
+    arguments:
       - { N: 2, incx: 2147483649, incy: 1, batch_count: 1 }
       - { N: 2, incx: 1, incy: 2147483649, batch_count: 1 }
-      - { N: 3, incx: 1, incy: 1, stride_x: 3, stride_y: 3, batch_count: *c_grid_yz_require_passes }
+      - { N: 2, incx: 1, incy: -2147483649, batch_count: 1 }
+      - { N: 3, incx: -1, incy: 1, stride_x: 3, stride_y: 3, batch_count: *c_grid_yz_require_passes }
     api: [ C_64 ]
     function:
       - dot: *half_precision
@@ -427,7 +443,6 @@ Tests:
       - dot_batched_ex: *half_precision
       - dot_strided_batched: *half_precision
       - dot_strided_batched_ex: *half_precision
-
 
 # fortran
   - name: scal_blas1_with_alpha

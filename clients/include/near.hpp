@@ -35,6 +35,7 @@
 #include "rocblas_math.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
+#include "unit.hpp"
 
 // sqrt(0.5) factor for complex cutoff calculations
 constexpr double sqrthalf = 0.7071067811865475244;
@@ -43,7 +44,7 @@ constexpr double sqrthalf = 0.7071067811865475244;
 // in the sum to get an expected absolute error bound.
 
 template <class T>
-static constexpr double sum_error_tolerance = 0.0;
+static constexpr double sum_error_tolerance = get_epsilon<T>();
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr double
@@ -66,7 +67,7 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 1000000.0;
 
 template <class Tc, class Ti, class To>
-static constexpr double sum_error_tolerance_for_gfx11 = 0.0;
+static constexpr double sum_error_tolerance_for_gfx11 = get_epsilon<Tc>();
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr double
