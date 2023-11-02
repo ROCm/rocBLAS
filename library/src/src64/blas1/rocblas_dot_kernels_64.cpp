@@ -110,11 +110,10 @@ rocblas_status rocblas_internal_dot_launcher_64(rocblas_handle __restrict__ hand
             {
                 int32_t n = int32_t(std::min(n_64 - n_base, c_i64_grid_X_chunk));
 
-                // in case of negative inc only partial sums are doing summation in that direction
-                int64_t shiftx = incx_64 < 0 ? -incx_64 * n_base : incx_64 * n_base;
-                int64_t shifty = incy_64 < 0 ? -incy_64 * n_base : incy_64 * n_base;
-                shiftx += offsetx;
-                shifty += offsety;
+                int64_t shiftx
+                    = offsetx + (incx_64 < 0 ? -incx_64 * (n_64 - n - n_base) : n_base * incx_64);
+                int64_t shifty
+                    = offsety + (incy_64 < 0 ? -incy_64 * (n_64 - n - n_base) : n_base * incy_64);
 
                 // 32bit API call but with new instantiation for V, U, V for high precision output
                 rocblas_status status
@@ -199,10 +198,12 @@ rocblas_status rocblas_internal_dot_launcher_64(rocblas_handle __restrict__ hand
                         int64_t blocks = rocblas_reduction_kernel_block_count(n, NB * WIN);
 
                         // in case of negative inc only partial sums are doing summation in that direction
-                        int64_t shiftx = incx_64 < 0 ? -incx_64 * n_base : incx_64 * n_base;
-                        int64_t shifty = incy_64 < 0 ? -incy_64 * n_base : incy_64 * n_base;
-                        shiftx += offsetx;
-                        shifty += offsety;
+                        int64_t shiftx
+                            = offsetx
+                              + (incx_64 < 0 ? -incx_64 * (n_64 - n - n_base) : n_base * incx_64);
+                        int64_t shifty
+                            = offsety
+                              + (incy_64 < 0 ? -incy_64 * (n_64 - n - n_base) : n_base * incy_64);
 
                         // 32bit template call but with new instantiation for V, U, V for high precision output
                         rocblas_status status

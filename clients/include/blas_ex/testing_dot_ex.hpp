@@ -256,16 +256,18 @@ void testing_dot_ex(const Arguments& arg)
         (CONJ ? cblas_dotc<Tx> : cblas_dot<Tx>)(N, hx, incx, hy_ptr, incy, cpu_result);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
+        // For large N, rocblas_half tends to diverge proportional to N
+        // Tolerance is slightly greater than 1 / 1024.0
+        bool near_check = arg.initialization == rocblas_initialization::hpl
+                          || (std::is_same_v<Tex, rocblas_half> && N > 10000);
+
         if(arg.pointer_mode_host)
         {
             if(arg.unit_check)
             {
-                if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+                if(near_check)
                 {
-                    // For large K, rocblas_half tends to diverge proportional to K
-                    // Tolerance is slightly greater than 1 / 1024.0
                     const double tol = N * sum_error_tolerance<Tex>;
-
                     near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_host, tol);
                 }
                 else
@@ -287,12 +289,9 @@ void testing_dot_ex(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                if(std::is_same_v<Tex, rocblas_half> && N > 10000)
+                if(near_check)
                 {
-                    // For large K, rocblas_half tends to diverge proportional to K
-                    // Tolerance is slightly greater than 1 / 1024.0
                     const double tol = N * sum_error_tolerance<Tex>;
-
                     near_check_general<Tr>(1, 1, 1, cpu_result, rocblas_result_device, tol);
                 }
                 else
