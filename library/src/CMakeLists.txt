@@ -172,6 +172,13 @@ set( rocblas_blas3_source_no_tensile
 
 # rocblas L3 that use tensile but can use source gemm as fallback
 set( rocblas_blas3_source
+    # trsm first as currently slowest
+    blas3/rocblas_trsm.cpp
+    blas3/rocblas_trsm_batched.cpp
+    blas3/rocblas_trsm_strided_batched.cpp
+    blas3/rocblas_trsm_kernels.cpp
+    blas3/rocblas_trsm_batched_kernels.cpp
+    #
     blas3/rocblas_hemm.cpp
     blas3/rocblas_hemm_batched.cpp
     blas3/rocblas_hemm_strided_batched.cpp
@@ -208,10 +215,6 @@ set( rocblas_blas3_source
     blas3/rocblas_trmm_kernels.cpp
     blas3/rocblas_trmm_batched.cpp
     blas3/rocblas_trmm_strided_batched.cpp
-    blas3/rocblas_trsm.cpp
-    blas3/rocblas_trsm_batched.cpp
-    blas3/rocblas_trsm_strided_batched.cpp
-    blas3/rocblas_trsm_kernels.cpp
     blas3/rocblas_trtri.cpp
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp
@@ -219,6 +222,12 @@ set( rocblas_blas3_source
 )
 
 set( rocblas_blas2_source
+  # trsv first as slower
+  blas2/rocblas_trsv.cpp
+  blas2/rocblas_trsv_kernels.cpp
+  blas2/rocblas_trsv_strided_batched.cpp
+  blas2/rocblas_trsv_batched.cpp
+  #
   blas2/rocblas_gemv.cpp
   blas2/rocblas_gemv_kernels.cpp
   blas2/rocblas_gemv_batched.cpp
@@ -306,10 +315,6 @@ set( rocblas_blas2_source
   blas2/rocblas_symv.cpp
   blas2/rocblas_symv_batched.cpp
   blas2/rocblas_symv_strided_batched.cpp
-  blas2/rocblas_trsv.cpp
-  blas2/rocblas_trsv_kernels.cpp
-  blas2/rocblas_trsv_strided_batched.cpp
-  blas2/rocblas_trsv_batched.cpp
 )
 
 set( rocblas_auxiliary_source
@@ -630,11 +635,12 @@ set( subdir_src64_list
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 
 add_library( rocblas
-  ${rocblas_ex_source}
-  ${rocblas_ex_source_no_tensile}
+  # ordered from generally slowest to compile to faster to increase parallelism
   ${rocblas_blas3_source}
   ${rocblas_blas3_source_no_tensile}
   ${rocblas_blas2_source}
+  ${rocblas_ex_source}
+  ${rocblas_ex_source_no_tensile}
   ${rocblas_blas1_source}
   ${relative_rocblas_headers_public}
   ${rocblas_auxiliary_source}
