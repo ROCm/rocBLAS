@@ -22,26 +22,18 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "near.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_rotm_bad_arg(const Arguments& arg)
 {
     auto rocblas_rotm_fn = arg.api == FORTRAN ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
+    auto rocblas_rotm_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_rotm_64<T, true> : rocblas_rotm_64<T, false>;
 
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
+    int64_t             N         = 100;
+    int64_t             incx      = 1;
+    int64_t             incy      = 1;
     static const size_t safe_size = 100;
 
     rocblas_local_handle handle{arg};
@@ -57,30 +49,37 @@ void testing_rotm_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(nullptr, N, dx, incx, dy, incy, dparam),
-                          rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(handle, N, nullptr, incx, dy, incy, dparam),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(handle, N, dx, incx, nullptr, incy, dparam),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, nullptr),
-                          rocblas_status_invalid_pointer);
+
+    DAPI_EXPECT(
+        rocblas_status_invalid_handle, rocblas_rotm_fn, (nullptr, N, dx, incx, dy, incy, dparam));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_rotm_fn,
+                (handle, N, nullptr, incx, dy, incy, dparam));
+    DAPI_EXPECT(rocblas_status_invalid_pointer,
+                rocblas_rotm_fn,
+                (handle, N, dx, incx, nullptr, incy, dparam));
+    DAPI_EXPECT(
+        rocblas_status_invalid_pointer, rocblas_rotm_fn, (handle, N, dx, incx, dy, incy, nullptr));
 }
 
 template <typename T>
 void testing_rotm(const Arguments& arg)
 {
     auto rocblas_rotm_fn = arg.api == FORTRAN ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
+    auto rocblas_rotm_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_rotm_64<T, true> : rocblas_rotm_64<T, false>;
 
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
+    int64_t N    = arg.N;
+    int64_t incx = arg.incx;
+    int64_t incy = arg.incy;
 
     rocblas_local_handle handle{arg};
-    double               gpu_time_used, cpu_time_used;
+
+    double gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
-    T rel_error                = std::numeric_limits<T>::epsilon() * 1000;
+
+    T rel_error = std::numeric_limits<T>::epsilon() * 1000;
     // increase relative error for ieee64 bit
     if(std::is_same_v<T, double> || std::is_same_v<T, rocblas_double_complex>)
         rel_error *= 10.0;
@@ -89,7 +88,7 @@ void testing_rotm(const Arguments& arg)
     if(N <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, nullptr, incx, nullptr, incy, nullptr));
+        DAPI_CHECK(rocblas_rotm_fn, (handle, N, nullptr, incx, nullptr, incy, nullptr));
         return;
     }
 
@@ -121,19 +120,24 @@ void testing_rotm(const Arguments& arg)
 
     cblas_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);
 
+    // CPU BLAS reference data
+    host_vector<T> hx_gold(N, incx);
+    host_vector<T> hy_gold(N, incy);
+
     const int FLAG_COUNT        = 4;
     const T   FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
-    for(int i = 0; i < FLAG_COUNT; ++i)
+
+    if(arg.unit_check || arg.norm_check)
     {
-        hparam[0] = FLAGS[i];
-
-        // CPU BLAS reference data
-        host_vector<T> hx_gold = hx;
-        host_vector<T> hy_gold = hy;
-
-        if(arg.unit_check || arg.norm_check)
+        int flag_count
+            = !(arg.api & c_API_64) ? FLAG_COUNT : 1; // only test first flag for 64bit API sizes
+        for(int i = 0; i < flag_count; ++i)
         {
-            // Test rocblas_pointer_mode_host
+            hparam[0] = FLAGS[i];
+
+            hx_gold = hx;
+            hy_gold = hy;
+
             if(arg.pointer_mode_host)
             {
                 CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -142,7 +146,7 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(dy.transfer_from(hy));
 
                 handle.pre_test(arg);
-                CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam));
+                DAPI_CHECK(rocblas_rotm_fn, (handle, N, dx, incx, dy, incy, hparam));
                 handle.post_test(arg);
 
                 CHECK_HIP_ERROR(hx.transfer_from(dx));
@@ -158,7 +162,7 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(dparam.transfer_from(hparam));
 
                 handle.pre_test(arg);
-                CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam));
+                DAPI_CHECK(rocblas_rotm_fn, (handle, N, dx, incx, dy, incy, dparam));
                 handle.post_test(arg);
             }
 
@@ -181,7 +185,6 @@ void testing_rotm(const Arguments& arg)
                 }
             }
 
-            // Test rocblas_pointer_mode_device
             if(arg.pointer_mode_device)
             {
                 CHECK_HIP_ERROR(hx.transfer_from(dx));
@@ -204,27 +207,27 @@ void testing_rotm(const Arguments& arg)
 
     if(arg.timing)
     {
-        // Initializing flag value to -1
-        hparam[0]             = FLAGS[0];
         int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        int total_calls       = number_cold_calls + arg.iters;
+
+        // Initializing flag value to -1
+        hparam[0] = FLAGS[0];
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         CHECK_HIP_ERROR(dx.transfer_from(hx));
         CHECK_HIP_ERROR(dy.transfer_from(hy));
         CHECK_HIP_ERROR(dparam.transfer_from(hparam));
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam);
-        }
-
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-        for(int iter = 0; iter < number_hot_calls; iter++)
+
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_rotm_fn, (handle, N, dx, incx, dy, incy, dparam));
         }
         gpu_time_used = (get_time_us_sync(stream) - gpu_time_used);
 

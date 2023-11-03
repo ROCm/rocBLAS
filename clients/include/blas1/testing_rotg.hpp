@@ -22,22 +22,15 @@
 
 #pragma once
 
-#include "cblas_interface.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T, typename U = T>
 void testing_rotg_bad_arg(const Arguments& arg)
 {
     auto rocblas_rotg_fn
         = arg.api == FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
+    auto rocblas_rotg_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_rotg_64<T, U, true> : rocblas_rotg_64<T, U, false>;
 
     rocblas_local_handle handle{arg};
 
@@ -53,16 +46,11 @@ void testing_rotg_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dc.memcheck());
     CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(nullptr, da, db, dc, ds)),
-                          rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, nullptr, db, dc, ds)),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, da, nullptr, dc, ds)),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, da, db, nullptr, ds)),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, da, db, dc, nullptr)),
-                          rocblas_status_invalid_pointer);
+    DAPI_EXPECT(rocblas_status_invalid_handle, rocblas_rotg_fn, (nullptr, da, db, dc, ds));
+    DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_rotg_fn, (handle, nullptr, db, dc, ds));
+    DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_rotg_fn, (handle, da, nullptr, dc, ds));
+    DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_rotg_fn, (handle, da, db, nullptr, ds));
+    DAPI_EXPECT(rocblas_status_invalid_pointer, rocblas_rotg_fn, (handle, da, db, dc, nullptr));
 }
 
 template <typename T, typename U = T>
@@ -70,6 +58,8 @@ void testing_rotg(const Arguments& arg)
 {
     auto rocblas_rotg_fn
         = arg.api == FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
+    auto rocblas_rotg_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_rotg_64<T, U, true> : rocblas_rotg_64<T, U, false>;
 
     rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
@@ -107,7 +97,7 @@ void testing_rotg(const Arguments& arg)
         host_vector<T> hs = s;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, ha, hb, hc, hs)));
+        DAPI_CHECK(rocblas_rotg_fn, (handle, ha, hb, hc, hs));
         handle.post_test(arg);
 
         if(arg.unit_check)
@@ -151,7 +141,7 @@ void testing_rotg(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, da, db, dc, ds)));
+        DAPI_CHECK(rocblas_rotg_fn, (handle, da, db, dc, ds));
         handle.post_test(arg);
 
         host_vector<T> ha(1);
@@ -185,30 +175,30 @@ void testing_rotg(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
+        int total_calls       = number_cold_calls + arg.iters;
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         host_vector<T> ha = a;
         host_vector<T> hb = b;
         host_vector<U> hc = c;
         host_vector<T> hs = s;
-        for(int iter = 0; iter < number_cold_calls; ++iter)
-        {
-            rocblas_rotg_fn(handle, ha, hb, hc, hs);
-        }
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-        for(int iter = 0; iter < number_hot_calls; ++iter)
+
+        for(int iter = 0; iter < total_calls; ++iter)
         {
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
             ha = a;
             hb = b;
             hc = c;
             hs = s;
-            rocblas_rotg_fn(handle, ha, hb, hc, hs);
+            DAPI_DISPATCH(rocblas_rotg_fn, (handle, ha, hb, hc, hs));
         }
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / arg.iters;
 
         rocblas_cout << "rocblas-us,CPU-us";
         if(arg.norm_check)
