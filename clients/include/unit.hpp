@@ -123,6 +123,7 @@
 template <typename T, typename T_hpa = T>
 void unit_check_general(
     int64_t M, int64_t N, int64_t lda, const std::remove_cv_t<T_hpa>* hCPU, const T* hGPU);
+
 template <>
 inline void unit_check_general(
     int64_t M, int64_t N, int64_t lda, const rocblas_f8* hCPU, const rocblas_f8* hGPU)
@@ -195,6 +196,13 @@ inline void unit_check_general(int64_t                       M,
 template <>
 inline void unit_check_general(
     int64_t M, int64_t N, int64_t lda, const rocblas_int* hCPU, const rocblas_int* hGPU)
+{
+    UNIT_CHECK(M, N, lda, 0, hCPU, hGPU, 1, ASSERT_EQ);
+}
+
+template <>
+inline void
+    unit_check_general(int64_t M, int64_t N, int64_t lda, const int64_t* hCPU, const int64_t* hGPU)
 {
     UNIT_CHECK(M, N, lda, 0, hCPU, hGPU, 1, ASSERT_EQ);
 }
@@ -329,6 +337,18 @@ inline void unit_check_general(int64_t            M,
     UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, ASSERT_EQ);
 }
 
+template <>
+inline void unit_check_general(int64_t        M,
+                               int64_t        N,
+                               int64_t        lda,
+                               rocblas_stride strideA,
+                               const int64_t* hCPU,
+                               const int64_t* hGPU,
+                               int64_t        batch_count)
+{
+    UNIT_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, ASSERT_EQ);
+}
+
 template <typename T, typename T_hpa = T>
 void unit_check_general(int64_t                                    M,
                         int64_t                                    N,
@@ -377,6 +397,17 @@ inline void unit_check_general(int64_t                M,
                                const host_vector<int> hCPU[],
                                const host_vector<int> hGPU[],
                                int64_t                batch_count)
+{
+    UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, ASSERT_EQ);
+}
+
+template <>
+inline void unit_check_general(int64_t                    M,
+                               int64_t                    N,
+                               int64_t                    lda,
+                               const host_vector<int64_t> hCPU[],
+                               const host_vector<int64_t> hGPU[],
+                               int64_t                    batch_count)
 {
     UNIT_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, ASSERT_EQ);
 }

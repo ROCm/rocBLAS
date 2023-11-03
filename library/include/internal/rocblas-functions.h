@@ -2085,6 +2085,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle     
     result
               device pointer or host pointer to store the amax index.
               return is 0.0 if n, incx<=0.
+
+    This function supports the 64-bit integer interface (ILP64).
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamax(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
@@ -2103,6 +2106,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              rocblas_int*                  result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamax_64(
+    rocblas_handle handle, int64_t n, const float* x, int64_t incx, int64_t* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamax_64(
+    rocblas_handle handle, int64_t n, const double* x, int64_t incx, int64_t* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamax_64(rocblas_handle               handle,
+                                                int64_t                      n,
+                                                const rocblas_float_complex* x,
+                                                int64_t                      incx,
+                                                int64_t*                     result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamax_64(rocblas_handle                handle,
+                                                int64_t                       n,
+                                                const rocblas_double_complex* x,
+                                                int64_t                       incx,
+                                                int64_t*                      result);
 //! @}
 
 /*! @{
@@ -2129,6 +2150,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
     result
               device or host array of pointers of batch_count size for results.
               return is 0 if n, incx<=0.
+
+    This function supports the 64-bit integer interface (ILP64).
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamax_batched(rocblas_handle     handle,
                                                      rocblas_int        n,
@@ -2154,6 +2178,31 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle             
                                                      rocblas_int                         incx,
                                                      rocblas_int  batch_count,
                                                      rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamax_batched_64(rocblas_handle     handle,
+                                                        int64_t            n,
+                                                        const float* const x[],
+                                                        int64_t            incx,
+                                                        int64_t            batch_count,
+                                                        int64_t*           result);
+ROCBLAS_EXPORT rocblas_status rocblas_idamax_batched_64(rocblas_handle      handle,
+                                                        int64_t             n,
+                                                        const double* const x[],
+                                                        int64_t             incx,
+                                                        int64_t             batch_count,
+                                                        int64_t*            result);
+ROCBLAS_EXPORT rocblas_status rocblas_icamax_batched_64(rocblas_handle                     handle,
+                                                        int64_t                            n,
+                                                        const rocblas_float_complex* const x[],
+                                                        int64_t                            incx,
+                                                        int64_t  batch_count,
+                                                        int64_t* result);
+ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched_64(rocblas_handle                      handle,
+                                                        int64_t                             n,
+                                                        const rocblas_double_complex* const x[],
+                                                        int64_t                             incx,
+                                                        int64_t  batch_count,
+                                                        int64_t* result);
 //! @}
 
 /*! @{
@@ -2183,6 +2232,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle             
     result
               device or host pointer for storing contiguous batch_count results.
               return is 0 if n <= 0, incx<=0.
+
+    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamax_strided_batched(rocblas_handle handle,
@@ -2216,6 +2267,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle     
                                                              rocblas_stride                stridex,
                                                              rocblas_int  batch_count,
                                                              rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamax_strided_batched_64(rocblas_handle handle,
+                                                                int64_t        n,
+                                                                const float*   x,
+                                                                int64_t        incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamax_strided_batched_64(rocblas_handle handle,
+                                                                int64_t        n,
+                                                                const double*  x,
+                                                                int64_t        incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamax_strided_batched_64(rocblas_handle               handle,
+                                                                int64_t                      n,
+                                                                const rocblas_float_complex* x,
+                                                                int64_t                      incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched_64(rocblas_handle handle,
+                                                                int64_t        n,
+                                                                const rocblas_double_complex* x,
+                                                                int64_t                       incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
 //! @}
 
 /*! @{
@@ -2239,6 +2322,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle     
     result
               device pointer or host pointer to store the amin index.
               return is 0.0 if n, incx<=0.
+
+    This function supports the 64-bit integer interface (ILP64).
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamin(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
@@ -2257,6 +2343,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              rocblas_int*                  result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamin_64(
+    rocblas_handle handle, int64_t n, const float* x, int64_t incx, int64_t* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin_64(
+    rocblas_handle handle, int64_t n, const double* x, int64_t incx, int64_t* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin_64(rocblas_handle               handle,
+                                                int64_t                      n,
+                                                const rocblas_float_complex* x,
+                                                int64_t                      incx,
+                                                int64_t*                     result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamin_64(rocblas_handle                handle,
+                                                int64_t                       n,
+                                                const rocblas_double_complex* x,
+                                                int64_t                       incx,
+                                                int64_t*                      result);
 //! @}
 
 /*! @{
@@ -2283,6 +2387,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
     result
               device or host pointers to array of batch_count size for results.
               return is 0 if n, incx<=0.
+
+    This function supports the 64-bit integer interface (ILP64).
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamin_batched(rocblas_handle     handle,
                                                      rocblas_int        n,
@@ -2311,6 +2418,34 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle             
                                                      rocblas_int                         incx,
                                                      rocblas_int  batch_count,
                                                      rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamin_batched_64(rocblas_handle     handle,
+                                                        int64_t            n,
+                                                        const float* const x[],
+                                                        int64_t            incx,
+                                                        int64_t            batch_count,
+                                                        int64_t*           result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin_batched_64(rocblas_handle      handle,
+                                                        int64_t             n,
+                                                        const double* const x[],
+                                                        int64_t             incx,
+                                                        int64_t             batch_count,
+                                                        int64_t*            result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin_batched_64(rocblas_handle                     handle,
+                                                        int64_t                            n,
+                                                        const rocblas_float_complex* const x[],
+                                                        int64_t                            incx,
+                                                        int64_t  batch_count,
+                                                        int64_t* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched_64(rocblas_handle                      handle,
+                                                        int64_t                             n,
+                                                        const rocblas_double_complex* const x[],
+                                                        int64_t                             incx,
+                                                        int64_t  batch_count,
+                                                        int64_t* result);
 //! @}
 
 /*! @{
@@ -2340,6 +2475,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle             
     result
               device or host pointer to array for storing contiguous batch_count results.
               return is 0 if n <= 0, incx<=0.
+
+    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_isamin_strided_batched(rocblas_handle handle,
@@ -2373,6 +2510,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_strided_batched(rocblas_handle     
                                                              rocblas_stride                stridex,
                                                              rocblas_int  batch_count,
                                                              rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamin_strided_batched_64(rocblas_handle handle,
+                                                                int64_t        n,
+                                                                const float*   x,
+                                                                int64_t        incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin_strided_batched_64(rocblas_handle handle,
+                                                                int64_t        n,
+                                                                const double*  x,
+                                                                int64_t        incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin_strided_batched_64(rocblas_handle               handle,
+                                                                int64_t                      n,
+                                                                const rocblas_float_complex* x,
+                                                                int64_t                      incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamin_strided_batched_64(rocblas_handle handle,
+                                                                int64_t        n,
+                                                                const rocblas_double_complex* x,
+                                                                int64_t                       incx,
+                                                                rocblas_stride stridex,
+                                                                int64_t        batch_count,
+                                                                int64_t*       result);
 //! @}
 
 /*! @{

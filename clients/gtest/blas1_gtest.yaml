@@ -479,6 +479,37 @@ Tests:
       - dot_strided_batched: *half_precision
       - dot_strided_batched_ex: *half_precision
 
+  - name: iamax_iamin_64
+    category: nightly
+    N: [ 64 ]
+    arguments:
+      - { incx: 1, batch_count: 1 }
+    api: [ FORTRAN_64 ]
+    function:
+      - iamax: *single_double_precisions_complex_real
+      - iamin: *single_double_precisions_complex_real
+      - iamax_batched: *single_double_precisions_complex_real
+      - iamin_batched: *single_double_precisions_complex_real
+      - iamax_strided_batched: *single_double_precisions_complex_real
+      - iamin_strided_batched: *single_double_precisions_complex_real
+
+  - name: iamax_iamin_64
+    category: stress
+    pointer_mode_host: false
+    arguments:
+      - { N: 2147483649, incx: 1, batch_count: 1 }
+      - { N: 2, incx: 2147483649, batch_count: 1 }
+      - { N: 2, incx: -2147483649, batch_count: 1 } # quick return
+      - { N: 3, incx: 1, stride_x: 3, batch_count: *c_grid_yz_require_passes }
+    api: [ C_64 ]
+    function:
+      - iamax: *single_precision
+      - iamin: *single_precision
+      - iamax_batched: *single_precision
+      - iamin_batched: *single_precision
+      - iamax_strided_batched: *single_precision
+      - iamin_strided_batched: *single_precision
+
 # fortran
   - name: scal_blas1_with_alpha
     category: quick

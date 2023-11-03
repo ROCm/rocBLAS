@@ -33,6 +33,15 @@
 #include <type_traits>
 #include <utility>
 
+template <typename T>
+struct rocblas_index_64_value_t
+{
+    //! @brief Important: index must come first, so that rocblas_index_64_value_t* can be cast to int64_t*
+    int64_t index;
+    //! @brief The value.
+    T value;
+};
+
 //!
 //! @brief Struct-operator a default_value of rocblas_index_value_t<T>
 //!
@@ -42,7 +51,7 @@ struct rocblas_default_value<rocblas_index_value_t<T>>
     __forceinline__ __host__ __device__ constexpr auto operator()() const
     {
         rocblas_index_value_t<T> x;
-        x.index = -1;
+        x.index = 0;
         return x;
     }
 };
@@ -61,18 +70,6 @@ struct rocblas_fetch_amax_amin
     }
 };
 
-//!
-//! @brief Struct-operator to finalize the data.
-//!
-struct rocblas_finalize_amax_amin
-{
-    template <typename To>
-    __forceinline__ __host__ __device__ auto operator()(const rocblas_index_value_t<To>& x) const
-    {
-        return x.index + 1;
-    }
-};
-
 // Replaces x with y if y.value > x.value or y.value == x.value and y.index < x.index
 struct rocblas_reduce_amax
 {
@@ -81,10 +78,10 @@ struct rocblas_reduce_amax
         operator()(rocblas_index_value_t<To>& __restrict__ x,
                    const rocblas_index_value_t<To>& __restrict__ y) const
     {
-        // If y.index == -1 then y.value is invalid and should not be compared
-        if(y.index != -1)
+        // If y.index == 0 then y.value is invalid and should not be compared
+        if(y.index != 0)
         {
-            if(x.index == -1 || y.value > x.value)
+            if(x.index == 0 || y.value > x.value)
                 x = y; // if larger or smaller, update max/min and index
             else if(y.index < x.index && x.value == y.value)
                 x.index = y.index; // if equal, choose smaller index
@@ -100,10 +97,10 @@ struct rocblas_reduce_amin
         operator()(rocblas_index_value_t<To>& __restrict__ x,
                    const rocblas_index_value_t<To>& __restrict__ y) const
     {
-        // If y.index == -1 then y.value is invalid and should not be compared
-        if(y.index != -1)
+        // If y.index == 0 then y.value is invalid and should not be compared
+        if(y.index != 0)
         {
-            if(x.index == -1 || y.value < x.value)
+            if(x.index == 0 || y.value < x.value)
                 x = y; // if larger or smaller, update max/min and index
             else if(y.index < x.index && x.value == y.value)
                 x.index = y.index; // if equal, choose smaller index
@@ -111,13 +108,13 @@ struct rocblas_reduce_amin
     }
 };
 
-template <typename T, typename Tr>
+template <typename API_INT, typename T, typename Tr>
 rocblas_status rocblas_iamax_iamin_arg_check(rocblas_handle handle,
-                                             rocblas_int    n,
+                                             API_INT        n,
                                              T              x,
-                                             rocblas_int    incx,
+                                             API_INT        incx,
                                              rocblas_stride stridex,
-                                             rocblas_int    batch_count,
+                                             API_INT        batch_count,
                                              Tr*            result)
 {
     if(!result)
@@ -213,3 +210,52 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                             rocblas_int               batch_count,
                                             rocblas_int*              result,
                                             rocblas_index_value_t<S>* workspace);
+
+// 64bit APIs
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_template_64(rocblas_handle               handle,
+                                       int64_t                      n,
+                                       const T*                     x,
+                                       rocblas_stride               shiftx,
+                                       int64_t                      incx,
+                                       rocblas_stride               stridex,
+                                       int64_t                      batch_count,
+                                       int64_t*                     result,
+                                       rocblas_index_64_value_t<S>* workspace);
+
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_batched_template_64(rocblas_handle               handle,
+                                               int64_t                      n,
+                                               const T* const*              x,
+                                               rocblas_stride               shiftx,
+                                               int64_t                      incx,
+                                               rocblas_stride               stridex,
+                                               int64_t                      batch_count,
+                                               int64_t*                     result,
+                                               rocblas_index_64_value_t<S>* workspace);
+
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamin_template_64(rocblas_handle               handle,
+                                       int64_t                      n,
+                                       const T*                     x,
+                                       rocblas_stride               shiftx,
+                                       int64_t                      incx,
+                                       rocblas_stride               stridex,
+                                       int64_t                      batch_count,
+                                       int64_t*                     result,
+                                       rocblas_index_64_value_t<S>* workspace);
+
+template <typename T, typename S>
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamin_batched_template_64(rocblas_handle               handle,
+                                               int64_t                      n,
+                                               const T* const*              x,
+                                               rocblas_stride               shiftx,
+                                               int64_t                      incx,
+                                               rocblas_stride               stridex,
+                                               int64_t                      batch_count,
+                                               int64_t*                     result,
+                                               rocblas_index_64_value_t<S>* workspace);
