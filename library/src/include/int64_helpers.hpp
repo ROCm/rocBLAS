@@ -55,6 +55,7 @@ constexpr int64_t c_i64_grid_X_chunk  = 1ULL << 28;
 constexpr int64_t c_i64_grid_YZ_chunk = int64_t(std::numeric_limits<uint16_t>::max());
 
 constexpr int64_t c_i32_max = int64_t(std::numeric_limits<int32_t>::max());
+constexpr int64_t c_i32_min = int64_t(std::numeric_limits<int32_t>::min());
 
 // int64 outer loop helpers
 

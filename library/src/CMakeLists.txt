@@ -379,10 +379,10 @@ set( rocblas_blas1_source
 # src64 sub-directory adds ILP64 API
 
 set(rocblas64_ex_source_no_tensile
-  #     src64/blas_ex/rocblas_axpy_ex.cpp
-  #     src64/blas_ex/rocblas_axpy_ex_kernels.cpp
-  #     src64/blas_ex/rocblas_axpy_batched_ex.cpp
-  #     src64/blas_ex/rocblas_axpy_strided_batched_ex.cpp
+  src64/blas_ex/rocblas_axpy_ex_64.cpp
+  src64/blas_ex/rocblas_axpy_ex_kernels_64.cpp
+  src64/blas_ex/rocblas_axpy_batched_ex_64.cpp
+  src64/blas_ex/rocblas_axpy_strided_batched_ex_64.cpp
   src64/blas_ex/rocblas_dot_ex_64.cpp
   src64/blas_ex/rocblas_dot_ex_kernels_64.cpp
   src64/blas_ex/rocblas_dot_batched_ex_64.cpp
@@ -575,10 +575,10 @@ set( rocblas64_blas1_source
   # src64/blas1/rocblas_asum.cpp
   # src64/blas1/rocblas_asum_batched.cpp
   # src64/blas1/rocblas_asum_strided_batched.cpp
-  # src64/blas1/rocblas_axpy.cpp
-  # src64/blas1/rocblas_axpy_kernels.cpp
-  # src64/blas1/rocblas_axpy_batched.cpp
-  # src64/blas1/rocblas_axpy_strided_batched.cpp
+  src64/blas1/rocblas_axpy_64.cpp
+  src64/blas1/rocblas_axpy_kernels_64.cpp
+  src64/blas1/rocblas_axpy_batched_64.cpp
+  src64/blas1/rocblas_axpy_strided_batched_64.cpp
   # src64/blas1/rocblas_copy.cpp
   # src64/blas1/rocblas_copy_kernels.cpp
   # src64/blas1/rocblas_copy_batched.cpp
