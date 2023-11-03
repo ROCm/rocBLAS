@@ -570,13 +570,13 @@ set( rocblas64_auxiliary_source
 )
 
 set( rocblas64_blas1_source
-  # src64/blas1/rocblas_iamax_iamin_kernels.cpp
-  # src64/blas1/rocblas_iamin.cpp
-  # src64/blas1/rocblas_iamin_batched.cpp
-  # src64/blas1/rocblas_iamin_strided_batched.cpp
-  # src64/blas1/rocblas_iamax.cpp
-  # src64/blas1/rocblas_iamax_batched.cpp
-  # src64/blas1/rocblas_iamax_strided_batched.cpp
+  src64/blas1/rocblas_iamax_iamin_kernels_64.cpp
+  src64/blas1/rocblas_iamin_64.cpp
+  src64/blas1/rocblas_iamin_batched_64.cpp
+  src64/blas1/rocblas_iamin_strided_batched_64.cpp
+  src64/blas1/rocblas_iamax_64.cpp
+  src64/blas1/rocblas_iamax_batched_64.cpp
+  src64/blas1/rocblas_iamax_strided_batched_64.cpp
   # src64/blas1/rocblas_asum.cpp
   # src64/blas1/rocblas_asum_batched.cpp
   # src64/blas1/rocblas_asum_strided_batched.cpp

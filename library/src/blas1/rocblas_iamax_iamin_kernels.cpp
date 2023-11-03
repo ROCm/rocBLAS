@@ -20,120 +20,12 @@
  *
  * ************************************************************************ */
 
-#include "reduction.hpp"
-#include "rocblas_block_sizes.h"
-#include "rocblas_iamax_iamin.hpp"
-#include "rocblas_reduction.hpp"
-
-// iamax, iamin kernels
-
-template <int N, typename REDUCE, typename T>
-__inline__ __device__ rocblas_index_value_t<T>
-                      rocblas_wavefront_reduce_method(rocblas_index_value_t<T> x)
-{
-    constexpr int WFBITS = rocblas_log2ui(N);
-    int           offset = 1 << (WFBITS - 1);
-    for(int i = 0; i < WFBITS; i++)
-    {
-        rocblas_index_value_t<T> y{};
-        y.index = __shfl_down(x.index, offset);
-        y.value = __shfl_down(x.value, offset);
-        REDUCE{}(x, y);
-        offset >>= 1;
-    }
-    return x;
-}
-
-template <rocblas_int NB, typename REDUCE, typename T>
-__inline__ __device__ T rocblas_shuffle_block_reduce_method(T val)
-{
-    __shared__ T psums[warpSize];
-
-    rocblas_int wavefront = threadIdx.x / warpSize;
-    rocblas_int wavelet   = threadIdx.x % warpSize;
-
-    if(wavefront == 0)
-        psums[wavelet] = T{};
-    __syncthreads();
-
-    val = rocblas_wavefront_reduce_method<warpSize, REDUCE>(val); // sum over wavefront
-    if(wavelet == 0)
-        psums[wavefront] = val; // store sum for wavefront
-
-    __syncthreads(); // Wait for all wavefront reductions
-
-    // ensure wavefront was run
-    static constexpr rocblas_int num_wavefronts = NB / warpSize;
-    val = (threadIdx.x < num_wavefronts) ? psums[wavelet] : T{};
-    if(wavefront == 0)
-        val = rocblas_wavefront_reduce_method<num_wavefronts, REDUCE>(val); // sum wavefront sums
-
-    return val;
-}
-
-// kernel 1 writes partial results per thread block in workspace; number of partial results is
-// blocks
-template <rocblas_int NB, typename FETCH, typename REDUCE, typename TPtrX, typename To>
-ROCBLAS_KERNEL(NB)
-rocblas_iamax_iamin_kernel_part1(rocblas_int    n,
-                                 rocblas_int    nblocks,
-                                 TPtrX          xvec,
-                                 rocblas_stride shiftx,
-                                 rocblas_int    incx,
-                                 rocblas_stride stridex,
-                                 To*            workspace)
-{
-    int64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-    To      sum;
-
-    const auto* x = load_ptr_batch(xvec, blockIdx.y, shiftx, stridex);
-
-    // bound
-    if(tid < n)
-        sum = FETCH{}(x[tid * incx], tid);
-    else
-        sum = rocblas_default_value<To>{}(); // pad with default value
-
-    sum = rocblas_shuffle_block_reduce_method<NB, REDUCE>(sum);
-
-    if(threadIdx.x == 0)
-        workspace[blockIdx.y * nblocks + blockIdx.x] = sum;
-}
-
-// kernel 2 gathers all the partial results in workspace and finishes the final reduction;
-// number of threads (NB) loop blocks
-template <rocblas_int NB, typename REDUCE, typename FINALIZE, typename To, typename Tr>
-ROCBLAS_KERNEL(NB)
-rocblas_iamax_iamin_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
-{
-    rocblas_int tx = threadIdx.x;
-    To          sum;
-
-    if(tx < nblocks)
-    {
-        To* work = workspace + blockIdx.y * nblocks;
-        sum      = work[tx];
-
-        // bound, loop
-        for(rocblas_int i = tx + NB; i < nblocks; i += NB)
-            REDUCE{}(sum, work[i]);
-    }
-    else
-    { // pad with default value
-        sum = rocblas_default_value<To>{}();
-    }
-
-    sum = rocblas_shuffle_block_reduce_method<NB, REDUCE>(sum);
-
-    // Store result on device or in workspace
-    if(tx == 0)
-        result[blockIdx.y] = Tr(FINALIZE{}(sum));
-}
+#include "rocblas_iamax_iamin_kernels.hpp"
 
 /*! \brief
 
     \details
-    rocblas_internal_iamax_iamin_template computes a reduction over multiple vectors x_i
+    rocblas_internal_iamax_iamin_launcher computes a reduction over multiple vectors x_i
               Template parameters allow threads per block, data, and specific phase kernel overrides
               At least two kernels are needed to finish the reduction
               kernel 1 write partial result per thread block in workspace, blocks partial results
@@ -168,20 +60,20 @@ rocblas_iamax_iamin_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
               pointers to array of batch_count size for results. either on the host CPU or device GPU.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
-template <rocblas_int NB,
+template <typename API_INT,
+          rocblas_int NB,
           typename FETCH,
           typename REDUCE,
-          typename FINALIZE,
           typename TPtrX,
           typename To,
           typename Tr>
-rocblas_status rocblas_internal_iamax_iamin_template(rocblas_handle handle,
-                                                     rocblas_int    n,
+rocblas_status rocblas_internal_iamax_iamin_launcher(rocblas_handle handle,
+                                                     API_INT        n,
                                                      TPtrX          x,
                                                      rocblas_stride shiftx,
-                                                     rocblas_int    incx,
+                                                     API_INT        incx,
                                                      rocblas_stride stridex,
-                                                     rocblas_int    batch_count,
+                                                     API_INT        batch_count,
                                                      To*            workspace,
                                                      Tr*            result)
 {
@@ -202,7 +94,7 @@ rocblas_status rocblas_internal_iamax_iamin_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE, FINALIZE>),
+        ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE>),
                               dim3(1, batch_count),
                               NB,
                               0,
@@ -219,35 +111,23 @@ rocblas_status rocblas_internal_iamax_iamin_template(rocblas_handle handle,
         static_assert(std::is_standard_layout<To>{}, "To must be a standard layout type");
 
         bool reduceKernel = blocks > 1 || batch_count > 1;
+        // result is in the beginning of workspace[0]+offset, and can be copied directly.
+        size_t offset = reduceKernel ? size_t(batch_count) * blocks : 0;
+
         if(reduceKernel)
         {
-            ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE, FINALIZE>),
+            ROCBLAS_LAUNCH_KERNEL((rocblas_iamax_iamin_kernel_part2<NB, REDUCE>),
                                   dim3(1, batch_count),
                                   NB,
                                   0,
                                   handle->get_stream(),
                                   blocks,
                                   workspace,
-                                  (Tr*)(workspace + size_t(batch_count) * blocks));
+                                  (Tr*)(workspace + offset));
         }
-        if(std::is_same_v<FINALIZE, rocblas_finalize_identity> || reduceKernel)
-        {
-            // If FINALIZE is trivial or kernel part2 was called, result is in the
-            // beginning of workspace[0]+offset, and can be copied directly.
-            size_t offset = reduceKernel ? size_t(batch_count) * blocks : 0;
-            RETURN_IF_HIP_ERROR(hipMemcpy(
-                result, workspace + offset, batch_count * sizeof(Tr), hipMemcpyDeviceToHost));
-        }
-        else
-        {
-            // If FINALIZE is not trivial and kernel part2 was not called, then
-            // workspace[0] needs to be finalized on host.
-            auto res = std::make_unique<To[]>(batch_count);
-            RETURN_IF_HIP_ERROR(
-                hipMemcpy(&res[0], workspace, batch_count * sizeof(To), hipMemcpyDeviceToHost));
-            for(rocblas_int i = 0; i < batch_count; i++)
-                result[i] = Tr(FINALIZE{}(res[i]));
-        }
+
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(result, workspace + offset, batch_count * sizeof(Tr), hipMemcpyDeviceToHost));
     }
     return rocblas_status_success;
 }
@@ -264,10 +144,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int*              result,
                                     rocblas_index_value_t<S>* workspace)
 {
-    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+    return rocblas_internal_iamax_iamin_launcher<rocblas_int,
+                                                 ROCBLAS_IAMAX_NB,
                                                  rocblas_fetch_amax_amin<S>,
-                                                 rocblas_reduce_amax,
-                                                 rocblas_finalize_amax_amin>(
+                                                 rocblas_reduce_amax>(
         handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
 }
 
@@ -283,10 +163,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                             rocblas_int*              result,
                                             rocblas_index_value_t<S>* workspace)
 {
-    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+    return rocblas_internal_iamax_iamin_launcher<rocblas_int,
+                                                 ROCBLAS_IAMAX_NB,
                                                  rocblas_fetch_amax_amin<S>,
-                                                 rocblas_reduce_amax,
-                                                 rocblas_finalize_amax_amin>(
+                                                 rocblas_reduce_amax>(
         handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
 }
 
@@ -302,10 +182,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int*              result,
                                     rocblas_index_value_t<S>* workspace)
 {
-    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+    return rocblas_internal_iamax_iamin_launcher<rocblas_int,
+                                                 ROCBLAS_IAMAX_NB,
                                                  rocblas_fetch_amax_amin<S>,
-                                                 rocblas_reduce_amin,
-                                                 rocblas_finalize_amax_amin>(
+                                                 rocblas_reduce_amin>(
         handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
 }
 
@@ -321,10 +201,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                             rocblas_int*              result,
                                             rocblas_index_value_t<S>* workspace)
 {
-    return rocblas_internal_iamax_iamin_template<ROCBLAS_IAMAX_NB,
+    return rocblas_internal_iamax_iamin_launcher<rocblas_int,
+                                                 ROCBLAS_IAMAX_NB,
                                                  rocblas_fetch_amax_amin<S>,
-                                                 rocblas_reduce_amin,
-                                                 rocblas_finalize_amax_amin>(
+                                                 rocblas_reduce_amin>(
         handle, n, x, shiftx, incx, stridex, batch_count, workspace, result);
 }
 

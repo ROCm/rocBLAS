@@ -22,93 +22,74 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
 #include "rocblas_iamax_iamin_ref.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
-template <typename T>
-void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
+template <typename T, typename R, typename FUNC>
+void testing_iamax_iamin_bad_arg(const Arguments& arg, FUNC func)
 {
-    rocblas_int N    = 100;
-    rocblas_int incx = 1;
+    int64_t N    = 100;
+    int64_t incx = 1;
 
     rocblas_local_handle handle{arg};
 
+    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
     // Allocate device memory
     device_vector<T> dx(N, incx);
-
-    // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    rocblas_int h_rocblas_result;
+    R h_rocblas_result;
 
     EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, &h_rocblas_result),
                           rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, &h_rocblas_result),
                           rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, nullptr), rocblas_status_invalid_pointer);
 }
 
-template <typename T>
-void testing_iamax_bad_arg(const Arguments& arg)
+template <typename T,
+          void (*REFBLAS_FUNC)(int64_t, const T*, int64_t, int64_t*),
+          typename R,
+          typename FUNC>
+void testing_iamax_iamin(const Arguments& arg, FUNC func)
 {
-    auto rocblas_iamax_fn = arg.api == FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
-    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamax_fn);
-}
+    int64_t N    = arg.N;
+    int64_t incx = arg.incx;
 
-template <typename T>
-void testing_iamin_bad_arg(const Arguments& arg)
-{
-    auto rocblas_iamin_fn = arg.api == FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
-    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin_fn);
-}
+    R h_rocblas_result_host;
+    R h_rocblas_result_device;
 
-template <typename T, void REFBLAS_FUNC(int64_t, const T*, int64_t, int64_t*)>
-void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
-{
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-
-    rocblas_int h_rocblas_result_1;
-    rocblas_int h_rocblas_result_2;
-
-    rocblas_int rocblas_error_1;
-    rocblas_int rocblas_error_2;
+    R rocblas_error_host;
+    R rocblas_error_device;
 
     rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        using R = rocblas_int;
-        device_vector<R> d_rocblas_result(1);
-        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
+        device_vector<R> d_result(1);
+        CHECK_DEVICE_ALLOCATION(d_result.memcheck());
 
-        host_vector<R> h_rocblas_result(1);
-        CHECK_HIP_ERROR(h_rocblas_result.memcheck());
+        host_vector<R> h_result(1);
+        CHECK_HIP_ERROR(h_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, d_rocblas_result));
+        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, d_result));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, h_rocblas_result));
+        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, h_result));
 
-        R cpu_0 = R(0);
-        R gpu_0, gpu_1;
-        CHECK_HIP_ERROR(hipMemcpy(&gpu_0, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
-        gpu_1 = h_rocblas_result[0];
-        unit_check_general<R>(1, 1, 1, &cpu_0, &gpu_0);
-        unit_check_general<R>(1, 1, 1, &cpu_0, &gpu_1);
+        R dev_ptr_result, host_ptr_result;
+        CHECK_HIP_ERROR(hipMemcpy(&dev_ptr_result, d_result, sizeof(R), hipMemcpyDeviceToHost));
+
+        host_ptr_result = h_result[0];
+
+        R cpu_0 = R(0); // 0 is invalid 1 based index
+        unit_check_general<R>(1, 1, 1, &cpu_0, &dev_ptr_result);
+        unit_check_general<R>(1, 1, 1, &cpu_0, &host_ptr_result);
 
         return;
     }
@@ -118,8 +99,8 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     host_vector<T> hx(N, incx);
 
     // Allocate device memory
-    device_vector<T>           dx(N, incx);
-    device_vector<rocblas_int> d_rocblas_result(1);
+    device_vector<T> dx(N, incx);
+    device_vector<R> d_rocblas_result(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -131,60 +112,79 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS rocblas_pointer_mode_host
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, &h_rocblas_result_1));
+        if(arg.pointer_mode_host)
+        {
+            // GPU BLAS rocblas_pointer_mode_host
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+            CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, &h_rocblas_result_host));
+        }
 
-        // GPU BLAS, rocblas_pointer_mode_device
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        handle.pre_test(arg);
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, d_rocblas_result));
-        handle.post_test(arg);
-        CHECK_HIP_ERROR(hipMemcpy(
-            &h_rocblas_result_2, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
+        if(arg.pointer_mode_device)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            handle.pre_test(arg);
+            CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, d_rocblas_result));
+            handle.post_test(arg);
+        }
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         int64_t result_i64;
         REFBLAS_FUNC(N, hx, incx, &result_i64);
-        rocblas_int cpu_result = rocblas_int(result_i64);
-        cpu_time_used          = get_time_us_no_sync() - cpu_time_used;
+        R cpu_result  = R(result_i64);
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        if(arg.unit_check)
+        if(arg.pointer_mode_host)
         {
-            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_1);
-            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_2);
+            if(arg.unit_check)
+            {
+                unit_check_general<R>(1, 1, 1, &cpu_result, &h_rocblas_result_host);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_host = h_rocblas_result_host - cpu_result;
+            }
         }
 
-        if(arg.norm_check)
+        if(arg.pointer_mode_device)
         {
-            rocblas_error_1 = h_rocblas_result_1 - cpu_result;
-            rocblas_error_2 = h_rocblas_result_2 - cpu_result;
+            CHECK_HIP_ERROR(hipMemcpy(
+                &h_rocblas_result_device, d_rocblas_result, sizeof(R), hipMemcpyDeviceToHost));
+
+            if(arg.unit_check)
+            {
+                unit_check_general<R>(1, 1, 1, &cpu_result, &h_rocblas_result_device);
+            }
+
+            if(arg.norm_check)
+            {
+                rocblas_error_device = h_rocblas_result_device - cpu_result;
+            }
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        double gpu_time_used;
 
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            func(handle, N, dx, incx, d_rocblas_result);
-        }
+        int number_cold_calls = arg.cold_iters;
+        int total_calls       = number_cold_calls + arg.iters;
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
-
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            func(handle, N, dx, incx, d_rocblas_result);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, d_rocblas_result));
         }
 
         gpu_time_used = (get_time_us_sync(stream) - gpu_time_used);
@@ -195,21 +195,67 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
                                                  ArgumentLogging::NA_value,
                                                  iamax_iamin_gbyte_count<T>(N),
                                                  cpu_time_used,
-                                                 rocblas_error_1,
-                                                 rocblas_error_2);
+                                                 rocblas_error_host,
+                                                 rocblas_error_device);
     }
+}
+
+// iamin and iamax testing don't use the DAPI pattern as result type pointers can't be used
+// for both API the same as int64->int32 for all other arguments.
+// The ILP64 API testing templates are instantiated separately for rocblas_int and int64_t API
+
+template <typename T>
+void testing_iamax_bad_arg(const Arguments& arg)
+{
+    auto rocblas_iamax_fn = arg.api == FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
+    auto rocblas_iamax_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_iamax_64<T, true> : rocblas_iamax_64<T, false>;
+
+    if(arg.api & c_API_64)
+        testing_iamax_iamin_bad_arg<T, int64_t>(arg, rocblas_iamax_fn_64);
+    else
+        testing_iamax_iamin_bad_arg<T, rocblas_int>(arg, rocblas_iamax_fn);
+}
+
+template <typename T>
+void testing_iamin_bad_arg(const Arguments& arg)
+{
+    auto rocblas_iamin_fn = arg.api == FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
+    auto rocblas_iamin_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_iamin_64<T, true> : rocblas_iamin_64<T, false>;
+
+    if(arg.api & c_API_64)
+        testing_iamax_iamin_bad_arg<T, int64_t>(arg, rocblas_iamin_fn_64);
+    else
+        testing_iamax_iamin_bad_arg<T, rocblas_int>(arg, rocblas_iamin_fn);
 }
 
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
     auto rocblas_iamax_fn = arg.api == FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
-    testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamax<T>>(arg, rocblas_iamax_fn);
+    auto rocblas_iamax_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_iamax_64<T, true> : rocblas_iamax_64<T, false>;
+
+    if(arg.api & c_API_64)
+        testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamax<T>, int64_t>(arg,
+                                                                           rocblas_iamax_fn_64);
+    else
+        testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamax<T>, rocblas_int>(arg,
+                                                                               rocblas_iamax_fn);
 }
 
 template <typename T>
 void testing_iamin(const Arguments& arg)
 {
     auto rocblas_iamin_fn = arg.api == FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
-    testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamin<T>>(arg, rocblas_iamin_fn);
+    auto rocblas_iamin_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_iamin_64<T, true> : rocblas_iamin_64<T, false>;
+
+    if(arg.api & c_API_64)
+        testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamin<T>, int64_t>(arg,
+                                                                           rocblas_iamin_fn_64);
+    else
+        testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamin<T>, rocblas_int>(arg,
+                                                                               rocblas_iamin_fn);
 }
