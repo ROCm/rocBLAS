@@ -595,18 +595,18 @@ set( rocblas64_blas1_source
   # src64/blas1/rocblas_rot_kernels.cpp
   # src64/blas1/rocblas_rot_batched.cpp
   # src64/blas1/rocblas_rot_strided_batched.cpp
-  # src64/blas1/rocblas_rotg.cpp
-  # src64/blas1/rocblas_rotg_kernels.cpp
-  # src64/blas1/rocblas_rotg_batched.cpp
-  # src64/blas1/rocblas_rotg_strided_batched.cpp
-  # src64/blas1/rocblas_rotm.cpp
-  # src64/blas1/rocblas_rotm_kernels.cpp
-  # src64/blas1/rocblas_rotm_batched.cpp
-  # src64/blas1/rocblas_rotm_strided_batched.cpp
-  # src64/blas1/rocblas_rotmg.cpp
-  # src64/blas1/rocblas_rotmg_kernels.cpp
-  # src64/blas1/rocblas_rotmg_batched.cpp
-  # src64/blas1/rocblas_rotmg_strided_batched.cpp
+  src64/blas1/rocblas_rotg_64.cpp
+  src64/blas1/rocblas_rotg_kernels_64.cpp
+  src64/blas1/rocblas_rotg_batched_64.cpp
+  src64/blas1/rocblas_rotg_strided_batched_64.cpp
+  src64/blas1/rocblas_rotm_64.cpp
+  src64/blas1/rocblas_rotm_kernels_64.cpp
+  src64/blas1/rocblas_rotm_batched_64.cpp
+  src64/blas1/rocblas_rotm_strided_batched_64.cpp
+  src64/blas1/rocblas_rotmg_64.cpp
+  src64/blas1/rocblas_rotmg_kernels_64.cpp
+  src64/blas1/rocblas_rotmg_batched_64.cpp
+  src64/blas1/rocblas_rotmg_strided_batched_64.cpp
   src64/blas1/rocblas_scal_64.cpp
   src64/blas1/rocblas_scal_kernels_64.cpp
   src64/blas1/rocblas_scal_batched_64.cpp

@@ -19,8 +19,9 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+
+#pragma once
+
 #include "blas1/rocblas_rotg.hpp"
-
-#include "blas1/rocblas_rotg_strided_batched_imp.hpp"
-
-INST_ROTG_STRIDED_BATCHED_C_API(rocblas_int);
+#include "handle.hpp"
+#include "rocblas.h"
