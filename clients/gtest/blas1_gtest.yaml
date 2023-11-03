@@ -249,7 +249,7 @@ Tests:
     function:
       - axpy: *single_precision
     pointer_mode_device: false
-    api: INTERNAL
+    api: [ INTERNAL, INTERNAL_64 ]
 
   - name: blas1_axpy_large_batch
     category: pre_checkin
@@ -345,6 +345,41 @@ Tests:
     stride_scale: [ 1 ]
     function:
       - axpy_strided_batched_ex: *bfloat_half_single_double_complex_real_precisions
+
+# nightly - 64-bit (only testing interface, not 64-bit sizes yet)
+  - name: axpy_64
+    category: nightly
+    N: [ 64 ]
+    incx_incy: *incx_incy_range_small
+    alpha_beta: *alpha_beta_range_small
+    api: [ C_64, FORTRAN_64 ]
+    function:
+      - axpy: *half_single_precisions_complex_real
+      - axpy_ex: *bfloat_half_single_double_complex_real_precisions
+      - axpy_batched: *half_single_precisions_complex_real
+      - axpy_batched_ex: *bfloat_half_single_double_complex_real_precisions
+      - axpy_strided_batched: *half_single_precisions_complex_real
+      - axpy_strided_batched_ex: *bfloat_half_single_double_complex_real_precisions
+
+  - name: axpy_64
+    category: stress
+    arguments:
+      - { N: 2147483649, incx:  1, incy:  1, batch_count: 1 }
+      - { N: 2147483649, incx: -1, incy: -1, batch_count: 1 }
+      - { N: 2, incx:  2147483649, incy:  1, batch_count: 1 }
+      - { N: 2, incx:  1, incy:  2147483649, batch_count: 1 }
+      - { N: 2, incx:  1, incy:  1, stride_x: 2, stride_y: 2, batch_count: *c_grid_yz_require_passes }
+      - { N: 2, incx: -2147483649, incy:  1, batch_count: 1 }
+      - { N: 2, incx:  1, incy: -2147483649, batch_count: 1 }
+    alpha_beta: *alpha_beta_range_small
+    api: [ C_64 ]
+    function:
+      - axpy: *single_precision
+      - axpy_ex: *single_precision
+      - axpy_batched: *single_precision
+      - axpy_batched_ex: *single_precision
+      - axpy_strided_batched: *single_precision
+      - axpy_strided_batched_ex: *single_precision
 
 # All functions with alpha and incx but no incy
 
@@ -1406,6 +1441,16 @@ Tests:
       - rot_strided_batched_bad_arg:   *rot_precisions
       - rot_strided_batched_ex_bad_arg: *rot_ex_precisions
 
+  - name: blas1_64_bad_arg
+    category: pre_checkin
+    api: [ FORTRAN_64 ]
+    function:
+      - axpy_bad_arg: *half_single_precisions_complex_real
+      - axpy_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
+      - axpy_batched_bad_arg: *half_single_precisions_complex_real
+      - axpy_batched_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
+      - axpy_strided_batched_bad_arg: *half_single_precisions_complex_real
+      - axpy_strided_batched_ex_bad_arg: *bfloat_half_single_double_complex_real_precisions
 
   - name: blas1_graph_test
     category: pre_checkin

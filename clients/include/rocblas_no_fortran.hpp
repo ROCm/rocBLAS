@@ -28,6 +28,10 @@
 #define rocblas_axpy_batched_ex_fortran rocblas_axpy_batched_ex
 #define rocblas_axpy_strided_batched_ex_fortran rocblas_axpy_strided_batched_ex
 
+#define rocblas_axpy_ex_64_fortran rocblas_axpy_ex_64
+#define rocblas_axpy_batched_ex_64_fortran rocblas_axpy_batched_ex_64
+#define rocblas_axpy_strided_batched_ex_64_fortran rocblas_axpy_strided_batched_ex_64
+
 #define rocblas_dot_ex_fortran rocblas_dot_ex
 #define rocblas_dotc_ex_fortran rocblas_dotc_ex
 #define rocblas_dot_batched_ex_fortran rocblas_dot_batched_ex
