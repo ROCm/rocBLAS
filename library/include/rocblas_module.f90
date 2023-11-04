@@ -1003,6 +1003,71 @@ module rocblas
         end function rocblas_zcopy
     end interface
 
+    ! copy 64
+    interface
+        function rocblas_scopy_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_scopy_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scopy_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_scopy_64
+    end interface
+
+    interface
+        function rocblas_dcopy_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_dcopy_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dcopy_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_dcopy_64
+    end interface
+
+    interface
+        function rocblas_ccopy_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_ccopy_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ccopy_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_ccopy_64
+    end interface
+
+    interface
+        function rocblas_zcopy_64(handle, n, x, incx, y, incy) &
+            bind(c, name='rocblas_zcopy_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zcopy_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+        end function rocblas_zcopy_64
+    end interface
+
     ! copy_batched
     interface
         function rocblas_scopy_batched(handle, n, x, incx, y, incy, batch_count) &
@@ -1070,6 +1135,75 @@ module rocblas
             integer(c_int), value :: incy
             integer(c_int), value :: batch_count
         end function rocblas_zcopy_batched
+    end interface
+
+    ! copy_batched_64
+    interface
+        function rocblas_scopy_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_scopy_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scopy_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_scopy_batched_64
+    end interface
+
+    interface
+        function rocblas_dcopy_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_dcopy_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dcopy_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dcopy_batched_64
+    end interface
+
+    interface
+        function rocblas_ccopy_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_ccopy_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ccopy_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ccopy_batched_64
+    end interface
+
+    interface
+        function rocblas_zcopy_batched_64(handle, n, x, incx, y, incy, batch_count) &
+            bind(c, name='rocblas_zcopy_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zcopy_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zcopy_batched_64
     end interface
 
     ! copy_strided_batched
@@ -1147,6 +1281,83 @@ module rocblas
             integer(c_int64_t), value :: stride_y
             integer(c_int), value :: batch_count
         end function rocblas_zcopy_strided_batched
+    end interface
+
+    ! copy_strided_batched_64
+    interface
+        function rocblas_scopy_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_scopy_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_scopy_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_scopy_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_dcopy_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_dcopy_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_dcopy_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_dcopy_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_ccopy_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_ccopy_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_ccopy_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_ccopy_strided_batched_64
+    end interface
+
+    interface
+        function rocblas_zcopy_strided_batched_64(handle, n, x, incx, stride_x, y, incy, stride_y, batch_count) &
+            bind(c, name='rocblas_zcopy_strided_batched_64')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            integer(kind(rocblas_status_success)) :: rocblas_zcopy_strided_batched_64
+            type(c_ptr), value :: handle
+            integer(c_int64_t), value :: n
+            type(c_ptr), value :: x
+            integer(c_int64_t), value :: incx
+            integer(c_int64_t), value :: stride_x
+            type(c_ptr), value :: y
+            integer(c_int64_t), value :: incy
+            integer(c_int64_t), value :: stride_y
+            integer(c_int64_t), value :: batch_count
+        end function rocblas_zcopy_strided_batched_64
     end interface
 
     ! dot

@@ -312,11 +312,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
         return rocblas_status_success;
 
     // First we make a copy of x so we can avoid RAW race conditions in the kernel
-    int  copy_blocks = (n - 1) / 256 + 1;
-    dim3 copy_grid(copy_blocks, batch_count);
-    dim3 copy_threads(256);
-
-    rocblas_status status = rocblas_copy_template<256>(
+    rocblas_status status = rocblas_internal_copy_template<rocblas_int>(
         handle, n, x, offsetx, incx, stridex, w_x_copy, 0, 1, n, batch_count);
 
     if(status != rocblas_status_success)

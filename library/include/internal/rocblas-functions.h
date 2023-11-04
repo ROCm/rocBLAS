@@ -402,6 +402,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched_64(rocblas_handle  
     incy      [rocblas_int]
               specifies the increment for the elements of y.
 
+    This function supports the 64-bit integer interface (ILP64).
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scopy(rocblas_handle handle,
                                             rocblas_int    n,
@@ -430,6 +432,26 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
                                             rocblas_int                   incx,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy_64(
+    rocblas_handle handle, int64_t n, const float* x, int64_t incx, float* y, int64_t incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy_64(
+    rocblas_handle handle, int64_t n, const double* x, int64_t incx, double* y, int64_t incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy_64(rocblas_handle               handle,
+                                               int64_t                      n,
+                                               const rocblas_float_complex* x,
+                                               int64_t                      incx,
+                                               rocblas_float_complex*       y,
+                                               int64_t                      incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zcopy_64(rocblas_handle                handle,
+                                               int64_t                       n,
+                                               const rocblas_double_complex* x,
+                                               int64_t                       incx,
+                                               rocblas_double_complex*       y,
+                                               int64_t                       incy);
 //! @}
 
 /*! @{
@@ -461,6 +483,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
+
+    This function supports the 64-bit integer interface (ILP64).
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
@@ -494,6 +518,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched_64(rocblas_handle     handle,
+                                                       int64_t            n,
+                                                       const float* const x[],
+                                                       int64_t            incx,
+                                                       float* const       y[],
+                                                       int64_t            incy,
+                                                       int64_t            batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched_64(rocblas_handle      handle,
+                                                       int64_t             n,
+                                                       const double* const x[],
+                                                       int64_t             incx,
+                                                       double* const       y[],
+                                                       int64_t             incy,
+                                                       int64_t             batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched_64(rocblas_handle                     handle,
+                                                       int64_t                            n,
+                                                       const rocblas_float_complex* const x[],
+                                                       int64_t                            incx,
+                                                       rocblas_float_complex* const       y[],
+                                                       int64_t                            incy,
+                                                       int64_t batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched_64(rocblas_handle                      handle,
+                                                       int64_t                             n,
+                                                       const rocblas_double_complex* const x[],
+                                                       int64_t                             incx,
+                                                       rocblas_double_complex* const       y[],
+                                                       int64_t                             incy,
+                                                       int64_t batch_count);
 //! @}
 
 /*! @{
@@ -537,6 +593,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
     batch_count [rocblas_int]
                 number of instances in the batch.
 
+    This function supports the 64-bit integer interface (ILP64).
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
@@ -577,6 +635,46 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stridey,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched_64(rocblas_handle handle,
+                                                               int64_t        n,
+                                                               const float*   x,
+                                                               int64_t        incx,
+                                                               rocblas_stride stridex,
+                                                               float*         y,
+                                                               int64_t        incy,
+                                                               rocblas_stride stridey,
+                                                               int64_t        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy_strided_batched_64(rocblas_handle handle,
+                                                               int64_t        n,
+                                                               const double*  x,
+                                                               int64_t        incx,
+                                                               rocblas_stride stridex,
+                                                               double*        y,
+                                                               int64_t        incy,
+                                                               rocblas_stride stridey,
+                                                               int64_t        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy_strided_batched_64(rocblas_handle               handle,
+                                                               int64_t                      n,
+                                                               const rocblas_float_complex* x,
+                                                               int64_t                      incx,
+                                                               rocblas_stride               stridex,
+                                                               rocblas_float_complex*       y,
+                                                               int64_t                      incy,
+                                                               rocblas_stride               stridey,
+                                                               int64_t batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched_64(rocblas_handle                handle,
+                                                               int64_t                       n,
+                                                               const rocblas_double_complex* x,
+                                                               int64_t                       incx,
+                                                               rocblas_stride          stridex,
+                                                               rocblas_double_complex* y,
+                                                               int64_t                 incy,
+                                                               rocblas_stride          stridey,
+                                                               int64_t                 batch_count);
 //! @}
 
 /*! @{

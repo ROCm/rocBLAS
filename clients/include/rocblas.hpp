@@ -265,10 +265,14 @@ template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_copy)(
     rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy);
 
-MAP2CF(rocblas_copy, float, rocblas_scopy);
-MAP2CF(rocblas_copy, double, rocblas_dcopy);
-MAP2CF(rocblas_copy, rocblas_float_complex, rocblas_ccopy);
-MAP2CF(rocblas_copy, rocblas_double_complex, rocblas_zcopy);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_copy_64)(
+    rocblas_handle handle, int64_t n, const T* x, int64_t incx, T* y, int64_t incy);
+
+MAP2CF_D64(rocblas_copy, float, rocblas_scopy);
+MAP2CF_D64(rocblas_copy, double, rocblas_dcopy);
+MAP2CF_D64(rocblas_copy, rocblas_float_complex, rocblas_ccopy);
+MAP2CF_D64(rocblas_copy, rocblas_double_complex, rocblas_zcopy);
 
 template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_copy_batched)(rocblas_handle handle,
@@ -279,10 +283,19 @@ static rocblas_status (*rocblas_copy_batched)(rocblas_handle handle,
                                               rocblas_int    incy,
                                               rocblas_int    batch_count);
 
-MAP2CF(rocblas_copy_batched, float, rocblas_scopy_batched);
-MAP2CF(rocblas_copy_batched, double, rocblas_dcopy_batched);
-MAP2CF(rocblas_copy_batched, rocblas_float_complex, rocblas_ccopy_batched);
-MAP2CF(rocblas_copy_batched, rocblas_double_complex, rocblas_zcopy_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_copy_batched_64)(rocblas_handle handle,
+                                                 int64_t        n,
+                                                 const T* const x[],
+                                                 int64_t        incx,
+                                                 T* const       y[],
+                                                 int64_t        incy,
+                                                 int64_t        batch_count);
+
+MAP2CF_D64(rocblas_copy_batched, float, rocblas_scopy_batched);
+MAP2CF_D64(rocblas_copy_batched, double, rocblas_dcopy_batched);
+MAP2CF_D64(rocblas_copy_batched, rocblas_float_complex, rocblas_ccopy_batched);
+MAP2CF_D64(rocblas_copy_batched, rocblas_double_complex, rocblas_zcopy_batched);
 
 template <typename T, bool FORTRAN = false>
 static rocblas_status (*rocblas_copy_strided_batched)(rocblas_handle handle,
@@ -295,10 +308,21 @@ static rocblas_status (*rocblas_copy_strided_batched)(rocblas_handle handle,
                                                       rocblas_stride stridey,
                                                       rocblas_int    batch_count);
 
-MAP2CF(rocblas_copy_strided_batched, float, rocblas_scopy_strided_batched);
-MAP2CF(rocblas_copy_strided_batched, double, rocblas_dcopy_strided_batched);
-MAP2CF(rocblas_copy_strided_batched, rocblas_float_complex, rocblas_ccopy_strided_batched);
-MAP2CF(rocblas_copy_strided_batched, rocblas_double_complex, rocblas_zcopy_strided_batched);
+template <typename T, bool FORTRAN = false>
+static rocblas_status (*rocblas_copy_strided_batched_64)(rocblas_handle handle,
+                                                         int64_t        n,
+                                                         const T*       x,
+                                                         int64_t        incx,
+                                                         rocblas_stride stridex,
+                                                         T*             y,
+                                                         int64_t        incy,
+                                                         rocblas_stride stridey,
+                                                         int64_t        batch_count);
+
+MAP2CF_D64(rocblas_copy_strided_batched, float, rocblas_scopy_strided_batched);
+MAP2CF_D64(rocblas_copy_strided_batched, double, rocblas_dcopy_strided_batched);
+MAP2CF_D64(rocblas_copy_strided_batched, rocblas_float_complex, rocblas_ccopy_strided_batched);
+MAP2CF_D64(rocblas_copy_strided_batched, rocblas_double_complex, rocblas_zcopy_strided_batched);
 
 // swap
 template <typename T, bool FORTRAN = false>

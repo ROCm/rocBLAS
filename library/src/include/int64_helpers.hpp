@@ -62,12 +62,27 @@ constexpr int64_t c_i32_min = int64_t(std::numeric_limits<int32_t>::min());
 // For device pointers (used by non-batched and _strided_batched functions)
 template <typename T>
 __forceinline__ __device__ __host__ auto
+    adjust_ptr_batch(T const* p, int64_t block, rocblas_stride stride)
+{
+    return p + block * stride;
+}
+
+template <typename T>
+__forceinline__ __device__ __host__ auto
     adjust_ptr_batch(T* p, int64_t block, rocblas_stride stride)
 {
     return p + block * stride;
 }
 
 // For device array of device pointers (used by _batched functions)
+
+template <typename T>
+__forceinline__ __device__ __host__ auto
+    adjust_ptr_batch(T const* const* p, int64_t block, rocblas_stride stride)
+{
+    return p + block;
+}
+
 template <typename T>
 __forceinline__ __device__ __host__ auto
     adjust_ptr_batch(T* const* p, int64_t block, rocblas_stride stride)
