@@ -19,8 +19,9 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
-#include "blas1/rocblas_copy.hpp"
 
-#include "blas1/rocblas_copy_strided_batched_imp.hpp"
+#include "rocblas_copy_64.hpp"
 
-INST_COPY_STRIDED_BATCHED_C_API(rocblas_int);
+#include "blas1/rocblas_copy_batched_imp.hpp"
+
+INST_COPY_BATCHED_C_API(int64_t);

@@ -584,10 +584,10 @@ set( rocblas64_blas1_source
   src64/blas1/rocblas_axpy_kernels_64.cpp
   src64/blas1/rocblas_axpy_batched_64.cpp
   src64/blas1/rocblas_axpy_strided_batched_64.cpp
-  # src64/blas1/rocblas_copy.cpp
-  # src64/blas1/rocblas_copy_kernels.cpp
-  # src64/blas1/rocblas_copy_batched.cpp
-  # src64/blas1/rocblas_copy_strided_batched.cpp
+  src64/blas1/rocblas_copy_64.cpp
+  src64/blas1/rocblas_copy_kernels_64.cpp
+  src64/blas1/rocblas_copy_batched_64.cpp
+  src64/blas1/rocblas_copy_strided_batched_64.cpp
   src64/blas1/rocblas_dot_64.cpp
   src64/blas1/rocblas_dot_kernels_64.cpp
   src64/blas1/rocblas_dot_strided_batched_64.cpp

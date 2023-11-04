@@ -22,58 +22,50 @@
 
 #pragma once
 
-#include "bytes.hpp"
-#include "cblas_interface.hpp"
-#include "flops.hpp"
-#include "norm.hpp"
-#include "rocblas.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_test.hpp"
-#include "rocblas_vector.hpp"
-#include "unit.hpp"
-#include "utility.hpp"
+#include "testing_common.hpp"
 
 template <typename T>
 void testing_copy_bad_arg(const Arguments& arg)
 {
     auto rocblas_copy_fn = arg.api == FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
+    auto rocblas_copy_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_copy_64<T, true> : rocblas_copy_64<T, false>;
 
     rocblas_local_handle handle{arg};
 
-    rocblas_int N    = 100;
-    rocblas_int incx = 1;
-    rocblas_int incy = 1;
+    int64_t N    = 100;
+    int64_t incx = 1;
+    int64_t incy = 1;
 
     device_vector<T> dx(N);
     device_vector<T> dy(N);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(nullptr, N, dx, incx, dy, incy),
-                          rocblas_status_invalid_handle);
+    DAPI_EXPECT(rocblas_status_invalid_handle, rocblas_copy_fn, (nullptr, N, dx, incx, dy, incy));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(handle, N, nullptr, incx, dy, incy),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(handle, N, dx, incx, nullptr, incy),
-                          rocblas_status_invalid_pointer);
+    DAPI_EXPECT(
+        rocblas_status_invalid_pointer, rocblas_copy_fn, (handle, N, nullptr, incx, dy, incy));
+    DAPI_EXPECT(
+        rocblas_status_invalid_pointer, rocblas_copy_fn, (handle, N, dx, incx, nullptr, incy));
 }
 
 template <typename T>
 void testing_copy(const Arguments& arg)
 {
     auto rocblas_copy_fn = arg.api == FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
+    auto rocblas_copy_fn_64
+        = arg.api == FORTRAN_64 ? rocblas_copy_64<T, true> : rocblas_copy_64<T, false>;
 
-    rocblas_int          N    = arg.N;
-    rocblas_int          incx = arg.incx;
-    rocblas_int          incy = arg.incy;
+    int64_t              N    = arg.N;
+    int64_t              incx = arg.incx;
+    int64_t              incy = arg.incy;
     rocblas_local_handle handle{arg};
 
     // Argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_copy_fn(handle, N, nullptr, incx, nullptr, incy));
+        DAPI_CHECK(rocblas_copy_fn, (handle, N, nullptr, incx, nullptr, incy));
         return;
     }
 
@@ -103,15 +95,16 @@ void testing_copy(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-    double gpu_time_used, cpu_time_used;
+    double cpu_time_used;
     double rocblas_error = 0.0;
 
     if(arg.unit_check || arg.norm_check)
     {
         handle.pre_test(arg);
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(rocblas_copy_fn(handle, N, dx, incx, dy, incy));
+        DAPI_CHECK(rocblas_copy_fn, (handle, N, dx, incx, dy, incy));
         handle.post_test(arg);
+
         CHECK_HIP_ERROR(hy.transfer_from(dy));
 
         // CPU BLAS
@@ -132,21 +125,19 @@ void testing_copy(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = arg.cold_iters;
-        int number_hot_calls  = arg.iters;
-
-        for(int iter = 0; iter < number_cold_calls; iter++)
-        {
-            rocblas_copy_fn(handle, N, dx, incx, dy, incy);
-        }
+        double gpu_time_used;
+        int    number_cold_calls = arg.cold_iters;
+        int    total_calls       = number_cold_calls + arg.iters;
 
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_hot_calls; iter++)
+        for(int iter = 0; iter < total_calls; iter++)
         {
-            rocblas_copy_fn(handle, N, dx, incx, dy, incy);
+            if(iter == number_cold_calls)
+                gpu_time_used = get_time_us_sync(stream);
+
+            DAPI_DISPATCH(rocblas_copy_fn, (handle, N, dx, incx, dy, incy));
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;

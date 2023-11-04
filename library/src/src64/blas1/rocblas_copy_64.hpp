@@ -19,8 +19,10 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ************************************************************************ */
+
+#pragma once
+
+#include "handle.hpp"
+#include "rocblas.h"
+
 #include "blas1/rocblas_copy.hpp"
-
-#include "blas1/rocblas_copy_strided_batched_imp.hpp"
-
-INST_COPY_STRIDED_BATCHED_C_API(rocblas_int);
