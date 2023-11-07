@@ -224,7 +224,18 @@ void testing_syrk(const Arguments& arg)
     size_t rows = (transA == rocblas_operation_none ? N : std::max(K, 1));
     size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
 
-    // Naming: `h` is in CPU (host) memory(eg hA), `d` is in GPU (device) memory (eg dA).
+    // matrix and flush sizes
+    size_t stride_a    = lda * cols;
+    size_t stride_c    = ldc * N;
+    size_t flush_count = 1;
+    if(arg.timing)
+    {
+        size_t a_c_size   = (stride_a + stride_c) * sizeof(T);
+        size_t flush_size = arg.flush_size > 0 ? arg.flush_size : 1;
+        flush_count       = 1 + ((flush_size - 1) / a_c_size);
+        rocblas_cout << "flush_count = " << flush_count << std::endl;
+    }
+
     // Allocate host memory
     host_matrix<T> hA(rows, cols, lda);
     host_matrix<T> hC(N, N, ldc);
@@ -232,15 +243,16 @@ void testing_syrk(const Arguments& arg)
     host_vector<T> h_alpha(1);
     host_vector<T> h_beta(1);
 
-    // Initial Data on CPU
-    h_alpha[0] = alpha;
-    h_beta[0]  = beta;
+    // Check host memory allocation
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hC.memcheck());
+    CHECK_HIP_ERROR(hC_gold.memcheck());
 
     // Allocate device memory
-    device_matrix<T> dA(rows, cols, lda);
-    device_matrix<T> dC(N, N, ldc);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    device_strided_batch_matrix<T> dA(rows, cols, lda, stride_a, flush_count);
+    device_strided_batch_matrix<T> dC(N, N, ldc, stride_c, flush_count);
+    device_vector<T>               d_alpha(1);
+    device_vector<T>               d_beta(1);
 
     // Check device memory allocation
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
@@ -248,16 +260,19 @@ void testing_syrk(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
+    // Initial Data on CPU
+    h_alpha[0] = alpha;
+    h_beta[0]  = beta;
+
     // Initialize data on host memory
     rocblas_init_matrix(
         hA, arg, rocblas_client_alpha_sets_nan, rocblas_client_general_matrix, true, true);
     rocblas_init_matrix(
         hC, arg, rocblas_client_beta_sets_nan, rocblas_client_symmetric_matrix, false, true);
-
     hC_gold = hC;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dA.broadcast_one_matrix_from(hA));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -265,25 +280,25 @@ void testing_syrk(const Arguments& arg)
         {
             // host alpha/beta
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_HIP_ERROR(dC.transfer_from(hC));
+            CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC_gold));
             handle.pre_test(arg);
             CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
-                handle, uplo, transA, N, K, &h_alpha[0], dA, lda, &h_beta[0], dC, ldc));
+                handle, uplo, transA, N, K, &h_alpha[0], dA[0], lda, &h_beta[0], dC[0], ldc));
             handle.post_test(arg);
             // copy output from device to CPU
-            CHECK_HIP_ERROR(hC.transfer_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_one_matrix_from(dC));
         }
 
         if(arg.pointer_mode_device)
         {
             // device alpha/beta
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+            CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC_gold));
             CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
             CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-            CHECK_ROCBLAS_ERROR(
-                rocblas_syrk_fn(handle, uplo, transA, N, K, d_alpha, dA, lda, d_beta, dC, ldc));
+            CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
+                handle, uplo, transA, N, K, d_alpha, dA[0], lda, d_beta, dC[0], ldc));
         }
 
         // CPU BLAS
@@ -319,7 +334,7 @@ void testing_syrk(const Arguments& arg)
         if(arg.pointer_mode_host)
         {
             // copy output from device to CPU
-            CHECK_HIP_ERROR(hC.transfer_from(dC));
+            CHECK_HIP_ERROR(hC.transfer_one_matrix_from(dC));
 
             if(arg.unit_check)
             {
@@ -342,10 +357,6 @@ void testing_syrk(const Arguments& arg)
             }
         }
     }
-    else
-    {
-        CHECK_HIP_ERROR(dC.transfer_from(hC));
-    }
 
     if(arg.timing)
     {
@@ -353,11 +364,11 @@ void testing_syrk(const Arguments& arg)
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(dC.transfer_from(hC));
+        CHECK_HIP_ERROR(dC.broadcast_one_matrix_from(hC));
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_syrk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, h_beta, dC, ldc);
+            rocblas_syrk_fn(handle, uplo, transA, N, K, h_alpha, dA[0], lda, h_beta, dC[0], ldc);
         }
 
         hipStream_t stream;
@@ -365,7 +376,18 @@ void testing_syrk(const Arguments& arg)
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_syrk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, h_beta, dC, ldc);
+            int flush_index = (i + 1) % flush_count;
+            rocblas_syrk_fn(handle,
+                            uplo,
+                            transA,
+                            N,
+                            K,
+                            h_alpha,
+                            dA[flush_index],
+                            lda,
+                            h_beta,
+                            dC[flush_index],
+                            ldc);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 

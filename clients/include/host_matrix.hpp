@@ -98,6 +98,24 @@ struct host_matrix : std::vector<T, host_memory_allocator<T>>
     }
 
     //!
+    //! @brief Transfer only the first matrix from a device_strided_batch matrix.
+    //! @param  that That device_strided_batch matrix.
+    //! @return the hip error.
+    //!
+    hipError_t transfer_one_matrix_from(const device_strided_batch_matrix<T>& that)
+    {
+        hipError_t hip_err;
+
+        if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
+            return hip_err;
+
+        return hipMemcpy(*this,
+                         that,
+                         sizeof(T) * this->size(),
+                         that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost);
+    }
+
+    //!
     //! @brief Returns the rows of the Matrix.
     //!
     size_t m() const

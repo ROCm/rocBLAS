@@ -1494,6 +1494,7 @@ try
     bool        log_datatype        = false;
     bool        any_stride          = false;
     uint32_t    math_mode           = 0;
+    uint64_t    flush_size          = 0;
     bool        fortran             = false;
 
     arg.init(); // set all defaults
@@ -1741,6 +1742,10 @@ try
         ("math_mode",
          value<uint32_t>(&arg.math_mode)->default_value(rocblas_default_math),
          "extended precision gemm math mode")
+
+        ("flush_size",
+         value<uint64_t>(&arg.flush_size)->default_value(0),
+         "number of bytes of cache to flush for context sensitive benchmarking")
 
         ("name_filter",
          value<std::string>(&name_filter),

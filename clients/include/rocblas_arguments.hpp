@@ -153,6 +153,9 @@ struct Arguments
 
     uint32_t math_mode;
 
+    // number of bytes of cache to flush for context sensitive benchmarking
+    uint64_t flush_size;
+
     // 16 bit
     uint16_t threads;
     uint16_t streams;
@@ -243,6 +246,7 @@ struct Arguments
     OPER(api) SEP                    \
     OPER(pad) SEP                    \
     OPER(math_mode) SEP              \
+    OPER(flush_size) SEP             \
     OPER(threads) SEP                \
     OPER(streams) SEP                \
     OPER(devices) SEP                \
